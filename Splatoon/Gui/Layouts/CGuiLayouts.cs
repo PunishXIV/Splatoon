@@ -243,7 +243,7 @@ partial class CGui
                             groupToRemove = i;
                         }
                         ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
-                        if (ImGui.Selectable("Export Group".Loc()))
+                        /*if (ImGui.Selectable("Export Group".Loc()))
                         {
                             var exporttext = "~Lv3~";
                             foreach (var l in P.Config.LayoutsL)
@@ -256,7 +256,7 @@ partial class CGui
                                 }
                             }
                             ImGui.SetClipboardText(exporttext);
-                        }
+                        }*/
                         ImGui.EndPopup();
                     }
                     for (var n = 0; n < takenLayouts.Length; n++)

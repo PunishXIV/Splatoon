@@ -25,7 +25,7 @@
 			powershell "(Get-Content .\$(MSBuildProjectName).json) -Replace '9.0.0.0', '$(Version)' | Set-Content .\$(MSBuildProjectName).json"
 			powershell Compress-Archive .\* ..\$(MSBuildProjectName)-$(Version).zip
 			mkdir .\Release
-			move ..\$(MSBuildProjectName)-$(Version).zip .\release\$(MSBuildProjectName).zip
+			move ..\$(MSBuildProjectName)-$(Version).zip .\release\latest.zip
 		</PostBuildEvent>
 	</PropertyGroup>
 
@@ -37,10 +37,6 @@
 	<PropertyGroup>
 		<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
 	</PropertyGroup>
-
-	<ItemGroup>
-	  <None Remove="SplatoonScripting\ScriptingProcessor.cs~RF388aa47b.TMP" />
-	</ItemGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" />
@@ -115,6 +111,4 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
-
-	<ProjectExtensions><VisualStudio><UserProperties splatoon_1json__JsonSchema="https://carafe.fm/schema/draft-02/bundle.schema.json" /></VisualStudio></ProjectExtensions>
 </Project>

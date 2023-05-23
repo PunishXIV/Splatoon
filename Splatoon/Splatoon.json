@@ -10,7 +10,7 @@
 		"InternalName": "Splatoon",
 		"RepoUrl": "https://github.com/PunishXIV/Splatoon",
 		"ApplicableVersion": "any",
-		"Version": "9.0.0.0",
+		"AssemblyVersion": "9.0.0.0",
 		"DalamudApiLevel": 8,
 		"LastUpdate": 1684437468,
 		"DownloadLinkInstall": "https://love.puni.sh/plugins/Splatoon/latest.zip",

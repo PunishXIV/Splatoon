@@ -8,8 +8,7 @@
 				"Accessibility"
 		],
 		"InternalName": "Splatoon",
-		"AssemblyVersion": "3.2.1.3",
-		"RepoUrl": "https://github.com/NightmareXIV/Splatoon",
+		"RepoUrl": "https://github.com/PunishXIV/Splatoon",
 		"ApplicableVersion": "any",
 		"DalamudApiLevel": 8,
 		"LastUpdate": 1684437468,

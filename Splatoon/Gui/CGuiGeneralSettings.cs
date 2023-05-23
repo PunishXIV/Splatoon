@@ -55,7 +55,7 @@ partial class CGui
         ImGui.SetNextItemWidth(250f);
         if (ImGui.Button("Open web API guide".Loc()))
         {
-            ProcessStart("https://github.com/NightmareXIV/Splatoon#web-api-beta");
+            ProcessStart("https://github.com/PunishXIV/Splatoon#web-api-beta");
         }
 
         if(ImGui.Checkbox("Enable logging".Loc(), ref P.Config.Logging))
@@ -190,7 +190,7 @@ partial class CGui
         ImGui.SameLine();
         if (ImGui.Button("Github".Loc()))
         {
-            ProcessStart("https://github.com/NightmareXIV/Splatoon/issues");
+            ProcessStart("https://github.com/PunishXIV/Splatoon/issues");
         }
         ImGui.SameLine();
         if (ImGui.Button("Discord".Loc()))

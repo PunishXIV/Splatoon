@@ -2,8 +2,11 @@
 using Dalamud.Logging;
 using ECommons;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Schedulers;
+using Lumina.Excel.GeneratedSheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Concurrent;
@@ -36,6 +39,68 @@ namespace SplatoonScriptsOfficial.Tests
             Client?.Dispose();
         }
 
+        public override void OnActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage)
+        {
+            //effect|id|name|actor_id|actor_name|x|y|z|facing|target_id|target_name|
+            var str = new StringBuilder("effect|")
+                .Append(ActionID)
+                .Append('|')
+                .Append(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(ActionID)?.Name ?? "")
+                .Append('|')
+                .Append(sourceID.GetObject()?.Name.ToString())
+                .Append('|')
+                .Append(sourceID.GetObject()?.Position.X ?? 0)
+                .Append('|')
+                .Append(sourceID.GetObject()?.Position.Y ?? 0)
+                .Append('|')
+                .Append(sourceID.GetObject()?.Position.Z ?? 0)
+                .Append('|')
+                .Append(sourceID.GetObject()?.Rotation)
+                .Append('|')
+                .Append(targetOID)
+                .Append('|')
+                .Append(Svc.Objects.FirstOrDefault(x => (long)(x.Struct()->GetObjectID()) == (long)targetOID)?.Name ?? "");
+            Send(str);
+        }
+
+        public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+        {
+            //tether|id|target_one_id|target_one_name|target_one_type|target_two_id|target_two_name|target_two_type
+            var str = new StringBuilder("tether|")
+                .Append(data2)
+                .Append('|')
+                .Append(source)
+                .Append('|')
+                .Append(source.GetObject()?.Name ?? "")
+                .Append('|')
+                .Append(target)
+                .Append('|')
+                .Append(target.GetObject()?.Name ?? "")
+                .Append('|')
+                .Append(target.GetObject()?.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player);
+            Send(str);
+        }
+
+        public override void OnTetherRemoval(uint source, byte data2, byte data3, byte data5)
+        {
+            this.OnTetherCreate(source, 0xE0000000, data2, data3, data5);
+        }
+
+        public override void OnMapEffect(uint position, ushort data1, ushort data2)
+        {
+            var str = $"mapevent|{position}|{data1}|{data2}";
+            Send(str);
+        }
+
+        public override void OnVFXSpawn(uint target, string vfxPath)
+        {
+            if(target.GetObject()?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
+            {
+                var str = $"vfx|{target}|{target.GetObject()?.Name ?? ""}|{vfxPath}";
+                Send(str);
+            }
+        }
+
         public override void OnObjectCreation(nint newObjectPtr)
         {
             new TickScheduler(delegate
@@ -57,14 +122,21 @@ namespace SplatoonScriptsOfficial.Tests
                         $"{obj.Position.Z}",
                         $"{obj.Rotation}"
                     }.Join("|");
-                    PluginLog.Verbose($"Sending {str}");
-                    Client?.SendAsync(new HttpRequestMessage()
-                    {
-                        Content = new StringContent(str),
-                        RequestUri = new("http://127.0.0.1:8080/")
-                    });
+                    Send(str);
                 }
             });
         }
+
+        void Send(string str)
+        {
+            PluginLog.Verbose($"Sending {str}");
+            Client?.SendAsync(new HttpRequestMessage()
+            {
+                Content = new StringContent(str),
+                RequestUri = new("http://127.0.0.1:8080/")
+            });
+        }
+
+        void Send(StringBuilder str) => Send(str.ToString());
     }
 }

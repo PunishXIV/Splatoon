@@ -6,7 +6,7 @@ internal class Contribute
 {
     internal static void OpenGithubPresetSubmit()
     {
-        var url = "https://github.com/NightmareXIV/Splatoon/tree/master/Presets#adding-your-preset";
+        var url = "https://github.com/PunishXIV/Splatoon/tree/main/Presets#adding-your-preset";
         Svc.Chat.Print("[Splatoon] How to submit your preset: ".Loc() + url);
         ProcessStart(url);
     }
@@ -48,17 +48,17 @@ internal class Contribute
         ImGuiEx.Text("To do so, all you need is Github account. After logging in, proceed to the links below and click \"Star\" button in top right corner of the page.".Loc());
         if (ImGui.Button("Open Splatoon repo".Loc()))
         {
-            var url = "https://github.com/NightmareXIV/Splatoon";
+            var url = "https://github.com/PunishXIV/Splatoon";
             Svc.Chat.Print("[Splatoon] Splatoon repo: ".Loc() + url);
             ProcessStart(url);
         }
-        ImGui.SameLine();
+        /*ImGui.SameLine();
         if (ImGui.Button("Open NightmareXIV plugins repo".Loc()))
         {
             var url = "https://github.com/NightmareXIV/MyDalamudPlugins";
             Svc.Chat.Print("[Splatoon] NightmareXIV plugin repo: ".Loc() + url);
             ProcessStart(url);
-        }
+        }*/
         ImGui.Separator();
         ImGuiEx.Text("- Financial".Loc());
         ImGuiEx.Text("Should you like my work and have a coin to spare, I will be happy to accept it. Please note that work on the plugin will continue regardless of donations; I do not require them.".Loc());

@@ -17,7 +17,10 @@ internal static class ScriptingProcessor
     {
         "https://github.com/NightmareXIV/",
         "https://www.github.com/NightmareXIV/",
-        "https://raw.githubusercontent.com/NightmareXIV/"
+        "https://raw.githubusercontent.com/NightmareXIV/",
+        "https://github.com/PunishXIV/",
+        "https://www.github.com/PunishXIV/",
+        "https://raw.githubusercontent.com/PunishXIV/",
     };
     internal static ImmutableList<BlacklistData> Blacklist = ImmutableList<BlacklistData>.Empty;
     internal static volatile bool UpdateCompleted = false;
@@ -31,7 +34,7 @@ internal static class ScriptingProcessor
             try
             {
                 PluginLog.Debug($"Starting downloading blacklist...");
-                var result = P.HttpClient.GetAsync("https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/blacklist.csv").Result;
+                var result = P.HttpClient.GetAsync("https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/blacklist.csv").Result;
                 result.EnsureSuccessStatusCode();
                 PluginLog.Debug($"Blacklist download complete");
                 var blacklist = result.Content.ReadAsStringAsync().Result;
@@ -75,7 +78,7 @@ internal static class ScriptingProcessor
             try
             {
                 PluginLog.Debug($"Starting downloading update list...");
-                var result = P.HttpClient.GetAsync("https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/update.csv").Result;
+                var result = P.HttpClient.GetAsync("https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/update.csv").Result;
                 result.EnsureSuccessStatusCode();
                 PluginLog.Debug($"Update list downloaded");
                 var updateList = result.Content.ReadAsStringAsync().Result;

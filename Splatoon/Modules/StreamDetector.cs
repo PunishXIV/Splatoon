@@ -61,7 +61,7 @@ internal static class StreamDetector
             ImGui.SameLine();
             if (ImGui.SmallButton("contact the developer.".Loc()))
             {
-                ShellStart("https://discord.gg/m8NRt4X8Gf");
+                ShellStart(Splatoon.DiscordURL);
             }
 
             ImGui.Checkbox("Never show this message again".Loc(), ref P.Config.NoStreamWarning);

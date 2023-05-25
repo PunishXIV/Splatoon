@@ -22,6 +22,6 @@
 
 [International] [Untested] Arctic assault
 ```
-~Lv2~{"Name":"EX6 - Arctic assault","Group":"The Voidcast Dias","ZoneLockH":[1141],"ElementsL":[{"Name":"back left + forward right","type":3,"refX":7.5,"refY":15.0,"offX":7.5,"radius":7.5,"color":1679949568,"refActorNPCNameID":12365,"refActorRequireCast":true,"refActorCastId":[33887],"refActorUseCastTime":true,"refActorCastTimeMax":4.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true},{"Name":"back left + forward right","type":3,"refX":-7.5,"refY":-15.0,"offX":-7.5,"radius":7.5,"color":1679949568,"refActorNPCNameID":12365,"refActorRequireCast":true,"refActorCastId":[33887],"refActorUseCastTime":true,"refActorCastTimeMax":4.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true}]}
+~Lv2~{"Name":"EX6 - Arctic assault","Group":"The Voidcast Dias","ZoneLockH":[1141],"ElementsL":[{"Name":"","type":3,"refY":15.0,"radius":7.5,"color":1342242626,"refActorNPCNameID":12365,"refActorRequireCast":true,"refActorCastId":[33889],"refActorComparisonType":6,"includeRotation":true}]}
 ```
 

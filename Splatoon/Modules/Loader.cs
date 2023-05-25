@@ -51,7 +51,7 @@ internal class Loader
                     if (verdict != Verdict.Confirmed)
                     {
                         PluginLog.Debug("Obtaining version list");
-                        var res = client.GetAsync("https://raw.githubusercontent.com/NightmareXIV/Splatoon/master/versions.txt").Result;
+                        var res = client.GetAsync("https://raw.githubusercontent.com/PunishXIV/Splatoon/main/versions.txt").Result;
                         res.EnsureSuccessStatusCode();
                         foreach (var x in res.Content.ReadAsStringAsync().Result.Split("\n"))
                         {
@@ -70,7 +70,7 @@ internal class Loader
                     try
                     {
                         PluginLog.Debug("Obtaining revocation list");
-                        var res = client.GetAsync("https://raw.githubusercontent.com/NightmareXIV/Splatoon/master/revocationList.txt").Result;
+                        var res = client.GetAsync("https://raw.githubusercontent.com/PunishXIV/Splatoon/main/revocationList.txt").Result;
                         res.EnsureSuccessStatusCode();
                         foreach (var x in res.Content.ReadAsStringAsync().Result.Split("\n"))
                         {

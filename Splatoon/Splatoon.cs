@@ -28,7 +28,7 @@ using Localization = ECommons.LanguageHelpers.Localization;
 namespace Splatoon;
 public unsafe class Splatoon : IDalamudPlugin
 {
-    public const string DiscordURL = "https://discord.gg/m8NRt4X8Gf";
+    public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
     public string Name => "Splatoon";
     internal static Splatoon P;
     internal OverlayGui DrawingGui;

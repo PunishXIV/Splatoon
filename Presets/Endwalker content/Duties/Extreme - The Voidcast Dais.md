@@ -1,5 +1,3 @@
-# Work in progress. Presets may update frequenrtly. Updated: 25.05 12:20 GMT
-
 [International] Terrastorm
 ```
 ~Lv2~{"Name":"EX6 - Terrastorm","Group":"The Voidcast Dias","ZoneLockH":[1141],"ElementsL":[{"Name":"Terrastorm","type":1,"radius":16.0,"color":1358954240,"refActorNPCNameID":12365,"refActorRequireCast":true,"refActorCastId":[33894],"refActorComparisonType":6,"Filled":true}]}

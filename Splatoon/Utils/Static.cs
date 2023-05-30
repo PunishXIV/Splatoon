@@ -233,11 +233,28 @@ public static unsafe class Static
         }
     }
 
+    public static void ExportToClipboard(this IEnumerable<Layout> ls)
+    {
+        ImGui.SetClipboardText(ExportToString(ls));
+        Notify.Success($"Copied to clipboard.");
+    }
+
+    public static string ExportToString(this IEnumerable<Layout> ls)
+    {
+        StringBuilder sb = new StringBuilder();
+        foreach (Layout l in ls)
+            sb.AppendLine(ExportToString(l));
+        return sb.ToString();
+    }
+
     public static void ExportToClipboard(this Layout l)
     {
-        ImGui.SetClipboardText("~Lv2~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
+        ImGui.SetClipboardText(ExportToString(l));
         Notify.Success($"{l.GetName()} copied to clipboard.");
     }
+
+    public static string ExportToString(this Layout l) => 
+        "~Lv2~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
 
     public static void ExportToClipboard(this Element l)
     {

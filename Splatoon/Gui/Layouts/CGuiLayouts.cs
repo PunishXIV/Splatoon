@@ -243,6 +243,10 @@ partial class CGui
                             groupToRemove = i;
                         }
                         ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
+                        if (ImGui.Selectable("Export Group to clipboard".Loc()))
+                        {
+                            P.Config.LayoutsL.Where(l => l.Group == g).ExportToClipboard();
+                        }
                         /*if (ImGui.Selectable("Export Group".Loc()))
                         {
                             var exporttext = "~Lv3~";

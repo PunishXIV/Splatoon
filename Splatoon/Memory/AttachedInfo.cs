@@ -134,7 +134,15 @@ public unsafe static class AttachedInfo
                     {
                         CastInfos[b.Address] = new(b.CastActionId, Environment.TickCount64 - (long)(b.CurrentCastTime * 1000));
                         Casters.Add(b.Address);
-                        var text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        string text;
+                        if (P.Config.LogPosition)
+                        {
+                            text = $"{b.Name} ({x.Position.ToString()}) starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        }
+                        else
+                        {
+                            text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        }
                         P.ChatMessageQueue.Enqueue(text);
                         if (P.Config.Logging)
                         {

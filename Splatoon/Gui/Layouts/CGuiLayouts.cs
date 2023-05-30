@@ -318,15 +318,27 @@ partial class CGui
 
     internal static bool ImportFromClipboard()
     {
-        if (Static.TryImportLayout(ImGui.GetClipboardText(), out var l))
+        string[] split = ImGui.GetClipboardText().Split('\n');
+
+        bool success = false;
+
+        foreach (string clip in split)
         {
-            CurrentLayout = l;
-            if (l.Group != "")
+            if (clip.Trim().Length > 0)
             {
-                OpenedGroup.Add(l.Group);
+                if (Static.TryImportLayout(clip, out var l))
+                {
+                    CurrentLayout = l;
+                    if (l.Group != "")
+                    {
+                        OpenedGroup.Add(l.Group);
+                    }
+
+                    success = true;
+                }
             }
-            return true;
         }
-        return false;
+        
+        return success;
     }
 }

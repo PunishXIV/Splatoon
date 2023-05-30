@@ -328,18 +328,16 @@ partial class CGui
 
         foreach (string clip in split)
         {
-            if (clip.Trim().Length > 0)
+            string trim = clip.Trim();
+            if (trim.Length > 0 && Static.TryImportLayout(trim, out var l))
             {
-                if (Static.TryImportLayout(clip, out var l))
+                CurrentLayout = l;
+                if (!string.IsNullOrEmpty(l.Group))
                 {
-                    CurrentLayout = l;
-                    if (l.Group != "")
-                    {
-                        OpenedGroup.Add(l.Group);
-                    }
-
-                    success = true;
+                    OpenedGroup.Add(l.Group);
                 }
+
+                success = true;
             }
         }
         

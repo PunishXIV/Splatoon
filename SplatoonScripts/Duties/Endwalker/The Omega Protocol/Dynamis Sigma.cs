@@ -565,6 +565,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
             if (ImGui.CollapsingHeader("Debug"))
             {
+                ImGuiEx.TextCopy($"{(nint)MKC:X16}");
                 ImGui.InputFloat3("Omega pos", ref OmegaPos);
                 if (ImGui.Button("Copy"))
                 {

@@ -17,3 +17,8 @@
 ```
 ~Lv2~{"Name":"P10S Pandaemonic ray","Group":"P10S","ZoneLockH":[1150],"ElementsL":[{"Name":"Adds","type":3,"refY":40.0,"offY":-40.0,"radius":1.0,"color":2013266175,"refActorDataID":16162,"refActorRequireCast":true,"refActorCastReverse":true,"refActorCastId":[33420],"refActorUseCastTime":true,"refActorCastTimeMin":0.7,"refActorCastTimeMax":999999.0,"refActorUseOvercast":true,"refActorComparisonType":3,"includeRotation":true},{"Name":"Right","type":3,"refX":-20.0,"refY":50.0,"offX":-20.0,"radius":20.0,"color":1258291455,"refActorNPCNameID":12354,"refActorRequireCast":true,"refActorCastId":[33419],"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true},{"Name":"Left","type":3,"refX":20.0,"refY":50.0,"offX":20.0,"radius":20.0,"color":1258291455,"refActorNPCNameID":12354,"refActorRequireCast":true,"refActorCastId":[33417],"refActorComparisonType":6,"includeRotation":true}]}
 ```
+
+[International] [Beta] A hint above your head when stack/spread debuffs are about to go off.
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P10S%20Debuffs.cs
+```

@@ -15,6 +15,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P9S_Dualspell_InOut : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1148 };
+        public override Metadata? Metadata => new(1, "NightmareXIV");
         TickScheduler? sched = null;
 
         public override void OnSetup()

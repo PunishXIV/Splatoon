@@ -1,0 +1,9 @@
+[International] Multipreset (Biting Halberd, Southern Cross, Ciclicle, Tail End)
+```
+~Lv2~{"Name":"Multipreset","Group":"Zurvan Unreal","ZoneLockH":[1157],"ElementsL":[{"Name":"Biting Halberd","type":4,"radius":20.0,"coneAngleMin":225,"coneAngleMax":495,"color":3372217600,"refActorNPCNameID":5567,"refActorRequireCast":true,"refActorCastId":[7257,7721,34146],"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"Filled":true},{"Name":"Ciclicle","type":1,"radius":10.0,"Donut":10.0,"color":2533356800,"thicc":5.0,"refActorNPCNameID":5567,"refActorRequireCast":true,"refActorCastId":[7259,7723,34148],"refActorComparisonType":6,"onlyVisible":true},{"Name":"Tail End","type":1,"radius":15.0,"color":1694496000,"refActorNPCNameID":5567,"refActorRequireCast":true,"refActorCastId":[5775,7258,7722,12714,12741,34147],"refActorComparisonType":6,"onlyVisible":true,"Filled":true},{"Name":"Tail End","type":1,"radius":15.0,"color":3372217600,"thicc":5.0,"refActorNPCNameID":5567,"refActorRequireCast":true,"refActorCastId":[5775,7258,7722,12714,12741,34147],"refActorComparisonType":6,"onlyVisible":true},{"Name":"Southern Cross","type":1,"radius":5.1,"color":855635200,"thicc":5.0,"refActorNPCNameID":5567,"refActorRequireCast":true,"refActorCastId":[34150],"refActorComparisonType":6,"Filled":true},{"Name":"Southern Cross","type":1,"radius":5.1,"color":3372217600,"thicc":5.0,"refActorNPCNameID":5567,"refActorRequireCast":true,"refActorCastId":[34150],"refActorComparisonType":6}]}
+```
+
+[International] Soar AOEs
+```
+~Lv2~{"Name":"Soar","Group":"Zurvan Unreal","ZoneLockH":[1157],"DCond":5,"ElementsL":[{"Name":"Soar","type":3,"offY":45.0,"radius":5.0,"color":2533356800,"refActorNPCNameID":5568,"refActorCastTimeMax":10.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":6.5,"Match":"(5567>34174)","MatchDelay":8.0}]}
+```

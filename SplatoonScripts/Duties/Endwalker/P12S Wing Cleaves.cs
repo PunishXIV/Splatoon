@@ -20,7 +20,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Wing_Cleaves : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
+        public override Metadata? Metadata => new(2, "NightmareXIV");
         Queue<string> Cleaves = new();
+        bool isSpin = false;
+        Vector3 firstPos;
+        int BaseRotation = 0;
 
         const uint AthenaNameId = 12377;
         readonly uint[] Casts = new uint[] { 33473, 33474, 33475, 33476, 33477, 33478, 33505, 33506, 33507, 33508, 33509, 33510, 33511, 33512, 33513, 33514, 33515, 33516 };
@@ -30,8 +34,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnSetup()
         {
-            Controller.RegisterElementFromCode("West", "{\"Name\":\"West safe\",\"type\":2,\"Enabled\":false,\"refX\":110.0,\"refY\":80.0,\"offX\":110.0,\"offY\":120.0,\"offZ\":9.536743E-07,\"radius\":10.0,\"color\":1677721855}");
-            Controller.RegisterElementFromCode("East", "{\"Name\":\"East safe\",\"type\":2,\"Enabled\":false,\"refX\":90.0,\"refY\":80.0,\"offX\":90.0,\"offY\":120.0,\"offZ\":9.536743E-07,\"radius\":10.0,\"color\":1677721855}");
+            Controller.RegisterElementFromCode("Indicator", "{\"Name\":\"Indicator\",\"type\":5,\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":30.0,\"coneAngleMax\":180,\"refActorComparisonType\":3,\"includeRotation\":true,\"Filled\":true}");
         }
 
         public override void OnEnable()
@@ -41,16 +44,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
+            if (set.Action == null) return;
             if (Casts.Contains(set.Action.RowId))
             {
-                //DuoLog.Information($"Cast");
+                ////DuoLog.Information($"Cast");
                 GenericHelpers.Safe(() =>
                 {
                     Cleaves.Dequeue();
                     Hide();
                     if (Cleaves.Count > 0)
                     {
-                        Controller.GetElementByName(Cleaves.Peek()).Enabled = true;
+                        Process(Cleaves.Peek());
                         //DuoLog.Information($"-> {Cleaves.Peek()}");
                     }
                 });
@@ -67,43 +71,66 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             var obj = target.GetObject();
             if(obj?.DataId == 16229 && vfxPath.Contains("vfx/lockon/eff/m0829"))
             {
-                var angle = (MathHelper.GetRelativeAngle(obj.Position.ToVector2(), Center) + 360) % 360;
+                if (Cleaves.Count == 0)
+                {
+                    firstPos = obj.Position;
+                    BaseRotation = 360 - (int)Athena.Rotation.RadToDeg();
+                    //DuoLog.Information($"Athena's rotation: {BaseRotation}");
+                }
+                var angle = (MathHelper.GetRelativeAngle(obj.Position, Athena.Position) + 360 - BaseRotation) % 360;
                 //DuoLog.Information($"Angle: {angle}");
                 if (angle.InRange(180, 360))
                 {
-                    if (Cleaves.Count == 1)
+                    if (Cleaves.Count == 1 && firstPos.Y < obj.Position.Y)
                     {
-                        Cleaves.Enqueue("East");
+                        Cleaves.Enqueue("Right");
                     }
                     else
                     {
-                        Cleaves.Enqueue("West");
+                        Cleaves.Enqueue("Left");
                     }
                 }
                 else
                 {
-                    if (Cleaves.Count == 1)
+                    if (Cleaves.Count == 1 && firstPos.Y < obj.Position.Y)
                     {
-                        Cleaves.Enqueue("West");
+                        Cleaves.Enqueue("Left");
                     }
                     else
                     {
-                        Cleaves.Enqueue("East");
+                        Cleaves.Enqueue("Right");
                     }
                 }
                 if(Cleaves.Count == 1)
                 {
                     //DuoLog.Information($"{Cleaves.Peek()}");
                     Hide();
-                    Controller.GetElementByName(Cleaves.Peek()).Enabled = true;
+                    Process(Cleaves.Peek());
                 }
             }
         }
 
         void Hide()
         {
-            Controller.GetElementByName("West").Enabled = false;
-            Controller.GetElementByName("East").Enabled = false;
+            Controller.GetElementByName("Indicator").Enabled = false;
+        }
+
+        void Process(string dir)
+        {
+            if(Controller.TryGetElementByName("Indicator", out var e))
+            {
+                e.Enabled = true;
+                if(dir == "Left")
+                {
+                    e.coneAngleMin = BaseRotation - 180;
+                    e.coneAngleMax = BaseRotation;
+                }
+                else
+                {
+                    e.coneAngleMin = BaseRotation;
+                    e.coneAngleMax = BaseRotation + 180;
+                }
+            }
         }
 
         public override void OnUpdate()

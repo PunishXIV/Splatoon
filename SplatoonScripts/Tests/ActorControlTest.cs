@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ECommons.GameFunctions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 
 namespace SplatoonScriptsOfficial.Tests
 {
@@ -39,7 +40,7 @@ namespace SplatoonScriptsOfficial.Tests
             try
             {
                 var o = a1.GetObject();
-                if (o != null && o.Address == Svc.ClientState.LocalPlayer?.Address)
+                if (o != null && o is not PlayerCharacter)
                 {
                     PluginLog.Information($"ActorControlPacket: {a1:X8}, {a2:X8}, {a3:X8}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}, {a8:X8}, {a9:X16}, {a10:X2}");
                 }

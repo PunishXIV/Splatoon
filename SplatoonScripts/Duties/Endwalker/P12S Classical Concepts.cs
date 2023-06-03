@@ -1,34 +1,17 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using ECommons;
+﻿using ECommons;
 using ECommons.MathHelpers;
-using ECommons.Configuration;
 using ECommons.DalamudServices;
-using ECommons.GameFunctions;
 using ECommons.Logging;
-using ECommons.ImGuiMethods;
-using Lumina.Excel.GeneratedSheets;
 using Splatoon.SplatoonScripting;
 using Splatoon;
-using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using System.Numerics;
-using Dalamud.Memory.Exceptions;
-using ImGuiNET;
 using Dalamud.Game.ClientState.Objects.Types;
-using PInvoke;
-using ECommons.ImGuiMethods;
 using ECommons.Hooks;
-using Dalamud.Plugin.Ipc.Exceptions;
 using ECommons.Schedulers;
 using Dalamud.Interface.Colors;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
-using System.Text.RegularExpressions;
+using ECommons.GameFunctions;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
@@ -44,32 +27,38 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void Reset()
         {
-            DuoLog.Information("classical concepts RESET"); 
+            Controller.ClearRegisteredElements();
+            PluginLog.Debug("classical concepts RESET"); 
             cubeCount = 0; 
         }
 
-        public override void OnSetup()
-        {   
+        public override void OnUpdate()
+        {
+            if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == 3588 && x.RemainingTime < 1f))
+            {
+                Reset();
+            }
         }
 
         public override void OnMessage(string Message)
         {
+            if (Message.EqualsAny("(12382>33585)"))
+            {
+                Reset();
+            }
         }
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
         {
-            if (category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence)
+            if (category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence || category == DirectorUpdateCategory.Wipe)
                 Reset();
         }
 
-        public override void OnVFXSpawn(uint target, string vfxPath)
-        {
-        }
 
         List<(int, int)> bias = new List<(int, int)> { (1, 0), (-1, 0), (0, 1), (0, -1) }; 
         private void DrawLines(bool swap)
         {
-            DuoLog.Information($"swap: {swap}"); 
+            PluginLog.Debug($"swap: {swap}"); 
             if (swap)
             {
                 for(int x = 0; x < 4; x ++)
@@ -81,7 +70,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
 
             for (int y = 0; y < 3; y++)
-                DuoLog.Information($"{cube[0, y]}, {cube[1, y]}, {cube[2, y]}, {cube[3, y]}"); 
+                PluginLog.Debug($"{cube[0, y]}, {cube[1, y]}, {cube[2, y]}, {cube[3, y]}"); 
             for (int x = 0; x < 4; x++) 
                 for (int y = 0; y < 3; y++)
                 {
@@ -99,7 +88,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         if (cube[xx, yy] == 3) Yellow.Add((xx, yy)); 
                     }
 
-                    DuoLog.Information($"(x, y): {x}, {y} redcount:{Red.Count}, yellowcount:{Yellow.Count}"); 
+                    PluginLog.Debug($"(x, y): {x}, {y} redcount:{Red.Count}, yellowcount:{Yellow.Count}"); 
 
                     if (Red.Count == 1)
                         DrawLine(x, y, Red[0].Item1, Red[0].Item2, ImGuiColors.DalamudRed.ToUint());
@@ -138,7 +127,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             //{"Name":"","type":2,"refX":88.0,"refY":92.0,"offX":96.0,"offY":92.0,"offZ":-3.8146973E-06,"radius":0.5,"refActorRequireCast":true,"refActorComparisonType":3,"includeRotation":true,"Filled":true}
 
-            DuoLog.Information($"draw: ({x1}, {y1}) => ({x2}, {y2})"); 
+            PluginLog.Debug($"draw: ({x1}, {y1}) => ({x2}, {y2})"); 
             x1 = x1 * 8 + 88;
             y1 = y1 * 8 + 84;
             x2 = x2 * 8 + 88;
@@ -150,7 +139,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             e.offX = x2;
             e.offY = y2;
             e.radius = 0.5f;
-            e.color = color;
+            e.color = (color.ToVector4() with { W = 0.3f }).ToUint();
 
             string elementName = x1.ToString() + y1.ToString() + x2.ToString() + y2.ToString();
             Controller.RegisterElement(elementName, e, true);
@@ -171,7 +160,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
                 string color = obj.DataId == 0x3F37 ? "red" : obj.DataId == 0x3F38 ? "blue" : "yellow";
                 Vector2 position = obj.Position.ToVector2();
-                DuoLog.Information($"cube color:{color}, position:{position.ToString()}");
+                PluginLog.Debug($"cube color:{color}, position:{position.ToString()}");
 
                 int xIndex = ((int)position.X - 88) / 8;
                 int yIndex = ((int)position.Y - 84) / 8;

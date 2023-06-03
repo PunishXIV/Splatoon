@@ -86,6 +86,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.ObjectId;
+                            //e.color = TransformColorBasedOnDistance(e.color, x.dist);
                         }
                     }
                     else if (x.type == Spheres.Donut)
@@ -95,6 +96,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.ObjectId;
+                            //e.color = TransformColorBasedOnDistance(e.color, x.dist);
                         }
                     }
                     else
@@ -103,11 +105,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.ElementsL.Each(z => z.refActorObjectID = x.obj.ObjectId);
-                            //e.ElementsL.Each(z => z.color = z.color.ToVector4() with { W = })
+                            //e.ElementsL.Each(z => z.color = TransformColorBasedOnDistance(z.color, x.dist));
                         }
                     }
                 }
             }
+        }
+
+        uint TransformColorBasedOnDistance(uint col, float distance)
+        {
+            distance.ValidateRange(2, 20);
+            distance -= 2f;
+            var alpha = (1 - distance / 18) * 0.3f + 0.5f;
+            return (col.ToVector4() with { W = alpha }).ToUint();
         }
 
         IEnumerable<(BattleNpc obj, Spheres type, float dist)> FindNextMechanic()

@@ -51,7 +51,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void Reset()
         {
-            DuoLog.Information("pangenesis RESET");
+            PluginLog.Information("pangenesis RESET");
             towerCount = 0;
             Indicator.Enabled = false; 
         }
@@ -72,12 +72,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             BattleChara whiteTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == whiteTowerCast && o.CurrentCastTime < 1);
             BattleChara blackTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == blackTowerCast && o.CurrentCastTime < 1);
 
-            DuoLog.Information($"tower casting time: {blackTower.CurrentCastTime}"); 
+            PluginLog.Information($"tower casting time: {blackTower.CurrentCastTime}"); 
 
             Vector2 whitePos = whiteTower.Position.ToVector2(); 
             Vector2 blackPos = blackTower.Position.ToVector2(); 
 
-            DuoLog.Information($"wtower: {whiteTower.ObjectId}, blacktower: {blackTower.ObjectId}, casttime: {whiteTower.CurrentCastTime}, {blackTower.CurrentCastTime}, position: {whiteTower.Position.ToVector2().ToString()}, {blackTower.Position.ToVector2().ToString()}");
+            PluginLog.Information($"wtower: {whiteTower.ObjectId}, blacktower: {blackTower.ObjectId}, casttime: {whiteTower.CurrentCastTime}, {blackTower.CurrentCastTime}, position: {whiteTower.Position.ToVector2().ToString()}, {blackTower.Position.ToVector2().ToString()}");
 
             StatusList statusList = Svc.ClientState.LocalPlayer.StatusList; 
             if (statusList.Any(x => x.StatusId == whiteDebuff && x.RemainingTime <= 8))
@@ -127,7 +127,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
             directionRight = (int)Indicator.refX < 100 ? false : true;
             Indicator.Enabled = true;
-            DuoLog.Information($"first tower, {Indicator.refX}, {Indicator.refY}, colorBlack?: {lastTowerBlack}"); 
+            PluginLog.Information($"first tower, {Indicator.refX}, {Indicator.refY}, colorBlack?: {lastTowerBlack}"); 
         }
 
         private void SecondTower()
@@ -172,7 +172,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     Indicator.refX = lastTowerBlack ? blackPos.X : whitePos.X;
                     Indicator.refY = lastTowerBlack ? blackPos.Y : whitePos.Y;
                 }
-                DuoLog.Information($"second/third tower, {Indicator.refX}, {Indicator.refY}");
+                PluginLog.Information($"second/third tower, {Indicator.refX}, {Indicator.refY}");
             }, 1500); 
         }
 
@@ -190,7 +190,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             if (Message.Contains("(12383>33603)") || Message.Contains("(12383>33604)"))
             {
                 // tower appear
-                DuoLog.Information($"tower appear!");
+                PluginLog.Information($"tower appear!");
                 towerCount++;
                 if (towerCount == 2)
                     FirstTower();

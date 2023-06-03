@@ -32,7 +32,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             cubeCount = 0; 
         }
 
-        void Hide() => Controller.ClearRegisteredElements();;
+        void Hide() => Controller.ClearRegisteredElements();
 
         public override void OnUpdate()
         {
@@ -44,9 +44,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnMessage(string Message)
         {
-            if (Message.EqualsAny("(12382>33585)"))
+            if (Message.EqualsAny(">33574)"))
             {
-                Hide();
+                Reset();
             }
         }
 
@@ -156,8 +156,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             new TickScheduler(() =>
             {
-                GameObject obj = Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr);
-                if (!(obj.DataId == 0x3F37 || obj.DataId == 0x3F38 || obj.DataId == 0x3F39))
+                GameObject? obj = Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr);
+                if (!(obj?.DataId == 0x3F37 || obj?.DataId == 0x3F38 || obj?.DataId == 0x3F39))
                     return;
 
                 string color = obj.DataId == 0x3F37 ? "red" : obj.DataId == 0x3F38 ? "blue" : "yellow";

@@ -10,7 +10,7 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Limit%20Cut.cs
 ```
 
-[International] [Script] [Beta] Superchain Theory visualiser. CLUTTTERS SCREEN HEAVILY. 
+[International] [Script] Superchain Theory visualiser. CLUTTTERS SCREEN HEAVILY. 
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Superchain.cs
 ```
@@ -50,7 +50,12 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 ~Lv2~{"Name":"P12S Boss line","Group":"P12S","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":3,"refY":20.0,"offY":-20.0,"radius":7.5,"color":2013329407,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[33539],"refActorUseCastTime":true,"refActorCastTimeMax":4.69,"refActorUseOvercast":true,"includeRotation":true}]}
 ```
 
-[International] [Beta] First adds line AOE for tank invuln strat for non-tanks
+[International] First adds line AOE for tank invuln strat for non-tanks
 ```
 ~Lv2~{"Name":"P12S First adds (tank invuln)","Group":"P12S","ZoneLockH":[1154],"DCond":5,"ElementsL":[{"Name":"","type":3,"refY":45.0,"radius":5.0,"color":1342242805,"refActorDataID":16172,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true}],"UseTriggers":true,"Triggers":[{"Duration":42.0}]}
+```
+
+[International] Dark and Light debuffs as a dot on your body (works for phase 2 too)
+```
+~Lv2~{"Name":"P12S DarkLight","Group":"P12S","ZoneLockH":[693,1154],"ElementsL":[{"Name":"Light","type":1,"offZ":0.5,"radius":0.0,"color":3355505151,"thicc":16.4,"refActorRequireBuff":true,"refActorBuffId":[3576],"refActorType":1},{"Name":"Dark","type":1,"offZ":0.5,"radius":0.0,"color":3372155131,"thicc":16.4,"refActorRequireBuff":true,"refActorBuffId":[3577],"refActorType":1}]}
 ```

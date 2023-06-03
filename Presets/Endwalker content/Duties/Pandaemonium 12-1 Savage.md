@@ -32,7 +32,7 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 
 [International] Party in/out
 ```
-~Lv2~{"Name":"P12S Party In/Out","Group":"P12S","ZoneLockH":[1154],"ElementsL":[{"Name":"Party Out","type":1,"radius":9.0,"color":1677721855,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"overlayText":"<<< PARTY OUT >>>","refActorName":"*","refActorRequireCast":true,"refActorCastId":[33535],"onlyTargetable":true,"Filled":true},{"Name":"Party In","type":1,"radius":7.0,"Donut":10.0,"overlayTextColor":4294967295,"overlayFScale":2.0,"thicc":3.0,"overlayText":">>> Party IN <<<","refActorName":"*","refActorRequireCast":true,"refActorCastId":[33534],"onlyTargetable":true}]}
+~Lv2~{"Name":"P12S Party In/Out","Group":"P12S","ZoneLockH":[1154],"ElementsL":[{"Name":"Party Out","type":1,"radius":9.0,"color":1677721855,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"overlayText":"<<< PARTY OUT >>>","refActorName":"*","refActorRequireCast":true,"refActorCastId":[33535],"onlyTargetable":true,"Filled":true},{"Name":"Party In","type":1,"radius":7.0,"Donut":25.0,"overlayTextColor":4294967295,"overlayFScale":2.0,"thicc":3.0,"overlayText":">>> Party IN <<<","refActorName":"*","refActorRequireCast":true,"refActorCastId":[33534],"onlyTargetable":true}]}
 ```
 
 [International] Simple debuff helper (tower drop/laser)

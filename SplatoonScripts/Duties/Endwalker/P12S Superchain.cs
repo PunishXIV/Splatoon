@@ -56,10 +56,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             list.RemoveAll(x => x.dist < 0.1f);
             if(list.Count > 0)
             {
-                var toDisplay = list.Where(x => Math.Abs(x.dist - list[0].dist) < 0.5f).Select(x => (x.type, x.obj)).ToList();
+                var toDisplay = list.Where(x => Math.Abs(x.dist - list[0].dist) < 0.5f).Select(x => (x.type, x.obj, x.dist)).ToList();
                 if(list.TryGetFirst(x => x.type.EqualsAny(Spheres.Pairs, Spheres.Protean), out var l))
                 {
-                    toDisplay.Add((l.type, l.obj));
+                    toDisplay.Add((l.type, l.obj, l.dist));
                 }
                 Display(toDisplay);
             }
@@ -69,7 +69,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        void Display(IEnumerable<(Spheres type, BattleNpc obj)>? values = null)
+        void Display(IEnumerable<(Spheres type, BattleNpc obj, float dist)>? values = null)
         {
             int aoe = 0;
             int donut = 0;
@@ -103,6 +103,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.ElementsL.Each(z => z.refActorObjectID = x.obj.ObjectId);
+                            //e.ElementsL.Each(z => z.color = z.color.ToVector4() with { W = })
                         }
                     }
                 }

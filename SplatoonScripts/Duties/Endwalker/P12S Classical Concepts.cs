@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Classical_Concepts : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new();
-        public override Metadata? Metadata => new(1, "tatad2");
+        public override Metadata? Metadata => new(2, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
 
@@ -27,16 +27,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void Reset()
         {
-            Controller.ClearRegisteredElements();
+            Hide();
             PluginLog.Debug("classical concepts RESET"); 
             cubeCount = 0; 
         }
+
+        void Hide() => Controller.ClearRegisteredElements();;
 
         public override void OnUpdate()
         {
             if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == 3588 && x.RemainingTime < 1f))
             {
-                Reset();
+                Hide();
             }
         }
 
@@ -44,7 +46,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             if (Message.EqualsAny("(12382>33585)"))
             {
-                Reset();
+                Hide();
             }
         }
 

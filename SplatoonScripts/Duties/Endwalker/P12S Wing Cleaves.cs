@@ -19,18 +19,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Wing_Cleaves : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override HashSet<uint> ValidTerritories => new() { 1153, 1154 };
+        public override Metadata? Metadata => new(3, "NightmareXIV");
         Queue<string> Cleaves = new();
         bool isSpin = false;
         Vector3 firstPos;
-        int BaseRotation = 0;
+        float BaseRotation = 0;
 
         const uint AthenaNameId = 12377;
         readonly uint[] Casts = new uint[] { 33473, 33474, 33475, 33476, 33477, 33478, 33505, 33506, 33507, 33508, 33509, 33510, 33511, 33512, 33513, 33514, 33515, 33516 };
 
         BattleNpc? Athena => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.NameId == AthenaNameId && b.IsTargetable()) as BattleNpc;
         Vector2 Center = new(100, 100);
+        bool IsSavage => Svc.ClientState.TerritoryType == 1154;
 
         public override void OnSetup()
         {
@@ -74,14 +75,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 if (Cleaves.Count == 0)
                 {
                     firstPos = obj.Position;
-                    BaseRotation = 360 - (int)Athena.Rotation.RadToDeg();
+                    BaseRotation = 360 - Athena.Rotation.RadToDeg();
                     //DuoLog.Information($"Athena's rotation: {BaseRotation}");
                 }
-                var angle = (MathHelper.GetRelativeAngle(obj.Position, Athena.Position) + 360 - BaseRotation) % 360;
+                var angle = (MathHelper.GetRelativeAngle(obj.Position, Athena.Position) + 360f - BaseRotation) % 360f;
                 //DuoLog.Information($"Angle: {angle}");
                 if (angle.InRange(180, 360))
                 {
-                    if (Cleaves.Count == 1 && firstPos.Y < obj.Position.Y)
+                    if (Cleaves.Count == 1 && firstPos.Y < obj.Position.Y && IsSavage)
                     {
                         Cleaves.Enqueue("Right");
                     }
@@ -119,16 +120,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             if(Controller.TryGetElementByName("Indicator", out var e))
             {
+                e.SetRefPosition(Athena.Position);
                 e.Enabled = true;
                 if(dir == "Left")
                 {
-                    e.coneAngleMin = BaseRotation - 180;
-                    e.coneAngleMax = BaseRotation;
+                    e.coneAngleMin = (int)(BaseRotation - 180f);
+                    e.coneAngleMax = (int)BaseRotation;
                 }
                 else
                 {
-                    e.coneAngleMin = BaseRotation;
-                    e.coneAngleMax = BaseRotation + 180;
+                    e.coneAngleMin = (int)BaseRotation;
+                    e.coneAngleMax = (int)(BaseRotation + 180);
                 }
             }
         }

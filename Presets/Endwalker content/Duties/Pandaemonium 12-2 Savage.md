@@ -34,12 +34,11 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 ```
 
 [International] Exaflare movement predictor. Synchronized with visual, not snapshot.
-
-First exaflare:
+- First exaflare:
 ```
 ~Lv2~{"Name":"P12S2 Exa 1","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"radius":6.0,"color":1342177535,"overlayBGColor":4278190080,"overlayTextColor":4278190335,"overlayFScale":2.0,"overlayText":"Warning!","refActorName":"*","refActorRequireCast":true,"refActorCastId":[33567],"refActorUseCastTime":true,"refActorCastTimeMax":5.69,"includeRotation":true}]}
 ```
-Sequential exaflares
+- Sequential exaflares
 ```
 ~Lv2~{"Name":"P12S2 Exa 2","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"offY":8.0,"radius":6.0,"color":1342177535,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[33567],"includeRotation":true,"Filled":true}],"Freezing":true,"FreezeFor":8.3}
 ```

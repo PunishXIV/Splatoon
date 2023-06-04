@@ -1,4 +1,4 @@
-[International] [Script] [Beta] Classical Concept solver (doesn't includes BPOG solver)
+[International] [Script] [Beta] Classical Concept solver (doesn't includes PS solver)
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Classical%20Concepts.cs
 ```
@@ -40,7 +40,7 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 ```
 - Sequential exaflares
 ```
-~Lv2~{"Name":"P12S2 Exa 2","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"offY":8.0,"radius":6.0,"color":1342177535,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[33567],"includeRotation":true,"Filled":true}],"Freezing":true,"FreezeFor":8.3}
+~Lv2~{"Name":"P12S2 Exa 2","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"offY":8.0,"radius":6.0,"color":1342177535,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[33567],"includeRotation":true,"Filled":true}],"Freezing":true,"FreezeFor":8.3,"FreezeDisplayDelay":4.3}
 ```
 ```
 ~Lv2~{"Name":"P12S2 Exa 3","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"offY":16.0,"radius":6.0,"color":1342177535,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[33567],"includeRotation":true,"Filled":true}],"Freezing":true,"FreezeFor":10.3,"FreezeDisplayDelay":6.3}
@@ -55,4 +55,9 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 [International] Exaflare spread radius checker
 ```
 ~Lv2~{"Name":"P12S2 Exa Spread","Group":"P12S2","ZoneLockH":[1154],"DCond":5,"ElementsL":[{"Name":"self","type":1,"radius":6.0,"color":687802368,"refActorType":1,"Filled":true},{"Name":"party","type":1,"radius":6.0,"color":4294903808,"thicc":5.0,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorComparisonType":5}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":3.8,"Match":"(12382>33566)","MatchDelay":11.0}],"MaxDistance":6.1,"UseDistanceLimit":true,"DistanceLimitType":1}
+```
+
+[International] [Untested] Gaiaochos 2 tether alignment spots
+```
+~Lv2~{"Name":"P12S2 Spots for tether alignment","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"offY":16.3,"radius":0.4,"color":3355508484,"thicc":3.0,"refActorDataID":16182,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true}],"UseTriggers":true,"Triggers":[{"TimeBegin":465.0,"Duration":60.0}]}
 ```

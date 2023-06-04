@@ -12,22 +12,28 @@ using ECommons.Hooks;
 using ECommons.Schedulers;
 using Dalamud.Interface.Colors;
 using ECommons.GameFunctions;
+using ECommons.Configuration;
+using ECommons.ImGuiMethods;
+using ImGuiNET;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Classical_Concepts : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new();
-        public override Metadata? Metadata => new(2, "tatad2");
+        public override Metadata? Metadata => new(3, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
 
         private int cubeCount = 0;
-        private int[,] cube = new int[4, 3]; 
+        private int[,] cube = new int[4, 3];
+
+        List<TickScheduler> Schedulers = new();
 
         private void Reset()
         {
             Hide();
+            Schedulers.Each(x => x.Dispose());
             PluginLog.Debug("classical concepts RESET"); 
             cubeCount = 0; 
         }
@@ -133,28 +139,31 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             x1 = x1 * 8 + 88;
             y1 = y1 * 8 + 84;
             x2 = x2 * 8 + 88;
-            y2 = y2 * 8 + 84; 
+            y2 = y2 * 8 + 84;
 
-            Element e = new Element(2);
-            e.refX = x1;
-            e.refY = y1;
-            e.offX = x2;
-            e.offY = y2;
-            e.radius = 0.5f;
-            e.color = (color.ToVector4() with { W = 0.3f }).ToUint();
+            Element e = new(2)
+            {
+                refX = x1,
+                refY = y1,
+                offX = x2,
+                offY = y2,
+                radius = Conf.LineWidth,
+                color = (color.ToVector4() with { W = Conf.Trans }).ToUint(),
+                thicc = Conf.LineThickness
+            };
 
             string elementName = x1.ToString() + y1.ToString() + x2.ToString() + y2.ToString();
             Controller.RegisterElement(elementName, e, true);
 
-            new TickScheduler(() =>
+            Schedulers.Add(new TickScheduler(() =>
             {
                 e.Enabled = false;
-            }, 20000); 
+            }, 20000)); 
         }
 
         public override void OnObjectCreation(nint newObjectPtr)
         {
-            new TickScheduler(() =>
+            Schedulers.Add(new TickScheduler(() =>
             {
                 GameObject? obj = Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr);
                 if (!(obj?.DataId == 0x3F37 || obj?.DataId == 0x3F38 || obj?.DataId == 0x3F39))
@@ -171,8 +180,58 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 if (cubeCount == 12)
                     DrawLines(false);
                 if (cubeCount == 24)
-                    DrawLines(true); 
-            }, 100 ); 
+                {
+                    if (Conf.SwapSecond)
+                    {
+                        if (Conf.SwapSecondDelay == 0)
+                        {
+                            DrawLines(true);
+                        }
+                        else
+                        {
+                            DrawLines(false);
+                            Schedulers.Add(new TickScheduler(() => 
+                            {
+                                Hide();
+                                DrawLines(true);
+                            }, Conf.SwapSecondDelay * 1000));
+                        }
+                    }
+                    else
+                    {
+                        DrawLines(false);
+                    }
+                }
+            }, 100 )); 
+        }
+
+        public class Config : IEzConfig
+        {
+            public bool SwapSecond = true;
+            public int SwapSecondDelay = 0;
+            public float LineWidth = 0.5f;
+            public float LineThickness = 2f;
+            public float Trans = 0.3f;
+        }
+
+        Config Conf => Controller.GetConfig<Config>();
+
+        public override void OnSettingsDraw()
+        {
+            ImGui.Checkbox($"Swap lines for second classical concepts", ref Conf.SwapSecond);
+            ImGui.SetNextItemWidth(100);
+            ImGui.InputInt("Swap delay, seconds", ref Conf.SwapSecondDelay.ValidateRange(0, 15));
+            ImGui.Separator();
+            ImGui.SetNextItemWidth(100);
+            ImGui.DragFloat("Line width", ref Conf.LineWidth.ValidateRange(0f, 5f), 0.01f);
+            ImGui.SetNextItemWidth(100);
+            ImGui.DragFloat("Line thickness", ref Conf.LineThickness.ValidateRange(1, 20f), 0.01f);
+            ImGui.SetNextItemWidth(100);
+            ImGui.DragFloat("Transparency", ref Conf.Trans.ValidateRange(0.1f, 1f), 0.01f);
+            if (ImGui.CollapsingHeader("Debug"))
+            {
+                ImGui.InputInt("num cubes", ref cubeCount);
+            }
         }
     }
 }

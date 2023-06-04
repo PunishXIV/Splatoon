@@ -154,25 +154,26 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 }
                 lastHasBuff = hasBuff;
 
+                if (Conf.StakcSpreadShowTime > 0 && Conf.StakcSpreadShowTime < 7) ; 
                 // display stack/spread range
-                var stackers = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == stackStatusId && x.RemainingTime <= 2));
+                var stackers = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == stackStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
                 foreach(var stacker in stackers)
                 {
                     uint objectId = stacker.ObjectId;
                     if (StackSpreadRecord.Contains(objectId)) continue;
                     AddStackSpreadElement(objectId, true); 
                     if (StackSpreadRecord.Count == 1)
-                        Sch.Add(new TickScheduler(ClearStackSpreadElements, 2000));
+                        Sch.Add(new TickScheduler(ClearStackSpreadElements, Conf.StakcSpreadShowTime * 1000));
                 }
 
-                var spreaders = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == spreadStatusId && x.RemainingTime <= 2));
+                var spreaders = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == spreadStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
                 foreach(var spreader in spreaders)
                 {
                     uint objectId = spreader.ObjectId;
                     if (StackSpreadRecord.Contains(objectId)) continue;
                     AddStackSpreadElement(objectId, false);
                     if (StackSpreadRecord.Count == 1)
-                        Sch.Add(new TickScheduler(ClearStackSpreadElements, 2000));
+                        Sch.Add(new TickScheduler(ClearStackSpreadElements, Conf.StakcSpreadShowTime * 1000));
                 }
             }
             if (!hasBuff && lastHasBuff)
@@ -183,8 +184,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 ClearStackSpreadElements(); 
             }
         }
+        public class Config : IEzConfig
+        {
+            public int StakcSpreadShowTime = 2; 
+        }
+
+        Config Conf => Controller.GetConfig<Config>();
         public override void OnSettingsDraw()
         {
+            ImGui.InputInt("the time to show stack/spread aoe(seconds, max=6)", ref Conf.StakcSpreadShowTime); 
             
             if (ImGui.CollapsingHeader("Debug"))
             {

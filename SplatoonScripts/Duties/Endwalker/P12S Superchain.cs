@@ -32,12 +32,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnSetup()
         {
             var donut = "{\"Name\":\"Donut\",\"type\":1,\"radius\":6.0,\"Donut\":30.0,\"thicc\":3.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2}";
-            var e1 = Controller.RegisterElementFromCode("Donut1", donut);
-            var e2 = Controller.RegisterElementFromCode("Donut2", donut);
-            e1.Donut = Conf.DonutRadius;
-            e2.Donut = Conf.DonutRadius;
-            e1.color = Conf.DonutColor.ToUint();
-            e2.color = Conf.DonutColor.ToUint(); 
+            Controller.RegisterElementFromCode("Donut1", donut);
+            Controller.RegisterElementFromCode("Donut2", donut);
 
             var AOE = "{\"Name\":\"AOE\",\"type\":1,\"radius\":7.0,\"color\":2013266175,\"thicc\":3.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"Filled\":true}";
             Controller.RegisterElementFromCode("AOEBall1", AOE);
@@ -103,6 +99,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.ObjectId;
+                            e.Donut = Conf.DonutRadius;
+                            e.color = Conf.DonutColor.ToUint();
                             //e.color = TransformColorBasedOnDistance(e.color, x.dist);
                         }
                     }

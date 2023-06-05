@@ -1,38 +1,26 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Statuses;
-using Dalamud.Interface.Colors;
-using Dalamud.Interface.Style;
-using Dalamud.Logging;
+﻿using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
-using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
 using Splatoon;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using PluginLog = ECommons.Logging.PluginLog;
+using ECommons.Logging;
+using ECommons.GameHelpers;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Caloric_Theory : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => new() { 1154 };
         public override Metadata? Metadata => new(1, "tatad2");
 
         private string ElementNamePrefix = "P12SCaloricTheory123";
@@ -42,11 +30,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private int stackStatusId = 3590;  // entropifaction
 
         private bool lastHasBuff = false;
-        private float maxDistancePerBuff = 9.5f; // may not very accruate 
-        private float spreadRadius = 7.0f;
-        private float stackRadius = 3.5f; // may not very accruate 
+
+        // the distance player can move 
+        private float maxDistancePerBuff = 9.25f; 
+        
+        private float spreadRadius = 7.0f; 
+        private float stackRadius = 4.0f;
         private float distancePassed = 0;
-        private float changeColorDistance = 0.5f; 
+        private float changeColorDistance = 0.5f; // better stop moving when color changes
 
         private Vector2 lastPosition;
         private int caloricTheoryCount = 0;
@@ -55,7 +46,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private Element? Indicator2;
         HashSet<uint> StackSpreadRecord = new HashSet<uint>();
 
-        List<TickScheduler> Sch; 
+        List<TickScheduler> Sch = new List<TickScheduler>();
+
+        private bool debug = false; 
+        Dictionary<uint, float> distanceDebug = new Dictionary<uint, float>();
+        Dictionary<uint, Vector2> positionDebug = new Dictionary<uint, Vector2>(); 
 
         private void AddStackSpreadElement(uint objectId, bool isStack)
         {
@@ -65,7 +60,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Element e = new Element(1);
             e.refActorObjectID = objectId; 
             e.refActorComparisonType = 2;
-            e.radius = isStack ? stackRadius : spreadRadius; 
+            e.radius = isStack ? stackRadius : spreadRadius;
             e.color = isStack ? ImGuiColors.DPSRed.ToUint() : ImGuiColors.TankBlue.ToUint();
             Controller.RegisterElement(ElementNamePrefix + objectId.ToString(), e, true);
         }
@@ -79,13 +74,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void Reset()
         {
-            PluginLog.Debug("pangenesis RESET");
+            PluginLog.Debug("caloric theory RESET");
             Sch.Each(x => x.Dispose());
             Indicator1.Enabled = false;
             Indicator2.Enabled = false;
             lastHasBuff = false;
             caloricTheoryCount = 0;
-            ClearStackSpreadElements(); 
+            ClearStackSpreadElements();
+        }
+
+        public override void OnEnable()
+        {
+            Reset(); 
         }
 
         public override void OnSetup()
@@ -125,7 +125,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Indicator1.color = ImGuiColors.HealerGreen.ToUint();
             Indicator2.color = ImGuiColors.HealerGreen.ToUint();
             distancePassed = 0;
+            //lastPosition = FakeParty.Get().First(x => x.ObjectId == 0x1017913F).Position.ToVector2();
             lastPosition = Svc.ClientState.LocalPlayer.Position.ToVector2(); 
+
+            if (debug)
+            {
+                foreach (var player in FakeParty.Get())
+                {
+                    distanceDebug[player.ObjectId] = 0;
+                    positionDebug[player.ObjectId] = player.Position.ToVector2();
+                }
+            }
         }
 
         public override void OnUpdate()
@@ -140,7 +150,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 } 
                 else
                 {
-                    Vector2 Position = Svc.ClientState.LocalPlayer.Position.ToVector2(); 
+                    //Vector2 Position = FakeParty.Get().First(x => x.ObjectId == 0x1017913F).Position.ToVector2(); 
+                    Vector2 Position = Svc.ClientState.LocalPlayer.Position.ToVector2();
                     float distance = Vector2.Distance(Position, lastPosition);
                     //PluginLog.Information($"pos:{Position}, lastPos:{lastPosition}, dis: {distance}"); 
                     lastPosition = Position; 
@@ -151,31 +162,45 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         Indicator1.color = ImGuiColors.DalamudRed.ToUint();
                     if (distancePassed >= maxDistancePerBuff * 2 - changeColorDistance)
                         Indicator2.color = ImGuiColors.DalamudRed.ToUint();
+                    
+                    if(debug)
+                    {
+                        foreach (var player in FakeParty.Get())
+                        {
+                            Position = player.Position.ToVector2(); 
+                            distance = Vector2.Distance(Position, positionDebug[player.ObjectId]);
+                            positionDebug[player.ObjectId] = Position;
+                            distanceDebug[player.ObjectId] += distance; 
+                        }
+                    }
                 }
                 lastHasBuff = hasBuff;
 
-                if (Conf.StakcSpreadShowTime > 0 && Conf.StakcSpreadShowTime < 7) ; 
-                // display stack/spread range
-                var stackers = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == stackStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
-                foreach(var stacker in stackers)
+                if (Conf.StakcSpreadShowTime > 0 && Conf.StakcSpreadShowTime < 7)
                 {
-                    uint objectId = stacker.ObjectId;
-                    if (StackSpreadRecord.Contains(objectId)) continue;
-                    AddStackSpreadElement(objectId, true); 
-                    if (StackSpreadRecord.Count == 1)
-                        Sch.Add(new TickScheduler(ClearStackSpreadElements, Conf.StakcSpreadShowTime * 1000));
-                }
+                    // display stack/spread range
+                    var stackers = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == stackStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
+                    foreach (var stacker in stackers)
+                    {
+                        uint objectId = stacker.ObjectId;
+                        if (StackSpreadRecord.Contains(objectId)) continue;
+                        AddStackSpreadElement(objectId, true);
+                        if (StackSpreadRecord.Count == 1)
+                            Sch.Add(new TickScheduler(ClearStackSpreadElements, Conf.StakcSpreadShowTime * 1000));
+                    }
 
-                var spreaders = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == spreadStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
-                foreach(var spreader in spreaders)
-                {
-                    uint objectId = spreader.ObjectId;
-                    if (StackSpreadRecord.Contains(objectId)) continue;
-                    AddStackSpreadElement(objectId, false);
-                    if (StackSpreadRecord.Count == 1)
-                        Sch.Add(new TickScheduler(ClearStackSpreadElements, Conf.StakcSpreadShowTime * 1000));
+                    var spreaders = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == spreadStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
+                    foreach (var spreader in spreaders)
+                    {
+                        uint objectId = spreader.ObjectId;
+                        if (StackSpreadRecord.Contains(objectId)) continue;
+                        AddStackSpreadElement(objectId, false);
+                        if (StackSpreadRecord.Count == 1)
+                            Sch.Add(new TickScheduler(ClearStackSpreadElements, Conf.StakcSpreadShowTime * 1000));
+                    }
                 }
             }
+
             if (!hasBuff && lastHasBuff)
             {
                 lastHasBuff = false;
@@ -196,9 +221,21 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             
             if (ImGui.CollapsingHeader("Debug"))
             {
+                ImGui.Checkbox("debug", ref debug); 
                 ImGui.Text($"Position: {lastPosition}, distance: {distancePassed}");
                 ImGui.Text($"hasBuff: {lastHasBuff}");
                 ImGui.Text($"StackSpread buff count: {StackSpreadRecord.Count()}"); 
+
+                if (debug)
+                {
+                    foreach (var player in FakeParty.Get())
+                    {
+                        if(distanceDebug.ContainsKey(player.ObjectId))
+                        {
+                            ImGui.Text($"{player.Name}, dis: {distanceDebug[player.ObjectId]}, pos: {player.Position}"); 
+                        }
+                    }
+                }
             }
         }
     }

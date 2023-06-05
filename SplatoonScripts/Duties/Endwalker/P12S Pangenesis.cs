@@ -32,7 +32,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Pangenesis : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => new() { 1154 };
         public override Metadata? Metadata => new(1, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
@@ -48,6 +48,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private Element? Indicator;
         private bool directionRight = false; // 0=>left, 1=>right
         private bool lastTowerBlack = false; // 0=>white, 1=>black
+
+        public override void OnEnable()
+        {
+            Reset();
+        }
 
         private void Reset()
         {

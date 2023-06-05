@@ -42,11 +42,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private int stackStatusId = 3590;  // entropifaction
 
         private bool lastHasBuff = false;
-        private float maxDistancePerBuff = 10.0f; // may not very accruate 
+        private float maxDistancePerBuff = 9.5f; // may not very accruate 
         private float spreadRadius = 7.0f;
         private float stackRadius = 3.5f; // may not very accruate 
         private float distancePassed = 0;
-        private float changeColorDistance = 1.0f; 
+        private float changeColorDistance = 0.5f; 
 
         private Vector2 lastPosition;
         private int caloricTheoryCount = 0;

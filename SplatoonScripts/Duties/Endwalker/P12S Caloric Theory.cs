@@ -13,8 +13,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using PluginLog = ECommons.Logging.PluginLog;
-using ECommons.Logging;
-using ECommons.GameHelpers;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
@@ -31,13 +29,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private bool lastHasBuff = false;
 
-        // the distance player can move 
-        private float maxDistancePerBuff = 9.25f; 
+        // the distance player can move in one layer of close caloric buff. 
+        // may not very accurate. 9.2 meters has been tested to be safe and 9.4 meters are unsafe, but the data may affected by server latency. 
+        private float maxDistancePerBuff = 9.2f;
         
+        // change the color of Indicator when the remaining distance is less than this value.
+        // better stop moving when the color is changed. 
+        private float changeColorDistance = 0.5f; 
+
         private float spreadRadius = 7.0f; 
         private float stackRadius = 4.0f;
         private float distancePassed = 0;
-        private float changeColorDistance = 0.5f; // better stop moving when color changes
 
         private Vector2 lastPosition;
         private int caloricTheoryCount = 0;

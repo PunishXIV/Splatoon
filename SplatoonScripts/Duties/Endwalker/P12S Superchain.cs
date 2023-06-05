@@ -174,8 +174,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnSettingsDraw()
         {
-            ImGui.InputFloat("donut radius: ", ref Conf.DonutRadius);
-            ImGui.ColorEdit4("donut color: ", ref Conf.DonutColor); 
+            ImGui.Text("dount radius:"); 
+            ImGui.InputFloat("", ref Conf.DonutRadius);
+            ImGui.Text("dount color:");
+            ImGui.ColorEdit4("", ref Conf.DonutColor); 
 
             if (ImGui.CollapsingHeader("Debug"))
             {

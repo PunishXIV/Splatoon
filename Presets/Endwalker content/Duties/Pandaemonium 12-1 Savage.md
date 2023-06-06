@@ -1,16 +1,14 @@
-# !!!WARNING!!! Work in progress on these presets. There are not so much currently, and they may not be accurate. Regularly check this page to have the latest presets.
-
 [International] [Script] Wings unsafe spots. Accurately accounts for snapshot. Not super pixel perfect, keep a safe step away from separating line!
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Wing%20Cleaves.cs
 ```
 
-[Internaltional] [Script] [Beta] Limit Cut helper. Shows you when you're baiting puddles (assuming you're taking them in pairs, 13 24 57 68), and shows you when to go out for laser bait.
+[Internaltional] [Script] Limit Cut helper. Shows you when you're baiting puddles (assuming you're taking them in pairs, 13 24 57 68), and shows you when to go out for laser bait.
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Limit%20Cut.cs
 ```
 
-[International] [Script] Superchain Theory visualiser. CLUTTTERS SCREEN HEAVILY. 
+[International] [Script] Superchain Theory visualiser. CLUTTTERS SCREEN HEAVILY. Includes spread buff visualisation (can be disabled).
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Superchain.cs
 ```

@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Superchain : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
 
         enum Spheres : uint 
         {
@@ -29,6 +29,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Donut = 16178,
             Pairs = 16180,
         }
+
+        const uint AOEDebuff = 3578;
 
         public override void OnSetup()
         {
@@ -44,7 +46,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
             Controller.TryRegisterLayoutFromCode("Pairs", "~Lv2~{\"Name\":\"P12S Pairs\",\"Group\":\"P12S\",\"ZoneLockH\":[1154],\"ElementsL\":[{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902005,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902005,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":1.5707964,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":1.5707964,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":3.1415927,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":3.1415927,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":4.712389,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":4.712389,\"Filled\":true}]}", out _);
 
-            //Controller.RegisterElementFromCode("")
+            Controller.TryRegisterLayoutFromCode("DebuffAOESelf", "~Lv2~{\"Enabled\":false,\"Name\":\"P12S Spread AOE\",\"Group\":\"P12S\",\"ZoneLockH\":[1154],\"ElementsL\":[{\"Name\":\"self\",\"type\":1,\"radius\":7.0,\"color\":1258356223,\"refActorType\":1,\"Filled\":true},{\"Name\":\"party\",\"type\":1,\"radius\":7.0,\"color\":4278255586,\"thicc\":5.0,\"refActorPlaceholder\":[\"<2>\",\"<3>\",\"<4>\",\"<5>\",\"<6>\",\"<7>\",\"<8>\"],\"refActorComparisonType\":5}],\"MaxDistance\":7.0,\"UseDistanceLimit\":true,\"DistanceLimitType\":1}", out _);
+
+            Controller.TryRegisterLayoutFromCode("DebuffAOEOther", "~Lv2~{\"Enabled\":false,\"Name\":\"P12S Spread AOE other\",\"Group\":\"P12S\",\"ZoneLockH\":[1154],\"ElementsL\":[{\"Name\":\"party\",\"type\":1,\"radius\":7.0,\"color\":3355508706,\"thicc\":5.0,\"refActorPlaceholder\":[\"<2>\",\"<3>\",\"<4>\",\"<5>\",\"<6>\",\"<7>\",\"<8>\"],\"refActorRequireBuff\":true,\"refActorBuffId\":[3578],\"refActorUseBuffTime\":true,\"refActorBuffTimeMax\":3.5,\"refActorComparisonType\":5}]}", out _);
         }
 
         Dictionary<uint, List<uint>> Attachments = new();
@@ -72,6 +76,27 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             else
             {
                 Display();
+            }
+            if(Controller.TryGetLayoutByName("DebuffAOESelf", out var self) && Controller.TryGetLayoutByName("DebuffAOEOther", out var other))
+            {
+                if (Conf.EnableAOEChecking)
+                {
+                    if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == AOEDebuff && x.RemainingTime < 3.5f))
+                    {
+                        self.Enabled = true;
+                        other.Enabled = false;
+                    }
+                    else
+                    {
+                        self.Enabled = false;
+                        other.Enabled = true;
+                    }
+                }
+                else
+                {
+                    self.Enabled = false;
+                    other.Enabled = false;
+                }
             }
         }
 
@@ -169,6 +194,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             public float DonutRadius = 25.0f;
             public Vector4 DonutColor = Colors.Red.ToVector4() with { W = 0.6f };
+            public bool EnableAOEChecking = true;
         }
 
         Config Conf => Controller.GetConfig<Config>();
@@ -183,6 +209,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
             ImGui.ColorEdit4("", ref Conf.DonutColor); 
+            ImGui.Checkbox($"Enable AOE debuff assist", ref Conf.EnableAOEChecking);
 
             if (ImGui.CollapsingHeader("Debug"))
             {

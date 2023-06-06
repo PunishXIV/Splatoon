@@ -1,12 +1,18 @@
-[International] [Script] [Beta] Classical Concept solver (doesn't includes PS solver)
+[International] [Script] Classical Concept solver (doesn't includes PS solver)
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Classical%20Concepts.cs
 ```
 
-[International] [Script] [Beta] Pangenesis helper
+[International] [Script] Pangenesis helper
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Pangenesis.cs
 ```
+
+[International] [Script] Caloric theory helper. Displays remaining movement distance (don't push it to the very limit - may be variance due to ping and server ticks)
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S%20Caloric%20Theory.cs
+```
+
 
 [International] Classical concepts cube AOE
 ```
@@ -28,9 +34,9 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 ~Lv2~{"Name":"P12S2 Palladian Ray","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"offX":8.0,"offY":12.0,"radius":2.0,"color":4278253567,"overlayText":"BAIT","refActorDataID":16181,"refActorRequireCast":true,"refActorCastId":[33571],"refActorUseCastTime":true,"refActorCastTimeMax":4.7,"refActorUseOvercast":true,"refActorComparisonType":3,"includeRotation":true,"onlyTargetable":true,"Filled":true},{"Name":"","type":1,"offX":-8.0,"offY":12.0,"radius":2.0,"color":4278253567,"overlayText":"BAIT","refActorDataID":16181,"refActorRequireCast":true,"refActorCastId":[33571],"refActorUseCastTime":true,"refActorCastTimeMax":4.7,"refActorUseOvercast":true,"refActorComparisonType":3,"includeRotation":true,"onlyTargetable":true,"Filled":true}]}
 ```
 
-[International] [Beta] Debuff assist (classical concept alpha/beta, calorie theory wind aoe radius)
+[International] [Beta] Debuff assist (classical concept alpha/beta, calorictheory wind aoe radius)
 ```
-~Lv2~{"Name":"P12S2 Debuffs","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"Wind AOE","type":1,"radius":6.1,"color":3356425984,"thicc":4.0,"refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3591],"refActorUseBuffTime":true,"refActorBuffTimeMax":10.0,"onlyTargetable":true},{"Name":"Alpha","type":1,"radius":0.0,"overlayBGColor":4278190248,"overlayTextColor":4294967295,"overlayVOffset":1.54,"thicc":0.0,"overlayText":"Alpha (triangle)","refActorRequireBuff":true,"refActorBuffId":[3560],"refActorType":1},{"Name":"Beta","type":1,"radius":0.0,"overlayBGColor":4278217069,"overlayTextColor":4294967295,"overlayVOffset":1.54,"thicc":0.0,"overlayText":"Beta (square)","refActorRequireBuff":true,"refActorBuffId":[3561],"refActorType":1}]}
+~Lv2~{"Name":"P12S2 Debuffs","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"Wind AOE","type":1,"radius":7.1,"color":3355506687,"thicc":3.9,"refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3591],"refActorUseBuffTime":true,"refActorBuffTimeMax":10.0,"onlyTargetable":true},{"Name":"Alpha","type":1,"radius":0.0,"overlayBGColor":4278190248,"overlayTextColor":4294967295,"overlayVOffset":1.54,"thicc":0.0,"overlayText":"Alpha (triangle)","refActorRequireBuff":true,"refActorBuffId":[3560],"refActorType":1},{"Name":"Beta","type":1,"radius":0.0,"overlayBGColor":4278217069,"overlayTextColor":4294967295,"overlayVOffset":1.54,"thicc":0.0,"overlayText":"Beta (square)","refActorRequireBuff":true,"refActorBuffId":[3561],"refActorType":1}]}
 ```
 
 [International] Exaflare movement predictor. Synchronized with visual, not snapshot.
@@ -59,5 +65,5 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 
 [International] [Untested] Gaiaochos 2 tether alignment spots
 ```
-~Lv2~{"Name":"P12S2 Spots for tether alignment","Group":"P12S2","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":1,"offY":16.3,"radius":0.4,"color":3355508484,"thicc":3.0,"refActorDataID":16182,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true}],"UseTriggers":true,"Triggers":[{"TimeBegin":465.0,"Duration":60.0}]}
+~Lv2~{"Name":"P12S2 Spots for tether alignment","Group":"P12S2","ZoneLockH":[1154],"DCond":5,"ElementsL":[{"Name":"","type":1,"offY":16.3,"radius":0.4,"color":3355508484,"thicc":3.0,"refActorDataID":16182,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true}],"UseTriggers":true,"Triggers":[{"TimeBegin":465.0,"Duration":60.0}]}
 ```

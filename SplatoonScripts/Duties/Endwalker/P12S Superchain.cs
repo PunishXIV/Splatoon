@@ -1,9 +1,12 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.Colors;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
 using ImGuiNET;
+using Lumina.Data.Parsing.Tex.Buffers;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -96,6 +99,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.ObjectId;
+                            e.Donut = Conf.DonutRadius;
+                            e.color = Conf.DonutColor.ToUint();
                             //e.color = TransformColorBasedOnDistance(e.color, x.dist);
                         }
                     }
@@ -157,8 +162,21 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
+        public class Config : IEzConfig
+        {
+            public float DonutRadius = 6.0f;
+            public Vector4 DonutColor = ImGuiColors.DalamudViolet;
+        }
+
+        Config Conf => Controller.GetConfig<Config>();
+
         public override void OnSettingsDraw()
         {
+            ImGui.Text("dount radius:"); 
+            ImGui.InputFloat("", ref Conf.DonutRadius);
+            ImGui.Text("dount color:");
+            ImGui.ColorEdit4("", ref Conf.DonutColor); 
+
             if (ImGui.CollapsingHeader("Debug"))
             {
                 foreach(var x in Attachments)

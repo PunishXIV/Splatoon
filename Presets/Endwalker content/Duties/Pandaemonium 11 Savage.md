@@ -1,3 +1,11 @@
+[International] [Script] [Untested] Multiscript for P11S. Current functions:
+- Shows lingering AOE after protean
+
+More functions will be added with time
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P11S%20Multiscript.cs
+```
+
 [International] Portals lasers
 ```
 ~Lv2~{"Name":"P11S Portals","Group":"P11S","ZoneLockH":[1152],"ElementsL":[{"Name":"","type":3,"refY":40.0,"radius":5.0,"color":1342207487,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[33299,33300],"refActorUseCastTime":true,"refActorCastTimeMax":5.19,"includeRotation":true}],"UseTriggers":true,"Triggers":[{"Duration":351.6}]}
@@ -41,4 +49,9 @@
 [International] [Beta] Lightstream (safe spot)
 ```
 ~Lv2~{"Name":"P11S Lightstream","Group":"P11S","ZoneLockH":[1152],"ElementsL":[{"Name":"left","type":3,"refX":-10.0,"refY":45.0,"offX":-10.0,"radius":14.97,"color":1694498815,"refActorRequireCast":true,"refActorCastId":[33287],"refActorUseCastTime":true,"refActorCastTimeMax":7.69,"refActorComparisonType":7,"includeRotation":true,"refActorVFXPath":"vfx/lockon/eff/m0515_turning_left01c.avfx","refActorVFXMax":30000},{"Name":"right","type":3,"refX":10.0,"refY":45.0,"offX":10.0,"radius":14.97,"color":1694498815,"refActorRequireCast":true,"refActorCastId":[33287],"refActorUseCastTime":true,"refActorCastTimeMax":7.69,"refActorComparisonType":7,"includeRotation":true,"refActorVFXPath":"vfx/lockon/eff/m0515_turning_right01c.avfx","refActorVFXMax":30000}]}
+```
+
+[International] [Untested] Protean indicator (self only)
+```
+~Lv2~{"Name":"P11S Protean (self)","Group":"P11S","ZoneLockH":[1152],"ElementsL":[{"Name":"","type":3,"refY":20.0,"radius":4.0,"color":1275002890,"refActorDataID":16114,"refActorRequireCast":true,"refActorCastId":[33254,33255],"refActorUseCastTime":true,"refActorCastTimeMax":8.0,"refActorUseOvercast":true,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true}]}
 ```

@@ -8,6 +8,7 @@ using ECommons.ImGuiMethods;
 using ImGuiNET;
 using Lumina.Data.Parsing.Tex.Buffers;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Superchain : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
 
         enum Spheres : uint 
         {
@@ -42,6 +43,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Controller.TryRegisterLayoutFromCode("Protean", "~Lv2~{\"Name\":\"P12S Protean\",\"Group\":\"P12S\",\"ZoneLockH\":[1154],\"ElementsL\":[{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"Filled\":true},{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":0.7853982,\"Filled\":true},{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":1.5707964,\"Filled\":true},{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":2.3561945,\"Filled\":true},{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":3.1415927,\"Filled\":true},{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":3.7524579,\"Filled\":true},{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":4.7996554,\"Filled\":true},{\"Name\":\"Protean\",\"type\":3,\"refY\":7.16,\"radius\":0.0,\"color\":4278190335,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":5.497787,\"Filled\":true}]}", out _);
 
             Controller.TryRegisterLayoutFromCode("Pairs", "~Lv2~{\"Name\":\"P12S Pairs\",\"Group\":\"P12S\",\"ZoneLockH\":[1154],\"ElementsL\":[{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902005,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902005,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":1.5707964,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":1.5707964,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":3.1415927,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":3.1415927,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":0.5,\"refY\":7.16,\"offX\":0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":4.712389,\"Filled\":true},{\"Name\":\"Pair\",\"type\":3,\"refX\":-0.5,\"refY\":7.16,\"offX\":-0.5,\"radius\":0.0,\"color\":4294902011,\"thicc\":7.0,\"refActorObjectID\":0,\"FillStep\":0.25,\"refActorComparisonType\":2,\"includeRotation\":true,\"AdditionalRotation\":4.712389,\"Filled\":true}]}", out _);
+
+            //Controller.RegisterElementFromCode("")
         }
 
         Dictionary<uint, List<uint>> Attachments = new();
@@ -164,17 +167,21 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public class Config : IEzConfig
         {
-            public float DonutRadius = 6.0f;
-            public Vector4 DonutColor = ImGuiColors.DalamudViolet;
+            public float DonutRadius = 25.0f;
+            public Vector4 DonutColor = Colors.Red.ToVector4() with { W = 0.6f };
         }
 
         Config Conf => Controller.GetConfig<Config>();
 
         public override void OnSettingsDraw()
         {
-            ImGui.Text("dount radius:"); 
-            ImGui.InputFloat("", ref Conf.DonutRadius);
-            ImGui.Text("dount color:");
+            ImGuiEx.TextV("Dount radius:");
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(150f);
+            ImGui.DragFloat("", ref Conf.DonutRadius.ValidateRange(5f, 50f), 0.1f, 5f, 30f);
+            ImGuiEx.TextV("Dount color:");
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
             ImGui.ColorEdit4("", ref Conf.DonutColor); 
 
             if (ImGui.CollapsingHeader("Debug"))

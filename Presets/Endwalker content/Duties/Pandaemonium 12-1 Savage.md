@@ -1,4 +1,4 @@
-[International] [Script] Wings unsafe spots. Accurately accounts for snapshot. Not super pixel perfect, keep a safe step away from separating line!
+[International] [Script] Wings unsafe spots. Accurately accounts for snapshot. Now with accurate pixel perfect line.
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Wing%20Cleaves.cs
 ```

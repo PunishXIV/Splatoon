@@ -88,10 +88,18 @@
 			<HintPath>$(DalamudLibPath)PInvoke.Windows.Core.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
-		<Reference Include="ImGuiScene.dll">
-			<HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
+      <Reference Include="ImGuiScene.dll">
+          <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
+      <Reference Include="SharpDX.dll">
+          <HintPath>$(DalamudLibPath)SharpDX.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
+      <Reference Include="SharpDX.Direct3D11.dll">
+          <HintPath>$(DalamudLibPath)SharpDX.Direct3D11.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
 	</ItemGroup>
 
 	<ItemGroup>

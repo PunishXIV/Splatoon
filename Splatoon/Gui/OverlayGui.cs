@@ -47,32 +47,38 @@ unsafe class OverlayGui : IDisposable
                     ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
                     ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
                         | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
-                    foreach (var element in p.displayObjects)
+                    //var x = new (Vector2, Vector2)[] { (new(100, 100), new(200, 200)), (new(300, 300), new(400, 400)), (new(500, 500), new(600, 600)) };
+                    //foreach (var e in x)
                     {
-                        if (element is DisplayObjectCircle elementCircle)
+                        //ImGui.PushClipRect(e.Item1, e.Item2, false);
+                        foreach (var element in p.displayObjects)
                         {
-                            DrawRingWorld(elementCircle);
+                            if (element is DisplayObjectCircle elementCircle)
+                            {
+                                DrawRingWorld(elementCircle);
+                            }
+                            else if (element is DisplayObjectDot elementDot)
+                            {
+                                DrawPoint(elementDot);
+                            }
+                            else if (element is DisplayObjectText elementText)
+                            {
+                                DrawTextWorld(elementText);
+                            }
+                            else if (element is DisplayObjectLine elementLine)
+                            {
+                                DrawLineWorld(elementLine);
+                            }
+                            else if (element is DisplayObjectRect elementRect)
+                            {
+                                DrawRectWorld(elementRect);
+                            }
+                            /*else if(element is DisplayObjectPolygon elementPolygon)
+                            {
+                                DrawPolygon(elementPolygon);
+                            }*/
                         }
-                        else if (element is DisplayObjectDot elementDot)
-                        {
-                            DrawPoint(elementDot);
-                        }
-                        else if (element is DisplayObjectText elementText)
-                        {
-                            DrawTextWorld(elementText);
-                        }
-                        else if (element is DisplayObjectLine elementLine)
-                        {
-                            DrawLineWorld(elementLine);
-                        }
-                        else if (element is DisplayObjectRect elementRect)
-                        {
-                            DrawRectWorld(elementRect);
-                        }
-                        /*else if(element is DisplayObjectPolygon elementPolygon)
-                        {
-                            DrawPolygon(elementPolygon);
-                        }*/
+                        //ImGui.PopClipRect();
                     }
                     ImGui.End();
                     ImGui.PopStyleVar();

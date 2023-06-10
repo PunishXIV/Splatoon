@@ -6,7 +6,9 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using Splatoon;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Wing_Cleaves : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1153, 1154 };
-        public override Metadata? Metadata => new(3, "NightmareXIV");
+        public override Metadata? Metadata => new(4, "NightmareXIV");
         Queue<string> Cleaves = new();
         bool isSpin = false;
         Vector3 firstPos;
@@ -36,6 +38,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnSetup()
         {
             Controller.RegisterElementFromCode("Indicator", "{\"Name\":\"Indicator\",\"type\":5,\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":30.0,\"coneAngleMax\":180,\"refActorComparisonType\":3,\"includeRotation\":true,\"Filled\":true}");
+            Controller.RegisterElementFromCode("Line", "{\"Name\":\"\",\"type\":2,\"radius\":0.0,\"thicc\":4.0}");
         }
 
         public override void OnEnable()
@@ -114,13 +117,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         void Hide()
         {
             Controller.GetElementByName("Indicator").Enabled = false;
+            Controller.GetElementByName("Line").Enabled = false;
         }
 
         void Process(string dir)
         {
-            if(Controller.TryGetElementByName("Indicator", out var e))
+            if(Controller.TryGetElementByName("Indicator", out var e) && Controller.TryGetElementByName("Line", out var l))
             {
-                e.SetRefPosition(Athena.Position);
+                var apos = Athena.Position;
+                var arot = Athena.Rotation;
+                e.SetRefPosition(apos);
                 e.Enabled = true;
                 if(dir == "Left")
                 {
@@ -132,7 +138,20 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     e.coneAngleMin = (int)BaseRotation;
                     e.coneAngleMax = (int)(BaseRotation + 180);
                 }
+                l.Enabled = true;
+                var fpos = Static.GetPositionXZY(Athena);
+                SetPos(l, Static.RotatePoint(fpos.X, fpos.Y, -arot, fpos with { Y = fpos.Y + 30 }), Static.RotatePoint(fpos.X, fpos.Y, -arot + 180f.DegreesToRadians(), fpos with { Y = fpos.Y + 30 }));
             }
+        }
+
+        void SetPos(Element e, Vector3 RefPosition, Vector3 OffPosition)
+        {
+            e.refX = RefPosition.X;
+            e.refY = RefPosition.Y;
+            e.refZ = RefPosition.Z;
+            e.offX = OffPosition.X;
+            e.offY = OffPosition.Y;
+            e.offZ = OffPosition.Z;
         }
 
         public override void OnUpdate()

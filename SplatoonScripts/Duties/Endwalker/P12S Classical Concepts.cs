@@ -21,12 +21,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Classical_Concepts : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(4, "tatad2");
+        public override Metadata? Metadata => new(5, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
 
         private int cubeCount = 0;
         private int[,] cube = new int[4, 3];
+
+        bool isBlinking = false;
 
         List<TickScheduler> Schedulers = new();
 
@@ -34,11 +36,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             Hide();
             Schedulers.Each(x => x.Dispose());
-            PluginLog.Debug("classical concepts RESET"); 
-            cubeCount = 0; 
+            PluginLog.Debug("classical concepts RESET");
+            cubeCount = 0;
         }
 
-        void Hide() => Controller.ClearRegisteredElements();
+        void Hide()
+        {
+            Controller.ClearRegisteredElements();
+            isBlinking = false;
+        }
 
         public override void OnEnable()
         {
@@ -50,6 +56,20 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == 3588 && x.RemainingTime < 1f))
             {
                 Hide();
+            }
+            if (isBlinking)
+            {
+                foreach(var e in Controller.GetRegisteredElements())
+                {
+                    if (e.Key.StartsWith("Red"))
+                    {
+                        e.Value.color = (GradientColor.Get(ImGuiColors.DalamudRed, ImGuiColors.DalamudRed / 2, 333) with { W = Conf.Trans }).ToUint();
+                    }
+                    if (e.Key.StartsWith("Yellow"))
+                    {
+                        e.Value.color = (GradientColor.Get(ImGuiColors.DalamudYellow, ImGuiColors.DalamudYellow / 2, 333) with { W = Conf.Trans }).ToUint();
+                    }
+                }
             }
         }
 
@@ -104,7 +124,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     PluginLog.Debug($"(x, y): {x}, {y} redcount:{Red.Count}, yellowcount:{Yellow.Count}"); 
 
                     if (Red.Count == 1)
-                        DrawLine(x, y, Red[0].Item1, Red[0].Item2, ImGuiColors.DalamudRed.ToUint());
+                        DrawLine(x, y, Red[0].Item1, Red[0].Item2, true);
                     else
                     {
                         int blueCount = 0;
@@ -116,10 +136,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                             if (cube[xx, yy] == 2) blueCount++;
                         }
                         int index = blueCount == 2 ? 1 : 0;
-                        DrawLine(x, y, Red[index].Item1, Red[index].Item2, ImGuiColors.DalamudRed.ToUint());
+                        DrawLine(x, y, Red[index].Item1, Red[index].Item2, true);
                     }
                     if (Yellow.Count == 1)
-                        DrawLine(x, y, Yellow[0].Item1, Yellow[0].Item2, ImGuiColors.DalamudYellow.ToUint()); 
+                        DrawLine(x, y, Yellow[0].Item1, Yellow[0].Item2, false); 
                     else
                     {
                         int blueCount = 0;
@@ -131,12 +151,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                             if (cube[xx, yy] == 2) blueCount++;
                         }
                         int index = blueCount == 2 ? 1 : 0;
-                        DrawLine(x, y, Yellow[index].Item1, Yellow[index].Item2, ImGuiColors.DalamudYellow.ToUint());
+                        DrawLine(x, y, Yellow[index].Item1, Yellow[index].Item2, false);
                     }
                 }
         }
 
-        private void DrawLine(int x1, int y1, int x2, int y2, uint color)
+        private void DrawLine(int x1, int y1, int x2, int y2, bool isRed)
         {
             //{"Name":"","type":2,"refX":88.0,"refY":92.0,"offX":96.0,"offY":92.0,"offZ":-3.8146973E-06,"radius":0.5,"refActorRequireCast":true,"refActorComparisonType":3,"includeRotation":true,"Filled":true}
 
@@ -153,12 +173,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 offX = x2,
                 offY = y2,
                 radius = Conf.LineWidth,
-                color = (color.ToVector4() with { W = Conf.Trans }).ToUint(),
+                color = ((isRed?ImGuiColors.DalamudRed:ImGuiColors.DalamudYellow) with { W = Conf.Trans }).ToUint(),
                 thicc = Conf.LineThickness
             };
 
             string elementName = x1.ToString() + y1.ToString() + x2.ToString() + y2.ToString();
-            Controller.RegisterElement(elementName, e, true);
+            Controller.RegisterElement((isRed?"Red":"Yellow") + elementName, e, true);
 
             Schedulers.Add(new TickScheduler(() =>
             {
@@ -195,6 +215,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         else
                         {
                             DrawLines(false);
+                            isBlinking = true;
                             Schedulers.Add(new TickScheduler(() => 
                             {
                                 Hide();

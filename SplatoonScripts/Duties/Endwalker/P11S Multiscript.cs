@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P11S_Multiscript : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1152 };
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
 
         const string DarkVFX = "vfx/common/eff/m0830_dark_castloopc0k1.avfx";
         const string LightVFX = "vfx/common/eff/m0830_light_castloopc0k1.avfx";
@@ -110,7 +110,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                                 e.Enabled = true;
                                 e.SetRefPosition(tower.ToVector3(0));
                             }
-                        });
+                        }, C.TowerDelay);
                     }
                     if (data1 == 4)
                     {
@@ -122,10 +122,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             var next = GetNextSpot(pos, C.MoveDirection);
                             //now draw path
-                            if(Controller.TryGetElementByName($"Spot{pos}", out var t))
+                            if(Controller.TryGetElementByName($"Spot{next}", out var t))
                             {
                                 t.Enabled = true;
-                                new TickScheduler(() => t.Enabled = false, 5000);
+                                new TickScheduler(() => t.Enabled = false, 3000);
                             }
                         }
                     }
@@ -201,29 +201,38 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.Checkbox("Display post-protean lingering effects (AOE/donut)", ref C.EnableProteanLinger);
 
             ImGui.Checkbox("Highlight your designated letter of the law tower", ref C.HighlightTower);
-            ImGuiEx.TextV("Your towers:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(150f);
-            ImGuiEx.EnumCombo("##t1", ref C.Tower1);
-            ImGui.SameLine();
-            ImGuiEx.Text("+");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(150f);
-            ImGuiEx.EnumCombo("##t2", ref C.Tower2);
-            ImGui.SetNextItemWidth(150f);
-            ImGuiEx.EnumCombo("Highlight move direction after taking tower", ref C.MoveDirection);
-
-
-            if (ImGui.CollapsingHeader("Debug"))
+            if (C.HighlightTower)
             {
-                var t = Themis;
-                if(t != null)
+                ImGuiEx.TextV("Your towers:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(150f);
+                ImGuiEx.EnumCombo("##t1", ref C.Tower1);
+                ImGui.SameLine();
+                ImGuiEx.Text("+");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(150f);
+                ImGuiEx.EnumCombo("##t2", ref C.Tower2);
+                ImGui.SetNextItemWidth(150f);
+                ImGuiEx.SliderIntAsFloat("Delay tower highlight after spawning, seconds", ref C.TowerDelay, 0, 5000);
+                ImGui.SetNextItemWidth(150f);
+                ImGuiEx.EnumCombo("Highlight move direction after taking tower", ref C.MoveDirection);
+
+
+                if (ImGui.CollapsingHeader("Debug"))
                 {
-                    ImGuiEx.Text($"Themis color: {GetColor(t)} / {t}");
-                }
-                foreach(var x in IllusoryThemises)
-                {
-                    ImGuiEx.Text($"{x} color: {GetColor(x)}");
+                    var next1 = GetNextSpot(C.Tower1, C.MoveDirection);
+                    var next2 = GetNextSpot(C.Tower2, C.MoveDirection);
+                    ImGuiEx.Text($"Next: 1: {C.Tower1}->{next1}, 2: {C.Tower2}->{next2}");
+
+                    var t = Themis;
+                    if (t != null)
+                    {
+                        ImGuiEx.Text($"Themis color: {GetColor(t)} / {t}");
+                    }
+                    foreach (var x in IllusoryThemises)
+                    {
+                        ImGuiEx.Text($"{x} color: {GetColor(x)}");
+                    }
                 }
             }
         }
@@ -251,7 +260,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             public TowerDirection Tower1 = TowerDirection.North;
             public TowerDirection Tower2 = TowerDirection.NorthWest;
             public MoveDirection MoveDirection = MoveDirection.Disable;
-
+            public int TowerDelay = 4500;
         }
     }
 }

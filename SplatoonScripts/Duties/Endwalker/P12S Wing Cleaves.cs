@@ -1,11 +1,13 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
-using ECommons.Logging;
+using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
+using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utils;
@@ -13,16 +15,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Wing_Cleaves : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1153, 1154 };
-        public override Metadata? Metadata => new(4, "NightmareXIV");
+        public override Metadata? Metadata => new(5, "NightmareXIV");
         Queue<string> Cleaves = new();
         bool isSpin = false;
         Vector3 firstPos;
@@ -38,7 +37,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnSetup()
         {
             Controller.RegisterElementFromCode("Indicator", "{\"Name\":\"Indicator\",\"type\":5,\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":30.0,\"coneAngleMax\":180,\"refActorComparisonType\":3,\"includeRotation\":true,\"Filled\":true}");
-            Controller.RegisterElementFromCode("Line", "{\"Name\":\"\",\"type\":2,\"radius\":0.0,\"thicc\":4.0}");
+            Controller.RegisterElementFromCode("Line", "{\"Name\":\"\",\"type\":2,\"radius\":0.0,\"thicc\":6.0}");
         }
 
         public override void OnEnable()
@@ -130,13 +129,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 e.Enabled = true;
                 if(dir == "Left")
                 {
-                    e.coneAngleMin = (int)(BaseRotation - 180f);
-                    e.coneAngleMax = (int)BaseRotation;
+                    e.coneAngleMin = (int)(BaseRotation - 180f) + 1;
+                    e.coneAngleMax = (int)BaseRotation - 1;
                 }
                 else
                 {
-                    e.coneAngleMin = (int)BaseRotation;
-                    e.coneAngleMax = (int)(BaseRotation + 180);
+                    e.coneAngleMin = (int)BaseRotation + 1;
+                    e.coneAngleMax = (int)(BaseRotation + 180) - 1;
                 }
                 l.Enabled = true;
                 var fpos = Static.GetPositionXZY(Athena);
@@ -164,7 +163,34 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     Cleaves.Clear();
                     Hide();
                 }
+                else
+                {
+                    if(Controller.TryGetElementByName("Line", out var e) && Controller.TryGetElementByName("Indicator", out var i))
+                    {
+                        e.color = GradientColor.Get(C.Col1, C.Col2).ToUint();
+                        i.color = e.color;
+                    }
+                }
             }
+        }
+
+        Config C => Controller.GetConfig<Config>();
+        public class Config: IEzConfig
+        {
+            public Vector4 Col1 = Vector4FromRGBA(0xFF0000C8);
+            public Vector4 Col2 = Vector4FromRGBA(0xFF7500C8);
+        }
+
+        public override void OnSettingsDraw()
+        {
+            ImGui.ColorEdit4("Color 1", ref C.Col1, ImGuiColorEditFlags.NoInputs);
+            ImGui.ColorEdit4("Color 2", ref C.Col2, ImGuiColorEditFlags.NoInputs);
+        }
+
+        public unsafe static Vector4 Vector4FromRGBA(uint col)
+        {
+            byte* bytes = (byte*)&col;
+            return new Vector4((float)bytes[3] / 255f, (float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f);
         }
     }
 }

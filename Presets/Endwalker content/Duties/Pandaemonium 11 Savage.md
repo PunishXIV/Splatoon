@@ -1,5 +1,6 @@
 [International] [Script] Multiscript for P11S. Current functions:
 - Shows lingering AOE after protean
+- Highlights your letter of the law tower with safespot after it (configuration is required)
 
 More functions will be added with time
 ```

@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P11S_Multiscript : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1152 };
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
 
         const string DarkVFX = "vfx/common/eff/m0830_dark_castloopc0k1.avfx";
         const string LightVFX = "vfx/common/eff/m0830_light_castloopc0k1.avfx";
@@ -64,6 +64,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         TowerDirection GetNextSpot(TowerDirection md, MoveDirection d)
         {
+            if(d == MoveDirection.Fixed_position)
+            {
+                return C.SafeSpotFixedPos;
+            }
+            if(d == MoveDirection.Unused_Tower_Position)
+            {
+                if (md == C.Tower1) return C.Tower2;
+                if (md == C.Tower2) return C.Tower1;
+            }
             var index = Array.IndexOf(Clock, md);
             if (d == MoveDirection.Clockwise) index++;
             if (d == MoveDirection.CounterClockwise) index--;
@@ -72,7 +81,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             return Clock[index];
         }
 
-        public enum MoveDirection { Disable, Clockwise, CounterClockwise}
+        public enum MoveDirection { Disable, Clockwise, CounterClockwise, Unused_Tower_Position, Fixed_position}
 
         public override void OnSetup()
         {
@@ -216,6 +225,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 ImGuiEx.SliderIntAsFloat("Delay tower highlight after spawning, seconds", ref C.TowerDelay, 0, 5000);
                 ImGui.SetNextItemWidth(150f);
                 ImGuiEx.EnumCombo("Highlight move direction after taking tower", ref C.MoveDirection);
+                if(C.MoveDirection == MoveDirection.Fixed_position)
+                {
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(150f);
+                    ImGuiEx.EnumCombo("##fixedpos", ref C.SafeSpotFixedPos);
+                }
 
 
                 if (ImGui.CollapsingHeader("Debug"))
@@ -261,6 +276,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             public TowerDirection Tower2 = TowerDirection.NorthWest;
             public MoveDirection MoveDirection = MoveDirection.Disable;
             public int TowerDelay = 4500;
+            public TowerDirection SafeSpotFixedPos = TowerDirection.North;
         }
     }
 }

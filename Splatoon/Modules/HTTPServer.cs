@@ -159,7 +159,8 @@ class HTTPServer : IDisposable
                         status.Add(e.StackTrace);
                     }
                     HttpListenerResponse response = context.Response;
-                    response.AppendHeader("Access-Control-Allow-Origin", "*");
+                    response.AppendHeader("Access-Control-Allow-Origin", request.Headers["Origin"]);
+                    response.AppendHeader("Access-Control-Allow-Headers", "Content-Type");
                     string responseString = string.Join("\n", status);
                     byte[] buffer = Encoding.UTF8.GetBytes(responseString);
                     response.ContentLength64 = buffer.Length;

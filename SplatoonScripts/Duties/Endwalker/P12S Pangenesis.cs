@@ -126,14 +126,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         // 1 buff, wait
                         Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 90 : 110;
                         Indicator.refY = 91;
-                        lastTowerBlack = (Indicator.refX < 100) != (blackPos.X < 100);
+                        lastTowerBlack = (Indicator.refX < 100) == (blackPos.X < 100);
                     }
                     else
                     {
                         // 0 buff, go first tower;
                         Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 85 : 115;
                         Indicator.refY = 91;
-                        lastTowerBlack = (Indicator.refX < 100) == (blackPos.X < 100);
+                        lastTowerBlack = (Indicator.refX < 100) != (blackPos.X < 100);
                     }
                 }
             }

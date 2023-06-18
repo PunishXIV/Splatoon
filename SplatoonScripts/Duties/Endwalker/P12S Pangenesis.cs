@@ -1,31 +1,16 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
-using Dalamud.Interface.Colors;
-using Dalamud.Interface.Style;
-using Dalamud.Logging;
-using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
-using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
 using Splatoon;
-using ImGuiNET;
 using Splatoon.SplatoonScripting;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using PluginLog = ECommons.Logging.PluginLog;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
@@ -33,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Pangenesis : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(1, "tatad2");
+        public override Metadata? Metadata => new(2, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
         private int towerCount = 0;
@@ -84,13 +69,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
             PluginLog.Information($"wtower: {whiteTower.ObjectId}, blacktower: {blackTower.ObjectId}, casttime: {whiteTower.CurrentCastTime}, {blackTower.CurrentCastTime}, position: {whiteTower.Position.ToVector2().ToString()}, {blackTower.Position.ToVector2().ToString()}");
 
-            StatusList statusList = Svc.ClientState.LocalPlayer.StatusList; 
+            StatusList statusList = Svc.ClientState.LocalPlayer.StatusList;
             if (statusList.Any(x => x.StatusId == whiteDebuff && x.RemainingTime <= 8))
             {
                 // short white, go black tower 
                 Indicator.refX = blackPos.X;
                 Indicator.refY = blackPos.Y;
-                lastTowerBlack = true; 
+                lastTowerBlack = true;
             }
             else if (statusList.Any(x => x.StatusId == whiteDebuff && x.RemainingTime > 8))
             {
@@ -98,14 +83,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 int biasX = blackPos.X < 100 ? 5 : -5;
                 Indicator.refX = blackPos.X + biasX;
                 Indicator.refY = blackPos.Y;
-                lastTowerBlack = true; 
+                lastTowerBlack = true;
             }
             else if (statusList.Any(x => x.StatusId == blackDebuff && x.RemainingTime <= 8))
             {
                 // short black, go white tower 
                 Indicator.refX = whitePos.X;
                 Indicator.refY = whitePos.Y;
-                lastTowerBlack = false; 
+                lastTowerBlack = false;
             }
             else if (statusList.Any(x => x.StatusId == blackDebuff && x.RemainingTime > 8))
             {
@@ -113,21 +98,44 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 int biasX = whitePos.X < 100 ? 5 : -5;
                 Indicator.refX = whitePos.X + biasX;
                 Indicator.refY = whitePos.Y;
-                lastTowerBlack = false; 
-            }
-            else if (statusList.Any(x => x.StatusId == DNABuff))
-            {
-                // 1 buff, go first tower
-                Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 85 : 115;
-                Indicator.refY = 91;
-                lastTowerBlack = (Indicator.refX < 100) == (blackPos.X < 100); 
+                lastTowerBlack = false;
             }
             else
             {
-                // 0 buff, wait;
-                Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 90 : 110;
-                Indicator.refY = 91;
-                lastTowerBlack = (Indicator.refX < 100) != (blackPos.X < 100);  
+                if (C.Strat == Strat.First_2_1)
+                {
+                    if (statusList.Any(x => x.StatusId == DNABuff))
+                    {
+                        // 1 buff, go first tower
+                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 85 : 115;
+                        Indicator.refY = 91;
+                        lastTowerBlack = (Indicator.refX < 100) == (blackPos.X < 100);
+                    }
+                    else
+                    {
+                        // 0 buff, wait;
+                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 90 : 110;
+                        Indicator.refY = 91;
+                        lastTowerBlack = (Indicator.refX < 100) != (blackPos.X < 100);
+                    }
+                }
+                else if(C.Strat == Strat.First_2_0)
+                {
+                    if (statusList.Any(x => x.StatusId == DNABuff))
+                    {
+                        // 1 buff, wait
+                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 90 : 110;
+                        Indicator.refY = 91;
+                        lastTowerBlack = (Indicator.refX < 100) != (blackPos.X < 100);
+                    }
+                    else
+                    {
+                        // 0 buff, go first tower;
+                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 85 : 115;
+                        Indicator.refY = 91;
+                        lastTowerBlack = (Indicator.refX < 100) == (blackPos.X < 100);
+                    }
+                }
             }
 
             directionRight = (int)Indicator.refX < 100 ? false : true;
@@ -212,13 +220,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 Reset();
         }
 
-        public override void OnVFXSpawn(uint target, string vfxPath)
+        
+        public override void OnSettingsDraw()
         {
+            ImGuiEx.EnumCombo("Select strat", ref C.Strat);
         }
+        
+        public enum Strat { First_2_1, First_2_0}
 
-
-        public override void OnObjectCreation(nint newObjectPtr)
+        Config C => Controller.GetConfig<Config>();
+        public class Config : IEzConfig
         {
+            public Strat Strat = Strat.First_2_1;
         }
     }
 }

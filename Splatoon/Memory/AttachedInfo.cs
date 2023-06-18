@@ -7,10 +7,12 @@ using Splatoon.Structures;
 
 namespace Splatoon.Memory;
 
+
+#nullable enable
 public unsafe static class AttachedInfo
 {
     delegate nint GameObject_ctor(nint obj);
-    static Hook<GameObject_ctor> GameObject_ctor_hook = null;
+    static Hook<GameObject_ctor>? GameObject_ctor_hook = null;
     public static Dictionary<nint, CachedCastInfo> CastInfos = new();
     public static Dictionary<nint, List<CachedObjectEffectInfo>> ObjectEffectInfos = new();
     public static Dictionary<nint, Dictionary<string, VFXInfo>> VFXInfos = new();
@@ -18,7 +20,7 @@ public unsafe static class AttachedInfo
 
     [Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
     delegate nint ActorVfxCreateDelegate2(char* a1, nint a2, nint a3, float a4, char a5, ushort a6, char a7);
-    static Hook<ActorVfxCreateDelegate2> ActorVfxCreateHook;
+    static Hook<ActorVfxCreateDelegate2>? ActorVfxCreateHook;
 
     internal static void Init()
     {
@@ -48,9 +50,9 @@ public unsafe static class AttachedInfo
         }
         ActorVfxCreateHook?.Disable();
         ActorVfxCreateHook?.Dispose();
-        CastInfos = null;
-        VFXInfos = null;
-        ObjectEffectInfos = null;
+        CastInfos = null!;
+        VFXInfos = null!;
+        ObjectEffectInfos = null!;
     }
 
     static nint ActorVfxNewHandler(char* a1, nint a2, nint a3, float a4, char a5, ushort a6, char a7)
@@ -66,13 +68,13 @@ public unsafe static class AttachedInfo
             {
                 SpawnTime = Environment.TickCount64
             };
-            var obj = Svc.Objects.CreateObjectReference(a2);
+            var obj = Svc.Objects.CreateObjectReference(a2)!;
             ScriptingProcessor.OnVFXSpawn(obj.ObjectId, vfxPath);
             if (!BlacklistedVFX.Contains(vfxPath))
             {
                 if (obj is Character c)
                 {
-                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNpcID()}, model id={c.Struct()->ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
+                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNpcID()}, model id={c.Struct()->ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
                     P.ChatMessageQueue.Enqueue(text);
                     if (P.Config.Logging) Logger.Log(text);
                 }
@@ -88,10 +90,10 @@ public unsafe static class AttachedInfo
         {
             e.Log();
         }
-        return ActorVfxCreateHook.Original(a1, a2, a3, a4, a5, a6, a7);
+        return ActorVfxCreateHook!.Original(a1, a2, a3, a4, a5, a6, a7);
     }
 
-    public static bool TryGetVfx(this GameObject go, out Dictionary<string, VFXInfo> fx)
+    public static bool TryGetVfx(this GameObject go, out Dictionary<string, VFXInfo>? fx)
     {
         if (VFXInfos.ContainsKey(go.Address))
         {
@@ -104,7 +106,7 @@ public unsafe static class AttachedInfo
 
     public static bool TryGetSpecificVfxInfo(this GameObject go, string path, out VFXInfo info)
     {
-        if (TryGetVfx(go, out var dict) && dict.ContainsKey(path))
+        if (TryGetVfx(go, out var dict) && dict?.ContainsKey(path) == true)
         {
             info = dict[path];
             return true;
@@ -119,9 +121,8 @@ public unsafe static class AttachedInfo
         Casters.Remove(ptr);
         VFXInfos.Remove(ptr);
         ObjectEffectInfos.Remove(ptr);
-        return GameObject_ctor_hook.Original(ptr);
+        return GameObject_ctor_hook!.Original(ptr);
     }
-
     static void Tick(object _)
     {
         foreach(var x in Svc.Objects)

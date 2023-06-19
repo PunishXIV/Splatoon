@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Superchain : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(3, "NightmareXIV");
+        public override Metadata? Metadata => new(4, "NightmareXIV");
 
         enum Spheres : uint 
         {
@@ -79,7 +79,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
             if(Controller.TryGetLayoutByName("DebuffAOESelf", out var self) && Controller.TryGetLayoutByName("DebuffAOEOther", out var other))
             {
-                if (Conf.EnableAOEChecking)
+                if (C.EnableAOEChecking)
                 {
                     if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == AOEDebuff && x.RemainingTime < 3.5f))
                     {
@@ -118,6 +118,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.ObjectId;
                             //e.color = TransformColorBasedOnDistance(e.color, x.dist);
+                            e.color = C.AoeColor.ToUint();
                         }
                     }
                     else if (x.type == Spheres.Donut)
@@ -127,8 +128,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.ObjectId;
-                            e.Donut = Conf.DonutRadius;
-                            e.color = Conf.DonutColor.ToUint();
+                            e.Donut = C.DonutRadius;
+                            e.color = C.DonutColor.ToUint();
                             //e.color = TransformColorBasedOnDistance(e.color, x.dist);
                         }
                     }
@@ -138,6 +139,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         {
                             e.Enabled = true;
                             e.ElementsL.Each(z => z.refActorObjectID = x.obj.ObjectId);
+                            if (x.type == Spheres.Protean) e.ElementsL.Each(z => z.color = C.ProteanLineColor.ToUint());
+                            if (x.type == Spheres.Pairs) e.ElementsL.Each(z => z.color = C.PairLineColor.ToUint());
                             //e.ElementsL.Each(z => z.color = TransformColorBasedOnDistance(z.color, x.dist));
                         }
                     }
@@ -190,26 +193,42 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
+        public unsafe static Vector4 Vector4FromABGR(uint col)
+        {
+            byte* bytes = (byte*)&col;
+            return new Vector4((float)bytes[0] / 255f, (float)bytes[1] / 255f, (float)bytes[2] / 255f, (float)bytes[3] / 255f);
+        }
+
         public class Config : IEzConfig
         {
             public float DonutRadius = 25.0f;
-            public Vector4 DonutColor = Colors.Red.ToVector4() with { W = 0.6f };
             public bool EnableAOEChecking = true;
+            public Vector4 ProteanLineColor = Vector4FromABGR(4278190335);
+            public Vector4 PairLineColor = Vector4FromABGR(4294902011);
+            public Vector4 AoeColor = Vector4FromABGR(2013266175);
+            public Vector4 DonutColor = Vector4FromABGR(0x990000FF);
+            //public Vector4 AssistColorSelf = Vector4FromABGR(1258356223);
+            //public Vector4 AssistColorOther = Vector4FromABGR(3355508706);
         }
 
-        Config Conf => Controller.GetConfig<Config>();
+        Config C => Controller.GetConfig<Config>();
 
         public override void OnSettingsDraw()
         {
             ImGuiEx.TextV("Dount radius:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150f);
-            ImGui.DragFloat("", ref Conf.DonutRadius.ValidateRange(5f, 50f), 0.1f, 5f, 30f);
-            ImGuiEx.TextV("Dount color:");
+            ImGui.DragFloat("", ref C.DonutRadius.ValidateRange(5f, 50f), 0.1f, 5f, 30f);
+            ImGui.ColorEdit4("Dount color", ref C.DonutColor, ImGuiColorEditFlags.NoInputs);
+            ImGui.ColorEdit4("AOE color", ref C.AoeColor, ImGuiColorEditFlags.NoInputs);
+            ImGui.ColorEdit4("Pair line color", ref C.PairLineColor, ImGuiColorEditFlags.NoInputs);
+            ImGui.ColorEdit4("Protean line color", ref C.ProteanLineColor, ImGuiColorEditFlags.NoInputs);
+            ImGui.Checkbox($"Enable AOE debuff assist", ref C.EnableAOEChecking);
+            /*ImGuiEx.Text($"       ");
             ImGui.SameLine();
-            ImGui.SetNextItemWidth(200f);
-            ImGui.ColorEdit4("", ref Conf.DonutColor); 
-            ImGui.Checkbox($"Enable AOE debuff assist", ref Conf.EnableAOEChecking);
+            ImGui.ColorEdit4("Self color (filled)", ref C.AssistColorSelf, ImGuiColorEditFlags.NoInputs);
+            ImGui.SameLine();
+            ImGui.ColorEdit4("Others (radius)", ref C.AssistColorOther, ImGuiColorEditFlags.NoInputs);*/
 
             if (ImGui.CollapsingHeader("Debug"))
             {

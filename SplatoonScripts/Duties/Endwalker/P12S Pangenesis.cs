@@ -1,11 +1,15 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
+using Dalamud.Interface.Components;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
+using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
@@ -17,8 +21,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Pangenesis : SplatoonScript
     {
+        public enum DebuffType { None, Short_2, Long_2, One }
+        DebuffType MyDebuff = DebuffType.None;
+
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(3, "tatad2");
+        public override Metadata? Metadata => new(4, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
         private int towerCount = 0;
@@ -34,6 +41,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private bool directionRight = false; // 0=>left, 1=>right
         private bool lastTowerBlack = false; // 0=>white, 1=>black
 
+        string TestOverride = "";
+
+        PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+
         public override void OnEnable()
         {
             Reset();
@@ -43,7 +54,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             PluginLog.Information("pangenesis RESET");
             towerCount = 0;
-            Indicator.Enabled = false; 
+            Indicator.Enabled = false;
+            MyDebuff = DebuffType.None;
         }
 
         public override void OnSetup()
@@ -69,13 +81,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
             PluginLog.Information($"wtower: {whiteTower.ObjectId}, blacktower: {blackTower.ObjectId}, casttime: {whiteTower.CurrentCastTime}, {blackTower.CurrentCastTime}, position: {whiteTower.Position.ToVector2().ToString()}, {blackTower.Position.ToVector2().ToString()}");
 
-            StatusList statusList = Svc.ClientState.LocalPlayer.StatusList;
+            StatusList statusList = PC.StatusList;
             if (statusList.Any(x => x.StatusId == whiteDebuff && x.RemainingTime <= 8))
             {
                 // short white, go black tower 
                 Indicator.refX = blackPos.X;
                 Indicator.refY = blackPos.Y;
                 lastTowerBlack = true;
+                MyDebuff = DebuffType.Short_2;
             }
             else if (statusList.Any(x => x.StatusId == whiteDebuff && x.RemainingTime > 8))
             {
@@ -84,6 +97,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 Indicator.refX = blackPos.X + biasX;
                 Indicator.refY = blackPos.Y;
                 lastTowerBlack = true;
+                MyDebuff = DebuffType.Long_2;
             }
             else if (statusList.Any(x => x.StatusId == blackDebuff && x.RemainingTime <= 8))
             {
@@ -91,6 +105,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 Indicator.refX = whitePos.X;
                 Indicator.refY = whitePos.Y;
                 lastTowerBlack = false;
+                MyDebuff = DebuffType.Short_2;
             }
             else if (statusList.Any(x => x.StatusId == blackDebuff && x.RemainingTime > 8))
             {
@@ -99,6 +114,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 Indicator.refX = whitePos.X + biasX;
                 Indicator.refY = whitePos.Y;
                 lastTowerBlack = false;
+                MyDebuff = DebuffType.Long_2;
             }
             else
             {
@@ -107,16 +123,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     if (statusList.Any(x => x.StatusId == DNABuff))
                     {
                         // 1 buff, go first tower
-                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 85 : 115;
+                        Indicator.refX = PC.Position.ToVector2().X < 100 ? 85 : 115;
                         Indicator.refY = 91;
                         lastTowerBlack = (Indicator.refX < 100) == (blackPos.X < 100);
+                        MyDebuff = DebuffType.One;
                     }
                     else
                     {
                         // 0 buff, wait;
-                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 90 : 110;
+                        Indicator.refX = PC.Position.ToVector2().X < 100 ? 90 : 110;
                         Indicator.refY = 91;
                         lastTowerBlack = (Indicator.refX < 100) != (blackPos.X < 100);
+                        MyDebuff = DebuffType.None;
                     }
                 }
                 else if(C.Strat == Strat.First_2_0)
@@ -124,18 +142,25 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     if (statusList.Any(x => x.StatusId == DNABuff))
                     {
                         // 1 buff, wait
-                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 90 : 110;
+                        Indicator.refX = PC.Position.ToVector2().X < 100 ? 90 : 110;
                         Indicator.refY = 91;
                         lastTowerBlack = (Indicator.refX < 100) == (blackPos.X < 100);
+                        MyDebuff = DebuffType.One;
                     }
                     else
                     {
                         // 0 buff, go first tower;
-                        Indicator.refX = Svc.ClientState.LocalPlayer.Position.ToVector2().X < 100 ? 85 : 115;
+                        Indicator.refX = PC.Position.ToVector2().X < 100 ? 85 : 115;
                         Indicator.refY = 91;
                         lastTowerBlack = (Indicator.refX < 100) != (blackPos.X < 100);
+                        MyDebuff = DebuffType.None;
                     }
                 }
+            }
+
+            if(C.Strat == Strat.First_2_0 && MyDebuff == DebuffType.Short_2)
+            {
+                lastTowerBlack = !lastTowerBlack;
             }
 
             directionRight = (int)Indicator.refX < 100 ? false : true;
@@ -165,7 +190,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
             new TickScheduler(() =>
             {
-                StatusList statusList = Svc.ClientState.LocalPlayer.StatusList;
+                StatusList statusList = PC.StatusList;
                 if (statusList.Any(x => x.StatusId == whiteDebuff))
                 {
                     //  white, go black
@@ -223,7 +248,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         
         public override void OnSettingsDraw()
         {
+            ImGui.SetNextItemWidth(200f);
             ImGuiEx.EnumCombo("Select strat", ref C.Strat);
+            if (ImGui.CollapsingHeader("Debug"))
+            {
+                ImGuiEx.Text($"LastTowerBlack: {lastTowerBlack}");
+                ImGuiEx.Text($"towerCount: {towerCount}");
+                ImGuiEx.Text($"MyDebuff: {MyDebuff}");
+                if (ImGui.Button("Reset")) Reset();
+                ImGui.SetNextItemWidth(200f);
+                ImGui.InputText("TestOverride", ref TestOverride, 50);
+                ImGuiEx.Text($"{PC}");
+            }
         }
         
         public enum Strat { First_2_1, First_2_0}

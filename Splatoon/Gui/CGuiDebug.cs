@@ -5,6 +5,9 @@ using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
 using Lumina.Excel.GeneratedSheets;
 using Splatoon.Memory;
 using Splatoon.Utils;
+using Splatoon.VFX;
+using Splatoon.VFX.Items;
+using System.Globalization;
 
 namespace Splatoon;
 
@@ -19,10 +22,20 @@ unsafe partial class CGui
     uint obj2 = 0;
     int off1 = 0;
     uint rep1 = 0;
+    string txt = "";
+    Vector4 col = Vector4.Zero;
 
     void DisplayDebug()
     {
         ImGui.BeginChild("##splatoonmaindbg");
+        if (ImGui.CollapsingHeader("VFX"))
+        {
+            ImGui.ColorEdit4("col", ref col);
+            if(ImGui.Button("Generate donut"))
+            {
+                DuoLog.Information($"{FXDonut.Get(col.ToUint())}");
+            }
+        }
         if (ImGui.CollapsingHeader("EnvManager"))
         {
             var e = (nint)EnvManager.Instance();

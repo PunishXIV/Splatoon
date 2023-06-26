@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.2.1.5</Version>
+		<Version>4.0.0.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -45,6 +45,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
+	  <ProjectReference Include="..\Penumbra.Api\Penumbra.Api.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -113,6 +114,9 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="LanguageKorean.ini">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="res\fxdonut.avfx">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Splatoon.json">

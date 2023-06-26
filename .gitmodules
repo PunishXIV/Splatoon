@@ -4,3 +4,6 @@
 [submodule "PunishLib"]
 	path = PunishLib
 	url = https://github.com/PunishXIV/PunishLib
+[submodule "Penumbra.Api"]
+	path = Penumbra.Api
+	url = https://github.com/Limiana/Penumbra.Api

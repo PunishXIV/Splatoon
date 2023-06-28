@@ -10,9 +10,9 @@ Splatoon plugin allows you to put infinite amount of waymarks in the world of di
 # Install
 Dalamud repository:
 
-`https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json`
+`https://love.puni.sh/ment.json`
 
-Detailed instructions available here: https://github.com/NightmareXIV/MyDalamudPlugins
+Detailed instructions available here: https://puni.sh/plugin/Splatoon
 
 # CHINESE PLAYERS - ATTENTION!
 Chinese fork of Dalamud currently intentionally prevents usage of Splatoon by adding it into banned plugins list. Banned plugin list was originally created to prevent unstable plugins from loading on updates. However, Chinese forkers of Dalamud decided to abuse it to attempt to prevent you from using the plugin for their personal reasons. 

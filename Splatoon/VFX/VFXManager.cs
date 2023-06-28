@@ -1,4 +1,4 @@
-﻿using Splatoon.VFX.Items;
+﻿using Splatoon.VFX.Items.Donut;
 using System;
 using System.Collections.Generic;
 using System.Linq;

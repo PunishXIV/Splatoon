@@ -12,18 +12,14 @@ namespace Splatoon.VFX
 
         internal VFXManager()
         {
-            Penumbra.Api.Ipc.Initialized.Subscriber(Svc.PluginInterface, Init);
-            Penumbra.Api.Ipc.Disposed.Subscriber(Svc.PluginInterface, Shutdown);
         }
 
         void Init()
         {
-            Penumbra.Api.Ipc.CreateNamedTemporaryCollection.Subscriber(Svc.PluginInterface).Invoke("Splatoon");
         }
 
         void Shutdown()
         {
-            Penumbra.Api.Ipc.RemoveTemporaryCollectionByName.Subscriber(Svc.PluginInterface).Invoke("Splatoon");
         }
 
         public void Dispose()

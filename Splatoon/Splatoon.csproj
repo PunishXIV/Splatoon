@@ -45,7 +45,6 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
-	  <ProjectReference Include="..\Penumbra.Api\Penumbra.Api.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

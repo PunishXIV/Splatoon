@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Splatoon.VFX.Items;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,22 +10,18 @@ namespace Splatoon.VFX
     internal class VFXManager : IDisposable
     {
         internal List<VFXRequest> RequestList = new();
+        internal string TempDir = Path.Combine(Svc.PluginInterface.ConfigDirectory.FullName, "fxtemp");
+        internal FXDonutController FXDonutController;
 
         internal VFXManager()
         {
-        }
-
-        void Init()
-        {
-        }
-
-        void Shutdown()
-        {
+            if (!Directory.Exists(TempDir)) Directory.CreateDirectory(TempDir);
+            FXDonutController = new();
         }
 
         public void Dispose()
         {
-            Shutdown();
+            FXDonutController.Dispose();
         }
     }
 }

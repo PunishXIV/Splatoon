@@ -21,6 +21,7 @@ using Splatoon.Modules;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using Splatoon.Utils;
+using Splatoon.VFX;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using Localization = ECommons.LanguageHelpers.Localization;
@@ -87,6 +88,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal ObjectEffectProcessor ObjectEffectProcessor;
     internal HttpClient HttpClient;
     internal PinnedElementEdit PinnedElementEditWindow;
+    internal VFXManager VFXManager;
 
     internal void Load(DalamudPluginInterface pluginInterface)
     {
@@ -192,6 +194,7 @@ public unsafe class Splatoon : IDalamudPlugin
         ScriptingProcessor.TerritoryChanged();
         ScriptingProcessor.ReloadAll();
         ObjectLife.OnObjectCreation = ScriptingProcessor.OnObjectCreation;
+        VFXManager = new();
         Init = true;
         SplatoonIPC.Init();
     }
@@ -227,8 +230,9 @@ public unsafe class Splatoon : IDalamudPlugin
         Safe(mapEffectProcessor.Dispose);
         Safe(TetherProcessor.Dispose);
         Safe(ObjectEffectProcessor.Dispose);
-        AttachedInfo.Dispose();
-        ScriptingProcessor.Dispose();
+        Safe(AttachedInfo.Dispose);
+        Safe(ScriptingProcessor.Dispose);
+        Safe(VFXManager.Dispose);
         ECommonsMain.Dispose();
         P = null;
         //Svc.Chat.Print("Disposing");

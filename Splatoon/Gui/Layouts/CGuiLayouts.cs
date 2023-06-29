@@ -243,6 +243,10 @@ partial class CGui
                             groupToRemove = i;
                         }
                         ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
+                        if (ImGui.Selectable("Export Group to clipboard".Loc()))
+                        {
+                            P.Config.LayoutsL.Where(l => l.Group == g).ExportToClipboard();
+                        }
                         /*if (ImGui.Selectable("Export Group".Loc()))
                         {
                             var exporttext = "~Lv3~";
@@ -318,15 +322,25 @@ partial class CGui
 
     internal static bool ImportFromClipboard()
     {
-        if (Static.TryImportLayout(ImGui.GetClipboardText(), out var l))
+        string[] split = ImGui.GetClipboardText().Split('\n');
+
+        bool success = false;
+
+        foreach (string clip in split)
         {
-            CurrentLayout = l;
-            if (l.Group != "")
+            string trim = clip.Trim();
+            if (trim.Length > 0 && Static.TryImportLayout(trim, out var l))
             {
-                OpenedGroup.Add(l.Group);
+                CurrentLayout = l;
+                if (!string.IsNullOrEmpty(l.Group))
+                {
+                    OpenedGroup.Add(l.Group);
+                }
+
+                success = true;
             }
-            return true;
         }
-        return false;
+        
+        return success;
     }
 }

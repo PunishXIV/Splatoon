@@ -33,7 +33,7 @@ unsafe partial class CGui
             ImGui.ColorEdit4("col", ref col);
             if(ImGui.Button("Generate donut"))
             {
-                DuoLog.Information($"{FXDonut.Get(col.ToUint())}");
+                //DuoLog.Information($"{FXDonut.Get(col.ToUint())}");
             }
         }
         if (ImGui.CollapsingHeader("EnvManager"))

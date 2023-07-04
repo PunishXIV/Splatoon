@@ -14,7 +14,7 @@ internal class Compiler
 {
     internal static Assembly Load(byte[] assembly)
     {
-        PluginLog.Information($"Beginning assembly load");
+        PluginLog.Debug($"Beginning assembly load");
         if(DalamudReflector.TryGetLocalPlugin(out var instance, out var type))
         {
             var loader = type.GetField("loader", ReflectionHelper.AllFlags).GetValue(instance);
@@ -53,7 +53,7 @@ internal class Compiler
                 return null;
             }
 
-            PluginLog.Information("Compilation done without any error.");
+            PluginLog.Debug("Compilation done without any error.");
 
             peStream.Seek(0, SeekOrigin.Begin);
 
@@ -71,7 +71,7 @@ internal class Compiler
         //PluginLog.Information($"References: {references.Select(x => x.Display).Join(", ")}");
 
         var id = $"SplatoonScript-{identity}-{Guid.NewGuid()}";
-        PluginLog.Information($"Assembly name: {id}");
+        PluginLog.Debug($"Assembly name: {id}");
         return CSharpCompilation.Create(id,
             new[] { parsedSyntaxTree },
             references: refs,

@@ -29,7 +29,7 @@ namespace Splatoon.SplatoonScripting
             {
                 if (IsValidAssembly(f))
                 {
-                    PluginLog.Debug($"Adding reference: {f}");
+                    PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
                 }
             }
@@ -37,7 +37,7 @@ namespace Splatoon.SplatoonScripting
             {
                 if (IsValidAssembly(f))
                 {
-                    PluginLog.Debug($"Adding reference: {f}");
+                    PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
                 }
             }
@@ -45,7 +45,7 @@ namespace Splatoon.SplatoonScripting
             {
                 if (IsValidAssembly(f))
                 {
-                    PluginLog.Debug($"Adding reference: {f}");
+                    PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
                 }
             }
@@ -53,7 +53,7 @@ namespace Splatoon.SplatoonScripting
             {
                 if (IsValidAssembly(f))
                 {
-                    PluginLog.Debug($"Adding reference: {f}");
+                    PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
                 }
             }

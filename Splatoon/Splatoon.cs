@@ -194,7 +194,7 @@ public unsafe class Splatoon : IDalamudPlugin
         ScriptingProcessor.TerritoryChanged();
         ScriptingProcessor.ReloadAll();
         ObjectLife.OnObjectCreation = ScriptingProcessor.OnObjectCreation;
-        VFXManager = new();
+        //VFXManager = new();
         Init = true;
         SplatoonIPC.Init();
     }
@@ -599,6 +599,7 @@ public unsafe class Splatoon : IDalamudPlugin
             prevCombatState = Svc.Condition[ConditionFlag.InCombat];
             CurrentChatMessages.Clear();
             ScriptingProcessor.OnUpdate();
+            VFXManager.Tick();
         }
         catch(Exception e)
         {

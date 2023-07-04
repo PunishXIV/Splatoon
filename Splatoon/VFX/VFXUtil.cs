@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Splatoon.VFX.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,5 @@ namespace Splatoon.VFX
 {
     internal unsafe static class VFXUtil
     {
-        
     }
 }

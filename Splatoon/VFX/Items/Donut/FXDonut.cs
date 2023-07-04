@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Splatoon.VFX.Items
+namespace Splatoon.VFX.Items.Donut
 {
     [StructLayout(LayoutKind.Explicit)]
     internal record struct FXDonut

@@ -181,17 +181,17 @@ internal static class ScriptingProcessor
 
     internal static void CompileAndLoad(string sourceCode, string fpath)
     {
-        PluginLog.Information($"Requested script loading");
+        PluginLog.Debug($"Requested script loading");
         LoadScriptQueue.Enqueue((sourceCode, fpath));
         if (!ThreadIsRunning)
         {
             ThreadIsRunning = true;
-            PluginLog.Information($"Beginning new thread");
+            PluginLog.Debug($"Beginning new thread");
             new Thread(() =>
             {
                 try
                 {
-                    PluginLog.Information($"Compiler thread started");
+                    PluginLog.Debug($"Compiler thread started");
                     int idleCount = 0;
                     var dir = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "ScriptCache");
                     if (!Directory.Exists(dir))
@@ -209,26 +209,26 @@ internal static class ScriptingProcessor
                                 {
                                     var md5 = MD5.HashData(Encoding.UTF8.GetBytes(result.code)).Select(x => $"{x:X2}").Join("");
                                     var cacheFile = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.bin");
-                                    PluginLog.Information($"Cache path: {cacheFile}");
+                                    PluginLog.Debug($"Cache path: {cacheFile}");
                                     if (File.Exists(cacheFile))
                                     {
-                                        PluginLog.Information($"Loading from cache...");
+                                        PluginLog.Debug($"Loading from cache...");
                                         code = File.ReadAllBytes(cacheFile);
                                     }
                                     else
                                     {
-                                        PluginLog.Information($"Compiling...");
+                                        PluginLog.Debug($"Compiling...");
                                         code = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
                                         if (code != null)
                                         {
                                             File.WriteAllBytes(cacheFile, code);
-                                            PluginLog.Information($"Compiled and saved");
+                                            PluginLog.Debug($"Compiled and saved");
                                         }
                                     }
                                 }
                                 else
                                 {
-                                    PluginLog.Information($"Compiling, cache bypassed...");
+                                    PluginLog.Debug($"Compiling, cache bypassed...");
                                     code = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
                                 }
                                 if (code != null)
@@ -265,18 +265,18 @@ internal static class ScriptingProcessor
                                                         var newPath = Path.Combine(dir, $"{instance.InternalData.Name}.cs");
                                                         instance.InternalData.Path = newPath;
                                                         File.WriteAllText(newPath, result.code, Encoding.UTF8);
-                                                        DuoLog.Information($"Script installed to {newPath}");
+                                                        DuoLog.Debug($"Script installed to {newPath}");
                                                     }
                                                     else if (rewrite)
                                                     {
                                                         //DeleteFileToRecycleBin(result.path);
                                                         File.WriteAllText(result.path, result.code, Encoding.UTF8);
                                                         instance.InternalData.Path = result.path;
-                                                        DuoLog.Information($"Script overwritten at {instance.InternalData.Path}");
+                                                        DuoLog.Debug($"Script overwritten at {instance.InternalData.Path}");
                                                     }
                                                     instance.OnSetup();
                                                     instance.Controller.ApplyOverrides();
-                                                    PluginLog.Information($"Load success");
+                                                    PluginLog.Debug($"Load success");
                                                     instance.UpdateState();
                                                 }
                                             }
@@ -311,11 +311,11 @@ internal static class ScriptingProcessor
                     e.Log();
                 }
                 ThreadIsRunning = false;
-                PluginLog.Information($"Compiler part of thread is finished");
+                PluginLog.Debug($"Compiler part of thread is finished");
 
                 if (!UpdateCompleted)
                 {
-                    PluginLog.Information($"Starting updating...");
+                    PluginLog.Debug($"Starting updating...");
                     try
                     {
                         BlockingBeginUpdate(true);
@@ -324,7 +324,7 @@ internal static class ScriptingProcessor
                     {
                         e.Log();
                     }
-                    PluginLog.Information($"Update finished");
+                    PluginLog.Debug($"Update finished");
                 }
 
             }).Start();

@@ -29,7 +29,7 @@ namespace SplatoonScriptsOfficial.Tests
 
         void SetVolume()
         {
-            Svc.GameConfig.
+            //Svc.GameConfig.
         }
     }
 }

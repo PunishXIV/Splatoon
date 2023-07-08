@@ -13,6 +13,11 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties
 https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Superchain.cs
 ```
 
+[International] [Script] Tether visualiser for Paradeigma 2/3 (Engravement 1/3), comes with 3 color modes (Dark/Light, Unstretched vs Stretched and 4 different colors).
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/main/SplatoonScripts/Duties/Endwalker/P12S%20Tethers.cs
+```
+
 [International] Adds line AOE
 ```
 ~Lv2~{"Name":"P12S Adds","Group":"P12S","ZoneLockH":[1154],"ElementsL":[{"Name":"","type":3,"refY":45.0,"radius":5.0,"color":1342177535,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[33518],"refActorUseCastTime":true,"refActorCastTimeMax":4.69,"includeRotation":true}]}

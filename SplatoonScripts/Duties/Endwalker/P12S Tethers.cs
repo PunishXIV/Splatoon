@@ -36,7 +36,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnUpdate()
         {
 			ToggleLayouts(false);
-			if (!_tethers.Any()) return;
+			if (_tethers.Count() == 0) return;
 			ToggleLayouts(true);
             var i = 1;
             foreach (var tether in _tethers)
@@ -78,8 +78,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             var vector1 = new Vector2(0, 1);
             return MathF.Atan2(vector2.Y, vector2.X) - MathF.Atan2(vector1.Y, vector1.X);
         }
-
-		private uint GetConfigTetherColor(uint data3, int i)
+		
+		public uint GetConfigTetherColor(uint data3, int i)
 		{
 			switch(C.ColorMode){
 				case 0: // Dark and Light

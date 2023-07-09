@@ -599,7 +599,7 @@ public unsafe class Splatoon : IDalamudPlugin
             prevCombatState = Svc.Condition[ConditionFlag.InCombat];
             CurrentChatMessages.Clear();
             ScriptingProcessor.OnUpdate();
-            VFXManager.Tick();
+            VFXManager?.Tick();
         }
         catch(Exception e)
         {

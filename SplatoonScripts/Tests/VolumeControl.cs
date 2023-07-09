@@ -1,4 +1,7 @@
-﻿using ECommons.DalamudServices;
+﻿using ECommons;
+using ECommons.Automation;
+using ECommons.DalamudServices;
+using ECommons.Interop;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -29,7 +32,23 @@ namespace SplatoonScriptsOfficial.Tests
 
         void SetVolume()
         {
-            //Svc.GameConfig.
+            
+        }
+
+        class UiBuilderSched
+        {
+            Action Action;
+            public UiBuilderSched(Action a)
+            {
+                Action = a;
+                Svc.PluginInterface.UiBuilder.Draw += UiBuilder_Draw;
+            }
+
+            private void UiBuilder_Draw()
+            {
+                Svc.PluginInterface.UiBuilder.Draw -= UiBuilder_Draw;
+                GenericHelpers.Safe(Action);
+            }
         }
     }
 }

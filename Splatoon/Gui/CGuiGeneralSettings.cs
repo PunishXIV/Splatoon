@@ -63,6 +63,9 @@ partial class CGui
             Logger.OnTerritoryChanged();
         }
         ImGuiComponents.HelpMarker("Enable logging, which will log chat messages, casts and VFX info into log files. ".Loc());
+        ImGui.SameLine();
+        ImGui.Checkbox("Log position".Loc(), ref P.Config.LogPosition);
+        ImGuiComponents.HelpMarker("Log object position in casting information log lines".Loc());
 
         ImGui.Separator();
         ImGuiEx.TextV("Splatoon language: ".Loc());

@@ -47,6 +47,7 @@ class Configuration : IPluginConfiguration
     public bool FocusMode = false;
     public bool NoStreamWarning = false;
     public bool Logging = false;
+    public bool LogPosition = false;
 
     public string PluginLanguage = null;
     public bool NoFindReset = false;

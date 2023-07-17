@@ -161,18 +161,21 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 //DuoLog.Information($"{set.Action.RowId} - {set.Action.Name} ({b.Name})");
                 if(C.EnableProteanLinger && set.Action.RowId.EqualsAny<uint>(33257, 33256)) //protean
                 {
-                    var col = GetColor(Themis);
-                    var name = col == Color.Dark ? "PairDonut" : "LingerAOE";
-                    int i = 0;
-                    foreach (var x in FakeParty.Get())
+                    new TickScheduler(() =>
                     {
-                        if (Controller.TryGetElementByName($"{name}{i}", out var e))
+                        var col = GetColor(Themis);
+                        var name = col == Color.Dark ? "PairDonut" : "LingerAOE";
+                        int i = 0;
+                        foreach (var x in FakeParty.Get())
                         {
-                            e.Enabled = true;
-                            e.SetRefPosition(x.Position);
+                            if (Controller.TryGetElementByName($"{name}{i}", out var e))
+                            {
+                                e.Enabled = true;
+                                e.SetRefPosition(x.Position);
+                            }
+                            i++;
                         }
-                        i++;
-                    }
+                    }, 500);
                     DonutScheduler?.Dispose();
                     DonutScheduler = new(() => Controller.GetRegisteredElements().Where(x => x.Key.StartsWithAny("PairDonut", "LingerAOE")).Each(z => z.Value.Enabled = false), 3000);
                 }

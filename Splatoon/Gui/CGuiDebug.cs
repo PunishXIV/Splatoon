@@ -5,8 +5,6 @@ using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
 using Lumina.Excel.GeneratedSheets;
 using Splatoon.Memory;
 using Splatoon.Utils;
-using Splatoon.VFX;
-using Splatoon.VFX.Items.Donut;
 using System.Globalization;
 
 namespace Splatoon;

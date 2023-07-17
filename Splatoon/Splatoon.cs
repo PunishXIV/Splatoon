@@ -21,9 +21,9 @@ using Splatoon.Modules;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using Splatoon.Utils;
-using Splatoon.VFX;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using Colors = Splatoon.Utils.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
 
 namespace Splatoon;
@@ -88,7 +88,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal ObjectEffectProcessor ObjectEffectProcessor;
     internal HttpClient HttpClient;
     internal PinnedElementEdit PinnedElementEditWindow;
-    internal VFXManager VFXManager;
 
     internal void Load(DalamudPluginInterface pluginInterface)
     {
@@ -232,7 +231,6 @@ public unsafe class Splatoon : IDalamudPlugin
         Safe(ObjectEffectProcessor.Dispose);
         Safe(AttachedInfo.Dispose);
         Safe(ScriptingProcessor.Dispose);
-        Safe(VFXManager.Dispose);
         ECommonsMain.Dispose();
         P = null;
         //Svc.Chat.Print("Disposing");
@@ -599,7 +597,6 @@ public unsafe class Splatoon : IDalamudPlugin
             prevCombatState = Svc.Condition[ConditionFlag.InCombat];
             CurrentChatMessages.Clear();
             ScriptingProcessor.OnUpdate();
-            VFXManager?.Tick();
         }
         catch(Exception e)
         {

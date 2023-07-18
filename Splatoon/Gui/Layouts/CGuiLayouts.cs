@@ -243,20 +243,18 @@ partial class CGui
                             groupToRemove = i;
                         }
                         ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
-                        /*if (ImGui.Selectable("Export Group".Loc()))
+                        if (ImGui.Selectable("Export Group".Loc()))
                         {
-                            var exporttext = "~Lv3~";
+                            List<string> Export = new();
                             foreach (var l in P.Config.LayoutsL)
                             {
                                 if (l.Group == g)
                                 {
-                                    exporttext += "$"+JsonConvert.SerializeObject(l, Formatting.None,
-                                        new JsonSerializerSettings
-                                            { DefaultValueHandling = DefaultValueHandling.Ignore });
+                                    Export.Add(l.Serialize());
                                 }
                             }
-                            ImGui.SetClipboardText(exporttext);
-                        }*/
+                            ImGui.SetClipboardText(Export.Join("\n"));
+                        }
                         ImGui.EndPopup();
                     }
                     for (var n = 0; n < takenLayouts.Length; n++)
@@ -318,12 +316,15 @@ partial class CGui
 
     internal static bool ImportFromClipboard()
     {
-        if (Static.TryImportLayout(ImGui.GetClipboardText(), out var l))
+        if (Static.TryImportLayout(ImGui.GetClipboardText(), out var ls))
         {
-            CurrentLayout = l;
-            if (l.Group != "")
+            foreach (var l in ls)
             {
-                OpenedGroup.Add(l.Group);
+                CurrentLayout = l;
+                if (l.Group != "")
+                {
+                    OpenedGroup.Add(l.Group);
+                }
             }
             return true;
         }

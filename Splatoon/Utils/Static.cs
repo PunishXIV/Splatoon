@@ -94,32 +94,18 @@ public static unsafe class Static
         return s.Replace(",", "_").Replace("~", "_");
     }
 
-    public static bool TryImportLayout(string s, out Layout l, bool silent = false)
+    public static bool TryImportLayout(string ss, out List<Layout> layouts, bool silent = false)
     {
-        try
+        layouts = new();
+        var strings = ss.Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        foreach (var str in strings)
         {
-            if (s.StartsWith("~Lv2~"))
+            try
             {
-                s = s[5..];
-                l = JsonConvert.DeserializeObject<Layout>(s);
-                l.Name = l.Name.SanitizeName();
-                var lname = l.Name;
-                if (P.Config.LayoutsL.Any(x => x.Name == lname) && !ImGui.GetIO().KeyCtrl)
+                if (str.StartsWith("~Lv2~"))
                 {
-                    throw new Exception("Error: this name already exists.\nTo override, hold CTRL.");
-                }
-                P.Config.LayoutsL.Add(l);
-                CGui.ScrollTo = l;
-                if (!silent) Notify.Success($"Layout version 2\n{l.GetName()}");
-                return true;
-            }
-            else if (s.StartsWith("~Lv3~"))
-            {
-                s = s[6..];
-                string[] layouts = s.Split('$');
-                foreach (string layout in layouts)
-                {
-                    l = JsonConvert.DeserializeObject<Layout>(layout);
+                    var s = str[5..];
+                    var l = JsonConvert.DeserializeObject<Layout>(s);
                     l.Name = l.Name.SanitizeName();
                     var lname = l.Name;
                     if (P.Config.LayoutsL.Any(x => x.Name == lname) && !ImGui.GetIO().KeyCtrl)
@@ -127,25 +113,29 @@ public static unsafe class Static
                         throw new Exception("Error: this name already exists.\nTo override, hold CTRL.");
                     }
                     P.Config.LayoutsL.Add(l);
+                    CGui.ScrollTo = l;
+                    if (!silent) Notify.Success($"Layout version 2\n{l.GetName()}");
+                    layouts.Add(l);
+                    return true;
                 }
-                l = null;
-                return true;
+                else
+                {
+                    if (!silent) Notify.Info("Attempting to perform legacy import");
+                    var l = DeserializeLegacyLayout(str);
+                    P.Config.LayoutsL.Add(l);
+                    CGui.ScrollTo = l;
+                    layouts.Add(l);
+                    return true;
+                }
             }
-            else
+            catch (Exception e)
             {
-                if (!silent) Notify.Info("Attempting to perform legacy import");
-                l = DeserializeLegacyLayout(s);
-                P.Config.LayoutsL.Add(l);
-                CGui.ScrollTo = l;
-                return true;
+                if (!silent) Notify.Error($"Error parsing layout: {e.Message}");
+                return false;
             }
         }
-        catch (Exception e)
-        {
-            if (!silent) Notify.Error($"Error parsing layout: {e.Message}");
-            l = null;
-            return false;
-        }
+        if (!silent) Notify.Error($"Error parsing layout: input is empty or invalid");
+        return false;
     }
 
     public static Layout DeserializeLegacyLayout(string import)
@@ -235,14 +225,24 @@ public static unsafe class Static
 
     public static void ExportToClipboard(this Layout l)
     {
-        ImGui.SetClipboardText("~Lv2~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
+        ImGui.SetClipboardText(l.Serialize());
         Notify.Success($"{l.GetName()} copied to clipboard.");
+    }
+
+    public static string Serialize(this Layout l)
+    {
+        return "~Lv2~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
     }
 
     public static void ExportToClipboard(this Element l)
     {
-        ImGui.SetClipboardText("~Ev2~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
+        ImGui.SetClipboardText(l.Serialize());
         Notify.Success($"{l.GetName()} copied to clipboard.");
+    }
+
+    public static string Serialize(this Element l)
+    {
+        return "~Ev2~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
     }
 
     public static string GetName(this Layout l)

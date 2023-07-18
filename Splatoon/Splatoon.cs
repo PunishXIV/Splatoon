@@ -181,6 +181,7 @@ public unsafe class Splatoon : IDalamudPlugin
         ObjectEffectProcessor = new();
         DirectorUpdate.Init(DirectorUpdateProcessor.ProcessDirectorUpdate);
         ActionEffect.Init(ActionEffectProcessor.ProcessActionEffect);
+        ActionEffect.ActionEffectEvent += ScriptingProcessor.OnActionEffectEvent;
         ProperOnLogin.Register(delegate
         {
             ScriptingProcessor.TerritoryChanged();

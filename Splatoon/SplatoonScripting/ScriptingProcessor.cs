@@ -526,6 +526,21 @@ internal static class ScriptingProcessor
         }
     }
 
+    internal static void OnActionEffectEvent(ActionEffectSet set)
+    {
+        for (var i = 0; i < Scripts.Count; i++)
+        {
+            if (Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnActionEffectEvent(set);
+                }
+                catch (Exception e) { e.Log(); }
+            }
+        }
+    }
+
     internal static void TerritoryChanged()
     {
         for (var i = 0; i < Scripts.Count; i++)

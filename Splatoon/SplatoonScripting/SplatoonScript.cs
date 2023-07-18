@@ -132,7 +132,14 @@ public abstract class SplatoonScript
 
     public virtual void OnObjectCreation(nint newObjectPtr) { }
 
+    [Obsolete($"Please use {nameof(OnActionEffectEvent)}")]
     public virtual void OnActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage) { }
+
+    /// <summary>
+    /// Called when an ActionEffect Event is received
+    /// </summary>
+    /// <param name="set"></param>
+    public virtual void OnActionEffectEvent(ActionEffectSet set) { }
 
     /// <summary>
     /// Will be called every framework update. You can execute general logic of your script here. 

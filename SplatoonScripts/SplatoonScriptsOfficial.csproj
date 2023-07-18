@@ -65,4 +65,8 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Duties\Shadowbringers\" />
+  </ItemGroup>
 </Project>

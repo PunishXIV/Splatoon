@@ -127,9 +127,17 @@ public unsafe static class AttachedInfo
     {
         foreach(var x in Svc.Objects)
         {
-            if(x is BattleChara b)
-            {
-                if (b.IsCasting)
+            if(x is BattleChara b) {
+                bool isCasting;
+                try {
+                    isCasting = b.IsCasting;
+                }
+                catch {
+                    // Ignore invalid BattleChara objects that exist during cutscenes
+                    continue;
+                }
+
+                if (isCasting)
                 {
                     if (!Casters.Contains(b.Address)) 
                     {

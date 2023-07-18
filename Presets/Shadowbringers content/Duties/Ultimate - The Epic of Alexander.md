@@ -9,6 +9,14 @@ Cruise Chaser Conal Cleaves: Shows CC's conal cleaves on odd marked players so y
 ~Lv2~{"Name":"P2 Transition CC Cleaves","Group":"TEA","ZoneLockH":[887],"Scenes":[1],"DCond":5,"ElementsL":[{"Name":"","type":4,"radius":34.0,"coneAngleMin":-45,"coneAngleMax":45,"refActorModelID":1606,"refActorUseCastTime":true,"refActorComparisonType":1,"includeRotation":true,"onlyUnTargetable":true,"onlyVisible":true,"Filled":true}],"MaxDistance":6.0,"UseDistanceLimit":true,"DistanceLimitType":1}
 ```
 
+[International] [Beta] [Script] P2 Transition script. Includes:
+- early show exaflares
+- mark bait locations for 1256 strat
+- tether to the bait location if you are baiting
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA_P2_Transition.cs
+```
+
 # P2: BJ/CC
 P2/P3 Chakram Line AOEs: Works for Wormhole as well
 ```

@@ -127,15 +127,31 @@ public unsafe static class AttachedInfo
     {
         foreach(var x in Svc.Objects)
         {
-            if(x is BattleChara b)
-            {
-                if (b.IsCasting)
+            if(x is BattleChara b) {
+                bool isCasting;
+                try {
+                    isCasting = b.IsCasting;
+                }
+                catch {
+                    // Ignore invalid BattleChara objects that exist during cutscenes
+                    continue;
+                }
+
+                if (isCasting)
                 {
                     if (!Casters.Contains(b.Address)) 
                     {
                         CastInfos[b.Address] = new(b.CastActionId, Environment.TickCount64 - (long)(b.CurrentCastTime * 1000));
                         Casters.Add(b.Address);
-                        var text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        string text;
+                        if (P.Config.LogPosition)
+                        {
+                            text = $"{b.Name} ({x.Position.ToString()}) starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        }
+                        else
+                        {
+                            text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                        }
                         P.ChatMessageQueue.Enqueue(text);
                         if (P.Config.Logging)
                         {

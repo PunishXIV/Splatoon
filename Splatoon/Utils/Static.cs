@@ -94,9 +94,9 @@ public static unsafe class Static
         return s.Replace(",", "_").Replace("~", "_");
     }
 
-    public static bool TryImportLayout(string ss, out List<Layout> layouts, bool silent = false)
+    public static List<Layout> ImportLayouts(string ss, bool silent = false)
     {
-        layouts = new();
+        var layouts = new List<Layout>();
         var strings = ss.Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         foreach (var str in strings)
         {
@@ -116,7 +116,6 @@ public static unsafe class Static
                     CGui.ScrollTo = l;
                     if (!silent) Notify.Success($"Layout version 2\n{l.GetName()}");
                     layouts.Add(l);
-                    return true;
                 }
                 else
                 {
@@ -125,17 +124,22 @@ public static unsafe class Static
                     P.Config.LayoutsL.Add(l);
                     CGui.ScrollTo = l;
                     layouts.Add(l);
-                    return true;
                 }
             }
             catch (Exception e)
             {
                 if (!silent) Notify.Error($"Error parsing layout: {e.Message}");
-                return false;
             }
         }
-        if (!silent) Notify.Error($"Error parsing layout: input is empty or invalid");
-        return false;
+        if(layouts.Count > 0)
+        {
+            Notify.Success($"Imported {layouts.Count} layouts");
+        }
+        else
+        {
+            Notify.Error($"No layouts detected in clipboard");
+        }
+        return layouts;
     }
 
     public static Layout DeserializeLegacyLayout(string import)

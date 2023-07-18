@@ -316,7 +316,7 @@ partial class CGui
 
     internal static bool ImportFromClipboard()
     {
-        if (Static.TryImportLayout(ImGui.GetClipboardText(), out var ls))
+        var ls = Static.ImportLayouts(ImGui.GetClipboardText());
         {
             foreach (var l in ls)
             {
@@ -326,8 +326,7 @@ partial class CGui
                     OpenedGroup.Add(l.Group);
                 }
             }
-            return true;
         }
-        return false;
+        return ls.Count > 0;
     }
 }

@@ -4,6 +4,17 @@
 ~Lv2~{"Name":"Ucob multipreset / 巴哈","Group":"UCOB","ZoneLockH":[733],"ElementsL":[{"Name":"Megaflare dive / 百万核爆冲","type":3,"offY":50.0,"radius":6.0,"color":4278190335,"refActorNPCID":3210,"refActorRequireCast":true,"refActorCastId":[9953],"FillStep":1.0,"refActorComparisonType":4,"includeRotation":true},{"Name":"Cauterize / 小龙俯冲2","type":3,"offY":47.14,"radius":10.0,"thicc":4.2,"refActorNPCID":6957,"refActorRequireCast":true,"refActorCastId":[9931,9932,9933,9934,9935],"refActorComparisonType":4,"includeRotation":true},{"Name":"Lunar dive / 月流冲","type":3,"offY":50.0,"radius":4.0,"color":4278190335,"thicc":5.5,"refActorNPCID":2612,"refActorRequireCast":true,"refActorCastId":[9923],"FillStep":1.0,"refActorComparisonType":4,"includeRotation":true},{"Name":"Twisting dive / 旋风冲","type":3,"offY":50.0,"radius":4.0,"color":4278190335,"refActorNPCID":1482,"refActorRequireCast":true,"refActorCastId":[9906],"FillStep":1.0,"refActorComparisonType":4,"includeRotation":true},{"Name":"Cauterize / 小龙俯冲5","type":3,"offY":47.14,"radius":10.0,"thicc":4.2,"refActorNPCID":2631,"refActorRequireCast":true,"refActorCastId":[9931,9932,9933,9934,9935],"refActorComparisonType":4,"includeRotation":true},{"Name":"Cauterize / 小龙俯冲3","type":3,"offY":47.14,"radius":10.0,"thicc":4.2,"refActorNPCID":2630,"refActorRequireCast":true,"refActorCastId":[9931,9932,9933,9934,9935],"refActorComparisonType":4,"includeRotation":true},{"Name":"Cauterize / 小龙俯冲4","type":3,"offY":47.14,"radius":10.0,"thicc":4.2,"refActorNPCID":2632,"refActorRequireCast":true,"refActorCastId":[9931,9932,9933,9934,9935],"refActorComparisonType":4,"includeRotation":true},{"Name":"Cauterize / 小龙俯冲1","type":3,"offY":47.14,"radius":10.0,"thicc":4.2,"refActorNPCID":6958,"refActorRequireCast":true,"refActorCastId":[9931,9932,9933,9934,9935],"refActorComparisonType":4,"includeRotation":true},{"Name":"Thunderstruck / 雷点名","type":1,"radius":4.0,"color":1325334664,"refActorPlaceholder":[],"refActorComparisonAnd":true,"refActorRequireBuff":true,"refActorBuffId":[466],"Filled":true}]}
 ```
 
+[International] [Script] Tank tethers. Shows them more visible and changes color based on whether it's taken by a tank or not. 
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20Tethers.cs
+```
+
+# Nael phase
+[International] [Script] Dragon baits (5 dragons charging towards marked players)
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20dragon%20baits.cs
+```
+
 # Suffer (Bahamut Prime)
 [EN] QMT Divebombs: 
 ```

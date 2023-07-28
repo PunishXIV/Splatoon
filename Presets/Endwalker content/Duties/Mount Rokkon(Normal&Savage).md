@@ -1,6 +1,7 @@
-Compatible with both normal and savage
-The content is written in Japanese. Please rewrite to your own language if necessary.
-If you just want to use it, just import the layout below and you can use it in any language.
+Compatible with both normal and savage<br>
+The content is written in Japanese. Please rewrite to your own language if necessary.<br>
+If you just want to use it, just import the layout below and you can use it in any language.<br>
+If you can make it yourself, add your own layout and add it to this .md File!<br>
 (by AkiyoSama)
 
 
@@ -42,7 +43,7 @@ Devilish Swipe
 
 Unnatural Wail
 ```
-~Lv2~{"Name":"獅子王_不気味な呪声","Group":"異聞六根山零式","ZoneLockH":[1155,1156],"ElementsL":[{"Name":"鶴の呪声：散","type":1,"radius":6.0,"color":840931306,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"overlayText":"散開","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3563],"refActorUseBuffTime":true,"refActorBuffTimeMax":4.0,"includeRotation":true,"Filled":true},{"Name":"鶴の呪声：散 外縁","type":1,"radius":6.0,"color":838861055,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"thicc":1.0,"overlayText":"散開","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3563],"refActorUseBuffTime":true,"refActorBuffTimeMax":4.0,"includeRotation":true},{"Name":"鶴の呪声：集","type":1,"radius":5.0,"color":4278255364,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"thicc":5.0,"overlayText":"ペア頭割り","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3564],"refActorUseBuffTime":true,"refActorBuffTimeMax":4.0,"includeRotation":true}]}
+~Lv2~{"Name":"獅子王_不気味な呪声","Group":"異聞六根山零式","ZoneLockH":[1155,1156],"ElementsL":[{"Name":"鵺の呪声：散","type":1,"radius":6.0,"color":840931306,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"overlayText":"散開","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3563],"refActorUseBuffTime":true,"refActorBuffTimeMax":4.0,"includeRotation":true,"Filled":true},{"Name":"鵺の呪声：散 外縁","type":1,"radius":6.0,"color":838861055,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"thicc":1.0,"overlayText":"散開","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3563],"refActorUseBuffTime":true,"refActorBuffTimeMax":4.0,"includeRotation":true},{"Name":"鵺の呪声：集","type":1,"radius":5.0,"color":4278255364,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayFScale":2.0,"thicc":5.0,"overlayText":"ペア頭割り","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3564],"refActorUseBuffTime":true,"refActorBuffTimeMax":4.0,"includeRotation":true}]}
 ```
 
 Circle&Donuts
@@ -183,8 +184,9 @@ Boundless Azure (wave1~7)
 ```
 
 Ashigaru Kyuhei
+(※Ashigaru Kyuhei Blue's AoE was not displayed properly, so it was set to OFF by default. Because everything displays AoE in a close position. Changed to display text in Blue's place instead.)
 ```
-~Lv2~{"Name":"足軽弓兵","Group":"異聞六根山零式","ZoneLockH":[1155,1156],"DCond":5,"ElementsL":[{"Name":"矢の雨1","type":1,"offY":9.5,"radius":10.0,"color":838861055,"refActorComparisonType":8,"includeRotation":true,"Filled":true,"refActorObjectEffectData1":1,"refActorObjectEffectData2":2,"refActorObjectEffectMax":15000},{"Name":"矢の雨2","type":1,"offY":22.5,"radius":10.0,"color":838861055,"refActorComparisonType":8,"includeRotation":true,"Filled":true,"refActorObjectEffectData1":16,"refActorObjectEffectData2":8,"refActorObjectEffectMax":15000},{"Name":"矢の雨3","type":1,"offY":35.5,"radius":10.0,"color":838861055,"refActorComparisonType":8,"includeRotation":true,"Filled":true,"refActorObjectEffectData1":64,"refActorObjectEffectData2":32,"refActorObjectEffectMax":15000},{"Name":"矢の嵐","type":1,"offY":9.5,"radius":20.0,"color":2531972383,"refActorNPCNameID":12360,"refActorRequireCast":true,"refActorCastId":[34256,34303,34728,34730],"refActorComparisonType":6,"includeRotation":true,"Filled":true},{"Name":"矢の嵐 外縁","type":1,"offY":9.5,"radius":20.0,"color":4278190335,"thicc":1.0,"refActorNPCNameID":12360,"refActorRequireCast":true,"refActorCastId":[34256,34303,34728,34730],"refActorComparisonType":6,"includeRotation":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":30.0,"Match":"(12357>34195)"}]}
+~Lv2~{"Name":"足軽弓兵","Group":"異聞六根山零式","ZoneLockH":[1155,1156],"DCond":5,"ElementsL":[{"Name":"矢の雨1","type":1,"offY":9.5,"radius":10.0,"color":838861055,"refActorComparisonType":8,"includeRotation":true,"Filled":true,"refActorObjectEffectData1":1,"refActorObjectEffectData2":2,"refActorObjectEffectMax":15000},{"Name":"矢の雨2","type":1,"offY":22.5,"radius":10.0,"color":838861055,"refActorComparisonType":8,"includeRotation":true,"Filled":true,"refActorObjectEffectData1":16,"refActorObjectEffectData2":8,"refActorObjectEffectMax":15000},{"Name":"矢の雨3","type":1,"offY":35.5,"radius":10.0,"color":838861055,"refActorComparisonType":8,"includeRotation":true,"Filled":true,"refActorObjectEffectData1":64,"refActorObjectEffectData2":32,"refActorObjectEffectMax":15000},{"Name":"矢の嵐","type":1,"Enabled":false,"offY":9.5,"radius":20.0,"color":2531972383,"refActorNPCNameID":12360,"refActorRequireCast":true,"refActorCastId":[34256,34303,34728,34730],"refActorComparisonType":6,"includeRotation":true,"Filled":true},{"Name":"矢の嵐 外縁","type":1,"Enabled":false,"offY":9.5,"radius":20.0,"color":4278190335,"thicc":1.0,"refActorNPCNameID":12360,"refActorRequireCast":true,"refActorCastId":[34256,34303,34728,34730],"refActorComparisonType":6,"includeRotation":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":30.0,"Match":"(12357>34195)"}]}
 ```
 
 Onis Claw
@@ -192,6 +194,12 @@ Onis Claw
 ~Lv2~{"Name":"鬼腕","Group":"異聞六根山零式","ZoneLockH":[1155,1156],"ElementsL":[{"Name":"サークル","type":1,"offY":5.0,"radius":22.0,"color":840931306,"refActorNPCNameID":12361,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"Filled":true},{"Name":"サークル","type":1,"offY":5.0,"radius":22.0,"color":4278190335,"thicc":1.0,"refActorNPCNameID":12361,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true}]}
 ```
 
+Mouko Shadow Slash
+```
+~Lv2~{"Name":"モウコの幻影","Group":"異聞六根山零式","ZoneLockH":[1155,1156],"ElementsL":[{"Name":"前","type":4,"radius":17.0,"coneAngleMin":-135,"coneAngleMax":135,"color":2533294290,"thicc":3.0,"FillStep":3.0,"refActorComparisonType":7,"includeHitbox":true,"includeRotation":true,"onlyVisible":true,"AdditionalRotation":3.1415927,"Filled":true,"DistanceMax":13.2,"refActorVFXPath":"vfx/common/eff/m0403_stlp1b0c0t1.avfx","refActorVFXMin":10000,"refActorVFXMax":12000},{"Name":"右","type":4,"radius":17.0,"coneAngleMin":-135,"coneAngleMax":135,"color":2533294290,"thicc":3.0,"FillStep":3.0,"refActorComparisonType":7,"includeHitbox":true,"includeRotation":true,"onlyVisible":true,"AdditionalRotation":4.712389,"Filled":true,"DistanceMax":13.2,"refActorVFXPath":"vfx/common/eff/m0403_stlp1l0c0t1.avfx","refActorVFXMin":10000,"refActorVFXMax":12000},{"Name":"後","type":4,"radius":17.0,"coneAngleMin":-135,"coneAngleMax":135,"color":2533294290,"thicc":3.0,"FillStep":3.0,"refActorComparisonType":7,"includeHitbox":true,"includeRotation":true,"onlyVisible":true,"Filled":true,"DistanceMax":13.2,"refActorVFXPath":"vfx/common/eff/m0403_stlp1f0c0t1.avfx","refActorVFXMin":12500,"refActorVFXMax":14500},{"Name":"左","type":4,"radius":17.0,"coneAngleMin":-135,"coneAngleMax":135,"color":2533294290,"thicc":3.0,"FillStep":3.0,"refActorComparisonType":7,"includeHitbox":true,"includeRotation":true,"onlyVisible":true,"AdditionalRotation":1.5707964,"Filled":true,"DistanceMax":13.2,"refActorVFXPath":"vfx/common/eff/m0403_stlp1r0c0t1.avfx","refActorVFXMin":10000,"refActorVFXMax":12000}]}
+```
 
 ChageLog
 20230724 - Added many layouts
+20230729 - Added Mouko Shadow Slash
+         - Change Ashigaru Kyuhei Blue

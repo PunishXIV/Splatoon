@@ -88,6 +88,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal ObjectEffectProcessor ObjectEffectProcessor;
     internal HttpClient HttpClient;
     internal PinnedElementEdit PinnedElementEditWindow;
+    internal RenderableZoneSelector RenderableZoneSelector;
 
     internal void Load(DalamudPluginInterface pluginInterface)
     {
@@ -195,6 +196,8 @@ public unsafe class Splatoon : IDalamudPlugin
         ScriptingProcessor.ReloadAll();
         ObjectLife.OnObjectCreation = ScriptingProcessor.OnObjectCreation;
         //VFXManager = new();
+        RenderableZoneSelector = new();
+        EzConfigGui.WindowSystem.AddWindow(RenderableZoneSelector);
         Init = true;
         SplatoonIPC.Init();
     }

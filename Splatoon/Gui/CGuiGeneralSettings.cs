@@ -131,6 +131,10 @@ partial class CGui
             ImGuiEx.TextWrapped(Environment.TickCount % 1000 > 500 ? ImGuiColors.DalamudRed : ImGuiColors.DalamudYellow,
                 "Your line segment setting IS EXTREMELY HIGH AND MAY SIGNIFICANTLY IMPACT PERFORMANCE.\nIf you really have to set it to this value to make it work, please contact developer and provide details.".Loc());
         }
+        if(ImGui.Button("Configure screen zones where Splatoon will draw it's elements"))
+        {
+            P.RenderableZoneSelector.IsOpen = true;
+        }
         ImGui.Separator();
         ImGuiEx.Text("Fill settings:".Loc());
         ImGui.SameLine();

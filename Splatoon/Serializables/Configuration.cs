@@ -2,6 +2,7 @@
 using Dalamud.Interface.Internal.Notifications;
 using Splatoon.Gui;
 using Splatoon.SplatoonScripting;
+using System.Drawing;
 using System.Threading;
 
 namespace Splatoon;
@@ -55,6 +56,8 @@ class Configuration : IPluginConfiguration
 
     public HashSet<string> DisabledScripts = new();
     public bool DisableScriptCache = false;
+    public List<WrappedRect> RenderableZones = new();
+    public bool RenderableZonesValid = false;
 
     public bool ShouldSerializeLayouts()
     {

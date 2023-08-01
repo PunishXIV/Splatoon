@@ -41,16 +41,8 @@ unsafe class OverlayGui : IDisposable
                 }
                 try
                 {
-                    ImGuiHelpers.ForceNextWindowMainViewport();
-                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                    ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
-                    ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-                    ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
-                        | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
-                    //var x = new (Vector2, Vector2)[] { (new(100, 100), new(200, 200)), (new(300, 300), new(400, 400)), (new(500, 500), new(600, 600)) };
-                    //foreach (var e in x)
+                    void Draw()
                     {
-                        //ImGui.PushClipRect(e.Item1, e.Item2, false);
                         foreach (var element in p.displayObjects)
                         {
                             if (element is DisplayObjectCircle elementCircle)
@@ -73,12 +65,27 @@ unsafe class OverlayGui : IDisposable
                             {
                                 DrawRectWorld(elementRect);
                             }
-                            /*else if(element is DisplayObjectPolygon elementPolygon)
-                            {
-                                DrawPolygon(elementPolygon);
-                            }*/
                         }
-                        //ImGui.PopClipRect();
+                    }
+
+                    ImGuiHelpers.ForceNextWindowMainViewport();
+                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                    ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
+                    ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
+                    ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
+                        | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
+                    if(P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
+                    {
+                        Draw();
+                    }
+                    else
+                    {
+                        foreach (var e in P.Config.RenderableZones)
+                        {
+                            ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
+                            Draw();
+                            ImGui.PopClipRect();
+                        }
                     }
                     ImGui.End();
                     ImGui.PopStyleVar();

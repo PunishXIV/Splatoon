@@ -140,7 +140,8 @@ unsafe partial class CGui:IDisposable
                             ("Debug".Loc(), DisplayDebug, null, true),
                             ("Log".Loc(), InternalLog.PrintImgui, null, false),
                             ("Dynamic".Loc(), DisplayDynamicElements, null, true),
-                            ("Profiling".Loc(), DisplayProfiling, null, true)
+                            ("Profiling".Loc(), DisplayProfiling, null, true),
+                            ("Conversion".Loc(), DisplayConversion, null, true)
                             );
                         }, null, true),
                         ("Contribute".Loc(), Contribute.Draw, null, true),
@@ -161,6 +162,50 @@ unsafe partial class CGui:IDisposable
         }
         ImGui.EndTabBar();
         ImGui.End();
+    }
+
+    bool Convert = false;
+    string lastContent = "";
+    void DisplayConversion()
+    {
+        ImGui.Checkbox($"Convert clipboard content from github to wiki", ref Convert);
+        if(Convert)
+        {
+            try
+            {
+                var content = ImGui.GetClipboardText();
+                if(content != lastContent)
+                {
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        if (content.Contains("```"))
+                        {
+                            content = content.ReplaceFirst("```", "<pre>").ReplaceFirst("```", "</pre>");
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    var cArray = content.Split('\n');
+                    for (int i = 0; i < cArray.Length; i++)
+                    {
+                        if (cArray[i].StartsWith("#"))
+                        {
+                            cArray[i] = cArray[i].Replace("#", "");
+                        }
+                        cArray[i] = cArray[i].Trim();
+                    }
+                    content = cArray.Join("\n");
+                    lastContent = content;
+                    ImGui.SetClipboardText(content);
+                }
+            }
+            catch (Exception e)
+            {
+                e.Log();
+            }
+        }
     }
 
     private void HTTPExportToClipboard(Layout el)

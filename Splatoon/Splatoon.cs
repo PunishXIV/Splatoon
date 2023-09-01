@@ -793,6 +793,7 @@ public unsafe class Splatoon : IDalamudPlugin
                             && (!e.onlyTargetable || targetable)
                             && (!e.onlyUnTargetable || !targetable)
                             && CheckCharacterAttributes(e, a)
+                            && (!e.refTargetYou || CheckTargetingOption(e, a))
                             && (!e.refActorObjectLife || a.GetLifeTimeSeconds().InRange(e.refActorLifetimeMin, e.refActorLifetimeMax))
                             && (!e.LimitDistance || Vector3.Distance(a.GetPositionXZY(), new(e.DistanceSourceX, e.DistanceSourceY, e.DistanceSourceZ)).InRange(e.DistanceMin, e.DistanceMax).Invert(e.LimitDistanceInvert)))
                     {
@@ -900,6 +901,16 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
         }
+    }
+
+    private bool CheckTargetingOption(Element e, GameObject a)
+    {
+        if (e.refTargetYou)
+        {
+            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != Svc.ClientState.LocalPlayer.ObjectId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == Svc.ClientState.LocalPlayer.ObjectId));
+        }
+
+        return false;
     }
 
     void AddAlternativeFillingRect(DisplayObjectRect rect, float step)
@@ -1051,7 +1062,7 @@ public unsafe class Splatoon : IDalamudPlugin
              (e.refActorPlaceholder.Count == 0 || e.refActorPlaceholder.Any(x => ResolvePlaceholder(x) == o.Address)) &&
              (e.refActorNPCNameID == 0 || (o is Character c2 && c2.NameId == e.refActorNPCNameID)) &&
              (e.refActorVFXPath == "" || (AttachedInfo.TryGetSpecificVfxInfo(o, e.refActorVFXPath, out var info) && info.Age.InRange(e.refActorVFXMin, e.refActorVFXMax))) &&
-             ((e.refActorObjectEffectData1 == 0 && e.refActorObjectEffectData2 == 0) || (AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo) ));
+             ((e.refActorObjectEffectData1 == 0 && e.refActorObjectEffectData2 == 0) || (AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo)));
         }
         else
         {

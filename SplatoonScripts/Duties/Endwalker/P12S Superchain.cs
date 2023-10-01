@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Superchain : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(4, "NightmareXIV");
+        public override Metadata? Metadata => new(5, "NightmareXIV");
 
         enum Spheres : uint 
         {
@@ -205,8 +205,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             public bool EnableAOEChecking = true;
             public Vector4 ProteanLineColor = Vector4FromABGR(4278190335);
             public Vector4 PairLineColor = Vector4FromABGR(4294902011);
-            public Vector4 AoeColor = Vector4FromABGR(2013266175);
-            public Vector4 DonutColor = Vector4FromABGR(0x990000FF);
+            public Vector4 AoeColor = Vector4FromABGR(0x780000FF);
+            public Vector4 DonutColor = Vector4FromABGR(0x660000FF);
             //public Vector4 AssistColorSelf = Vector4FromABGR(1258356223);
             //public Vector4 AssistColorOther = Vector4FromABGR(3355508706);
         }

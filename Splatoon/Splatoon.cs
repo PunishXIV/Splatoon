@@ -1134,16 +1134,23 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             if (r > 0)
             {
-                displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r, e.thicc, e.color, e.Filled));
-                if(e != null && e.Donut > 0)
+                if (P.Config.UseFullDonutFill && e != null && e.Donut > 0 && !e.LegacyFill)
                 {
-                    var donutR = GetFillStepDonut(e.FillStep);
-                    while(donutR < e.Donut)
+                    displayObjects.Add(new DisplayObjectDonut(cx, cy, z + e.offZ, r, e.Donut, e.color));
+                }
+                else
+                {
+                    displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r, e.thicc, e.color, e.Filled));
+                    if (e != null && e.Donut > 0)
                     {
-                        displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + donutR, e.thicc, e.color, e.Filled));
-                        donutR += GetFillStepDonut(e.FillStep);
+                        var donutR = GetFillStepDonut(e.FillStep);
+                        while (donutR < e.Donut)
+                        {
+                            displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + donutR, e.thicc, e.color, e.Filled));
+                            donutR += GetFillStepDonut(e.FillStep);
+                        }
+                        displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + e.Donut, e.thicc, e.color, e.Filled));
                     }
-                    displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + e.Donut, e.thicc, e.color, e.Filled));
                 }
             }
             else

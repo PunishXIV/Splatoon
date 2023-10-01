@@ -172,6 +172,7 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectEffectLastOnly = false;
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     [DefaultValue(0)] public int refActorTransformationID = 0;
+    [DefaultValue(false)] public bool LegacyFill = false;
 
     public bool ShouldSerializerefActorTransformationID()
     {

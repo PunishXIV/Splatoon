@@ -58,6 +58,7 @@ class Configuration : IPluginConfiguration
     public bool DisableScriptCache = false;
     public List<WrappedRect> RenderableZones = new();
     public bool RenderableZonesValid = false;
+    public bool UseFullDonutFill = false;
 
     public bool ShouldSerializeLayouts()
     {

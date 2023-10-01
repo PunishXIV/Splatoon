@@ -818,6 +818,9 @@ unsafe partial class CGui
                         ImGui.SetNextItemWidth(60f);
                         ImGui.DragFloat("##radiusdonut" + i + k, ref el.Donut, 0.01f, 0, float.MaxValue);
                         el.Donut.ValidateRange(0, float.MaxValue);
+                        SImGuiEx.SizedText("Legacy fill:".Loc(), WidthElement);
+                        ImGui.SameLine();
+                        ImGui.Checkbox($"##Legacy fill"+i+k, ref el.LegacyFill);
                     }
                 }
                 if (el.type != 2 && el.type != 3 && el.type != 4)

@@ -87,18 +87,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             for(var i = 0; i < 8; i++)
             {
-                Controller.RegisterElementFromCode($"PairDonut{i}", "{\"Name\":\"\",\"Enabled\":false,\"refX\":93.386154,\"refY\":89.96649,\"radius\":2.0,\"Donut\":7.0,\"color\":4290576590,\"thicc\":3.0,\"refActorPlaceholder\":[],\"FillStep\":0.25,\"refActorComparisonType\":5}");
+                Controller.RegisterElementFromCode($"PairDonut{i}", "{\"Name\":\"\",\"Enabled\":false,\"refX\":93.386154,\"refY\":89.96649,\"radius\":2.0,\"Donut\":7.0,\"color\":0x70BD00CE,\"thicc\":3.0,\"refActorPlaceholder\":[],\"FillStep\":0.25,\"refActorComparisonType\":5}");
                 Controller.RegisterElementFromCode($"LingerAOE{i}", "{\"Name\":\"\",\"Enabled\":false,\"refX\":89.57288,\"refY\":89.32873,\"refZ\":-9.536743E-07,\"radius\":5.0,\"color\":1358954495,\"Filled\":true}");
             }
             Controller.RegisterElementFromCode("Tower", "{\"Name\":\"\",\"Enabled\":false,\"refX\":107.98778,\"refY\":100.025696,\"radius\":1.0,\"Donut\":3.0,\"color\":4278255401,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.North}", "{\"Name\":\"\",\"refX\":100.0,\"refY\":83.0,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.East}", "{\"Name\":\"\",\"refX\":117.0,\"refY\":100.0,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.West}", "{\"Name\":\"\",\"refX\":83.0,\"refY\":100.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.South}", "{\"Name\":\"\",\"refX\":100.0,\"refY\":117.0,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.SouthEast}", "{\"Name\":\"\",\"refX\":112.0,\"refY\":112.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.SouthWest}", "{\"Name\":\"\",\"refX\":88.0,\"refY\":112.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.NorthEast}", "{\"Name\":\"\",\"refX\":112.0,\"refY\":88.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
-            Controller.RegisterElementFromCode($"Spot{TowerDirection.NorthWest}", "{\"Name\":\"\",\"refX\":88.0,\"refY\":88.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.North}", "{\"Name\":\"\",\"refX\":100.0,\"refY\":83.0,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.East}", "{\"Name\":\"\",\"refX\":117.0,\"refY\":100.0,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.West}", "{\"Name\":\"\",\"refX\":83.0,\"refY\":100.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.South}", "{\"Name\":\"\",\"refX\":100.0,\"refY\":117.0,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.SouthEast}", "{\"Name\":\"\",\"refX\":112.0,\"refY\":112.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.SouthWest}", "{\"Name\":\"\",\"refX\":88.0,\"refY\":112.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.NorthEast}", "{\"Name\":\"\",\"refX\":112.0,\"refY\":88.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
+            Controller.RegisterElementFromCode($"Spot{TowerDirection.NorthWest}", "{\"Name\":\"\",\"refX\":88.0,\"refY\":88.0,\"refZ\":1.9073486E-06,\"radius\":2.0,\"color\":4294963968,\"thicc\":5.0,\"FillStep\":1.0,\"tether\":true,\"LegacyFill\":true}");
         }
 
         public override void OnMapEffect(uint position, ushort data1, ushort data2)

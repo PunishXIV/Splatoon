@@ -180,6 +180,7 @@ partial class CGui
         ImGui.DragInt("Minimal cone fill line interval".Loc(), ref p.Config.AltConeStep, 0.1f, 1, int.MaxValue);
         ImGui.SameLine();
         ImGui.Checkbox("Always force this value".Loc()+"##4", ref P.Config.AltConeStepOverride);
+        ImGui.Checkbox($"Use experimental full donut filling", ref P.Config.UseFullDonutFill);
 
         ImGui.Separator();
         ImGui.Checkbox("Use hexadecimal numbers".Loc(), ref p.Config.Hexadecimal);

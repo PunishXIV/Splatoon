@@ -29,8 +29,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnSetup()
         {
-            Controller.RegisterElementFromCode("In", "{\"Name\":\"In\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":8.0,\"Donut\":12.0,\"color\":3372220160,\"thicc\":4.0}");
-            Controller.RegisterElementFromCode("Out", "{\"Name\":\"Out\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":14.0,\"Donut\":6.0,\"color\":3372220160,\"thicc\":4.0}");
+            
+            Controller.RegisterElementFromCode("In", "{\"Name\":\"In\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":8.0,\"Donut\":12.0,\"color\":0x70FFFF00,\"thicc\":4.0}");
+            Controller.RegisterElementFromCode("Out", "{\"Name\":\"Out\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":14.0,\"Donut\":6.0,\"color\":0x70FFFF00,\"thicc\":4.0}");
             Controller.RegisterElementFromCode("SmallLaser", "{\"Name\":\"Small\",\"type\":3,\"Enabled\":false,\"refY\":20.0,\"radius\":4.0,\"color\":1275002890,\"refActorDataID\":16087,\"refActorUseCastTime\":true,\"refActorCastTimeMax\":8.0,\"refActorUseOvercast\":true,\"refActorComparisonType\":3,\"includeRotation\":true,\"FaceMe\":true}");
             Controller.RegisterElementFromCode("BigLaser", "{\"Name\":\"Large\",\"type\":3,\"Enabled\":false,\"refY\":20.0,\"radius\":8.0,\"color\":1275002890,\"refActorDataID\":16087,\"refActorUseCastTime\":true,\"refActorCastTimeMax\":8.0,\"refActorUseOvercast\":true,\"refActorComparisonType\":3,\"includeRotation\":true,\"FaceMe\":true}");
         }

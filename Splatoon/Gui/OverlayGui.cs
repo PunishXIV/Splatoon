@@ -65,6 +65,10 @@ unsafe class OverlayGui : IDisposable
                             {
                                 DrawRectWorld(elementRect);
                             }
+                            else if(element is DisplayObjectDonut elementDonut)
+                            {
+                                DrawDonutWorld(elementDonut);
+                            }
                         }
                     }
 
@@ -82,9 +86,12 @@ unsafe class OverlayGui : IDisposable
                     {
                         foreach (var e in P.Config.RenderableZones)
                         {
+                            //var trans = e.Trans != 1.0f;
+                            //if (trans) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, e.Trans);
                             ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
                             Draw();
                             ImGui.PopClipRect();
+                            //if(trans)ImGui.PopStyleVar();
                         }
                     }
                     ImGui.End();
@@ -104,6 +111,55 @@ unsafe class OverlayGui : IDisposable
             p.Log(e.StackTrace, true);
         }
         if (p.Profiler.Enabled) p.Profiler.Gui.StopTick();
+    }
+
+    internal Vector3 TranslateToScreen(double x, double y, double z)
+    {
+        Vector2 tenp;
+        Svc.GameGui.WorldToScreen(
+            new Vector3((float)x, (float)y, (float)z),
+            out tenp
+        );
+        return new Vector3(tenp.X, tenp.Y, (float)z);
+    }
+
+    private void DrawDonutWorld(DisplayObjectDonut elementDonut)
+    {
+        Vector3 v1, v2, v3, v4;
+        var outerradiuschonk = elementDonut.radius + elementDonut.donut;
+        v1 = TranslateToScreen(
+            elementDonut.x + (elementDonut.radius * Math.Sin((Math.PI / 23.0) * 0)),
+            elementDonut.z,
+            elementDonut.y + (elementDonut.radius * Math.Cos((Math.PI / 24.0) * 0))
+        );
+        v4 = TranslateToScreen(
+            elementDonut.x + (outerradiuschonk * Math.Sin((Math.PI / 24.0) * 0)),
+            elementDonut.z,
+            elementDonut.y + (outerradiuschonk * Math.Cos((Math.PI / 24.0) * 0))
+        );
+        for (int i = 0; i <= 47; i++)
+        {
+            v2 = TranslateToScreen(
+                elementDonut.x + (elementDonut.radius * Math.Sin((Math.PI / 24.0) * (i + 1))),
+                elementDonut.z,
+                elementDonut.y + (elementDonut.radius * Math.Cos((Math.PI / 24.0) * (i + 1)))
+            );
+            v3 = TranslateToScreen(
+                elementDonut.x + (outerradiuschonk * Math.Sin((Math.PI / 24.0) * (i + 1))),
+                elementDonut.z,
+                elementDonut.y + (outerradiuschonk * Math.Cos((Math.PI / 24.0) * (i + 1)))
+            );
+            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v1.X, v1.Y));
+            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v2.X, v2.Y));
+            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v3.X, v3.Y));
+            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v4.X, v4.Y));
+            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v1.X, v1.Y));
+            ImGui.GetWindowDrawList().PathFillConvex(
+                elementDonut.color
+            );
+            v1 = v2;
+            v4 = v3;
+        }
     }
 
     void DrawLineWorld(DisplayObjectLine e)

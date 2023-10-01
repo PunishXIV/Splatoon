@@ -11,6 +11,7 @@ namespace Splatoon
     {
         internal string GUID = Guid.NewGuid().ToString();
         public Rectangle Rect;
+        public float Trans = 1.0f;
 
         public WrappedRect(int x, int y, int width, int height)
         {

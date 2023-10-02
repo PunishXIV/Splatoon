@@ -289,7 +289,7 @@ unsafe partial class CGui
                             el.refActorObjectID = Svc.Targets.Target.ObjectId;
                             if (Svc.Targets.Target is Character c)
                             {
-                                el.refActorModelID = (uint)c.Struct()->ModelCharaId;
+                                el.refActorModelID = (uint)c.Struct()->CharacterData.ModelCharaId;
                                 el.refActorNPCNameID = c.NameId;
                             }
                             el.refActorNPCID = Svc.Targets.Target.Struct()->GetNpcID();

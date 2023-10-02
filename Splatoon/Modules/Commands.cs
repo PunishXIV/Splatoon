@@ -19,7 +19,7 @@ class Commands : IDisposable
             else if(arguments == "r" || arguments == "reset")
             {
                 var phase = P.Phase;
-                P.TerritoryChangedEvent(null, 0);
+                P.TerritoryChangedEvent(0);
                 Notify.Success("Reset");
                 if (P.Phase != phase)
                 {
@@ -78,7 +78,7 @@ class Commands : IDisposable
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;
                         el.refActorObjectID = Svc.Targets.Target.ObjectId;
-                        if (Svc.Targets.Target is Character c) el.refActorModelID = (uint)c.Struct()->ModelCharaId;
+                        if (Svc.Targets.Target is Character c) el.refActorModelID = (uint)c.Struct()->CharacterData.ModelCharaId;
                         Notify.Success("Successfully set target");
                     }
                 }

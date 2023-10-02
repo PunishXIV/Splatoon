@@ -322,6 +322,11 @@ public static unsafe class Static
         return P.Config.Hexadecimal ? $"0x{num:X}" : $"{num}";
     }
 
+    public static string Format(this ulong num)
+    {
+        return P.Config.Hexadecimal ? $"0x{num:X}" : $"{num}";
+    }
+
     public static string Format(this int num)
     {
         return P.Config.Hexadecimal ? $"0x{num:X}" : $"{num}";

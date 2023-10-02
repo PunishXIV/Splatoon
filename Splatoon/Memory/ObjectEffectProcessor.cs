@@ -1,6 +1,7 @@
 ﻿using Dalamud.Hooking;
 using Dalamud.Memory;
 using Dalamud.Utility.Signatures;
+using ECommons.DalamudServices.Legacy;
 using Splatoon.Modules;
 using Splatoon.SplatoonScripting;
 using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;

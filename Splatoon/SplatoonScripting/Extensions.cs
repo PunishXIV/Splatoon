@@ -34,7 +34,7 @@ public unsafe static class Extensions
     /// <returns>Status VFX ID</returns>
     public static short GetStatusVFXId(this Character chara)
     {
-        return chara.Struct()->StatusEffectVFXId;
+        return chara.Struct()->CharacterData.StatusEffectVFXId;
     }
 
     /// <summary>

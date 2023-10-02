@@ -20,3 +20,4 @@ global using ECommons.Schedulers;
 global using static ECommons.GenericHelpers;
 global using static Splatoon.Splatoon;
 global using static ECommons.LanguageHelpers.Localization;
+global using Dalamud.Interface.Utility;

@@ -54,7 +54,7 @@ internal unsafe static class Explorer
         ImGuiEx.TextCopy($"{"Rotation".Loc()}: {obj.Rotation}/{360 - (obj.Rotation.RadiansToDegrees() + 180)}");
         ImGuiEx.TextCopy($"Vector3 {"distance".Loc()}: {Vector3.Distance(obj.Position, Svc.ClientState.LocalPlayer.Position)}");
         ImGuiEx.TextCopy($"Vector2 {"distance".Loc()}: {Vector2.Distance(obj.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2())}");
-        ImGuiEx.TextCopy($"{"Object ID".Loc()} long: {((long)obj.Struct()->GetObjectID()).Format()}");
+        ImGuiEx.TextCopy($"{"Object ID".Loc()} long: {((ulong)obj.Struct()->GetObjectID()).Format()}");
         ImGuiEx.TextCopy($"{"Object ID".Loc()}: {obj.ObjectId.Format()}");
         ImGuiEx.TextCopy($"{"Data ID".Loc()}: {obj.DataId.Format()}");
         ImGuiEx.TextCopy($"{"Owner ID".Loc()}: {obj.OwnerId.Format()}");
@@ -75,14 +75,14 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"{"HP".Loc()}: {c.CurrentHp} / {c.MaxHp}");
             ImGuiEx.TextCopy($"{"Name NPC ID".Loc()}: {c.NameId}");
             ImGuiEx.TextWrappedCopy($"Customize: {c.Customize.Select(x => $"{x:X2}").Join(" ")}");
-            ImGuiEx.TextCopy($"ModelCharaId: {c.Struct()->ModelCharaId}");
-            ImGuiEx.TextCopy($"ModelCharaId_2: {c.Struct()->ModelCharaId_2}");
+            ImGuiEx.TextCopy($"ModelCharaId: {c.Struct()->CharacterData.ModelCharaId}");
+            ImGuiEx.TextCopy($"ModelCharaId_2: {c.Struct()->CharacterData.ModelCharaId_2}");
             ImGuiEx.TextCopy($"{"Visible".Loc()}: {c.IsCharacterVisible()}");
             ImGuiEx.TextCopy($"VfxData: {(nint)c.Struct()->VfxData:X16}");
             ImGuiEx.TextCopy($"VfxData2: {(nint)c.Struct()->VfxData2:X16}");
             ImGuiEx.TextCopy($"Omen: {(nint)c.Struct()->Omen:X16}");
-            ImGuiEx.TextCopy($"ModelSkeletonId: {(nint)c.Struct()->ModelSkeletonId:X16}");
-            ImGuiEx.TextCopy($"ModelSkeletonId2: {(nint)c.Struct()->ModelSkeletonId_2:X16}");
+            ImGuiEx.TextCopy($"ModelSkeletonId: {(nint)c.Struct()->CharacterData.ModelSkeletonId:X16}");
+            ImGuiEx.TextCopy($"ModelSkeletonId2: {(nint)c.Struct()->CharacterData.ModelSkeletonId_2:X16}");
             ImGuiEx.TextCopy($"TargetObject: {c.TargetObject}");
             ImGuiEx.TextCopy($"TargetObjectID: {c.TargetObjectId}");
             ImGuiEx.Text("VFX");

@@ -1,5 +1,6 @@
 ﻿using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
+using ECommons.DalamudServices.Legacy;
 using Splatoon.SplatoonScripting;
 using Character = FFXIVClientStructs.FFXIV.Client.Game.Character.Character;
 

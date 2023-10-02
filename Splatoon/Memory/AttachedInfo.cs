@@ -1,4 +1,5 @@
 ﻿using Dalamud.Hooking;
+using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using Reloaded.Hooks.Definitions.X64;
 using Splatoon.Modules;
@@ -26,13 +27,13 @@ public unsafe static class AttachedInfo
     {
         Safe(delegate
         {
-            GameObject_ctor_hook = Hook<GameObject_ctor>.FromAddress(Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? 48 8D 35"), GameObject_ctor_detour);
+            GameObject_ctor_hook = Svc.Hook.HookFromAddress<GameObject_ctor>(Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 05 ?? ?? ?? ?? 48 8D 35"), GameObject_ctor_detour);
             GameObject_ctor_hook.Enable();
         });
         Safe(delegate
         {
             var actorVfxCreateAddress = Svc.SigScanner.ScanText("40 53 55 56 57 48 81 EC ?? ?? ?? ?? 0F 29 B4 24 ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 0F B6 AC 24 ?? ?? ?? ?? 0F 28 F3 49 8B F8");
-            ActorVfxCreateHook = Hook<ActorVfxCreateDelegate2>.FromAddress(actorVfxCreateAddress, ActorVfxNewHandler);
+            ActorVfxCreateHook = Svc.Hook.HookFromAddress<ActorVfxCreateDelegate2>(actorVfxCreateAddress, ActorVfxNewHandler);
             ActorVfxCreateHook.Enable();
         });
         Svc.Framework.Update += Tick;
@@ -74,7 +75,7 @@ public unsafe static class AttachedInfo
             {
                 if (obj is Character c)
                 {
-                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNpcID()}, model id={c.Struct()->ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
+                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNpcID()}, model id={c.Struct()->CharacterData.ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
                     P.ChatMessageQueue.Enqueue(text);
                     if (P.Config.Logging) Logger.Log(text);
                 }

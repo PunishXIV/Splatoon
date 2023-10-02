@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Events;
 using ECommons.GameFunctions;
@@ -59,7 +60,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal HashSet<string> CurrentChatMessages = new();
     internal Element Clipboard = null;
     internal int dequeueConcurrency = 1;
-    internal Dictionary<(string Name, uint ObjectID, long ObjectIDLong, uint DataID, int ModelID, uint NPCID, uint NameID, ObjectKind type), ObjectInfo> loggedObjectList = new();
+    internal Dictionary<(string Name, uint ObjectID, ulong ObjectIDLong, uint DataID, int ModelID, uint NPCID, uint NameID, ObjectKind type), ObjectInfo> loggedObjectList = new();
     internal bool LogObjects = false;
     internal bool DisableLineFix = false;
     private int phase = 1;
@@ -248,7 +249,7 @@ public unsafe class Splatoon : IDalamudPlugin
         loader = new Loader(this);
     }
 
-    internal static void OnLogout(object _, object __)
+    internal static void OnLogout()
     {
         ScriptingProcessor.TerritoryChanged();
     }
@@ -323,7 +324,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    internal void TerritoryChangedEvent(object sender, ushort e)
+    internal void TerritoryChangedEvent(ushort e)
     {
         Phase = 1;
         if (SFind.Count > 0 && !P.Config.NoFindReset)
@@ -379,7 +380,7 @@ public unsafe class Splatoon : IDalamudPlugin
     }
 
     
-    internal void Tick(Framework framework)
+    internal void Tick(IFramework framework)
     {
         if (Profiler.Enabled) Profiler.MainTick.StartTick();
         try
@@ -392,7 +393,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 foreach(var t in Svc.Objects)
                 {
                     var ischar = t is Character;
-                    var obj = (t.Name.ToString(), t.ObjectId, t.Struct()->GetObjectID(), t.DataId, ischar ? ((Character)t).Struct()->ModelCharaId : 0, t.Struct()->GetNpcID(), ischar ? ((Character)t).NameId : 0, t.ObjectKind);
+                    var obj = (t.Name.ToString(), t.ObjectId, (ulong)t.Struct()->GetObjectID(), t.DataId, ischar ? ((Character)t).Struct()->CharacterData.ModelCharaId : 0, t.Struct()->GetNpcID(), ischar ? ((Character)t).NameId : 0, t.ObjectKind);
                     loggedObjectList.TryAdd(obj, new ObjectInfo());
                     loggedObjectList[obj].ExistenceTicks++;
                     loggedObjectList[obj].IsChar = ischar;
@@ -1044,7 +1045,7 @@ public unsafe class Splatoon : IDalamudPlugin
         if (e.refActorComparisonAnd)
         {
             return (e.refActorNameIntl.Get(e.refActorName) == String.Empty || IsNameMatches(e, o)) &&
-             (e.refActorModelID == 0 || (o is Character c && c.Struct()->ModelCharaId == e.refActorModelID)) &&
+             (e.refActorModelID == 0 || (o is Character c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID)) &&
              (e.refActorObjectID == 0 || o.ObjectId == e.refActorObjectID) &&
              (e.refActorDataID == 0 || o.DataId == e.refActorDataID) &&
              (e.refActorNPCID == 0 || o.Struct()->GetNpcID() == e.refActorNPCID) &&
@@ -1056,7 +1057,7 @@ public unsafe class Splatoon : IDalamudPlugin
         else
         {
             if (e.refActorComparisonType == 0 && IsNameMatches(e, o)) return true;
-            if (e.refActorComparisonType == 1 && o is Character c && c.Struct()->ModelCharaId == e.refActorModelID) return true;
+            if (e.refActorComparisonType == 1 && o is Character c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID) return true;
             if (e.refActorComparisonType == 2 && o.ObjectId == e.refActorObjectID) return true;
             if (e.refActorComparisonType == 3 && o.DataId == e.refActorDataID) return true;
             if (e.refActorComparisonType == 4 && o.Struct()->GetNpcID() == e.refActorNPCID) return true;
@@ -1168,7 +1169,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     .Replace("$NAME", go.Name.ToString())
                     .Replace("$OBJECTID", $"{go.ObjectId.Format()}")
                     .Replace("$DATAID", $"{go.DataId.Format()}")
-                    .Replace("$MODELID", $"{(go is Character chr ? chr.Struct()->ModelCharaId : 0).Format()}")
+                    .Replace("$MODELID", $"{(go is Character chr ? chr.Struct()->CharacterData.ModelCharaId : 0).Format()}")
                     .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
                     .Replace("$KIND", $"{go.ObjectKind}")
                     .Replace("$NPCID", $"{go.Struct()->GetNpcID().Format()}")

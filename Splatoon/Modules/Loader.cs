@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game;
 using Dalamud.Interface.Colors;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using ECommons.LanguageHelpers;
 using ECommons.Reflection;
@@ -120,7 +121,7 @@ internal class Loader
         }
     }
 
-    void Load(Framework fr)
+    void Load(IFramework fr)
     {
         PluginLog.Information("Splatoon begins loading process");
         fr.Update -= Load;

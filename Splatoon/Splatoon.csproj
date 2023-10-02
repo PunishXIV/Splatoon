@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.3.0.4</Version>
+		<Version>3.4.0.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -16,17 +16,6 @@
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<NoWarn>CS1591</NoWarn>
     <UseWindowsForms>true</UseWindowsForms>
-	</PropertyGroup>
-
-	<PropertyGroup>
-		<PostBuildEvent>
-			rmdir .\Release /s /q
-			ping localhost -n 2 &gt;nul
-			powershell "(Get-Content .\$(MSBuildProjectName).json) -Replace '9.0.0.0', '$(Version)' | Set-Content .\$(MSBuildProjectName).json"
-			powershell Compress-Archive .\* ..\$(MSBuildProjectName)-$(Version).zip
-			mkdir .\Release
-			move ..\$(MSBuildProjectName)-$(Version).zip .\release\latest.zip
-		</PostBuildEvent>
 	</PropertyGroup>
 
 	<PropertyGroup Label="Documentation">
@@ -43,6 +32,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="DalamudPackager" Version="2.1.12" />
 	  <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" />
 	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" />
 	</ItemGroup>
@@ -60,6 +50,10 @@
 			<HintPath>$(DalamudLibPath)Dalamud.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
+      <Reference Include="Dalamud.Common">
+          <HintPath>$(DalamudLibPath)Dalamud.Common.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
 		<Reference Include="ImGui.NET">
 			<HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
 			<Private>False</Private>

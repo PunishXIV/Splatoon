@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {
@@ -59,7 +60,7 @@ namespace SplatoonScriptsOfficial.Tests
                 .Append('|')
                 .Append(targetOID)
                 .Append('|')
-                .Append(Svc.Objects.FirstOrDefault(x => (long)(x.Struct()->GetObjectID()) == (long)targetOID)?.Name ?? "");
+                .Append(Svc.Objects.FirstOrDefault(x => (ulong)(x.Struct()->GetObjectID()) == (ulong)targetOID)?.Name ?? "");
             Send(str);
         }
 
@@ -115,7 +116,7 @@ namespace SplatoonScriptsOfficial.Tests
                         $"{obj.ObjectId}",
                         $"{obj.DataId}",
                         $"{obj.Struct()->GetNpcID()}",
-                        chr == null?"":$"{chr.Struct()->ModelCharaId}",
+                        chr == null?"":$"{chr.Struct()->CharacterData.ModelCharaId}",
                         chr == null?"":$"{chr.GetTransformationID()}",
                         $"{obj.Position.X}",
                         $"{obj.Position.Y}",

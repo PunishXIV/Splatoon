@@ -8,6 +8,7 @@ using Dalamud.Plugin;
 using Dalamud.Utility.Signatures;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -25,7 +26,7 @@ namespace SplatoonScriptsOfficial.Generic
     public unsafe class ShowEmote : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new();
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
 
         delegate long OnEmoteFuncDelegate(IntPtr a1, GameObject* source, ushort emoteId, long targetId, long a5);
         [Signature("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 48 89 7C 24 ?? 41 56 48 83 EC 30 4C 8B 74 24 ?? 48 8B D9", DetourName = nameof(OnEmoteFuncDetour))]
@@ -60,7 +61,7 @@ namespace SplatoonScriptsOfficial.Generic
                 else if (this.Controller.GetConfig<Config>().ShowOnOthers)
                 {
                     var emoteName = Svc.Data.GetExcelSheet<Emote>()?.GetRow(emoteId)?.Name;
-                    var target = Svc.Objects.FirstOrDefault(x => x.Struct()->GetObjectID() == targetId);
+                    var target = Svc.Objects.FirstOrDefault(x => (ulong)x.Struct()->GetObjectID() == (ulong)targetId);
                     Svc.Chat.Print($">> {MemoryHelper.ReadStringNullTerminated((IntPtr)source->Name)} uses {emoteName}" + (target != null ? $" on {target.Name}" : ""));
                 }
             }

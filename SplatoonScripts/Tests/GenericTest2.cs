@@ -1,5 +1,6 @@
 ﻿using Dalamud.Utility.Signatures;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.Logging;
 using Splatoon.SplatoonScripting;
 using System;
@@ -8,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {

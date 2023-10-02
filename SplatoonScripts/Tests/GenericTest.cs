@@ -6,6 +6,7 @@ using Dalamud.Memory;
 using Dalamud.Utility.Signatures;
 using ECommons;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices.TerritoryEnumeration;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
@@ -24,6 +25,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {

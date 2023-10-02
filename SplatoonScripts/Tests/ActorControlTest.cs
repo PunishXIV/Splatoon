@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ECommons.GameFunctions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {

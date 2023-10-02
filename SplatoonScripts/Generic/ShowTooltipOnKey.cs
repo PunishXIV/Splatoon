@@ -15,13 +15,14 @@ using ECommons;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Dalamud.Utility.Signatures;
 using Dalamud.Hooking;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Generic
 {
     public unsafe class ShowTooltipOnKey : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new();
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
 
         bool keyState = false;
         Config Conf = null!;

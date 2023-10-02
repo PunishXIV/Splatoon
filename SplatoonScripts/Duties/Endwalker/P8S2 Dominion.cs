@@ -16,13 +16,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P8S2_Dominion : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1088 };
-        public override Metadata? Metadata => new(6, "NightmareXIV");
+        public override Metadata? Metadata => new(7, "NightmareXIV");
         int Stage = 0;
         List<uint> FirstPlayers = new();
         List<uint> SecondPlayers = new();

@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
 
-        public override Metadata? Metadata => new(6, "NightmareXIV");
+        public override Metadata? Metadata => new(7, "NightmareXIV");
 
         Config Conf => Controller.GetConfig<Config>();
 
@@ -408,9 +408,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         }
 
-        BattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is BattleChara c && c.Struct()->Character.ModelCharaId == 3771) as BattleChara;
+        BattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is BattleChara c && c.Struct()->Character.CharacterData.ModelCharaId == 3771) as BattleChara;
 
-        BattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is BattleChara c && c.Struct()->Character.ModelCharaId == 3775) as BattleChara;
+        BattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is BattleChara c && c.Struct()->Character.CharacterData.ModelCharaId == 3775) as BattleChara;
 
         bool HasEffect(uint id) => Player.StatusList.Any(x => x.StatusId == id);
         bool HasEffect(uint id, float remainsMin, float remainsMax) => Player.StatusList.Any(x => x.StatusId == id && x.RemainingTime.InRange(remainsMin,remainsMax));

@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using ECommons;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.GameFunctions;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {

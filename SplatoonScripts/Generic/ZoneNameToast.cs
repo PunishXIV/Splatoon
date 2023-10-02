@@ -13,6 +13,7 @@ namespace SplatoonScriptsOfficial.Generic
 {
     public class ZoneNameToast : SplatoonScript
     {
+        public override Metadata? Metadata => new(2, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => new();
         public override void OnEnable()
         {
@@ -24,7 +25,7 @@ namespace SplatoonScriptsOfficial.Generic
             Svc.ClientState.TerritoryChanged -= ClientState_TerritoryChanged;
         }
 
-        private unsafe void ClientState_TerritoryChanged(object? sender, ushort e)
+        private unsafe void ClientState_TerritoryChanged(ushort e)
         {
             /*if(GenericHelpers.TryGetAddonByName<AtkUnitBase>("FadeMiddle", out var a) && a->IsVisible)
             {

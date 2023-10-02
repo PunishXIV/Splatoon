@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Dalamud.Memory;
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {

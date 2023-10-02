@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Tests
             Svc.ClientState.TerritoryChanged -= ClientState_TerritoryChanged;
         }
 
-        private void ClientState_TerritoryChanged(object? sender, ushort e)
+        private void ClientState_TerritoryChanged(ushort e)
         {
             throw new NotImplementedException();
         }

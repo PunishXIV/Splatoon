@@ -41,8 +41,17 @@ internal class Compiler
 
             if (!result.Success)
             {
-                PluginLog.Warning("Compilation done with error.");
+                var ns = ScriptingProcessor.ExtractNamespaceFromCode(sourceCode);
+                var cls = ScriptingProcessor.ExtractClassFromCode(sourceCode);
+                //var updatePath = $"https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/{ns.ReplaceFirst("SplatoonScriptsOfficial.","").Replace("_", " ").Replace(".", "/")}/{cls.Replace("_", " ")}.cs";
+                var updateName = $"{ns}@{cls}";
+                PluginLog.Warning($"Compilation done with error ({identity}, {updateName})");
 
+                if (ScriptingProcessor.ForceUpdate != null)
+                {
+                    ScriptingProcessor.ForceUpdate.Add(updateName);
+                    PluginLog.Warning($"An attempt to update {updateName} will be made if it will be found in the update list");
+                }
                 var failures = result.Diagnostics.Where(diagnostic => diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error);
 
                 foreach (var diagnostic in failures)

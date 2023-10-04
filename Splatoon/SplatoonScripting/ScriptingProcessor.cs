@@ -4,11 +4,12 @@ using ECommons.LanguageHelpers;
 using Splatoon.Gui.Scripting;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Splatoon.SplatoonScripting;
 
-internal static class ScriptingProcessor
+internal static partial class ScriptingProcessor
 {
     internal static ImmutableList<SplatoonScript> Scripts = ImmutableList<SplatoonScript>.Empty;
     internal static ConcurrentQueue<(string code, string path)> LoadScriptQueue = new();
@@ -24,6 +25,29 @@ internal static class ScriptingProcessor
     };
     internal static ImmutableList<BlacklistData> Blacklist = ImmutableList<BlacklistData>.Empty;
     internal static volatile bool UpdateCompleted = false;
+    internal static List<string> ForceUpdate = [];
+
+    internal static string ExtractNamespaceFromCode(string code)
+    {
+        var regex = NamespaceRegex();
+        var matches = regex.Match(code);
+        if (matches.Success && matches.Groups.Count > 1)
+        {
+            return matches.Groups[1].Value;
+        }
+        return null;
+    }
+
+    internal static string ExtractClassFromCode(string code)
+    {
+        var regex = ClassRegex();
+        var matches = regex.Match(code);
+        if (matches.Success && matches.Groups.Count > 1)
+        {
+            return matches.Groups[1].Value;
+        }
+        return null;
+    }
 
     internal static void BlockingBeginUpdate(bool force = false)
     {
@@ -61,10 +85,10 @@ internal static class ScriptingProcessor
             Svc.Framework.RunOnFrameworkThread(delegate
             {
                 PluginLog.Information($"Blacklist: {Blacklist.Select(x => $"{x.FullName} v{x.Version}").Print()}");
-                foreach(var x in ScriptingProcessor.Scripts)
+                foreach(var x in Scripts)
                 {
                     x.InternalData.Allowed = true;
-                    if (ScriptingProcessor.Blacklist.Any(z => z.FullName == x.InternalData.FullName && z.Version >= (x.Metadata?.Version ?? 0) ))
+                    if (Blacklist.Any(z => z.FullName == x.InternalData.FullName && z.Version >= (x.Metadata?.Version ?? 0) ))
                     {
                         PluginLog.Information($"Script {x.InternalData.FullName} is blacklisted and will not be enabled");
                         x.InternalData.Blacklisted = true;
@@ -90,7 +114,7 @@ internal static class ScriptingProcessor
                     if (data.Length >= 3 && int.TryParse(data[1], out var ver))
                     {
                         PluginLog.Debug($"Found new valid update data: {data[0]} v{ver} = {data[2]}");
-                        if(Scripts.Any(x => x.InternalData.FullName == data[0] && ((x.Metadata?.Version ?? 0) < ver || TabScripting.ForceUpdate) )) // possible CME
+                        if((ForceUpdate != null && ForceUpdate.Contains(data[0])) || Scripts.Any(x => x.InternalData.FullName == data[0] && ((x.Metadata?.Version ?? 0) < ver || TabScripting.ForceUpdate) )) // possible CME
                         {
                             PluginLog.Debug($"Adding  {data[2]} to download list");
                             Updates.Add(new(data[2]));
@@ -101,6 +125,7 @@ internal static class ScriptingProcessor
                         PluginLog.Debug($"Found invalid update data: {line}");
                     }
                 }
+                ForceUpdate = null;
                 foreach (var x in Updates)
                 {
                     PluginLog.Information($"Downloading script from {x}");
@@ -120,7 +145,7 @@ internal static class ScriptingProcessor
 
     internal static bool IsUrlTrusted(string url)
     {
-        return url.StartsWithAny(ScriptingProcessor.TrustedURLs, StringComparison.OrdinalIgnoreCase);
+        return url.StartsWithAny(TrustedURLs, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static void DownloadScript(string url)
@@ -138,7 +163,7 @@ internal static class ScriptingProcessor
         try
         {
             var result = P.HttpClient.GetStringAsync(url).Result;
-            ScriptingProcessor.CompileAndLoad(result, null);
+            CompileAndLoad(result, null);
         }
         catch (Exception e)
         {
@@ -251,7 +276,7 @@ internal static class ScriptingProcessor
                                                         DuoLog.Information($"Script {instance.InternalData.FullName} already loaded, replacing.");
                                                         result.path = loadedScript.InternalData.Path;
                                                         loadedScript.Disable();
-                                                        ScriptingProcessor.Scripts = ScriptingProcessor.Scripts.RemoveAll(x => ReferenceEquals(loadedScript, x));
+                                                        Scripts = Scripts.RemoveAll(x => ReferenceEquals(loadedScript, x));
                                                         rewrite = true;
                                                     }
                                                     Scripts = Scripts.Add(instance);
@@ -546,7 +571,7 @@ internal static class ScriptingProcessor
         for (var i = 0; i < Scripts.Count; i++)
         {
             var s = Scripts[i];
-            UpdateState(s);
+            s.UpdateState();
         }
     }
 
@@ -574,4 +599,10 @@ internal static class ScriptingProcessor
         }
         Scripts = ImmutableList<SplatoonScript>.Empty;
     }
+
+    [GeneratedRegex("namespace[\\s]+([a-z0-9_\\.]+)", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex NamespaceRegex();
+
+    [GeneratedRegex("([a-z0-9_\\.]+)\\s*:\\s*SplatoonScript", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex ClassRegex();
 }

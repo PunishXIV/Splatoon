@@ -461,7 +461,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+    internal static void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
         for (var i = 0; i < Scripts.Count; i++)
         {
@@ -476,7 +476,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnTetherRemoval(uint source, byte data2, byte data3, byte data5)
+    internal static void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
     {
         for (var i = 0; i < Scripts.Count; i++)
         {

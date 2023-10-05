@@ -31,7 +31,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public unsafe class Program_Loop : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
-        public override Metadata? Metadata => new(12, "NightmareXIV");
+        public override Metadata? Metadata => new(13, "NightmareXIV");
         Config Conf => Controller.GetConfig<Config>();
         HashSet<uint> TetheredPlayers = new();
         List<uint> Towers = new();
@@ -78,7 +78,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+        public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             if (IsOmega(target, out _))
             {
@@ -87,7 +87,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        public override void OnTetherRemoval(uint source, byte data2, byte data3, byte data5)
+        public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
         {
             TetheredPlayers.Remove(source);
             //UpdateTethers();

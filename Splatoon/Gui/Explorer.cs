@@ -78,9 +78,9 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"ModelCharaId: {c.Struct()->CharacterData.ModelCharaId}");
             ImGuiEx.TextCopy($"ModelCharaId_2: {c.Struct()->CharacterData.ModelCharaId_2}");
             ImGuiEx.TextCopy($"{"Visible".Loc()}: {c.IsCharacterVisible()}");
-            ImGuiEx.TextCopy($"VfxData: {(nint)c.Struct()->VfxData:X16}");
-            ImGuiEx.TextCopy($"VfxData2: {(nint)c.Struct()->VfxData2:X16}");
-            ImGuiEx.TextCopy($"Omen: {(nint)c.Struct()->Omen:X16}");
+            ImGuiEx.TextCopy($"VfxData: {(nint)c.Struct()->Vfx.VfxData:X16}");
+            ImGuiEx.TextCopy($"VfxData2: {(nint)c.Struct()->Vfx.VfxData2:X16}");
+            ImGuiEx.TextCopy($"Omen: {(nint)c.Struct()->Vfx.Omen:X16}");
             ImGuiEx.TextCopy($"ModelSkeletonId: {(nint)c.Struct()->CharacterData.ModelSkeletonId:X16}");
             ImGuiEx.TextCopy($"ModelSkeletonId2: {(nint)c.Struct()->CharacterData.ModelSkeletonId_2:X16}");
             ImGuiEx.TextCopy($"TargetObject: {c.TargetObject}");

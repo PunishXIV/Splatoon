@@ -14,7 +14,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Tethers : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(1, "Zeffuro");
+        public override Metadata? Metadata => new(2, "Zeffuro");
 		
 		List<TetherData> _tethers = new();
 		
@@ -50,7 +50,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 		
-		public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+		public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             if(Svc.Objects.Any(x => x.DataId == 16172))
             {
@@ -66,7 +66,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 		
-		public override void OnTetherRemoval(uint source, byte data2, byte data3, byte data5)
+		public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
         {
 			//PluginLog.Information($"{source} Data2: {data2} Data3: {data3} Data5:{data5}");
             _tethers = _tethers.Where(tether => tether.Source != source).ToList();

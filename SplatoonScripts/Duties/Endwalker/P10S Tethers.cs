@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P10S_Tethers : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1150 };
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
         List<TetherData> Tethers = new();
 
         public class TetherData
@@ -61,7 +61,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Off();
         }
 
-        public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+        public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             Tethers.Add(new() { source = source, target = target });
             Tethers.RemoveAll(x => x.Age > 30f);

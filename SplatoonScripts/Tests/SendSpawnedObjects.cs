@@ -64,7 +64,7 @@ namespace SplatoonScriptsOfficial.Tests
             Send(str);
         }
 
-        public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+        public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             //tether|id|target_one_id|target_one_name|target_one_type|target_two_id|target_two_name|target_two_type
             var str = new StringBuilder("tether|")
@@ -82,7 +82,7 @@ namespace SplatoonScriptsOfficial.Tests
             Send(str);
         }
 
-        public override void OnTetherRemoval(uint source, byte data2, byte data3, byte data5)
+        public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
         {
             this.OnTetherCreate(source, 0xE0000000, data2, data3, data5);
         }

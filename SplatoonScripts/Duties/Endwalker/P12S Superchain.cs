@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Superchain : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(5, "NightmareXIV");
+        public override Metadata? Metadata => new(6, "NightmareXIV");
 
         enum Spheres : uint 
         {
@@ -53,7 +53,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         Dictionary<uint, List<uint>> Attachments = new();
 
-        public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+        public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             if (!Attachments.ContainsKey(target)) Attachments.Add(target, new());
             //DuoLog.Information($"Attached {source} to {target}");

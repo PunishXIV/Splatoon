@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public class Limitless_Synergy : SplatoonScript
     {
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => new() { 1122 };
 
         Dictionary<uint, uint> Tethers = new();
@@ -32,7 +32,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         //Dequeued message: Omega starts casting 31544 (7635>31544)
         //[3:55][Splatoon] 40018753(Omega-F - BattleNpc) at 1EF8841D7E0 -> 107CB247(Dark Knight - Player) at 1EF8839DB30
         //[3:55][Splatoon] 40018754(Omega-M - BattleNpc) at 1EF883C84C0 -> 10777E50(Samurai - Player) at 1EF883A3610
-        public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+        public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             if (!allowed) return;
             if(Svc.Objects.Any(x => x.DataId == 15713 && x.IsTargetable()))
@@ -41,7 +41,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        public override void OnTetherRemoval(uint source, byte data2, byte data3, byte data5)
+        public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
         {
             Tethers.Remove(source);
         }

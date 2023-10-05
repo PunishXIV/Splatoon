@@ -100,7 +100,7 @@ public abstract class SplatoonScript
     /// <param name="data2">Second argument of hooked method.</param>
     /// <param name="data3">Third argument of hooked method.</param>
     /// <param name="data5">Fifth argument of hooked method.</param>
-    public virtual void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5) { }
+    public virtual void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5) { }
 
     /// <summary>
     /// Will be called when a previously created tether between two game objects removed. This method will only be called if a script is enabled.
@@ -109,7 +109,7 @@ public abstract class SplatoonScript
     /// <param name="data2">Second argument of hooked method.</param>
     /// <param name="data3">Third argument of hooked method.</param>
     /// <param name="data5">Fifth argument of hooked method.</param>
-    public virtual void OnTetherRemoval(uint source, byte data2, byte data3, byte data5) { }
+    public virtual void OnTetherRemoval(uint source, uint data2, uint data3, uint data5) { }
 
     /// <summary>
     /// Will be called when a VFX spawns on a certain game object. This method will only be called if a script is enabled.

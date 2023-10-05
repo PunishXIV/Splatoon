@@ -26,6 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
     {
         public override HashSet<uint> ValidTerritories => new() { Raids.the_Unending_Coil_of_Bahamut_Ultimate };
         HashSet<uint> TetheredPlayers = new();
+        public override Metadata? Metadata => new(2, "NightmareXIV");
 
         public override void OnSetup()
         {
@@ -33,7 +34,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             Controller.RegisterElement("Tether2", new(2) { thicc = 5f, radius = 0f });
         }
 
-        public override void OnTetherCreate(uint source, uint target, byte data2, byte data3, byte data5)
+        public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             if (IsBahamut(target, out _) && data3 == 4 && data5 == 15)
             {
@@ -43,7 +44,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
-        public override void OnTetherRemoval(uint source, byte data2, byte data3, byte data5)
+        public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
         {
             //DuoLog.Information($"Tether rem: {data2}, {data3}, {data5}");
             TetheredPlayers.Remove(source);

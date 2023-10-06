@@ -10,6 +10,7 @@
 # Splatoon for FFXIV
 ## [TOP presets are here](https://github.com/NightmareXIV/Splatoon/tree/master/Presets/Endwalker%20content/Duties/Ultimate%20-%20The%20Omega%20Protocol)
 Splatoon plugin allows you to put infinite amount of waymarks in the world of different size, colors, allows to add custom text to them as well. 
+
 <p align="center"><img src="https://raw.githubusercontent.com/NightmareXIV/Splatoon/master/Splatoon/res/icon.png"></p>
 
 |Do you need waymarks in a location where you can't place them but you don't want to risk messing with in-game waymarks? Say goodbye to suspicious waymark presets from party finder! Splatoon allows you to create INFINITE amount of waymarks for yourself in any location you could ever imagine! And on top of that, Splatoon operates FULLY on your side and NEVER sends anything to game servers, so there is no risk of ban!|

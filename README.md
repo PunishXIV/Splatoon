@@ -1,4 +1,12 @@
-# [⚠ For installation instructions please click here. ⚠](https://github.com/NightmareXIV/MyDalamudPlugins#installation)
+# ⚠⚠⚠ Do you have Splatoon outdated in your plugin installer? READ THIS SECTION
+1) Please make sure you have `https://love.puni.sh/ment.json` third-party repo added and enabled. For more detailed instructions, go to `https://puni.sh/plugin/Splatoon` and press "Download" button.
+2) Find currently outdated Splatoon plugin in your plugin list and click "Delete" button next to it once. You should see "Scheduled for deletion" next to it after clicking the button. 
+3) Restart the game.
+4) Find and install Splatoon once again. 
+![image](https://github.com/PunishXIV/Splatoon/assets/5073202/29f8abdf-9a96-4fe1-9c87-2a68c9931d2d)
+
+
+# [⚠ For installation instructions please click here. ⚠](https://puni.sh/plugin/Splatoon)
 # Splatoon for FFXIV
 ## [TOP presets are here](https://github.com/NightmareXIV/Splatoon/tree/master/Presets/Endwalker%20content/Duties/Ultimate%20-%20The%20Omega%20Protocol)
 Splatoon plugin allows you to put infinite amount of waymarks in the world of different size, colors, allows to add custom text to them as well. 

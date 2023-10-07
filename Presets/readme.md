@@ -3,8 +3,9 @@ Here is located list of repos and websites that have additional, maintained by t
 |WARNING!! If you are installing a script from different source than this repo, please make sure you understand it's code, otherwise - make a support request in discord before installing.|
 |---|
 
-- https://github.com/adamchris1992/ffxivsplat/tree/main/Presets
+- https://github.com/adamchris1992/ffxivsplat
 - https://github.com/cptjabberwock/SplatoonPresetsList/wiki
+- https://github.com/Ksirashi/Presets
 
 A collection of user-submitted presets. 
 

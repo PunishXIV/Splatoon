@@ -1,7 +1,7 @@
 # Scripts
 [International] [Script] Based on Dylan Luxor's toolbox: https://ff14.toolboxgaming.space/?id=788186687294761&preview=1
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Dynamis%20Delta.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Dynamis%20Delta.cs
 ```
 
 # Layouts

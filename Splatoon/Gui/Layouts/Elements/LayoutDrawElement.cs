@@ -375,7 +375,6 @@ unsafe partial class CGui
                     }
                 }
 
-
                 SImGuiEx.SizedText("Status requirement:".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGui.Checkbox("##buffreq" + i + k, ref el.refActorRequireBuff);
@@ -558,6 +557,24 @@ unsafe partial class CGui
                     ImGui.SetNextItemWidth(100f);
                     ImGui.InputInt("##transid" + i + k, ref el.refActorTransformationID);
                 }
+
+                SImGuiEx.SizedText("Targeting you:".Loc(), WidthElement);
+                ImGui.SameLine();
+                ImGui.Checkbox($"##targetYou" + i + k, ref el.refTargetYou);
+                if (el.refTargetYou)
+                {
+                    ImGui.SameLine();
+                    if (ImGui.RadioButton("No".Loc(), el.refActorTargetingYou == 1))
+                    {
+                        el.refActorTargetingYou = 1;
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.RadioButton("Yes".Loc(), el.refActorTargetingYou == 2))
+                    {
+                        el.refActorTargetingYou = 2;
+                    }
+                }
+
             }
 
             if (el.type.EqualsAny(0, 2, 3, 5))

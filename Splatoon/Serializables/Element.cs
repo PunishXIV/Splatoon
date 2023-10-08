@@ -89,6 +89,7 @@ public class Element
     [DefaultValue(0)] public uint refActorObjectID = 0;
     [DefaultValue(0)] public uint refActorDataID = 0;
     [DefaultValue(0)] public uint refActorNPCID = 0;
+    [DefaultValue(0)] public uint refActorTargetingYou = 0;
     [DefaultValue("")] public List<string> refActorPlaceholder = new();
     [DefaultValue(0)] public uint refActorNPCNameID = 0;
     [DefaultValue(false)] public bool refActorComparisonAnd = false;
@@ -99,6 +100,7 @@ public class Element
     [DefaultValue(0f)] public float refActorCastTimeMin = 0f;
     [DefaultValue(0f)] public float refActorCastTimeMax = 0f;
     [DefaultValue(false)] public bool refActorUseOvercast = false;
+    [DefaultValue(false)] public bool refTargetYou = false;
     [DefaultValue(false)] public bool refActorRequireBuff = false;
     public List<uint> refActorBuffId = new();
     [DefaultValue(false)] public bool refActorRequireAllBuffs = false;

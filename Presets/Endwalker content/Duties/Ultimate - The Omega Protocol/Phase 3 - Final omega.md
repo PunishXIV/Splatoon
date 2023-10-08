@@ -29,7 +29,7 @@
 # Hello World
 [International] [Script] Hello world helper. Work in progress. Based on Maxwell toolbox: https://ff14.toolboxgaming.space/?id=073180945764761&preview=1
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Hello%20World.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Hello%20World.cs
 ```
 
 [International] Debuff visualiser. Shows defamation radius, defamation people, rots, stacks. **WARNING**, clutters screen A LOT. Disable some elements if you don't feel they're not necessary for you.
@@ -52,7 +52,7 @@ https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwa
 
 [International] [Script] [Configuration required] Attempts to detect your designated spot based on Maxwell toolbox: https://ff14.toolboxgaming.space/?id=073180945764761&preview=1
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Oversampled%20Wave%20Cannon.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Oversampled%20Wave%20Cannon.cs
 ```
 
 [Exported elements] Elemens for oversampled wave cannon script. 

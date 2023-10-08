@@ -1,5 +1,5 @@
 [International] Wave repeater
-- Import from phase 3 page: https://github.com/NightmareXIV/Splatoon/blob/master/Presets/Endwalker%20content/Duties/Ultimate%20-%20The%20Omega%20Protocol/Phase%203%20-%20Final%20omega.md#intermission
+- Import from phase 3 page: https://github.com/PunishXIV/Splatoon/blob/main/Presets/Endwalker%20content/Duties/Ultimate%20-%20The%20Omega%20Protocol/Phase%203%20-%20Final%20omega.md#intermission
 
 [International] Wave cannon snapshot lines
 ```

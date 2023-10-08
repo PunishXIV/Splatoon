@@ -1,6 +1,6 @@
 [International] [Script] Exasquares.
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Exasquares.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Exasquares.cs
 ```
 
 [International] Exaflare predictions. Import all presets.

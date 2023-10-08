@@ -1,6 +1,6 @@
 [International] [Script] Configurable mechanic walkthrough script. Based on https://ff14.toolboxgaming.space/?id=788186687294761&preview=1
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Dynamis%20Sigma.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Dynamis%20Sigma.cs
 ```
 
 [International] Dedicated playstation marker and tether for you + your partner for the whole duration of mechanic. Import all presets.

@@ -58,12 +58,12 @@
 
 [International] [Script] [Configuration required] Stack swap informer. Will inform you about need to swap with a player on stacks, and optionally - write in chat (for you only, not sending to server) - for any swap. Can be configured: furthest or closest player to adjust. 
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Party%20Synergy.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Party%20Synergy.cs
 ```
 
 [International] [Partially EN] [Script] Target enforcer. Will not let you select immune target.
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/MF%20Target%20Enforcer.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/MF%20Target%20Enforcer.cs
 ```
 
 ## Playstation markers
@@ -158,7 +158,7 @@ Far
 # Limitless Synergy
 [Script] [Beta] Tethers indicator
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Limitless%20Synergy.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Limitless%20Synergy.cs
 ```
 
 [International] Optimized Sagittarius Arrow indicator
@@ -168,5 +168,5 @@ https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwa
 
 [Script] Beyond Defense bait indicator. **It's not very reliable unless someone clearly baits it out, I'd not recommend to 100% rely on it**. 
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Beyond%20Defense.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Beyond%20Defense.cs
 ```

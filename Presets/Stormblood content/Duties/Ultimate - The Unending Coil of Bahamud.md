@@ -33,7 +33,7 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood
 
 [Script] [Configuration required] Heavensfall Trio 8 towers resolver 
 ```
-https://github.com/NightmareXIV/Splatoon/raw/master/SplatoonScripts/Duties/Stormblood/UCOB%20Heavensfall%20Trio%20Towers.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20Heavensfall%20Trio%20Towers.cs
 ```
 
 [EN] After dodging the dives a ring will appear in the center, stand in the circle to reach the perfect knockback range without taking lethal damage from the heavensfall tower.

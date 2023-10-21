@@ -14,7 +14,7 @@ class Commands : IDisposable
         {
             if (arguments == "")
             {
-                p.ConfigGui.Open = true;
+                p.ConfigGui.Open = !p.ConfigGui.Open;
             }
             else if(arguments == "r" || arguments == "reset")
             {

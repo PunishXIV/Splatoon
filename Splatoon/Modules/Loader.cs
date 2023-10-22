@@ -124,7 +124,7 @@ internal class Loader
     void Load(IFramework fr)
     {
         PluginLog.Information("Splatoon begins loading process");
-        fr.Update -= Load;
+        Svc.Framework.Update -= Load;
         p.Load(Svc.PluginInterface);
         PluginLog.Information("Splatoon has been loaded");
     }

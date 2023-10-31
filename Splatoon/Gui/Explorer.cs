@@ -66,9 +66,19 @@ internal unsafe static class Explorer
         ImGuiEx.TextCopy($"{"Is hostile".Loc()}: {ObjectFunctions.IsHostile(obj)}");
         ImGuiEx.TextCopy($"{"Gender".Loc()}: {obj.Struct()->Gender}");
         ImGuiEx.TextCopy($"{"VfxScale".Loc()}: {obj.Struct()->VfxScale}");
+        ImGui.SameLine();
+        if (ImGui.Button("++"))
+        {
+            obj.Struct()->VfxScale = obj.Struct()->VfxScale + 0.5f;
+        }
         ImGuiEx.TextCopy($"{"RenderFlags".Loc()}: {obj.Struct()->RenderFlags}");
         ImGuiEx.TextCopy($"{"SubKind".Loc()}: {obj.Struct()->SubKind}");
         ImGuiEx.TextCopy($"{"TargetStatus".Loc()}: {obj.Struct()->TargetStatus}");
+        ImGuiEx.TextCopy($"EventId:  {obj.Struct()->EventId.EntryId}/{obj.Struct()->EventId.Type}");
+        ImGuiEx.TextCopy($"RenderFlags:  {Convert.ToString(obj.Struct()->RenderFlags, 2)}");
+        ImGuiEx.TextCopy($"NamePlateIconId:  {obj.Struct()->NamePlateIconId}");
+        ImGuiEx.TextCopy($"DrawObject:  {(nint)obj.Struct()->DrawObject:X16}");
+        ImGuiEx.TextCopy($"LayoutID:  {obj.Struct()->LayoutID}");
         if (obj is Character c)
         {
             ImGuiEx.TextCopy("---------- Character ----------");
@@ -85,6 +95,7 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"ModelSkeletonId2: {(nint)c.Struct()->CharacterData.ModelSkeletonId_2:X16}");
             ImGuiEx.TextCopy($"TargetObject: {c.TargetObject}");
             ImGuiEx.TextCopy($"TargetObjectID: {c.TargetObjectId}");
+            ImGuiEx.TextCopy($"EventState:  {c.Struct()->EventState}");
             ImGuiEx.Text("VFX");
             if(c.TryGetVfx(out var fx))
             {

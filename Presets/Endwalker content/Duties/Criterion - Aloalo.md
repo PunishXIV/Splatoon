@@ -1,5 +1,12 @@
 ### Please note that presets are in beta testing!
 
+[Script] [International] [Early beta] Display bombs AOE
+
+!!! WARNING !!! Does not works with FIRST set of bombs for now. Works with 2nd and 3rd set. !!!
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Aloalo%20Bombs.cs
+```
+
 [EN] Aloalo Snipper - Bubble Shower
 ```
 ~Lv2~{"Name":"Aloalo Snipper - Bubble Shower","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","type":4,"radius":9.0,"coneAngleMin":-45,"coneAngleMax":45,"thicc":0.0,"refActorNameIntl":{"En":"Aloalo Snipper"},"includeRotation":true,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"The Aloalo snipper readies Bubble Shower."}]}

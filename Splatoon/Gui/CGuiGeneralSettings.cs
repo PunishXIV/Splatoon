@@ -135,6 +135,7 @@ partial class CGui
         {
             P.RenderableZoneSelector.IsOpen = true;
         }
+        ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows", ref P.Config.SplatoonLowerZ);
         ImGui.Separator();
         ImGuiEx.Text("Fill settings:".Loc());
         ImGui.SameLine();

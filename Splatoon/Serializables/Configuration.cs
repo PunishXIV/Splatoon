@@ -59,6 +59,7 @@ class Configuration : IPluginConfiguration
     public List<WrappedRect> RenderableZones = new();
     public bool RenderableZonesValid = false;
     public bool UseFullDonutFill = false;
+    public bool SplatoonLowerZ = false;
 
     public bool ShouldSerializeLayouts()
     {

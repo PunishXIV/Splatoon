@@ -175,6 +175,7 @@ public class Element
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     [DefaultValue(0)] public int refActorTransformationID = 0;
     [DefaultValue(false)] public bool LegacyFill = false;
+    [DefaultValue(false)] public bool Unsafe = false;
 
     public bool ShouldSerializerefActorTransformationID()
     {

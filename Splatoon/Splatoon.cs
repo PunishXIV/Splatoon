@@ -90,6 +90,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal HttpClient HttpClient;
     internal PinnedElementEdit PinnedElementEditWindow;
     internal RenderableZoneSelector RenderableZoneSelector;
+    internal UnsafeElement UnsafeElement;
 
     internal void Load(DalamudPluginInterface pluginInterface)
     {
@@ -199,6 +200,7 @@ public unsafe class Splatoon : IDalamudPlugin
         //VFXManager = new();
         RenderableZoneSelector = new();
         EzConfigGui.WindowSystem.AddWindow(RenderableZoneSelector);
+        UnsafeElement = new();
         Init = true;
         SplatoonIPC.Init();
     }
@@ -385,6 +387,10 @@ public unsafe class Splatoon : IDalamudPlugin
         if (Profiler.Enabled) Profiler.MainTick.StartTick();
         try
         {
+            if (UnsafeElement.IsEnabled)
+            {
+                UnsafeElement.IsUnsafeElement[0] = false;
+            }
             PlaceholderCache.Clear();
             LayoutAmount = 0;
             ElementAmount = 0;
@@ -871,6 +877,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     p4.X, p4.Y, e.offZ,
                     e.thicc, e.color)
                 };
+                if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessRect(rect);
                 if (Config.AltRectFill)
                 {
                     AddAlternativeFillingRect(rect, GetFillStepRect(e.FillStep));
@@ -1167,12 +1174,14 @@ public unsafe class Splatoon : IDalamudPlugin
                 if (P.Config.UseFullDonutFill && e != null && e.Donut > 0 && !e.LegacyFill)
                 {
                     displayObjects.Add(new DisplayObjectDonut(cx, cy, z + e.offZ, r, e.Donut, e.color));
+                    if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
                 }
                 else
                 {
                     displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r, e.thicc, e.color, e.Filled));
                     if (e != null && e.Donut > 0)
                     {
+                        if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
                         var donutR = GetFillStepDonut(e.FillStep);
                         while (donutR < e.Donut)
                         {
@@ -1180,6 +1189,10 @@ public unsafe class Splatoon : IDalamudPlugin
                             donutR += GetFillStepDonut(e.FillStep);
                         }
                         displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + e.Donut, e.thicc, e.color, e.Filled));
+                    }
+                    else
+                    {
+                        if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
                     }
                 }
             }
@@ -1284,6 +1297,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     pointB2.X, pointB2.Y, pointB2.Z,
                     e.thicc, e.color)
                 };
+                if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessRect(rect);
                 if (Config.AltRectFill)
                 {
                     AddAlternativeFillingRect(rect, GetFillStepRect(e.FillStep));

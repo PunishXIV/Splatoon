@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using ECommons.Configuration;
+using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using Splatoon.Structures;
 using System.Reflection;
@@ -78,7 +80,11 @@ unsafe class OverlayGui : IDisposable
                     ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
                     ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
                         | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
-                    if(P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
+                    if (P.Config.SplatoonLowerZ)
+                    {
+                        CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
+                    }
+                    if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
                     {
                         Draw();
                     }

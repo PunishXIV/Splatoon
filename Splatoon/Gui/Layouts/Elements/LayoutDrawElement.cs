@@ -927,6 +927,13 @@ unsafe partial class CGui
                     ImGui.Checkbox("Enable placeholders".Loc()+"##" + i + k, ref el.overlayPlaceholders);
                 }
             }
+
+            if(el.type.EqualsAny(0, 1, 2, 3))
+            {
+                SImGuiEx.SizedText("Mark as unsafe:", WidthElement);
+                ImGui.SameLine();
+                ImGui.Checkbox("##unsafe" + i + k, ref el.Unsafe);
+            }
         }
         if (elcolored)
         {

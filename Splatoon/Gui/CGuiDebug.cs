@@ -26,6 +26,8 @@ unsafe partial class CGui
     void DisplayDebug()
     {
         ImGui.BeginChild("##splatoonmaindbg");
+        ImGuiEx.Text($"Unsafe: {P.UnsafeElement.IsUnsafeElement[0]}");
+        ImGuiEx.Text($"UnsafeR: {P.UnsafeElement.UnsafeElementRequesters.Print()}");
         if (ImGui.CollapsingHeader("VFX"))
         {
             ImGui.ColorEdit4("col", ref col);

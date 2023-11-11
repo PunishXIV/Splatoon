@@ -96,12 +96,25 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"TargetObject: {c.TargetObject}");
             ImGuiEx.TextCopy($"TargetObjectID: {c.TargetObjectId}");
             ImGuiEx.TextCopy($"EventState:  {c.Struct()->EventState}");
+            ImGuiEx.TextCopy($"VFX Container:  {(nint)(&c.Struct()->Vfx):X16}");
             ImGuiEx.Text("VFX");
-            if(c.TryGetVfx(out var fx))
+            if (c.TryGetVfx(out var fx))
             {
-                foreach(var x in fx)
+                foreach (var x in fx)
                 {
                     ImGuiEx.TextCopy($"{x.Key}, {"Age".Loc()} = {x.Value.AgeF:F1}");
+                }
+            }
+            ImGuiEx.Text("ObjectEffect");
+            foreach (var x in AttachedInfo.ObjectEffectInfos)
+            {
+                if (x.Key == c.Address)
+                {
+                    ImGuiEx.Text($"{((long)x.Key).Format()}");
+                    foreach (var z in x.Value)
+                    {
+                        ImGuiEx.TextCopy($"    {z.data1}, {z.data2} / {z.AgeF}");
+                    }
                 }
             }
         }

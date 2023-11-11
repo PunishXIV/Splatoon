@@ -6,7 +6,6 @@
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Aloalo%20Bombs.cs
 ```
-
 [EN] Aloalo Snipper - Bubble Shower
 ```
 ~Lv2~{"Name":"Aloalo Snipper - Bubble Shower","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","type":4,"radius":9.0,"coneAngleMin":-45,"coneAngleMax":45,"thicc":0.0,"refActorNameIntl":{"En":"Aloalo Snipper"},"includeRotation":true,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"The Aloalo snipper readies Bubble Shower."}]}
@@ -50,14 +49,12 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/
 [EN] Ketuduke Receding Twintides
 ```
 ~Lv2~{"Name":"Ketuduke Receding Twintides out","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","radius":14.0,"color":855638015,"thicc":1.0,"refActorNPCID":12605,"FillStep":0.2,"refActorComparisonType":4,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"Ketuduke readies Receding Twintides."}]}
-```
 ~Lv2~{"Name":"Ketuduke Receding Twintides in","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","radius":8.0,"Donut":15.0,"color":1694498815,"refActorNPCID":12605,"FillStep":0.2,"refActorComparisonType":4}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"Ketuduke readies Receding Twintides.","MatchDelay":5.0}]}
 ```
 
 [EN] Ketuduke Enroaching Twintides
 ```
 ~Lv2~{"Name":"Ketuduke Enroaching Twintides in","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","radius":8.0,"Donut":15.0,"color":1694498815,"refActorNPCID":12605,"FillStep":0.2,"refActorComparisonType":4}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"Ketuduke readies Encroaching Twintides."}]}
-```
 ~Lv2~{"Name":"Ketuduke Enroaching Twintides out","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","radius":14.0,"color":855638015,"thicc":1.0,"refActorNPCID":12605,"FillStep":0.2,"refActorComparisonType":4,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"Ketuduke readies Encroaching Twintides.","MatchDelay":5.0}]}
 ```
 

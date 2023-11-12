@@ -5,6 +5,7 @@ using ECommons.LanguageHelpers;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using Splatoon.Utils;
+using System;
 
 namespace Splatoon;
 
@@ -771,26 +772,43 @@ unsafe partial class CGui
                 ImGuiEx.Tooltip("Select on screen".Loc());
             }
 
-            SImGuiEx.SizedText("Line thickness:".Loc(), WidthElement);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##thicc" + i + k, ref el.thicc, 0.1f, 0f, float.MaxValue);
-            if (el.type == 0 || el.type == 1 || el.type == 4)
-            {
-                if (el.Filled && ImGui.IsItemHovered()) ImGui.SetTooltip("This value is only for tether if object is set to be filled".Loc());
-                //if (el.Filled && el.thicc == 0) el.thicc = float.Epsilon;
-            }
+            SImGuiEx.SizedText("Stroke:".Loc(), WidthElement);
             ImGui.SameLine();
             var v4 = ImGui.ColorConvertU32ToFloat4(el.color);
-            if (ImGui.ColorEdit4("##colorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+            if (ImGui.ColorEdit4("##strokecolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
             {
                 el.color = ImGui.ColorConvertFloat4ToU32(v4);
             }
-            if (el.type == 0 || el.type == 1 || el.type == 4)
+            ImGui.SameLine();
+            ImGuiEx.Text("Thickness:");
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(60f);
+            ImGui.DragFloat("##strokeThiccness" + i + k, ref el.thicc, 0.1f, 0f, float.MaxValue);
+            if (el.type.EqualsAny(0, 1, 4, 5))
             {
-                ImGui.SameLine();
-                ImGui.Checkbox($"Filled".Loc()+"##{i + k}", ref el.Filled);
+                if (el.Filled && ImGui.IsItemHovered()) ImGui.SetTooltip("This value is also used for tether".Loc());
             }
+
+            SImGuiEx.SizedText("Fill:".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.Checkbox($"Enabled".Loc() + "##{i + k}", ref el.Filled);
+            ImGui.SameLine();
+            ImGuiEx.Text("Origin:");
+            ImGui.SameLine();
+            v4 = ImGui.ColorConvertU32ToFloat4(el.originFillColor);
+            if (ImGui.ColorEdit4("##fillorigincolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+            {
+                el.originFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+            }
+            ImGui.SameLine();
+            ImGuiEx.Text("End:");
+            ImGui.SameLine();
+            v4 = ImGui.ColorConvertU32ToFloat4(el.endFillColor);
+            if (ImGui.ColorEdit4("##fillendcolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+            {
+                el.endFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+            }
+
             if ((el.type != 3) || el.includeRotation)
             {
                 if (!(el.type == 3 && !el.includeRotation))

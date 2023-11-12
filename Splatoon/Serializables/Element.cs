@@ -1,4 +1,5 @@
 ﻿using ECommons.LanguageHelpers;
+using Splatoon.Structures;
 using System.ComponentModel;
 
 namespace Splatoon;
@@ -75,7 +76,12 @@ public class Element
     [DefaultValue(0)] public float Donut = 0f;
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
+    [DefaultValue(false)] public bool Filled = false;
+    // Deprecated
+    [DefaultValue(0.5f)] public float FillStep = 0.5f;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
+    [DefaultValue(0xc80000ff)] public uint originFillColor = 0xc80000ff;
+    [DefaultValue(0xc80000ff)] public uint endFillColor = 0xc80000ff;
     [DefaultValue(0x70000000)] public uint overlayBGColor = 0x70000000;
     [DefaultValue(0xC8FFFFFF)] public uint overlayTextColor = 0xC8FFFFFF;
     [DefaultValue(0f)] public float overlayVOffset = 0f;
@@ -113,7 +119,6 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectLife = false;
     [DefaultValue(0)] public float refActorLifetimeMin = 0;
     [DefaultValue(0)] public float refActorLifetimeMax = 0;
-    [DefaultValue(0.5f)] public float FillStep = 0.5f;
     /// <summary>
     /// 0: Name |
     /// 1: Model ID |
@@ -152,7 +157,6 @@ public class Element
     [DefaultValue(false)] public bool LineAddPlayerHitboxLengthXA = false;
     [DefaultValue(false)] public bool LineAddPlayerHitboxLengthYA = false;
     [DefaultValue(false)] public bool LineAddPlayerHitboxLengthZA = false;
-    [DefaultValue(false)] public bool Filled = false;
     [DefaultValue(false)] public bool FaceMe = false;
     [DefaultValue(false)] public bool LimitDistance = false;
     [DefaultValue(false)] public bool LimitDistanceInvert = false;
@@ -176,6 +180,19 @@ public class Element
     [DefaultValue(0)] public int refActorTransformationID = 0;
     [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(false)] public bool Unsafe = false;
+
+
+    public DisplayStyle Style
+    {
+        get
+        {
+            if (Filled)
+            {
+                return new DisplayStyle(this.color, this.thicc, this.originFillColor, this.endFillColor);
+            }
+            return new DisplayStyle(this.color, this.thicc, 0, 0);
+        }
+    }
 
     public bool ShouldSerializerefActorTransformationID()
     {

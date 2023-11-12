@@ -3,12 +3,21 @@ using ECommons.Configuration;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 using Splatoon.Structures;
+using System.Collections;
 using System.Reflection;
 
 namespace Splatoon.Gui;
 
 unsafe class OverlayGui : IDisposable
 {
+    const int MINIMUM_CIRCLE_SEGMENTS = 12;
+    // TODO make configurable
+    // Low detail 2-3
+    // Med detail 4-5
+    // High detail 6+
+    const int RADIAL_SEGMENTS_PER_UNIT = 6;
+    const int LINEAR_SEGMENTS_PER_UNIT = 1;
+
     readonly Splatoon p;
     int uid = 0;
     public OverlayGui(Splatoon p)
@@ -22,93 +31,101 @@ unsafe class OverlayGui : IDisposable
         Svc.PluginInterface.UiBuilder.Draw -= Draw;
     }
 
+    // Dynamic LoD for circles and cones
+    // TODO it would be would be more efficient to adjust based on camera distance
+    public static int RadialSegments(float radius, float angleRadians = MathF.PI * 2)
+    {
+        float circumference = angleRadians * radius;
+        int segments = (int)(circumference * RADIAL_SEGMENTS_PER_UNIT);
+
+        float angularPercent = angleRadians / (MathF.PI * 2);
+        int minimumSegments = Math.Max((int)(MINIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
+        return Math.Max(segments, minimumSegments);
+    }
+
+    // Dynamic LoD for lines
+    public static int LinearSegments(float length)
+    {
+        return Math.Max((int)(length / LINEAR_SEGMENTS_PER_UNIT), 1);
+    }
+
     void Draw()
     {
         if (p.Profiler.Enabled) p.Profiler.Gui.StartTick();
         try
         {
-            if (!Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]
-                && !Svc.Condition[ConditionFlag.WatchingCutscene78])
+            if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
             {
-                uid = 0;
-                if (p.Config.segments > 1000 || p.Config.segments < 4)
+                return;
+            }
+            uid = 0;
+            try
+            {
+                void Draw()
                 {
-                    p.Config.segments = 100;
-                    p.Log("Your smoothness setting was unsafe. It was reset to 100.");
-                }
-                if (p.Config.lineSegments > 50 || p.Config.lineSegments < 4)
-                {
-                    p.Config.lineSegments = 20;
-                    p.Log("Your line segment setting was unsafe. It was reset to 20.");
-                }
-                try
-                {
-                    void Draw()
+                    foreach (var element in p.displayObjects)
                     {
-                        foreach (var element in p.displayObjects)
+                        if (element is DisplayObjectCircle elementCircle)
                         {
-                            if (element is DisplayObjectCircle elementCircle)
-                            {
-                                DrawRingWorld(elementCircle);
-                            }
-                            else if (element is DisplayObjectDot elementDot)
-                            {
-                                DrawPoint(elementDot);
-                            }
-                            else if (element is DisplayObjectText elementText)
-                            {
-                                DrawTextWorld(elementText);
-                            }
-                            else if (element is DisplayObjectLine elementLine)
-                            {
-                                DrawLineWorld(elementLine);
-                            }
-                            else if (element is DisplayObjectRect elementRect)
-                            {
-                                DrawRectWorld(elementRect);
-                            }
-                            else if(element is DisplayObjectDonut elementDonut)
-                            {
-                                DrawDonutWorld(elementDonut);
-                            }
+                            DrawRingWorld(elementCircle);
+                        }
+                        else if (element is DisplayObjectDot elementDot)
+                        {
+                            DrawPoint(elementDot);
+                        }
+                        else if (element is DisplayObjectText elementText)
+                        {
+                            DrawTextWorld(elementText);
+                        }
+                        else if (element is DisplayObjectLine elementLine)
+                        {
+                            DrawLineWorld(elementLine);
+                        }
+                        else if (element is DisplayObjectDonut elementDonut)
+                        {
+                            DrawDonutWorld(elementDonut);
+                        }
+                        else if (element is DisplayObjectFan elementFan)
+                        {
+                            DrawTriangleFanWorld(elementFan);
                         }
                     }
+                }
 
-                    ImGuiHelpers.ForceNextWindowMainViewport();
-                    ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                    ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
-                    ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-                    ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
-                        | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
-                    if (P.Config.SplatoonLowerZ)
-                    {
-                        CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
-                    }
-                    if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
-                    {
-                        Draw();
-                    }
-                    else
-                    {
-                        foreach (var e in P.Config.RenderableZones)
-                        {
-                            //var trans = e.Trans != 1.0f;
-                            //if (trans) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, e.Trans);
-                            ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
-                            Draw();
-                            ImGui.PopClipRect();
-                            //if(trans)ImGui.PopStyleVar();
-                        }
-                    }
-                    ImGui.End();
-                    ImGui.PopStyleVar();
-                }
-                catch (Exception e)
+                ImGuiHelpers.ForceNextWindowMainViewport();
+                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
+                ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
+                ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
+                    | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
+                if (P.Config.SplatoonLowerZ)
                 {
-                    p.Log("Splatoon exception: please report it to developer", true);
-                    p.Log(e.Message, true);
-                    p.Log(e.StackTrace, true);
+                    CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
                 }
+                if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
+                {
+                    Draw();
+                }
+                else
+                {
+                    foreach (var e in P.Config.RenderableZones)
+                    {
+                        //var trans = e.Trans != 1.0f;
+                        //if (trans) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, e.Trans);
+                        ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
+                        Draw();
+                        ImGui.PopClipRect();
+                        //if(trans)ImGui.PopStyleVar();
+                    }
+                }
+                ImGui.End();
+                ImGui.PopStyleVar();
+            }
+            catch (Exception e)
+            {
+                p.Log("Splatoon exception: please report it to developer", true);
+                p.Log(e.Message, true);
+                p.Log(e.StackTrace, true);
             }
         }
         catch (Exception e)
@@ -117,6 +134,68 @@ unsafe class OverlayGui : IDisposable
             p.Log(e.StackTrace, true);
         }
         if (p.Profiler.Enabled) p.Profiler.Gui.StopTick();
+    }
+
+    internal struct Vertex
+    {
+        public Vector2 pos;
+        public bool vis;
+        public uint color;
+        public Vertex(Vector2 pos, bool vis, uint color)
+        {
+            this.pos = pos;
+            this.vis = vis;
+            this.color = color;
+        }
+    }
+
+
+    // https://en.wikipedia.org/wiki/Triangle_strip
+    void DrawTriangleStrip(Vertex[] points)
+    {
+        Vector2 uv = ImGui.GetFontTexUvWhitePixel();
+        int vertexCount = points.Length;
+        int triangleCount = vertexCount - 2;
+
+        // If all vertices of a triangle are not visible, cull the triangle.
+        // This lowers distortion when the line is passing behind the camera.
+        //
+        // TODO
+        // This is not perfect. It is possible for part of a triangle to
+        // intersect with the screen despite all vertices being off screen.
+        // In this case, there can be a small gap when the triangle is at the corner of the screen.
+        int cullCount = 0;
+        bool[] cull = new bool[triangleCount];
+        for (uint i = 0; i < triangleCount; i++)
+        {
+            if (!points[i].vis && !points[i + 1].vis && !points[i + 2].vis)
+            {
+                cullCount++;
+                cull[i] = true;
+            }
+        }
+
+        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+        uint vtxBase = drawList._VtxCurrentIdx;
+        drawList.PrimReserve((triangleCount - cullCount) * 3, vertexCount);
+        foreach (Vertex vtx in points)
+        {
+            drawList.PrimWriteVtx(vtx.pos, uv, vtx.color);
+        }
+
+        for (uint i = 0; i < triangleCount; i++)
+        {
+            if (cull[i])
+            {
+                continue;
+            }
+            // Vertices must be specified clockwise; the order of the first 2 vertices alternates every triangle.
+            uint first = i % 2; // 0 if even, 1 if odd
+            uint second = (i + 1) % 2; // 1 if even, 0 if odd
+            drawList.PrimWriteIdx((ushort)(vtxBase + i + first));
+            drawList.PrimWriteIdx((ushort)(vtxBase + i + second));
+            drawList.PrimWriteIdx((ushort)(vtxBase + i + 2));
+        }
     }
 
     internal Vector3 TranslateToScreen(double x, double y, double z)
@@ -129,59 +208,79 @@ unsafe class OverlayGui : IDisposable
         return new Vector3(tenp.X, tenp.Y, (float)z);
     }
 
-    private void DrawDonutWorld(DisplayObjectDonut elementDonut)
-    {
-        Vector3 v1, v2, v3, v4;
-        var outerradiuschonk = elementDonut.radius + elementDonut.donut;
-        v1 = TranslateToScreen(
-            elementDonut.x + (elementDonut.radius * Math.Sin((Math.PI / 23.0) * 0)),
-            elementDonut.z,
-            elementDonut.y + (elementDonut.radius * Math.Cos((Math.PI / 24.0) * 0))
-        );
-        v4 = TranslateToScreen(
-            elementDonut.x + (outerradiuschonk * Math.Sin((Math.PI / 24.0) * 0)),
-            elementDonut.z,
-            elementDonut.y + (outerradiuschonk * Math.Cos((Math.PI / 24.0) * 0))
-        );
-        for (int i = 0; i <= 47; i++)
-        {
-            v2 = TranslateToScreen(
-                elementDonut.x + (elementDonut.radius * Math.Sin((Math.PI / 24.0) * (i + 1))),
-                elementDonut.z,
-                elementDonut.y + (elementDonut.radius * Math.Cos((Math.PI / 24.0) * (i + 1)))
-            );
-            v3 = TranslateToScreen(
-                elementDonut.x + (outerradiuschonk * Math.Sin((Math.PI / 24.0) * (i + 1))),
-                elementDonut.z,
-                elementDonut.y + (outerradiuschonk * Math.Cos((Math.PI / 24.0) * (i + 1)))
-            );
-            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v1.X, v1.Y));
-            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v2.X, v2.Y));
-            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v3.X, v3.Y));
-            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v4.X, v4.Y));
-            ImGui.GetWindowDrawList().PathLineTo(new Vector2(v1.X, v1.Y));
-            ImGui.GetWindowDrawList().PathFillConvex(
-                elementDonut.color
-            );
-            v1 = v2;
-            v4 = v3;
-        }
-    }
-
     void DrawLineWorld(DisplayObjectLine e)
     {
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
-        var result = GetAdjustedLine(new Vector3(e.ax, e.ay, e.az), new Vector3(e.bx, e.by, e.bz));
-        if (result.posA == null) return;
-        ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posA.Value.X, result.posA.Value.Y));
-        ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posB.Value.X, result.posB.Value.Y));
-        ImGui.GetWindowDrawList().PathStroke(e.color, ImDrawFlags.None, e.thickness);
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
+        if (e.radius == 0)
+        {
+            if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
+            var result = GetAdjustedLine(e.start, e.stop);
+            if (result.posA == null) return;
+            ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posA.Value.X, result.posA.Value.Y));
+            ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posB.Value.X, result.posB.Value.Y));
+            ImGui.GetWindowDrawList().PathStroke(e.style.strokeColor, ImDrawFlags.None, e.style.strokeThickness);
+            if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
+        }
+        else
+        {
+            int segments = LinearSegments(Vector3.Distance(e.start, e.stop));
+            Vector3 dirStep = e.Direction / segments;
+
+            bool anyVis = false;
+            List<Vertex> points = new List<Vertex>();
+            for (int i = 0; i <= segments; i++)
+            {
+                uint color = Lerp(e.style.originFillColor, e.style.endFillColor, (float) i / segments);
+                Vector3 centerPoint = e.start + dirStep * i;
+
+                bool vis = Svc.GameGui.WorldToScreen(centerPoint - e.PerpendicularRadius, out Vector2 leftPos);
+                anyVis = anyVis || vis;
+                points.Add(new Vertex(leftPos, vis, color));
+
+                vis = Svc.GameGui.WorldToScreen(centerPoint + e.PerpendicularRadius, out Vector2 rightPos);
+                anyVis = anyVis || vis;
+                points.Add(new Vertex(rightPos, vis, color));
+            }
+
+            if (!anyVis)
+            {
+                return;
+            }
+
+            // Fill
+            DrawTriangleStrip(points.ToArray());
+
+            // Stroke
+            // TODO This is way too complicated; surely there's a better way to do this!?
+            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+
+            // Stroke order is forwards for left points and backwards for right points
+            int[] strokeOrder = new int[points.Count];
+            for (int i = 0; i < points.Count / 2; i++)
+            {
+                strokeOrder[i] = i * 2;
+                strokeOrder[points.Count - 1 - i] = i * 2 + 1;
+            }
+            // Stroke the line; culling vertices if both neighbors are not visible.
+            bool prevVis = points[strokeOrder[points.Count - 1]].vis;
+            for (int i = 0; i < points.Count; i++)
+            {
+                int nextIdx = strokeOrder[(i + 1) % points.Count];
+                bool nextVis = points[nextIdx].vis;
+
+                int currIdx = strokeOrder[i];
+                if (prevVis || nextVis)
+                {
+                    drawList.PathLineTo(points[currIdx].pos);
+                }
+                prevVis = points[currIdx].vis;
+            }
+            drawList.PathStroke(e.style.strokeColor, ImDrawFlags.Closed, e.style.strokeThickness);
+        }
     }
 
     (Vector2? posA, Vector2? posB) GetAdjustedLine(Vector3 pointA, Vector3 pointB)
     {
-        var resultA = Svc.GameGui.WorldToScreen(new Vector3(pointA.X, pointA.Z, pointA.Y), out Vector2 posA);
+        var resultA = Svc.GameGui.WorldToScreen(new Vector3(pointA.X, pointA.Y, pointA.Z), out Vector2 posA);
         if (!resultA && !p.DisableLineFix)
         {
             var posA2 = GetLineClosestToVisiblePoint(pointA,
@@ -196,7 +295,7 @@ unsafe class OverlayGui : IDisposable
                 posA = posA2.Value;
             }
         }
-        var resultB = Svc.GameGui.WorldToScreen(new Vector3(pointB.X, pointB.Z, pointB.Y), out Vector2 posB);
+        var resultB = Svc.GameGui.WorldToScreen(new Vector3(pointB.X, pointB.Y, pointB.Z), out Vector2 posB);
         if (!resultB && !p.DisableLineFix)
         {
             var posB2 = GetLineClosestToVisiblePoint(pointB,
@@ -213,30 +312,6 @@ unsafe class OverlayGui : IDisposable
         }
 
         return (posA, posB);
-    }
-
-    void DrawRectWorld(DisplayObjectRect e) //oof
-    {
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
-        var result1 = GetAdjustedLine(new Vector3(e.l1.ax, e.l1.ay, e.l1.az), new Vector3(e.l1.bx, e.l1.by, e.l1.bz));
-        if (result1.posA == null) goto Alternative;
-        var result2 = GetAdjustedLine(new Vector3(e.l2.ax, e.l2.ay, e.l2.az), new Vector3(e.l2.bx, e.l2.by, e.l2.bz));
-        if (result2.posA == null) goto Alternative;
-        goto Build;
-    Alternative:
-        result1 = GetAdjustedLine(new Vector3(e.l1.ax, e.l1.ay, e.l1.az), new Vector3(e.l2.ax, e.l2.ay, e.l2.az));
-        if (result1.posA == null) goto Quit;
-        result2 = GetAdjustedLine(new Vector3(e.l1.bx, e.l1.by, e.l1.bz), new Vector3(e.l2.bx, e.l2.by, e.l2.bz));
-        if (result2.posA == null) goto Quit;
-        Build:
-        ImGui.GetWindowDrawList().AddQuadFilled(
-            new Vector2(result1.posA.Value.X, result1.posA.Value.Y),
-            new Vector2(result1.posB.Value.X, result1.posB.Value.Y),
-            new Vector2(result2.posB.Value.X, result2.posB.Value.Y),
-            new Vector2(result2.posA.Value.X, result2.posA.Value.Y), e.l1.color
-            );
-    Quit:
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
     }
 
     Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 delta, int curSegment, int numSegments)
@@ -286,6 +361,7 @@ unsafe class OverlayGui : IDisposable
         ImGui.PopStyleVar(2);
     }
 
+    // TODO swap to use triangle fan
     public void DrawRingWorld(DisplayObjectCircle e)
     {
         int seg = p.Config.segments / 2;
@@ -314,15 +390,83 @@ unsafe class OverlayGui : IDisposable
                 if (pos == null) continue;
                 ImGui.GetWindowDrawList().PathLineTo(pos.Value);
             }
+            if (e.style.originFillColor != 0)
+            {
+                ImGui.GetWindowDrawList().PathFillConvex(e.style.originFillColor);
+            }
 
-            if (e.filled)
+            foreach (var pos in elements)
             {
-                ImGui.GetWindowDrawList().PathFillConvex(e.color);
+                if (pos == null) continue;
+                ImGui.GetWindowDrawList().PathLineTo(pos.Value);
             }
-            else
+            if (e.style.strokeColor != 0)
             {
-                ImGui.GetWindowDrawList().PathStroke(e.color, ImDrawFlags.Closed, e.thickness);
+                ImGui.GetWindowDrawList().PathStroke(e.style.strokeColor, ImDrawFlags.Closed, e.style.strokeThickness);
             }
+        }
+    }
+
+    public void DrawTriangleFanWorld(DisplayObjectFan e)
+    {
+        Vector2 uv = ImGui.GetFontTexUvWhitePixel();
+        float totalAngle = e.angleMax - e.angleMin;
+        int segments = RadialSegments(e.radius, totalAngle);
+        float angleStep = totalAngle / segments;
+
+        int vertexCount = segments + 1;
+        var screenPoints = new ArrayList(vertexCount);
+
+
+        bool visible = Svc.GameGui.WorldToScreen(XZY(e.origin), out Vector2 screenPointOrigin);
+
+        for (int step = 0; step < vertexCount; step++)
+        {
+            float angle = e.angleMin + step * angleStep;
+            Vector3 point = e.origin;
+            point.Y += e.radius;
+            point = RotatePoint(e.origin, angle, point);
+            visible = Svc.GameGui.WorldToScreen(XZY(point), out Vector2 screenPosPoint) || visible;
+            screenPoints.Add(screenPosPoint);
+        }
+
+        if (!visible)
+        {
+            return;
+        }
+
+        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
+
+        // Fill
+        uint vtxBase = drawList._VtxCurrentIdx;
+        drawList.PrimReserve(segments * 3, 1 + screenPoints.Count);
+        drawList.PrimWriteVtx(screenPointOrigin, uv, e.style.originFillColor);
+        foreach (Vector2 screenPoint in screenPoints)
+        {
+            drawList.PrimWriteVtx(screenPoint, uv, e.style.endFillColor);
+        }
+        for (int n = 0; n < segments; n++)
+        {
+            drawList.PrimWriteIdx((ushort)(vtxBase));
+            drawList.PrimWriteIdx((ushort)(vtxBase + 1 + n));
+            drawList.PrimWriteIdx((ushort)(vtxBase + 1 + ((n + 1) % vertexCount)));
+        }
+
+        // Stroke
+        if (e.style.strokeColor != 0)
+        {
+            var flags = ImDrawFlags.None;
+            // Don't include the origin if this is a complete circle
+            if (MathF.Abs(e.angleMin + e.angleMax) < 2 * MathF.PI - 0.0001)
+            {
+                flags = ImDrawFlags.Closed;
+                drawList.PathLineTo(screenPointOrigin);
+            }
+            foreach (Vector2 screenPoint in screenPoints)
+            {
+                drawList.PathLineTo(screenPoint);
+            }
+            drawList.PathStroke(e.style.strokeColor, flags, e.style.strokeThickness);
         }
     }
 
@@ -333,84 +477,51 @@ unsafe class OverlayGui : IDisposable
             new Vector2(pos.X, pos.Y),
             e.thickness,
             ImGui.GetColorU32(e.color),
-            100);
+            MINIMUM_CIRCLE_SEGMENTS);
     }
 
-    /*void DrawPolygon(DisplayObjectPolygon p)
+    public void DrawDonutWorld(DisplayObjectDonut e)
     {
-        var i = 0;
-        var objects = new List<Action>();
-        var coords = GetPolygon(p.e.Polygon.Select((x) =>
-        {
-            p.MemoryManager.WorldToScreen(new Vector3(x.X, x.Z, x.Y), out Vector2 pos);
-            return pos;
-        }).ToList());
-        var medium = new Vector2(coords.Average(x => x.v2.X), coords.Average(x => x.v2.Y));
-        DrawText(new DisplayObjectText(0, 0, 0, $"{medium.X}, {medium.Y}", 0xff000000, 0xff0000ff), medium);
-        foreach (var c in coords)
-        {
-            ImGui.GetWindowDrawList().PathLineTo(c.v2);
-            var txt = i.ToString();
-            objects.Add(() => DrawText(new DisplayObjectText(0,0,0, $"{txt}: {c.v2.X}, {c.v2.Y}, {c.angle}", 0xff000000, 0xffffffff), c.v2));
-            i++;
-        }
-        //ImGui.GetWindowDrawList().PathLineTo(coords.First().v2);
+        int segments = RadialSegments(e.innerRadius);
+        var worldPosInside = GetCircle(e.x, e.y, e.z, e.innerRadius, segments);
+        var worldPosOutside = GetCircle(e.x, e.y, e.z, e.innerRadius + e.donutRadius, segments);
+        var screenPosInside = new Vector2[segments];
+        var screenPosOutside = new Vector2[segments];
+        var screenPosStrip = new Vertex[segments * 2];
 
-        if (p.e.Filled)
-        {
-            ImGui.GetWindowDrawList().PathFillConvex(p.e.color);
-        }
-        else
-        {
-            ImGui.GetWindowDrawList().PathStroke(p.e.color, ImDrawFlags.Closed, p.e.thicc);
-        }
-        foreach (var o in objects) o();
-    }*/
-
-    //Without test!
-    public void DrawRingWorldNew(DisplayObjectDonut e)
-    {
-        var ptsInside = GetCircle(e.x, e.y, e.z, e.radius, p.Config.segments);
-        var ptsOutside = GetCircle(e.x, e.y, e.z, e.radius + e.donut, p.Config.segments);
-
-        var length = ptsInside.Length;
+        bool anyVis = false;
+        var length = worldPosInside.Length;
         for (int i = 0; i < length; i++)
         {
-            var p1 = ptsInside[i];
-            var p2 = ptsOutside[i];
-            var p3 = ptsOutside[(i + 1) % length];
-            var p4 = ptsInside[(i + 1) % length];
+            bool vis = Svc.GameGui.WorldToScreen(worldPosInside[i], out Vector2 inside);
+            anyVis = anyVis || vis;
+            screenPosStrip[2 * i] = new Vertex(inside, vis, e.style.originFillColor);
+            screenPosInside[i] = inside;
 
-            DrawToScreen(GetPtsOnScreen(new Vector3[] { p1, p2, p3, p4 }), true, e.color);
+            vis = Svc.GameGui.WorldToScreen(worldPosOutside[i], out Vector2 outside);
+            anyVis = anyVis || vis;
+            screenPosStrip[2 * i + 1] = new Vertex(outside, vis, e.style.endFillColor);
+            screenPosOutside[i] = outside;
+        }
+        DrawTriangleStrip(screenPosStrip);
+
+        foreach (var pos in screenPosInside)
+        {
+            ImGui.GetWindowDrawList().PathLineTo(pos);
+        }
+        if (e.style.strokeColor != 0)
+        {
+            ImGui.GetWindowDrawList().PathStroke(e.style.strokeColor, ImDrawFlags.None, e.style.strokeThickness);
+        }
+        foreach (var pos in screenPosOutside)
+        {
+            ImGui.GetWindowDrawList().PathLineTo(pos);
+        }
+        if (e.style.strokeColor != 0)
+        {
+            ImGui.GetWindowDrawList().PathStroke(e.style.strokeColor, ImDrawFlags.None, e.style.strokeThickness);
         }
     }
-
-    //An example of it. 
-    //Try to use it in the core code! I didn't test this method.
-    public void DrawRingWorldNew(DisplayObjectCircle e)
-    {
-        var pts3 = GetCircle(e.x, e.y, e.z, e.radius, p.Config.segments);
-        var screenPts2 = GetPtsOnScreen(pts3);
-        DrawToScreen(screenPts2, e.filled, e.color, e.thickness);
-    }
-
-    private void DrawToScreen(IEnumerable<Vector2> pts, bool filled, uint color, float thickness = 1)
-    {
-        foreach (var pt in pts)
-        {
-            ImGui.GetWindowDrawList().PathLineTo(pt);
-        }
-
-        if (filled)
-        {
-            ImGui.GetWindowDrawList().PathFillConvex(color);
-        }
-        else
-        {
-            ImGui.GetWindowDrawList().PathStroke(color, ImDrawFlags.Closed, thickness);
-        }
-    }
-
 
     public Vector3[] GetCircle(float x, float y, float z, float radius, int segment)
     {

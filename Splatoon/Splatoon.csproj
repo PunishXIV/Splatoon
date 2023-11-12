@@ -35,6 +35,7 @@
 	  <PackageReference Include="DalamudPackager" Version="2.1.12" />
 	  <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.8.0-2.final" />
 	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0-2.final" />
+	  <PackageReference Include="NotificationMasterAPI" Version="1.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

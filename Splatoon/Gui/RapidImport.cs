@@ -49,12 +49,6 @@ internal static class RapidImport
 
     static void TryNotify(string s)
     {
-        if(DalamudReflector.TryGetDalamudPlugin("NotificationMaster", out var instance, true, true))
-        {
-            Safe(delegate
-            {
-                instance.GetType().Assembly.GetType("NotificationMaster.TrayIconManager", true).GetMethod("ShowToast").Invoke(null, new object[] { "Splatoon", s });
-            });
-        }
+        P.NotificationMasterApi.DisplayTrayNotification("Splatoon", s);
     }
 }

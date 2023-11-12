@@ -15,6 +15,7 @@ using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using ECommons.SimpleGui;
 using Lumina.Excel.GeneratedSheets;
+using NotificationMasterAPI;
 using PInvoke;
 using Splatoon.Gui;
 using Splatoon.Memory;
@@ -32,7 +33,7 @@ public unsafe class Splatoon : IDalamudPlugin
 {
     public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
     public string Name => "Splatoon";
-    internal static Splatoon P;
+    public static Splatoon P;
     internal OverlayGui DrawingGui;
     internal CGui ConfigGui;
     internal Commands CommandManager;
@@ -91,6 +92,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal PinnedElementEdit PinnedElementEditWindow;
     internal RenderableZoneSelector RenderableZoneSelector;
     internal UnsafeElement UnsafeElement;
+    public NotificationMasterApi NotificationMasterApi;
 
     internal void Load(DalamudPluginInterface pluginInterface)
     {
@@ -201,6 +203,7 @@ public unsafe class Splatoon : IDalamudPlugin
         RenderableZoneSelector = new();
         EzConfigGui.WindowSystem.AddWindow(RenderableZoneSelector);
         UnsafeElement = new();
+        NotificationMasterApi = new(pluginInterface);
         Init = true;
         SplatoonIPC.Init();
     }

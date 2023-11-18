@@ -1,7 +1,6 @@
 ﻿
 
 using ECommons.MathHelpers;
-using PInvoke;
 
 namespace Splatoon.Structures;
 
@@ -18,6 +17,11 @@ public struct DisplayStyle
         this.strokeThickness = strokeThickness;
         this.originFillColor = originFillColor;
         this.endFillColor = endFillColor;
+    }
+
+    public readonly uint fillColor(float amount)
+    {
+        return Lerp(originFillColor, endFillColor, amount);
     }
 
     readonly bool stroked
@@ -67,33 +71,20 @@ public class DisplayObjectFan : DisplayObject
     }
 }
 
-public class DisplayObjectCircle : DisplayObject
+public class DisplayObjectCircle : DisplayObjectFan
 {
-    public float x, y, z, radius, thickness;
-    public DisplayStyle style;
-
-    public DisplayObjectCircle(float x, float y, float z, float radius, DisplayStyle style)
+    public DisplayObjectCircle(Vector3 origin, float radius, DisplayStyle style) : base(origin, radius, 0, 2 * MathF.PI, style)
     {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.radius = radius;
-        this.style = style;
+
     }
 }
 
-public class DisplayObjectDonut : DisplayObject
+public class DisplayObjectDonut : DisplayObjectCircle
 {
-    public float x, y, z, innerRadius, donutRadius;
-    public DisplayStyle style;
-    public DisplayObjectDonut(float x, float y, float z, float innerRadius, float donutRadius, DisplayStyle style)
+    public float donutRadius;
+    public DisplayObjectDonut(Vector3 origin, float innerRadius, float donutRadius, DisplayStyle style) : base(origin, innerRadius, style)
     {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.innerRadius = innerRadius;
         this.donutRadius = donutRadius;
-        this.style = style;
     }
 }
 

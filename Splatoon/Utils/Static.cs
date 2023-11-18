@@ -5,6 +5,7 @@ using ECommons.MathHelpers;
 using Newtonsoft.Json;
 using Splatoon.Structures;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Splatoon.Utils;
 
@@ -543,6 +544,32 @@ public static unsafe class Static
     public static float RadiansToDegrees(this float radians)
     {
         return (float)(180 / Math.PI * radians);
+    }
+    public static Vector4 Column1(this Matrix4x4 value)
+    {
+        return new Vector4(value.M11, value.M21, value.M31, value.M41);
+    }
+    public static Vector4 Column2(this Matrix4x4 value)
+    {
+        return new Vector4(value.M12, value.M22, value.M32, value.M42);
+    }
+    public static Vector4 Column3(this Matrix4x4 value)
+    {
+        return new Vector4(value.M13, value.M23, value.M33, value.M43);
+    }
+    public static Vector4 Column4(this Matrix4x4 value)
+    {
+        return new Vector4(value.M14, value.M24, value.M34, value.M44);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void TransformCoordinate(in Vector3 coordinate, in Matrix4x4 transform, out Vector3 result)
+    {
+        result.X = (coordinate.X * transform.M11) + (coordinate.Y * transform.M21) + (coordinate.Z * transform.M31) + transform.M41;
+        result.Y = (coordinate.X * transform.M12) + (coordinate.Y * transform.M22) + (coordinate.Z * transform.M32) + transform.M42;
+        result.Z = (coordinate.X * transform.M13) + (coordinate.Y * transform.M23) + (coordinate.Z * transform.M33) + transform.M43;
+        var w = 1f / ((coordinate.X * transform.M14) + (coordinate.Y * transform.M24) + (coordinate.Z * transform.M34) + transform.M44);
+        result *= w;
     }
 
     public static string RemoveSymbols(this string s, IEnumerable<string> deletions)

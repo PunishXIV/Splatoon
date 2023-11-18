@@ -1,5 +1,4 @@
 ﻿using Dalamud;
-using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
@@ -250,7 +249,7 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         P = this;
         Svc.Init(pluginInterface);
-        Localization.Init((Svc.PluginInterface.GetPluginConfig() is Configuration cfg)?cfg.PluginLanguage : Localization.GameLanguageString);
+        Localization.Init((Svc.PluginInterface.GetPluginConfig() is Configuration cfg) ? cfg.PluginLanguage : Localization.GameLanguageString);
         loader = new Loader(this);
     }
 
@@ -267,7 +266,7 @@ public unsafe class Splatoon : IDalamudPlugin
             Elements = elements,
             DestroyTime = destroyConditions,
             Layouts = Array.Empty<Layout>()
-        }) ;
+        });
     }
 
     public void RemoveDynamicElements(string name)
@@ -280,13 +279,13 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         if (Profiler.Enabled) Profiler.MainTickChat.StartTick();
         var inttype = (int)type;
-        if(inttype == 2105 && LimitGaugeResets.Equals(message.ToString()))
+        if (inttype == 2105 && LimitGaugeResets.Equals(message.ToString()))
         {
             Phase++;
             CombatStarted = Environment.TickCount64;
             Svc.PluginInterface.UiBuilder.AddNotification($"Phase transition to Phase ??".Loc(Phase), this.Name, NotificationType.Info, 10000);
         }
-        if(!type.EqualsAny(ECommons.Constants.NormalChatTypes))
+        if (!type.EqualsAny(ECommons.Constants.NormalChatTypes))
         {
             var m = message.Payloads.Where(p => p is ITextProvider)
                     .Cast<ITextProvider>()
@@ -304,13 +303,13 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         if (enable)
         {
-            if(HttpServer == null)
+            if (HttpServer == null)
             {
                 try
                 {
                     HttpServer = new HTTPServer(this);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Log("Critical error occurred while starting HTTP server.".Loc(), true);
                     Log(e.Message, true);
@@ -340,7 +339,7 @@ public unsafe class Splatoon : IDalamudPlugin
         for (var i = dynamicElements.Count - 1; i >= 0; i--)
         {
             var de = dynamicElements[i];
-            foreach(var l in de.Layouts)
+            foreach (var l in de.Layouts)
             {
                 ResetLayout(l);
             }
@@ -352,7 +351,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
         }
-        foreach(var l in Config.LayoutsL)
+        foreach (var l in Config.LayoutsL)
         {
             ResetLayout(l);
         }
@@ -384,7 +383,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    
+
     internal void Tick(IFramework framework)
     {
         if (Profiler.Enabled) Profiler.MainTick.StartTick();
@@ -399,7 +398,7 @@ public unsafe class Splatoon : IDalamudPlugin
             ElementAmount = 0;
             if (LogObjects && Svc.ClientState.LocalPlayer != null)
             {
-                foreach(var t in Svc.Objects)
+                foreach (var t in Svc.Objects)
                 {
                     var ischar = t is Character;
                     var obj = (t.Name.ToString(), t.ObjectId, (ulong)t.Struct()->GetObjectID(), t.DataId, ischar ? ((Character)t).Struct()->CharacterData.ModelCharaId : 0, t.Struct()->GetNpcID(), ischar ? ((Character)t).NameId : 0, t.ObjectKind);
@@ -442,9 +441,9 @@ public unsafe class Splatoon : IDalamudPlugin
                     dequeueConcurrency++;
                     PluginLog.Debug($"Too many queued messages ({ChatMessageQueue.Count}); concurrency increased to {dequeueConcurrency}");
                 }
-                for(var i = 0; i < dequeueConcurrency; i++)
+                for (var i = 0; i < dequeueConcurrency; i++)
                 {
-                    if(ChatMessageQueue.TryDequeue(out var ccm))
+                    if (ChatMessageQueue.TryDequeue(out var ccm))
                     {
                         PluginLog.Verbose("Dequeued message: " + ccm);
                         CurrentChatMessages.Add(ccm);
@@ -505,13 +504,13 @@ public unsafe class Splatoon : IDalamudPlugin
 
                 //if (CamAngleY > Config.maxcamY) return;
 
-                if(Profiler.Enabled)
+                if (Profiler.Enabled)
                 {
                     Profiler.MainTickPrepare.StopTick();
                     Profiler.MainTickFind.StartTick();
                 }
 
-                if(PinnedElementEditWindow.Script != null && PinnedElementEditWindow.EditingElement != null && !PinnedElementEditWindow.Script.InternalData.UnconditionalDraw)
+                if (PinnedElementEditWindow.Script != null && PinnedElementEditWindow.EditingElement != null && !PinnedElementEditWindow.Script.InternalData.UnconditionalDraw)
                 {
                     ProcessElement(PinnedElementEditWindow.EditingElement, null, true);
                 }
@@ -612,9 +611,9 @@ public unsafe class Splatoon : IDalamudPlugin
             CurrentChatMessages.Clear();
             ScriptingProcessor.OnUpdate();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            Log("Caught exception: "+e.Message);
+            Log("Caught exception: " + e.Message);
             Log(e.StackTrace);
         }
         if (Profiler.Enabled) Profiler.MainTick.StopTick();
@@ -642,7 +641,7 @@ public unsafe class Splatoon : IDalamudPlugin
                             Objects = displayObjects,
                             ShowUntil = Environment.TickCount64 + (int)(l.FreezeFor * 1000f),
                             ShowAt = Environment.TickCount64 + (int)(l.FreezeDisplayDelay * 1000f)
-                        }) ;
+                        });
                         l.freezeInfo.AllowRefreezeAt = Environment.TickCount64 + (int)(l.IntervalBetweenFreezes * 1000f);
                     }
                     displayObjects = a;
@@ -656,7 +655,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
         }
-        for (var i = l.freezeInfo.States.Count - 1;i>=0;i--)
+        for (var i = l.freezeInfo.States.Count - 1; i >= 0; i--)
         {
             var x = l.freezeInfo.States[i];
             if (x.IsActive())
@@ -732,8 +731,8 @@ public unsafe class Splatoon : IDalamudPlugin
                 if (e.type == 1)
                 {
                     var pointPos = GetPlayerPositionXZY();
-                    DrawCircle(e, pointPos.X, pointPos.Y, pointPos.Z, radius, e.includeRotation ? Svc.ClientState.LocalPlayer.Rotation : 0f, 
-                        e.overlayPlaceholders?Svc.ClientState.LocalPlayer:null);
+                    DrawCircle(e, pointPos.X, pointPos.Y, pointPos.Z, radius, e.includeRotation ? Svc.ClientState.LocalPlayer.Rotation : 0f,
+                        e.overlayPlaceholders ? Svc.ClientState.LocalPlayer : null);
                 }
                 else if (e.type == 3)
                 {
@@ -756,7 +755,7 @@ public unsafe class Splatoon : IDalamudPlugin
                             Svc.Targets.Target.GetPositionXZY().Z, radius, e.includeRotation ? Svc.Targets.Target.Rotation : 0f,
                             e.overlayPlaceholders ? Svc.Targets.Target : null);
                     }
-                    else if(e.type == 3)
+                    else if (e.type == 3)
                     {
                         var angle = e.FaceMe ?
                                             (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
@@ -792,7 +791,7 @@ public unsafe class Splatoon : IDalamudPlugin
                             if (e.includeHitbox) aradius += a.HitboxRadius;
                             if (e.type == 1)
                             {
-                                DrawCircle(e, a.GetPositionXZY().X, a.GetPositionXZY().Y, a.GetPositionXZY().Z, aradius, 
+                                DrawCircle(e, a.GetPositionXZY().X, a.GetPositionXZY().Y, a.GetPositionXZY().Z, aradius,
                                     e.includeRotation ? a.Rotation : 0f,
                                     e.overlayPlaceholders ? a : null);
                             }
@@ -823,7 +822,7 @@ public unsafe class Splatoon : IDalamudPlugin
             displayObjects.Add(line);
             if (e.radius > 0)
             {
-                
+
                 if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessLine(line);
             }
             else if (
@@ -835,9 +834,9 @@ public unsafe class Splatoon : IDalamudPlugin
                     || ShouldDraw(e.refX, GetPlayerPositionXZY().X, e.refY, GetPlayerPositionXZY().Y)
                     )
                     )
-                    displayObjects.Add(line);
+                displayObjects.Add(line);
         }
-        else if(e.type == 5)
+        else if (e.type == 5)
         {
             var baseAngle = e.FaceMe ?
                 (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
@@ -889,7 +888,7 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             if (e.refActorUseOvercast)
             {
-                if(AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
+                if (AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
                 {
                     return castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
                 }
@@ -935,7 +934,7 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         if (e.refActorObjectEffectLastOnly)
         {
-            if(info.Count > 0)
+            if (info.Count > 0)
             {
                 var last = info[info.Count - 1];
                 return last.data1 == e.refActorObjectEffectData1 && last.data2 == e.refActorObjectEffectData2;
@@ -984,7 +983,7 @@ public unsafe class Splatoon : IDalamudPlugin
 
     static nint ResolvePlaceholder(string ph)
     {
-        if(PlaceholderCache.TryGetValue(ph, out var val))
+        if (PlaceholderCache.TryGetValue(ph, out var val))
         {
             return val;
         }
@@ -1045,12 +1044,12 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if (e.Donut > 0)
                 {
-                    displayObjects.Add(new DisplayObjectDonut(cx, cy, z + e.offZ, r, e.Donut, e.Style));
+                    displayObjects.Add(new DisplayObjectDonut(new(cx, cy, z + e.offZ), r, e.Donut, e.Style));
                     if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
                 }
                 else
                 {
-                    displayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r, e.Style));
+                    displayObjects.Add(new DisplayObjectCircle(new(cx, cy, z + e.offZ), r, e.Style));
                     if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
                 }
             }
@@ -1075,7 +1074,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     .Replace("$NPCID", $"{go.Struct()->GetNpcID().Format()}")
                     .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
                     .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
-                    .Replace("$CAST", go is BattleChara chr3?$"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}":"")
+                    .Replace("$CAST", go is BattleChara chr3 ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
                     .Replace("\\n", "\n")
                     .Replace("$VFXID", $"{(go is Character chr4 ? chr4.GetStatusVFXId() : 0).Format()}")
                     .Replace("$TRANSFORM", $"{(go is Character chr5 ? chr5.GetTransformationID() : 0).Format()}")
@@ -1163,7 +1162,7 @@ public unsafe class Splatoon : IDalamudPlugin
         if ((i.DCond == 2 || i.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
         if (i.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]
             || Svc.Condition[ConditionFlag.BoundByDuty])) return false;
-        if(i.UseDistanceLimit && i.DistanceLimitType == 0)
+        if (i.UseDistanceLimit && i.DistanceLimitType == 0)
         {
             if (Svc.Targets.Target != null)
             {
@@ -1185,7 +1184,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     foreach (var CurrentChatMessage in CurrentChatMessages)
                     {
                         var trg = t.MatchIntl.Get(t.Match);
-                        if (trg != string.Empty && 
+                        if (trg != string.Empty &&
                             (t.IsRegex ? Regex.IsMatch(CurrentChatMessage, trg) : CurrentChatMessage.ContainsIgnoreCase(trg))
                             )
                         {

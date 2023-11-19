@@ -85,7 +85,11 @@ unsafe class OverlayGui : IDisposable
                         {
                             DrawTextWorld(elementText);
                         }
-                        else if (element is DisplayObjectLine elementLine)
+                    }
+                    // Draw lines last because they're hard to see when covered by another shape.
+                    foreach (var element in p.displayObjects)
+                    {
+                        if (element is DisplayObjectLine elementLine)
                         {
                             DrawLineWorld(elementLine);
                         }

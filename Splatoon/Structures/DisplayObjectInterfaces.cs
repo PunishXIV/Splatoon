@@ -104,8 +104,8 @@ public class DisplayObjectLine : DisplayObject
 
     public DisplayObjectLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color)
     {
-        this.start = new Vector3(ax, ay, az);
-        this.stop = new Vector3(bx, by, bz);
+        this.start = new Vector3(ax, az, ay);
+        this.stop = new Vector3(bx, bz, by);
         this.radius = 0;
         this.style = new DisplayStyle(color, thickness, 0, 0);
     }

@@ -77,21 +77,25 @@ unsafe class OverlayGui : IDisposable
                         {
                             DrawTriangleFanWorld(elementFan);
                         }
-                        else if (element is DisplayObjectDot elementDot)
-                        {
-                            DrawPoint(elementDot);
-                        }
-                        else if (element is DisplayObjectText elementText)
-                        {
-                            DrawTextWorld(elementText);
-                        }
                     }
-                    // Draw lines last because they're hard to see when covered by another shape.
+                    // Draw lines and dots second because they're hard to see when covered by another shape.
                     foreach (var element in p.displayObjects)
                     {
                         if (element is DisplayObjectLine elementLine)
                         {
                             DrawLineWorld(elementLine);
+                        }
+                        else if (element is DisplayObjectDot elementDot)
+                        {
+                            DrawPoint(elementDot);
+                        }
+                    }
+                    // Draw text last because it's most critical top be legible.
+                    foreach (var element in p.displayObjects)
+                    {
+                        if (element is DisplayObjectText elementText)
+                        {
+                            DrawTextWorld(elementText);
                         }
                     }
                 }

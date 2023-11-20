@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using ImGuiNET;
 using Splatoon.Structures;
 using System.Runtime.InteropServices;
 
@@ -12,7 +13,7 @@ unsafe class OverlayGui : IDisposable
     // Low detail 2-3
     // Med detail 4-5
     // High detail 6+
-    const int RADIAL_SEGMENTS_PER_UNIT = 6;
+    const int RADIAL_SEGMENTS_PER_UNIT = 1;
     const int MINIMUM_CIRCLE_SEGMENTS = 12;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -171,14 +172,13 @@ unsafe class OverlayGui : IDisposable
             drawList.PrimWriteIdx((ushort)(vtxBase + 0));
             drawList.PrimWriteIdx((ushort)(vtxBase + 1));
             drawList.PrimWriteIdx((ushort)(vtxBase + 2));
+
+            drawList.PathLineTo(WorldToScreen(tri.a));
+            drawList.PathLineTo(WorldToScreen(tri.b));
+            drawList.PathLineTo(WorldToScreen(tri.c));
+            drawList.PathStroke(0xFF0000FF, ImDrawFlags.Closed, 2);
         }
         return status;
-    }
-
-    struct Vertex(Vector3 point, uint color)
-    {
-        public readonly Vector3 point = point;
-        public readonly uint color = color;
     }
 
     // https://en.wikipedia.org/wiki/Triangle_strip
@@ -186,11 +186,19 @@ unsafe class OverlayGui : IDisposable
     {
         var nearPlane = ViewProj.Column3();
 
+        Polygon p = new();
+        foreach (Vertex v in vertices)
+        {
+            p.addVertex(v);
+        }
+
         int vertexCount = vertices.Length;
         int triangleCount = vertexCount - 2;
 
         for (int i = 0; i < triangleCount; i++)
         {
+            p.addTriangle(i, i+1, i+2);
+            /*
             Triangle tri = new(
                     vertices[i].point,
                     vertices[i + 1].point,
@@ -199,31 +207,35 @@ unsafe class OverlayGui : IDisposable
                     vertices[i + 1].color,
                     vertices[i + 2].color);
             DrawTriangle(nearPlane, ref tri);
+            */
         }
+
+        p.ClipToPlane(nearPlane);
+        p.DebugDraw(ViewProj);
     }
 
     public void DrawTriangleFanWorld(DisplayObjectFan e)
     {
-        var nearPlane = ViewProj.Column3();
         float totalAngle = e.angleMax - e.angleMin;
         int segments = RadialSegments(e.radius, totalAngle);
         float angleStep = totalAngle / segments;
 
         int vertexCount = segments + 1;
-        var worldPoints = new List<Vector3>(vertexCount);
-
+        // var worldPoints = new List<Vector3>(vertexCount);
+        Polygon p = new();
+        p.addVertex(XZY(e.origin), e.style.originFillColor);
         for (int step = 0; step < vertexCount; step++)
         {
             float angle = e.angleMin + step * angleStep;
             Vector3 point = e.origin;
             point.Y += e.radius;
             point = RotatePoint(e.origin, angle, point);
-            worldPoints.Add(XZY(point));
+            p.addVertex(XZY(point), e.style.endFillColor);
         }
 
-        Vector3 origin = XZY(e.origin);
         for (int n = 0; n < segments; n++)
         {
+            /*
             Triangle tri = new(
                     origin,
                     worldPoints[n],
@@ -232,8 +244,13 @@ unsafe class OverlayGui : IDisposable
                     e.style.endFillColor,
                     e.style.endFillColor);
             DrawTriangle(nearPlane, ref tri);
+            */
+            p.addTriangle(0, n, n+1);
         }
 
+        var nearPlane = ViewProj.Column3();
+        p.ClipToPlane(nearPlane);
+        p.DebugDraw(ViewProj);
         /*
         // Stroke
         if (e.style.strokeColor != 0)
@@ -280,6 +297,14 @@ unsafe class OverlayGui : IDisposable
             var rightStart = e.start + e.PerpendicularRadius;
             var rightStop = e.stop + e.PerpendicularRadius;
 
+            DrawTriangleStrip([
+                new(leftStart, e.style.originFillColor),
+                new(rightStart, e.style.originFillColor),
+                new(leftStop, e.style.endFillColor),
+                new(rightStop, e.style.endFillColor),
+                ]);
+
+            /*
             Triangle left = new(leftStart, rightStart, leftStop, e.style.originFillColor, e.style.originFillColor, e.style.endFillColor);
             Triangle right = new(rightStart, leftStop, rightStop, e.style.originFillColor, e.style.endFillColor, e.style.endFillColor);
 

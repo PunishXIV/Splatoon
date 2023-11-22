@@ -79,8 +79,8 @@ public class Element
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
     [DefaultValue(true)] public bool Filled = true;
-    // Deprecated - set fill colors instead
-    [DefaultValue(0.5f)] public float FillStep = 0.5f;
+    // Deprecated - set fill colors instead. -1f is a flag for migration.
+    [DefaultValue(-1f)] public float FillStep = -1f;
     // Deprecated - unused
     [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
@@ -197,6 +197,10 @@ public class Element
     {
         // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
         float transparencyFromStroke = (float)(color >> 24) / 0xC8;
+        if (FillStep == -1f)
+        {
+            FillStep = 0.5f;
+        }
         float transparencyFromFillStep = 0.5f / FillStep;
         if (type == 4 || type == 5)
         {
@@ -212,6 +216,16 @@ public class Element
     {
         get
         {
+            // Migration for donuts; turn on fill once because they used to be line filled with Filled = false.
+            if (FillStep >= 0 || Donut > 0)
+            {
+                // Set values to defaults
+                this.originFillColor = this.originFillColor;
+                this.endFillColor = this.endFillColor;
+                Filled = true;
+                FillStep = -1f;
+            }
+
             if (Filled)
             {
                 return new DisplayStyle(this.color, this.thicc, this.originFillColor, this.endFillColor);

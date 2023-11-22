@@ -1,4 +1,7 @@
-﻿using ECommons.LanguageHelpers;
+﻿using ECommons.ExcelServices.TerritoryEnumeration;
+using ECommons.LanguageHelpers;
+using ImGuiNET;
+using Splatoon.Structures;
 using System.ComponentModel;
 
 namespace Splatoon;
@@ -75,7 +78,23 @@ public class Element
     [DefaultValue(0)] public float Donut = 0f;
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
+    [DefaultValue(true)] public bool Filled = true;
+    // Deprecated - set fill colors instead. -1f is a flag for migration.
+    [DefaultValue(-1f)] public float FillStep = -1f;
+    // Deprecated - unused
+    [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
+    [NonSerialized] internal uint? _originFillColor = null;
+    public uint originFillColor {
+        get => _originFillColor.GetValueOrDefault(DefaultFillColor());
+        set => _originFillColor = value;
+    }
+    [NonSerialized] internal uint? _endFillColor = null;
+    public uint endFillColor
+    {
+        get => _endFillColor.GetValueOrDefault(DefaultFillColor());
+        set => _endFillColor = value;
+    }
     [DefaultValue(0x70000000)] public uint overlayBGColor = 0x70000000;
     [DefaultValue(0xC8FFFFFF)] public uint overlayTextColor = 0xC8FFFFFF;
     [DefaultValue(0f)] public float overlayVOffset = 0f;
@@ -113,7 +132,6 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectLife = false;
     [DefaultValue(0)] public float refActorLifetimeMin = 0;
     [DefaultValue(0)] public float refActorLifetimeMax = 0;
-    [DefaultValue(0.5f)] public float FillStep = 0.5f;
     /// <summary>
     /// 0: Name |
     /// 1: Model ID |
@@ -152,7 +170,6 @@ public class Element
     [DefaultValue(false)] public bool LineAddPlayerHitboxLengthXA = false;
     [DefaultValue(false)] public bool LineAddPlayerHitboxLengthYA = false;
     [DefaultValue(false)] public bool LineAddPlayerHitboxLengthZA = false;
-    [DefaultValue(false)] public bool Filled = false;
     [DefaultValue(false)] public bool FaceMe = false;
     [DefaultValue(false)] public bool LimitDistance = false;
     [DefaultValue(false)] public bool LimitDistanceInvert = false;
@@ -174,8 +191,48 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectEffectLastOnly = false;
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     [DefaultValue(0)] public int refActorTransformationID = 0;
-    [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(false)] public bool Unsafe = false;
+
+    internal uint DefaultFillColor()
+    {
+        // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
+        float transparencyFromStroke = (float)(color >> 24) / 0xC8;
+        if (FillStep == -1f)
+        {
+            FillStep = 0.5f;
+        }
+        float transparencyFromFillStep = 0.5f / FillStep;
+        if (type == 4 || type == 5)
+        {
+            transparencyFromFillStep *= 2;
+        }
+        uint fillTransparency = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
+        // Replace the stroke color's transparency with the generated value.
+        uint fillColor = color & 0x00FFFFFF | (fillTransparency << 24);
+        return fillColor;
+    }
+
+    public DisplayStyle Style
+    {
+        get
+        {
+            // Migration for donuts; turn on fill once because they used to be line filled with Filled = false.
+            if (FillStep >= 0 || Donut > 0)
+            {
+                // Set values to defaults
+                this.originFillColor = this.originFillColor;
+                this.endFillColor = this.endFillColor;
+                Filled = true;
+                FillStep = -1f;
+            }
+
+            if (Filled)
+            {
+                return new DisplayStyle(this.color, this.thicc, this.originFillColor, this.endFillColor);
+            }
+            return new DisplayStyle(this.color, this.thicc, 0, 0);
+        }
+    }
 
     public bool ShouldSerializerefActorTransformationID()
     {

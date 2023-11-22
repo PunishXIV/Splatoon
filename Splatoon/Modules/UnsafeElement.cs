@@ -43,11 +43,11 @@ namespace Splatoon.Modules
             if (dist.InRange(Radius, Radius + donutRadius)) IsUnsafeElement[0] = true;
         }
 
-        internal void ProcessRect(DisplayObjectRect rect)
+        internal void ProcessLine(DisplayObjectLine line)
         {
             if (!Player.Available) return;
             var p = Static.GetPlayerPositionXZY();
-            if (PointInPolygon(p.X, p.Y, [new(rect.l1.ax, rect.l1.ay), new(rect.l1.bx, rect.l1.by), new(rect.l2.bx, rect.l2.by), new(rect.l2.ax, rect.l2.ay),]))
+            if (PointInPolygon(p.X, p.Y, line.Bounds))
             {
                 IsUnsafeElement[0] = true;
             }

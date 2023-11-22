@@ -5,6 +5,7 @@ using ECommons.MathHelpers;
 using Newtonsoft.Json;
 using Splatoon.Structures;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Splatoon.Utils;
 
@@ -396,8 +397,6 @@ public static unsafe class Static
         }
     }
 
-
-
     //because Dalamud changed Y and Z in actor positions I have to do emulate old behavior to not break old presets
     public static Vector3 GetPlayerPositionXZY()
     {
@@ -405,10 +404,7 @@ public static unsafe class Static
         {
             if (PlayerPosCache == null)
             {
-                PlayerPosCache = new Vector3(
-                    Svc.ClientState.LocalPlayer.Position.X,
-                 Svc.ClientState.LocalPlayer.Position.Z,
-                 Svc.ClientState.LocalPlayer.Position.Y);
+                PlayerPosCache = XZY(Svc.ClientState.LocalPlayer.Position);
             }
             return PlayerPosCache.Value;
         }
@@ -417,9 +413,12 @@ public static unsafe class Static
 
     public static Vector3 GetPositionXZY(this GameObject a)
     {
-        return new Vector3(a.Position.X,
-                a.Position.Z,
-                a.Position.Y);
+        return XZY(a.Position);
+    }
+
+    public static Vector3 XZY(Vector3 point)
+    {
+        return new Vector3(point.X, point.Z, point.Y);
     }
 
     public static void ProcessStart(string s)
@@ -477,6 +476,26 @@ public static unsafe class Static
         return radian * (180 / MathF.PI);
     }
 
+    public static Vector3 RotatePoint(Vector3 origin, float angle, Vector3 point)
+    {
+        if (angle == 0f) return point;
+        var s = (float)Math.Sin(angle);
+        var c = (float)Math.Cos(angle);
+
+        // translate point back to origin:
+        point -= origin;
+
+        // rotate point
+        float xnew = point.X * c - point.Y * s;
+        float ynew = point.X * s + point.Y * c;
+        point.X = xnew;
+        point.Y = ynew;
+
+        // translate point back:
+        point += origin;
+        return point;
+    }
+
     public static Vector3 RotatePoint(float cx, float cy, float angle, Vector3 p)
     {
         if (angle == 0f) return p;
@@ -505,6 +524,20 @@ public static unsafe class Static
         var d = Vector3.Dot(P - A, D);
         return A + Vector3.Multiply(D, d);
     }
+
+    // Linear interpolation between 1-byte components of uint32
+    // Intended for interpolating colors
+    public static uint Lerp(uint v1, uint v2, float amount)
+    {
+        if (v1 == v2) return v1;
+        return Vector4.Lerp(v1.ToVector4(), v2.ToVector4(), amount).ToUint();
+    }
+
+    public static float DegreesToRadians(this int val)
+    {
+        return (float)(Math.PI / 180f * val);
+    }
+
     public static float DegreesToRadians(this float val)
     {
         return (float)(Math.PI / 180 * val);
@@ -512,6 +545,32 @@ public static unsafe class Static
     public static float RadiansToDegrees(this float radians)
     {
         return (float)(180 / Math.PI * radians);
+    }
+    public static Vector4 Column1(this Matrix4x4 value)
+    {
+        return new Vector4(value.M11, value.M21, value.M31, value.M41);
+    }
+    public static Vector4 Column2(this Matrix4x4 value)
+    {
+        return new Vector4(value.M12, value.M22, value.M32, value.M42);
+    }
+    public static Vector4 Column3(this Matrix4x4 value)
+    {
+        return new Vector4(value.M13, value.M23, value.M33, value.M43);
+    }
+    public static Vector4 Column4(this Matrix4x4 value)
+    {
+        return new Vector4(value.M14, value.M24, value.M34, value.M44);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void TransformCoordinate(in Vector3 coordinate, in Matrix4x4 transform, out Vector3 result)
+    {
+        result.X = (coordinate.X * transform.M11) + (coordinate.Y * transform.M21) + (coordinate.Z * transform.M31) + transform.M41;
+        result.Y = (coordinate.X * transform.M12) + (coordinate.Y * transform.M22) + (coordinate.Z * transform.M32) + transform.M42;
+        result.Z = (coordinate.X * transform.M13) + (coordinate.Y * transform.M23) + (coordinate.Z * transform.M33) + transform.M43;
+        var w = 1f / ((coordinate.X * transform.M14) + (coordinate.Y * transform.M24) + (coordinate.Z * transform.M34) + transform.M44);
+        result *= w;
     }
 
     public static string RemoveSymbols(this string s, IEnumerable<string> deletions)

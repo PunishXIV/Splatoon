@@ -5,6 +5,7 @@ using ECommons.LanguageHelpers;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using Splatoon.Utils;
+using System;
 
 namespace Splatoon;
 
@@ -771,26 +772,43 @@ unsafe partial class CGui
                 ImGuiEx.Tooltip("Select on screen".Loc());
             }
 
-            SImGuiEx.SizedText("Line thickness:".Loc(), WidthElement);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##thicc" + i + k, ref el.thicc, 0.1f, 0f, float.MaxValue);
-            if (el.type == 0 || el.type == 1 || el.type == 4)
-            {
-                if (el.Filled && ImGui.IsItemHovered()) ImGui.SetTooltip("This value is only for tether if object is set to be filled".Loc());
-                //if (el.Filled && el.thicc == 0) el.thicc = float.Epsilon;
-            }
+            SImGuiEx.SizedText("Stroke:".Loc(), WidthElement);
             ImGui.SameLine();
             var v4 = ImGui.ColorConvertU32ToFloat4(el.color);
-            if (ImGui.ColorEdit4("##colorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+            if (ImGui.ColorEdit4("##strokecolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
             {
                 el.color = ImGui.ColorConvertFloat4ToU32(v4);
             }
-            if (el.type == 0 || el.type == 1 || el.type == 4)
+            ImGui.SameLine();
+            ImGuiEx.Text("Thickness:");
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(60f);
+            ImGui.DragFloat("##strokeThiccness" + i + k, ref el.thicc, 0.1f, 0f, float.MaxValue);
+            if (el.type.EqualsAny(0, 1, 4, 5))
             {
-                ImGui.SameLine();
-                ImGui.Checkbox($"Filled".Loc()+"##{i + k}", ref el.Filled);
+                if (el.Filled && ImGui.IsItemHovered()) ImGui.SetTooltip("This value is also used for tether".Loc());
             }
+
+            SImGuiEx.SizedText("Fill:".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.Checkbox($"Enabled".Loc() + "##{i + k}", ref el.Filled);
+            ImGui.SameLine();
+            ImGuiEx.Text("Origin:");
+            ImGui.SameLine();
+            v4 = ImGui.ColorConvertU32ToFloat4(el.originFillColor);
+            if (ImGui.ColorEdit4("##fillorigincolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+            {
+                el.originFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+            }
+            ImGui.SameLine();
+            ImGuiEx.Text("End:");
+            ImGui.SameLine();
+            v4 = ImGui.ColorConvertU32ToFloat4(el.endFillColor);
+            if (ImGui.ColorEdit4("##fillendcolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+            {
+                el.endFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+            }
+
             if ((el.type != 3) || el.includeRotation)
             {
                 if (!(el.type == 3 && !el.includeRotation))
@@ -835,9 +853,6 @@ unsafe partial class CGui
                         ImGui.SetNextItemWidth(60f);
                         ImGui.DragFloat("##radiusdonut" + i + k, ref el.Donut, 0.01f, 0, float.MaxValue);
                         el.Donut.ValidateRange(0, float.MaxValue);
-                        SImGuiEx.SizedText("Legacy fill:".Loc(), WidthElement);
-                        ImGui.SameLine();
-                        ImGui.Checkbox($"##Legacy fill"+i+k, ref el.LegacyFill);
                     }
                 }
                 if (el.type != 2 && el.type != 3 && el.type != 4)
@@ -846,14 +861,6 @@ unsafe partial class CGui
                     ImGui.SameLine();
                     ImGui.Checkbox("Enable##TetherEnable" + i + k, ref el.tether);
                 }
-            }
-            if ((el.type.EqualsAny(0, 1) && el.Donut > 0) || el.type == 4 || (el.type.EqualsAny(2, 3) && (el.radius > 0 || el.includeHitbox || el.includeOwnHitbox)))
-            {
-                SImGuiEx.SizedText("Fill step:".Loc(), WidthElement);
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##fillstep" + i + k, ref el.FillStep, 0.001f, 0, float.MaxValue);
-                el.FillStep.ValidateRange(0.01f, float.MaxValue);
             }
             if (el.type == 0 || el.type == 1)
             {

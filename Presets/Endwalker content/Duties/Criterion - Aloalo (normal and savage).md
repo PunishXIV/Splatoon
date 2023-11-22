@@ -9,8 +9,7 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/
 [EN] Aloalo Snipper - Bubble Shower
 ```
 ~Lv2~{"Name":"Aloalo Snipper - Bubble Shower","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","type":4,"radius":9.0,"coneAngleMin":-45,"coneAngleMax":45,"thicc":0.0,"refActorNameIntl":{"En":"Aloalo Snipper"},"includeRotation":true,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"The Aloalo snipper readies Bubble Shower."}]}
-```
-
+``` 
 [EN] Aloalo Ray - Hydro Cannon
 ```
 ~Lv2~{"Name":"Aloalo Ray - Hydro Cannon","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","type":3,"offY":15.0,"radius":3.0,"color":1677721855,"thicc":0.0,"refActorNameIntl":{"En":"Aloalo Ray"},"FillStep":1.0,"includeRotation":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"The Aloalo ray readies Hydrocannon."}]}
@@ -18,7 +17,7 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/
 
 [EN] Ketuduke Spring Crystals Diamond
 ```
-~Lv2~{"Name":"Ketuduke Spring Crystals Diamond","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","type":3,"refY":50.0,"offY":-50.0,"radius":3.0,"color":520093695,"thicc":0.1,"refActorModelID":4005,"FillStep":1.0,"refActorComparisonType":1,"includeRotation":true,"tether":true},{"Name":"","type":3,"refX":1.0,"offX":-1.0,"radius":1.0,"color":503316735,"thicc":10.0,"refActorModelID":4005,"FillStep":1.0,"refActorComparisonType":1,"includeRotation":true,"tether":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"Match":"Ketuduke uses Spring Crystals."}]}```
+~Lv2~{"Name":"Ketuduke Spring Crystals Diamond","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"","type":3,"refY":50.0,"offY":-50.0,"radius":3.0,"color":520093695,"thicc":0.1,"refActorModelID":4005,"FillStep":1.0,"refActorComparisonType":1,"includeRotation":true,"tether":true},{"Name":"","type":3,"refX":1.0,"offX":-1.0,"radius":1.0,"color":503316735,"thicc":10.0,"refActorModelID":4005,"FillStep":1.0,"refActorComparisonType":1,"includeRotation":true,"tether":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"Match":"Ketuduke uses Spring Crystals."}]}
 ```
 
 [EN] Ketuduke Spring Crystals Ball
@@ -28,12 +27,12 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/
 
 [EN] Ketuduke Add Bubble - Has 2 element variants depending on rotation CW/CCW or Markers 1-NW/1-NE (default 1-NW on)
 ```
-~Lv2~{"Name":"Ketuduke Add Bubble","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"Markers - 1 North West - A North","type":1,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":5.16,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorRequireBuffsInvert":true,"refActorComparisonType":6,"includeRotation":true,"tether":true,"AdditionalRotation":3.1415927},{"Name":"Markers - 1 North East - A North","type":1,"Enabled":false,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":5.16,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorRequireBuffsInvert":true,"refActorComparisonType":6,"includeRotation":true,"tether":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":11.5,"MatchIntl":{"En":"You suffer the effect of Bubble Weave."}}]}```
+~Lv2~{"Name":"Ketuduke Add Bubble","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"Markers - 1 North West - A North","type":1,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":5.16,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorRequireBuffsInvert":true,"refActorComparisonType":6,"includeRotation":true,"tether":true,"AdditionalRotation":3.1415927},{"Name":"Markers - 1 North East - A North","type":1,"Enabled":false,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":5.16,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorRequireBuffsInvert":true,"refActorComparisonType":6,"includeRotation":true,"tether":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":11.5,"MatchIntl":{"En":"You suffer the effect of Bubble Weave."}}]}
 ```
 
 [EN] Ketuduke Add Bind - Has 2 element variants depending on rotation CW/CCW or Markers 1-NW/1-NE (default 1-NW on)
 ```
-~Lv2~{"Name":"Ketuduke Add Bind","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"Markers - 1 North West - A North","type":1,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":1.5,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorComparisonType":6,"includeRotation":true,"tether":true,"AdditionalRotation":3.1415927},{"Name":"Markers - 1 North East - A North","type":1,"Enabled":false,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":1.5,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorComparisonType":6,"includeRotation":true,"tether":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":11.5,"MatchIntl":{"En":"You suffer the effect of Foamy Fetters."}}]}```
+~Lv2~{"Name":"Ketuduke Add Bind","Group":"Aloalo Criterion","ZoneLockH":[1179,1180],"DCond":5,"ElementsL":[{"Name":"Markers - 1 North West - A North","type":1,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":1.5,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorComparisonType":6,"includeRotation":true,"tether":true,"AdditionalRotation":3.1415927},{"Name":"Markers - 1 North East - A North","type":1,"Enabled":false,"offX":-10.0,"radius":1.5,"color":4194369306,"overlayBGColor":4194304000,"overlayTextColor":4211081215,"overlayFScale":1.5,"thicc":6.0,"overlayText":"?","refActorNPCNameID":12539,"refActorRequireBuff":true,"refActorBuffId":[3745],"refActorComparisonType":6,"includeRotation":true,"tether":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":11.5,"MatchIntl":{"En":"You suffer the effect of Foamy Fetters."}}]}
 ```
 
 [EN] Aloalo Kiwakin

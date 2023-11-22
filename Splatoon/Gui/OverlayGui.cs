@@ -160,7 +160,8 @@ unsafe class OverlayGui : IDisposable
         int vertexCount = segments + 1;
 
         bool isCircle = totalAngle == MathF.PI * 2;
-        RenderShape fan = new(e.style, false, !isCircle);
+        StrokeConnection strokeStyle = isCircle ? StrokeConnection.NoConnection : StrokeConnection.ConnectOriginAndEnd;
+        RenderShape fan = new(e.style, VertexConnection.NoConnection, strokeStyle);
         for (int step = 0; step < vertexCount; step++)
         {
             float angle = e.angleMin + step * angleStep;
@@ -172,17 +173,33 @@ unsafe class OverlayGui : IDisposable
         fan.Draw(ViewProj); 
     }
 
+    public void DrawDonutWorld(DisplayObjectDonut e)
+    {
+        int segments = RadialSegments(e.radius + e.donutRadius);
+        var worldPosInside = GetCircle(e.origin, e.radius, segments);
+        var worldPosOutside = GetCircle(e.origin, e.radius + e.donutRadius, segments);
+
+        RenderShape donut = new(e.style, VertexConnection.ConnectLastAndFirst, StrokeConnection.NoConnection);
+
+        var length = worldPosInside.Length;
+        for (int i = 0; i < length; i++)
+        {
+            donut.Add(worldPosInside[i], worldPosOutside[i]);
+        }
+        donut.Draw(ViewProj);
+    }
+
     void DrawLineWorld(DisplayObjectLine e)
     {
-        var nearPlane = ViewProj.Column3();
-
         ImDrawListPtr drawList = ImGui.GetWindowDrawList();
         if (e.radius == 0)
         {
             if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
+            var nearPlane = ViewProj.Column3();
+
             Vector3 start = e.start;
             Vector3 stop = e.stop;
-            if (ClipLineToPlane(nearPlane, ref start, ref stop) == LineClipStatus.NotVisible)
+            if (ClipLineToPlane(nearPlane, ref start, ref stop, out float _) == LineClipStatus.NotVisible)
                 return;
 
             drawList.PathLineTo(WorldToScreen(ViewProj, start));
@@ -202,12 +219,12 @@ unsafe class OverlayGui : IDisposable
             // By segmenting the line horizontally, culling offscreen segments still leaves segments on screen.
             // A better fix would be to clip the line horizontally instead of culling offscreen segments.
             int segments = HorizontalLinearSegments(e.radius);
-            Vector3 step = e.PerpendicularRadius * 2 / segments;
+            Vector3 perpendicularStep = e.PerpendicularRadius * 2 / segments;
 
-            RenderShape line = new(e.style, false, true);
-            for (int i = 0; i < segments; i++)
+            RenderShape line = new(e.style, VertexConnection.NoConnection, StrokeConnection.ConnectOriginAndEnd);
+            for (int step = 0; step < segments; step++)
             {
-                line.Add(leftStart + i * step, leftStop + i * step);
+                line.Add(leftStart + step * perpendicularStep, leftStop + step * perpendicularStep);
                 
             }
             line.Add(rightStart, rightStop);
@@ -257,23 +274,7 @@ unsafe class OverlayGui : IDisposable
             MINIMUM_CIRCLE_SEGMENTS);
     }
 
-    public void DrawDonutWorld(DisplayObjectDonut e)
-    {
-        int segments = RadialSegments(e.radius + e.donutRadius);
-        var worldPosInside = GetCircle(e.origin, e.radius, segments);
-        var worldPosOutside = GetCircle(e.origin, e.radius + e.donutRadius, segments);
-
-        RenderShape donut = new(e.style, true, false);
-
-        var length = worldPosInside.Length;
-        for (int i = 0; i < length; i++)
-        {
-            donut.Add(worldPosInside[i], worldPosOutside[i]);
-        }
-        donut.Draw(ViewProj);
-    }
-
-    public Vector3[] GetCircle(in Vector3 origin, in float radius, in int segments)
+    public static Vector3[] GetCircle(in Vector3 origin, in float radius, in int segments)
     {
         float totalAngle = MathF.PI * 2;
         float angleStep = totalAngle / segments;

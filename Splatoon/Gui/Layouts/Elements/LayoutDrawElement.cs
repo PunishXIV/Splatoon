@@ -853,9 +853,6 @@ unsafe partial class CGui
                         ImGui.SetNextItemWidth(60f);
                         ImGui.DragFloat("##radiusdonut" + i + k, ref el.Donut, 0.01f, 0, float.MaxValue);
                         el.Donut.ValidateRange(0, float.MaxValue);
-                        SImGuiEx.SizedText("Legacy fill:".Loc(), WidthElement);
-                        ImGui.SameLine();
-                        ImGui.Checkbox($"##Legacy fill"+i+k, ref el.LegacyFill);
                     }
                 }
                 if (el.type != 2 && el.type != 3 && el.type != 4)
@@ -864,14 +861,6 @@ unsafe partial class CGui
                     ImGui.SameLine();
                     ImGui.Checkbox("Enable##TetherEnable" + i + k, ref el.tether);
                 }
-            }
-            if ((el.type.EqualsAny(0, 1) && el.Donut > 0) || el.type == 4 || (el.type.EqualsAny(2, 3) && (el.radius > 0 || el.includeHitbox || el.includeOwnHitbox)))
-            {
-                SImGuiEx.SizedText("Fill step:".Loc(), WidthElement);
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##fillstep" + i + k, ref el.FillStep, 0.001f, 0, float.MaxValue);
-                el.FillStep.ValidateRange(0.01f, float.MaxValue);
             }
             if (el.type == 0 || el.type == 1)
             {

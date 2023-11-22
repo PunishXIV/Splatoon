@@ -1,4 +1,6 @@
-﻿using ECommons.LanguageHelpers;
+﻿using ECommons.ExcelServices.TerritoryEnumeration;
+using ECommons.LanguageHelpers;
+using ImGuiNET;
 using Splatoon.Structures;
 using System.ComponentModel;
 
@@ -76,12 +78,23 @@ public class Element
     [DefaultValue(0)] public float Donut = 0f;
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
-    [DefaultValue(false)] public bool Filled = false;
-    // Deprecated
+    [DefaultValue(true)] public bool Filled = true;
+    // Deprecated - set fill colors instead
     [DefaultValue(0.5f)] public float FillStep = 0.5f;
+    // Deprecated - unused
+    [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
-    [DefaultValue(0x450000ff)] public uint originFillColor = 0x450000ff;
-    [DefaultValue(0x450000ff)] public uint endFillColor = 0x450000ff;
+    [NonSerialized] internal uint? _originFillColor = null;
+    public uint originFillColor {
+        get => _originFillColor.GetValueOrDefault(DefaultFillColor());
+        set => _originFillColor = value;
+    }
+    [NonSerialized] internal uint? _endFillColor = null;
+    public uint endFillColor
+    {
+        get => _endFillColor.GetValueOrDefault(DefaultFillColor());
+        set => _endFillColor = value;
+    }
     [DefaultValue(0x70000000)] public uint overlayBGColor = 0x70000000;
     [DefaultValue(0xC8FFFFFF)] public uint overlayTextColor = 0xC8FFFFFF;
     [DefaultValue(0f)] public float overlayVOffset = 0f;
@@ -178,9 +191,22 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectEffectLastOnly = false;
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     [DefaultValue(0)] public int refActorTransformationID = 0;
-    [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(false)] public bool Unsafe = false;
 
+    internal uint DefaultFillColor()
+    {
+        // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
+        float transparencyFromStroke = (float)(color >> 24) / 0xC8;
+        float transparencyFromFillStep = 0.5f / FillStep;
+        if (type == 4 || type == 5)
+        {
+            transparencyFromFillStep *= 2;
+        }
+        uint fillTransparency = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
+        // Replace the stroke color's transparency with the generated value.
+        uint fillColor = color & 0x00FFFFFF | (fillTransparency << 24);
+        return fillColor;
+    }
 
     public DisplayStyle Style
     {

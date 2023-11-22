@@ -1,6 +1,8 @@
-﻿using Splatoon.Structures;
+﻿using ImGuiNET;
+using Splatoon.Structures;
 using System.Runtime.InteropServices;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
+using static Splatoon.Utils.Gui;
 
 namespace Splatoon.Utils;
 
@@ -16,13 +18,26 @@ public static unsafe class Gui
         B_Clipped,
     }
 
+    public enum VertexConnection
+    {
+        NoConnection,
+        ConnectLastAndFirst,
+    }
+
+    public enum StrokeConnection
+    {
+        NoConnection,
+        ConnectOriginAndEnd,
+    }
+
     public static bool Visible(this LineClipStatus status)
     {
         return status != LineClipStatus.NotVisible;
     }
 
-    public static LineClipStatus ClipLineToPlane(in Vector4 plane, ref Vector3 a, ref Vector3 b)
+    public static LineClipStatus ClipLineToPlane(in Vector4 plane, ref Vector3 a, ref Vector3 b, out float t)
     {
+        t = 0f;
         var aDot = Vector4.Dot(new(a, 1), plane);
         var bDot = Vector4.Dot(new(b, 1), plane);
         bool aVis = aDot > 0;
@@ -34,7 +49,7 @@ public static unsafe class Gui
         Vector3 plane3 = new(plane.X, plane.Y, plane.Z);
 
         Vector3 ab = b - a;
-        var t = -aDot / Vector3.Dot(ab, plane3);
+        t = -aDot / Vector3.Dot(ab, plane3);
         Vector3 abClipped = a + ab * t;
         if (aVis)
         {
@@ -45,64 +60,30 @@ public static unsafe class Gui
         return LineClipStatus.A_Clipped;
     }
 
-    public class RenderShape
+    public static Vector2 WorldToScreen(in Matrix4x4 viewProj, in Vector3 worldPos)
     {
-        internal DisplayStyle style;
-        internal List<LineSegment> segments;
-        internal bool connectLastAndFirst;
-        internal bool connectOriginAndEndStroke;
+        TransformCoordinate(worldPos, viewProj, out Vector3 viewPos);
+        return new Vector2(
+            0.5f * ImGuiHelpers.MainViewport.Size.X * (1 + viewPos.X),
+            0.5f * ImGuiHelpers.MainViewport.Size.Y * (1 - viewPos.Y)) + ImGuiHelpers.MainViewport.Pos;
+    }
 
-        public struct LineSegment(Vector3 origin, Vector3 end)
+    public class RenderShape(DisplayStyle style, VertexConnection connectStyle, StrokeConnection strokeStyle)
+    {
+        internal DisplayStyle style = style;
+        internal VertexConnection connectStyle = connectStyle;
+        internal StrokeConnection strokeStyle = strokeStyle;
+        internal List<LineSegment> segments = new();
+
+        internal struct LineSegment(Vector3 origin, Vector3 end)
         {
             public Vector3 origin = origin;
             public Vector3 end = end;
         }
 
-        public RenderShape(DisplayStyle style, bool connectLastAndFirst, bool connectOriginAndEndStroke)
-        {
-            segments = new();
-            this.style = style;
-            this.connectLastAndFirst = connectLastAndFirst;
-            this.connectOriginAndEndStroke = connectOriginAndEndStroke;
-        }
-
         public void Add(Vector3 origin, Vector3 end)
         {
-            Add(new(origin, end));
-        }
-
-        public void Add(LineSegment segment)
-        {
-            segments.Add(segment);
-        }
-
-        public static LineClipStatus ClipLineToPlane(in Vector4 plane, ref LineSegment segment, out float t)
-        {
-            t = 0f;
-            ref var a = ref segment.origin;
-            ref var b = ref segment.end;
-
-            var aDot = Vector4.Dot(new(a, 1), plane);
-            var bDot = Vector4.Dot(new(b, 1), plane);
-            bool aVis = aDot > 0;
-            bool bVis = bDot > 0;
-
-            if (aVis && bVis)
-                return LineClipStatus.NotClipped;
-            if (!aVis && !bVis)
-                return LineClipStatus.NotVisible;
-            Vector3 plane3 = new(plane.X, plane.Y, plane.Z);
-
-            Vector3 ab = b - a;
-            t = -aDot / Vector3.Dot(ab, plane3);
-            Vector3 abClipped = a + ab * t;
-            if (aVis)
-            {
-                b = abClipped;
-                return LineClipStatus.B_Clipped;
-            }
-            a = abClipped;
-            return LineClipStatus.A_Clipped;
+            segments.Add(new(origin, end));
         }
 
         public void Draw(in Matrix4x4 viewProj)
@@ -112,20 +93,21 @@ public static unsafe class Gui
             int count = segments.Count;
             bool[] cull = new bool[count];
 
-
             ImDrawListPtr drawList = ImGui.GetWindowDrawList();
             uint vtxBase = drawList._VtxCurrentIdx;
 
-            Vector2[] originScreenPositions = new Vector2[segments.Count];
-            Vector2[] endScreenPositions = new Vector2[segments.Count];
-            ushort[] originVtx = new ushort[segments.Count];
-            ushort[] endVtx = new ushort[segments.Count];
+            Vector2[] originScreenPositions = new Vector2[count];
+            Vector2[] endScreenPositions = new Vector2[count];
+            ushort[] originVtx = new ushort[count];
+            ushort[] endVtx = new ushort[count];
 
+            // Clip lines to near plane and prepare vertices for drawing
             var segmentsSpan = CollectionsMarshal.AsSpan(segments);
             LineSegment prevSegment = new();
-            for (int i = 0; i < segments.Count; i++)
+            for (int i = 0; i < count; i++)
             {
-                var status = ClipLineToPlane(nearPlane, ref segmentsSpan[i], out float t);
+                ref LineSegment segment = ref segmentsSpan[i];
+                var status = ClipLineToPlane(nearPlane, ref segment.origin, ref segment.end, out float t);
                 if (status == LineClipStatus.NotVisible)
                 {
                     cull[i] = true;
@@ -141,8 +123,6 @@ public static unsafe class Gui
                 {
                     endColor = Lerp(style.originFillColor, style.endFillColor, t);
                 }
-
-                var segment = segments[i];
 
                 if (segment.end == prevSegment.end)
                 {
@@ -174,15 +154,16 @@ public static unsafe class Gui
 
                 prevSegment = segment;
             }
-
-            for (int i = 0; i < segments.Count; i++)
+            
+            // Draw triangles
+            for (int i = 0; i < count; i++)
             {
-                int nextIndex = (i + 1) % segments.Count;
+                int nextIndex = (i + 1) % count;
                 if (cull[i] || cull[nextIndex])
                 {
                     continue;
                 }
-                if (i + 1 == segments.Count && !connectLastAndFirst)
+                if (i + 1 == count && connectStyle == VertexConnection.NoConnection)
                 {
                     break;
                 }
@@ -205,68 +186,66 @@ public static unsafe class Gui
                     drawList.PrimWriteIdx(endVtx[nextIndex]);
                 }
             }
-            int pathLength = 0;
 
-            int strokeCount = originScreenPositions.Length;
-            if (connectLastAndFirst)
+            if (style.strokeThickness > 0 && (style.strokeColor & 0xFF000000) > 0)
             {
-                strokeCount++;
-            }
 
-            for (int i = 0; i < strokeCount; i++)
-            {
-                int idx = i % originScreenPositions.Length;
-                if (cull[idx])
+                // Path and stroke origin vertices
+                int pathLength = 0;
+                int strokeCount = originScreenPositions.Length;
+                if (connectStyle == VertexConnection.ConnectLastAndFirst)
                 {
-                    if (pathLength > 0)
-                    {
-                        pathLength = 0;
-                        drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
-                    }
-                    continue;
+                    strokeCount++;
                 }
-                pathLength++;
-                drawList.PathLineToMergeDuplicate(originScreenPositions[idx]);
-            }
-            if (!connectOriginAndEndStroke)
-            {
-                pathLength = 0;
+
+                for (int i = 0; i < strokeCount; i++)
+                {
+                    int idx = i % originScreenPositions.Length;
+                    if (cull[idx])
+                    {
+                        if (pathLength > 0)
+                        {
+                            pathLength = 0;
+                            drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
+                        }
+                        continue;
+                    }
+                    pathLength++;
+                    drawList.PathLineToMergeDuplicate(originScreenPositions[idx]);
+                }
+                if (strokeStyle == StrokeConnection.NoConnection)
+                {
+                    pathLength = 0;
+                    drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
+                }
+
+                // Path and stroke end vertices
+                for (int i = 0; i < strokeCount; i++)
+                {
+                    // Stroke right to left so ends of lines join properly.
+                    int idx = (2 * count - 1 - i) % count;
+                    if (cull[idx])
+                    {
+                        if (pathLength > 0)
+                        {
+                            pathLength = 0;
+                            drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
+                        }
+                        continue;
+                    }
+
+                    pathLength++;
+                    drawList.PathLineToMergeDuplicate(endScreenPositions[idx]);
+                }
+                if (strokeStyle == StrokeConnection.ConnectOriginAndEnd)
+                {
+                    if (!cull[0])
+                    {
+                        drawList.PathLineToMergeDuplicate(originScreenPositions[0]);
+                    }
+                }
                 drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
             }
-
-            for (int i = 0; i < strokeCount; i++)
-            {
-                // Stroke right to left so ends of lines join properly.
-                int idx = (2 * count - 1 - i) % count;
-                if (cull[idx])
-                {
-                    if (pathLength > 0)
-                    {
-                        pathLength = 0;
-                        drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
-                    }
-                    continue;
-                }
-
-                pathLength++;
-                drawList.PathLineToMergeDuplicate(endScreenPositions[idx]);
-            }
-            if (connectOriginAndEndStroke)
-            {
-                if (!cull[0])
-                {
-                    drawList.PathLineToMergeDuplicate(originScreenPositions[0]);
-                }
-            }
-            drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
         }
-    }
-
-    public static Vector2 WorldToScreen(in Matrix4x4 viewProj, in Vector3 worldPos)
-    {
-        TransformCoordinate(worldPos, viewProj, out Vector3 viewPos);
-        return new Vector2(
-            0.5f * ImGuiHelpers.MainViewport.Size.X * (1 + viewPos.X),
-            0.5f * ImGuiHelpers.MainViewport.Size.Y * (1 - viewPos.Y)) + ImGuiHelpers.MainViewport.Pos;
     }
 }

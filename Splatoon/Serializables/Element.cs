@@ -80,8 +80,8 @@ public class Element
     // Deprecated
     [DefaultValue(0.5f)] public float FillStep = 0.5f;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
-    [DefaultValue(0xc80000ff)] public uint originFillColor = 0xc80000ff;
-    [DefaultValue(0xc80000ff)] public uint endFillColor = 0xc80000ff;
+    [DefaultValue(0x450000ff)] public uint originFillColor = 0x450000ff;
+    [DefaultValue(0x450000ff)] public uint endFillColor = 0x450000ff;
     [DefaultValue(0x70000000)] public uint overlayBGColor = 0x70000000;
     [DefaultValue(0xC8FFFFFF)] public uint overlayTextColor = 0xC8FFFFFF;
     [DefaultValue(0f)] public float overlayVOffset = 0f;

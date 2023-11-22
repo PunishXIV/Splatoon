@@ -13,8 +13,9 @@ unsafe class OverlayGui : IDisposable
     // Low detail 2-3
     // Med detail 4-5
     // High detail 6+
-    const int RADIAL_SEGMENTS_PER_UNIT = 1;
+    const int RADIAL_SEGMENTS_PER_UNIT = 4;
     const int MINIMUM_CIRCLE_SEGMENTS = 12;
+    const int LINEAR_SEGMENTS_PER_UNIT = 1;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate IntPtr GetMatrixSingletonDelegate();
@@ -49,6 +50,10 @@ unsafe class OverlayGui : IDisposable
         float angularPercent = angleRadians / (MathF.PI * 2);
         int minimumSegments = Math.Max((int)(MINIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
         return Math.Max(segments, minimumSegments);
+    }
+    public static int HorizontalLinearSegments(float radius)
+    {
+        return Math.Max((int)(radius / LINEAR_SEGMENTS_PER_UNIT), 1);
     }
 
     void Draw()
@@ -145,74 +150,6 @@ unsafe class OverlayGui : IDisposable
         if (p.Profiler.Enabled) p.Profiler.Gui.StopTick();
     }
 
-    TriClipStatus DrawTriangle(in Vector4 clipPlane, ref Triangle tri)
-    {
-        var status = ClipTriangleToPlane(in clipPlane, ref tri, out Triangle quadfill);
-        if (status == TriClipStatus.NotVisible)
-            return TriClipStatus.NotVisible;
-
-        DrawTriangle(tri);
-
-        if (status == TriClipStatus.A_Clipped ||
-            status == TriClipStatus.B_Clipped ||
-            status == TriClipStatus.C_Clipped)
-        {
-            DrawTriangle(quadfill);
-        }
-
-        void DrawTriangle(in Triangle tri)
-        {
-            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-            drawList.PrimReserve(3, 3);
-            uint vtxBase = drawList._VtxCurrentIdx;
-
-            drawList.PrimWriteVtx(WorldToScreen(tri.a), UV, tri.aColor);
-            drawList.PrimWriteVtx(WorldToScreen(tri.b), UV, tri.bColor);
-            drawList.PrimWriteVtx(WorldToScreen(tri.c), UV, tri.cColor);
-            drawList.PrimWriteIdx((ushort)(vtxBase + 0));
-            drawList.PrimWriteIdx((ushort)(vtxBase + 1));
-            drawList.PrimWriteIdx((ushort)(vtxBase + 2));
-
-            drawList.PathLineTo(WorldToScreen(tri.a));
-            drawList.PathLineTo(WorldToScreen(tri.b));
-            drawList.PathLineTo(WorldToScreen(tri.c));
-            drawList.PathStroke(0xFF0000FF, ImDrawFlags.Closed, 2);
-        }
-        return status;
-    }
-
-    // https://en.wikipedia.org/wiki/Triangle_strip
-    void DrawTriangleStrip(Vertex[] vertices)
-    {
-        var nearPlane = ViewProj.Column3();
-
-        Polygon p = new();
-        foreach (Vertex v in vertices)
-        {
-            p.addVertex(v);
-        }
-
-        int vertexCount = vertices.Length;
-        int triangleCount = vertexCount - 2;
-
-        for (int i = 0; i < triangleCount; i++)
-        {
-            p.addTriangle(i, i+1, i+2);
-            /*
-            Triangle tri = new(
-                    vertices[i].point,
-                    vertices[i + 1].point,
-                    vertices[i + 2].point,
-                    vertices[i].color,
-                    vertices[i + 1].color,
-                    vertices[i + 2].color);
-            DrawTriangle(nearPlane, ref tri);
-            */
-        }
-
-        p.ClipToPlane(nearPlane);
-        p.DebugDraw(ViewProj);
-    }
 
     public void DrawTriangleFanWorld(DisplayObjectFan e)
     {
@@ -221,54 +158,18 @@ unsafe class OverlayGui : IDisposable
         float angleStep = totalAngle / segments;
 
         int vertexCount = segments + 1;
-        // var worldPoints = new List<Vector3>(vertexCount);
-        Polygon p = new();
-        p.addVertex(XZY(e.origin), e.style.originFillColor);
+
+        bool isCircle = totalAngle == MathF.PI * 2;
+        RenderShape fan = new(e.style, false, !isCircle);
         for (int step = 0; step < vertexCount; step++)
         {
             float angle = e.angleMin + step * angleStep;
             Vector3 point = e.origin;
             point.Y += e.radius;
             point = RotatePoint(e.origin, angle, point);
-            p.addVertex(XZY(point), e.style.endFillColor);
+            fan.Add(XZY(e.origin), XZY(point));
         }
-
-        for (int n = 0; n < segments; n++)
-        {
-            /*
-            Triangle tri = new(
-                    origin,
-                    worldPoints[n],
-                    worldPoints[n + 1],
-                    e.style.originFillColor,
-                    e.style.endFillColor,
-                    e.style.endFillColor);
-            DrawTriangle(nearPlane, ref tri);
-            */
-            p.addTriangle(0, n, n+1);
-        }
-
-        var nearPlane = ViewProj.Column3();
-        p.ClipToPlane(nearPlane);
-        p.DebugDraw(ViewProj);
-        /*
-        // Stroke
-        if (e.style.strokeColor != 0)
-        {
-            var flags = ImDrawFlags.None;
-            // Don't include the origin if this is a complete circle
-            if (MathF.Abs(e.angleMin + e.angleMax) < 2 * MathF.PI - 0.0001)
-            {
-                flags = ImDrawFlags.Closed;
-                drawList.PathLineTo(screenPointOrigin);
-            }
-            foreach (Vector2 screenPoint in screenPoints)
-            {
-                drawList.PathLineTo(screenPoint);
-            }
-            drawList.PathStroke(e.style.strokeColor, flags, e.style.strokeThickness);
-        }
-        */
+        fan.Draw(ViewProj); 
     }
 
     void DrawLineWorld(DisplayObjectLine e)
@@ -284,8 +185,8 @@ unsafe class OverlayGui : IDisposable
             if (ClipLineToPlane(nearPlane, ref start, ref stop) == LineClipStatus.NotVisible)
                 return;
 
-            drawList.PathLineTo(WorldToScreen(start));
-            drawList.PathLineTo(WorldToScreen(stop));
+            drawList.PathLineTo(WorldToScreen(ViewProj, start));
+            drawList.PathLineTo(WorldToScreen(ViewProj, stop));
             drawList.PathStroke(e.style.strokeColor, ImDrawFlags.None, e.style.strokeThickness);
             if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
         }
@@ -297,54 +198,20 @@ unsafe class OverlayGui : IDisposable
             var rightStart = e.start + e.PerpendicularRadius;
             var rightStop = e.stop + e.PerpendicularRadius;
 
-            DrawTriangleStrip([
-                new(leftStart, e.style.originFillColor),
-                new(rightStart, e.style.originFillColor),
-                new(leftStop, e.style.endFillColor),
-                new(rightStop, e.style.endFillColor),
-                ]);
+            // This is a tiny hack. Instead of clipping the line horizontally properly, we just cull segments that are offscreen
+            // By segmenting the line horizontally, culling offscreen segments still leaves segments on screen.
+            // A better fix would be to clip the line horizontally instead of culling offscreen segments.
+            int segments = HorizontalLinearSegments(e.radius);
+            Vector3 step = e.PerpendicularRadius * 2 / segments;
 
-            /*
-            Triangle left = new(leftStart, rightStart, leftStop, e.style.originFillColor, e.style.originFillColor, e.style.endFillColor);
-            Triangle right = new(rightStart, leftStop, rightStop, e.style.originFillColor, e.style.endFillColor, e.style.endFillColor);
-
-            var leftStatus = DrawTriangle(nearPlane, ref left);
-            var rightStatus = DrawTriangle(nearPlane, ref right);
-            /*
-            var flags = ImDrawFlags.Closed;
-
-            if (leftStatus == TriClipStatus.A_Clipped ||
-                leftStatus == TriClipStatus.B_Clipped ||
-                leftStatus == TriClipStatus.C_Clipped)
+            RenderShape line = new(e.style, false, true);
+            for (int i = 0; i < segments; i++)
             {
-                flags = ImDrawFlags.None;
+                line.Add(leftStart + i * step, leftStop + i * step);
+                
             }
-            if (rightStatus == TriClipStatus.A_Clipped ||
-                rightStatus == TriClipStatus.B_Clipped ||
-                rightStatus == TriClipStatus.C_Clipped)
-            {
-                flags = ImDrawFlags.None;
-            }
-
-            List<Vector3> strokePoints = new();
-
-            if (ClipLineToPlane(nearPlane, ref leftStart, ref leftStop) != LineClipStatus.NotVisible)
-            {
-                strokePoints.Add(leftStart);
-                strokePoints.Add(leftStop);
-            }
-            if (ClipLineToPlane(nearPlane, ref rightStart, ref rightStop) != LineClipStatus.NotVisible)
-            {
-                strokePoints.Add(rightStop);
-                strokePoints.Add(rightStart);
-            }
-            if (strokePoints.Count > 0)
-            {
-                strokePoints.ForEach(point => drawList.PathLineTo(WorldToScreen(point)));
-                drawList.PathStroke(e.style.strokeColor, flags, e.style.strokeThickness);
-            }
-            */
-
+            line.Add(rightStart, rightStop);
+            line.Draw(ViewProj);
         }
     }
 
@@ -392,44 +259,18 @@ unsafe class OverlayGui : IDisposable
 
     public void DrawDonutWorld(DisplayObjectDonut e)
     {
-        int segments = RadialSegments(e.radius);
+        int segments = RadialSegments(e.radius + e.donutRadius);
         var worldPosInside = GetCircle(e.origin, e.radius, segments);
         var worldPosOutside = GetCircle(e.origin, e.radius + e.donutRadius, segments);
-        var screenPosInside = new Vector2[segments];
-        var screenPosOutside = new Vector2[segments];
-        var worldPosStrip = new Vertex[(segments + 1) * 2];
+
+        RenderShape donut = new(e.style, true, false);
 
         var length = worldPosInside.Length;
         for (int i = 0; i < length; i++)
         {
-            worldPosStrip[2 * i] = new(worldPosInside[i], e.style.originFillColor);
-            //screenPosInside[i] = inside.pos;
-
-            worldPosStrip[2 * i + 1] = new(worldPosOutside[i], e.style.endFillColor);
-            //screenPosOutside[i] = outside.pos;
+            donut.Add(worldPosInside[i], worldPosOutside[i]);
         }
-        worldPosStrip[length * 2] = worldPosStrip[0];
-        worldPosStrip[length * 2 + 1] = worldPosStrip[1];
-        DrawTriangleStrip(worldPosStrip);
-
-        /*
-        foreach (var pos in screenPosInside)
-        {
-            ImGui.GetWindowDrawList().PathLineTo(pos);
-        }
-        if (e.style.strokeColor != 0)
-        {
-            ImGui.GetWindowDrawList().PathStroke(e.style.strokeColor, ImDrawFlags.None, e.style.strokeThickness);
-        }
-        foreach (var pos in screenPosOutside)
-        {
-            ImGui.GetWindowDrawList().PathLineTo(pos);
-        }
-        if (e.style.strokeColor != 0)
-        {
-            ImGui.GetWindowDrawList().PathStroke(e.style.strokeColor, ImDrawFlags.None, e.style.strokeThickness);
-        }
-        */
+        donut.Draw(ViewProj);
     }
 
     public Vector3[] GetCircle(in Vector3 origin, in float radius, in int segments)
@@ -448,14 +289,6 @@ unsafe class OverlayGui : IDisposable
         }
 
         return elements;
-    }
-
-    private Vector2 WorldToScreen(Vector3 worldPos)
-    {
-        TransformCoordinate(worldPos, ViewProj, out Vector3 viewPos);
-        return new Vector2(
-            0.5f * ImGuiHelpers.MainViewport.Size.X * (1 + viewPos.X),
-            0.5f * ImGuiHelpers.MainViewport.Size.Y * (1 - viewPos.Y)) + ImGuiHelpers.MainViewport.Pos;
     }
 
     private static unsafe Matrix4x4 ReadMatrix(IntPtr address)

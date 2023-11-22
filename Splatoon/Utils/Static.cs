@@ -529,6 +529,7 @@ public static unsafe class Static
     // Intended for interpolating colors
     public static uint Lerp(uint v1, uint v2, float amount)
     {
+        if (v1 == v2) return v1;
         return Vector4.Lerp(v1.ToVector4(), v2.ToVector4(), amount).ToUint();
     }
 

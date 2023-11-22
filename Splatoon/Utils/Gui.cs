@@ -1,8 +1,6 @@
-﻿using ImGuiNET;
-using Splatoon.Structures;
-using System;
-using System.Collections.Generic;
+﻿using Splatoon.Structures;
 using System.Runtime.InteropServices;
+using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 namespace Splatoon.Utils;
 
@@ -16,17 +14,6 @@ public static unsafe class Gui
         NotClipped,
         A_Clipped,
         B_Clipped,
-    }
-    public enum TriClipStatus
-    {
-        NotVisible,
-        NotClipped,
-        A_Clipped,
-        B_Clipped,
-        C_Clipped,
-        AB_Clipped,
-        BC_Clipped,
-        AC_Clipped,
     }
 
     public static bool Visible(this LineClipStatus status)
@@ -58,432 +45,228 @@ public static unsafe class Gui
         return LineClipStatus.A_Clipped;
     }
 
-    public struct Vertex(Vector3 point, uint color)
+    public class RenderShape
     {
-        public Vector3 point = point;
-        public uint color = color;
-    }
+        internal DisplayStyle style;
+        internal List<LineSegment> segments;
+        internal bool connectLastAndFirst;
+        internal bool connectOriginAndEndStroke;
 
-    public class Polygon
-    {
-        internal List<Vertex> vertices;
-        internal List<TriangleEdges> triangles;
-        internal List<int> stroke;
-
-        public Polygon()
+        public struct LineSegment(Vector3 origin, Vector3 end)
         {
-            vertices = new();
-            triangles = new();
-            stroke = new();
+            public Vector3 origin = origin;
+            public Vector3 end = end;
         }
 
-        internal struct TriangleEdges(Polygon p, int a, int b, int c)
+        public RenderShape(DisplayStyle style, bool connectLastAndFirst, bool connectOriginAndEndStroke)
         {
-            private readonly Polygon p = p;
-            public int aIndex = a;
-            public int bIndex = b;
-            public int cIndex = c;
-
-            public Vector3 a
-            { 
-                get => p.vertices[aIndex].point;
-                set
-                {
-                    var v = p.vertices[aIndex];
-                    v.point = value;
-                    p.vertices[aIndex] = v;
-                }
-            }
-            public Vector3 b
-            {
-                get => p.vertices[bIndex].point;
-                set
-                {
-                    var v = p.vertices[bIndex];
-                    v.point = value;
-                    p.vertices[bIndex] = v;
-                }
-            }
-            public Vector3 c
-            {
-                get => p.vertices[cIndex].point;
-                set
-                {
-                    var v = p.vertices[cIndex];
-                    v.point = value;
-                    p.vertices[cIndex] = v;
-                }
-            }
-
-            public readonly Vector3 ab => b - a;
-            public readonly Vector3 bc => c - b;
-            public readonly Vector3 ca => a - c;
-
-            public uint aColor
-            {
-                get => p.vertices[aIndex].color;
-                set
-                {
-                    var v = p.vertices[aIndex];
-                    v.color = value;
-                    p.vertices[aIndex] = v;
-                }
-            }
-            public uint bColor
-            {
-                get => p.vertices[bIndex].color;
-                set
-                {
-                    var v = p.vertices[bIndex];
-                    v.color = value;
-                    p.vertices[bIndex] = v;
-                }
-            }
-            public uint cColor
-            {
-                get => p.vertices[cIndex].color;
-                set
-                {
-                    var v = p.vertices[cIndex];
-                    v.color = value;
-                    p.vertices[cIndex] = v;
-                }
-            }
-
-            public Vector3 centroid
-            {
-                get => (a + b + c) / 3;
-            }
-        }
-        public int addVertex(Vertex vertex)
-        {
-            int index = vertices.Count;
-            vertices.Add(vertex);
-            return index;
+            segments = new();
+            this.style = style;
+            this.connectLastAndFirst = connectLastAndFirst;
+            this.connectOriginAndEndStroke = connectOriginAndEndStroke;
         }
 
-
-        public int addVertex(Vector3 point, uint color)
+        public void Add(Vector3 origin, Vector3 end)
         {
-            return addVertex(new Vertex(point, color));
+            Add(new(origin, end));
         }
 
-        public void addTriangle(int a, int b, int c)
+        public void Add(LineSegment segment)
         {
-            triangles.Add(new TriangleEdges(this, a,b,c));
+            segments.Add(segment);
         }
 
-        private void splitVertex(int oldIndex, int newIndex)
+        public static LineClipStatus ClipLineToPlane(in Vector4 plane, ref LineSegment segment, out float t)
         {
-            var trianglesSpan = CollectionsMarshal.AsSpan(triangles);
-            foreach (ref TriangleEdges tri in trianglesSpan)
+            t = 0f;
+            ref var a = ref segment.origin;
+            ref var b = ref segment.end;
+
+            var aDot = Vector4.Dot(new(a, 1), plane);
+            var bDot = Vector4.Dot(new(b, 1), plane);
+            bool aVis = aDot > 0;
+            bool bVis = bDot > 0;
+
+            if (aVis && bVis)
+                return LineClipStatus.NotClipped;
+            if (!aVis && !bVis)
+                return LineClipStatus.NotVisible;
+            Vector3 plane3 = new(plane.X, plane.Y, plane.Z);
+
+            Vector3 ab = b - a;
+            t = -aDot / Vector3.Dot(ab, plane3);
+            Vector3 abClipped = a + ab * t;
+            if (aVis)
             {
-                if (tri.aIndex == oldIndex) tri.aIndex = newIndex;
-                if (tri.bIndex == oldIndex) tri.bIndex = newIndex;
-                if (tri.cIndex == oldIndex) tri.cIndex = newIndex;
+                b = abClipped;
+                return LineClipStatus.B_Clipped;
             }
+            a = abClipped;
+            return LineClipStatus.A_Clipped;
         }
 
         public void Draw(in Matrix4x4 viewProj)
         {
+            Vector4 nearPlane = viewProj.Column3();
+
+            int count = segments.Count;
+            bool[] cull = new bool[count];
+
+
             ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-            drawList.PrimReserve(3 * triangles.Count, vertices.Count);
             uint vtxBase = drawList._VtxCurrentIdx;
 
-            foreach (Vertex vtx in vertices)
+            Vector2[] originScreenPositions = new Vector2[segments.Count];
+            Vector2[] endScreenPositions = new Vector2[segments.Count];
+            ushort[] originVtx = new ushort[segments.Count];
+            ushort[] endVtx = new ushort[segments.Count];
+
+            var segmentsSpan = CollectionsMarshal.AsSpan(segments);
+            LineSegment prevSegment = new();
+            for (int i = 0; i < segments.Count; i++)
             {
-                drawList.PrimWriteVtx(WorldToScreen(viewProj, vtx.point), UV, vtx.color);
+                var status = ClipLineToPlane(nearPlane, ref segmentsSpan[i], out float t);
+                if (status == LineClipStatus.NotVisible)
+                {
+                    cull[i] = true;
+                    continue;
+                }
+                uint originColor = style.originFillColor;
+                uint endColor = style.endFillColor;
+                if (status == LineClipStatus.A_Clipped)
+                {
+                    originColor = Lerp(style.originFillColor, style.endFillColor, t);
+                }
+                else if (status == LineClipStatus.B_Clipped)
+                {
+                    endColor = Lerp(style.originFillColor, style.endFillColor, t);
+                }
+
+                var segment = segments[i];
+
+                if (segment.end == prevSegment.end)
+                {
+                    endVtx[i] = endVtx[i-1];
+                    endScreenPositions[i] = endScreenPositions[i - 1];
+                }
+                else
+                {
+                    var endScreenPos = WorldToScreen(viewProj, segment.end);
+                    endScreenPositions[i] = endScreenPos;
+                    drawList.PrimReserve(0, 1);
+                    drawList.PrimWriteVtx(endScreenPos, UV, endColor);
+                    endVtx[i] = (ushort)(vtxBase++);
+                }
+
+                if (segment.origin == prevSegment.origin)
+                {
+                    originVtx[i] = originVtx[i-1];
+                    originScreenPositions[i] = originScreenPositions[i - 1];
+                }
+                else
+                {
+                    var originScreenPos = WorldToScreen(viewProj, segment.origin);
+                    originScreenPositions[i] = originScreenPos;
+                    drawList.PrimReserve(0, 1);
+                    drawList.PrimWriteVtx(originScreenPos, UV, originColor);
+                    originVtx[i] = (ushort)(vtxBase++);
+                }
+
+                prevSegment = segment;
             }
 
-            foreach (TriangleEdges tri in triangles)
+            for (int i = 0; i < segments.Count; i++)
             {
-                drawList.PrimWriteIdx((ushort)(vtxBase + tri.aIndex));
-                drawList.PrimWriteIdx((ushort)(vtxBase + tri.bIndex));
-                drawList.PrimWriteIdx((ushort)(vtxBase + tri.cIndex));
+                int nextIndex = (i + 1) % segments.Count;
+                if (cull[i] || cull[nextIndex])
+                {
+                    continue;
+                }
+                if (i + 1 == segments.Count && !connectLastAndFirst)
+                {
+                    break;
+                }
+
+                if (originVtx[i] != originVtx[nextIndex])
+                {
+                    drawList.PrimReserve(3, 0);
+
+                    drawList.PrimWriteIdx(originVtx[i]);
+                    drawList.PrimWriteIdx(originVtx[nextIndex]);
+                    drawList.PrimWriteIdx(endVtx[i]);
+                }
+
+                if (endVtx[i] != endVtx[nextIndex])
+                {
+                    drawList.PrimReserve(3, 0);
+
+                    drawList.PrimWriteIdx(endVtx[i]);
+                    drawList.PrimWriteIdx(originVtx[nextIndex]);
+                    drawList.PrimWriteIdx(endVtx[nextIndex]);
+                }
             }
-        }
+            int pathLength = 0;
 
-        public void DebugDraw(in Matrix4x4 viewProj)
-        {
-            ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-
-            Draw(viewProj);
-            for(int i = 0; i < vertices.Count; i++)
+            int strokeCount = originScreenPositions.Length;
+            if (connectLastAndFirst)
             {
-                Vector2 pos = WorldToScreen(viewProj, vertices[i].point);
-                DrawText(viewProj, "" +i, pos);
-            }
-            for (int i = 0; i < triangles.Count; i++)
-            {
-                TriangleEdges tri = triangles[i];
-                Vector2 pos = WorldToScreen(viewProj, tri.centroid);
-                DrawText(viewProj, "t" + i + "\n" + tri.aIndex + "," + tri.bIndex + "," + tri.cIndex, pos);
-                drawList.PathLineTo(WorldToScreen(viewProj, tri.a));
-                drawList.PathLineTo(WorldToScreen(viewProj, tri.b));
-                drawList.PathLineTo(WorldToScreen(viewProj, tri.c));
-                drawList.PathStroke(0xFF0000FF, ImDrawFlags.Closed, 2);
-            }
-        }
-
-        int uid = 0;
-        public void DrawText(in Matrix4x4 viewProj, string text, Vector2 pos)
-        {
-            var size = ImGui.CalcTextSize(text);
-            size = new Vector2(size.X + 10f, size.Y + 10f);
-            ImGui.SetNextWindowPos(new Vector2(pos.X - size.X / 2, pos.Y - size.Y / 2));
-            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
-            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10f);
-            ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(0x000000FF));
-            ImGui.BeginChild("##child" + text + ++uid, size, false,
-                ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
-                | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
-            ImGui.PushStyleColor(ImGuiCol.Text, 0xFFFFFFFF);
-            ImGuiEx.Text(text);
-            ImGui.PopStyleColor();
-            ImGui.EndChild();
-            ImGui.PopStyleColor();
-            ImGui.PopStyleVar(2);
-        }
-
-        private Vector2 WorldToScreen(in Matrix4x4 viewProj, in Vector3 worldPos)
-        {
-            TransformCoordinate(worldPos, viewProj, out Vector3 viewPos);
-            return new Vector2(
-                0.5f * ImGuiHelpers.MainViewport.Size.X * (1 + viewPos.X),
-                0.5f * ImGuiHelpers.MainViewport.Size.Y * (1 - viewPos.Y)) + ImGuiHelpers.MainViewport.Pos;
-        }
-
-        public void ClipToPlane(in Vector4 plane)
-        {
-            var trianglesSpan = CollectionsMarshal.AsSpan(triangles);
-
-            List<int> cullList = new();
-            /*
-            triangles.Sort((tri1, tri2) => {
-                return Vector3.DistanceSquared(tri2.centroid, ImGuiHelpers.MainViewport.Pos) - Vector3.DistanceSquared(tri1.centroid, ImGuiHelpers.MainViewport.Pos);
-                });
-            */
-            int count = triangles.Count;
-            for (int i = 0; i < count; i++)
-            {
-                TriClipStatus status = ClipTriangleToPlane(plane, ref trianglesSpan[i]);
-                if (status == TriClipStatus.NotVisible) cullList.Add(i);
+                strokeCount++;
             }
 
-            cullList.Reverse();
-            foreach (int i in cullList)
+            for (int i = 0; i < strokeCount; i++)
             {
-                triangles.RemoveAt(i);
+                int idx = i % originScreenPositions.Length;
+                if (cull[idx])
+                {
+                    if (pathLength > 0)
+                    {
+                        pathLength = 0;
+                        drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
+                    }
+                    continue;
+                }
+                pathLength++;
+                drawList.PathLineToMergeDuplicate(originScreenPositions[idx]);
             }
-        }
-
-        /**
-         * Clip reference variable triangle to supplied plane.
-         * If only 1 corner is clipped the output is a quad; The quadfill output is populated with a second triangle to fill the quad.
-         */
-        private TriClipStatus ClipTriangleToPlane(in Vector4 plane, ref TriangleEdges tri)
-        {
-            var aDot = Vector4.Dot(new(tri.a, 1), plane);
-            var bDot = Vector4.Dot(new(tri.b, 1), plane);
-            var cDot = Vector4.Dot(new(tri.c, 1), plane);
-
-            bool aVis = aDot > 0;
-            bool bVis = bDot > 0;
-            bool cVis = cDot > 0;
-
-            if (aVis && bVis && cVis)
-                return TriClipStatus.NotClipped;
-            if (!aVis && !bVis && !cVis)
-                return TriClipStatus.NotVisible;
-            Vector3 plane3 = new(plane.X, plane.Y, plane.Z);
-
-            var abT = -aDot / Vector3.Dot(tri.ab, plane3);
-            var bcT = -bDot / Vector3.Dot(tri.bc, plane3);
-            var caT = -cDot / Vector3.Dot(tri.ca, plane3);
-
-            var abClipped = tri.a + tri.ab * abT;
-            var bcClipped = tri.b + tri.bc * bcT;
-            var caClipped = tri.c + tri.ca * caT;
-
-            var abColor = Lerp(tri.aColor, tri.bColor, abT);
-            var bcColor = Lerp(tri.bColor, tri.cColor, bcT);
-            var caColor = Lerp(tri.cColor, tri.aColor, caT);
-
-            // 1 visible, 2 clipped
-            if (aVis && !bVis && !cVis)
+            if (!connectOriginAndEndStroke)
             {
-                tri.b = abClipped;
-                tri.c = caClipped;
-                tri.bColor = abColor;
-                tri.cColor = caColor;
-                return TriClipStatus.BC_Clipped;
+                pathLength = 0;
+                drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
             }
-            else if (!aVis && bVis && !cVis)
+
+            for (int i = 0; i < strokeCount; i++)
             {
-                tri.a = abClipped;
-                tri.c = bcClipped;
-                tri.aColor = abColor;
-                tri.cColor = bcColor;
-                return TriClipStatus.AC_Clipped;
+                // Stroke right to left so ends of lines join properly.
+                int idx = (2 * count - 1 - i) % count;
+                if (cull[idx])
+                {
+                    if (pathLength > 0)
+                    {
+                        pathLength = 0;
+                        drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
+                    }
+                    continue;
+                }
+
+                pathLength++;
+                drawList.PathLineToMergeDuplicate(endScreenPositions[idx]);
             }
-            else if (!aVis && !bVis && cVis)
+            if (connectOriginAndEndStroke)
             {
-                tri.a = caClipped;
-                tri.b = bcClipped;
-                tri.aColor = caColor;
-                tri.bColor = bcColor;
-                return TriClipStatus.AB_Clipped;
+                if (!cull[0])
+                {
+                    drawList.PathLineToMergeDuplicate(originScreenPositions[0]);
+                }
             }
-            // 2 visible, 1 clipped
-            // OMG WTF
-            else if (!aVis && bVis && cVis)
-            {
-                // Split vertex A
-                // Clip A to AB
-                // Add new vertex A' to AC
-                // Triangle stays ABC
-                // Fill triangle becomes A'AC
-
-                /*
-                 * References to A need to become either A or A'
-                 * Depending if they share an edge with AC or AB
-                 * If they don't share an edge probably doesn't matter?
-                 */
-
-                int fillIndex = addVertex(caClipped, caColor);
-                splitVertex(tri.aIndex, fillIndex);
-                triangles.Add(new TriangleEdges(this, fillIndex, tri.aIndex, tri.cIndex));
-
-                tri.a = abClipped;
-                tri.aColor = abColor;
-
-                return TriClipStatus.A_Clipped;
-            }
-            else if (aVis && !bVis && cVis)
-            {
-                int fillIndex = addVertex(abClipped, abColor);
-                splitVertex(tri.bIndex, fillIndex);
-                triangles.Add(new TriangleEdges(this, tri.aIndex, fillIndex, tri.bIndex));
-
-                tri.b = bcClipped;
-                tri.bColor = bcColor;
-
-                return TriClipStatus.B_Clipped;
-            }
-            else if (aVis && bVis && !cVis)
-            {
-                int fillIndex = addVertex(bcClipped, bcColor);
-                splitVertex(tri.cIndex, fillIndex);
-                triangles.Add(new TriangleEdges(this, tri.cIndex, tri.bIndex, fillIndex));
-
-                tri.c = caClipped;
-                tri.cColor = caColor;
-
-                return TriClipStatus.C_Clipped;
-            }
-            // Impossible
-            return TriClipStatus.NotClipped;
+            drawList.PathStroke(style.strokeColor, ImDrawFlags.None, style.strokeThickness);
         }
     }
 
-    public struct Triangle(Vector3 a, Vector3 b, Vector3 c, uint aColor, uint bColor, uint cColor)
+    public static Vector2 WorldToScreen(in Matrix4x4 viewProj, in Vector3 worldPos)
     {
-        public Vector3 a = a;
-        public Vector3 b = b;
-        public Vector3 c = c;
-        public uint aColor = aColor;
-        public uint bColor = bColor;
-        public uint cColor = cColor;
-
-        public readonly Vector3 ab => b - a;
-        public readonly Vector3 bc => c - b;
-        public readonly Vector3 ca => a - c;
-    }
-
-    /**
-     * Clip reference variable triangle to supplied plane.
-     * If only 1 corner is clipped the output is a quad; The quadfill output is populated with a second triangle to fill the quad.
-     */
-    public static TriClipStatus ClipTriangleToPlane(in Vector4 plane, ref Triangle tri, out Triangle quadfill)
-    {
-        quadfill = tri;
-        var aDot = Vector4.Dot(new(tri.a, 1), plane);
-        var bDot = Vector4.Dot(new(tri.b, 1), plane);
-        var cDot = Vector4.Dot(new(tri.c, 1), plane);
-
-        bool aVis = aDot > 0;
-        bool bVis = bDot > 0;
-        bool cVis = cDot > 0;
-
-        if (aVis && bVis && cVis)
-            return TriClipStatus.NotClipped;
-        if (!aVis && !bVis && !cVis)
-            return TriClipStatus.NotVisible;
-        Vector3 plane3 = new(plane.X, plane.Y, plane.Z);
-
-        var abT = -aDot / Vector3.Dot(tri.ab, plane3);
-        var bcT = -bDot / Vector3.Dot(tri.bc, plane3);
-        var caT = -cDot / Vector3.Dot(tri.ca, plane3);
-
-        var abClipped = tri.a + tri.ab * abT;
-        var bcClipped = tri.b + tri.bc * bcT;
-        var caClipped = tri.c + tri.ca * caT;
-
-        var abColor = Lerp(tri.aColor, tri.bColor, abT);
-        var bcColor = Lerp(tri.bColor, tri.cColor, bcT);
-        var caColor = Lerp(tri.cColor, tri.aColor, caT);
-
-        // 1 visible, 2 clipped
-        if (aVis && !bVis && !cVis)
-        {
-            tri.b = abClipped;
-            tri.c = caClipped;
-            tri.bColor = abColor;
-            tri.cColor = caColor;
-            return TriClipStatus.BC_Clipped;
-        }
-        else if (!aVis && bVis && !cVis)
-        {
-            tri.a = abClipped;
-            tri.c = bcClipped;
-            tri.aColor = abColor;
-            tri.cColor = bcColor;
-            return TriClipStatus.AC_Clipped;
-        }
-        else if (!aVis && !bVis && cVis)
-        {
-            tri.a = caClipped;
-            tri.b = bcClipped;
-            tri.aColor = caColor;
-            tri.bColor = bcColor;
-            return TriClipStatus.AB_Clipped;
-        }
-        // 2 visible, 1 clipped
-        else if (!aVis && bVis && cVis)
-        {
-            tri.a = quadfill.b = abClipped;
-            quadfill.a = caClipped;
-            tri.aColor = quadfill.bColor = abColor;
-            quadfill.aColor = caColor;
-            return TriClipStatus.A_Clipped;
-        }
-        else if (aVis && !bVis && cVis)
-        {
-            tri.b = quadfill.c = bcClipped;
-            quadfill.b = abClipped;
-            tri.bColor = quadfill.cColor = bcColor;
-            quadfill.bColor = abColor;
-            return TriClipStatus.B_Clipped;
-        }
-        else if (aVis && bVis && !cVis)
-        {
-            tri.c = quadfill.a = caClipped;
-            quadfill.c = bcClipped;
-            tri.cColor = quadfill.aColor = caColor;
-            quadfill.cColor = bcColor;
-            return TriClipStatus.C_Clipped;
-        }
-        // Impossible
-        return TriClipStatus.NotClipped;
+        TransformCoordinate(worldPos, viewProj, out Vector3 viewPos);
+        return new Vector2(
+            0.5f * ImGuiHelpers.MainViewport.Size.X * (1 + viewPos.X),
+            0.5f * ImGuiHelpers.MainViewport.Size.Y * (1 - viewPos.Y)) + ImGuiHelpers.MainViewport.Pos;
     }
 }

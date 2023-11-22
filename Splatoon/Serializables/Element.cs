@@ -84,12 +84,14 @@ public class Element
     // Deprecated - unused
     [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
-    [NonSerialized] internal uint? _originFillColor = null;
+    [Obsolete("Unpropertize", true)] [NonSerialized] internal uint? _originFillColor = null;
+    [Obsolete("Unpropertize", true)]
     public uint originFillColor {
         get => _originFillColor.GetValueOrDefault(DefaultFillColor());
         set => _originFillColor = value;
     }
-    [NonSerialized] internal uint? _endFillColor = null;
+    [Obsolete("Unpropertize", true)][NonSerialized] internal uint? _endFillColor = null;
+    [Obsolete("Unpropertize", true)]
     public uint endFillColor
     {
         get => _endFillColor.GetValueOrDefault(DefaultFillColor());

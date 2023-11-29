@@ -807,7 +807,7 @@ public unsafe class Splatoon : IDalamudPlugin
                                 var baseAngle = e.FaceMe ?
                                     (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
                                     : (a.Rotation);
-                                DrawCone(e, a.GetPositionXZY(), radius, baseAngle);
+                                DrawCone(e, a.GetPositionXZY(), aradius, baseAngle);
                             }
                         }
                     }

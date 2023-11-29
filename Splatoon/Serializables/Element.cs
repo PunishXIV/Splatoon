@@ -78,11 +78,13 @@ public class Element
     [DefaultValue(0)] public float Donut = 0f;
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
+    // This field is used to migrate old Elements to polygonal rendering.
+    // It is set to true once old elements are migrated.
+    [DefaultValue(false)] private bool UsePolygonalRendering = false;
     [DefaultValue(true)] public bool Filled = true;
-    // Deprecated - set fill colors instead. -1f is a flag for migration.
-    [DefaultValue(-1f)] public float FillStep = -1f;
-    // Deprecated - unused
-    [DefaultValue(false)] public bool LegacyFill = false;
+    [Obsolete("Not used. Use originFillColor and endFillColor to change color and transparency.")][DefaultValue(0.5f)]
+    public float FillStep = 0.5f;
+    [Obsolete][DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
     [Obsolete("Unpropertize", true)] [NonSerialized] internal uint? _originFillColor = null;
     [Obsolete("Unpropertize", true)]
@@ -199,15 +201,8 @@ public class Element
     {
         // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
         float transparencyFromStroke = (float)(color >> 24) / 0xC8;
-        if (FillStep == -1f)
-        {
-            FillStep = 0.5f;
-        }
         float transparencyFromFillStep = 0.5f / FillStep;
-        if (type == 4 || type == 5)
-        {
-            transparencyFromFillStep *= 2;
-        }
+
         uint fillTransparency = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
         // Replace the stroke color's transparency with the generated value.
         uint fillColor = color & 0x00FFFFFF | (fillTransparency << 24);
@@ -218,21 +213,26 @@ public class Element
     {
         get
         {
-            // Migration for donuts; turn on fill once because they used to be line filled with Filled = false.
-            if (FillStep >= 0 || Donut > 0)
+            // Most elements need fill migration they used line fill with Filled = false.
+            bool needsPolygonalFillMigration = !UsePolygonalRendering;
+            // Non-donut circles are the only shapes that don't need migration because they had functioning Fill.
+            if (type.EqualsAny(0, 1) && Donut == 0) needsPolygonalFillMigration = false;
+
+            if (needsPolygonalFillMigration)
             {
-                // Set values to defaults
-                this.originFillColor = this.originFillColor;
-                this.endFillColor = this.endFillColor;
                 Filled = true;
-                FillStep = -1f;
+                uint defaultFillColor = DefaultFillColor();
+                _originFillColor = defaultFillColor;
+                _endFillColor = defaultFillColor;
             }
+            // Migration is complete and should never be run again.
+            UsePolygonalRendering = true;
 
             if (Filled)
             {
-                return new DisplayStyle(this.color, this.thicc, this.originFillColor, this.endFillColor);
+                return new DisplayStyle(color, thicc, originFillColor, endFillColor);
             }
-            return new DisplayStyle(this.color, this.thicc, 0, 0);
+            return new DisplayStyle(color, thicc, 0, 0);
         }
     }
 

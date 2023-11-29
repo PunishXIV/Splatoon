@@ -86,19 +86,8 @@ public class Element
     public float FillStep = 0.5f;
     [Obsolete][DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
-    [Obsolete("Unpropertize", true)] [NonSerialized] internal uint? _originFillColor = null;
-    [Obsolete("Unpropertize", true)]
-    public uint originFillColor {
-        get => _originFillColor.GetValueOrDefault(DefaultFillColor());
-        set => _originFillColor = value;
-    }
-    [Obsolete("Unpropertize", true)][NonSerialized] internal uint? _endFillColor = null;
-    [Obsolete("Unpropertize", true)]
-    public uint endFillColor
-    {
-        get => _endFillColor.GetValueOrDefault(DefaultFillColor());
-        set => _endFillColor = value;
-    }
+    [DefaultValue(null)] public uint? originFillColor = null;
+    [DefaultValue(null)] public uint? endFillColor = null;
     [DefaultValue(0x70000000)] public uint overlayBGColor = 0x70000000;
     [DefaultValue(0xC8FFFFFF)] public uint overlayTextColor = 0xC8FFFFFF;
     [DefaultValue(0f)] public float overlayVOffset = 0f;
@@ -222,15 +211,15 @@ public class Element
             {
                 Filled = true;
                 uint defaultFillColor = DefaultFillColor();
-                _originFillColor = defaultFillColor;
-                _endFillColor = defaultFillColor;
+                originFillColor = defaultFillColor;
+                endFillColor = defaultFillColor;
             }
             // Migration is complete and should never be run again.
             UsePolygonalRendering = true;
 
             if (Filled)
             {
-                return new DisplayStyle(color, thicc, originFillColor, endFillColor);
+                return new DisplayStyle(color, thicc, originFillColor ?? DefaultFillColor(), endFillColor ?? DefaultFillColor());
             }
             return new DisplayStyle(color, thicc, 0, 0);
         }

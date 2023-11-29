@@ -794,7 +794,7 @@ unsafe partial class CGui
             ImGui.SameLine();
             ImGuiEx.Text("Origin:");
             ImGui.SameLine();
-            v4 = ImGui.ColorConvertU32ToFloat4(el.originFillColor);
+            v4 = ImGui.ColorConvertU32ToFloat4(el.originFillColor ?? el.DefaultFillColor());
             if (ImGui.ColorEdit4("##fillorigincolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
             {
                 el.originFillColor = ImGui.ColorConvertFloat4ToU32(v4);
@@ -802,7 +802,7 @@ unsafe partial class CGui
             ImGui.SameLine();
             ImGuiEx.Text("End:");
             ImGui.SameLine();
-            v4 = ImGui.ColorConvertU32ToFloat4(el.endFillColor);
+            v4 = ImGui.ColorConvertU32ToFloat4(el.endFillColor ?? el.DefaultFillColor());
             if (ImGui.ColorEdit4("##fillendcolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
             {
                 el.endFillColor = ImGui.ColorConvertFloat4ToU32(v4);

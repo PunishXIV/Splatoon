@@ -103,7 +103,7 @@ public static unsafe class Gui
 
             // Clip lines to near plane and prepare vertices for drawing
             var segmentsSpan = CollectionsMarshal.AsSpan(segments);
-            LineSegment prevSegment = new();
+            LineSegment prevSegment = new(Vector3.One * float.MinValue, Vector3.One * float.MaxValue);
             for (int i = 0; i < count; i++)
             {
                 ref LineSegment segment = ref segmentsSpan[i];

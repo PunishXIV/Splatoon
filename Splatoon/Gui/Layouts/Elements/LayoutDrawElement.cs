@@ -123,7 +123,6 @@ unsafe partial class CGui
             }
             if (el.type.EqualsAny(4, 5))
             {
-                el.Filled = true;
                 el.includeRotation = true;
             }
             if (el.type.EqualsAny(1, 3, 4, 5))

@@ -78,9 +78,6 @@ public class Element
     [DefaultValue(0)] public float Donut = 0f;
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
-    // This field is used to migrate old Elements to polygonal rendering.
-    // It is set to true once old elements are migrated.
-    [DefaultValue(false)] private bool UsePolygonalRendering = false;
     [DefaultValue(true)] public bool Filled = true;
     [Obsolete("Not used. Use originFillColor and endFillColor to change color and transparency.")][DefaultValue(0.5f)]
     public float FillStep = 0.5f;
@@ -203,19 +200,23 @@ public class Element
         get
         {
             // Most elements need fill migration they used line fill with Filled = false.
-            bool needsPolygonalFillMigration = !UsePolygonalRendering;
-            // Non-donut circles are the only shapes that don't need migration because they had functioning Fill.
-            if (type.EqualsAny(0, 1) && Donut == 0) needsPolygonalFillMigration = false;
-
+            bool needsPolygonalFillMigration = originFillColor == null || endFillColor == null;
             if (needsPolygonalFillMigration)
             {
-                Filled = true;
-                uint defaultFillColor = DefaultFillColor();
-                originFillColor = defaultFillColor;
-                endFillColor = defaultFillColor;
+                // Non-donut circles are the only shapes that don't need migration because they had functioning Fill.
+                if (type.EqualsAny(0, 1) && Donut == 0)
+                {
+                    originFillColor = color;
+                    endFillColor = color;
+                }
+                else
+                {
+                    Filled = true;
+                    uint defaultFillColor = DefaultFillColor();
+                    originFillColor = defaultFillColor;
+                    endFillColor = defaultFillColor;
+                }
             }
-            // Migration is complete and should never be run again.
-            UsePolygonalRendering = true;
 
             if (Filled)
             {

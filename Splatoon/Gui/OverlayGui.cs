@@ -9,12 +9,9 @@ namespace Splatoon.Gui;
 unsafe class OverlayGui : IDisposable
 {
     static readonly Vector2 UV = ImGui.GetFontTexUvWhitePixel();
-    // TODO make configurable
-    // Low detail 2-3
-    // Med detail 4-5
-    // High detail 6+
-    const int RADIAL_SEGMENTS_PER_UNIT = 4;
-    const int MINIMUM_CIRCLE_SEGMENTS = 12;
+    const int RADIAL_SEGMENTS_PER_RADIUS_UNIT = 20;
+    const int MINIMUM_CIRCLE_SEGMENTS = 24;
+    const int MAXIMUM_CIRCLE_SEGMENTS = 240;
     const int LINEAR_SEGMENTS_PER_UNIT = 1;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -44,12 +41,11 @@ unsafe class OverlayGui : IDisposable
     // TODO it would be would be more efficient to adjust based on camera distance
     public static int RadialSegments(float radius, float angleRadians = MathF.PI * 2)
     {
-        float circumference = angleRadians * radius;
-        int segments = (int)(circumference * RADIAL_SEGMENTS_PER_UNIT);
-
         float angularPercent = angleRadians / (MathF.PI * 2);
+        int segments = (int) (RADIAL_SEGMENTS_PER_RADIUS_UNIT * radius * angularPercent);
         int minimumSegments = Math.Max((int)(MINIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
-        return Math.Max(segments, minimumSegments);
+        int maximumSegments = Math.Max((int)(MAXIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
+        return Math.Clamp(segments, minimumSegments, maximumSegments);
     }
     public static int HorizontalLinearSegments(float radius)
     {

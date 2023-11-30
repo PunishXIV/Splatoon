@@ -188,7 +188,24 @@ public class Element
         // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
         float transparencyFromStroke = (float)(color >> 24) / 0xC8;
         float transparencyFromFillStep = 0.5f / FillStep;
-
+        if (type.EqualsAny(0, 1))
+        {
+            // Donut
+            if (Donut > 0)
+            {
+                transparencyFromFillStep /= 2;
+            }
+            // Circle
+            else
+            {
+                transparencyFromFillStep *= 2;
+            }
+        }
+        // Cone
+        if (type.EqualsAny(4, 5))
+        {
+            transparencyFromFillStep *= 4;
+        }
         uint fillTransparency = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
         // Replace the stroke color's transparency with the generated value.
         uint fillColor = color & 0x00FFFFFF | (fillTransparency << 24);
@@ -203,18 +220,14 @@ public class Element
             bool needsPolygonalFillMigration = originFillColor == null || endFillColor == null;
             if (needsPolygonalFillMigration)
             {
-                // Non-donut circles are the only shapes that don't need migration because they had functioning Fill.
-                if (type.EqualsAny(0, 1) && Donut == 0)
-                {
-                    originFillColor = color;
-                    endFillColor = color;
-                }
-                else
+                uint defaultFillColor = DefaultFillColor();
+                originFillColor = defaultFillColor;
+                endFillColor = defaultFillColor;
+                // Non-donut circles are the only shapes that don't need fill migration because they had functioning Fill.
+                bool isCircle = type.EqualsAny(0, 1) && Donut == 0;
+                if (!isCircle)
                 {
                     Filled = true;
-                    uint defaultFillColor = DefaultFillColor();
-                    originFillColor = defaultFillColor;
-                    endFillColor = defaultFillColor;
                 }
             }
 

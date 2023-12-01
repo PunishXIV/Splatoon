@@ -27,7 +27,7 @@ unsafe class OverlayGui : IDisposable
     {
         this.p = p;
         Svc.PluginInterface.UiBuilder.Draw += Draw;
-        // Ripped from https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Framework/Camera.cs#L32
+        // https://github.com/goatcorp/Dalamud/blob/d52118b3ad366a61216129c80c0fa250c885abac/Dalamud/Game/Gui/GameGuiAddressResolver.cs#L69
         var funcAddress = Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
         _getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(funcAddress);
     }

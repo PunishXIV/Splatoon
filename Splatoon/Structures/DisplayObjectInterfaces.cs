@@ -23,21 +23,6 @@ public struct DisplayStyle
     {
         return Lerp(originFillColor, endFillColor, amount);
     }
-
-    readonly bool stroked
-    {
-        get
-        {
-            return !(strokeColor == 0 && strokeThickness == 0);
-        }
-    }
-    readonly bool filled
-    {
-        get
-        {
-            return !(originFillColor == 0 && endFillColor == 0);
-        }
-    }
 }
 
 public class DisplayObjectDot : DisplayObject

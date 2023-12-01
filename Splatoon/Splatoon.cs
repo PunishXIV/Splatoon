@@ -465,10 +465,6 @@ public unsafe class Splatoon : IDalamudPlugin
                 if (CamAngleX > Math.PI) CamAngleX -= 2 * Math.PI;
                 CamAngleY = Camera.GetAngleY();
                 CamZoom = Math.Min(Camera.GetZoom(), 20);
-                /*Range conversion https://stackoverflow.com/questions/5731863/mapping-a-numeric-range-onto-another
-                slope = (output_end - output_start) / (input_end - input_start)
-                output = output_start + slope * (input - input_start) */
-                CurrentLineSegments = (int)((3f + -0.108108f * (CamZoom - 1.5f)) * Config.lineSegments);
 
                 if (Svc.Condition[ConditionFlag.InCombat])
                 {

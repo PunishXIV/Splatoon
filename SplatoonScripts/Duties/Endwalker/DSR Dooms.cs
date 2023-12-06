@@ -1,4 +1,4 @@
-using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
@@ -6,7 +6,9 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
+using ECommons.Logging;
 using ImGuiNET;
+using Microsoft.VisualBasic.ApplicationServices;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -19,11 +21,20 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Dooms : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(2, "Enthusiastus");
+        public override Metadata? Metadata => new(3, "Enthusiastus");
 
         List<Element> DoomElements = new();
         List<Element> NoDoomElements = new();
         Dictionary<double, PlayerCharacter> plrs = new();
+
+        Element? Circle1Element;
+        Element? Circle2Element;
+        Element? DoomSquareElement;
+        Element? DoomTriangleElement;
+        Element? NoDoomSquareElement;
+        Element? NoDoomTriangleElement;
+        Element? X1Element;
+        Element? X2Element;
 
         int count = 0;
         bool active = false;
@@ -32,10 +43,30 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         bool positionDynamic = true;
 
         //BattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == ThordanDataId) as BattleNpc;
+        string TestOverride = "";
+
+        PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
         Vector2 Center = new(100, 100);
 
         public override void OnSetup()
         {
+            var circle1 = "{\"Name\":\"Doom Circle 1\",\"Enabled\":false,\"type\":1,\"offX\":2.5,\"offY\":9.0,\"radius\":0.5,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"W\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            var circle2 = "{\"Name\":\"Doom Circle 2\",\"Enabled\":false,\"type\":1,\"offX\":-2.5,\"offY\":9.0,\"radius\":0.5,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"E\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            var doomsquare = "{\"Name\":\"Doom Square\",\"Enabled\":false,\"type\":1,\"offX\":1.95,\"offY\":10.9,\"radius\":0.5,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            var doomtriangle = "{\"Name\":\"Doom Triangle\",\"Enabled\":false,\"type\":1,\"offX\":-1.95,\"offY\":10.9,\"radius\":0.5,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            var nodoomsquare = "{ \"Name\":\"Non doom Square\",\"Enabled\":false,\"type\":1,\"offX\":-1.92,\"offY\":7.15,\"radius\":0.5,\"color\":3372154884,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            var nodoomtriangle = "{\"Name\":\"Non doom Triangle\",\"Enabled\":false,\"type\":1,\"offX\":1.95,\"offY\":7.15,\"radius\":0.5,\"color\":3372154884,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            var nodoomx1 = "{\"Name\":\"Non doom X 1\",\"Enabled\":false,\"type\":1,\"offY\":6.12,\"radius\":0.5,\"color\":3372154884,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            var nodoomx2 = "{\"Name\":\"Non doom X 2\",\"Enabled\":false,\"type\":1,\"offY\":11.94,\"radius\":0.5,\"color\":3372154884,\"overlayBGColor\":0,\"overlayFScale\":1.7,\"thicc\":6.0,\"overlayText\":\"\",\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"tether\":true,\"Filled\":true}";
+            Circle1Element = Controller.RegisterElementFromCode($"circle1", circle1);
+            Circle2Element = Controller.RegisterElementFromCode($"circle2", circle2);
+            DoomSquareElement = Controller.RegisterElementFromCode($"doomsquare", doomsquare);
+            DoomTriangleElement = Controller.RegisterElementFromCode($"doomtriangle", doomtriangle);
+            NoDoomSquareElement = Controller.RegisterElementFromCode($"nodoomsquare", nodoomsquare);
+            NoDoomTriangleElement = Controller.RegisterElementFromCode($"nodoomtriangle", nodoomtriangle);
+            X1Element = Controller.RegisterElementFromCode($"x1", nodoomx1);
+            X2Element = Controller.RegisterElementFromCode($"x2", nodoomx2);
+
             var doom = "{\"Name\":\"\",\"radius\":0.0,\"overlayBGColor\":1879048447,\"overlayVOffset\":0,\"overlayFScale\":7.0,\"thicc\":0.0,\"overlayText\":\"1\",\"refActorType\":1}";
             var nodoom = "{\"Name\":\"\",\"radius\":0.0,\"overlayBGColor\":1895761920,\"overlayVOffset\":0,\"overlayFScale\":7.0,\"thicc\":0.0,\"overlayText\":\"1\",\"refActorType\":1}";
             for (var i = 0; i < 4; i++)
@@ -63,6 +94,68 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnEnable()
         {
             ActionEffect.ActionEffectEvent += ActionEffect_ActionEffectEvent;
+        }
+        public override void OnVFXSpawn(uint target, string vfxPath)
+        {
+            // Circle
+            if (vfxPath == "vfx/lockon/eff/r1fz_firechain_01x.avfx")
+            {
+                DeactivateDoomMarkers();
+                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                {
+                    DuoLog.Information($"{pvc.Name} has circle");
+                    if (pvc != PC)
+                        return;
+                    Circle1Element.Enabled = true;
+                    Circle2Element.Enabled = true;
+                }
+            // Triangle
+            } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_02x.avfx")
+            {
+                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                {
+                    DuoLog.Information($"{pvc.Name} has triangle");
+                    if (pvc != PC)
+                        return;
+                    var doom = PC.StatusList.Where(z => z.StatusId == 2976);
+                    if (doom.Count() > 0)
+                    {
+                        DoomTriangleElement.Enabled = true;
+                    } else
+                    {
+                        NoDoomTriangleElement.Enabled = true;
+                    }
+                }
+            // Square
+            } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_03x.avfx")
+            {
+                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                {
+                    DuoLog.Information($"{pvc.Name} has square");
+                    if (pvc != PC)
+                        return;
+                    var doom = PC.StatusList.Where(z => z.StatusId == 2976);
+                    if (doom.Count() > 0)
+                    {
+                        DoomSquareElement.Enabled = true;
+                    }
+                    else
+                    {
+                        NoDoomSquareElement.Enabled = true;
+                    }
+                }
+            // X
+            } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_04x.avfx")
+            {
+                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                {
+                    DuoLog.Information($"{pvc.Name} has x");
+                    if (pvc != PC)
+                        return;
+                    X1Element.Enabled = true;
+                    X2Element.Enabled = true;
+                }
+            }
         }
 
         public override void OnMessage(string Message)
@@ -109,12 +202,29 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 }
                 active = true;
             }
-            if (Message.Contains("Ser Grinnaux uses Faith Unmoving."))
+            if(Message.Contains("Ser Grinnaux uses Faith Unmoving."))
             {
-                NoDoomElements.Each(x => x.Enabled = false);
-                DoomElements.Each(x => x.Enabled = false);
-                active = false;
+                DeactivateKnockbackMarkers();
             }
+        }
+
+        private void DeactivateDoomMarkers()
+        {
+            NoDoomElements.Each(x => x.Enabled = false);
+            DoomElements.Each(x => x.Enabled = false);
+            active = false;
+        }
+
+        private void DeactivateKnockbackMarkers()
+        {
+            Circle1Element.Enabled = false;
+            Circle2Element.Enabled = false;
+            DoomSquareElement.Enabled = false;
+            DoomTriangleElement.Enabled = false;
+            NoDoomSquareElement.Enabled = false;
+            NoDoomTriangleElement.Enabled = false;
+            X1Element.Enabled = false;
+            X2Element.Enabled = false;
         }
 
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
@@ -149,8 +259,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             plrs.Clear();
             count = 0;
-            DoomElements.Each(x => x.Enabled = false);
-            NoDoomElements.Each(x => x.Enabled = false);
+            DeactivateDoomMarkers();
         }
 
         public override void OnUpdate()

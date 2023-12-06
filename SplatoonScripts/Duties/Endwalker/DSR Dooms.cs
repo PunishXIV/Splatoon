@@ -103,7 +103,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 DeactivateDoomMarkers();
                 if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
                 {
-                    DuoLog.Information($"{pvc.Name} has circle");
+                    //DuoLog.Information($"{pvc.Name} has circle");
                     if (pvc != PC)
                         return;
                     Circle1Element.Enabled = true;
@@ -114,7 +114,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             {
                 if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
                 {
-                    DuoLog.Information($"{pvc.Name} has triangle");
+                    //DuoLog.Information($"{pvc.Name} has triangle");
                     if (pvc != PC)
                         return;
                     var doom = PC.StatusList.Where(z => z.StatusId == 2976);
@@ -131,7 +131,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             {
                 if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
                 {
-                    DuoLog.Information($"{pvc.Name} has square");
+                    //DuoLog.Information($"{pvc.Name} has square");
                     if (pvc != PC)
                         return;
                     var doom = PC.StatusList.Where(z => z.StatusId == 2976);
@@ -149,7 +149,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             {
                 if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
                 {
-                    DuoLog.Information($"{pvc.Name} has x");
+                    //DuoLog.Information($"{pvc.Name} has x");
                     if (pvc != PC)
                         return;
                     X1Element.Enabled = true;

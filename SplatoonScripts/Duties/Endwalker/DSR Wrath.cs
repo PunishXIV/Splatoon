@@ -6,13 +6,10 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
-using ECommons.Logging;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using System;
 using System.Collections.Generic;
-using System.Formats.Tar;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -42,7 +39,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         uint VellguineDataId = 12633;
         BattleNpc? Vellguine => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == VellguineDataId) as BattleNpc;
 
-        string TestOverride = "Sage";
+        string TestOverride = "";
 
         PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
 

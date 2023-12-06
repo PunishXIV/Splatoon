@@ -117,6 +117,7 @@ internal unsafe static class Explorer
                     }
                 }
             }
+            ImGuiEx.TextCopy($"IsFlying: {*(byte*)(c.Address + 528 + 1020):X16}");
         }
         if(obj is BattleChara b)
         {

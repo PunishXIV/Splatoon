@@ -41,7 +41,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         string solutionText = "";
  
         //BattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == ThordanDataId) as BattleNpc;
-        string TestOverride = "Dancer";
+        string TestOverride = "";
 
         PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
         Vector2 Center = new(100, 100);
@@ -110,7 +110,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     }
                     //DuoLog.Information($"Found Tower #{cur} {x.Name}({x.ObjectId}) @{x.Position}");
                     TowerElements[cur].color = Conf.ColNoMeteorTower.ToUint();
-                    TowerElements[cur].overlayText = $"{x.Position} || {Math.Round(2 - 2 * Math.Atan2(x.Position.X-100, x.Position.Z-100) / Math.PI) % 4}";
+                    //TowerElements[cur].overlayText = $"{x.Position} || {Math.Round(2 - 2 * Math.Atan2(x.Position.X-100, x.Position.Z-100) / Math.PI) % 4}";
                     // Coordinate -Center because Center is @ 100/100 and formula needs it to be at 0
                     var quadrant = Math.Round(2 - 2 * Math.Atan2(x.Position.X - Center.X, x.Position.Z - Center.Y) / Math.PI) % 4;
                     switch(quadrant)
@@ -132,7 +132,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                             break;
                     }
                 }
-                DuoLog.Information($"Towers: {towers.Count()} | North: {NorthTowers.Count()} | East: {EastTowers.Count()} | South: {SouthTowers.Count()} | West: {WestTowers.Count()}");
+                //DuoLog.Information($"Towers: {towers.Count()} | North: {NorthTowers.Count()} | East: {EastTowers.Count()} | South: {SouthTowers.Count()} | West: {WestTowers.Count()}");
                 findTowerStrategy();
             }
             if(Message.Contains("Ser Noudenet casts Holy Comet")) {
@@ -146,6 +146,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void findTowerStrategy()
         {
+            /*
             DuoLog.Information($"North:");
             foreach (var t in NorthTowers)
             {
@@ -156,55 +157,56 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             {
                 DuoLog.Information($"{t.refX} / {t.refY}");
             }
+            */
 
             Element? nt = null;
             Element? st = null;
 
             // Try straight towers first
             if(NorthTowers.Any(n => n.refX > 99 && n.refX < 101) && SouthTowers.Any(n => n.refX > 99 && n.refX < 101)) {
-                solutionText += " Beide gerade raus, perfekt";
+                solutionText += " Both straight, perfect";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
 
             } else if (NorthTowers.Any(n => n.refX < 99) && SouthTowers.Any(n => n.refX > 101)) {
-                solutionText += " Beide CounterCW, perfekt";
+                solutionText += " Both CCW, perfect";
                 nt = NorthTowers.FirstOrDefault(n => n.refX < 99);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 101);
 
             } else if (NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX < 99)) {
-                solutionText += " Beide ClockWise, perfekt";
+                solutionText += " Both CW, perfect";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX < 99);
 
             // no perfect solution, prefer north short
             } else if (NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX > 99 && n.refX < 101)) {
-                solutionText += " Nord ClockWise, Süd gerade, Nord hat kurz";
+                solutionText += " North CW, South straight, North short";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
 
             } else if(NorthTowers.Any(n => n.refX > 99 && n.refX < 101) && SouthTowers.Any(n => n.refX > 101)) {
-                solutionText += " Nord gerade, Süd CounterCW, Nord hat kurz";
+                solutionText += " North straight, South CCW, North short";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 101);
 
             } else if(SouthTowers.Any(n => n.refX < 99) && NorthTowers.Any(n => n.refX > 99 && n.refX < 101)) {
-                solutionText += " Nord gerade, Süd ClockWise, Süd hat kurz";
+                solutionText += " North straight, South CW, South short";
                 st = SouthTowers.FirstOrDefault(n => n.refX < 99);
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
 
             } else if(SouthTowers.Any(n => n.refX > 99 && n.refX < 101) && NorthTowers.Any(n => n.refX < 99)) {
-                solutionText += " Nord CounterCW, Süd gerade, Süd hat kurz";
+                solutionText += " North CCW, South straight, South short";
                 st = SouthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
                 nt = NorthTowers.FirstOrDefault(n => n.refX < 99);
 
             // no short solution either... switch to e/w?
             } else if (NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX > 101)) {
-                solutionText += " Nord Clockwise, Süd CounterCW, Nord hat KURZKURZ";
+                solutionText += " North CW, South CCW, North dbl short";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 101);
 
             } else if(SouthTowers.Any(n => n.refX < 99) && NorthTowers.Any(n => n.refX < 99)) {
-                solutionText += " Nord CounterCW, Süd CounterCW, Süd hat KURZKURZ";
+                solutionText += " North CCW, South CCW, South dbl short";
                 st = SouthTowers.FirstOrDefault(n => n.refX < 99);
                 nt = NorthTowers.FirstOrDefault(n => n.refX < 99);
             }

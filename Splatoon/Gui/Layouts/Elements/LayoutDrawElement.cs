@@ -851,6 +851,10 @@ unsafe partial class CGui
                         ImGui.SameLine();
                         ImGui.SetNextItemWidth(60f);
                         ImGui.DragFloat("##radiusdonut" + i + k, ref el.Donut, 0.01f, 0, float.MaxValue);
+                        if (ImGui.IsItemHovered())
+                            ImGui.SetTooltip("Leave at 0 to not draw a donut.\n" +
+                                "If greater than 0, the radius is the donut hole radius\n" +
+                                "and this is the thickness of the donut.".Loc());
                         el.Donut.ValidateRange(0, float.MaxValue);
                     }
                 }

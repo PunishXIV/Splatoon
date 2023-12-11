@@ -1087,7 +1087,14 @@ public unsafe class Splatoon : IDalamudPlugin
             float angleMax = -baseAngle + e.AdditionalRotation + e.coneAngleMax.DegreesToRadians();
 
             var center = RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ));
-            displayObjects.Add(new DisplayObjectFan(center, radius ?? e.radius, angleMin, angleMax, e.Style));
+            float innerRadius = 0;
+            float outerRadius = radius ?? e.radius;
+            if (e.Donut > 0)
+            {
+                innerRadius = outerRadius;
+                outerRadius = innerRadius + e.Donut;
+            }
+            displayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.Style));
         }
     }
 

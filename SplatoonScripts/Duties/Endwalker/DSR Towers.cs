@@ -258,6 +258,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         void Off()
         {
             SolutionElement.Enabled = false;
+            takeMeteorTower = false;
             foreach(var e in TowerElements)
             {
                 e.Enabled = false;

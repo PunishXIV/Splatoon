@@ -27,7 +27,7 @@ unsafe class OverlayGui : IDisposable
     {
         this.p = p;
         Svc.PluginInterface.UiBuilder.Draw += Draw;
-        // Ripped from https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Framework/Camera.cs#L32
+        // https://github.com/goatcorp/Dalamud/blob/d52118b3ad366a61216129c80c0fa250c885abac/Dalamud/Game/Gui/GameGuiAddressResolver.cs#L69
         var funcAddress = Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
         _getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(funcAddress);
     }
@@ -71,11 +71,7 @@ unsafe class OverlayGui : IDisposable
                 {
                     foreach (var element in p.displayObjects)
                     {
-                        if (element is DisplayObjectDonut elementDonut)
-                        {
-                            DrawDonutWorld(elementDonut);
-                        }
-                        else if (element is DisplayObjectFan elementFan)
+                        if (element is DisplayObjectFan elementFan)
                         {
                             DrawTriangleFanWorld(elementFan);
                         }
@@ -150,7 +146,7 @@ unsafe class OverlayGui : IDisposable
     public void DrawTriangleFanWorld(DisplayObjectFan e)
     {
         float totalAngle = e.angleMax - e.angleMin;
-        int segments = RadialSegments(e.radius, totalAngle);
+        int segments = RadialSegments(e.outerRadius, totalAngle);
         float angleStep = totalAngle / segments;
 
         int vertexCount = segments + 1;
@@ -161,28 +157,17 @@ unsafe class OverlayGui : IDisposable
         for (int step = 0; step < vertexCount; step++)
         {
             float angle = e.angleMin + step * angleStep;
-            Vector3 point = e.origin;
-            point.Y += e.radius;
-            point = RotatePoint(e.origin, angle, point);
-            fan.Add(XZY(e.origin), XZY(point));
+            
+            var origin = e.origin;
+            if (e.innerRadius != 0)
+            {
+                origin = RotatePoint(e.origin, angle, e.origin + new Vector3(0, e.innerRadius, 0));
+            }
+
+            var end = RotatePoint(e.origin, angle, e.origin + new Vector3(0, e.outerRadius, 0));
+            fan.Add(XZY(origin), XZY(end));
         }
         fan.Draw(ViewProj); 
-    }
-
-    public void DrawDonutWorld(DisplayObjectDonut e)
-    {
-        int segments = RadialSegments(e.radius + e.donutRadius);
-        var worldPosInside = GetCircle(e.origin, e.radius, segments);
-        var worldPosOutside = GetCircle(e.origin, e.radius + e.donutRadius, segments);
-
-        RenderShape donut = new(e.style, VertexConnection.ConnectLastAndFirst, StrokeConnection.NoConnection);
-
-        var length = worldPosInside.Length;
-        for (int i = 0; i < length; i++)
-        {
-            donut.Add(worldPosInside[i], worldPosOutside[i]);
-        }
-        donut.Draw(ViewProj);
     }
 
     void DrawLineWorld(DisplayObjectLine e)
@@ -268,24 +253,6 @@ unsafe class OverlayGui : IDisposable
             e.thickness,
             ImGui.GetColorU32(e.color),
             MINIMUM_CIRCLE_SEGMENTS);
-    }
-
-    public static Vector3[] GetCircle(in Vector3 origin, in float radius, in int segments)
-    {
-        float totalAngle = MathF.PI * 2;
-        float angleStep = totalAngle / segments;
-
-        Vector3[] elements = new Vector3[segments];
-
-        for (int step = 0; step < segments; step++)
-        {
-            float angle = step * angleStep;
-            Vector3 point = origin;
-            point.Y += radius;
-            elements[step] = XZY(RotatePoint(origin, angle, point));
-        }
-
-        return elements;
     }
 
     private static unsafe Matrix4x4 ReadMatrix(IntPtr address)

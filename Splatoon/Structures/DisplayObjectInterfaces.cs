@@ -4,39 +4,16 @@ using ECommons.MathHelpers;
 
 namespace Splatoon.Structures;
 
-public struct DisplayStyle
+public struct DisplayStyle(uint strokeColor, float strokeThickness, uint originFillColor, uint endFillColor)
 {
-    public readonly uint strokeColor;
-    public readonly float strokeThickness;
-    public readonly uint originFillColor;
-    public readonly uint endFillColor;
-
-    public DisplayStyle(uint strokeColor, float strokeThickness, uint originFillColor, uint endFillColor)
-    {
-        this.strokeColor = strokeColor;
-        this.strokeThickness = strokeThickness;
-        this.originFillColor = originFillColor;
-        this.endFillColor = endFillColor;
-    }
+    public readonly uint strokeColor = strokeColor;
+    public readonly float strokeThickness = strokeThickness;
+    public readonly uint originFillColor = originFillColor;
+    public readonly uint endFillColor = endFillColor;
 
     public readonly uint fillColor(float amount)
     {
         return Lerp(originFillColor, endFillColor, amount);
-    }
-
-    readonly bool stroked
-    {
-        get
-        {
-            return !(strokeColor == 0 && strokeThickness == 0);
-        }
-    }
-    readonly bool filled
-    {
-        get
-        {
-            return !(originFillColor == 0 && endFillColor == 0);
-        }
     }
 }
 
@@ -59,12 +36,13 @@ public class DisplayObjectFan : DisplayObject
 {
     public Vector3 origin;
 
-    public float radius, angleMin, angleMax;
+    public float innerRadius, outerRadius, angleMin, angleMax;
     public DisplayStyle style;
-    public DisplayObjectFan(Vector3 origin, float radius, float angleMin, float angleMax, DisplayStyle style)
+    public DisplayObjectFan(Vector3 origin, float innerRadius, float outerRadius, float angleMin, float angleMax, DisplayStyle style)
     {
         this.origin = origin;
-        this.radius = radius;
+        this.innerRadius = innerRadius;
+        this.outerRadius = outerRadius;
         this.angleMin = angleMin;
         this.angleMax = angleMax;
         this.style = style;
@@ -73,18 +51,15 @@ public class DisplayObjectFan : DisplayObject
 
 public class DisplayObjectCircle : DisplayObjectFan
 {
-    public DisplayObjectCircle(Vector3 origin, float radius, DisplayStyle style) : base(origin, radius, 0, 2 * MathF.PI, style)
+    public DisplayObjectCircle(Vector3 origin, float radius, DisplayStyle style) : base(origin, 0, radius, 0, 2 * MathF.PI, style)
     {
-
     }
 }
 
-public class DisplayObjectDonut : DisplayObjectCircle
+public class DisplayObjectDonut : DisplayObjectFan
 {
-    public float donutRadius;
-    public DisplayObjectDonut(Vector3 origin, float innerRadius, float donutRadius, DisplayStyle style) : base(origin, innerRadius, style)
+    public DisplayObjectDonut(Vector3 origin, float innerRadius, float donutRadius, DisplayStyle style) : base(origin, innerRadius, innerRadius + donutRadius, 0, 2 * MathF.PI, style)
     {
-        this.donutRadius = donutRadius;
     }
 }
 
@@ -152,19 +127,6 @@ public class DisplayObjectText : DisplayObject
         this.bgcolor = bgcolor;
         this.fgcolor = fgcolor;
         this.fscale = fscale;
-    }
-}
-public class DisplayObjectRect : DisplayObject
-{
-    public DisplayObjectLine l1;
-    public DisplayObjectLine l2;
-}
-public class DisplayObjectPolygon : DisplayObject
-{
-    public Element e;
-    public DisplayObjectPolygon(Element e)
-    {
-        this.e = e;
     }
 }
 public interface DisplayObject { }

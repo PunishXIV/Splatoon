@@ -19,6 +19,7 @@ using PInvoke;
 using Splatoon.Gui;
 using Splatoon.Memory;
 using Splatoon.Modules;
+using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using Splatoon.Utils;
@@ -814,12 +815,12 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         else if (e.type == 2)
         {
-            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.Style);
+            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.StyleWithOverride);
             displayObjects.Add(line);
             if (e.radius > 0)
             {
 
-                if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessLine(line);
+                if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
             }
             else if (
                     (
@@ -1027,11 +1028,13 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         if (e.tether)
         {
-            displayObjects.Add(new DisplayObjectLine(cx,
-                cy,
-                z,
-                GetPlayerPositionXZY().X, GetPlayerPositionXZY().Y, GetPlayerPositionXZY().Z,
-                e.thicc, e.color));
+            Vector3 origin = new(cx, z, cy);
+            Vector3 end = XZY(GetPlayerPositionXZY());
+            if (e.ExtraTetherLength > 0)
+            {
+                end += Vector3.Normalize(end - origin) * e.ExtraTetherLength;
+            }
+            displayObjects.Add(new DisplayObjectLine(origin, end, 0, e.StyleWithOverride));
         }
         if (!ShouldDraw(cx, GetPlayerPositionXZY().X, cy, GetPlayerPositionXZY().Y)) return;
         if (e.thicc > 0)
@@ -1040,13 +1043,14 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if (e.Donut > 0)
                 {
-                    displayObjects.Add(new DisplayObjectDonut(new(cx, cy, z + e.offZ), r, e.Donut, e.Style));
-                    if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
+                    displayObjects.Add(new DisplayObjectDonut(new(cx, cy, z + e.offZ), r, e.Donut, e.StyleWithOverride));
+                    if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
                 }
                 else
                 {
-                    displayObjects.Add(new DisplayObjectCircle(new(cx, cy, z + e.offZ), r, e.Style));
-                    if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
+                    DisplayStyle style = e.StyleWithOverride;
+                    displayObjects.Add(new DisplayObjectCircle(new(cx, cy, z + e.offZ), r, style));
+                    if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
                 }
             }
             else
@@ -1094,7 +1098,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 innerRadius = outerRadius;
                 outerRadius = innerRadius + e.Donut;
             }
-            displayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.Style));
+            displayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.StyleWithOverride));
         }
     }
 
@@ -1131,9 +1135,9 @@ public unsafe class Splatoon : IDalamudPlugin
                     tPos.Y + e.offY,
                     tPos.Z + e.offZ));
 
-                var line = new DisplayObjectLine(XZY(start), XZY(stop), aradius, e.Style);
+                var line = new DisplayObjectLine(XZY(start), XZY(stop), aradius, e.StyleWithOverride);
                 displayObjects.Add(line);
-                if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessLine(line);
+                if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
             }
         }
         else

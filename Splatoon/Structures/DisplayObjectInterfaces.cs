@@ -1,21 +1,9 @@
 ﻿
 
 using ECommons.MathHelpers;
+using Splatoon.Serializables;
 
 namespace Splatoon.Structures;
-
-public struct DisplayStyle(uint strokeColor, float strokeThickness, uint originFillColor, uint endFillColor)
-{
-    public readonly uint strokeColor = strokeColor;
-    public readonly float strokeThickness = strokeThickness;
-    public readonly uint originFillColor = originFillColor;
-    public readonly uint endFillColor = endFillColor;
-
-    public readonly uint fillColor(float amount)
-    {
-        return Lerp(originFillColor, endFillColor, amount);
-    }
-}
 
 public class DisplayObjectDot : DisplayObject
 {

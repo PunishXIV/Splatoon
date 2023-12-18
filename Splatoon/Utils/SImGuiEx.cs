@@ -1,4 +1,6 @@
 ﻿using Dalamud.Interface.Colors;
+using ECommons.LanguageHelpers;
+using Splatoon.Serializables;
 
 namespace Splatoon.Utils;
 
@@ -100,11 +102,81 @@ public static class SImGuiEx //came here to laugh on how scuffed it is? let's do
         cursorPosX = upperTextCursor.X;
     }
 
-    static public void EnumCombo<T>(string name, ref T refConfigField, string[] overrideNames = null) where T : IConvertible
+    public static void EnumCombo<T>(string name, ref T refConfigField, string[] overrideNames = null, string[] tooltips = null) where T : IConvertible
     {
         var values = overrideNames ?? Enum.GetValues(typeof(T)).Cast<T>().Select(x => x.ToString().Replace("_", " ")).ToArray();
-        var num = Convert.ToInt32(refConfigField);
-        ImGui.Combo(name, ref num, values, values.Length);
-        refConfigField = Enum.GetValues(typeof(T)).Cast<T>().ToArray()[num];
+        var selectedNum = Convert.ToInt32(refConfigField);
+        if (ImGui.BeginCombo(name, values[selectedNum]))
+        {
+            for (int i = 0; i < values.Length; i++)
+            {
+                if (ImGui.Selectable(values[i], i == selectedNum))
+                {
+                    selectedNum = i;
+                }
+                if (i == selectedNum)
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+                if (tooltips != null)
+                {
+                    if (ImGui.IsItemHovered())
+                    {
+                        ImGui.SetTooltip(tooltips[i]);
+                    }
+                }
+            }
+            ImGui.EndCombo();
+        }
+        refConfigField = Enum.GetValues(typeof(T)).Cast<T>().ToArray()[selectedNum];
+    }
+
+    public static bool StyleEdit(string name, ref DisplayStyle style)
+    {
+        bool edited = false;
+        SImGuiEx.SizedText("Stroke:".Loc(), CGui.WidthElement);
+        ImGui.SameLine();
+        var v4 = ImGui.ColorConvertU32ToFloat4(style.strokeColor);
+        if (ImGui.ColorEdit4("##strokecolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+        {
+            style.strokeColor = ImGui.ColorConvertFloat4ToU32(v4);
+            edited = true;
+        }
+        ImGui.SameLine();
+        ImGuiEx.Text("Thickness:");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(60f);
+        if (ImGui.DragFloat("##strokeThiccness" + name, ref style.strokeThickness, 0.1f, 0f, float.MaxValue))
+        {
+            edited = true;
+        }
+
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip("This value is also used for tether".Loc());
+
+        SImGuiEx.SizedText("Fill:".Loc(), CGui.WidthElement);
+        ImGui.SameLine();
+        if (ImGui.Checkbox("Enabled".Loc() + "##name" + name, ref style.filled))
+        {
+            edited = true;
+        }
+        ImGui.SameLine();
+        ImGuiEx.Text("Origin:".Loc());
+        ImGui.SameLine();
+        v4 = ImGui.ColorConvertU32ToFloat4(style.originFillColor);
+        if (ImGui.ColorEdit4("##fillorigincolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+        {
+            style.originFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+            edited = true;
+        }
+        ImGui.SameLine();
+        ImGuiEx.Text("End:".Loc());
+        ImGui.SameLine();
+        v4 = ImGui.ColorConvertU32ToFloat4(style.endFillColor);
+        if (ImGui.ColorEdit4("##fillendcolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+        {
+            style.endFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+            edited = true;
+        }
+        return edited;
     }
 }

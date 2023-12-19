@@ -279,6 +279,7 @@ public class Element
         }
     }
 
+    [IgnoreDataMember]
     public bool IsDangerous
     {
         get => mechanicType == MechanicType.Danger;

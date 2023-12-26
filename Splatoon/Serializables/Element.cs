@@ -1,8 +1,7 @@
-﻿using ECommons.ExcelServices.TerritoryEnumeration;
-using ECommons.LanguageHelpers;
-using ImGuiNET;
-using Splatoon.Structures;
+﻿using ECommons.LanguageHelpers;
+using Splatoon.Serializables;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace Splatoon;
 
@@ -13,33 +12,32 @@ public class Element
     public static string[] ElementTypes = Array.Empty<string>();
     [NonSerialized] public static string[] ActorTypes = Array.Empty<string>();
     [NonSerialized] public static string[] ComparisonTypes = Array.Empty<string>();
-
     public static void Init()
     {
         ElementTypes = new string[]{
             "Circle at fixed coordinates".Loc(),
-        "Circle relative to object position".Loc(),
-        "Line between two fixed coordinates".Loc(),
-        "Line relative to object position".Loc(),
-        "Cone relative to object position".Loc(),
-        "Cone at fixed coordinates".Loc()
-        }; 
+            "Circle relative to object position".Loc(),
+            "Line between two fixed coordinates".Loc(),
+            "Line relative to object position".Loc(),
+            "Cone relative to object position".Loc(),
+            "Cone at fixed coordinates".Loc()
+        };
         ActorTypes = new string[] {
-            "Game object with specific data".Loc(), 
-        "Self".Loc(), 
-        "Targeted enemy".Loc()
+            "Game object with specific data".Loc(),
+            "Self".Loc(),
+            "Targeted enemy".Loc()
         };
         ComparisonTypes = new string[]{
-        "Name (case-insensitive, partial)".Loc(),
-        "Model ID".Loc(),
-        "Object ID".Loc(),
-        "Data ID".Loc(),
-        "NPC ID".Loc(),
-        "Placeholder".Loc(),
-        "NPC Name ID".Loc(),
-        "VFX Path".Loc(),
-        "Object Effect".Loc()
-    };
+            "Name (case-insensitive, partial)".Loc(),
+            "Model ID".Loc(),
+            "Object ID".Loc(),
+            "Data ID".Loc(),
+            "NPC ID".Loc(),
+            "Placeholder".Loc(),
+            "NPC Name ID".Loc(),
+            "VFX Path".Loc(),
+            "Object Effect".Loc()
+        };
     }
 
 
@@ -79,7 +77,8 @@ public class Element
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
     [DefaultValue(true)] public bool Filled = true;
-    [Obsolete("Not used. Use originFillColor and endFillColor to change color and transparency.")][DefaultValue(0.5f)]
+    [Obsolete("Not used. Use originFillColor and endFillColor to change color and transparency.")]
+    [DefaultValue(0.5f)]
     public float FillStep = 0.5f;
     [Obsolete][DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
@@ -147,6 +146,7 @@ public class Element
     [DefaultValue(false)] public bool onlyUnTargetable = false;
     [DefaultValue(false)] public bool onlyVisible = false;
     [DefaultValue(false)] public bool tether = false;
+    [DefaultValue(0f)] public float ExtraTetherLength = 0f;
     [DefaultValue(0f)] public float AdditionalRotation = 0f;
     [DefaultValue(false)] public bool LineAddHitboxLengthX = false;
     [DefaultValue(false)] public bool LineAddHitboxLengthY = false;
@@ -181,7 +181,18 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectEffectLastOnly = false;
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     [DefaultValue(0)] public int refActorTransformationID = 0;
+    [DefaultValue(MechanicType.Unspecified)] public MechanicType mechanicType = MechanicType.Unspecified;
+    [Obsolete("Not used. Use mechanicType.")]
     [DefaultValue(false)] public bool Unsafe = false;
+
+    [OnDeserialized]
+    public void OnDeserialized(StreamingContext context)
+    {
+        if (Unsafe && mechanicType == MechanicType.Unspecified)
+        {
+            mechanicType = MechanicType.Danger;
+        }
+    }
 
     internal uint DefaultFillColor()
     {
@@ -212,8 +223,18 @@ public class Element
         return fillColor;
     }
 
+    [IgnoreDataMember]
     public DisplayStyle Style
     {
+        set
+        {
+            color = value.strokeColor;
+            thicc = value.strokeThickness;
+            Filled = value.filled;
+            originFillColor = value.originFillColor;
+            endFillColor = value.endFillColor;
+        }
+
         get
         {
             // Most elements need fill migration they used line fill with Filled = false.
@@ -231,12 +252,37 @@ public class Element
                 }
             }
 
-            if (Filled)
-            {
-                return new DisplayStyle(color, thicc, originFillColor ?? DefaultFillColor(), endFillColor ?? DefaultFillColor());
-            }
-            return new DisplayStyle(color, thicc, 0, 0);
+            return new DisplayStyle(color, thicc, originFillColor ?? DefaultFillColor(), endFillColor ?? DefaultFillColor(), Filled);
         }
+    }
+
+
+    [IgnoreDataMember]
+    public DisplayStyle StyleWithOverride
+    {
+        get
+        {
+            DisplayStyle style = Style;
+
+            if (P.Config.StyleOverrides.ContainsKey(mechanicType))
+            {
+                (var overrideEnabled, var overrideStyle) = P.Config.StyleOverrides[mechanicType];
+                if (overrideEnabled)
+                {
+                    style = overrideStyle;
+                }
+            }
+
+            style.originFillColor = P.Config.ClampFillColorAlpha(style.originFillColor);
+            style.endFillColor = P.Config.ClampFillColorAlpha(style.endFillColor);
+            return style;
+        }
+    }
+
+    [IgnoreDataMember]
+    public bool IsDangerous
+    {
+        get => mechanicType == MechanicType.Danger;
     }
 
     public bool ShouldSerializerefActorTransformationID()

@@ -2,6 +2,7 @@
 using Dalamud.Interface.Components;
 using ECommons.LanguageHelpers;
 using Splatoon.Modules;
+using Splatoon.Serializables;
 using Splatoon.Utils;
 using Localization = ECommons.LanguageHelpers.Localization;
 
@@ -58,7 +59,7 @@ partial class CGui
             ProcessStart("https://github.com/PunishXIV/Splatoon#web-api-beta");
         }
 
-        if(ImGui.Checkbox("Enable logging".Loc(), ref P.Config.Logging))
+        if (ImGui.Checkbox("Enable logging".Loc(), ref P.Config.Logging))
         {
             Logger.OnTerritoryChanged();
         }
@@ -71,7 +72,7 @@ partial class CGui
         ImGuiEx.TextV("Splatoon language: ".Loc());
         ImGui.SameLine();
         ImGui.SetNextItemWidth(150f.Scale());
-        if(ImGui.BeginCombo("##langsel", P.Config.PluginLanguage == null?"Game language".Loc() : P.Config.PluginLanguage.Loc()))
+        if (ImGui.BeginCombo("##langsel", P.Config.PluginLanguage == null ? "Game language".Loc() : P.Config.PluginLanguage.Loc()))
         {
             if (ImGui.Selectable("Game language".Loc()))
             {
@@ -90,16 +91,68 @@ partial class CGui
         }
         ImGui.Checkbox("Localization logging".Loc(), ref Localization.Logging);
         ImGui.SameLine();
-        if(ImGui.Button("Save entries: ??".Loc(P.Config.PluginLanguage ?? GameLanguageString)))
+        if (ImGui.Button("Save entries: ??".Loc(P.Config.PluginLanguage ?? GameLanguageString)))
         {
             Localization.Save(P.Config.PluginLanguage ?? GameLanguageString);
         }
         ImGui.SameLine();
-        if(ImGui.Button("Rescan language files".Loc()))
+        if (ImGui.Button("Rescan language files".Loc()))
         {
             GetAvaliableLanguages(true);
         }
         ImGui.Separator();
+        ImGui.SetNextItemWidth(100f);
+        if (ImGui.CollapsingHeader("Global Style Overrides"))
+        {
+            ImGui.Indent();
+            SImGuiEx.SizedText("Minimum Fill Alpha", CGui.WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
+            ImGui.DragInt("##minfillalpha", ref P.Config.MinFillAlpha, 1, 0, P.Config.MaxFillAlpha);
+
+            SImGuiEx.SizedText("Maximum Fill Alpha", CGui.WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
+            ImGui.DragInt("##maxfillalpha", ref P.Config.MaxFillAlpha, 1, P.Config.MinFillAlpha, 255);
+            
+            // If min == max, users can break ints out of min and max values in the UI. Clamp to sane values for safety.
+            P.Config.MinFillAlpha = Math.Clamp(P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
+            P.Config.MaxFillAlpha = Math.Clamp(P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
+            ImGui.Separator();
+            foreach (MechanicType mech in MechanicTypes.Values)
+            {
+                if (!MechanicTypes.CanOverride(mech)) continue;
+                string name = MechanicTypes.Names[(int)mech];
+                bool hasOverride = P.Config.StyleOverrides.ContainsKey(mech);
+
+                bool enableOverride = false;
+                DisplayStyle style = MechanicTypes.DefaultMechanicColors[mech];
+                if (hasOverride)
+                {
+                    (enableOverride, style) = P.Config.StyleOverrides[mech];
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, style.strokeColor);
+                SImGuiEx.SizedText(name, CGui.WidthElement);
+                ImGui.PopStyleColor();
+
+                ImGui.SameLine();
+                ImGui.Checkbox("Override##" + name, ref enableOverride);
+                ImGui.SameLine();
+                ImGui.PushStyleColor(ImGuiCol.Text, style.strokeColor);
+                if (ImGui.Button("Reset To Default##" + name))
+                {
+                    style = MechanicTypes.DefaultMechanicColors[mech];
+                }
+                ImGui.PopStyleColor();
+
+                SImGuiEx.StyleEdit(name, ref style);
+
+                P.Config.StyleOverrides[mech] = new(enableOverride, style);
+                ImGui.Separator();
+            }
+            ImGui.Unindent();
+        }
 
         SImGuiEx.SizedText("Drawing distance:".Loc(), WidthLayout);
         ImGui.SameLine();
@@ -107,7 +160,7 @@ partial class CGui
         ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
         ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
-        if(ImGui.Button("Configure screen zones where Splatoon will draw it's elements"))
+        if (ImGui.Button("Configure screen zones where Splatoon will draw it's elements"))
         {
             P.RenderableZoneSelector.IsOpen = true;
         }
@@ -120,7 +173,7 @@ partial class CGui
         ImGui.Checkbox("Disable script cache".Loc(), ref p.Config.DisableScriptCache);
         Svc.PluginInterface.UiBuilder.DisableUserUiHide = p.Config.ShowOnUiHide;
         //ImGui.Checkbox("Always compare names directly (debug option, ~4x performance loss)", ref p.Config.DirectNameComparison);
-        if(ImGui.Button("Open backup directory".Loc()))
+        if (ImGui.Button("Open backup directory".Loc()))
         {
             ProcessStart(Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Backups"));
         }

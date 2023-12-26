@@ -3,6 +3,7 @@ using Splatoon.Structures;
 using System.Runtime.InteropServices;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
 using static Splatoon.Utils.Gui;
+using Splatoon.Serializables;
 
 namespace Splatoon.Utils;
 
@@ -113,6 +114,17 @@ public static unsafe class Gui
                     cull[i] = true;
                     continue;
                 }
+                /*
+                uint originColor = style.animatedOriginFillColor();
+                uint endColor = style.animatedEndFillColor();
+                if (status == LineClipStatus.A_Clipped)
+                {
+                    originColor = Lerp(style.animatedOriginFillColor(), style.animatedEndFillColor(), t);
+                }
+                else if (status == LineClipStatus.B_Clipped)
+                {
+                    endColor = Lerp(style.animatedOriginFillColor(), style.animatedEndFillColor(), t);
+                }*/
                 uint originColor = style.originFillColor;
                 uint endColor = style.endFillColor;
                 if (status == LineClipStatus.A_Clipped)
@@ -126,7 +138,7 @@ public static unsafe class Gui
 
                 if (segment.end == prevSegment.end)
                 {
-                    endVtx[i] = endVtx[i-1];
+                    endVtx[i] = endVtx[i - 1];
                     endScreenPositions[i] = endScreenPositions[i - 1];
                 }
                 else
@@ -140,7 +152,7 @@ public static unsafe class Gui
 
                 if (segment.origin == prevSegment.origin)
                 {
-                    originVtx[i] = originVtx[i-1];
+                    originVtx[i] = originVtx[i - 1];
                     originScreenPositions[i] = originScreenPositions[i - 1];
                 }
                 else
@@ -154,36 +166,39 @@ public static unsafe class Gui
 
                 prevSegment = segment;
             }
-            
+
             // Draw triangles
-            for (int i = 0; i < count; i++)
+            if (style.filled)
             {
-                int nextIndex = (i + 1) % count;
-                if (cull[i] || cull[nextIndex])
+                for (int i = 0; i < count; i++)
                 {
-                    continue;
-                }
-                if (i + 1 == count && connectStyle == VertexConnection.NoConnection)
-                {
-                    break;
-                }
+                    int nextIndex = (i + 1) % count;
+                    if (cull[i] || cull[nextIndex])
+                    {
+                        continue;
+                    }
+                    if (i + 1 == count && connectStyle == VertexConnection.NoConnection)
+                    {
+                        break;
+                    }
 
-                if (originVtx[i] != originVtx[nextIndex])
-                {
-                    drawList.PrimReserve(3, 0);
+                    if (originVtx[i] != originVtx[nextIndex])
+                    {
+                        drawList.PrimReserve(3, 0);
 
-                    drawList.PrimWriteIdx(originVtx[i]);
-                    drawList.PrimWriteIdx(originVtx[nextIndex]);
-                    drawList.PrimWriteIdx(endVtx[i]);
-                }
+                        drawList.PrimWriteIdx(originVtx[i]);
+                        drawList.PrimWriteIdx(originVtx[nextIndex]);
+                        drawList.PrimWriteIdx(endVtx[i]);
+                    }
 
-                if (endVtx[i] != endVtx[nextIndex])
-                {
-                    drawList.PrimReserve(3, 0);
+                    if (endVtx[i] != endVtx[nextIndex])
+                    {
+                        drawList.PrimReserve(3, 0);
 
-                    drawList.PrimWriteIdx(endVtx[i]);
-                    drawList.PrimWriteIdx(originVtx[nextIndex]);
-                    drawList.PrimWriteIdx(endVtx[nextIndex]);
+                        drawList.PrimWriteIdx(endVtx[i]);
+                        drawList.PrimWriteIdx(originVtx[nextIndex]);
+                        drawList.PrimWriteIdx(endVtx[nextIndex]);
+                    }
                 }
             }
 

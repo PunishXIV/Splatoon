@@ -45,6 +45,7 @@ class Configuration : IPluginConfiguration
     public HashSet<string> DisabledScripts = new();
     public bool DisableScriptCache = false;
     public List<WrappedRect> RenderableZones = new();
+    public List<WrappedRect> ClipZones = new();
     public bool RenderableZonesValid = false;
     public bool SplatoonLowerZ = false;
     public int MinFillAlpha = 0x19;

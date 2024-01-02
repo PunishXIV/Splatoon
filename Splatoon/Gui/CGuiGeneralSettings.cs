@@ -160,10 +160,25 @@ partial class CGui
         ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
         ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
-        if (ImGui.Button("Configure screen zones where Splatoon will draw it's elements"))
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip(
+                "Choose a mechanic type that best represents this element.\n" +
+                "This is used for automatically setting default colors.");
+        }
+
+        if (ImGui.Button("Edit Draw Zones" ))
         {
             P.RenderableZoneSelector.IsOpen = true;
         }
+        ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will draw its elements".Loc());
+
+        if (ImGui.Button("Edit Clip Zones"))
+        {
+            P.ClipZoneSelector.IsOpen = true;
+        }
+        ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will NOT draw elements. Text is currently not clipped.".Loc());
+
         ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows", ref P.Config.SplatoonLowerZ);
         ImGui.Separator();
 

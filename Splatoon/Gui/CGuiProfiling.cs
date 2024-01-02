@@ -21,7 +21,7 @@ partial class CGui
             p.Profiler.MainTickPrepare.Reset();
             p.Profiler.MainTickChat.Reset();
             p.Profiler.Gui.Reset();
-            p.Profiler.GuiLines.Reset();
+            p.Profiler.GuiDirect3d.Reset();
         }
         ImGui.Columns(4);
         ImGui.SetColumnWidth(0, ImGuiEx.GetWindowContentRegionWidth() / 4);
@@ -51,7 +51,7 @@ partial class CGui
         ImGui.SetColumnWidth(1, ImGuiEx.GetWindowContentRegionWidth() / 2);
         DisplayProfiler("GUI: total", p.Profiler.Gui);
         ImGui.NextColumn();
-        DisplayProfiler("GUI: lines", p.Profiler.GuiLines);
+        DisplayProfiler("GUI: d3d", p.Profiler.GuiDirect3d);
         ImGui.Columns(1);
         ImGui.EndChild();
     }

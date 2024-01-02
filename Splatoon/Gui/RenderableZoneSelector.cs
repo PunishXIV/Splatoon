@@ -204,18 +204,6 @@ namespace Splatoon.Gui
                 {
                     ImGuiEx.Text($"       Your whole screen will be used to render Splatoon draws.");
                 }
-                if (P.Config.RenderableZones.Count < 2)
-                {
-                    ImGuiEx.Text(EColor.GreenBright, "       Performance: untouched.");
-                }
-                else if (P.Config.RenderableZones.Count < 4)
-                {
-                    ImGuiEx.Text(EColor.OrangeBright, "       Performance: reduced. Systems with weaker CPU may suffer FPS issues.");
-                }
-                else
-                {
-                    ImGuiEx.Text(EColor.RedBright, "       Performance: severely degraded. You may experience serious FPS issues with your configuration.");
-                }
             }
             ImGuiEx.Text($"       Right click to bring context menu.");
             if (ImGui.IsWindowHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))

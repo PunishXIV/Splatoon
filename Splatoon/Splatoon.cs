@@ -91,6 +91,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal HttpClient HttpClient;
     internal PinnedElementEdit PinnedElementEditWindow;
     internal RenderableZoneSelector RenderableZoneSelector;
+    internal ClipZoneSelector ClipZoneSelector;
     internal UnsafeElement UnsafeElement;
     public NotificationMasterApi NotificationMasterApi;
 
@@ -202,6 +203,8 @@ public unsafe class Splatoon : IDalamudPlugin
         //VFXManager = new();
         RenderableZoneSelector = new();
         EzConfigGui.WindowSystem.AddWindow(RenderableZoneSelector);
+        ClipZoneSelector = new();
+        EzConfigGui.WindowSystem.AddWindow(ClipZoneSelector);
         UnsafeElement = new();
         NotificationMasterApi = new(pluginInterface);
         Init = true;

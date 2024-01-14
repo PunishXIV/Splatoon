@@ -38,7 +38,7 @@ internal static class TabScripting
         ImGui.SameLine();
         if(ImGui.Button("Install from clipboard (code or trusted URL)".Loc()))
         {
-            var text = ImGui.GetClipboardText();
+            var text = GenericHelpers.Paste();
             if (ScriptingProcessor.IsUrlTrusted(text))
             {
                 ScriptingProcessor.DownloadScript(text);
@@ -75,8 +75,8 @@ internal static class TabScripting
             }
             if(ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
-                ImGui.SetClipboardText($"{x.InternalData.FullName}");
-                Notify.Success("Copied to clipboard");
+                GenericHelpers.Copy($"{x.InternalData.FullName}");
+                //Notify.Success("Copied to clipboard");
             }
             if (x.Metadata?.Version != null)
             {

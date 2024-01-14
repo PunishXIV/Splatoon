@@ -1,4 +1,5 @@
-﻿using ECommons.LanguageHelpers;
+﻿using ECommons;
+using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
 using Splatoon.ConfigGui;
 using Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
@@ -170,13 +171,13 @@ partial class CGui
                 }
                 if (ImGui.Button("Copy triggers".Loc()))
                 {
-                    ImGui.SetClipboardText(JsonConvert.SerializeObject(layout.Triggers));
+                    GenericHelpers.Copy(JsonConvert.SerializeObject(layout.Triggers));
                 }
                 if (ImGui.Button("Paste triggers".Loc()) && (ImGui.GetIO().KeyCtrl || layout.Triggers.Count == 0))
                 {
                     try
                     {
-                        layout.Triggers = JsonConvert.DeserializeObject<List<Trigger>>(ImGui.GetClipboardText());
+                        layout.Triggers = JsonConvert.DeserializeObject<List<Trigger>>(GenericHelpers.Paste());
                     }
                     catch(Exception e)
                     {

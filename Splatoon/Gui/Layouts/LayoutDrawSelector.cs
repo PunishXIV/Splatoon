@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface.Colors;
+using ECommons;
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
 using Splatoon.Utils;
@@ -188,7 +189,7 @@ internal static class LayoutDrawSelector
                 {
                     try
                     {
-                        x.ElementsL.Add(JsonConvert.DeserializeObject<Element>(ImGui.GetClipboardText()));
+                        x.ElementsL.Add(JsonConvert.DeserializeObject<Element>(GenericHelpers.Paste()));
                     }
                     catch(Exception e)
                     {

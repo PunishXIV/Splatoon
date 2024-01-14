@@ -156,8 +156,8 @@ public abstract class SplatoonScript
         ImGuiEx.TextWrapped(ImGuiColors.DalamudRed, $"Non-restricted editing access. Any incorrectly performed changes may cause script to stop working completely. Use reset function if it happens. \n- In general, only edit color, thickness, text, size. \n- If script has it's own color settings, they will be prioritized.\n- Not all script will take whatever you edit here into account.".Loc());
         if(ImGui.Button("Export customized settings to clipboard".Loc()))
         {
-            ImGui.SetClipboardText(JsonConvert.SerializeObject(InternalData.Overrides, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Populate}));
-            Notify.Success("Copied to clipboard".Loc());
+            GenericHelpers.Copy(JsonConvert.SerializeObject(InternalData.Overrides, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Populate}));
+            //Notify.Success("Copied to clipboard".Loc());
         }
         ImGui.SameLine();
         if(ImGui.Button("Import customized settings from clipboard (hold CTRL+click)".Loc()))
@@ -166,7 +166,7 @@ public abstract class SplatoonScript
             {
                 try
                 {
-                    var x = JsonConvert.DeserializeObject<OverrideData>(ImGui.GetClipboardText());
+                    var x = JsonConvert.DeserializeObject<OverrideData>(GenericHelpers.Paste());
                     if (x != null)
                     {
                         if (ImGui.GetIO().KeyShift || x.Elements.All(z => Controller.GetRegisteredElements().ContainsKey(z.Key)))
@@ -211,7 +211,7 @@ public abstract class SplatoonScript
             }
             if (ImGui.Button("Copy to clipboard".Loc()))
             {
-                ImGui.SetClipboardText(JsonConvert.SerializeObject(x.Value, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
+                GenericHelpers.Copy(JsonConvert.SerializeObject(x.Value, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
             }
             ImGui.SameLine();
             if (ImGui.Button("Edit".Loc()))

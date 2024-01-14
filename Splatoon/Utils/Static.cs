@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Statuses;
+using ECommons;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using Newtonsoft.Json;
@@ -229,7 +230,7 @@ public static unsafe class Static
 
     public static void ExportToClipboard(this Layout l)
     {
-        ImGui.SetClipboardText(l.Serialize());
+        GenericHelpers.Copy(l.Serialize());
         Notify.Success($"{l.GetName()} copied to clipboard.");
     }
 
@@ -240,7 +241,7 @@ public static unsafe class Static
 
     public static void ExportToClipboard(this Element l)
     {
-        ImGui.SetClipboardText(l.Serialize());
+        GenericHelpers.Copy(l.Serialize());
         Notify.Success($"{l.GetName()} copied to clipboard.");
     }
 

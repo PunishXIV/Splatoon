@@ -1,4 +1,5 @@
-﻿using ECommons.LanguageHelpers;
+﻿using ECommons;
+using ECommons.LanguageHelpers;
 using ECommons.Reflection;
 using Splatoon.SplatoonScripting;
 
@@ -11,14 +12,14 @@ internal static class RapidImport
     {
         if(ImGui.Checkbox("Enable Rapid Import", ref RapidImportEnabled))
         {
-            ImGui.SetClipboardText("");
+            GenericHelpers.Copy("");
         }
         ImGuiEx.TextWrapped("Import multiple presets with ease by simply copying them. Splatoon will read your clipboard and attempt to import whatever you copy. Your clipboard will be cleared upon enabling.".Loc());
         if (RapidImportEnabled)
         {
             try
             {
-                var text = ImGui.GetClipboardText();
+                var text = GenericHelpers.Paste();
                 if (text != "")
                 {
                     if (ScriptingProcessor.IsUrlTrusted(text))
@@ -37,7 +38,7 @@ internal static class RapidImport
                             TryNotify("Import failed".Loc());
                         }
                     }
-                    ImGui.SetClipboardText("");
+                    GenericHelpers.Copy("");
                 }
             }
             catch(Exception e)

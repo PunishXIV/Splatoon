@@ -1,5 +1,6 @@
 ﻿using Dalamud;
 using Dalamud.Interface.Components;
+using ECommons;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
 using Lumina.Excel.GeneratedSheets;
@@ -34,8 +35,8 @@ unsafe partial class CGui
             ImGui.SameLine();
             if (ImGui.Button("Copy to clipboard".Loc()+"##" + i + k))
             {
-                ImGui.SetClipboardText(JsonConvert.SerializeObject(el, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
-                Notify.Success("Copied to clipboard".Loc());
+                GenericHelpers.Copy(JsonConvert.SerializeObject(el, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
+                //Notify.Success("Copied to clipboard".Loc());
             }
 
             ImGui.SameLine();
@@ -147,7 +148,7 @@ unsafe partial class CGui
                     ImGui.SameLine();
                     if (ImGui.Button("Copy settarget command".Loc()+"##" + i + k))
                     {
-                        ImGui.SetClipboardText("/splatoon settarget " + i + "~" + k);
+                        GenericHelpers.Copy("/splatoon settarget " + i + "~" + k);
                     }
                     if (ImGui.IsItemHovered())
                     {
@@ -598,14 +599,14 @@ unsafe partial class CGui
                 ImGui.SameLine();
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Copy))
                 {
-                    ImGui.SetClipboardText(JsonConvert.SerializeObject(new Vector3(el.refX, el.refZ, el.refY)));
+                    GenericHelpers.Copy(JsonConvert.SerializeObject(new Vector3(el.refX, el.refZ, el.refY)));
                 }
                 ImGui.SameLine();
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Paste))
                 {
                     try
                     {
-                        var v = JsonConvert.DeserializeObject<Vector3>(ImGui.GetClipboardText());
+                        var v = JsonConvert.DeserializeObject<Vector3>(GenericHelpers.Paste());
                         el.refX = v.X;
                         el.refY = v.Z;
                         el.refZ = v.Y;

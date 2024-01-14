@@ -173,7 +173,7 @@ unsafe partial class CGui:IDisposable
         {
             try
             {
-                var content = ImGui.GetClipboardText();
+                var content = GenericHelpers.Paste();
                 if(content != lastContent)
                 {
                     for (int i = 0; i < 1000; i++)
@@ -198,7 +198,7 @@ unsafe partial class CGui:IDisposable
                     }
                     content = cArray.Join("\n");
                     lastContent = content;
-                    ImGui.SetClipboardText(content);
+                    GenericHelpers.Copy(content);
                 }
             }
             catch (Exception e)
@@ -217,7 +217,7 @@ unsafe partial class CGui:IDisposable
         var jsonraw = "~" + JsonConvert.SerializeObject(l, Formatting.Indented, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
         var compressed = json.Compress();
         var base64 = json.ToBase64UrlSafe();
-        ImGui.SetClipboardText(ImGui.GetIO().KeyAlt ? jsonraw : ImGui.GetIO().KeyCtrl ? HttpUtility.UrlEncode(json) : compressed.Length>base64.Length?base64:compressed);
+        GenericHelpers.Copy(ImGui.GetIO().KeyAlt ? jsonraw : ImGui.GetIO().KeyCtrl ? HttpUtility.UrlEncode(json) : compressed.Length>base64.Length?base64:compressed);
     }
 
     private void HTTPExportToClipboard(Element el)
@@ -228,7 +228,7 @@ unsafe partial class CGui:IDisposable
         var jsonraw = JsonConvert.SerializeObject(l, Formatting.Indented, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
         var compressed = json.Compress();
         var base64 = json.ToBase64UrlSafe();
-        ImGui.SetClipboardText(ImGui.GetIO().KeyAlt ? jsonraw : ImGui.GetIO().KeyCtrl ? HttpUtility.UrlEncode(json) : compressed.Length > base64.Length ? base64 : compressed);
+        GenericHelpers.Copy(ImGui.GetIO().KeyAlt ? jsonraw : ImGui.GetIO().KeyCtrl ? HttpUtility.UrlEncode(json) : compressed.Length > base64.Length ? base64 : compressed);
     }
 
     private void SetCursorTo(float refX, float refZ, float refY)

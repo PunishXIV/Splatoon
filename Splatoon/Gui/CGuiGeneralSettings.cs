@@ -1,5 +1,6 @@
 ﻿using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using ECommons;
 using ECommons.LanguageHelpers;
 using Splatoon.Modules;
 using Splatoon.Utils;
@@ -204,7 +205,7 @@ partial class CGui
         ImGui.SameLine();
         if (ImGui.Button("Discord".Loc()))
         {
-            ImGui.SetClipboardText(Splatoon.DiscordURL);
+            GenericHelpers.Copy(Splatoon.DiscordURL);
             Svc.Chat.Print("[Splatoon] Server invite link: ".Loc() + Splatoon.DiscordURL);
             ProcessStart(Splatoon.DiscordURL);
         }

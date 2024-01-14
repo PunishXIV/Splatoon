@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface.Colors;
+using ECommons;
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
@@ -61,7 +62,7 @@ partial class CGui
             {
                 Safe(() =>
                 {
-                    var text = ImGui.GetClipboardText();
+                    var text = GenericHelpers.Paste();
                     if (ScriptingProcessor.IsUrlTrusted(text))
                     {
                         ScriptingProcessor.DownloadScript(text);
@@ -253,7 +254,7 @@ partial class CGui
                                     Export.Add(l.Serialize());
                                 }
                             }
-                            ImGui.SetClipboardText(Export.Join("\n"));
+                            GenericHelpers.Copy(Export.Join("\n"));
                         }
                         ImGui.EndPopup();
                     }
@@ -316,7 +317,7 @@ partial class CGui
 
     internal static bool ImportFromClipboard()
     {
-        var ls = Static.ImportLayouts(ImGui.GetClipboardText());
+        var ls = Static.ImportLayouts(GenericHelpers.Paste());
         {
             foreach (var l in ls)
             {

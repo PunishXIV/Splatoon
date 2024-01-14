@@ -257,7 +257,7 @@ unsafe partial class CGui
                     {
                         result.Add($"+{i:X}: {x1}, {x2}");
                     }
-                    ImGui.SetClipboardText(result.Join("\n"));
+                    GenericHelpers.Copy(result.Join("\n"));
                 }
             }
             catch(Exception e)

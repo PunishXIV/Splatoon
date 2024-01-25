@@ -34,9 +34,9 @@ public abstract class SplatoonScript
     public InternalData InternalData { get; internal set; } = null!;
 
     /// <summary>
-    /// Valid territories where script will be executed. Specify an empty array if you want it to work in all territories. 
+    /// Valid territories where script will be executed. Specify an empty array if you want it to work in all territories. Use null if you want script to always work without interruption even when client is logged out.
     /// </summary>
-    public abstract HashSet<uint> ValidTerritories { get; }
+    public abstract HashSet<uint>? ValidTerritories { get; }
 
     /// <summary>
     /// Indicates whether script is currently enabled and should be executed or not.

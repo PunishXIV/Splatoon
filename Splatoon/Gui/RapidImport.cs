@@ -22,6 +22,7 @@ internal static class RapidImport
                 var text = GenericHelpers.Paste();
                 if (text != "")
                 {
+                    PluginLog.Debug($"Received clipboard text: [{text}]");
                     if (ScriptingProcessor.IsUrlTrusted(text))
                     {
                         TryNotify("Downloading script from trusted URL".Loc());
@@ -38,7 +39,7 @@ internal static class RapidImport
                             TryNotify("Import failed".Loc());
                         }
                     }
-                    GenericHelpers.Copy("");
+                    GenericHelpers.Copy("", true);
                 }
             }
             catch(Exception e)

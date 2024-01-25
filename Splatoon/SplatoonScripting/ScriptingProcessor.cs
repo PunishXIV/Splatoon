@@ -577,7 +577,7 @@ internal static partial class ScriptingProcessor
 
     internal static void UpdateState(this SplatoonScript s)
     {
-        var territoryIsValid = Svc.ClientState.IsLoggedIn && (s.ValidTerritories.Count == 0 || s.ValidTerritories.Contains(Svc.ClientState.TerritoryType));
+        var territoryIsValid = s.ValidTerritories == null || (Svc.ClientState.IsLoggedIn && (s.ValidTerritories.Count == 0 || s.ValidTerritories.Contains(Svc.ClientState.TerritoryType)));
         if (territoryIsValid && !P.Config.DisabledScripts.Contains(s.InternalData.FullName))
         {
             if (!s.IsEnabled)

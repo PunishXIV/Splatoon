@@ -42,7 +42,7 @@ public unsafe class Renderer : IDisposable
         LineFill = new(RenderContext);
         _lineFillDynamicData = new(RenderContext, 512, true);
         Stroke = new(RenderContext);
-        _strokeDynamicData = new(RenderContext, 2048, true);
+        _strokeDynamicData = new(RenderContext, 4096, true);
         ClipZone = new(RenderContext);
         _clipDynamicData = new(RenderContext, 32, true);
         // https://github.com/goatcorp/Dalamud/blob/d52118b3ad366a61216129c80c0fa250c885abac/Dalamud/Game/Gui/GameGuiAddressResolver.cs#L69

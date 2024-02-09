@@ -58,8 +58,8 @@ public unsafe class RenderTarget : IDisposable
         blendDescription.RenderTarget[0].DestinationBlend = BlendOption.InverseSourceAlpha;
         blendDescription.RenderTarget[0].BlendOperation = BlendOperation.Add;
         blendDescription.RenderTarget[0].SourceAlphaBlend = BlendOption.One;
-        blendDescription.RenderTarget[0].DestinationAlphaBlend = BlendOption.Zero;
-        blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Add;
+        blendDescription.RenderTarget[0].DestinationAlphaBlend = BlendOption.InverseSourceAlpha;
+        blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Maximum;
         blendDescription.RenderTarget[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
         _blendState = new(ctx.Device, blendDescription);
     }

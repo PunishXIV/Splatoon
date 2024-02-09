@@ -103,6 +103,8 @@ public class Stroke : IDisposable
     public Stroke(RenderContext ctx)
     {
         var shader = """
+            #define FEATHER 2
+            
             struct Constants
             {
                 float4x4 viewProj;
@@ -130,13 +132,15 @@ public class Stroke : IDisposable
             {
                 float4 projPos : SV_Position;
                 float4 color : Color;
+                noperspective float normal : Normal;
+                float thickness : Thickness;
             };
 
             VSOutput vs(Line l)
             {
                 VSOutput v;
 
-                v.thickness = l.thickness;
+                v.thickness = l.thickness + FEATHER / 2;
                 v.color = l.color;
                 v.index = l.index;
 
@@ -175,7 +179,7 @@ public class Stroke : IDisposable
                     return;
                 }
 
-                float thickness = start.thickness / k.renderTargetSize.y;
+                float thickness = (start.thickness) / k.renderTargetSize.y;
             
                 float4 p0 = start.projPos;
                 float w0 = unscale(p0);
@@ -183,27 +187,42 @@ public class Stroke : IDisposable
                 float w1 = unscale(p1);
 
                 float4 normal = get_normal(p0, p1);
-
                 normal.xy *= thickness;
 
                 GSOutput v;
-            
+                v.thickness = start.thickness;
+                v.normal = 1;
                 v.color = start.color;
                 v.projPos = w0 * (p0 + normal);
                 output.Append(v);
+                v.normal = -1;
                 v.projPos = w0 * (p0 - normal);
                 output.Append(v);
 
                 v.color = stop.color;
+                v.normal = 1;
                 v.projPos = w1 * (p1 + normal);
                 output.Append(v);
+                v.normal = -1;
                 v.projPos = w1 * (p1 - normal);
                 output.Append(v);
             }
 
+            float unfeather(float thickness, float normal)
+            {
+                float width = thickness - FEATHER;
+                float pixel = abs(normal) * thickness - width;
+                pixel = max(0, pixel);
+                pixel /= FEATHER;
+                return pixel;
+            }
+
             float4 ps(GSOutput input) : SV_Target
             {
-                return input.color;
+                float f = unfeather(input.thickness, input.normal);
+                float4 color = input.color;
+                color.a *= exp2(-2.7 * f * f);
+                return color;
             }
             """;
 
@@ -227,6 +246,7 @@ public class Stroke : IDisposable
             new InputElement("Thickness", 0, Format.R32_Float, -1, 0),
             new InputElement("Color", 0, Format.R32G32B32A32_Float, -1, 0),
             new InputElement("Index", 0, Format.R16_UInt, -1, 0),
+            new InputElement("Normal", 0, Format.R32_Float, -1, 0)
         ]);
     }
 

@@ -109,6 +109,7 @@ public unsafe class Renderer : IDisposable
             _strokeDynamicBuilder = null;
             Stroke.Draw(RenderContext, _strokeDynamicData);
         }
+        RenderTarget.Clip(RenderContext);
         if (_clipDynamicBuilder != null)
         {
             _clipDynamicBuilder.Dispose();

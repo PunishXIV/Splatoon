@@ -12,7 +12,8 @@ public unsafe class RenderTarget : IDisposable
     private Texture2D _rt;
     private RenderTargetView _renderTargetView;
     private ShaderResourceView _rtSRV;
-    private BlendState _blendState;
+    private BlendState _defaultBlendState;
+    private BlendState _clipBlendState;
 
     public nint ImguiHandle => _rtSRV.NativePointer;
 
@@ -61,7 +62,14 @@ public unsafe class RenderTarget : IDisposable
         blendDescription.RenderTarget[0].DestinationAlphaBlend = BlendOption.InverseSourceAlpha;
         blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Maximum;
         blendDescription.RenderTarget[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
-        _blendState = new(ctx.Device, blendDescription);
+        _defaultBlendState = new(ctx.Device, blendDescription);
+
+        var blendDescription2 = BlendStateDescription.Default();
+        blendDescription2.RenderTarget[0].SourceAlphaBlend = BlendOption.One;
+        blendDescription2.RenderTarget[0].DestinationAlphaBlend = BlendOption.Zero;
+        blendDescription2.RenderTarget[0].AlphaBlendOperation = BlendOperation.Maximum;
+        blendDescription2.RenderTarget[0].RenderTargetWriteMask = ColorWriteMaskFlags.Alpha;
+        _clipBlendState = new(ctx.Device, blendDescription2);
     }
 
     public void Dispose()
@@ -69,13 +77,17 @@ public unsafe class RenderTarget : IDisposable
         _rt.Dispose();
         _renderTargetView.Dispose();
         _rtSRV.Dispose();
-        _blendState.Dispose();
+        _defaultBlendState.Dispose();
     }
     public void Bind(RenderContext ctx)
     {
         ctx.Context.ClearRenderTargetView(_renderTargetView, new());
         ctx.Context.Rasterizer.SetViewport(0, 0, Size.X, Size.Y);
-        ctx.Context.OutputMerger.SetBlendState(_blendState);
+        ctx.Context.OutputMerger.SetBlendState(_defaultBlendState);
         ctx.Context.OutputMerger.SetTargets(_renderTargetView);
+    }
+    public void Clip(RenderContext ctx)
+    {
+        ctx.Context.OutputMerger.SetBlendState(_clipBlendState);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Dalamud.Interface.Windowing;
+using Splatoon.Utils;
 
 namespace Splatoon.Gui;
 
@@ -41,12 +42,10 @@ internal class ClipZoneSelector : Window
             {
                 upd = -1;
             }
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, ImGuiEx.Vector4FromRGBA(0xff000077));
-
             ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new(r.Rect.X, r.Rect.Y), cond);
             ImGui.PushStyleVar(ImGuiStyleVar.WindowBorderSize, 0f);
             ImGui.SetNextWindowSize(new(r.Rect.Width, r.Rect.Height), cond);
-            ImGui.SetNextWindowSizeConstraints(new(100, 100), ImGuiHelpers.MainViewport.Size);
+            ImGui.SetNextWindowSizeConstraints(new(10, 10), ImGuiHelpers.MainViewport.Size);
             var col = GradientColor.Get(ImGuiEx.Vector4FromRGBA(0x00ff0077), ImGuiEx.Vector4FromRGBA(0x00770077));
             if (r.Rect.X < 0 || r.Rect.Y < 0 || r.Rect.Bottom > ImGuiHelpers.MainViewport.Size.Y || r.Rect.Right > ImGuiHelpers.MainViewport.Size.X)
             {
@@ -65,7 +64,7 @@ internal class ClipZoneSelector : Window
                 }
                 selected = -1;
             }
-            ImGui.PushStyleColor(ImGuiCol.WindowBg, ImGuiEx.Vector4FromRGBA(0x00000000));
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, ImGuiEx.Vector4FromRGBA(Colors.Transparent));
             if (i == bringToFront)
             {
                 bringToFront = -1;
@@ -102,8 +101,8 @@ internal class ClipZoneSelector : Window
                     if (ImGui.InputInt("Width", ref w, 1, 10)) upd = i;
                     ImGui.SetNextItemWidth(150f);
                     if (ImGui.InputInt("Height", ref h, 1, 10)) upd = i;
-                    if (w < 30) w = 30;
-                    if (h < 30) h = 30;
+                    if (w < 10) w = 10;
+                    if (h < 10) h = 10;
 
                     ImGui.Separator();
 
@@ -123,18 +122,17 @@ internal class ClipZoneSelector : Window
                     ImGuiEx.TextWrapped(invalidText);
                 }
                 ImGuiEx.Text($"   Zone {i}\n   Right-click to open menu.");
-                if (w < 30) w = 30;
-                if (h < 30) h = 30;
+                if (w < 10) w = 10;
+                if (h < 10) h = 10;
                 P.Config.ClipZones[i].Rect = new(x,y,w,h);
 
                 var bCol = (col with { W = 1f }).ToUint();
-                ImGui.GetWindowDrawList().AddLine(new(x, y), new(x + w, y), bCol, 10f);
-                ImGui.GetWindowDrawList().AddLine(new(x, y), new(x, y + h), bCol, 10f);
-                ImGui.GetWindowDrawList().AddLine(new(x+w-1, y+h-1), new(x + w-1, y), bCol, 10f);
-                ImGui.GetWindowDrawList().AddLine(new(x + w - 1, y + h-1), new(x, y + h-1), bCol, 10f);
+                ImGui.GetWindowDrawList().AddLine(new(x, y), new(x + w, y), bCol, 5f);
+                ImGui.GetWindowDrawList().AddLine(new(x, y), new(x, y + h), bCol, 5f);
+                ImGui.GetWindowDrawList().AddLine(new(x+w-1, y+h-1), new(x + w-1, y), bCol, 5f);
+                ImGui.GetWindowDrawList().AddLine(new(x + w - 1, y + h-1), new(x, y + h-1), bCol, 5f);
             }
             ImGui.End();
-            ImGui.PopStyleColor();
             ImGui.PopStyleColor();
             ImGui.PopStyleVar();
         }
@@ -151,18 +149,13 @@ internal class ClipZoneSelector : Window
         ImGui.Dummy(new(20f, 20f));
 
         ImGuiEx.Text($"       You have {P.Config.ClipZones.Count} clip zones.");
-        if (P.Config.ClipZones.Count == 0)
-        {
-            ImGuiEx.Text($"       Your whole screen will be used to render Splatoon draws.");
-        }
-
         ImGuiEx.Text($"       Right click to bring context menu.");
         if (ImGui.IsWindowHovered() && ImGui.IsMouseClicked(ImGuiMouseButton.Right))
         {
-            ImGui.OpenPopup("Main rzs popup");
+            ImGui.OpenPopup("Main czs popup");
         }
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10f, 10f));
-        if (ImGui.BeginPopup("Main rzs popup"))
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f));
+        if (ImGui.BeginPopup("Main czs popup"))
         {
             HandlePopupMenu();
             ImGui.EndPopup();

@@ -179,7 +179,19 @@ public class Stroke : IDisposable
                     return;
                 }
 
-                float thickness = (start.thickness) / k.renderTargetSize.y;
+                if (start.projPos.w > stop.projPos.w)
+                {
+                    VSOutput tmp = start;
+                    start = stop;
+                    stop = tmp;
+                }
+
+                float nearPlane = 0.1;
+                if (start.projPos.w < nearPlane)
+                {
+            	    float ratio = (nearPlane - start.projPos.w) / (stop.projPos.w - start.projPos.w);
+            	    start.projPos = lerp(start.projPos, stop.projPos, ratio);
+                }
             
                 float4 p0 = start.projPos;
                 float w0 = unscale(p0);
@@ -187,24 +199,30 @@ public class Stroke : IDisposable
                 float w1 = unscale(p1);
 
                 float4 normal = get_normal(p0, p1);
-                normal.xy *= thickness;
+
+                float4 start_normal = normal;
+                start_normal.xy *= (start.thickness) / k.renderTargetSize.y;
+
+                float4 stop_normal = normal;
+                stop_normal.xy *= (stop.thickness) / k.renderTargetSize.y;
 
                 GSOutput v;
                 v.thickness = start.thickness;
-                v.normal = 1;
                 v.color = start.color;
-                v.projPos = w0 * (p0 + normal);
+                v.normal = 1;
+                v.projPos = w0 * (p0 + start_normal);
                 output.Append(v);
                 v.normal = -1;
-                v.projPos = w0 * (p0 - normal);
+                v.projPos = w0 * (p0 - start_normal);
                 output.Append(v);
 
+                v.thickness = stop.thickness;
                 v.color = stop.color;
                 v.normal = 1;
-                v.projPos = w1 * (p1 + normal);
+                v.projPos = w1 * (p1 + stop_normal);
                 output.Append(v);
                 v.normal = -1;
-                v.projPos = w1 * (p1 - normal);
+                v.projPos = w1 * (p1 - stop_normal);
                 output.Append(v);
             }
 

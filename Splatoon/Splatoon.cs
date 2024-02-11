@@ -34,6 +34,7 @@ public unsafe class Splatoon : IDalamudPlugin
     public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
     public string Name => "Splatoon";
     public static Splatoon P;
+    public const int MAX_CLIP_ZONES = 32;
     internal OverlayGui DrawingGui;
     internal CGui ConfigGui;
     internal Commands CommandManager;

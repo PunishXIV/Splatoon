@@ -44,7 +44,7 @@ public unsafe class Renderer : IDisposable
         Stroke = new(RenderContext);
         _strokeDynamicData = new(RenderContext, 4096, true);
         ClipZone = new(RenderContext);
-        _clipDynamicData = new(RenderContext, 32, true);
+        _clipDynamicData = new(RenderContext, MAX_CLIP_ZONES, true);
         // https://github.com/goatcorp/Dalamud/blob/d52118b3ad366a61216129c80c0fa250c885abac/Dalamud/Game/Gui/GameGuiAddressResolver.cs#L69
         _engineCoreSingleton = Marshal.GetDelegateForFunctionPointer<GetEngineCoreSingletonDelegate>(Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4C 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??"))();
     }

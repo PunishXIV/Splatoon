@@ -6,12 +6,12 @@ public class Fan
 {
     public static void Stroke(Stroke.Data.Builder stroke, DisplayObjectFan fan, int segments)
     {
-        Vector3 origin = XZY(fan.origin);
+        Vector3 origin = fan.origin;
         DisplayStyle style = fan.style;
         float totalAngle = fan.angleMax - fan.angleMin;
         float angleStep = totalAngle / segments;
 
-        bool isCircle = totalAngle == MathF.PI * 2;
+        bool isCircle = totalAngle >= 2 * MathF.PI;
 
         if (isCircle)
         {

@@ -173,7 +173,7 @@ unsafe class OverlayGui : IDisposable
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.z, e.y), out Vector2 pos))
+        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.y, e.z), out Vector2 pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,

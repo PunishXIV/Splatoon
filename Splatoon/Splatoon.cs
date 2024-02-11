@@ -1046,19 +1046,19 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if (e.Donut > 0)
                 {
-                    displayObjects.Add(new DisplayObjectDonut(new(cx, cy, z + e.offZ), r, e.Donut, e.StyleWithOverride));
+                    displayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.StyleWithOverride));
                     if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
                 }
                 else
                 {
                     DisplayStyle style = e.StyleWithOverride;
-                    displayObjects.Add(new DisplayObjectCircle(new(cx, cy, z + e.offZ), r, style));
+                    displayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, style));
                     if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
                 }
             }
             else
             {
-                displayObjects.Add(new DisplayObjectDot(cx, cy, z + e.offZ, e.thicc, e.color));
+                displayObjects.Add(new DisplayObjectDot(cx, z + e.offZ, cy, e.thicc, e.color));
             }
         }
         if (e.overlayText.Length > 0)
@@ -1092,8 +1092,14 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             float angleMin = -baseAngle + e.AdditionalRotation + e.coneAngleMin.DegreesToRadians();
             float angleMax = -baseAngle + e.AdditionalRotation + e.coneAngleMax.DegreesToRadians();
+            float totalAngle = angleMax - angleMin;
+            if (totalAngle >= 2 * MathF.PI)
+            {
+                angleMin = 0;
+                angleMax = 2 * MathF.PI;
+            }
 
-            var center = RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ));
+            var center = XZY(RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ)));
             float innerRadius = 0;
             float outerRadius = radius ?? e.radius;
             if (e.Donut > 0)

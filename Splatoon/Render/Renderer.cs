@@ -124,7 +124,7 @@ public unsafe class Renderer : IDisposable
         if (fan.style.filled)
         {
             GetFanFills().Add(
-                XZY(fan.origin),
+                fan.origin,
                 fan.innerRadius,
                 fan.outerRadius,
                 fan.angleMin,

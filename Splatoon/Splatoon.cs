@@ -1108,6 +1108,15 @@ public unsafe class Splatoon : IDalamudPlugin
                 innerRadius = outerRadius;
                 outerRadius = innerRadius + e.Donut;
             }
+            if (e.tether)
+            {
+                Vector3 end = XZY(GetPlayerPositionXZY());
+                if (e.ExtraTetherLength > 0)
+                {
+                    end += Vector3.Normalize(end - center) * e.ExtraTetherLength;
+                }
+                displayObjects.Add(new DisplayObjectLine(center, end, 0, e.StyleWithOverride));
+            }
             displayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.StyleWithOverride));
         }
     }

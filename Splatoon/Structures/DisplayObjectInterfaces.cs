@@ -22,10 +22,10 @@ public class DisplayObjectDot : DisplayObject
 
 public class DisplayObjectFan : DisplayObject
 {
-    public Vector3 origin;
+    public readonly Vector3 origin;
 
-    public float innerRadius, outerRadius, angleMin, angleMax;
-    public DisplayStyle style;
+    public readonly float innerRadius, outerRadius, angleMin, angleMax;
+    public readonly DisplayStyle style;
     public DisplayObjectFan(Vector3 origin, float innerRadius, float outerRadius, float angleMin, float angleMax, DisplayStyle style)
     {
         this.origin = origin;

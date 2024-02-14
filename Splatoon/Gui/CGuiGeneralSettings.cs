@@ -105,16 +105,15 @@ partial class CGui
         if (ImGui.CollapsingHeader("Global Style Overrides"))
         {
             ImGui.Indent();
-            SImGuiEx.SizedText("Minimum Fill Alpha", CGui.WidthElement);
+            SImGuiEx.SizedText("Minimum Fill Alpha:", CGui.WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
-            ImGui.DragInt("##minfillalpha", ref P.Config.MinFillAlpha, 1, 0, P.Config.MaxFillAlpha);
+            ImGui.SliderInt("##minfillalpha", ref P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
 
-            SImGuiEx.SizedText("Maximum Fill Alpha", CGui.WidthElement);
+            SImGuiEx.SizedText("Maximum Fill Alpha:", CGui.WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
-            ImGui.DragInt("##maxfillalpha", ref P.Config.MaxFillAlpha, 1, P.Config.MinFillAlpha, 255);
-            
+            ImGui.SliderInt("##maxfillalpha", ref P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
             // If min == max, users can break ints out of min and max values in the UI. Clamp to sane values for safety.
             P.Config.MinFillAlpha = Math.Clamp(P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
             P.Config.MaxFillAlpha = Math.Clamp(P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);

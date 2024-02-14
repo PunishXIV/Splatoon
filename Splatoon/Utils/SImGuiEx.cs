@@ -159,24 +159,48 @@ public static class SImGuiEx //came here to laugh on how scuffed it is? let's do
         {
             edited = true;
         }
-        ImGui.SameLine();
-        ImGuiEx.Text("Origin:".Loc());
-        ImGui.SameLine();
-        v4 = ImGui.ColorConvertU32ToFloat4(style.originFillColor);
-        if (ImGui.ColorEdit4("##fillorigincolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+        if (!style.filled) ImGui.BeginDisabled();
         {
-            style.originFillColor = ImGui.ColorConvertFloat4ToU32(v4);
-            edited = true;
+            ImGui.SameLine();
+            if (style.overrideFillColor) ImGui.BeginDisabled();
+            ImGuiEx.Text("Intensity:".Loc());
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
+            if (ImGui.SliderFloat("##fillintensity" + name, ref style.fillIntensity, 0f, 1f))
+            {
+                edited = true;
+            }
+            if (style.overrideFillColor) ImGui.EndDisabled();
+            ImGui.Indent(CGui.WidthElement + 15f);
+            {
+                if (ImGui.Checkbox("Override Colors".Loc() + "##name" + name, ref style.overrideFillColor))
+                {
+                    edited = true;
+                }
+                if (!style.overrideFillColor) ImGui.BeginDisabled();
+                ImGui.SameLine();
+                ImGuiEx.Text("Origin:".Loc());
+                ImGui.SameLine();
+                v4 = ImGui.ColorConvertU32ToFloat4(style.originFillColor);
+                if (ImGui.ColorEdit4("##fillorigincolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+                {
+                    style.originFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+                    edited = true;
+                }
+                ImGui.SameLine();
+                ImGuiEx.Text("End:".Loc());
+                ImGui.SameLine();
+                v4 = ImGui.ColorConvertU32ToFloat4(style.endFillColor);
+                if (ImGui.ColorEdit4("##fillendcolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+                {
+                    style.endFillColor = ImGui.ColorConvertFloat4ToU32(v4);
+                    edited = true;
+                }
+                if (!style.overrideFillColor) ImGui.EndDisabled();
+            }
+            ImGui.Unindent(CGui.WidthElement + 15f);
         }
-        ImGui.SameLine();
-        ImGuiEx.Text("End:".Loc());
-        ImGui.SameLine();
-        v4 = ImGui.ColorConvertU32ToFloat4(style.endFillColor);
-        if (ImGui.ColorEdit4("##fillendcolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
-        {
-            style.endFillColor = ImGui.ColorConvertFloat4ToU32(v4);
-            edited = true;
-        }
+        if (!style.filled) ImGui.EndDisabled();
         return edited;
     }
 }

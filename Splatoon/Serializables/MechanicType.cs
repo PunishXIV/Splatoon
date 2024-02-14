@@ -43,12 +43,12 @@ public static class MechanicTypes {
 
     public static readonly Dictionary<MechanicType, DisplayStyle> DefaultMechanicColors = new()
     {
-         { MechanicType.Unspecified, new(0xC8006FFF, 2f, 0x45006FFF, 0x45006FFF) },
-         { MechanicType.Danger, new(0xC80000FF, 2f, 0x450000FF, 0x450000FF) },
-         { MechanicType.Safe, new(0xC800D114, 2f, 0x4500D114, 0x4500D114) },
-         { MechanicType.Soak, new(0xC8FF9000, 2f, 0x45FF9000, 0x45FF9000) },
-         { MechanicType.Gaze, new(0xC8A000D6, 2f, 0x45A000D6, 0x45A000D6) },
-         { MechanicType.Knockback, new(0xC800F7FF, 2f, 0x4500F7FF, 0x4500F7FF) },
+         { MechanicType.Unspecified, new(0xC8006FFF, 2f, 0.3f, 0x45006FFF, 0x45006FFF) },
+         { MechanicType.Danger, new(0xC80000FF, 2f, 0.3f, 0x450000FF, 0x450000FF) },
+         { MechanicType.Safe, new(0xC800D114, 2f, 0.3f, 0x4500D114, 0x4500D114) },
+         { MechanicType.Soak, new(0xC8FF9000, 2f, 0.3f, 0x45FF9000, 0x45FF9000) },
+         { MechanicType.Gaze, new(0xC8A000D6, 2f, 0.3f, 0x45A000D6, 0x45A000D6) },
+         { MechanicType.Knockback, new(0xC800F7FF, 2f, 0.3f, 0x4500F7FF, 0x4500F7FF) },
     };
 
     public static bool CanOverride(MechanicType type)

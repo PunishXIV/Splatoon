@@ -70,7 +70,7 @@ public class DisplayObjectLine : DisplayObject
         this.start = new Vector3(ax, az, ay);
         this.stop = new Vector3(bx, bz, by);
         this.radius = 0;
-        this.style = new DisplayStyle(color, thickness, 0, 0);
+        this.style = new DisplayStyle(color, thickness, 0f, 0, 0);
     }
     public Vector3 Direction
     {

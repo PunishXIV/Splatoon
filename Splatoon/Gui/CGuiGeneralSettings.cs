@@ -177,7 +177,8 @@ partial class CGui
             P.ClipZoneSelector.IsOpen = true;
         }
         ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will NOT draw elements. Text is currently not clipped.".Loc());
-
+        ImGui.Checkbox("Automatically clip Splatoon's elements around native UI elements and windows", ref P.Config.AutoClipNativeUI);
+        ImGuiComponents.HelpMarker("Some native elements are not supported, but they may be added later. Text is currently not clipped.".Loc());
         ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows", ref P.Config.SplatoonLowerZ);
         ImGui.Separator();
 

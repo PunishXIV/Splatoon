@@ -12,12 +12,14 @@ unsafe class OverlayGui : IDisposable
     const int MAXIMUM_CIRCLE_SEGMENTS = 240;
 
     Renderer renderer;
+    AutoClipZones autoClipZones;
     readonly Splatoon p;
     int uid = 0;
     public OverlayGui(Splatoon p)
     {
         this.p = p;
         renderer = new Renderer();
+        autoClipZones = new AutoClipZones(renderer);
         Svc.PluginInterface.UiBuilder.Draw += Draw;
     }
 
@@ -51,6 +53,7 @@ unsafe class OverlayGui : IDisposable
             uid = 0;
             try
             {
+                if (p.Config.AutoClipNativeUI) autoClipZones.Update();
                 if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StartTick();
                 RenderTarget renderTarget = Direct3DDraw();
                 if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StopTick();

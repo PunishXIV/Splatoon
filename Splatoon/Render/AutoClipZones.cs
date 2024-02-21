@@ -12,7 +12,7 @@ namespace Splatoon.Render;
  */
 internal class AutoClipZones
 {
-    private readonly string[] _hotbarAddonNames = { "_ActionBar", "_ActionBar01", "_ActionBar02", "_ActionBar03", "_ActionBar04", "_ActionBar05", "_ActionBar06", "_ActionBar07", "_ActionBar08", "_ActionBar09" };
+    private readonly string[] _hotbarAddonNames = { "_ActionBar", "_ActionBar01", "_ActionBar02", "_ActionBar03", "_ActionBar04", "_ActionBar05", "_ActionBar06", "_ActionBar07", "_ActionBar08", "_ActionBar09", "_ActionBarEx" };
     private static List<string> _ignoredAddonNames = new List<string>()
         {
             "_FocusTargetInfo",
@@ -29,7 +29,38 @@ internal class AutoClipZones
         UpdateWindows();
         UpdateTargetCastbarClipRect();
         UpdateHotbarsClipRects();
+        UpdatePartyListClipRects();
         UpdateChatBubbleClipRect();
+    }
+
+    private unsafe void UpdatePartyListClipRects()
+    {
+        AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_PartyList", 1);
+        if (addon == null || !addon->IsVisible) { return; }
+
+        if (addon->UldManager.NodeListCount < 2) { return; }
+
+        AtkResNode* baseNode = addon->UldManager.NodeList[0];
+
+        for (int i = 6; i < 23; i++)
+        {
+            AtkResNode* slotNode = addon->UldManager.NodeList[i];
+            if (slotNode is null) continue;
+
+            if (slotNode->IsVisible)
+            {
+                Vector2 pos = new Vector2(
+                    slotNode->ScreenX + (18f * addon->Scale),
+                    slotNode->ScreenY
+                    );
+                Vector2 size = new Vector2(
+                    slotNode->Width * addon->Scale - 25f * addon->Scale,
+                    slotNode->Height * addon->Scale - 5f * addon->Scale
+                    );
+
+                renderer.AddClipZone(ClipRect(pos, pos + size));
+            }
+        }
     }
 
     public unsafe void UpdateWindows()
@@ -120,7 +151,7 @@ internal class AutoClipZones
 
             if (firstNode == null || lastNode == null) { continue; }
 
-            float margin = 10f * addon->Scale;
+            float margin = 15f * addon->Scale;
 
             Vector2 min = new Vector2(
                 addon->X + (firstNode->X * addon->Scale) + margin,

@@ -1,8 +1,8 @@
-﻿using ECommons.ExcelServices.TerritoryEnumeration;
-using ECommons.LanguageHelpers;
-using ImGuiNET;
-using Splatoon.Structures;
+﻿using ECommons.LanguageHelpers;
+using Splatoon.Serializables;
+using Splatoon.Utils;
 using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace Splatoon;
 
@@ -13,33 +13,32 @@ public class Element
     public static string[] ElementTypes = Array.Empty<string>();
     [NonSerialized] public static string[] ActorTypes = Array.Empty<string>();
     [NonSerialized] public static string[] ComparisonTypes = Array.Empty<string>();
-
     public static void Init()
     {
         ElementTypes = new string[]{
             "Circle at fixed coordinates".Loc(),
-        "Circle relative to object position".Loc(),
-        "Line between two fixed coordinates".Loc(),
-        "Line relative to object position".Loc(),
-        "Cone relative to object position".Loc(),
-        "Cone at fixed coordinates".Loc()
-        }; 
+            "Circle relative to object position".Loc(),
+            "Line between two fixed coordinates".Loc(),
+            "Line relative to object position".Loc(),
+            "Cone relative to object position".Loc(),
+            "Cone at fixed coordinates".Loc()
+        };
         ActorTypes = new string[] {
-            "Game object with specific data".Loc(), 
-        "Self".Loc(), 
-        "Targeted enemy".Loc()
+            "Game object with specific data".Loc(),
+            "Self".Loc(),
+            "Targeted enemy".Loc()
         };
         ComparisonTypes = new string[]{
-        "Name (case-insensitive, partial)".Loc(),
-        "Model ID".Loc(),
-        "Object ID".Loc(),
-        "Data ID".Loc(),
-        "NPC ID".Loc(),
-        "Placeholder".Loc(),
-        "NPC Name ID".Loc(),
-        "VFX Path".Loc(),
-        "Object Effect".Loc()
-    };
+            "Name (case-insensitive, partial)".Loc(),
+            "Model ID".Loc(),
+            "Object ID".Loc(),
+            "Data ID".Loc(),
+            "NPC ID".Loc(),
+            "Placeholder".Loc(),
+            "NPC Name ID".Loc(),
+            "VFX Path".Loc(),
+            "Object Effect".Loc()
+        };
     }
 
 
@@ -78,11 +77,10 @@ public class Element
     [DefaultValue(0)] public float Donut = 0f;
     [DefaultValue(0)] public int coneAngleMin = 0;
     [DefaultValue(0)] public int coneAngleMax = 0;
-    [DefaultValue(true)] public bool Filled = true;
-    [Obsolete("Not used. Use originFillColor and endFillColor to change color and transparency.")][DefaultValue(0.5f)]
-    public float FillStep = 0.5f;
-    [Obsolete][DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(0xc80000ff)] public uint color = 0xc80000ff;
+    [DefaultValue(true)] public bool Filled = true;
+    [DefaultValue(null)] public float? fillIntensity = null;
+    [DefaultValue(false)] public bool overrideFillColor = false;
     [DefaultValue(null)] public uint? originFillColor = null;
     [DefaultValue(null)] public uint? endFillColor = null;
     [DefaultValue(0x70000000)] public uint overlayBGColor = 0x70000000;
@@ -147,6 +145,7 @@ public class Element
     [DefaultValue(false)] public bool onlyUnTargetable = false;
     [DefaultValue(false)] public bool onlyVisible = false;
     [DefaultValue(false)] public bool tether = false;
+    [DefaultValue(0f)] public float ExtraTetherLength = 0f;
     [DefaultValue(0f)] public float AdditionalRotation = 0f;
     [DefaultValue(false)] public bool LineAddHitboxLengthX = false;
     [DefaultValue(false)] public bool LineAddHitboxLengthY = false;
@@ -181,9 +180,24 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectEffectLastOnly = false;
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     [DefaultValue(0)] public int refActorTransformationID = 0;
+    [DefaultValue(MechanicType.Unspecified)] public MechanicType mechanicType = MechanicType.Unspecified;
+    [Obsolete("Not used. Use mechanicType.")]
     [DefaultValue(false)] public bool Unsafe = false;
+    [Obsolete("Not used. Use fillIntensity or originFillColor and endFillColor to change color and transparency.")]
+    [DefaultValue(0.5f)] public float FillStep = 0.5f;
+    [Obsolete("Not used. Use mechanicType.")]
+    [DefaultValue(false)] public bool LegacyFill = false;
 
-    internal uint DefaultFillColor()
+    [OnDeserialized]
+    public void OnDeserialized(StreamingContext context)
+    {
+        if (Unsafe && mechanicType == MechanicType.Unspecified)
+        {
+            mechanicType = MechanicType.Danger;
+        }
+    }
+
+    internal float DefaultFillIntensity()
     {
         // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
         float transparencyFromStroke = (float)(color >> 24) / 0xC8;
@@ -207,22 +221,30 @@ public class Element
             transparencyFromFillStep *= 4;
         }
         uint fillTransparency = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
-        // Replace the stroke color's transparency with the generated value.
-        uint fillColor = color & 0x00FFFFFF | (fillTransparency << 24);
-        return fillColor;
+        return fillTransparency / 255f;
     }
 
+    [IgnoreDataMember]
     public DisplayStyle Style
     {
+        set
+        {
+            color = value.strokeColor;
+            thicc = value.strokeThickness;
+            Filled = value.filled;
+            overrideFillColor = value.overrideFillColor;
+            fillIntensity = value.fillIntensity;
+            originFillColor = value.originFillColor;
+            endFillColor = value.endFillColor;
+        }
+
         get
         {
-            // Most elements need fill migration they used line fill with Filled = false.
-            bool needsPolygonalFillMigration = originFillColor == null || endFillColor == null;
+            // Most elements used line fill with Filled = false and need fill migration.
+            bool needsPolygonalFillMigration = this.fillIntensity == null;
+            float fillIntensity = this.fillIntensity ?? DefaultFillIntensity();
             if (needsPolygonalFillMigration)
             {
-                uint defaultFillColor = DefaultFillColor();
-                originFillColor = defaultFillColor;
-                endFillColor = defaultFillColor;
                 // Non-donut circles are the only shapes that don't need fill migration because they had functioning Fill.
                 bool isCircle = type.EqualsAny(0, 1) && Donut == 0;
                 if (!isCircle)
@@ -231,12 +253,46 @@ public class Element
                 }
             }
 
-            if (Filled)
-            {
-                return new DisplayStyle(color, thicc, originFillColor ?? DefaultFillColor(), endFillColor ?? DefaultFillColor());
-            }
-            return new DisplayStyle(color, thicc, 0, 0);
+            uint originFillColor = this.originFillColor ?? Colors.MultiplyAlpha(color, fillIntensity);
+            uint endFillColor = this.endFillColor ?? Colors.MultiplyAlpha(color, fillIntensity);
+
+            return new DisplayStyle(color, thicc, fillIntensity, originFillColor, endFillColor, Filled, overrideFillColor);
         }
+    }
+
+
+    [IgnoreDataMember]
+    public DisplayStyle StyleWithOverride
+    {
+        get
+        {
+            DisplayStyle style = Style;
+
+            if (P.Config.StyleOverrides.ContainsKey(mechanicType))
+            {
+                (var overrideEnabled, var overrideStyle) = P.Config.StyleOverrides[mechanicType];
+                if (overrideEnabled)
+                {
+                    style = overrideStyle;
+                }
+            }
+            if (!style.overrideFillColor)
+            {
+                uint defaultColor = Colors.MultiplyAlpha(style.strokeColor, style.fillIntensity);
+                style.originFillColor = defaultColor;
+                style.endFillColor = defaultColor;
+            }
+
+            style.originFillColor = P.Config.ClampFillColorAlpha(style.originFillColor);
+            style.endFillColor = P.Config.ClampFillColorAlpha(style.endFillColor);
+            return style;
+        }
+    }
+
+    [IgnoreDataMember]
+    public bool IsDangerous
+    {
+        get => mechanicType == MechanicType.Danger;
     }
 
     public bool ShouldSerializerefActorTransformationID()

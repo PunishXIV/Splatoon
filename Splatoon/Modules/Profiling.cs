@@ -15,7 +15,7 @@ class Profiling
     public StopwatchWrapper MainTickActorTableScan = new StopwatchWrapper();
     public StopwatchWrapper MainTick = new StopwatchWrapper();
     public StopwatchWrapper Gui = new StopwatchWrapper();
-    public StopwatchWrapper GuiLines = new StopwatchWrapper();
+    public StopwatchWrapper GuiDirect3d = new StopwatchWrapper();
 
     internal Profiling(Splatoon p)
     {

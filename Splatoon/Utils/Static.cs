@@ -525,14 +525,6 @@ public static unsafe class Static
         return A + Vector3.Multiply(D, d);
     }
 
-    // Linear interpolation between 1-byte components of uint32
-    // Intended for interpolating colors
-    public static uint Lerp(uint v1, uint v2, float amount)
-    {
-        if (v1 == v2) return v1;
-        return Vector4.Lerp(v1.ToVector4(), v2.ToVector4(), amount).ToUint();
-    }
-
     public static float DegreesToRadians(this int val)
     {
         return (float)(Math.PI / 180f * val);

@@ -61,8 +61,6 @@ unsafe partial class CGui
             }
             catch(Exception e) { e.Log(); }
         }
-        ImGui.Checkbox("Disable line fix", ref p.DisableLineFix);
-        ImGuiEx.Text($"Line segments: {P.CurrentLineSegments}");
         {
             var t = Environment.TickCount64 - p.CombatStarted;
             ImGuiEx.Text("CombatStarted = " + t);

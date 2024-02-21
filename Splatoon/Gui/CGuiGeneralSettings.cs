@@ -2,6 +2,7 @@
 using Dalamud.Interface.Components;
 using ECommons.LanguageHelpers;
 using Splatoon.Modules;
+using Splatoon.Serializables;
 using Splatoon.Utils;
 using Localization = ECommons.LanguageHelpers.Localization;
 
@@ -58,7 +59,7 @@ partial class CGui
             ProcessStart("https://github.com/PunishXIV/Splatoon#web-api-beta");
         }
 
-        if(ImGui.Checkbox("Enable logging".Loc(), ref P.Config.Logging))
+        if (ImGui.Checkbox("Enable logging".Loc(), ref P.Config.Logging))
         {
             Logger.OnTerritoryChanged();
         }
@@ -71,7 +72,7 @@ partial class CGui
         ImGuiEx.TextV("Splatoon language: ".Loc());
         ImGui.SameLine();
         ImGui.SetNextItemWidth(150f.Scale());
-        if(ImGui.BeginCombo("##langsel", P.Config.PluginLanguage == null?"Game language".Loc() : P.Config.PluginLanguage.Loc()))
+        if (ImGui.BeginCombo("##langsel", P.Config.PluginLanguage == null ? "Game language".Loc() : P.Config.PluginLanguage.Loc()))
         {
             if (ImGui.Selectable("Game language".Loc()))
             {
@@ -90,25 +91,67 @@ partial class CGui
         }
         ImGui.Checkbox("Localization logging".Loc(), ref Localization.Logging);
         ImGui.SameLine();
-        if(ImGui.Button("Save entries: ??".Loc(P.Config.PluginLanguage ?? GameLanguageString)))
+        if (ImGui.Button("Save entries: ??".Loc(P.Config.PluginLanguage ?? GameLanguageString)))
         {
             Localization.Save(P.Config.PluginLanguage ?? GameLanguageString);
         }
         ImGui.SameLine();
-        if(ImGui.Button("Rescan language files".Loc()))
+        if (ImGui.Button("Rescan language files".Loc()))
         {
             GetAvaliableLanguages(true);
         }
         ImGui.Separator();
-
-        SImGuiEx.SizedText("Circle smoothness:".Loc(), WidthLayout);
-        ImGui.SameLine();
         ImGui.SetNextItemWidth(100f);
-        ImGui.DragInt("##circlesmoothness", ref p.Config.segments, 0.1f, 10, 150);
-        ImGuiComponents.HelpMarker("Higher - smoother circle, higher cpu usage".Loc());
+        if (ImGui.CollapsingHeader("Global Style Overrides"))
+        {
+            ImGui.Indent();
+            SImGuiEx.SizedText("Minimum Fill Alpha:", CGui.WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
+            ImGui.SliderInt("##minfillalpha", ref P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
 
-        ImGui.Checkbox("Disable circle fix while enabling drawing circles above your point of view", ref P.Config.NoCircleFix);
-        ImGuiComponents.HelpMarker("Do not enable it unless you actually need it. Large circles may be rendered incorrectly under certain camera angle with this option enabled.");
+            SImGuiEx.SizedText("Maximum Fill Alpha:", CGui.WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
+            ImGui.SliderInt("##maxfillalpha", ref P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
+            // If min == max, users can break ints out of min and max values in the UI. Clamp to sane values for safety.
+            P.Config.MinFillAlpha = Math.Clamp(P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
+            P.Config.MaxFillAlpha = Math.Clamp(P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
+            ImGui.Separator();
+            foreach (MechanicType mech in MechanicTypes.Values)
+            {
+                if (!MechanicTypes.CanOverride(mech)) continue;
+                string name = MechanicTypes.Names[(int)mech];
+                bool hasOverride = P.Config.StyleOverrides.ContainsKey(mech);
+
+                bool enableOverride = false;
+                DisplayStyle style = MechanicTypes.DefaultMechanicColors[mech];
+                if (hasOverride)
+                {
+                    (enableOverride, style) = P.Config.StyleOverrides[mech];
+                }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, style.strokeColor);
+                SImGuiEx.SizedText(name, CGui.WidthElement);
+                ImGui.PopStyleColor();
+
+                ImGui.SameLine();
+                ImGui.Checkbox("Override##" + name, ref enableOverride);
+                ImGui.SameLine();
+                ImGui.PushStyleColor(ImGuiCol.Text, style.strokeColor);
+                if (ImGui.Button("Reset To Default##" + name))
+                {
+                    style = MechanicTypes.DefaultMechanicColors[mech];
+                }
+                ImGui.PopStyleColor();
+
+                SImGuiEx.StyleEdit(name, ref style);
+
+                P.Config.StyleOverrides[mech] = new(enableOverride, style);
+                ImGui.Separator();
+            }
+            ImGui.Unindent();
+        }
 
         SImGuiEx.SizedText("Drawing distance:".Loc(), WidthLayout);
         ImGui.SameLine();
@@ -116,81 +159,36 @@ partial class CGui
         ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
         ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
-        SImGuiEx.SizedText("Line segments:".Loc(), WidthLayout);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(100f);
-        ImGui.DragInt("##linesegments", ref p.Config.lineSegments, 0.1f, 10, 50);
-        p.Config.lineSegments.ValidateRange(10, 100);
-        ImGuiComponents.HelpMarker("Increase this if your lines stop drawing too far from the screen edges or if line disappears when you are zoomed in and near it's edge. Increasing this setting hurts performance EXTRAORDINARILY.".Loc());
-        if(p.Config.lineSegments > 10)
+        if (ImGui.IsItemHovered())
         {
-            ImGuiEx.TextWrapped(ImGuiColors.DalamudOrange, "Non-standard line segment setting. Performance of your game may be impacted. Please CAREFULLY increase this setting until everything works as intended and do not increase it further. \nConsider increasing minimal rectangle fill line thickness to mitigate performance loss, if you will experience it.".Loc());
+            ImGui.SetTooltip(
+                "Choose a mechanic type that best represents this element.\n" +
+                "This is used for automatically setting default colors.");
         }
-        if (p.Config.lineSegments > 25)
-        {
-            ImGuiEx.TextWrapped(Environment.TickCount % 1000 > 500 ? ImGuiColors.DalamudRed : ImGuiColors.DalamudYellow,
-                "Your line segment setting IS EXTREMELY HIGH AND MAY SIGNIFICANTLY IMPACT PERFORMANCE.\nIf you really have to set it to this value to make it work, please contact developer and provide details.".Loc());
-        }
-        if(ImGui.Button("Configure screen zones where Splatoon will draw it's elements"))
+
+        if (ImGui.Button("Edit Draw Zones" ))
         {
             P.RenderableZoneSelector.IsOpen = true;
         }
+        ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will draw its elements".Loc());
+
+        if (ImGui.Button("Edit Clip Zones"))
+        {
+            P.ClipZoneSelector.IsOpen = true;
+        }
+        ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will NOT draw elements. Text is currently not clipped.".Loc());
+        ImGui.Checkbox("Automatically clip Splatoon's elements around native UI elements and windows", ref P.Config.AutoClipNativeUI);
+        ImGuiComponents.HelpMarker("Some native elements are not supported, but they may be added later. Text is currently not clipped.".Loc());
         ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows", ref P.Config.SplatoonLowerZ);
         ImGui.Separator();
-        ImGuiEx.Text("Fill settings:".Loc());
-        ImGui.SameLine();
-        ImGuiEx.Text("            Screwed up?".Loc());
-        ImGui.SameLine();
-        if(ImGui.SmallButton("Reset this section".Loc()))
-        {
-            var def = new Configuration();
-            P.Config.AltConeStep = def.AltConeStep;
-            P.Config.AltConeStepOverride = def.AltConeStepOverride;
-            P.Config.AltDonutStep = def.AltDonutStep;
-            P.Config.AltDonutStepOverride = def.AltDonutStepOverride;
-            P.Config.AltRectFill = def.AltRectFill;
-            P.Config.AltRectForceMinLineThickness = def.AltRectForceMinLineThickness;
-            P.Config.AltRectHighlightOutline = def.AltRectHighlightOutline;
-            P.Config.AltRectMinLineThickness = def.AltRectMinLineThickness;
-            P.Config.AltRectStep = def.AltRectStep;
-            P.Config.AltRectStepOverride = def.AltRectStepOverride;
-        }
-        ImGui.Checkbox("Use line rectangle filling".Loc(), ref p.Config.AltRectFill);
-        ImGuiComponents.HelpMarker("Fill rectangles with stroke instead of full color. This will remove clipping issues, but may feel more disturbing.".Loc());
-        
 
-        ImGui.SetNextItemWidth(60f);
-        ImGui.DragFloat("Minimal rectangle fill line interval".Loc(), ref p.Config.AltRectStep, 0.001f, 0, float.MaxValue);
-        ImGui.SameLine();
-        ImGui.Checkbox($"{Loc("Always force this value")}##1", ref P.Config.AltRectStepOverride);
-
-        ImGui.SetNextItemWidth(60f);
-        ImGui.DragFloat("Minimal rectangle fill line thickness".Loc(), ref p.Config.AltRectMinLineThickness, 0.001f, 0.01f, float.MaxValue);
-        ImGuiComponents.HelpMarker("Problems with performance while rectangles are visible? Increase this value.".Loc());
-        ImGui.SameLine();
-        ImGui.Checkbox($"{Loc("Always force this value")}##2", ref P.Config.AltRectForceMinLineThickness);
-        ImGui.Checkbox("Additionally highlight rectangle outline".Loc(), ref p.Config.AltRectHighlightOutline);
-
-        ImGui.SetNextItemWidth(60f);
-        ImGui.DragFloat("Minimal donut fill line interval".Loc(), ref p.Config.AltDonutStep, 0.001f, 0.01f, float.MaxValue);
-        ImGuiComponents.HelpMarker("Problems with performance while rectangles are visible? Increase this value.".Loc());
-        ImGui.SameLine();
-        ImGui.Checkbox("Always force this value".Loc()+"##3", ref P.Config.AltDonutStepOverride);
-
-        ImGui.SetNextItemWidth(60f);
-        ImGui.DragInt("Minimal cone fill line interval".Loc(), ref p.Config.AltConeStep, 0.1f, 1, int.MaxValue);
-        ImGui.SameLine();
-        ImGui.Checkbox("Always force this value".Loc()+"##4", ref P.Config.AltConeStepOverride);
-        ImGui.Checkbox($"Use experimental full donut filling", ref P.Config.UseFullDonutFill);
-
-        ImGui.Separator();
         ImGui.Checkbox("Use hexadecimal numbers".Loc(), ref p.Config.Hexadecimal);
         ImGui.Checkbox("Enable tether on Splatoon find command".Loc(), ref p.Config.TetherOnFind);
         ImGui.Checkbox("Force show Splatoon's UI when game UI is hidden".Loc(), ref p.Config.ShowOnUiHide);
         ImGui.Checkbox("Disable script cache".Loc(), ref p.Config.DisableScriptCache);
         Svc.PluginInterface.UiBuilder.DisableUserUiHide = p.Config.ShowOnUiHide;
         //ImGui.Checkbox("Always compare names directly (debug option, ~4x performance loss)", ref p.Config.DirectNameComparison);
-        if(ImGui.Button("Open backup directory".Loc()))
+        if (ImGui.Button("Open backup directory".Loc()))
         {
             ProcessStart(Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Backups"));
         }

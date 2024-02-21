@@ -10,4 +10,12 @@ public static class Colors
     public const uint Transparent = 0x00000000;
     public const uint Green = 0xff00ff00;
     public const uint Yellow = 0xff00ffff;
+
+    public static uint MultiplyAlpha(uint color, float amount)
+    {
+        uint alpha = color >> 24;
+        alpha = (uint)(alpha * amount);
+        alpha = Math.Clamp(alpha, 0x00, 0xFF);
+        return color & 0x00FFFFFF | (alpha << 24);
+    }
 }

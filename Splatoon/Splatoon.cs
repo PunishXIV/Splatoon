@@ -19,6 +19,7 @@ using PInvoke;
 using Splatoon.Gui;
 using Splatoon.Memory;
 using Splatoon.Modules;
+using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using Splatoon.Utils;
@@ -33,6 +34,7 @@ public unsafe class Splatoon : IDalamudPlugin
     public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
     public string Name => "Splatoon";
     public static Splatoon P;
+    public const int MAX_CLIP_ZONES = 32;
     internal OverlayGui DrawingGui;
     internal CGui ConfigGui;
     internal Commands CommandManager;
@@ -90,6 +92,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal HttpClient HttpClient;
     internal PinnedElementEdit PinnedElementEditWindow;
     internal RenderableZoneSelector RenderableZoneSelector;
+    internal ClipZoneSelector ClipZoneSelector;
     internal UnsafeElement UnsafeElement;
     public NotificationMasterApi NotificationMasterApi;
 
@@ -201,6 +204,8 @@ public unsafe class Splatoon : IDalamudPlugin
         //VFXManager = new();
         RenderableZoneSelector = new();
         EzConfigGui.WindowSystem.AddWindow(RenderableZoneSelector);
+        ClipZoneSelector = new();
+        EzConfigGui.WindowSystem.AddWindow(ClipZoneSelector);
         UnsafeElement = new();
         NotificationMasterApi = new(pluginInterface);
         Init = true;
@@ -465,10 +470,6 @@ public unsafe class Splatoon : IDalamudPlugin
                 if (CamAngleX > Math.PI) CamAngleX -= 2 * Math.PI;
                 CamAngleY = Camera.GetAngleY();
                 CamZoom = Math.Min(Camera.GetZoom(), 20);
-                /*Range conversion https://stackoverflow.com/questions/5731863/mapping-a-numeric-range-onto-another
-                slope = (output_end - output_start) / (input_end - input_start)
-                output = output_start + slope * (input - input_start) */
-                CurrentLineSegments = (int)((3f + -0.108108f * (CamZoom - 1.5f)) * Config.lineSegments);
 
                 if (Svc.Condition[ConditionFlag.InCombat])
                 {
@@ -818,12 +819,12 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         else if (e.type == 2)
         {
-            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.Style);
+            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.StyleWithOverride);
             displayObjects.Add(line);
             if (e.radius > 0)
             {
 
-                if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessLine(line);
+                if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
             }
             else if (
                     (
@@ -1031,11 +1032,13 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         if (e.tether)
         {
-            displayObjects.Add(new DisplayObjectLine(cx,
-                cy,
-                z,
-                GetPlayerPositionXZY().X, GetPlayerPositionXZY().Y, GetPlayerPositionXZY().Z,
-                e.thicc, e.color));
+            Vector3 origin = new(cx, z, cy);
+            Vector3 end = XZY(GetPlayerPositionXZY());
+            if (e.ExtraTetherLength > 0)
+            {
+                end += Vector3.Normalize(end - origin) * e.ExtraTetherLength;
+            }
+            displayObjects.Add(new DisplayObjectLine(origin, end, 0, e.StyleWithOverride));
         }
         if (!ShouldDraw(cx, GetPlayerPositionXZY().X, cy, GetPlayerPositionXZY().Y)) return;
         if (e.thicc > 0)
@@ -1044,18 +1047,19 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if (e.Donut > 0)
                 {
-                    displayObjects.Add(new DisplayObjectDonut(new(cx, cy, z + e.offZ), r, e.Donut, e.Style));
-                    if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
+                    displayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.StyleWithOverride));
+                    if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
                 }
                 else
                 {
-                    displayObjects.Add(new DisplayObjectCircle(new(cx, cy, z + e.offZ), r, e.Style));
-                    if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
+                    DisplayStyle style = e.StyleWithOverride;
+                    displayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, style));
+                    if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
                 }
             }
             else
             {
-                displayObjects.Add(new DisplayObjectDot(cx, cy, z + e.offZ, e.thicc, e.color));
+                displayObjects.Add(new DisplayObjectDot(cx, z + e.offZ, cy, e.thicc, e.color));
             }
         }
         if (e.overlayText.Length > 0)
@@ -1089,9 +1093,31 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             float angleMin = -baseAngle + e.AdditionalRotation + e.coneAngleMin.DegreesToRadians();
             float angleMax = -baseAngle + e.AdditionalRotation + e.coneAngleMax.DegreesToRadians();
+            float totalAngle = angleMax - angleMin;
+            if (totalAngle >= 2 * MathF.PI)
+            {
+                angleMin = 0;
+                angleMax = 2 * MathF.PI;
+            }
 
-            var center = RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ));
-            displayObjects.Add(new DisplayObjectFan(center, radius ?? e.radius, angleMin, angleMax, e.Style));
+            var center = XZY(RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ)));
+            float innerRadius = 0;
+            float outerRadius = radius ?? e.radius;
+            if (e.Donut > 0)
+            {
+                innerRadius = outerRadius;
+                outerRadius = innerRadius + e.Donut;
+            }
+            if (e.tether)
+            {
+                Vector3 end = XZY(GetPlayerPositionXZY());
+                if (e.ExtraTetherLength > 0)
+                {
+                    end += Vector3.Normalize(end - center) * e.ExtraTetherLength;
+                }
+                displayObjects.Add(new DisplayObjectLine(center, end, 0, e.StyleWithOverride));
+            }
+            displayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.StyleWithOverride));
         }
     }
 
@@ -1128,9 +1154,9 @@ public unsafe class Splatoon : IDalamudPlugin
                     tPos.Y + e.offY,
                     tPos.Z + e.offZ));
 
-                var line = new DisplayObjectLine(XZY(start), XZY(stop), aradius, e.Style);
+                var line = new DisplayObjectLine(XZY(start), XZY(stop), aradius, e.StyleWithOverride);
                 displayObjects.Add(line);
-                if (UnsafeElement.IsEnabled && e.Unsafe) UnsafeElement.ProcessLine(line);
+                if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
             }
         }
         else

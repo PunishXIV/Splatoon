@@ -1,7 +1,10 @@
 ﻿using Dalamud.Configuration;
 using Dalamud.Interface.Internal.Notifications;
+using Newtonsoft.Json;
 using Splatoon.Gui;
+using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utils;
 using System.Drawing;
 using System.Threading;
 
@@ -20,30 +23,15 @@ class Configuration : IPluginConfiguration
     public List<string> GroupOrder = new();
     public bool dumplog = false;
     public bool verboselog = false;
-    public int segments = 100;
     public float maxdistance = 100;
     //public float maxcamY = 0.05f;
     public int ChlogReadVer = ChlogGui.ChlogVersion;
-    public int lineSegments = 10;
     public bool UseHttpServer = false;
     public int port = 47774;
     public bool TetherOnFind = true;
     public bool DirectNameComparison = false;
     public bool ShowOnUiHide = false;
     public bool Hexadecimal = true;
-    public bool AltRectFill = true;
-
-    public bool AltRectStepOverride = false;
-    public float AltRectStep = 0.01f;
-    public bool AltRectHighlightOutline = true;
-    public float AltRectMinLineThickness = 4f;
-    public bool AltRectForceMinLineThickness = false;
-
-    public bool AltDonutStepOverride = false;
-    public float AltDonutStep = 0.01f;
-
-    public bool AltConeStepOverride = false;
-    public int AltConeStep = 1;
 
     public bool FocusMode = false;
     public bool NoStreamWarning = false;
@@ -57,9 +45,21 @@ class Configuration : IPluginConfiguration
     public HashSet<string> DisabledScripts = new();
     public bool DisableScriptCache = false;
     public List<WrappedRect> RenderableZones = new();
+    public List<WrappedRect> ClipZones = new();
+    public bool AutoClipNativeUI = true;
     public bool RenderableZonesValid = false;
-    public bool UseFullDonutFill = false;
     public bool SplatoonLowerZ = false;
+    public int MinFillAlpha = 0x19;
+    public int MaxFillAlpha = 0x64;
+    [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
+    public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = new();
+
+    public uint ClampFillColorAlpha(uint fillColor)
+    {
+        uint alpha = fillColor >> 24;
+        alpha = Math.Clamp(alpha, (uint)MinFillAlpha, (uint)MaxFillAlpha);
+        return fillColor & 0x00FFFFFF | (alpha << 24);
+    }
 
     public bool ShouldSerializeLayouts()
     {

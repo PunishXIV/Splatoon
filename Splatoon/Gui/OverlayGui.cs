@@ -1,39 +1,31 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
-using ImGuiNET;
 using Splatoon.Structures;
-using System.Runtime.InteropServices;
+using Splatoon.Render;
 
 
 namespace Splatoon.Gui;
 
 unsafe class OverlayGui : IDisposable
 {
-    static readonly Vector2 UV = ImGui.GetFontTexUvWhitePixel();
     const int RADIAL_SEGMENTS_PER_RADIUS_UNIT = 20;
     const int MINIMUM_CIRCLE_SEGMENTS = 24;
     const int MAXIMUM_CIRCLE_SEGMENTS = 240;
-    const int LINEAR_SEGMENTS_PER_UNIT = 1;
 
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    private delegate IntPtr GetMatrixSingletonDelegate();
-    private GetMatrixSingletonDelegate _getMatrixSingleton { get; init; }
-
-    public Matrix4x4 ViewProj { get; private set; }
-    public Vector2 ViewportSize { get; private set; }
-
+    Renderer renderer;
+    AutoClipZones autoClipZones;
     readonly Splatoon p;
     int uid = 0;
     public OverlayGui(Splatoon p)
     {
         this.p = p;
+        renderer = new Renderer();
+        autoClipZones = new AutoClipZones(renderer);
         Svc.PluginInterface.UiBuilder.Draw += Draw;
-        // Ripped from https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Framework/Camera.cs#L32
-        var funcAddress = Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??");
-        _getMatrixSingleton = Marshal.GetDelegateForFunctionPointer<GetMatrixSingletonDelegate>(funcAddress);
     }
 
     public void Dispose()
     {
+        renderer.Dispose();
         Svc.PluginInterface.UiBuilder.Draw -= Draw;
     }
 
@@ -42,14 +34,10 @@ unsafe class OverlayGui : IDisposable
     public static int RadialSegments(float radius, float angleRadians = MathF.PI * 2)
     {
         float angularPercent = angleRadians / (MathF.PI * 2);
-        int segments = (int) (RADIAL_SEGMENTS_PER_RADIUS_UNIT * radius * angularPercent);
+        int segments = (int)(RADIAL_SEGMENTS_PER_RADIUS_UNIT * radius * angularPercent);
         int minimumSegments = Math.Max((int)(MINIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
         int maximumSegments = Math.Max((int)(MAXIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
         return Math.Clamp(segments, minimumSegments, maximumSegments);
-    }
-    public static int HorizontalLinearSegments(float radius)
-    {
-        return Math.Max((int)(radius / LINEAR_SEGMENTS_PER_UNIT), 1);
     }
 
     void Draw()
@@ -61,40 +49,27 @@ unsafe class OverlayGui : IDisposable
             {
                 return;
             }
+
             uid = 0;
-            var matrixSingleton = _getMatrixSingleton();
-            ViewProj = ReadMatrix(matrixSingleton + 0x1b4);
-            ViewportSize = ReadVec2(matrixSingleton + 0x1f4);
             try
             {
+                if (p.Config.AutoClipNativeUI) autoClipZones.Update();
+                if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StartTick();
+                RenderTarget renderTarget = Direct3DDraw();
+                if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StopTick();
+
                 void Draw()
                 {
+                    // Draw pre-rendered shape fills.
+                    ImGui.GetWindowDrawList().AddImage(renderTarget.ImguiHandle, new(), new(renderTarget.Size.X, renderTarget.Size.Y));
+
+                    // Draw dots and text last because they are most critical to be legible.
                     foreach (var element in p.displayObjects)
                     {
-                        if (element is DisplayObjectDonut elementDonut)
-                        {
-                            DrawDonutWorld(elementDonut);
-                        }
-                        else if (element is DisplayObjectFan elementFan)
-                        {
-                            DrawTriangleFanWorld(elementFan);
-                        }
-                    }
-                    // Draw lines and dots second because they're hard to see when covered by another shape.
-                    foreach (var element in p.displayObjects)
-                    {
-                        if (element is DisplayObjectLine elementLine)
-                        {
-                            DrawLineWorld(elementLine);
-                        }
-                        else if (element is DisplayObjectDot elementDot)
+                        if (element is DisplayObjectDot elementDot)
                         {
                             DrawPoint(elementDot);
                         }
-                    }
-                    // Draw text last because it's most critical top be legible.
-                    foreach (var element in p.displayObjects)
-                    {
                         if (element is DisplayObjectText elementText)
                         {
                             DrawTextWorld(elementText);
@@ -120,12 +95,9 @@ unsafe class OverlayGui : IDisposable
                 {
                     foreach (var e in P.Config.RenderableZones)
                     {
-                        //var trans = e.Trans != 1.0f;
-                        //if (trans) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, e.Trans);
                         ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
                         Draw();
                         ImGui.PopClipRect();
-                        //if(trans)ImGui.PopStyleVar();
                     }
                 }
                 ImGui.End();
@@ -146,86 +118,28 @@ unsafe class OverlayGui : IDisposable
         if (p.Profiler.Enabled) p.Profiler.Gui.StopTick();
     }
 
-
-    public void DrawTriangleFanWorld(DisplayObjectFan e)
+    RenderTarget Direct3DDraw()
     {
-        float totalAngle = e.angleMax - e.angleMin;
-        int segments = RadialSegments(e.radius, totalAngle);
-        float angleStep = totalAngle / segments;
-
-        int vertexCount = segments + 1;
-
-        bool isCircle = totalAngle == MathF.PI * 2;
-        StrokeConnection strokeStyle = isCircle ? StrokeConnection.NoConnection : StrokeConnection.ConnectOriginAndEnd;
-        RenderShape fan = new(e.style, VertexConnection.NoConnection, strokeStyle);
-        for (int step = 0; step < vertexCount; step++)
+        renderer.BeginFrame();
+        foreach (var element in p.displayObjects)
         {
-            float angle = e.angleMin + step * angleStep;
-            Vector3 point = e.origin;
-            point.Y += e.radius;
-            point = RotatePoint(e.origin, angle, point);
-            fan.Add(XZY(e.origin), XZY(point));
-        }
-        fan.Draw(ViewProj); 
-    }
-
-    public void DrawDonutWorld(DisplayObjectDonut e)
-    {
-        int segments = RadialSegments(e.radius + e.donutRadius);
-        var worldPosInside = GetCircle(e.origin, e.radius, segments);
-        var worldPosOutside = GetCircle(e.origin, e.radius + e.donutRadius, segments);
-
-        RenderShape donut = new(e.style, VertexConnection.ConnectLastAndFirst, StrokeConnection.NoConnection);
-
-        var length = worldPosInside.Length;
-        for (int i = 0; i < length; i++)
-        {
-            donut.Add(worldPosInside[i], worldPosOutside[i]);
-        }
-        donut.Draw(ViewProj);
-    }
-
-    void DrawLineWorld(DisplayObjectLine e)
-    {
-        ImDrawListPtr drawList = ImGui.GetWindowDrawList();
-        if (e.radius == 0)
-        {
-            if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
-            var nearPlane = ViewProj.Column3();
-
-            Vector3 start = e.start;
-            Vector3 stop = e.stop;
-            if (ClipLineToPlane(nearPlane, ref start, ref stop, out float _) == LineClipStatus.NotVisible)
-                return;
-
-            drawList.PathLineTo(WorldToScreen(ViewProj, start));
-            drawList.PathLineTo(WorldToScreen(ViewProj, stop));
-            drawList.PathStroke(e.style.strokeColor, ImDrawFlags.None, e.style.strokeThickness);
-            if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
-        }
-        else
-        {
-            var leftStart = e.start - e.PerpendicularRadius;
-            var leftStop = e.stop - e.PerpendicularRadius;
-
-            var rightStart = e.start + e.PerpendicularRadius;
-            var rightStop = e.stop + e.PerpendicularRadius;
-
-            // This is a tiny hack. Instead of clipping the line horizontally properly, we just cull segments that are offscreen
-            // By segmenting the line horizontally, culling offscreen segments still leaves segments on screen.
-            // A better fix would be to clip the line horizontally instead of culling offscreen segments.
-            int segments = HorizontalLinearSegments(e.radius);
-            Vector3 perpendicularStep = e.PerpendicularRadius * 2 / segments;
-
-            RenderShape line = new(e.style, VertexConnection.NoConnection, StrokeConnection.ConnectOriginAndEnd);
-            for (int step = 0; step < segments; step++)
+            if (element is DisplayObjectFan elementFan)
             {
-                line.Add(leftStart + step * perpendicularStep, leftStop + step * perpendicularStep);
-                
+                float totalAngle = elementFan.angleMax - elementFan.angleMin;
+                int segments = RadialSegments(elementFan.outerRadius, totalAngle);
+                renderer.DrawFan(elementFan, segments);
             }
-            line.Add(rightStart, rightStop);
-            line.Draw(ViewProj);
+            else if (element is DisplayObjectLine elementLine)
+            {
+                renderer.DrawLine(elementLine);
+            }
         }
+        foreach (var zone in P.Config.ClipZones)
+        {
+            renderer.AddClipZone(zone.Rect);
+        }
+
+        return renderer.EndFrame();
     }
 
     public void DrawTextWorld(DisplayObjectText e)
@@ -262,43 +176,11 @@ unsafe class OverlayGui : IDisposable
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.z, e.y), out Vector2 pos))
+        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.y, e.z), out Vector2 pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,
             ImGui.GetColorU32(e.color),
             MINIMUM_CIRCLE_SEGMENTS);
-    }
-
-    public static Vector3[] GetCircle(in Vector3 origin, in float radius, in int segments)
-    {
-        float totalAngle = MathF.PI * 2;
-        float angleStep = totalAngle / segments;
-
-        Vector3[] elements = new Vector3[segments];
-
-        for (int step = 0; step < segments; step++)
-        {
-            float angle = step * angleStep;
-            Vector3 point = origin;
-            point.Y += radius;
-            elements[step] = XZY(RotatePoint(origin, angle, point));
-        }
-
-        return elements;
-    }
-
-    private static unsafe Matrix4x4 ReadMatrix(IntPtr address)
-    {
-        var p = (float*)address;
-        Matrix4x4 mtx = new();
-        for (var i = 0; i < 16; i++)
-            mtx[i / 4, i % 4] = *p++;
-        return mtx;
-    }
-    private static unsafe Vector2 ReadVec2(IntPtr address)
-    {
-        var p = (float*)address;
-        return new(p[0], p[1]);
     }
 }

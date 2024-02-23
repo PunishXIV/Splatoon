@@ -9,7 +9,7 @@ unsafe class OverlayGui : IDisposable
 {
     const int RADIAL_SEGMENTS_PER_RADIUS_UNIT = 20;
     const int MINIMUM_CIRCLE_SEGMENTS = 24;
-    const int MAXIMUM_CIRCLE_SEGMENTS = 240;
+    public const int MAXIMUM_CIRCLE_SEGMENTS = 240;
 
     Renderer renderer;
     AutoClipZones autoClipZones;
@@ -19,7 +19,7 @@ unsafe class OverlayGui : IDisposable
     {
         this.p = p;
         renderer = new Renderer();
-        autoClipZones = new AutoClipZones(renderer);
+        autoClipZones = new AutoClipZones(renderer, p);
         Svc.PluginInterface.UiBuilder.Draw += Draw;
     }
 
@@ -53,7 +53,6 @@ unsafe class OverlayGui : IDisposable
             uid = 0;
             try
             {
-                if (p.Config.AutoClipNativeUI) autoClipZones.Update();
                 if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StartTick();
                 RenderTarget renderTarget = Direct3DDraw();
                 if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StopTick();
@@ -138,6 +137,7 @@ unsafe class OverlayGui : IDisposable
         {
             renderer.AddClipZone(zone.Rect);
         }
+        if (p.Config.AutoClipNativeUI) autoClipZones.Update();
 
         return renderer.EndFrame();
     }

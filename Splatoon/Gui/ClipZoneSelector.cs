@@ -165,7 +165,7 @@ internal class ClipZoneSelector : Window
 
     void HandlePopupMenu()
     {
-        if (P.Config.ClipZones.Count < MAX_CLIP_ZONES)
+        if (P.Config.ClipZones.Count < MAX_CONFIGURABLE_CLIP_ZONES)
         {
             if (ImGui.Selectable("Add new zone"))
             {

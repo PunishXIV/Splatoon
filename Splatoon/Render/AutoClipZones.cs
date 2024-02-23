@@ -12,25 +12,84 @@ namespace Splatoon.Render;
  */
 internal class AutoClipZones
 {
+    private static bool logged_error_once = false;
     private readonly string[] _hotbarAddonNames = { "_ActionBar", "_ActionBar01", "_ActionBar02", "_ActionBar03", "_ActionBar04", "_ActionBar05", "_ActionBar06", "_ActionBar07", "_ActionBar08", "_ActionBar09", "_ActionBarEx" };
     private static List<string> _ignoredAddonNames = new List<string>()
         {
             "_FocusTargetInfo",
         };
     private Renderer renderer;
+    private Splatoon p;
 
-    public AutoClipZones(Renderer renderer)
+    public AutoClipZones(Renderer renderer, Splatoon p)
     {
         this.renderer = renderer;
+        this.p = p;
     }
 
     public void Update()
     {
-        UpdateWindows();
-        UpdateTargetCastbarClipRect();
-        UpdateHotbarsClipRects();
-        UpdatePartyListClipRects();
-        UpdateChatBubbleClipRect();
+        try
+        {
+            UpdateWindows();
+            UpdateTargetCastbarClipRect();
+            UpdateHotbarsClipRects();
+            UpdatePartyListClipRects();
+            UpdateChatBubbleClipRect();
+        }
+        catch (ArgumentOutOfRangeException e)
+        {
+            // Swallow the exception and proceed. Autoclip is not important enough to fail rendering.
+            if (!logged_error_once)
+            {
+                PrintDebugState(e);
+                logged_error_once = true;
+            }
+        }
+    }
+
+    private unsafe void PrintDebugState(ArgumentOutOfRangeException e)
+    {
+        const ushort UIForegroundRed = 17;
+        p.Log("Shiny Splatoon exception: please report it to developer", true, UIForegroundRed);
+        p.Log(GetDebugString(), true, UIForegroundRed);
+        p.Log(e.StackTrace, true, UIForegroundRed);
+    }
+
+    private unsafe string GetDebugString()
+    {
+        AtkStage* stage = AtkStage.GetSingleton();
+        if (stage == null) { return "stage is null"; }
+
+        RaptureAtkUnitManager* manager = stage->RaptureAtkUnitManager;
+        if (manager == null) { return "manager is null"; }
+
+        AtkUnitList* loadedUnitsList = &manager->AtkUnitManager.AllLoadedUnitsList;
+        if (loadedUnitsList == null) { return "units is null"; }
+
+        List<string> names = new();
+        for (int i = 0; i < loadedUnitsList->Count; i++)
+        {
+            try
+            {
+                AtkUnitBase* addon = *(AtkUnitBase**)Unsafe.AsPointer(ref loadedUnitsList->EntriesSpan[i]);
+                if (addon == null || !addon->IsVisible || addon->WindowNode == null || addon->Scale == 0)
+                {
+                    continue;
+                }
+
+                string? name = Marshal.PtrToStringAnsi(new IntPtr(addon->Name));
+                if (name != null && !_ignoredAddonNames.Contains(name))
+                {
+                    names.Add(name);
+                }
+            }
+            catch (Exception e)
+            {
+                return e.Message;
+            }
+        }
+        return "Windows: [" + string.Join(", ", names) + "]";
     }
 
     private unsafe void UpdatePartyListClipRects()

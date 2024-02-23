@@ -34,7 +34,7 @@ public unsafe class Splatoon : IDalamudPlugin
     public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
     public string Name => "Splatoon";
     public static Splatoon P;
-    public const int MAX_CLIP_ZONES = 32;
+    public const int MAX_CONFIGURABLE_CLIP_ZONES = 32;
     internal OverlayGui DrawingGui;
     internal CGui ConfigGui;
     internal Commands CommandManager;
@@ -1305,11 +1305,11 @@ public unsafe class Splatoon : IDalamudPlugin
         return ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) < Config.maxdistance * Config.maxdistance;
     }
 
-    internal void Log(string s, bool tochat = false)
+    internal void Log(string s, bool tochat = false, ushort? chatColor = null)
     {
         if (tochat)
         {
-            Svc.Chat.Print("[Splatoon] " + s);
+            Svc.Chat.Print(s, messageTag: "Splatoon", tagColor: chatColor);
         }
         InternalLog.Information(s);
     }

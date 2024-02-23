@@ -1,4 +1,5 @@
-﻿using Splatoon.Structures;
+﻿using Splatoon.Gui;
+using Splatoon.Structures;
 using System.Drawing;
 using System.Runtime.InteropServices;
 
@@ -6,6 +7,11 @@ namespace Splatoon.Render;
 
 public unsafe class Renderer : IDisposable
 {
+    public const int MAX_FANS = 1024;
+    public const int MAX_LINES = 1024;
+    public const int MAX_STROKE_SEGMENTS = MAX_FANS * OverlayGui.MAXIMUM_CIRCLE_SEGMENTS;
+    public const int MAX_CLIP_ZONES = 128 + MAX_CONFIGURABLE_CLIP_ZONES;
+
     public RenderContext RenderContext { get; init; } = new();
 
     public RenderTarget? RenderTarget { get; private set; }
@@ -38,13 +44,13 @@ public unsafe class Renderer : IDisposable
     public Renderer()
     {
         FanFill = new(RenderContext);
-        _fanFillDynamicData = new(RenderContext, 512, true);
+        _fanFillDynamicData = new(RenderContext, MAX_FANS, true);
         LineFill = new(RenderContext);
-        _lineFillDynamicData = new(RenderContext, 512, true);
+        _lineFillDynamicData = new(RenderContext, MAX_LINES, true);
         Stroke = new(RenderContext);
-        _strokeDynamicData = new(RenderContext, 4096, true);
+        _strokeDynamicData = new(RenderContext, MAX_STROKE_SEGMENTS, true);
         ClipZone = new(RenderContext);
-        _clipDynamicData = new(RenderContext, 4 * MAX_CLIP_ZONES, true);
+        _clipDynamicData = new(RenderContext, MAX_CLIP_ZONES, true);
         // https://github.com/goatcorp/Dalamud/blob/d52118b3ad366a61216129c80c0fa250c885abac/Dalamud/Game/Gui/GameGuiAddressResolver.cs#L69
         _engineCoreSingleton = Marshal.GetDelegateForFunctionPointer<GetEngineCoreSingletonDelegate>(Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4C 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??"))();
     }

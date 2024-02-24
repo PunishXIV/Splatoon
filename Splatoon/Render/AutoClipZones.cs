@@ -36,6 +36,7 @@ internal class AutoClipZones
             UpdateHotbarsClipRects();
             UpdatePartyListClipRects();
             UpdateChatBubbleClipRect();
+            UpdateEnemyListClipRect();
         }
         catch (ArgumentOutOfRangeException e)
         {
@@ -119,6 +120,28 @@ internal class AutoClipZones
 
                 renderer.AddClipZone(ClipRect(pos, pos + size));
             }
+        }
+    }
+
+    private unsafe void UpdateEnemyListClipRect()
+    {
+        AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName($"_EnemyList");
+        if (addon == null || !addon->IsVisible) { return; }
+
+        for (int i = 4; i <= 11; i++)
+        {
+            AtkResNode* enemyNode = addon->UldManager.NodeList[i];
+            if (enemyNode is null || !enemyNode->IsVisible) continue;
+
+            Vector2 pos = new Vector2(
+            enemyNode->ScreenX,
+            enemyNode->ScreenY);
+
+            Vector2 size = new Vector2(
+            enemyNode->Width * addon->Scale,
+            enemyNode->Height * addon->Scale);
+
+            renderer.AddClipZone(ClipRect(pos, pos + size));
         }
     }
 
@@ -207,21 +230,27 @@ internal class AutoClipZones
 
             AtkResNode* firstNode = addon->UldManager.NodeList[20];
             AtkResNode* lastNode = addon->UldManager.NodeList[9];
-
-            if (firstNode == null || lastNode == null) { continue; }
-
             float margin = 15f * addon->Scale;
+            for (int i = 9; i <= 20; i++)
+            {
+                var hotbarBtn = addon->UldManager.NodeList[i];
+                if (hotbarBtn == null) continue;
+                var isFilled = hotbarBtn->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]->IsVisible;
 
-            Vector2 min = new Vector2(
-                addon->X + (firstNode->X * addon->Scale) + margin,
-                addon->Y + (firstNode->Y * addon->Scale) + margin
-            );
-            Vector2 max = new Vector2(
-                addon->X + (lastNode->X * addon->Scale) + (lastNode->Width * addon->Scale) - margin,
-                addon->Y + (lastNode->Y * addon->Scale) + (lastNode->Height * addon->Scale) - margin
-            );
+                if (hotbarBtn->IsVisible && isFilled)
+                {
+                    var dragNode = hotbarBtn->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
+                    Vector2 pos = new Vector2(
+                    dragNode->ScreenX,
+                    dragNode->ScreenY);
 
-            renderer.AddClipZone(ClipRect(min, max));
+                    Vector2 size = new Vector2(
+                    dragNode->Width * addon->Scale,
+                    (dragNode->Height + 5f) * addon->Scale);
+
+                    renderer.AddClipZone(ClipRect(pos, pos + size));
+                }
+            }
         }
     }
 

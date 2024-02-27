@@ -74,41 +74,22 @@ public class FanFill : IDisposable
         public Builder Map(RenderContext ctx) => new(ctx, this);
 
         // Draw* should be called after FanFill.Bind set up its state
-        public void DrawSubset(RenderContext ctx, int firstCircle, int numCircles)
+        public void DrawAll(RenderContext ctx)
         {
             ctx.Context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(_buffer.Buffer, _buffer.ElementSize, 0));
-            ctx.Context.Draw(numCircles, firstCircle);
+            ctx.Context.DrawInstanced(722, _buffer.CurElements, 0, 0);
         }
-
-        public void DrawAll(RenderContext ctx) => DrawSubset(ctx, 0, _buffer.CurElements);
     }
 
     private SharpDX.Direct3D11.Buffer _constantBuffer;
     private InputLayout _il;
     private VertexShader _vs;
-    private GeometryShader _gs;
     private PixelShader _ps;
-
     public FanFill(RenderContext ctx)
     {
         var shader = """
             #define PI 3.14159265359f
-            struct Circle
-            {
-                float3 origin : World;
-                float innerRadius : Radius0;
-                float outerRadius : Radius1;
-                float minAngle : Angle0;
-                float maxAngle : Angle1;
-                float4 colorOrigin : Color0;
-                float4 colorEnd : Color1;
-            };
-
-            struct GSOutput
-            {
-                float4 projPos : SV_Position;
-                float4 color : Color;
-            };
+            #define SEGMENTS 360
 
             struct Constants
             {
@@ -116,37 +97,51 @@ public class FanFill : IDisposable
             };
             Constants k : register(c0);
 
-            Circle vs(Circle v)
+            struct Fan
             {
-                return v;
-            }
+                float3 origin : WORLD;
+                float innerRadius : RADIUS0;
+                float outerRadius : RADIUS1;
+                float minAngle : ANGLE0;
+                float maxAngle : ANGLE1;
+                float4 colorOrigin : INSTANCECOLOR0;
+                float4 colorEnd : INSTANCECOLOR1;
+            };
 
-            [maxvertexcount(128)]
-            void gs(point Circle input[1], inout TriangleStream<GSOutput> output)
+            struct VSOutput
             {
-                int segments = 63;
-                Circle circle = input[0];
-                float3 center = circle.origin;
+                float4 projPos : SV_POSITION;
+                float4 color : COLOR;
+                float2 tex : TEXCOORD;
+            };
 
-                GSOutput v;
-                float totalAngle = circle.maxAngle - circle.minAngle;
-                float angleStep = totalAngle / segments;
-                for (int i = 0; i <= segments; i++)
-                {
-                    float angle = PI / 2 + circle.minAngle + i * angleStep;
-                    float3 offset = float3(cos(angle), 0, sin(angle));
+            VSOutput vs(in Fan instance, uint vertexId: SV_VertexID, uint instanceId: SV_InstanceID)
+            {
+                VSOutput o;
 
-                    v.color = circle.colorOrigin;
-                    v.projPos = mul(float4(center + circle.innerRadius * offset, 1), k.viewProj);
-                    output.Append(v);
+                uint i = vertexId / 2;
 
-                    v.color = circle.colorEnd;
-                    v.projPos = mul(float4(center + circle.outerRadius * offset, 1), k.viewProj);
-                    output.Append(v);
+                float radius = 0;
+                if (vertexId % 2 == 0) {
+                    o.color = instance.colorOrigin;
+                    o.tex.y = 0;
+                    radius = instance.innerRadius;
+                } else {
+                    o.color = instance.colorEnd;
+                    o.tex.y = instance.outerRadius - instance.innerRadius;
+                    radius = instance.outerRadius;
                 }
+                float totalAngle = instance.maxAngle - instance.minAngle;
+                float angleStep =  totalAngle / SEGMENTS;
+                float angle = PI / 2 + instance.minAngle + i * angleStep;
+                float3 offset = radius * float3(cos(angle), 0, sin(angle));
+
+                o.tex.x = angle;
+                o.projPos = mul(float4(instance.origin + offset, 1.0), k.viewProj);
+                return o;
             }
 
-            float4 ps(GSOutput input) : SV_Target
+            float4 ps(VSOutput input) : SV_Target
             {
                 return input.color;
             }
@@ -156,10 +151,6 @@ public class FanFill : IDisposable
         Svc.Log.Debug($"Circle VS compile: {vs.Message}");
         _vs = new(ctx.Device, vs.Bytecode);
 
-        var gs = ShaderBytecode.Compile(shader, "gs", "gs_5_0");
-        Svc.Log.Debug($"Circle GS compile: {gs.Message}");
-        _gs = new(ctx.Device, gs.Bytecode);
-
         var ps = ShaderBytecode.Compile(shader, "ps", "ps_5_0");
         Svc.Log.Debug($"Circle PS compile: {ps.Message}");
         _ps = new(ctx.Device, ps.Bytecode);
@@ -167,14 +158,13 @@ public class FanFill : IDisposable
         _constantBuffer = new(ctx.Device, 16 * 4, ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
         _il = new(ctx.Device, vs.Bytecode,
         [
-            new InputElement("World", 0, Format.R32G32B32_Float, -1, 0),
-            new InputElement("Radius", 0, Format.R32_Float, -1, 0),
-            new InputElement("Radius", 1, Format.R32_Float, -1, 0),
-            new InputElement("Angle", 0, Format.R32_Float, -1, 0),
-            new InputElement("Angle", 1, Format.R32_Float, -1, 0),
-            new InputElement("Color", 0, Format.R32G32B32A32_Float, -1, 0),
-            new InputElement("Color", 1, Format.R32G32B32A32_Float, -1, 0),
-            new InputElement("Color", 2, Format.R32G32B32A32_Float, -1, 0),
+            new InputElement("WORLD", 0, Format.R32G32B32_Float, -1, 0, InputClassification.PerInstanceData, 1),
+            new InputElement("RADIUS", 0, Format.R32_Float, -1, 0, InputClassification.PerInstanceData, 1),
+            new InputElement("RADIUS", 1, Format.R32_Float, -1, 0, InputClassification.PerInstanceData, 1),
+            new InputElement("ANGLE", 0, Format.R32_Float, -1, 0, InputClassification.PerInstanceData, 1),
+            new InputElement("ANGLE", 1, Format.R32_Float, -1, 0, InputClassification.PerInstanceData, 1),
+            new InputElement("INSTANCECOLOR", 0, Format.R32G32B32A32_Float, -1, 0, InputClassification.PerInstanceData, 1),
+            new InputElement("INSTANCECOLOR", 1, Format.R32G32B32A32_Float, -1, 0, InputClassification.PerInstanceData, 1),
         ]);
     }
 
@@ -183,7 +173,6 @@ public class FanFill : IDisposable
         _constantBuffer.Dispose();
         _il.Dispose();
         _vs.Dispose();
-        _gs.Dispose();
         _ps.Dispose();
     }
 
@@ -195,12 +184,12 @@ public class FanFill : IDisposable
 
     public void Bind(RenderContext ctx)
     {
-        ctx.Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.PointList;
+        ctx.Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
         ctx.Context.InputAssembler.InputLayout = _il;
         ctx.Context.VertexShader.Set(_vs);
-        ctx.Context.GeometryShader.Set(_gs);
-        ctx.Context.GeometryShader.SetConstantBuffer(0, _constantBuffer);
+        ctx.Context.VertexShader.SetConstantBuffer(0, _constantBuffer);
         ctx.Context.PixelShader.Set(_ps);
+        ctx.Context.GeometryShader.Set(null);
     }
 
     public void Draw(RenderContext ctx, Data data)

@@ -20,6 +20,7 @@ internal static class TabContributors
         ImGuiEx.Text($"Errer - presets"); Link("Github", "https://github.com/Errerer/");
         ImGuiEx.Text($"Ouyk - presets");
         ImGuiEx.Text($"Exnter - presets"); Link("Github", "https://github.com/Exnter/");
+        ImGuiEx.Text($"Jabberwock - community presets wiki"); Link("Github", "https://github.com/cptjabberwock/SplatoonPresetsList/wiki");
     }
 
     static void Link(string preview, string Url)

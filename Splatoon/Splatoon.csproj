@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.5.0.4</Version>
+		<Version>3.5.0.6</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -16,6 +16,9 @@
 		<OutputPath>bin\$(Configuration)\</OutputPath>
 		<NoWarn>CS1591</NoWarn>
     <UseWindowsForms>true</UseWindowsForms>
+    <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
+    <PathMap>$(AppOutputBase)=\NightmareXIV\</PathMap>
+    <Deterministic>true</Deterministic>
 	</PropertyGroup>
 
 	<PropertyGroup Label="Documentation">

@@ -15,10 +15,13 @@ public unsafe class Renderer : IDisposable
     public RenderContext RenderContext { get; init; } = new();
 
     public RenderTarget? RenderTarget { get; private set; }
+    public RenderTarget? FSPRenderTarget { get; private set; }
+
     public FanFill FanFill { get; init; }
     public LineFill LineFill { get; init; }
     public Stroke Stroke { get; init; }
     public ClipZone ClipZone { get; init; }
+    public FullScreenPass FSP { get; init; }
 
     public SharpDX.Matrix ViewProj { get; private set; }
     public SharpDX.Matrix Proj { get; private set; }
@@ -51,6 +54,7 @@ public unsafe class Renderer : IDisposable
         _strokeDynamicData = new(RenderContext, MAX_STROKE_SEGMENTS, true);
         ClipZone = new(RenderContext);
         _clipDynamicData = new(RenderContext, MAX_CLIP_ZONES, true);
+        FSP = new(RenderContext);
         // https://github.com/goatcorp/Dalamud/blob/d52118b3ad366a61216129c80c0fa250c885abac/Dalamud/Game/Gui/GameGuiAddressResolver.cs#L69
         _engineCoreSingleton = Marshal.GetDelegateForFunctionPointer<GetEngineCoreSingletonDelegate>(Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4C 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??"))();
     }
@@ -58,6 +62,7 @@ public unsafe class Renderer : IDisposable
     public void Dispose()
     {
         RenderTarget?.Dispose();
+        FSPRenderTarget?.Dispose();
         _fanFillDynamicBuilder?.Dispose();
         _fanFillDynamicData?.Dispose();
         _lineFillDynamicBuilder?.Dispose();
@@ -70,6 +75,7 @@ public unsafe class Renderer : IDisposable
         LineFill.Dispose();
         Stroke.Dispose();
         ClipZone.Dispose();
+        FSP.Dispose();
         RenderContext.Dispose();
     }
 
@@ -89,14 +95,19 @@ public unsafe class Renderer : IDisposable
         if (RenderTarget == null || RenderTarget.Size != ViewportSize)
         {
             RenderTarget?.Dispose();
-            RenderTarget = new(RenderContext, (int)ViewportSize.X, (int)ViewportSize.Y);
+            RenderTarget = new(RenderContext, (int)ViewportSize.X, (int)ViewportSize.Y, /*alphaBlend=*/true);
         }
-
+        if (FSPRenderTarget == null || FSPRenderTarget.Size != ViewportSize)
+        {
+            FSPRenderTarget?.Dispose();
+            FSPRenderTarget = new(RenderContext, (int)ViewportSize.X, (int)ViewportSize.Y, /*alphaBlend=*/false);
+        }
         RenderTarget.Bind(RenderContext);
     }
 
     public RenderTarget EndFrame()
     {
+        // Draw all shapes and and perform clipping for the main RenderTarget.
         if (_fanFillDynamicBuilder != null)
         {
             _fanFillDynamicBuilder.Dispose();
@@ -122,8 +133,12 @@ public unsafe class Renderer : IDisposable
             _clipDynamicBuilder = null;
             ClipZone.Draw(RenderContext, _clipDynamicData);
         }
+        // Plumb the main RenderTarget to the full screen pass for alpha correction.
+        FSPRenderTarget.Bind(RenderContext, RenderTarget);
+        FSP.Draw(RenderContext);
+
         RenderContext.Execute();
-        return RenderTarget;
+        return FSPRenderTarget;
     }
     public void DrawFan(DisplayObjectFan fan, int segments)
     {

@@ -12,12 +12,13 @@ public unsafe class RenderTarget : IDisposable
     private Texture2D _rt;
     private RenderTargetView _renderTargetView;
     private ShaderResourceView _rtSRV;
+    private UnorderedAccessView _unorderedAccessView;
     private BlendState _defaultBlendState;
     private BlendState _clipBlendState;
 
     public nint ImguiHandle => _rtSRV.NativePointer;
 
-    public RenderTarget(RenderContext ctx, int width, int height)
+    public RenderTarget(RenderContext ctx, int width, int height, bool alphaBlend = true)
     {
         Size = new(width, height);
 
@@ -54,14 +55,17 @@ public unsafe class RenderTarget : IDisposable
         });
 
         var blendDescription = BlendStateDescription.Default();
-        blendDescription.RenderTarget[0].IsBlendEnabled = true;
-        blendDescription.RenderTarget[0].SourceBlend = BlendOption.One;
-        blendDescription.RenderTarget[0].DestinationBlend = BlendOption.InverseSourceAlpha;
-        blendDescription.RenderTarget[0].BlendOperation = BlendOperation.Add;
-        blendDescription.RenderTarget[0].SourceAlphaBlend = BlendOption.One;
-        blendDescription.RenderTarget[0].DestinationAlphaBlend = BlendOption.InverseSourceAlpha;
-        blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Maximum;
-        blendDescription.RenderTarget[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
+        if (alphaBlend)
+        {
+            blendDescription.RenderTarget[0].IsBlendEnabled = true;
+            blendDescription.RenderTarget[0].SourceBlend = BlendOption.SourceAlpha;
+            blendDescription.RenderTarget[0].DestinationBlend = BlendOption.InverseSourceAlpha;
+            blendDescription.RenderTarget[0].BlendOperation = BlendOperation.Add;
+            blendDescription.RenderTarget[0].SourceAlphaBlend = BlendOption.One;
+            blendDescription.RenderTarget[0].DestinationAlphaBlend = BlendOption.InverseSourceAlpha;
+            blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Add;
+            blendDescription.RenderTarget[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
+        }
         _defaultBlendState = new(ctx.Device, blendDescription);
 
         var blendDescription2 = BlendStateDescription.Default();
@@ -79,15 +83,23 @@ public unsafe class RenderTarget : IDisposable
         _rtSRV.Dispose();
         _defaultBlendState.Dispose();
     }
-    public void Bind(RenderContext ctx)
+    public void Bind(RenderContext ctx, RenderTarget r = null)
     {
         ctx.Context.ClearRenderTargetView(_renderTargetView, new());
         ctx.Context.Rasterizer.SetViewport(0, 0, Size.X, Size.Y);
         ctx.Context.OutputMerger.SetBlendState(_defaultBlendState);
         ctx.Context.OutputMerger.SetTargets(_renderTargetView);
+        if (r != null) ctx.Context.PixelShader.SetShaderResource(0, r._rtSRV);
     }
     public void Clip(RenderContext ctx)
     {
         ctx.Context.OutputMerger.SetBlendState(_clipBlendState);
+    }
+
+    public void PostProcess(RenderContext ctx)
+    {
+        ctx.Context.OutputMerger.SetBlendState(_defaultBlendState);
+        ctx.Context.ClearUnorderedAccessView(_unorderedAccessView, new SharpDX.Mathematics.Interop.RawInt4());
+        ctx.Context.OutputMerger.SetUnorderedAccessView(0, _unorderedAccessView);
     }
 }

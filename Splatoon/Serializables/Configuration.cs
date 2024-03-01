@@ -24,6 +24,7 @@ class Configuration : IPluginConfiguration
     public bool dumplog = false;
     public bool verboselog = false;
     public float maxdistance = 100;
+    public AlphaBlendMode AlphaBlendMode = AlphaBlendMode.Add;
     //public float maxcamY = 0.05f;
     public int ChlogReadVer = ChlogGui.ChlogVersion;
     public bool UseHttpServer = false;

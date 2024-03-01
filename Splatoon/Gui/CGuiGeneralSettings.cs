@@ -159,11 +159,14 @@ partial class CGui
         ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
         ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
+        SImGuiEx.SizedText("Alpha Blend Mode:".Loc(), WidthLayout);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(100f);
+        SImGuiEx.EnumCombo("##alphablendmode", ref p.Config.AlphaBlendMode, AlphaBlendModes.Names, AlphaBlendModes.Tooltips);
         if (ImGui.IsItemHovered())
         {
             ImGui.SetTooltip(
-                "Choose a mechanic type that best represents this element.\n" +
-                "This is used for automatically setting default colors.");
+                "Change how overlapping elements' transparency is blended");
         }
 
         if (ImGui.Button("Edit Draw Zones" ))

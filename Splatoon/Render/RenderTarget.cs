@@ -1,5 +1,6 @@
 ﻿using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
+using Splatoon.Serializables;
 using Format = SharpDX.DXGI.Format;
 using Vector2 = SharpDX.Vector2;
 
@@ -18,7 +19,7 @@ public unsafe class RenderTarget : IDisposable
 
     public nint ImguiHandle => _rtSRV.NativePointer;
 
-    public RenderTarget(RenderContext ctx, int width, int height, bool alphaBlend = true)
+    public RenderTarget(RenderContext ctx, int width, int height, AlphaBlendMode blendMode)
     {
         Size = new(width, height);
 
@@ -55,7 +56,7 @@ public unsafe class RenderTarget : IDisposable
         });
 
         var blendDescription = BlendStateDescription.Default();
-        if (alphaBlend)
+        if (blendMode != AlphaBlendMode.None)
         {
             blendDescription.RenderTarget[0].IsBlendEnabled = true;
             blendDescription.RenderTarget[0].SourceBlend = BlendOption.SourceAlpha;
@@ -63,7 +64,14 @@ public unsafe class RenderTarget : IDisposable
             blendDescription.RenderTarget[0].BlendOperation = BlendOperation.Add;
             blendDescription.RenderTarget[0].SourceAlphaBlend = BlendOption.One;
             blendDescription.RenderTarget[0].DestinationAlphaBlend = BlendOption.InverseSourceAlpha;
-            blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Add;
+            if (blendMode == AlphaBlendMode.Add)
+            {
+                blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Add;
+            }
+            else if (blendMode == AlphaBlendMode.Max)
+            {
+                blendDescription.RenderTarget[0].AlphaBlendOperation = BlendOperation.Maximum;
+            }
             blendDescription.RenderTarget[0].RenderTargetWriteMask = ColorWriteMaskFlags.All;
         }
         _defaultBlendState = new(ctx.Device, blendDescription);

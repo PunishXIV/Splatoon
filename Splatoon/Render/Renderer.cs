@@ -1,4 +1,5 @@
 ﻿using Splatoon.Gui;
+using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -44,6 +45,8 @@ public unsafe class Renderer : IDisposable
 
     private ClipZone.Data _clipDynamicData;
     private ClipZone.Data.Builder? _clipDynamicBuilder;
+
+    private AlphaBlendMode _alphaBlendMode;
     public Renderer()
     {
         FanFill = new(RenderContext);
@@ -92,15 +95,16 @@ public unsafe class Renderer : IDisposable
         Stroke.UpdateConstants(RenderContext, new() { ViewProj = ViewProj, RenderTargetSize = new(ViewportSize.X, ViewportSize.Y) });
         ClipZone.UpdateConstants(RenderContext, new() { RenderTargetSize = new(ViewportSize.X, ViewportSize.Y) });
 
-        if (RenderTarget == null || RenderTarget.Size != ViewportSize)
+        if (RenderTarget == null || RenderTarget.Size != ViewportSize || P.Config.AlphaBlendMode != _alphaBlendMode)
         {
             RenderTarget?.Dispose();
-            RenderTarget = new(RenderContext, (int)ViewportSize.X, (int)ViewportSize.Y, /*alphaBlend=*/true);
+            RenderTarget = new(RenderContext, (int)ViewportSize.X, (int)ViewportSize.Y, P.Config.AlphaBlendMode);
+            _alphaBlendMode = P.Config.AlphaBlendMode;
         }
         if (FSPRenderTarget == null || FSPRenderTarget.Size != ViewportSize)
         {
             FSPRenderTarget?.Dispose();
-            FSPRenderTarget = new(RenderContext, (int)ViewportSize.X, (int)ViewportSize.Y, /*alphaBlend=*/false);
+            FSPRenderTarget = new(RenderContext, (int)ViewportSize.X, (int)ViewportSize.Y, AlphaBlendMode.None);
         }
         RenderTarget.Bind(RenderContext);
     }

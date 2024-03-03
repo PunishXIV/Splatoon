@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Interface.Utility.Raii;
 using ECommons.Configuration;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
@@ -266,24 +267,46 @@ unsafe class OverlayGui : IDisposable
 
     public void DrawText(DisplayObjectText e, Vector2 pos)
     {
-        var scaled = e.fscale != 1f;
-        var size = scaled ? ImGui.CalcTextSize(e.text) * e.fscale : ImGui.CalcTextSize(e.text);
+        using var padding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
+        using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 10f);
+        using var bgColor = ImRaii.PushColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(e.bgcolor));
+        using var textColor = ImRaii.PushColor(ImGuiCol.Text, e.fgcolor);
+        using var font = ImRaii.PushFont(GetFont(ImGui.GetFontSize() * e.fscale));
+
+        var size = ImGui.CalcTextSize(e.text);
         size = new Vector2(size.X + 10f, size.Y + 10f);
+
         ImGui.SetNextWindowPos(new Vector2(pos.X - size.X / 2, pos.Y - size.Y / 2));
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
-        ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10f);
-        ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(e.bgcolor));
-        ImGui.BeginChild("##child" + e.text + ++uid, size, false,
+
+        using var child = ImRaii.Child("##child" + e.text + ++uid, size, false,
             ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
             | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
-        ImGui.PushStyleColor(ImGuiCol.Text, e.fgcolor);
-        if (scaled) ImGui.SetWindowFontScale(e.fscale);
-        ImGuiEx.Text(e.text);
-        if (scaled) ImGui.SetWindowFontScale(1f);
-        ImGui.PopStyleColor();
-        ImGui.EndChild();
-        ImGui.PopStyleColor();
-        ImGui.PopStyleVar(2);
+
+        ImGui.Text(e.text);
+    }
+
+    unsafe static ImFontPtr GetFont(float size)
+    {
+        var style = new Dalamud.Interface.GameFonts.GameFontStyle(Dalamud.Interface.GameFonts.GameFontStyle.GetRecommendedFamilyAndSize(Dalamud.Interface.GameFonts.GameFontFamily.Axis, size));
+
+        var handle = Svc.PluginInterface.UiBuilder.FontAtlas.NewGameFontHandle(style);
+
+        try
+        {
+            var font = handle.Lock().ImFont;
+
+            if ((IntPtr)font.NativePtr == IntPtr.Zero)
+            {
+                return ImGui.GetFont();
+            }
+            
+            font.Scale = size / font.FontSize;
+            return font;
+        }
+        catch
+        {
+            return ImGui.GetFont();
+        }
     }
 
     public void DrawRingWorld(DisplayObjectCircle e)

@@ -282,7 +282,7 @@ unsafe class OverlayGui : IDisposable
             ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
             | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
 
-        ImGui.Text(e.text);
+        ImGuiEx.Text(e.text);
     }
 
     unsafe static ImFontPtr GetFont(float size)

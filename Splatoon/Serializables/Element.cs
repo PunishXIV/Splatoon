@@ -176,6 +176,9 @@ public class Element
     [DefaultValue(0)] public int refActorTransformationID = 0;
     [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(false)] public bool Unsafe = false;
+    [DefaultValue(false)] public bool refMark = false;
+    [DefaultValue(0)] public int refMarkID = 0;
+    [DefaultValue("<1>")] public string faceplayer = "<1>";
 
     public bool ShouldSerializerefActorTransformationID()
     {

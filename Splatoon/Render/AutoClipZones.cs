@@ -126,7 +126,7 @@ internal class AutoClipZones
     private unsafe void UpdateEnemyListClipRect()
     {
         AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName($"_EnemyList");
-        if (addon == null || !addon->IsVisible) { return; }
+        if (addon == null || !addon->IsVisible || addon->UldManager.NodeList == null) { return; }
 
         for (int i = 4; i <= 11; i++)
         {

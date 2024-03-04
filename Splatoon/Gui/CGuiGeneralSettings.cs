@@ -108,7 +108,7 @@ partial class CGui
         ImGui.DragInt("##circlesmoothness", ref p.Config.segments, 0.1f, 10, 150);
         ImGuiComponents.HelpMarker("Higher - smoother circle, higher cpu usage".Loc());
 
-        ImGui.Checkbox("Disable circle fix while enabling drawing circles above your point of view", ref P.Config.NoCircleFix);
+        ImGui.Checkbox("Disable circle fix while enabling drawing circles above your point of view".Loc(), ref P.Config.NoCircleFix);
         ImGuiComponents.HelpMarker("Do not enable it unless you actually need it. Large circles may be rendered incorrectly under certain camera angle with this option enabled.");
 
         SImGuiEx.SizedText("Drawing distance:".Loc(), WidthLayout);
@@ -132,11 +132,11 @@ partial class CGui
             ImGuiEx.TextWrapped(Environment.TickCount % 1000 > 500 ? ImGuiColors.DalamudRed : ImGuiColors.DalamudYellow,
                 "Your line segment setting IS EXTREMELY HIGH AND MAY SIGNIFICANTLY IMPACT PERFORMANCE.\nIf you really have to set it to this value to make it work, please contact developer and provide details.".Loc());
         }
-        if(ImGui.Button("Configure screen zones where Splatoon will draw it's elements"))
+        if(ImGui.Button("Configure screen zones where Splatoon will draw it's elements".Loc()))
         {
             P.RenderableZoneSelector.IsOpen = true;
         }
-        ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows", ref P.Config.SplatoonLowerZ);
+        ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows".Loc(), ref P.Config.SplatoonLowerZ);
         ImGui.Separator();
         ImGuiEx.Text("Fill settings:".Loc());
         ImGui.SameLine();
@@ -182,7 +182,7 @@ partial class CGui
         ImGui.DragInt("Minimal cone fill line interval".Loc(), ref p.Config.AltConeStep, 0.1f, 1, int.MaxValue);
         ImGui.SameLine();
         ImGui.Checkbox("Always force this value".Loc()+"##4", ref P.Config.AltConeStepOverride);
-        ImGui.Checkbox($"Use experimental full donut filling", ref P.Config.UseFullDonutFill);
+        ImGui.Checkbox($"Use experimental full donut filling".Loc(), ref P.Config.UseFullDonutFill);
 
         ImGui.Separator();
         ImGui.Checkbox("Use hexadecimal numbers".Loc(), ref p.Config.Hexadecimal);

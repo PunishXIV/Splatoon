@@ -52,6 +52,7 @@ class Configuration : IPluginConfiguration
     public bool SplatoonLowerZ = false;
     public int MinFillAlpha = 0x19;
     public int MaxFillAlpha = 0x64;
+    public int MaxAlpha = 0xFF;
     [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = new();
 

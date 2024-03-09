@@ -1,4 +1,5 @@
-﻿using Dalamud.Hooking;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Hooking;
 using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using Reloaded.Hooks.Definitions.X64;
@@ -126,45 +127,52 @@ public unsafe static class AttachedInfo
     }
     static void Tick(object _)
     {
-        foreach(var x in Svc.Objects)
+        //if (!(Svc.Condition[ConditionFlag.WatchingCutscene] || Svc.Condition[ConditionFlag.WatchingCutscene78]))
         {
-            if(x is BattleChara b) {
-                bool isCasting;
-                try {
-                    isCasting = b.IsCasting;
-                }
-                catch {
-                    // Ignore invalid BattleChara objects that exist during cutscenes
-                    continue;
-                }
-
-                if (isCasting)
+            foreach (var x in Svc.Objects)
+            {
+                if (x is BattleChara b)
                 {
-                    if (!Casters.Contains(b.Address)) 
+                    bool isCasting;
+                    try
                     {
-                        CastInfos[b.Address] = new(b.CastActionId, Environment.TickCount64 - (long)(b.CurrentCastTime * 1000));
-                        Casters.Add(b.Address);
-                        string text;
-                        if (P.Config.LogPosition)
+                        isCasting = b.IsCasting;
+                    }
+                    catch(Exception e)
+                    {
+                        //e.Log();
+                        // Ignore invalid BattleChara objects that exist during cutscenes
+                        continue;
+                    }
+
+                    if (isCasting)
+                    {
+                        if (!Casters.Contains(b.Address))
                         {
-                            text = $"{b.Name} ({x.Position.ToString()}) starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
-                        }
-                        else
-                        {
-                            text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
-                        }
-                        P.ChatMessageQueue.Enqueue(text);
-                        if (P.Config.Logging)
-                        {
-                            Logger.Log(text);
+                            CastInfos[b.Address] = new(b.CastActionId, Environment.TickCount64 - (long)(b.CurrentCastTime * 1000));
+                            Casters.Add(b.Address);
+                            string text;
+                            if (P.Config.LogPosition)
+                            {
+                                text = $"{b.Name} ({x.Position.ToString()}) starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                            }
+                            else
+                            {
+                                text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                            }
+                            P.ChatMessageQueue.Enqueue(text);
+                            if (P.Config.Logging)
+                            {
+                                Logger.Log(text);
+                            }
                         }
                     }
-                }
-                else
-                {
-                    if (Casters.Contains(b.Address))
+                    else
                     {
-                        Casters.Remove(b.Address);
+                        if (Casters.Contains(b.Address))
+                        {
+                            Casters.Remove(b.Address);
+                        }
                     }
                 }
             }

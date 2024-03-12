@@ -1,6 +1,8 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using Splatoon.Structures;
 using Splatoon.Render;
+using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 
 
 namespace Splatoon.Gui;
@@ -46,6 +48,14 @@ unsafe class OverlayGui : IDisposable
         try
         {
             if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
+            {
+                return;
+            }
+
+            var fadeMiddleWidget = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FadeMiddle", 1);
+            var fadeBlackWidget = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FadeBlack", 1);
+            if (fadeMiddleWidget != null && fadeMiddleWidget->IsVisible ||
+                fadeBlackWidget != null && fadeBlackWidget->IsVisible)
             {
                 return;
             }

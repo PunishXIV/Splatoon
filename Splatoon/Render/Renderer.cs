@@ -3,6 +3,7 @@ using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using static System.Windows.Forms.AxHost;
 
 namespace Splatoon.Render;
 
@@ -161,15 +162,31 @@ public unsafe class Renderer : IDisposable
     }
     private FanFill.Data.Builder GetFanFills() => _fanFillDynamicBuilder ??= _fanFillDynamicData.Map(RenderContext);
 
+    private void DrawStrokeLine(Vector3 a, Vector3 b, DisplayStyle style)
+    {
+        DrawStroke([a, b], style.strokeThickness, style.strokeColor.ToVector4(), false);
+    }
+
     public void DrawLine(DisplayObjectLine line)
     {
         if (line.radius == 0)
         {
-            DrawStroke(
-                [line.start, line.stop],
-                line.style.strokeThickness,
-                line.style.strokeColor.ToVector4(),
-                false);
+            DrawStrokeLine(line.start, line.stop, line.style);
+            if (line.startStyle == LineEnd.Arrow)
+            {
+                var arrowStart = line.start + 0.4f * line.Direction;
+                var offset = 0.3f * line.Perpendicular;
+                DrawStrokeLine(line.start, arrowStart + offset, line.style);
+                DrawStrokeLine(line.start, arrowStart - offset, line.style);
+            }
+
+            if (line.endStyle == LineEnd.Arrow)
+            {
+                var arrowStart = line.stop - 0.4f * line.Direction;
+                var offset = 0.3f * line.Perpendicular;
+                DrawStrokeLine(line.stop, arrowStart + offset, line.style);
+                DrawStrokeLine(line.stop, arrowStart - offset, line.style);
+            }
         }
         else
         {

@@ -56,27 +56,40 @@ public class DisplayObjectLine : DisplayObject
     public readonly Vector3 start, stop;
     public readonly float radius;
     public readonly DisplayStyle style;
+    public readonly LineEnd startStyle, endStyle;
 
-    public DisplayObjectLine(Vector3 start, Vector3 stop, float radius, DisplayStyle style)
+    public DisplayObjectLine(Vector3 start, Vector3 stop, float radius, DisplayStyle style, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
     {
         this.start = start;
         this.stop = stop;
         this.radius = radius;
         this.style = style;
+        this.startStyle = startStyle;
+        this.endStyle = endStyle;
     }
 
-    public DisplayObjectLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color)
+    public DisplayObjectLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
     {
         this.start = new Vector3(ax, az, ay);
         this.stop = new Vector3(bx, bz, by);
         this.radius = 0;
         this.style = new DisplayStyle(color, thickness, 0f, 0, 0);
+        this.startStyle = startStyle;
+        this.endStyle = endStyle;
     }
+
     public Vector3 Direction
     {
         get
         {
-            return stop - start;
+            return Vector3.Normalize(stop - start);
+        }
+    }
+    public Vector3 Perpendicular
+    {
+        get
+        {
+            return Vector3.Normalize(Vector3.Cross(Direction, Vector3.UnitY));
         }
     }
 
@@ -84,7 +97,7 @@ public class DisplayObjectLine : DisplayObject
     {
         get
         {
-            return radius * Vector3.Normalize(Vector3.Cross(Direction, Vector3.UnitY));
+            return Perpendicular * radius;
         }
     }
 

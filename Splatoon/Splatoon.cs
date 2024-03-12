@@ -819,7 +819,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         else if (e.type == 2)
         {
-            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.StyleWithOverride);
+            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
             displayObjects.Add(line);
             if (e.radius > 0)
             {
@@ -1038,7 +1038,7 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 end += Vector3.Normalize(end - origin) * e.ExtraTetherLength;
             }
-            displayObjects.Add(new DisplayObjectLine(origin, end, 0, e.StyleWithOverride));
+            displayObjects.Add(new DisplayObjectLine(origin, end, 0, e.StyleWithOverride, e.LineEndA, e.LineEndB));
         }
         if (!ShouldDraw(cx, GetPlayerPositionXZY().X, cy, GetPlayerPositionXZY().Y)) return;
         if (e.thicc > 0)
@@ -1115,7 +1115,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 {
                     end += Vector3.Normalize(end - center) * e.ExtraTetherLength;
                 }
-                displayObjects.Add(new DisplayObjectLine(center, end, 0, e.StyleWithOverride));
+                displayObjects.Add(new DisplayObjectLine(center, end, 0, e.StyleWithOverride, e.LineEndA, e.LineEndB));
             }
             displayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.StyleWithOverride));
         }
@@ -1139,7 +1139,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
                 displayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
                     pointB.X, pointB.Y, pointB.Z,
-                    e.thicc, e.color));
+                    e.thicc, e.color, e.LineEndA, e.LineEndB));
             }
             else
             {
@@ -1154,7 +1154,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     tPos.Y + e.offY,
                     tPos.Z + e.offZ));
 
-                var line = new DisplayObjectLine(XZY(start), XZY(stop), aradius, e.StyleWithOverride);
+                var line = new DisplayObjectLine(XZY(start), XZY(stop), aradius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
                 displayObjects.Add(line);
                 if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
             }
@@ -1171,7 +1171,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
             displayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
                 pointB.X, pointB.Y, pointB.Z,
-                e.thicc, e.color));
+                e.thicc, e.color, e.LineEndA, e.LineEndB));
         }
     }
 

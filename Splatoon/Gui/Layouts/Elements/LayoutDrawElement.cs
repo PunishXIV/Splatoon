@@ -838,7 +838,7 @@ unsafe partial class CGui
                         el.Donut.ValidateRange(0, float.MaxValue);
                     }
                 }
-                if (el.type != 2 && el.type != 3 && el.type != 4)
+                if (el.type != 2 && el.type != 3)
                 {
                     SImGuiEx.SizedText("Tether:".Loc(), WidthElement);
                     ImGui.SameLine();
@@ -851,6 +851,21 @@ unsafe partial class CGui
                     if (ImGui.IsItemHovered())
                         ImGui.SetTooltip("Add extra length to the tether to visualize knockbacks.".Loc());
                 }
+                bool canSetLineEnds = el.tether ||
+                    ((el.type == 2 || el.type == 3) && el.radius == 0);
+                if (!canSetLineEnds) ImGui.BeginDisabled();
+                SImGuiEx.SizedText("Line End Style:".Loc(), WidthElement);
+                ImGui.SameLine();
+                ImGuiEx.Text("A: ".Loc());
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(60f);
+                SImGuiEx.EnumCombo("##LineEndA" + i + k, ref el.LineEndA, LineEnds.Names, LineEnds.Tooltips);
+                ImGui.SameLine();
+                ImGuiEx.Text("B: ".Loc());
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(60f);
+                SImGuiEx.EnumCombo("##LineEndB" + i + k, ref el.LineEndB, LineEnds.Names, LineEnds.Tooltips);
+                if (!canSetLineEnds) ImGui.EndDisabled();
             }
             if (el.type == 0 || el.type == 1)
             {

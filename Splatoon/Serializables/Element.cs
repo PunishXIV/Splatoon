@@ -146,6 +146,8 @@ public class Element
     [DefaultValue(false)] public bool onlyVisible = false;
     [DefaultValue(false)] public bool tether = false;
     [DefaultValue(0f)] public float ExtraTetherLength = 0f;
+    [DefaultValue(LineEnd.None)] public LineEnd LineEndA = LineEnd.None;
+    [DefaultValue(LineEnd.None)] public LineEnd LineEndB = LineEnd.None;
     [DefaultValue(0f)] public float AdditionalRotation = 0f;
     [DefaultValue(false)] public bool LineAddHitboxLengthX = false;
     [DefaultValue(false)] public bool LineAddHitboxLengthY = false;

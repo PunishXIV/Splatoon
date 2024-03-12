@@ -95,6 +95,7 @@ public unsafe class Renderer : IDisposable
         LineFill.UpdateConstants(RenderContext, new() { ViewProj = ViewProj });
         Stroke.UpdateConstants(RenderContext, new() { ViewProj = ViewProj, RenderTargetSize = new(ViewportSize.X, ViewportSize.Y) });
         ClipZone.UpdateConstants(RenderContext, new() { RenderTargetSize = new(ViewportSize.X, ViewportSize.Y) });
+        FSP.UpdateConstants(RenderContext, new() { MaxAlpha = P.Config.MaxAlpha / 255f });
 
         if (RenderTarget == null || RenderTarget.Size != ViewportSize || P.Config.AlphaBlendMode != _alphaBlendMode)
         {

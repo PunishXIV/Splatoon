@@ -1,6 +1,7 @@
 ﻿using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
+using System.Runtime.InteropServices;
 
 namespace Splatoon.Render;
 
@@ -18,11 +19,24 @@ namespace Splatoon.Render;
  */
 public class FullScreenPass : IDisposable
 {
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Constants
+    {
+        public float MaxAlpha;
+    }
+
+    private SharpDX.Direct3D11.Buffer _constantBuffer;
     private VertexShader _vs;
     private PixelShader _ps;
     public FullScreenPass(RenderContext ctx)
     {
         var shader = """
+            struct Constants
+            {
+                float maxAlpha;
+            };
+            Constants k : register(b0);
+
             Texture2D<float4> inputTexture : register(t0);
             SamplerState TextureSampler
             {
@@ -53,6 +67,7 @@ public class FullScreenPass : IDisposable
                 {
                     color.rbg /= color.a;
                 }
+                color.a = min(color.a, k.maxAlpha);
                 return color;
             }
             """;
@@ -64,12 +79,20 @@ public class FullScreenPass : IDisposable
         var ps = ShaderBytecode.Compile(shader, "ps", "ps_5_0");
         Svc.Log.Debug($"FSP PS compile: {ps.Message}");
         _ps = new(ctx.Device, ps.Bytecode);
+
+        _constantBuffer = new(ctx.Device, 16, ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
     }
 
     public void Dispose()
     {
+        _constantBuffer.Dispose();
         _vs.Dispose();
         _ps.Dispose();
+    }
+
+    public void UpdateConstants(RenderContext ctx, Constants consts)
+    {
+        ctx.Context.UpdateSubresource(ref consts, _constantBuffer);
     }
 
     public void Bind(RenderContext ctx)
@@ -77,6 +100,7 @@ public class FullScreenPass : IDisposable
         ctx.Context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
         ctx.Context.VertexShader.Set(_vs);
         ctx.Context.PixelShader.Set(_ps);
+        ctx.Context.PixelShader.SetConstantBuffer(0, _constantBuffer);
         ctx.Context.GeometryShader.Set(null);
     }
 

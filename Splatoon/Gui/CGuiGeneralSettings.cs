@@ -114,9 +114,17 @@ partial class CGui
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
             ImGui.SliderInt("##maxfillalpha", ref P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
+
+            SImGuiEx.SizedText("Maximum Alpha:", CGui.WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
+            ImGui.SliderInt("##maxalpha", ref P.Config.MaxAlpha, P.Config.MaxFillAlpha, 255);
+            ImGuiComponents.HelpMarker("The maximum alpha used for drawing.\nThis will only take effect for strokes or if using Alpha Blend Mode 'Add'. ".Loc());
             // If min == max, users can break ints out of min and max values in the UI. Clamp to sane values for safety.
             P.Config.MinFillAlpha = Math.Clamp(P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
             P.Config.MaxFillAlpha = Math.Clamp(P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
+            P.Config.MaxAlpha = Math.Clamp(P.Config.MaxAlpha, P.Config.MaxFillAlpha, 255);
+
             ImGui.Separator();
             foreach (MechanicType mech in MechanicTypes.Values)
             {

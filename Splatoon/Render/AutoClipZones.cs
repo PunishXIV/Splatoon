@@ -13,7 +13,8 @@ namespace Splatoon.Render;
 internal class AutoClipZones
 {
     private static bool logged_error_once = false;
-    private readonly string[] _hotbarAddonNames = { "_ActionBar", "_ActionBar01", "_ActionBar02", "_ActionBar03", "_ActionBar04", "_ActionBar05", "_ActionBar06", "_ActionBar07", "_ActionBar08", "_ActionBar09", "_ActionBarEx" };
+    private readonly string[] _actionBarAddonNames = { "_ActionBar", "_ActionBar01", "_ActionBar02", "_ActionBar03", "_ActionBar04", "_ActionBar05", "_ActionBar06", "_ActionBar07", "_ActionBar08", "_ActionBar09", "_ActionBarEx" };
+    private readonly string[] _statusAddonNames = { "_StatusCustom0", "_StatusCustom1", "_StatusCustom2" };
     private static List<string> _ignoredAddonNames = new List<string>()
         {
             "_FocusTargetInfo",
@@ -31,12 +32,17 @@ internal class AutoClipZones
     {
         try
         {
-            UpdateWindows();
-            UpdateTargetCastbarClipRect();
-            UpdateHotbarsClipRects();
-            UpdatePartyListClipRects();
-            UpdateChatBubbleClipRect();
-            UpdateEnemyListClipRect();
+            ClipWindows();
+            ClipMainTargetInfo();
+            ClipTargetInfoCastBar();
+            ClipActionBars();
+            // Visibility for this addon doesn't seem to work. Disabled until there is a way to hide it.
+            // ClipActionCross();
+            ClipPartyList();
+            ClipChatBubbles();
+            ClipEnemyList();
+            ClipStatuses();
+            ClipParameterWidget();
         }
         catch (ArgumentOutOfRangeException e)
         {
@@ -93,7 +99,7 @@ internal class AutoClipZones
         return "Windows: [" + string.Join(", ", names) + "]";
     }
 
-    private unsafe void UpdatePartyListClipRects()
+    private unsafe void ClipPartyList()
     {
         AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_PartyList", 1);
         if (addon == null || !addon->IsVisible) { return; }
@@ -123,29 +129,18 @@ internal class AutoClipZones
         }
     }
 
-    private unsafe void UpdateEnemyListClipRect()
+    private unsafe void ClipEnemyList()
     {
         AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName($"_EnemyList");
-        if (addon == null || !addon->IsVisible || addon->UldManager.NodeList == null) { return; }
+        if (addon == null || !addon->IsVisible || addon->UldManager.NodeList == null) return;
 
         for (int i = 4; i <= 11; i++)
         {
-            AtkResNode* enemyNode = addon->UldManager.NodeList[i];
-            if (enemyNode is null || !enemyNode->IsVisible) continue;
-
-            Vector2 pos = new Vector2(
-            enemyNode->ScreenX,
-            enemyNode->ScreenY);
-
-            Vector2 size = new Vector2(
-            enemyNode->Width * addon->Scale,
-            enemyNode->Height * addon->Scale);
-
-            renderer.AddClipZone(ClipRect(pos, pos + size));
+            ClipAtkNode(addon, addon->UldManager.NodeList[i]);
         }
     }
 
-    public unsafe void UpdateWindows()
+    public unsafe void ClipWindows()
     {
         AtkStage* stage = AtkStage.GetSingleton();
         if (stage == null) { return; }
@@ -194,98 +189,108 @@ internal class AutoClipZones
         }
     }
 
-    private unsafe void UpdateTargetCastbarClipRect()
+    private unsafe void ClipMainTargetInfo()
     {
-        AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_TargetInfoCastBar", 1);
-        if (addon == null || !addon->IsVisible) { return; }
-
-        if (addon->UldManager.NodeListCount < 2) { return; }
-
-        AtkResNode* baseNode = addon->UldManager.NodeList[1];
-        AtkResNode* imageNode = addon->UldManager.NodeList[2];
-
-        if (baseNode == null || !baseNode->IsVisible) { return; }
-        if (imageNode == null || !imageNode->IsVisible) { return; }
-
-        Vector2 pos = new Vector2(
-            addon->X + (baseNode->X * addon->Scale),
-            addon->Y + (baseNode->Y * addon->Scale)
-        );
-        Vector2 size = new Vector2(
-            imageNode->Width * addon->Scale,
-            imageNode->Height * addon->Scale
-        );
-
-        renderer.AddClipZone(ClipRect(pos, pos + size));
+        AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_TargetInfoMainTarget", 1);
+        if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 5) return;
+        var gaugeBar = addon->UldManager.NodeList[5];
+        if (gaugeBar == null || !gaugeBar->IsVisible) return;
+        ClipAtkNode(addon, gaugeBar->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]);
     }
 
-    private unsafe void UpdateHotbarsClipRects()
+    private unsafe void ClipTargetInfoCastBar()
     {
-        foreach (string addonName in _hotbarAddonNames)
+        AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_TargetInfoCastBar", 1);
+        if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 2) return;
+        ClipAtkNode(addon, addon->UldManager.NodeList[2]);
+    }
+
+    private unsafe void ClipActionBars()
+    {
+        foreach (string addonName in _actionBarAddonNames)
         {
             AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName(addonName, 1);
-            if (addon == null || !addon->IsVisible) { continue; }
-
-            if (addon->UldManager.NodeListCount < 20) { continue; }
-
-            AtkResNode* firstNode = addon->UldManager.NodeList[20];
-            AtkResNode* lastNode = addon->UldManager.NodeList[9];
-            float margin = 15f * addon->Scale;
+            if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 20) continue;
             for (int i = 9; i <= 20; i++)
             {
                 var hotbarBtn = addon->UldManager.NodeList[i];
-                if (hotbarBtn == null) continue;
-                var isFilled = hotbarBtn->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]->IsVisible;
-
-                if (hotbarBtn->IsVisible && isFilled)
-                {
-                    var dragNode = hotbarBtn->GetAsAtkComponentNode()->Component->UldManager.NodeList[0];
-                    Vector2 pos = new Vector2(
-                    dragNode->ScreenX,
-                    dragNode->ScreenY);
-
-                    Vector2 size = new Vector2(
-                    dragNode->Width * addon->Scale,
-                    (dragNode->Height + 5f) * addon->Scale);
-
-                    renderer.AddClipZone(ClipRect(pos, pos + size));
-                }
+                if (hotbarBtn == null || !hotbarBtn->IsVisible) continue;
+                ClipAtkNode(addon, hotbarBtn->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]);
             }
         }
     }
 
-    private unsafe void UpdateChatBubbleClipRect()
+    private unsafe void ClipActionCross()
+    {
+        AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_ActionCross", 1);
+        if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 11) return;
+        for (int i = 8; i <= 11; i++)
+        {
+            var buttonGroup = addon->UldManager.NodeList[i];
+            if (buttonGroup == null || !buttonGroup->IsVisible) continue;
+            for (int j = 0; j <= 3; j++)
+            {
+                ClipAtkNode(addon, buttonGroup->GetAsAtkComponentNode()->Component->UldManager.NodeList[j], buttonGroup);
+            }
+        }
+    }
+
+    private unsafe void ClipStatuses()
+    {
+        foreach (string addonName in _statusAddonNames)
+        {
+            AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName(addonName, 1);
+            if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 24) continue;
+
+            for (int i = 5; i <= 24; i++)
+            {
+                var status = addon->UldManager.NodeList[i];
+                if (status == null || !status->IsVisible) continue;
+                ClipAtkNode(addon, status->GetAsAtkComponentNode()->Component->UldManager.NodeList[1]);
+                ClipAtkNode(addon, status->GetAsAtkComponentNode()->Component->UldManager.NodeList[2]);
+            }
+        }
+    }
+
+    private unsafe void ClipChatBubbles()
     {
         AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_MiniTalk", 1);
-        if (addon == null || !addon->IsVisible) { return; }
-        if (addon->UldManager.NodeListCount < 10) { return; }
-
+        if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 10) return;
         for (int i = 1; i <= 10; i++)
         {
             AtkResNode* node = addon->UldManager.NodeList[i];
-            if (node == null || !node->IsVisible) { continue; }
+            if (node == null || !node->IsVisible) continue;
 
             AtkComponentNode* component = node->GetAsAtkComponentNode();
-            if (component == null) { continue; }
-            if (component->Component->UldManager.NodeListCount < 1) { continue; }
-
-            AtkResNode* bubble = component->Component->UldManager.NodeList[1];
-            Vector2 pos = new Vector2(
-                node->X + (bubble->X * addon->Scale),
-                node->Y + (bubble->Y * addon->Scale)
-            );
-            Vector2 size = new Vector2(
-                bubble->Width * addon->Scale,
-                bubble->Height * addon->Scale
-            );
-
-            renderer.AddClipZone(ClipRect(pos, pos + size));
+            if (component == null || component->Component->UldManager.NodeListCount < 1) continue;
+            ClipAtkNode(addon, component->Component->UldManager.NodeList[1]);
         }
+    }
+
+    private unsafe void ClipParameterWidget()
+    {
+        AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_ParameterWidget", 1);
+        if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 2) return;
+        // HP
+        ClipAtkNode(addon, addon->UldManager.NodeList[2]);
+        // MP
+        ClipAtkNode(addon, addon->UldManager.NodeList[1]);
     }
 
     public Rectangle ClipRect(Vector2 min, Vector2 max)
     {
         Vector2 size = max - min;
         return new((int)min.X, (int)min.Y, (int)size.X, (int)size.Y);
+    }
+
+    public unsafe void ClipAtkNode(AtkUnitBase* addon, AtkResNode* node, AtkResNode* parent = null)
+    {
+        if (node == null || !node->IsVisible) return;
+        int posX = (int)node->ScreenX;
+        int posY = (int)node->ScreenY;
+
+        int width = (int)(node->Width * addon->Scale * node->ScaleX * (parent == null ? 1 : parent->ScaleX));
+        int height = (int)(node->Height * addon->Scale * node->ScaleY * (parent == null ? 1 : parent->ScaleY));
+        renderer.AddClipZone(new(posX, posY, width, height));
     }
 }

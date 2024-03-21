@@ -559,7 +559,31 @@ unsafe partial class CGui
                     ImGui.InputInt("##transid" + i + k, ref el.refActorTransformationID);
                 }
 
-                SImGuiEx.SizedText("Targeting you:".Loc(), WidthElement);
+                SImGuiEx.SizedText("Head markings:".Loc(), WidthElement);
+                ImGui.SameLine();
+                ImGui.Checkbox("##marks" + i + k, ref el.refMark);
+                if (el.refMark)
+                {
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(100f);
+                    string[] markOptions = { "attack1".Loc(), "attack2".Loc(), "attack3".Loc(), "attack4".Loc(), "attack5".Loc(), "bind1".Loc(), "bind2".Loc(), "bind3".Loc(), "stop1".Loc(), "stop2".Loc(), "square".Loc(), "circle".Loc(), "cross".Loc(), "triangle".Loc(), "attack6".Loc(), "attack7".Loc(), "attack8".Loc() };
+                    if (ImGui.BeginCombo("##marks type" + i + k, markOptions[el.refMarkID]))
+                    {
+                        for (int j = 0; j < markOptions.Length; j++)
+                        {
+                            if (ImGui.Selectable(markOptions[j]))
+                            {
+                                el.refMarkID = j;
+                            }
+                        }
+                        ImGui.EndCombo();
+                    }
+                }
+            
+
+
+
+            SImGuiEx.SizedText("Targeting you:".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGui.Checkbox($"##targetYou" + i + k, ref el.refTargetYou);
                 if (el.refTargetYou)

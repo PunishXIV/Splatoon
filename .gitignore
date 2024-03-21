@@ -368,3 +368,4 @@ FodyWeavers.xsd
 /SplatoonScripts/Tests/TestTradeHook.cs
 /SplatoonScripts/Duties/ARealmReborn/UnderTheArmorSchAuto.cs
 /SplatoonScripts/Generic/HouseFinder.cs
+/SplatoonScripts/Generic/ArtisanUnstageCheck.cs

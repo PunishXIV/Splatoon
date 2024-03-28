@@ -202,7 +202,9 @@ public class Element
     internal float DefaultFillIntensity()
     {
         // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
-        float transparencyFromStroke = (float)(color >> 24) / 0xC8;
+        uint strokeAlpha = (color >> 24);
+        const uint defaultStrokeAlpha = 0xC8;
+        float transparencyFromStroke = (float)strokeAlpha / defaultStrokeAlpha;
         float transparencyFromFillStep = 0.5f / FillStep;
         if (type.EqualsAny(0, 1))
         {
@@ -222,8 +224,9 @@ public class Element
         {
             transparencyFromFillStep *= 4;
         }
-        uint fillTransparency = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
-        return fillTransparency / 255f;
+        uint fillAlpha = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
+        float fillIntensity = (float)fillAlpha / strokeAlpha;
+        return Math.Clamp(fillIntensity, 0, 1);
     }
 
     [IgnoreDataMember]

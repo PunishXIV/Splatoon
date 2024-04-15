@@ -218,6 +218,17 @@ unsafe class OverlayGui : IDisposable
     void DrawRectWorld(DisplayObjectRect e) //oof
     {
         if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
+     
+        if (!p.Config.AltRectFill)
+        {
+            Svc.GameGui.WorldToScreen(new Vector3(e.l1.ax, e.l1.ay, e.l1.az), out Vector2 v1);
+            Svc.GameGui.WorldToScreen(new Vector3(e.l1.bx, e.l1.by, e.l1.bz), out Vector2 v2);
+            Svc.GameGui.WorldToScreen(new Vector3(e.l2.bx, e.l2.by, e.l2.bz), out Vector2 v3);
+            Svc.GameGui.WorldToScreen(new Vector3(e.l2.ax, e.l2.ay, e.l2.az), out Vector2 v4);
+            ImGui.GetWindowDrawList().AddQuadFilled(v1, v2, v3, v4, e.l1.color); 
+            goto Quit; 
+        }
+        
         var result1 = GetAdjustedLine(new Vector3(e.l1.ax, e.l1.ay, e.l1.az), new Vector3(e.l1.bx, e.l1.by, e.l1.bz));
         if (result1.posA == null) goto Alternative;
         var result2 = GetAdjustedLine(new Vector3(e.l2.ax, e.l2.ay, e.l2.az), new Vector3(e.l2.bx, e.l2.by, e.l2.bz));
@@ -228,7 +239,7 @@ unsafe class OverlayGui : IDisposable
         if (result1.posA == null) goto Quit;
         result2 = GetAdjustedLine(new Vector3(e.l1.bx, e.l1.by, e.l1.bz), new Vector3(e.l2.bx, e.l2.by, e.l2.bz));
         if (result2.posA == null) goto Quit;
-        Build:
+    Build:
         ImGui.GetWindowDrawList().AddQuadFilled(
             new Vector2(result1.posA.Value.X, result1.posA.Value.Y),
             new Vector2(result1.posB.Value.X, result1.posB.Value.Y),
@@ -237,6 +248,23 @@ unsafe class OverlayGui : IDisposable
             );
     Quit:
         if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
+    }
+
+    Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 targetPos, float eps)
+    {
+        if (!Svc.GameGui.WorldToScreen(targetPos, out Vector2 res)) return null;
+
+        while (true)
+        {
+            var mid = (currentPos + targetPos) / 2;
+            if (Svc.GameGui.WorldToScreen(mid, out Vector2 pos))
+            {
+                if ((res - pos).Length() < eps) return res;
+                targetPos = mid;
+                res = pos;
+            }
+            else currentPos = mid;
+        }
     }
 
     Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 delta, int curSegment, int numSegments)

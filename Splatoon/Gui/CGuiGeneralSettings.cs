@@ -156,9 +156,11 @@ partial class CGui
             P.Config.AltRectStep = def.AltRectStep;
             P.Config.AltRectStepOverride = def.AltRectStepOverride;
         }
+
+        ImGui.Checkbox("Fill cones".Loc(), ref p.Config.FillCone);
+
         ImGui.Checkbox("Use line rectangle filling".Loc(), ref p.Config.AltRectFill);
         ImGuiComponents.HelpMarker("Fill rectangles with stroke instead of full color. This will remove clipping issues, but may feel more disturbing.".Loc());
-        
 
         ImGui.SetNextItemWidth(60f);
         ImGui.DragFloat("Minimal rectangle fill line interval".Loc(), ref p.Config.AltRectStep, 0.001f, 0, float.MaxValue);

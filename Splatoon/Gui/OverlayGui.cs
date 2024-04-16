@@ -174,69 +174,6 @@ unsafe class OverlayGui : IDisposable
         }
     }
 
-    // not working
-    // https://stackoverflow.com/questions/47846087/how-to-fill-the-area-between-two-bezier-curves-using-dear-imgui
-    void AltDrawDonutWorld(DisplayObjectDonut e)
-    {
-        var drawList = ImGui.GetWindowDrawList();
-        (e.y, e.z) = (e.z, e.y);
-
-        Vector2 v;
-        Svc.GameGui.WorldToScreen(new Vector3(e.x + e.radius, e.y, e.z), out v);
-        drawList.PathLineTo(v);
-
-        for (float i = 0; i < MathF.PI; i += MathF.PI / 2)
-        {
-            float theta = MathF.PI / 2; 
-            float h = 1.3f * (1 - MathF.Cos(theta / 2)) / MathF.Sin(theta / 2);
-
-            Vector3 arcMid1 = new Vector3(
-                e.x + e.radius * (MathF.Cos(i) - h * MathF.Sin(i)),
-                e.y,
-                e.z + e.radius * (MathF.Sin(i) + h * MathF.Cos(i)));
-            Vector3 arcMid2 = new Vector3(
-                e.x + e.radius * (MathF.Cos(i + theta) + h * MathF.Sin(i + theta)),
-                e.y,
-                e.z + e.radius * (MathF.Sin(i + theta) - h * MathF.Cos(i + theta)));
-            Vector3 endPoint = new Vector3(
-                e.x + e.radius * MathF.Cos(i + theta), e.y, e.z + e.radius * MathF.Sin(i + theta));
-
-            Svc.GameGui.WorldToScreen(arcMid1, out Vector2 v1);
-            Svc.GameGui.WorldToScreen(arcMid2, out Vector2 v2);
-            Svc.GameGui.WorldToScreen(endPoint, out v);
-            drawList.PathBezierCubicCurveTo(v1, v2, v);
-        }
-
-        Svc.GameGui.WorldToScreen(new Vector3(e.x - e.donut, e.y, e.z), out v);
-        drawList.PathLineTo(v);
-
-        for (float i = MathF.PI; i > 0; i -= MathF.PI / 2)
-        {
-            float theta = MathF.PI / 2;
-            float h = 1.3f * (1 - MathF.Cos(theta / 2)) / MathF.Sin(theta / 2);
-
-            Vector3 arcMid1 = new Vector3(
-                e.x + e.donut * (MathF.Cos(i - theta) - h * MathF.Sin(i - theta)),
-                e.y,
-                e.z + e.donut * (MathF.Sin(i - theta) + h * MathF.Cos(i - theta)));
-            Vector3 arcMid2 = new Vector3(
-                e.x + e.donut * (MathF.Cos(i) + h * MathF.Sin(i)),
-                e.y,
-                e.z + e.donut * (MathF.Sin(i) - h * MathF.Cos(i)));
-            Vector3 endPoint = new Vector3(
-                e.x + e.donut * MathF.Cos(i - theta), e.y, e.z + e.donut * MathF.Sin(i - theta));
-
-            Svc.GameGui.WorldToScreen(arcMid1, out Vector2 v1);
-            Svc.GameGui.WorldToScreen(arcMid2, out Vector2 v2);
-            Svc.GameGui.WorldToScreen(endPoint, out v);
-            drawList.PathBezierCubicCurveTo(v2, v1, v);
-        }
-
-        Svc.GameGui.WorldToScreen(new Vector3(e.x + e.radius, e.y, e.z), out v);
-        drawList.PathLineTo(v);
-        drawList.PathFillConvex(e.color); 
-    }
-
     void DrawLineWorld(DisplayObjectLine e)
     {
         if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();

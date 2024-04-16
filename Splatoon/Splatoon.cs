@@ -909,15 +909,12 @@ public unsafe class Splatoon : IDalamudPlugin
             if (e.coneAngleMax > e.coneAngleMin)
             {
                 var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
-                var baseAngle = e.FaceMe ?
-                        (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
-                        : 0;
 
                 if (Config.FillCone)
                 {
-                    baseAngle = -baseAngle + MathF.PI; 
-                    var startRad = baseAngle + e.coneAngleMin.Float().DegreesToRadians() - MathF.PI / 2;
-                    var endRad = baseAngle + e.coneAngleMax.Float().DegreesToRadians() - MathF.PI / 2;
+                    var baseAngle = e.FaceMe ? MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()).DegreesToRadians() + MathF.PI : 0;
+                    var startRad = baseAngle + e.coneAngleMin.Float().DegreesToRadians() + MathF.PI / 2;
+                    var endRad = baseAngle + e.coneAngleMax.Float().DegreesToRadians() + MathF.PI / 2;
                     AddCone(pos, startRad, endRad, e, e.radius); 
                 }
                 else
@@ -927,12 +924,18 @@ public unsafe class Splatoon : IDalamudPlugin
                         var angle = e.FaceMe ?
                             (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()) - x.Float())).DegreesToRadians()
                             : (-x.Float()).DegreesToRadians();
+                        var baseAngle = e.FaceMe ?
+                            (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
+                            : 0;
                         AddConeLine(pos, baseAngle, angle, e, e.radius);
                     }
                     {
                         var angle = e.FaceMe ?
                             (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()) - e.coneAngleMax.Float())).DegreesToRadians()
                             : (-e.coneAngleMax.Float()).DegreesToRadians();
+                        var baseAngle = e.FaceMe ?
+                            (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
+                            : 0;
                         AddConeLine(pos, baseAngle, angle, e, e.radius);
                     }
                 }

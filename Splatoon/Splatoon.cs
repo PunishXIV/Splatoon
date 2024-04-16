@@ -909,24 +909,32 @@ public unsafe class Splatoon : IDalamudPlugin
             if (e.coneAngleMax > e.coneAngleMin)
             {
                 var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
-                for (var x = e.coneAngleMin; x < e.coneAngleMax; x += GetFillStepCone(e.FillStep))
-                {
-                    var angle = e.FaceMe ?
-                        (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()) - x.Float())).DegreesToRadians()
-                        : (-x.Float()).DegreesToRadians();
-                    var baseAngle = e.FaceMe ?
+                var baseAngle = e.FaceMe ?
                         (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                         : 0;
-                    AddConeLine(pos, baseAngle, angle, e, e.radius);
+
+                if (Config.FillCone)
+                {
+                    baseAngle = -baseAngle + MathF.PI; 
+                    var startRad = baseAngle + e.coneAngleMin.Float().DegreesToRadians() - MathF.PI / 2;
+                    var endRad = baseAngle + e.coneAngleMax.Float().DegreesToRadians() - MathF.PI / 2;
+                    AddCone(pos, startRad, endRad, e, e.radius); 
                 }
+                else
                 {
-                    var angle = e.FaceMe ?
-                        (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()) - e.coneAngleMax.Float())).DegreesToRadians()
-                        : (-e.coneAngleMax.Float()).DegreesToRadians();
-                    var baseAngle = e.FaceMe ?
-                        (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
-                        : 0;
-                    AddConeLine(pos, baseAngle, angle, e, e.radius);
+                    for (var x = e.coneAngleMin; x < e.coneAngleMax; x += GetFillStepCone(e.FillStep))
+                    {
+                        var angle = e.FaceMe ?
+                            (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()) - x.Float())).DegreesToRadians()
+                            : (-x.Float()).DegreesToRadians();
+                        AddConeLine(pos, baseAngle, angle, e, e.radius);
+                    }
+                    {
+                        var angle = e.FaceMe ?
+                            (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()) - e.coneAngleMax.Float())).DegreesToRadians()
+                            : (-e.coneAngleMax.Float()).DegreesToRadians();
+                        AddConeLine(pos, baseAngle, angle, e, e.radius);
+                    }
                 }
             }
         }
@@ -1229,6 +1237,15 @@ public unsafe class Splatoon : IDalamudPlugin
             }
             displayObjects.Add(new DisplayObjectText(cx, cy, z + e.offZ + e.overlayVOffset, text, e.overlayBGColor, e.overlayTextColor, e.overlayFScale));
         }
+    }
+
+    void AddCone(Vector3 center, float startRad, float endRad, Element e, float radius)
+    {
+        //PluginLog.Debug($"[addcone] {center}, {startRad} -> {endRad}"); 
+        displayObjects.Add(new DisplayObjectCone(
+            center.X, center.Y, center.Z, radius, startRad, endRad,
+            e.thicc, e.color, true
+            )); 
     }
 
     void AddConeLine(Vector3 tPos, float baseAngle, float angle, Element e, float radius)

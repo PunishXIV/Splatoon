@@ -27,3 +27,6 @@ The Hunt - ShB S Ranks
 ~Lv2~{"Name":"S Ranks: The Rak'tika Greatwood","Group":"The Hunt - ShB S Ranks (Unofficial)","ZoneLockH":[817],"ElementsL":[{"Name":"Ixtab","type":1,"color":3355484415,"thicc":3.0,"overlayText":"S Rank","refActorName":"Ixtab","includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"S Ranks: The Tempest","Group":"The Hunt - ShB S Ranks (Unofficial)","ZoneLockH":[818],"ElementsL":[{"Name":"Gunitt","type":1,"color":3355484415,"thicc":3.0,"overlayText":"S Rank","refActorName":"Gunitt","includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ```
+```
+~Lv2~{"Name":"SS Rank: Shadowbringers","Group":"The Hunt - ShB SS Rank (Unofficial)","ZoneLockH":[818,817,816,815,814,813],"ElementsL":[{"Name":"Forgiven Rebellion","type":1,"color":3355484415,"thicc":3.0,"overlayText":"SS Rank","refActorName":"Gunitt","refActorNameIntl":{"En":"Forgiven Rebellion"},"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Forgiven Gossip","type":1,"color":3372196352,"thicc":3.0,"overlayText":"SS Minion","refActorName":"Gunitt","refActorNameIntl":{"En":"Forgiven Rebellion"},"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+```

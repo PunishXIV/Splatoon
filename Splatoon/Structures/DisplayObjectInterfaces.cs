@@ -100,5 +100,25 @@ public class DisplayObjectPolygon : DisplayObject
     }
 }
 
+public class DisplayObjectCone : DisplayObject
+{
+    public float x, y, z, radius, thickness;
+    public float startRad, endRad;
+    public uint color;
+    public bool filled;
+    public DisplayObjectCone(float x, float y, float z, float radius, float startRad, float endRad, float thickness, uint color, bool filled)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.radius = radius;
+        this.startRad = startRad;
+        this.endRad = endRad;
+        this.thickness = thickness;
+        this.color = color;
+        this.filled = filled;
+    }
+}
+
 public interface DisplayObject { }
 

@@ -45,6 +45,8 @@ class Configuration : IPluginConfiguration
     public bool AltConeStepOverride = false;
     public int AltConeStep = 1;
 
+    public bool FillCone = true; 
+
     public bool FocusMode = false;
     public bool NoStreamWarning = false;
     public bool Logging = false;

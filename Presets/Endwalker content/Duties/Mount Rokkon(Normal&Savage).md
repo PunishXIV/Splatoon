@@ -23,6 +23,10 @@ Shishu Yuki
 ~Lv2~{"Name":"シシュウ・ユウキ","Group":"異聞六根山零式","ZoneLockH":[1156,1155],"ElementsL":[{"Name":"右爪薙ぎ払い","type":3,"refY":30.0,"radius":45.0,"color":1677721855,"thicc":1.0,"refActorNPCNameID":12425,"refActorRequireCast":true,"refActorCastId":[33776,33803,33842,34437,34440],"refActorCastTimeMin":3.0,"refActorCastTimeMax":10.0,"FillStep":2.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964},{"Name":"左爪薙ぎ払い","type":3,"refY":-30.0,"radius":45.0,"color":1677721855,"thicc":1.0,"refActorNPCNameID":12425,"refActorRequireCast":true,"refActorCastId":[33777,33804,33843,34438,34441],"refActorCastTimeMin":3.0,"refActorCastTimeMax":10.0,"FillStep":2.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964}]}
 ```
 
+[Untested] Ad Pack #2 | Shishu Yamabiko:
+```
+~Lv2~{"Name":"Shishu Yamabiko [Wind Sprite]","Group":"Mount Rokkon & Savage","ZoneLockH":[179],"ElementsL":[{"Name":"Telegraphed Line AOE's","type":3,"refY":37.94,"offY":-1.76,"radius":3.99,"originFillColor":1157628159,"endFillColor":1157628159,"refActorNPCNameID":12400,"refActorRequireCast":true,"refActorCastId":[34439,34442],"refActorComparisonType":6,"includeRotation":true}]}
+```
 
 # Boss1  Shishio:
 

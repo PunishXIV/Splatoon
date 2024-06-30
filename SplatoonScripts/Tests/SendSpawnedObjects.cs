@@ -2,23 +2,15 @@
 using Dalamud.Logging;
 using ECommons;
 using ECommons.DalamudServices;
-using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Schedulers;
-using Lumina.Excel.GeneratedSheets;
 using Splatoon.SplatoonScripting;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Numerics;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
-using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {

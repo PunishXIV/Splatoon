@@ -11,6 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SplatoonScriptsOfficial", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B5A07386-562B-4A69-AF62-E9DA6E5A9C9D}"
 	ProjectSection(SolutionItems) = preProject
+		meta\front.md = meta\front.md
 		revocationList.txt = revocationList.txt
 		versions.txt = versions.txt
 	EndProjectSection
@@ -35,8 +36,8 @@ Global
 		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Debug|Any CPU.Build.0 = Debug|x64
 		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Debug|x64.ActiveCfg = Debug|x64
 		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Debug|x64.Build.0 = Debug|x64
-		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Release|Any CPU.ActiveCfg = Release|x64
-		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Release|Any CPU.Build.0 = Release|x64
+		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Release|Any CPU.ActiveCfg = ReleaseForms|x64
+		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Release|Any CPU.Build.0 = ReleaseForms|x64
 		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Release|x64.ActiveCfg = Release|x64
 		{96A0FFDC-FD27-42D5-855F-E38DCEF76B25}.Release|x64.Build.0 = Release|x64
 		{9062849B-30C3-4047-A8BC-2D61EBBCD11E}.Debug|Any CPU.ActiveCfg = Debug|x64

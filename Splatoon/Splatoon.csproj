@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.5.0.8</Version>
+		<Version>3.5.0.9</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -35,10 +35,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DalamudPackager" Version="2.1.12" />
-	  <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.9.2" />
-	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" />
-	  <PackageReference Include="NotificationMasterAPI" Version="1.0.0" />
+	  <PackageReference Include="DalamudPackager" Version="2.1.13" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
+	  <PackageReference Include="NotificationMasterAPI" Version="1.0.0.1" />
 	  <PackageReference Include="SharpDX.D3DCompiler" Version="4.2.0" />
 	  <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
 	</ItemGroup>

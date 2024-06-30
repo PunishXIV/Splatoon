@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public class Oversampled_Wave_Cannon : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
-        public override Metadata? Metadata => new(3, "NightmareXIV");
+        public override Metadata? Metadata => new(4, "NightmareXIV");
         Config Conf => Controller.GetConfig<Config>();
 
         public override void OnSetup()
@@ -62,7 +62,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             if (IsMechanicRunning(out var direction))
             {
                 var prio = ObtainMyPriority();
-                if(prio.Priority != 0)
+                if (prio.Priority != 0)
                 {
                     var d = direction == CardinalDirection.West ? "West" : "East";
                     if (prio.IsMonitor)
@@ -106,19 +106,30 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                     toRem = i;
                 }
             }
-            if(toRem != -1)
+            if (toRem != -1)
             {
                 Conf.Priorities.RemoveAt(toRem);
             }
-            if(ImGui.Button("Create new priority list"))
+            if (ImGui.Button("Create new priority list"))
             {
                 Conf.Priorities.Add(new string[] { "", "", "", "", "", "", "", "" });
+            }
+            if (ImGui.Button("Get from initial conga setup"))
+            {
+                if (FakeParty.Get().Count() == 8)
+                {
+                    Conf.Priorities.Add(FakeParty.Get().OrderBy(x => x.Position.X).Select(x => x.Name.ToString()).ToArray());
+                }
+                else
+                {
+                    DuoLog.Error($"8 players are required");
+                }
             }
             if (ImGui.CollapsingHeader("Debug"))
             {
                 var pr = ObtainMyPriority();
                 ImGuiEx.Text($"My priority: {pr.Priority}, IsMonitor = {pr.IsMonitor}");
-                if(IsMechanicRunning(out var dir))
+                if (IsMechanicRunning(out var dir))
                 {
                     ImGuiEx.Text($"Mechanic is running, direction {dir}");
                 }
@@ -128,7 +139,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         bool IsMechanicRunning(out CardinalDirection mechanicStep)
         {
             var caster = Svc.Objects.FirstOrDefault(x => x is BattleChara b && b.CastActionId.EqualsAny<uint>(31595, 31596)) as BattleChara;
-            if(caster != null)
+            if (caster != null)
             {
                 mechanicStep = caster.CastActionId == 31595 ? CardinalDirection.East : CardinalDirection.West;
                 return true;
@@ -139,15 +150,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         (int Priority, bool IsMonitor) ObtainMyPriority()
         {
-            if(TryGetPriorityList(out var list))
+            if (TryGetPriorityList(out var list))
             {
                 var isMonitor = Svc.ClientState.LocalPlayer.HasMonitor();
                 if (isMonitor)
                 {
                     var prio = 1;
-                    foreach(var x in list.Where(z => GetPlayer(z)?.HasMonitor() == true))
+                    foreach (var x in list.Where(z => GetPlayer(z)?.HasMonitor() == true))
                     {
-                        if(x == Svc.ClientState.LocalPlayer.Name.ToString())
+                        if (x == Svc.ClientState.LocalPlayer.Name.ToString())
                         {
                             return (prio, true);
                         }
@@ -184,7 +195,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         bool DrawPrioList(int num)
         {
             var prio = Conf.Priorities[num];
-            ImGuiEx.Text($"Priority list {num+1}");
+            ImGuiEx.Text($"Priority list {num + 1}");
             ImGui.PushID($"prio{num}");
             for (int i = 0; i < prio.Length; i++)
             {
@@ -195,7 +206,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 ImGui.SetNextItemWidth(150);
                 if (ImGui.BeginCombo("##partysel", "Select from party"))
                 {
-                    foreach(var x in FakeParty.Get())
+                    foreach (var x in FakeParty.Get())
                     {
                         if (ImGui.Selectable(x.Name.ToString()))
                         {
@@ -206,7 +217,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 }
                 ImGui.PopID();
             }
-            if(ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
+            if (ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
             {
                 return true;
             }
@@ -214,13 +225,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             return false;
         }
 
-        bool TryGetPriorityList([NotNullWhen(true)]out string[]? values)
+        bool TryGetPriorityList([NotNullWhen(true)] out string[]? values)
         {
-            foreach(var p in Conf.Priorities)
+            foreach (var p in Conf.Priorities)
             {
                 var valid = true;
                 var l = FakeParty.Get().Select(x => x.Name.ToString()).ToHashSet();
-                foreach(var x in p)
+                foreach (var x in p)
                 {
                     if (!l.Remove(x))
                     {

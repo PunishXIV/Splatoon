@@ -1,4 +1,5 @@
 ﻿using Dalamud;
+using Dalamud.Game;
 using Dalamud.Interface.Components;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
@@ -297,13 +298,13 @@ unsafe partial class CGui
                         {
                             el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                             el.refActorDataID = Svc.Targets.Target.DataId;
-                            el.refActorObjectID = Svc.Targets.Target.ObjectId;
-                            if (Svc.Targets.Target is Character c)
+                            el.refActorObjectID = Svc.Targets.Target.EntityId;
+                            if (Svc.Targets.Target is ICharacter c)
                             {
                                 el.refActorModelID = (uint)c.Struct()->CharacterData.ModelCharaId;
                                 el.refActorNPCNameID = c.NameId;
                             }
-                            el.refActorNPCID = Svc.Targets.Target.Struct()->GetNpcID();
+                            el.refActorNPCID = Svc.Targets.Target.Struct()->GetNameId();
                         }
                     }
                     SImGuiEx.SizedText("Targetability: ".Loc(), WidthElement);
@@ -359,7 +360,7 @@ unsafe partial class CGui
                     ImGui.SameLine();
                     if (ImGui.Button("Add".Loc() + "##byactionname" + i + k))
                     {
-                        foreach (var x in Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Union(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>(Dalamud.ClientLanguage.English)))
+                        foreach (var x in Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Union(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>(ClientLanguage.English)))
                         {
                             if (x.Name.ToString().Equals(ActionName, StringComparison.OrdinalIgnoreCase))
                             {
@@ -411,7 +412,7 @@ unsafe partial class CGui
                             }
                         }
                     }
-                    if (Svc.Targets.Target != null && Svc.Targets.Target is BattleChara bchr)
+                    if (Svc.Targets.Target != null && Svc.Targets.Target is IBattleChara bchr)
                     {
                         ImGui.SameLine();
                         if (ImGui.Button("Add from target".Loc() + "##bybuffname" + i + k))

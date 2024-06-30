@@ -1,5 +1,5 @@
 ﻿using Dalamud.Configuration;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ImGuiNotification;
 using Newtonsoft.Json;
 using Splatoon.Gui;
 using Splatoon.Serializables;

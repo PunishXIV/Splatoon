@@ -1,9 +1,10 @@
 ﻿using Dalamud;
+using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.Internal.Notifications;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Events;
@@ -62,7 +63,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal HashSet<string> CurrentChatMessages = new();
     internal Element Clipboard = null;
     internal int dequeueConcurrency = 1;
-    internal Dictionary<(string Name, uint ObjectID, ulong ObjectIDLong, uint DataID, int ModelID, uint NPCID, uint NameID, ObjectKind type), ObjectInfo> loggedObjectList = new();
+    internal Dictionary<(string Name, uint EntityId, ulong GameObjectId, uint DataID, int ModelID, uint NPCID, uint NameID, ObjectKind type), ObjectInfo> loggedObjectList = new();
     internal bool LogObjects = false;
     internal bool DisableLineFix = false;
     private int phase = 1;
@@ -96,7 +97,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal UnsafeElement UnsafeElement;
     public NotificationMasterApi NotificationMasterApi;
 
-    internal void Load(DalamudPluginInterface pluginInterface)
+    internal void Load(IDalamudPluginInterface pluginInterface)
     {
         if (Loaded)
         {
@@ -250,7 +251,7 @@ public unsafe class Splatoon : IDalamudPlugin
         //Svc.Chat.Print("Disposing");
     }
 
-    public Splatoon(DalamudPluginInterface pluginInterface)
+    public Splatoon(IDalamudPluginInterface pluginInterface)
     {
         P = this;
         Svc.Init(pluginInterface);
@@ -280,7 +281,7 @@ public unsafe class Splatoon : IDalamudPlugin
     }
 
     internal static readonly string[] InvalidSymbols = { "", "", "", "“", "”", "" };
-    internal void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
+    internal void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         if (Profiler.Enabled) Profiler.MainTickChat.StartTick();
         var inttype = (int)type;
@@ -405,15 +406,15 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 foreach (var t in Svc.Objects)
                 {
-                    var ischar = t is Character;
-                    var obj = (t.Name.ToString(), t.ObjectId, (ulong)t.Struct()->GetObjectID(), t.DataId, ischar ? ((Character)t).Struct()->CharacterData.ModelCharaId : 0, t.Struct()->GetNpcID(), ischar ? ((Character)t).NameId : 0, t.ObjectKind);
+                    var ischar = t is ICharacter;
+                    var obj = (t.Name.ToString(), t.EntityId, (ulong)t.Struct()->GetGameObjectId(), t.DataId, ischar ? ((ICharacter)t).Struct()->CharacterData.ModelCharaId : 0, t.Struct()->GetNameId(), ischar ? ((ICharacter)t).NameId : 0, t.ObjectKind);
                     loggedObjectList.TryAdd(obj, new ObjectInfo());
                     loggedObjectList[obj].ExistenceTicks++;
                     loggedObjectList[obj].IsChar = ischar;
                     if (ischar)
                     {
                         loggedObjectList[obj].Targetable = t.Struct()->GetIsTargetable();
-                        loggedObjectList[obj].Visible = ((Character)t).IsCharacterVisible();
+                        loggedObjectList[obj].Visible = ((ICharacter)t).IsCharacterVisible();
                         if (loggedObjectList[obj].Targetable) loggedObjectList[obj].TargetableTicks++;
                         if (loggedObjectList[obj].Visible) loggedObjectList[obj].VisibleTicks++;
                     }
@@ -745,7 +746,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
             else if (e.refActorType == 2 && Svc.Targets.Target != null
-                && Svc.Targets.Target is BattleNpc && CheckCharacterAttributes(e, Svc.Targets.Target, true))
+                && Svc.Targets.Target is IBattleNpc && CheckCharacterAttributes(e, Svc.Targets.Target, true))
             {
                 if (i == null || !i.UseDistanceLimit || CheckDistanceCondition(i, Svc.Targets.Target.GetPositionXZY()))
                 {
@@ -847,32 +848,32 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    private bool CheckTargetingOption(Element e, GameObject a)
+    private bool CheckTargetingOption(Element e, IGameObject a)
     {
         if (e.refTargetYou)
         {
-            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != Svc.ClientState.LocalPlayer.ObjectId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == Svc.ClientState.LocalPlayer.ObjectId));
+            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != Svc.ClientState.LocalPlayer.EntityId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId));
         }
 
         return false;
     }
 
-    static bool CheckCharacterAttributes(Element e, GameObject a, bool ignoreVisibility = false)
+    static bool CheckCharacterAttributes(Element e, IGameObject a, bool ignoreVisibility = false)
     {
         return
-            (ignoreVisibility || !e.onlyVisible || (a is Character chr && chr.IsCharacterVisible()))
-            && (!e.refActorRequireCast || (e.refActorCastId.Count > 0 && a is BattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
-            && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is BattleChara chr3 && CheckEffect(e, chr3)))
-            && (!e.refActorUseTransformation || (a is BattleChara chr4 && CheckTransformationID(e, chr4)))
+            (ignoreVisibility || !e.onlyVisible || (a is ICharacter chr && chr.IsCharacterVisible()))
+            && (!e.refActorRequireCast || (e.refActorCastId.Count > 0 && a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
+            && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is IBattleChara chr3 && CheckEffect(e, chr3)))
+            && (!e.refActorUseTransformation || (a is IBattleChara chr4 && CheckTransformationID(e, chr4)))
             && (!e.LimitRotation || (a.Rotation >= e.RotationMax && a.Rotation <= e.RotationMin));
     }
 
-    static bool CheckTransformationID(Element e, Character c)
+    static bool CheckTransformationID(Element e, ICharacter c)
     {
         return e.refActorTransformationID == c.GetTransformationID();
     }
 
-    static bool IsCastingMatches(Element e, BattleChara chr)
+    static bool IsCastingMatches(Element e, IBattleChara chr)
     {
         if (chr.IsCasting(e.refActorCastId))
         {
@@ -905,7 +906,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    static bool CheckEffect(Element e, BattleChara c)
+    static bool CheckEffect(Element e, IBattleChara c)
     {
         if (e.refActorRequireAllBuffs)
         {
@@ -931,7 +932,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    static bool IsObjectEffectMatches(Element e, GameObject o, List<CachedObjectEffectInfo> info)
+    static bool IsObjectEffectMatches(Element e, IGameObject o, List<CachedObjectEffectInfo> info)
     {
         if (e.refActorObjectEffectLastOnly)
         {
@@ -948,36 +949,36 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    static bool IsAttributeMatches(Element e, GameObject o)
+    static bool IsAttributeMatches(Element e, IGameObject o)
     {
         if (e.refActorComparisonAnd)
         {
             return (e.refActorNameIntl.Get(e.refActorName) == String.Empty || IsNameMatches(e, o)) &&
-             (e.refActorModelID == 0 || (o is Character c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID)) &&
-             (e.refActorObjectID == 0 || o.ObjectId == e.refActorObjectID) &&
+             (e.refActorModelID == 0 || (o is ICharacter c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID)) &&
+             (e.refActorObjectID == 0 || o.EntityId == e.refActorObjectID) &&
              (e.refActorDataID == 0 || o.DataId == e.refActorDataID) &&
-             (e.refActorNPCID == 0 || o.Struct()->GetNpcID() == e.refActorNPCID) &&
+             (e.refActorNPCID == 0 || o.Struct()->GetNameId() == e.refActorNPCID) &&
              (e.refActorPlaceholder.Count == 0 || e.refActorPlaceholder.Any(x => ResolvePlaceholder(x) == o.Address)) &&
-             (e.refActorNPCNameID == 0 || (o is Character c2 && c2.NameId == e.refActorNPCNameID)) &&
+             (e.refActorNPCNameID == 0 || (o is ICharacter c2 && c2.NameId == e.refActorNPCNameID)) &&
              (e.refActorVFXPath == "" || (AttachedInfo.TryGetSpecificVfxInfo(o, e.refActorVFXPath, out var info) && info.Age.InRange(e.refActorVFXMin, e.refActorVFXMax))) &&
              ((e.refActorObjectEffectData1 == 0 && e.refActorObjectEffectData2 == 0) || (AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo)));
         }
         else
         {
             if (e.refActorComparisonType == 0 && IsNameMatches(e, o)) return true;
-            if (e.refActorComparisonType == 1 && o is Character c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID) return true;
-            if (e.refActorComparisonType == 2 && o.ObjectId == e.refActorObjectID) return true;
+            if (e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID) return true;
+            if (e.refActorComparisonType == 2 && o.EntityId == e.refActorObjectID) return true;
             if (e.refActorComparisonType == 3 && o.DataId == e.refActorDataID) return true;
-            if (e.refActorComparisonType == 4 && o.Struct()->GetNpcID() == e.refActorNPCID) return true;
+            if (e.refActorComparisonType == 4 && o.Struct()->GetNameId() == e.refActorNPCID) return true;
             if (e.refActorComparisonType == 5 && e.refActorPlaceholder.Any(x => ResolvePlaceholder(x) == o.Address)) return true;
-            if (e.refActorComparisonType == 6 && o is Character c2 && c2.NameId == e.refActorNPCNameID) return true;
+            if (e.refActorComparisonType == 6 && o is ICharacter c2 && c2.NameId == e.refActorNPCNameID) return true;
             if (e.refActorComparisonType == 7 && AttachedInfo.TryGetSpecificVfxInfo(o, e.refActorVFXPath, out var info) && info.Age.InRange(e.refActorVFXMin, e.refActorVFXMax)) return true;
             if (e.refActorComparisonType == 8 && AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo)) return true;
             return false;
         }
     }
 
-    static bool IsNameMatches(Element e, GameObject o)
+    static bool IsNameMatches(Element e, IGameObject o)
     {
         return !string.IsNullOrEmpty(e.refActorNameIntl.Get(e.refActorName)) && (e.refActorNameIntl.Get(e.refActorName) == "*" || o.Name.ToString().ContainsIgnoreCase(e.refActorNameIntl.Get(e.refActorName)));
     }
@@ -1011,7 +1012,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
                 else
                 {
-                    result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetPronounModule()->ResolvePlaceholder(ph, 0, 0);
+                    result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder(ph, 0, 0);
                 }
             }
             PlaceholderCache[ph] = result;
@@ -1020,7 +1021,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    void DrawCircle(Element e, float x, float y, float z, float r, float angle, GameObject go = null)
+    void DrawCircle(Element e, float x, float y, float z, float r, float angle, IGameObject go = null)
     {
         var cx = x + e.offX;
         var cy = y + e.offY;
@@ -1068,20 +1069,19 @@ public unsafe class Splatoon : IDalamudPlugin
             if (go != null)
             {
                 text = text
-                    .Replace("$NAMEID", $"{(go is Character chr2 ? chr2.NameId : 0).Format()}")
+                    .Replace("$NAMEID", $"{(go is ICharacter chr2 ? chr2.NameId : 0).Format()}")
                     .Replace("$NAME", go.Name.ToString())
-                    .Replace("$OBJECTID", $"{go.ObjectId.Format()}")
+                    .Replace("$OBJECTID", $"{go.EntityId.Format()}")
                     .Replace("$DATAID", $"{go.DataId.Format()}")
-                    .Replace("$MODELID", $"{(go is Character chr ? chr.Struct()->CharacterData.ModelCharaId : 0).Format()}")
+                    .Replace("$MODELID", $"{(go is ICharacter chr ? chr.Struct()->CharacterData.ModelCharaId : 0).Format()}")
                     .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
                     .Replace("$KIND", $"{go.ObjectKind}")
-                    .Replace("$NPCID", $"{go.Struct()->GetNpcID().Format()}")
+                    .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
                     .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
                     .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
-                    .Replace("$CAST", go is BattleChara chr3 ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
+                    .Replace("$CAST", go is IBattleChara chr3 ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
                     .Replace("\\n", "\n")
-                    .Replace("$VFXID", $"{(go is Character chr4 ? chr4.GetStatusVFXId() : 0).Format()}")
-                    .Replace("$TRANSFORM", $"{(go is Character chr5 ? chr5.GetTransformationID() : 0).Format()}")
+                    .Replace("$TRANSFORM", $"{(go is ICharacter chr5 ? chr5.GetTransformationID() : 0).Format()}")
                     .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
             }
             displayObjects.Add(new DisplayObjectText(cx, cy, z + e.offZ + e.overlayVOffset, text, e.overlayBGColor, e.overlayTextColor, e.overlayFScale));

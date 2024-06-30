@@ -72,7 +72,7 @@ public static unsafe class Static
         }
     }
 
-    public static bool IsCastInRange(this BattleChara c, float min, float max)
+    public static bool IsCastInRange(this IBattleChara c, float min, float max)
     {
         if (c.CurrentCastTime.InRange(min, max))
         {
@@ -290,15 +290,15 @@ public static unsafe class Static
         }
     }
 
-    public static PlayerCharacter GetRolePlaceholder(CombatRole role, int num)
+    public static IPlayerCharacter GetRolePlaceholder(CombatRole role, int num)
     {
         int curIndex = 1;
         for (var i = 1; i <= 8; i++)
         {
-            var result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUiModule()->GetPronounModule()->ResolvePlaceholder($"<{i}>", 0, 0);
+            var result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder($"<{i}>", 0, 0);
             if (result == nint.Zero) return null;
             var go = Svc.Objects.CreateObjectReference(result);
-            if (go is PlayerCharacter pc)
+            if (go is IPlayerCharacter pc)
             {
                 if (pc.GetRole() == role)
                 {
@@ -411,7 +411,7 @@ public static unsafe class Static
         return Vector3.Zero;
     }
 
-    public static Vector3 GetPositionXZY(this GameObject a)
+    public static Vector3 GetPositionXZY(this IGameObject a)
     {
         return XZY(a.Position);
     }

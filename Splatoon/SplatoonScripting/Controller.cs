@@ -264,7 +264,7 @@ public unsafe class Controller
     /// Retrieve valid and visible party members. Non cross-world parties only. Duty recorder supported.
     /// </summary>
     /// <returns>Enumberator of PlayerCharacter objects.</returns>
-    public IEnumerable<PlayerCharacter> GetPartyMembers()
+    public IEnumerable<IPlayerCharacter> GetPartyMembers()
     {
         return FakeParty.Get();
     }

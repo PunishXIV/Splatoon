@@ -19,7 +19,7 @@ internal unsafe class ObjectEffectProcessor
         {
             if (P.Config.Logging)
             {
-                var text = $"ObjectEffect: on {MemoryHelper.ReadStringNullTerminated((nint)a1->Name)} {a1->ObjectID.Format()}/{a1->DataID.Format()} data {a2}, {a3}";
+                var text = $"ObjectEffect: on {a1->Name.Read()} {a1->EntityId.Format()}/{a1->BaseId.Format()} data {a2}, {a3}";
                 Logger.Log(text);
             }
             var ptr = (nint)a1;
@@ -33,7 +33,7 @@ internal unsafe class ObjectEffectProcessor
                 data1 = a2,
                 data2 = a3
             });
-            ScriptingProcessor.OnObjectEffect(a1->ObjectID, a2, a3);
+            ScriptingProcessor.OnObjectEffect(a1->EntityId, a2, a3);
         }
         catch (Exception e)
         {

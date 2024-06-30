@@ -151,7 +151,7 @@ unsafe partial class CGui
                     ImGuiEx.Text(a.Name.ToString());
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(200f);
-                    ImGuiEx.Text($"{a.ObjectId.Format()}");
+                    ImGuiEx.Text($"{a.EntityId.Format()}");
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(300f);
                     ImGuiEx.Text($"{a.DataId.Format()}");
@@ -160,10 +160,10 @@ unsafe partial class CGui
                     ImGuiEx.Text($"{a.Struct()->GetIsTargetable()}");
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(500f);
-                    ImGuiEx.Text($"{((a is Character chr) ? chr.IsCharacterVisible() : "Not a char")}");
+                    ImGuiEx.Text($"{((a is ICharacter chr) ? chr.IsCharacterVisible() : "Not a char")}");
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(600f);
-                    ImGuiEx.Text(a is Character chr2 ? $"{chr2.Struct()->CharacterData.ModelCharaId.Format()}" : "Not a char");
+                    ImGuiEx.Text(a is ICharacter chr2 ? $"{chr2.Struct()->CharacterData.ModelCharaId.Format()}" : "Not a char");
                 });
             }
         }
@@ -234,7 +234,7 @@ unsafe partial class CGui
         ImGui.SameLine();
         if (ImGui.Button("Do (dangerous)"))
         {
-            var o1 = Svc.Objects.First(x => x.ObjectId == obj1);
+            var o1 = Svc.Objects.First(x => x.EntityId == obj1);
             var addr = o1.Address + off1;
             *(byte*)addr = (byte)rep1;
         }
@@ -244,8 +244,8 @@ unsafe partial class CGui
         {
             try
             {
-                var o1 = Svc.Objects.First(x => x.ObjectId == obj1);
-                var o2 = Svc.Objects.First(x => x.ObjectId == obj2);
+                var o1 = Svc.Objects.First(x => x.EntityId == obj1);
+                var o2 = Svc.Objects.First(x => x.EntityId == obj2);
                 var result = new List<string>();
                 for(var i = 0;i<= 0x1A0; i++)
                 {

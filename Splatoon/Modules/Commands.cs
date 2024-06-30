@@ -77,8 +77,8 @@ class Commands : IDisposable
                         var el = p.Config.LayoutsL.First(x => x.Name == name[0]).ElementsL.First(x => x.Name == name[1]);
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;
-                        el.refActorObjectID = Svc.Targets.Target.ObjectId;
-                        if (Svc.Targets.Target is Character c) el.refActorModelID = (uint)c.Struct()->CharacterData.ModelCharaId;
+                        el.refActorObjectID = Svc.Targets.Target.EntityId;
+                        if (Svc.Targets.Target is ICharacter c) el.refActorModelID = (uint)c.Struct()->CharacterData.ModelCharaId;
                         Notify.Success("Successfully set target");
                     }
                 }

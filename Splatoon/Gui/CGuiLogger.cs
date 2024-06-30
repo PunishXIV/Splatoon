@@ -47,8 +47,8 @@ internal partial class CGui
         {
             i++;
             var mid = !x.Value.IsChar ? "--" : $"{x.Key.ModelID.Format()}";
-            var oid = x.Key.ObjectID == 0xE0000000 ? "--" : $"{x.Key.ObjectID.Format()}";
-            var oidl = $"{x.Key.ObjectIDLong.Format()}";
+            var oid = x.Key.EntityId == 0xE0000000 ? "--" : $"{x.Key.EntityId.Format()}";
+            var oidl = $"{x.Key.GameObjectId.Format()}";
             var did = x.Key.DataID == 0 ? "--" : $"{x.Key.DataID.Format()}";
             var npcid = $"{x.Key.NPCID.Format()}";
             var nameid = !x.Value.IsChar ? "--" : $"{x.Key.NameID.Format()}";
@@ -71,7 +71,7 @@ internal partial class CGui
             ImGuiEx.TextCopy(oid);
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
-                if(Svc.Objects.TryGetFirst(z => z.ObjectId == x.Key.ObjectID, out var go))
+                if(Svc.Objects.TryGetFirst(z => z.EntityId == x.Key.EntityId, out var go))
                 {
                     Explorer.Ptr = go.Address;
                 }
@@ -83,7 +83,7 @@ internal partial class CGui
                 p.SFind.Add(new()
                 {
                     includeUntargetable = true,
-                    oid = x.Key.ObjectID,
+                    oid = x.Key.EntityId,
                     SearchAttribute = 2
                 });
             }

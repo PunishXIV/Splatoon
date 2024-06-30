@@ -10,9 +10,9 @@ public unsafe static class Extensions
     /// </summary>
     /// <param name="objectID">Object ID to search.</param>
     /// <returns>GameObject if found; null otherwise.</returns>
-    public static GameObject? GetObject(this uint objectID)
+    public static IGameObject? GetObject(this uint objectID)
     {
-        return Svc.Objects.FirstOrDefault(x => x.ObjectId == objectID);
+        return Svc.Objects.FirstOrDefault(x => x.EntityId == objectID);
     }
 
     /// <summary>
@@ -21,20 +21,10 @@ public unsafe static class Extensions
     /// <param name="objectID">Object ID to search.</param>
     /// <param name="obj">Resulting GameObject if found; null otherwise.</param>
     /// <returns>Whether object was found.</returns>
-    public static bool TryGetObject(this uint objectID, [NotNullWhen(true)]out GameObject? obj)
+    public static bool TryGetObject(this uint objectID, [NotNullWhen(true)]out IGameObject? obj)
     {
         obj = objectID.GetObject();
         return obj != null;
-    }
-
-    /// <summary>
-    /// Gets Status VFX ID.
-    /// </summary>
-    /// <param name="chara"></param>
-    /// <returns>Status VFX ID</returns>
-    public static short GetStatusVFXId(this Character chara)
-    {
-        return chara.Struct()->CharacterData.StatusEffectVFXId;
     }
 
     /// <summary>

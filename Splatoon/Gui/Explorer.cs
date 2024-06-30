@@ -46,7 +46,7 @@ internal unsafe static class Explorer
         ImGui.EndChild();
     }
 
-    internal static void DrawGameObject(GameObject obj)
+    internal static void DrawGameObject(IGameObject obj)
     {
         ImGuiEx.TextCopy($"GameObject {obj}");
         ImGuiEx.TextCopy($"ObjectKind: {obj.ObjectKind}");
@@ -54,17 +54,16 @@ internal unsafe static class Explorer
         ImGuiEx.TextCopy($"{"Rotation".Loc()}: {obj.Rotation}/{360 - (obj.Rotation.RadiansToDegrees() + 180)}");
         ImGuiEx.TextCopy($"Vector3 {"distance".Loc()}: {Vector3.Distance(obj.Position, Svc.ClientState.LocalPlayer.Position)}");
         ImGuiEx.TextCopy($"Vector2 {"distance".Loc()}: {Vector2.Distance(obj.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2())}");
-        ImGuiEx.TextCopy($"{"Object ID".Loc()} long: {((ulong)obj.Struct()->GetObjectID()).Format()}");
-        ImGuiEx.TextCopy($"{"Object ID".Loc()}: {obj.ObjectId.Format()}");
+        ImGuiEx.TextCopy($"{"Object ID".Loc()} long: {((ulong)obj.Struct()->GetGameObjectId()).Format()}");
+        ImGuiEx.TextCopy($"{"Object ID".Loc()}: {obj.EntityId.Format()}");
         ImGuiEx.TextCopy($"{"Data ID".Loc()}: {obj.DataId.Format()}");
         ImGuiEx.TextCopy($"{"Owner ID".Loc()}: {obj.OwnerId.Format()}");
-        ImGuiEx.TextCopy($"{"NPC ID".Loc()}: {obj.Struct()->GetNpcID()}");
+        ImGuiEx.TextCopy($"{"NPC ID".Loc()}: {obj.Struct()->GetNameId()}");
         ImGuiEx.TextCopy($"{"Dead".Loc()}: {obj.Struct()->IsDead()}");
         ImGuiEx.TextCopy($"{"Hitbox radius".Loc()}: {obj.HitboxRadius}");
         ImGuiEx.TextCopy($"{"Targetable".Loc()}: {obj.Struct()->GetIsTargetable()}");
         ImGuiEx.TextCopy($"{"Nameplate".Loc()}: {ObjectFunctions.GetNameplateColor(obj.Address)}");
         ImGuiEx.TextCopy($"{"Is hostile".Loc()}: {ObjectFunctions.IsHostile(obj)}");
-        ImGuiEx.TextCopy($"{"Gender".Loc()}: {obj.Struct()->Gender}");
         ImGuiEx.TextCopy($"{"VfxScale".Loc()}: {obj.Struct()->VfxScale}");
         ImGui.SameLine();
         if (ImGui.Button("++"))
@@ -74,12 +73,11 @@ internal unsafe static class Explorer
         ImGuiEx.TextCopy($"{"RenderFlags".Loc()}: {obj.Struct()->RenderFlags}");
         ImGuiEx.TextCopy($"{"SubKind".Loc()}: {obj.Struct()->SubKind}");
         ImGuiEx.TextCopy($"{"TargetStatus".Loc()}: {obj.Struct()->TargetStatus}");
-        ImGuiEx.TextCopy($"EventId:  {obj.Struct()->EventId.EntryId}/{obj.Struct()->EventId.Type}");
         ImGuiEx.TextCopy($"RenderFlags:  {Convert.ToString(obj.Struct()->RenderFlags, 2)}");
         ImGuiEx.TextCopy($"NamePlateIconId:  {obj.Struct()->NamePlateIconId}");
         ImGuiEx.TextCopy($"DrawObject:  {(nint)obj.Struct()->DrawObject:X16}");
-        ImGuiEx.TextCopy($"LayoutID:  {obj.Struct()->LayoutID}");
-        if (obj is Character c)
+        ImGuiEx.TextCopy($"LayoutID:  {obj.Struct()->LayoutId}");
+        if (obj is ICharacter c)
         {
             ImGuiEx.TextCopy("---------- Character ----------");
             ImGuiEx.TextCopy($"{"HP".Loc()}: {c.CurrentHp} / {c.MaxHp}");
@@ -119,7 +117,7 @@ internal unsafe static class Explorer
             }
             ImGuiEx.TextCopy($"IsFlying: {*(byte*)(c.Address + 528 + 1020):X16}");
         }
-        if(obj is BattleChara b)
+        if(obj is IBattleChara b)
         {
             ImGuiEx.TextCopy("---------- Battle chara ----------");
             ImGuiEx.TextCopy($"{"Casting".Loc()}: {b.IsCasting}, {"Action ID".Loc()} = {b.CastActionId.Format()}, {"Type".Loc()} = {b.CastActionType}, {"Cast time".Loc()}: {b.CurrentCastTime:F1}/{b.TotalCastTime:F1}");

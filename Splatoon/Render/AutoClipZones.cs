@@ -65,7 +65,7 @@ internal class AutoClipZones
 
     private unsafe string GetDebugString()
     {
-        AtkStage* stage = AtkStage.GetSingleton();
+        AtkStage* stage = AtkStage.Instance();
         if (stage == null) { return "stage is null"; }
 
         RaptureAtkUnitManager* manager = stage->RaptureAtkUnitManager;
@@ -79,13 +79,13 @@ internal class AutoClipZones
         {
             try
             {
-                AtkUnitBase* addon = *(AtkUnitBase**)Unsafe.AsPointer(ref loadedUnitsList->EntriesSpan[i]);
+                AtkUnitBase* addon = *(AtkUnitBase**)Unsafe.AsPointer(ref loadedUnitsList->Entries[i]);
                 if (addon == null || !addon->IsVisible || addon->WindowNode == null || addon->Scale == 0)
                 {
                     continue;
                 }
 
-                string? name = Marshal.PtrToStringAnsi(new IntPtr(addon->Name));
+                string? name = addon->Name.Read();
                 if (name != null && !_ignoredAddonNames.Contains(name))
                 {
                     names.Add(name);
@@ -113,7 +113,7 @@ internal class AutoClipZones
             AtkResNode* slotNode = addon->UldManager.NodeList[i];
             if (slotNode is null) continue;
 
-            if (slotNode->IsVisible)
+            if (slotNode->IsVisible())
             {
                 Vector2 pos = new Vector2(
                     slotNode->ScreenX + (18f * addon->Scale),
@@ -142,7 +142,7 @@ internal class AutoClipZones
 
     public unsafe void ClipWindows()
     {
-        AtkStage* stage = AtkStage.GetSingleton();
+        AtkStage* stage = AtkStage.Instance();
         if (stage == null) { return; }
 
         RaptureAtkUnitManager* manager = stage->RaptureAtkUnitManager;
@@ -155,13 +155,13 @@ internal class AutoClipZones
         {
             try
             {
-                AtkUnitBase* addon = *(AtkUnitBase**)Unsafe.AsPointer(ref loadedUnitsList->EntriesSpan[i]);
+                AtkUnitBase* addon = *(AtkUnitBase**)Unsafe.AsPointer(ref loadedUnitsList->Entries[i]);
                 if (addon == null || !addon->IsVisible || addon->WindowNode == null || addon->Scale == 0)
                 {
                     continue;
                 }
 
-                string? name = Marshal.PtrToStringAnsi(new IntPtr(addon->Name));
+                string? name = addon->Name.Read();
                 if (name != null && _ignoredAddonNames.Contains(name))
                 {
                     continue;
@@ -194,7 +194,7 @@ internal class AutoClipZones
         AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_TargetInfoMainTarget", 1);
         if (addon == null || !addon->IsVisible || addon->UldManager.NodeListCount < 5) return;
         var gaugeBar = addon->UldManager.NodeList[5];
-        if (gaugeBar == null || !gaugeBar->IsVisible) return;
+        if (gaugeBar == null || !gaugeBar->IsVisible()) return;
         ClipAtkNode(addon, gaugeBar->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]);
     }
 
@@ -214,7 +214,7 @@ internal class AutoClipZones
             for (int i = 9; i <= 20; i++)
             {
                 var hotbarBtn = addon->UldManager.NodeList[i];
-                if (hotbarBtn == null || !hotbarBtn->IsVisible) continue;
+                if (hotbarBtn == null || !hotbarBtn->IsVisible()) continue;
                 ClipAtkNode(addon, hotbarBtn->GetAsAtkComponentNode()->Component->UldManager.NodeList[0]);
             }
         }
@@ -227,7 +227,7 @@ internal class AutoClipZones
         for (int i = 8; i <= 11; i++)
         {
             var buttonGroup = addon->UldManager.NodeList[i];
-            if (buttonGroup == null || !buttonGroup->IsVisible) continue;
+            if (buttonGroup == null || !buttonGroup->IsVisible()) continue;
             for (int j = 0; j <= 3; j++)
             {
                 ClipAtkNode(addon, buttonGroup->GetAsAtkComponentNode()->Component->UldManager.NodeList[j], buttonGroup);
@@ -245,7 +245,7 @@ internal class AutoClipZones
             for (int i = 5; i <= 24; i++)
             {
                 var status = addon->UldManager.NodeList[i];
-                if (status == null || !status->IsVisible) continue;
+                if (status == null || !status->IsVisible()) continue;
                 ClipAtkNode(addon, status->GetAsAtkComponentNode()->Component->UldManager.NodeList[1]);
                 ClipAtkNode(addon, status->GetAsAtkComponentNode()->Component->UldManager.NodeList[2]);
             }
@@ -259,7 +259,7 @@ internal class AutoClipZones
         for (int i = 1; i <= 10; i++)
         {
             AtkResNode* node = addon->UldManager.NodeList[i];
-            if (node == null || !node->IsVisible) continue;
+            if (node == null || !node->IsVisible()) continue;
 
             AtkComponentNode* component = node->GetAsAtkComponentNode();
             if (component == null || component->Component->UldManager.NodeListCount < 1) continue;
@@ -285,7 +285,7 @@ internal class AutoClipZones
 
     public unsafe void ClipAtkNode(AtkUnitBase* addon, AtkResNode* node, AtkResNode* parent = null)
     {
-        if (node == null || !node->IsVisible) return;
+        if (node == null || !node->IsVisible()) return;
         int posX = (int)node->ScreenX;
         int posY = (int)node->ScreenY;
 

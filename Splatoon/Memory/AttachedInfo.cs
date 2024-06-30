@@ -70,18 +70,18 @@ public unsafe static class AttachedInfo
                 SpawnTime = Environment.TickCount64
             };
             var obj = Svc.Objects.CreateObjectReference(a2)!;
-            ScriptingProcessor.OnVFXSpawn(obj.ObjectId, vfxPath);
+            ScriptingProcessor.OnVFXSpawn(obj.EntityId, vfxPath);
             if (!BlacklistedVFX.Contains(vfxPath))
             {
-                if (obj is Character c)
+                if (obj is ICharacter c)
                 {
-                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNpcID()}, model id={c.Struct()->CharacterData.ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
+                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNameId()}, model id={c.Struct()->CharacterData.ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
                     P.ChatMessageQueue.Enqueue(text);
                     if (P.Config.Logging) Logger.Log(text);
                 }
                 else
                 {
-                    var text = $"VFX {vfxPath} spawned on {obj.Name.ToString()} npc id={obj.Struct()->GetNpcID()}, position={obj.Position.ToString()}";
+                    var text = $"VFX {vfxPath} spawned on {obj.Name.ToString()} npc id={obj.Struct()->GetNameId()}, position={obj.Position.ToString()}";
                     P.ChatMessageQueue.Enqueue(text);
                     if (P.Config.Logging) Logger.Log(text);
                 }
@@ -94,7 +94,7 @@ public unsafe static class AttachedInfo
         return ActorVfxCreateHook!.Original(a1, a2, a3, a4, a5, a6, a7);
     }
 
-    public static bool TryGetVfx(this GameObject go, out Dictionary<string, VFXInfo>? fx)
+    public static bool TryGetVfx(this IGameObject go, out Dictionary<string, VFXInfo>? fx)
     {
         if (VFXInfos.ContainsKey(go.Address))
         {
@@ -105,7 +105,7 @@ public unsafe static class AttachedInfo
         return false;
     }
 
-    public static bool TryGetSpecificVfxInfo(this GameObject go, string path, out VFXInfo info)
+    public static bool TryGetSpecificVfxInfo(this IGameObject go, string path, out VFXInfo info)
     {
         if (TryGetVfx(go, out var dict) && dict?.ContainsKey(path) == true)
         {
@@ -128,7 +128,7 @@ public unsafe static class AttachedInfo
     {
         foreach(var x in Svc.Objects)
         {
-            if(x is BattleChara b) {
+            if(x is IBattleChara b) {
                 bool isCasting;
                 try {
                     isCasting = b.IsCasting;

@@ -11,7 +11,7 @@ namespace Splatoon.Memory;
 internal unsafe class ObjectEffectProcessor
 {
     internal delegate long ProcessObjectEffect(GameObject* a1, ushort a2, ushort a3, long a4);
-    [Signature("40 53 55 56 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 0F B7 FA", DetourName = nameof(ProcessObjectEffectDetour), Fallibility = Fallibility.Fallible)]
+    [Signature("40 53 55 57 41 56 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 44 0F B7 F2", DetourName = nameof(ProcessObjectEffectDetour), Fallibility = Fallibility.Fallible)]
     internal Hook<ProcessObjectEffect> ProcessObjectEffectHook = null;
     internal long ProcessObjectEffectDetour(GameObject* a1, ushort a2, ushort a3, long a4)
     {
@@ -25,7 +25,7 @@ internal unsafe class ObjectEffectProcessor
             var ptr = (nint)a1;
             if (!AttachedInfo.ObjectEffectInfos.ContainsKey(ptr))
             {
-                AttachedInfo.ObjectEffectInfos[ptr] = new();
+                AttachedInfo.ObjectEffectInfos[ptr] = [];
             }
             AttachedInfo.ObjectEffectInfos[ptr].Add(new()
             {
@@ -44,23 +44,52 @@ internal unsafe class ObjectEffectProcessor
 
     internal ObjectEffectProcessor()
     {
-        SignatureHelper.Initialise(this);
-        this.Enable();
+        try
+        {
+            SignatureHelper.Initialise(this);
+            Enable();
+        }
+        catch (Exception e)
+        {
+            e.LogWarning();
+        }
     }
 
     internal void Enable()
     {
-        if (!ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Enable();
+        try
+        {
+            if (!ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Enable();
+        }
+
+        catch (Exception e)
+        {
+            e.LogWarning();
+        }
     }
 
     internal void Disable()
     {
-        if (ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Disable();
+        try
+        {
+            if (ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Disable();
+        }
+        catch (Exception e)
+        {
+            e.LogWarning();
+        }
     }
 
     public void Dispose()
     {
-        this.Disable();
-        ProcessObjectEffectHook.Dispose();
+        try
+        {
+            Disable();
+            ProcessObjectEffectHook.Dispose();
+        }
+        catch (Exception e)
+        {
+            e.LogWarning();
+        }
     }
 }

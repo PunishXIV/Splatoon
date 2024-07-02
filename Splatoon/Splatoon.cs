@@ -14,6 +14,7 @@ using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using ECommons.SimpleGui;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.GeneratedSheets;
 using NotificationMasterAPI;
 using PInvoke;
@@ -760,14 +761,14 @@ public unsafe class Splatoon : IDalamudPlugin
                     else if (e.type == 3)
                     {
                         var angle = e.FaceMe ?
-                                            (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
+                                            (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                             : Svc.Targets.Target.Rotation;
                         AddRotatedLine(Svc.Targets.Target.GetPositionXZY(), angle, e, radius, Svc.Targets.Target.HitboxRadius);
                     }
                     else if (e.type == 4)
                     {
                         var baseAngle = e.FaceMe ?
-                                    (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
+                                    (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                     : Svc.Targets.Target.Rotation;
                         DrawCone(e, Svc.Targets.Target.GetPositionXZY(), radius, baseAngle);
                     }
@@ -800,14 +801,14 @@ public unsafe class Splatoon : IDalamudPlugin
                             else if (e.type == 3)
                             {
                                 var angle = e.FaceMe ?
-                                            (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
+                                            (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                             : a.Rotation;
                                 AddRotatedLine(a.GetPositionXZY(), angle, e, aradius, a.HitboxRadius);
                             }
                             else if (e.type == 4)
                             {
                                 var baseAngle = e.FaceMe ?
-                                    (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
+                                    (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                     : (a.Rotation);
                                 DrawCone(e, a.GetPositionXZY(), aradius, baseAngle);
                             }
@@ -841,7 +842,7 @@ public unsafe class Splatoon : IDalamudPlugin
         else if (e.type == 5)
         {
             var baseAngle = e.FaceMe ?
-                (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Svc.ClientState.LocalPlayer.Position.ToVector2()))).DegreesToRadians()
+                (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                 : 0;
             var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
             DrawCone(e, pos, radius, baseAngle);
@@ -865,6 +866,7 @@ public unsafe class Splatoon : IDalamudPlugin
             && (!e.refActorRequireCast || (e.refActorCastId.Count > 0 && a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
             && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is IBattleChara chr3 && CheckEffect(e, chr3)))
             && (!e.refActorUseTransformation || (a is IBattleChara chr4 && CheckTransformationID(e, chr4)))
+            && (!e.refMark || (a is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)e.refMarkID)))
             && (!e.LimitRotation || (a.Rotation >= e.RotationMax && a.Rotation <= e.RotationMin));
     }
 

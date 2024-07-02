@@ -185,6 +185,9 @@ public class Element
     [DefaultValue(MechanicType.Unspecified)] public MechanicType mechanicType = MechanicType.Unspecified;
     [Obsolete("Not used. Use mechanicType.")]
     [DefaultValue(false)] public bool Unsafe = false;
+    [DefaultValue(false)] public bool refMark = false;
+    [DefaultValue(0)] public int refMarkID = 0;
+    [DefaultValue("<1>")] public string faceplayer = "<1>";
     [Obsolete("Not used. Use fillIntensity or originFillColor and endFillColor to change color and transparency.")]
     [DefaultValue(0.5f)] public float FillStep = 0.5f;
     [Obsolete("Not used. Use mechanicType.")]

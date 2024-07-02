@@ -21,7 +21,7 @@ public class UCOB_Heavensfall_Trio_Towers : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new() { 733 };
 
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata? Metadata => new(6, "NightmareXIV");
 
     Config Conf => this.Controller.GetConfig<Config>();
     int NaelTowerPosAngleModifier => Conf.NaelTowerPos == NaelTower.Right_1 ? 3 : -3;
@@ -92,14 +92,14 @@ public class UCOB_Heavensfall_Trio_Towers : SplatoonScript
         }
     }
 
-    IEnumerable<BattleChara> FindTowers()
+    IEnumerable<IBattleChara> FindTowers()
     {
-        return Svc.Objects.Where(x => x is BattleChara c && c.IsCasting && c.CastActionId == 9951).Cast<BattleChara>();
+        return Svc.Objects.Where(x => x is IBattleChara c && c.IsCasting && c.CastActionId == 9951).Cast<IBattleChara>();
     }
 
-    BattleChara? FindNael()
+    IBattleChara? FindNael()
     {
-        return (BattleChara?)Svc.Objects.Where(x => x is BattleChara c && c.NameId == 2612 && c.IsCharacterVisible()).FirstOrDefault();
+        return (IBattleChara?)Svc.Objects.Where(x => x is IBattleChara c && c.NameId == 2612 && c.IsCharacterVisible()).FirstOrDefault();
     }
 
     public override void OnSettingsDraw()

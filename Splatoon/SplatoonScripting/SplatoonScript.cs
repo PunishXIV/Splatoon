@@ -34,9 +34,9 @@ public abstract class SplatoonScript
     public InternalData InternalData { get; internal set; } = null!;
 
     /// <summary>
-    /// Valid territories where script will be executed. Specify an empty array if you want it to work in all territories. 
+    /// Valid territories where script will be executed. Specify an empty array if you want it to work in all territories. Use null if you want script to always work without interruption even when client is logged out.
     /// </summary>
-    public abstract HashSet<uint> ValidTerritories { get; }
+    public abstract HashSet<uint>? ValidTerritories { get; }
 
     /// <summary>
     /// Indicates whether script is currently enabled and should be executed or not.
@@ -154,19 +154,19 @@ public abstract class SplatoonScript
     internal void DrawRegisteredElements()
     {
         ImGuiEx.TextWrapped(ImGuiColors.DalamudRed, $"Non-restricted editing access. Any incorrectly performed changes may cause script to stop working completely. Use reset function if it happens. \n- In general, only edit color, thickness, text, size. \n- If script has it's own color settings, they will be prioritized.\n- Not all script will take whatever you edit here into account.".Loc());
-        if(ImGui.Button("Export customized settings to clipboard".Loc()))
+        if (ImGui.Button("Export customized settings to clipboard".Loc()))
         {
-            ImGui.SetClipboardText(JsonConvert.SerializeObject(InternalData.Overrides, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Populate}));
-            Notify.Success("Copied to clipboard".Loc());
+            GenericHelpers.Copy(JsonConvert.SerializeObject(InternalData.Overrides, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Populate }));
+            //Notify.Success("Copied to clipboard".Loc());
         }
         ImGui.SameLine();
-        if(ImGui.Button("Import customized settings from clipboard (hold CTRL+click)".Loc()))
+        if (ImGui.Button("Import customized settings from clipboard (hold CTRL+click)".Loc()))
         {
             if (ImGui.GetIO().KeyCtrl)
             {
                 try
                 {
-                    var x = JsonConvert.DeserializeObject<OverrideData>(ImGui.GetClipboardText());
+                    var x = JsonConvert.DeserializeObject<OverrideData>(GenericHelpers.Paste());
                     if (x != null)
                     {
                         if (ImGui.GetIO().KeyShift || x.Elements.All(z => Controller.GetRegisteredElements().ContainsKey(z.Key)))
@@ -181,7 +181,7 @@ public abstract class SplatoonScript
                         }
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     e.Log();
                     Notify.Error(e.Message);
@@ -211,7 +211,7 @@ public abstract class SplatoonScript
             }
             if (ImGui.Button("Copy to clipboard".Loc()))
             {
-                ImGui.SetClipboardText(JsonConvert.SerializeObject(x.Value, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
+                GenericHelpers.Copy(JsonConvert.SerializeObject(x.Value, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
             }
             ImGui.SameLine();
             if (ImGui.Button("Edit".Loc()))
@@ -236,7 +236,7 @@ public abstract class SplatoonScript
         {
             if (ImGui.Button("Reset selected elements and reload script".Loc()))
             {
-                foreach(var x in InternalData.ElementsResets)
+                foreach (var x in InternalData.ElementsResets)
                 {
                     InternalData.Overrides.Elements.Remove(x);
                 }

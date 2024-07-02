@@ -13,6 +13,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Dalamud.Game.ClientState.Objects.Types;
+using FFXIVClientStructs.FFXIV.Client.System.Scheduler;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
@@ -71,7 +72,7 @@ public unsafe class Aloalo_Bombs : SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if(source.GetObject() is Character c && c.NameId == BombNameID)
+        if(source.GetObject() is ICharacter c && c.NameId == BombNameID)
         {
             if(BombSets.TryGetFirst(x => x.Contains(source) || x.Contains(target), out var set))
             {
@@ -103,7 +104,7 @@ public unsafe class Aloalo_Bombs : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         {
-            if (set.Target is Character c && c.NameId == BombNameID && set.Action?.RowId.EqualsAny(35165u, 35194u) == true)
+            if (set.Target is ICharacter c && c.NameId == BombNameID && set.Action?.RowId.EqualsAny(35165u, 35194u) == true)
             {
                 Reset();
             }
@@ -125,12 +126,12 @@ public unsafe class Aloalo_Bombs : SplatoonScript
     {
         try
         {
-            var x = (ActionTimelineManager*)a1;
+            /*var x = (ActionTimelineManager*)a1;
             if(x->Parent != null && x->Parent->NameID == BombNameID && a3 == 1)
             {
-                Unsafe = x->Parent->GameObject.ObjectID;
+                Unsafe = x->Parent->IGameObject.EntityId;
             }
-            PluginLog.Information($"{x->Parent->GameObject.ObjectID:X} {a1:X16} - {a2}: {a3}, {a4}");
+            PluginLog.Information($"{x->Parent->IGameObject.EntityId:X} {a1:X16} - {a2}: {a3}, {a4}");*/
         }
         catch(Exception e)
         {

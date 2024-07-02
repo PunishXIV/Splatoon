@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
     {
         public override HashSet<uint> ValidTerritories => new() { 733 };
 
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
         const string TargetVFX = "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx";
         int diveCnt = 0;
         uint[] baiters = new uint[3];
@@ -115,7 +115,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
                     Schedulers.Add(new(() => baiters[c] = uint.MaxValue, 5000));
                     Schedulers.Add(new(() => baiters[c] = 0, 12000));
                     diveCnt++;
-                    if (target.TryGetObject(out var o) && o is PlayerCharacter pc)
+                    if (target.TryGetObject(out var o) && o is IPlayerCharacter pc)
                     {
                         if (diveCnt == 1)
                         {
@@ -151,16 +151,16 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
-        BattleChara[] GetOrderedDragons()
+        IBattleChara[] GetOrderedDragons()
         {
             return GetDragons().OrderBy(x => (MathHelper.GetRelativeAngle(Vector3.Zero, x.Position) + 360 - 3) % 360).ToArray();
         }
 
-        IEnumerable<BattleChara> GetDragons()
+        IEnumerable<IBattleChara> GetDragons()
         {
             foreach(var x in Svc.Objects)
             {
-                if(x is BattleChara c && c.NameId.EqualsAny<uint>(2631, 6958, 2632, 2630, 6957) && c.IsCharacterVisible())
+                if(x is IBattleChara c && c.NameId.EqualsAny<uint>(2631, 6958, 2632, 2630, 6957) && c.IsCharacterVisible())
                 {
                     yield return c;
                 }

@@ -22,6 +22,7 @@ internal static partial class ScriptingProcessor
         "https://github.com/PunishXIV/",
         "https://www.github.com/PunishXIV/",
         "https://raw.githubusercontent.com/PunishXIV/",
+        "https://nightmarexiv.com/"
     };
     internal static ImmutableList<BlacklistData> Blacklist = ImmutableList<BlacklistData>.Empty;
     internal static volatile bool UpdateCompleted = false;
@@ -77,7 +78,7 @@ internal static partial class ScriptingProcessor
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 e.Log();
             }
@@ -85,10 +86,10 @@ internal static partial class ScriptingProcessor
             Svc.Framework.RunOnFrameworkThread(delegate
             {
                 PluginLog.Information($"Blacklist: {Blacklist.Select(x => $"{x.FullName} v{x.Version}").Print()}");
-                foreach(var x in Scripts)
+                foreach (var x in Scripts)
                 {
                     x.InternalData.Allowed = true;
-                    if (Blacklist.Any(z => z.FullName == x.InternalData.FullName && z.Version >= (x.Metadata?.Version ?? 0) ))
+                    if (Blacklist.Any(z => z.FullName == x.InternalData.FullName && z.Version >= (x.Metadata?.Version ?? 0)))
                     {
                         PluginLog.Information($"Script {x.InternalData.FullName} is blacklisted and will not be enabled");
                         x.InternalData.Blacklisted = true;
@@ -114,7 +115,7 @@ internal static partial class ScriptingProcessor
                     if (data.Length >= 3 && int.TryParse(data[1], out var ver))
                     {
                         PluginLog.Debug($"Found new valid update data: {data[0]} v{ver} = {data[2]}");
-                        if((ForceUpdate != null && ForceUpdate.Contains(data[0])) || Scripts.Any(x => x.InternalData.FullName == data[0] && ((x.Metadata?.Version ?? 0) < ver || TabScripting.ForceUpdate) )) // possible CME
+                        if ((ForceUpdate != null && ForceUpdate.Contains(data[0])) || Scripts.Any(x => x.InternalData.FullName == data[0] && ((x.Metadata?.Version ?? 0) < ver || TabScripting.ForceUpdate))) // possible CME
                         {
                             PluginLog.Debug($"Adding  {data[2]} to download list");
                             Updates.Add(new(data[2]));
@@ -132,7 +133,7 @@ internal static partial class ScriptingProcessor
                     BlockingDownloadScript(x);
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 e.Log();
             }
@@ -186,7 +187,7 @@ internal static partial class ScriptingProcessor
         {
             Directory.CreateDirectory(dir);
         }
-        foreach(var f in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
+        foreach (var f in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
         {
             CompileAndLoad(File.ReadAllText(f, Encoding.UTF8), f);
         }
@@ -331,7 +332,7 @@ internal static partial class ScriptingProcessor
                         }
                     }
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     e.Log();
                 }
@@ -345,7 +346,7 @@ internal static partial class ScriptingProcessor
                     {
                         BlockingBeginUpdate(true);
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         e.Log();
                     }
@@ -358,7 +359,7 @@ internal static partial class ScriptingProcessor
 
     internal static void OnUpdate()
     {
-        for(var i = 0;i < Scripts.Count; i++)
+        for (var i = 0; i < Scripts.Count; i++)
         {
             if (Scripts[i].IsEnabled)
             {
@@ -577,7 +578,7 @@ internal static partial class ScriptingProcessor
 
     internal static void UpdateState(this SplatoonScript s)
     {
-        var territoryIsValid = Svc.ClientState.IsLoggedIn && (s.ValidTerritories.Count == 0 || s.ValidTerritories.Contains(Svc.ClientState.TerritoryType));
+        var territoryIsValid = s.ValidTerritories == null || (Svc.ClientState.IsLoggedIn && (s.ValidTerritories.Count == 0 || s.ValidTerritories.Contains(Svc.ClientState.TerritoryType)));
         if (territoryIsValid && !P.Config.DisabledScripts.Contains(s.InternalData.FullName))
         {
             if (!s.IsEnabled)

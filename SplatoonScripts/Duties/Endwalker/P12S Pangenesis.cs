@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         DebuffType MyDebuff = DebuffType.None;
 
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(4, "tatad2");
+        public override Metadata? Metadata => new(5, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
         private int towerCount = 0;
@@ -43,7 +43,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         string TestOverride = "";
 
-        PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+        IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
 
         public override void OnEnable()
         {
@@ -71,15 +71,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void FirstTower()
         {
-            BattleChara whiteTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == whiteTowerCast && o.CurrentCastTime < 1);
-            BattleChara blackTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == blackTowerCast && o.CurrentCastTime < 1);
+            IBattleChara whiteTower = (IBattleChara)Svc.Objects.First(x => x is IBattleChara o && o.IsCasting == true && o.CastActionId == whiteTowerCast && o.CurrentCastTime < 1);
+            IBattleChara blackTower = (IBattleChara)Svc.Objects.First(x => x is IBattleChara o && o.IsCasting == true && o.CastActionId == blackTowerCast && o.CurrentCastTime < 1);
 
             PluginLog.Information($"tower casting time: {blackTower.CurrentCastTime}"); 
 
             Vector2 whitePos = whiteTower.Position.ToVector2(); 
             Vector2 blackPos = blackTower.Position.ToVector2(); 
 
-            PluginLog.Information($"wtower: {whiteTower.ObjectId}, blacktower: {blackTower.ObjectId}, casttime: {whiteTower.CurrentCastTime}, {blackTower.CurrentCastTime}, position: {whiteTower.Position.ToVector2().ToString()}, {blackTower.Position.ToVector2().ToString()}");
+            PluginLog.Information($"wtower: {whiteTower.EntityId}, blacktower: {blackTower.EntityId}, casttime: {whiteTower.CurrentCastTime}, {blackTower.CurrentCastTime}, position: {whiteTower.Position.ToVector2().ToString()}, {blackTower.Position.ToVector2().ToString()}");
 
             StatusList statusList = PC.StatusList;
             if (statusList.Any(x => x.StatusId == whiteDebuff && x.RemainingTime <= 8))
@@ -170,19 +170,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void SecondTower()
         {
-            BattleChara whiteTower; 
-            BattleChara blackTower; 
+            IBattleChara whiteTower; 
+            IBattleChara blackTower; 
             if (directionRight)
             {
                 // right
-                whiteTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == whiteTowerCast && o.Position.ToVector2().X > 100 && o.CurrentCastTime < 1);
-                blackTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == blackTowerCast && o.Position.ToVector2().X > 100 && o.CurrentCastTime < 1);
+                whiteTower = (IBattleChara)Svc.Objects.First(x => x is IBattleChara o && o.IsCasting == true && o.CastActionId == whiteTowerCast && o.Position.ToVector2().X > 100 && o.CurrentCastTime < 1);
+                blackTower = (IBattleChara)Svc.Objects.First(x => x is IBattleChara o && o.IsCasting == true && o.CastActionId == blackTowerCast && o.Position.ToVector2().X > 100 && o.CurrentCastTime < 1);
             }
             else
             {
                 // left
-                whiteTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == whiteTowerCast && o.Position.ToVector2().X < 100 && o.CurrentCastTime < 1);
-                blackTower = (BattleChara)Svc.Objects.First(x => x is BattleChara o && o.IsCasting == true && o.CastActionId == blackTowerCast && o.Position.ToVector2().X < 100 && o.CurrentCastTime < 1);
+                whiteTower = (IBattleChara)Svc.Objects.First(x => x is IBattleChara o && o.IsCasting == true && o.CastActionId == whiteTowerCast && o.Position.ToVector2().X < 100 && o.CurrentCastTime < 1);
+                blackTower = (IBattleChara)Svc.Objects.First(x => x is IBattleChara o && o.IsCasting == true && o.CastActionId == blackTowerCast && o.Position.ToVector2().X < 100 && o.CurrentCastTime < 1);
             }
 
             Vector2 whitePos = whiteTower.Position.ToVector2();

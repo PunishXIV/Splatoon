@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Classical_Concepts : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(5, "tatad2");
+        public override Metadata? Metadata => new(6, "tatad2");
 
         private string ElementNamePrefix = "P12SSC";
 
@@ -190,7 +190,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             Schedulers.Add(new TickScheduler(() =>
             {
-                GameObject? obj = Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr);
+                IGameObject? obj = Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr);
                 if (!(obj?.DataId == 0x3F37 || obj?.DataId == 0x3F38 || obj?.DataId == 0x3F39))
                     return;
 

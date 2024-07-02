@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
 
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
 
         const string ThrottlerName = "MFTE.Settarget";
 
@@ -42,9 +42,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
             if (!Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] || Svc.ClientState.LocalPlayer == null) return;
             {
-                if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == Effects.NoAttackM) && Svc.Targets.Target is BattleNpc b && b.StatusList.Any(x => x.StatusId == Effects.MaleForm))
+                if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == Effects.NoAttackM) && Svc.Targets.Target is IBattleNpc b && b.StatusList.Any(x => x.StatusId == Effects.MaleForm))
                 {
-                    var female = Svc.Objects.FirstOrDefault(x => x is BattleNpc b && !b.IsDead && b.IsTargetable() && b.StatusList.Any(z => z.StatusId == Effects.FemaleForm));
+                    var female = Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && !b.IsDead && b.IsTargetable() && b.StatusList.Any(z => z.StatusId == Effects.FemaleForm));
                     if (female != null)
                     {
                         if (EzThrottler.Throttle(ThrottlerName, 200))
@@ -57,9 +57,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
 
             {
-                if (Svc.Targets.Target is BattleNpc b && b.StatusList.Any(x => x.StatusId == Effects.FemaleForm) && (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == Effects.NoAttackF) || b.StatusList.Any(x => x.StatusId == Effects.Invulnerability)))
+                if (Svc.Targets.Target is IBattleNpc b && b.StatusList.Any(x => x.StatusId == Effects.FemaleForm) && (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == Effects.NoAttackF) || b.StatusList.Any(x => x.StatusId == Effects.Invulnerability)))
                 {
-                    var male = Svc.Objects.FirstOrDefault(x => x is BattleNpc b && !b.IsDead && b.IsTargetable() && b.StatusList.Any(z => z.StatusId == Effects.MaleForm));
+                    var male = Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && !b.IsDead && b.IsTargetable() && b.StatusList.Any(z => z.StatusId == Effects.MaleForm));
                     if (male != null)
                     {
                         if (EzThrottler.Throttle(ThrottlerName, 200))
@@ -77,7 +77,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             if (!Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat]) return;
             if (Message == "Omega-F uses Limitless Synergy.")
             {
-                var male = Svc.Objects.FirstOrDefault(x => x is BattleNpc b && !b.IsDead && b.IsTargetable() && b.StatusList.Any(z => z.StatusId == Effects.MaleForm));
+                var male = Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && !b.IsDead && b.IsTargetable() && b.StatusList.Any(z => z.StatusId == Effects.MaleForm));
                 if (male != null)
                 {
                     if (EzThrottler.Throttle(ThrottlerName, 200))

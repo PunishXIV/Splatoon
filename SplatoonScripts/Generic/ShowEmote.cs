@@ -6,6 +6,7 @@ using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Plugin;
 using Dalamud.Utility.Signatures;
+using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
@@ -53,16 +54,16 @@ namespace SplatoonScriptsOfficial.Generic
         {
             try
             {
-                if (targetId == Svc.ClientState.LocalPlayer?.ObjectId)
+                if (targetId == Svc.ClientState.LocalPlayer?.EntityId)
                 {
                     var emoteName = Svc.Data.GetExcelSheet<Emote>()?.GetRow(emoteId)?.Name;
-                    Svc.Chat.Print($">> {MemoryHelper.ReadStringNullTerminated((IntPtr)source->Name)} uses {emoteName} on you.");
+                    Svc.Chat.Print($">> {GenericHelpers.Read(source->Name)} uses {emoteName} on you.");
                 }
                 else if (this.Controller.GetConfig<Config>().ShowOnOthers)
                 {
                     var emoteName = Svc.Data.GetExcelSheet<Emote>()?.GetRow(emoteId)?.Name;
-                    var target = Svc.Objects.FirstOrDefault(x => (ulong)x.Struct()->GetObjectID() == (ulong)targetId);
-                    Svc.Chat.Print($">> {MemoryHelper.ReadStringNullTerminated((IntPtr)source->Name)} uses {emoteName}" + (target != null ? $" on {target.Name}" : ""));
+                    var target = Svc.Objects.FirstOrDefault(x => (ulong)x.Struct()->GetGameObjectId() == (ulong)targetId);
+                    Svc.Chat.Print($">> {GenericHelpers.Read(source->Name)} uses {emoteName}" + (target != null ? $" on {target.Name}" : ""));
                 }
             }
             catch (Exception e)

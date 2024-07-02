@@ -16,7 +16,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public class Beyond_Defense : SplatoonScript
     {
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => new() { 1122 };
 
         bool isRunning = false;
@@ -43,12 +43,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         public override void OnUpdate()
         {
-            if(Svc.Objects.Any(x => x is BattleChara c && c.CastActionId == 31527))
+            if(Svc.Objects.Any(x => x is IBattleChara c && c.CastActionId == 31527))
             {
                 if (!isRunning)
                 {
-                    var omegaM = (BattleChara)Svc.Objects.Where(x => x is BattleChara c && c.CastActionId == 31527).First();
-                    ProximityMap = Svc.Objects.Where(x => x is PlayerCharacter pc && !pc.IsDead).OrderBy(z => Vector3.Distance(omegaM.Position, z.Position)).Select(x => x.ObjectId).ToList();
+                    var omegaM = (IBattleChara)Svc.Objects.Where(x => x is IBattleChara c && c.CastActionId == 31527).First();
+                    ProximityMap = Svc.Objects.Where(x => x is IPlayerCharacter pc && !pc.IsDead).OrderBy(z => Vector3.Distance(omegaM.Position, z.Position)).Select(x => x.EntityId).ToList();
                     isRunning = true;
                     ProximityMap.RemoveAll(ExclMap.Contains);
                     Controller.GetElementByName("AOE").refActorObjectID = ProximityMap.FirstOrDefault();

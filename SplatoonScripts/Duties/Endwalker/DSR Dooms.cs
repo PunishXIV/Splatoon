@@ -21,11 +21,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Dooms : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(3, "Enthusiastus");
+        public override Metadata? Metadata => new(5, "Enthusiastus");
 
         List<Element> DoomElements = new();
         List<Element> NoDoomElements = new();
-        Dictionary<double, PlayerCharacter> plrs = new();
+        Dictionary<double, IPlayerCharacter> plrs = new();
 
         Element? Circle1Element;
         Element? Circle2Element;
@@ -42,10 +42,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         const uint GuerriqueDataId = 12637;
         bool positionDynamic = true;
 
-        //BattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == ThordanDataId) as BattleNpc;
+        //IBattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == ThordanDataId) as IBattleNpc;
         string TestOverride = "";
 
-        PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+        IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
         Vector2 Center = new(100, 100);
 
         public override void OnSetup()
@@ -101,7 +101,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             if (vfxPath == "vfx/lockon/eff/r1fz_firechain_01x.avfx")
             {
                 DeactivateDoomMarkers();
-                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has circle");
                     if (pvc != PC)
@@ -112,7 +112,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             // Triangle
             } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_02x.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has triangle");
                     if (pvc != PC)
@@ -129,7 +129,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             // Square
             } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_03x.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has square");
                     if (pvc != PC)
@@ -147,7 +147,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             // X
             } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_04x.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has x");
                     if (pvc != PC)
@@ -168,7 +168,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     return;
                 }
                 //DuoLog.Information($"Congaline should be complete now.");
-                var guerrique = Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == GuerriqueDataId) as BattleNpc;
+                var guerrique = Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == GuerriqueDataId) as IBattleNpc;
                 //DuoLog.Information($"Guerrique is at {guerrique.Position.X}/{guerrique.Position.Z}/{guerrique.Position.Y}, need to rotate {-guerrique.Rotation}");
 
                 var players = FakeParty.Get();

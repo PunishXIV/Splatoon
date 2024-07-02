@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Superchain : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(6, "NightmareXIV");
+        public override Metadata? Metadata => new(7, "NightmareXIV");
 
         enum Spheres : uint 
         {
@@ -100,7 +100,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        void Display(IEnumerable<(Spheres type, BattleNpc obj, float dist)>? values = null)
+        void Display(IEnumerable<(Spheres type, IBattleNpc obj, float dist)>? values = null)
         {
             int aoe = 0;
             int donut = 0;
@@ -116,7 +116,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         if (Controller.TryGetElementByName($"AOEBall{aoe}", out var e))
                         {
                             e.Enabled = true;
-                            e.refActorObjectID = x.obj.ObjectId;
+                            e.refActorObjectID = x.obj.EntityId;
                             //e.color = TransformColorBasedOnDistance(e.color, x.dist);
                             e.color = C.AoeColor.ToUint();
                         }
@@ -127,7 +127,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         if (Controller.TryGetElementByName($"Donut{donut}", out var e))
                         {
                             e.Enabled = true;
-                            e.refActorObjectID = x.obj.ObjectId;
+                            e.refActorObjectID = x.obj.EntityId;
                             e.Donut = C.DonutRadius;
                             e.color = C.DonutColor.ToUint();
                             //e.color = TransformColorBasedOnDistance(e.color, x.dist);
@@ -138,7 +138,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         if (Controller.TryGetLayoutByName($"{x.type}", out var e))
                         {
                             e.Enabled = true;
-                            e.ElementsL.Each(z => z.refActorObjectID = x.obj.ObjectId);
+                            e.ElementsL.Each(z => z.refActorObjectID = x.obj.EntityId);
                             if (x.type == Spheres.Protean) e.ElementsL.Each(z => z.color = C.ProteanLineColor.ToUint());
                             if (x.type == Spheres.Pairs) e.ElementsL.Each(z => z.color = C.PairLineColor.ToUint());
                             //e.ElementsL.Each(z => z.color = TransformColorBasedOnDistance(z.color, x.dist));
@@ -156,10 +156,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             return (col.ToVector4() with { W = alpha }).ToUint();
         }
 
-        IEnumerable<(BattleNpc obj, Spheres type, float dist)> FindNextMechanic()
+        IEnumerable<(IBattleNpc obj, Spheres type, float dist)> FindNextMechanic()
         {
-            List<(BattleNpc obj, Spheres type, float dist)> objs = new();
-            foreach(var x in Svc.Objects.Where(z => z is BattleNpc b && b.IsCharacterVisible()).Cast<BattleNpc>())
+            List<(IBattleNpc obj, Spheres type, float dist)> objs = new();
+            foreach(var x in Svc.Objects.Where(z => z is IBattleNpc b && b.IsCharacterVisible()).Cast<IBattleNpc>())
             {
                 if(Enum.GetValues<Spheres>().Contains((Spheres)x.DataId) && x.DataId != (uint)Spheres.Mastersphere)
                 {
@@ -173,11 +173,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             return objs.OrderBy(x => x.dist);
         }
 
-        BattleNpc? GetMasterSphereForObject(BattleNpc obj)
+        IBattleNpc? GetMasterSphereForObject(IBattleNpc obj)
         {
             foreach(var x in Attachments)
             {
-                if (x.Value.Contains(obj.ObjectId) && x.Key.GetObject() is BattleNpc b && b.IsCharacterVisible())
+                if (x.Value.Contains(obj.EntityId) && x.Key.GetObject() is IBattleNpc b && b.IsCharacterVisible())
                 {
                     return b;
                 }

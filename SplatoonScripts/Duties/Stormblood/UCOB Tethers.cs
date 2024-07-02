@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
     {
         public override HashSet<uint> ValidTerritories => new() { Raids.the_Unending_Coil_of_Bahamut_Ultimate };
         HashSet<uint> TetheredPlayers = new();
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
 
         public override void OnSetup()
         {
@@ -56,9 +56,9 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             UpdateTethers();
         }
 
-        bool IsBahamut(uint oid, [NotNullWhen(true)] out BattleChara? bahamut)
+        bool IsBahamut(uint oid, [NotNullWhen(true)] out IBattleChara? bahamut)
         {
-            if (oid.TryGetObject(out var obj) && obj is BattleChara o && o.NameId == 3210)
+            if (oid.TryGetObject(out var obj) && obj is IBattleChara o && o.NameId == 3210)
             {
                 bahamut = o;
                 return true;
@@ -72,9 +72,9 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             TetheredPlayers.Clear();
         }
 
-        BattleChara? GetBahamut()
+        IBattleChara? GetBahamut()
         {
-            return Svc.Objects.FirstOrDefault(x => x is BattleChara o && o.NameId == 3210 && o.IsCharacterVisible()) as BattleChara;
+            return Svc.Objects.FirstOrDefault(x => x is IBattleChara o && o.NameId == 3210 && o.IsCharacterVisible()) as IBattleChara;
         }
 
         void UpdateTethers()
@@ -89,7 +89,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
                         e.Enabled = true;
                         e.SetRefPosition(omega.Position);
                         e.SetOffPosition(tetheredPlayers[0].GetObject().Position);
-                        var correct = (tetheredPlayers[0].GetObject() as PlayerCharacter).GetRole() == CombatRole.Tank;
+                        var correct = (tetheredPlayers[0].GetObject() as IPlayerCharacter).GetRole() == CombatRole.Tank;
                         e.color = (correct ? Conf.ValidTetherColor : GradientColor.Get(Conf.InvalidTetherColor1, Conf.InvalidTetherColor2, 500)).ToUint();
                     }
                 }
@@ -99,7 +99,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
                         e.Enabled = true;
                         e.SetRefPosition(omega.Position);
                         e.SetOffPosition(tetheredPlayers[1].GetObject().Position);
-                        var correct = (tetheredPlayers[1].GetObject() as PlayerCharacter).GetRole() == CombatRole.Tank;
+                        var correct = (tetheredPlayers[1].GetObject() as IPlayerCharacter).GetRole() == CombatRole.Tank;
                         e.color = (correct ? Conf.ValidTetherColor : GradientColor.Get(Conf.InvalidTetherColor1, Conf.InvalidTetherColor2, 500)).ToUint();
                     }
                 }

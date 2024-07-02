@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Dalamud.Memory;
 using ECommons.DalamudServices.Legacy;
+using ECommons;
 
 namespace SplatoonScriptsOfficial.Tests
 {
@@ -39,7 +40,7 @@ namespace SplatoonScriptsOfficial.Tests
 
         long ProcessActorControlPacketDetour(GameObject* a1, byte a2, byte a3, byte a4, byte a5)
         {
-            PluginLog.Information($"Tether lost: {MemoryHelper.ReadSeStringNullTerminated((nint)a1->Name)}, {a2:X8}, {a3:X8}, {a4:X8}, {a5:X8}");
+            PluginLog.Information($"Tether lost: {GenericHelpers.Read(a1->Name)}, {a2:X8}, {a3:X8}, {a4:X8}, {a5:X8}");
             return ProcessActorControlPacketHook.Original(a1, a2, a3, a4, a5);
         }
     }

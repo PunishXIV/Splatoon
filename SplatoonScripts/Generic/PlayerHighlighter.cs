@@ -35,10 +35,10 @@ public class PlayerHighlighter : SplatoonScript
         int i = 0;
         foreach(var x in Svc.Objects)
         {
-            if(x is PlayerCharacter pc && pc.Address != Player.Object.Address && Vector2.Distance(Player.Object.Position.ToVector2(), pc.Position.ToVector2()) <= C.MaxDistance2D)
+            if(x is IPlayerCharacter pc && pc.Address != Player.Object.Address && Vector2.Distance(Player.Object.Position.ToVector2(), pc.Position.ToVector2()) <= C.MaxDistance2D)
             {
                 var element = GetElement(i++);
-                element.refActorObjectID = pc.ObjectId;
+                element.refActorObjectID = pc.EntityId;
                 element.Enabled = true;
             }
         }

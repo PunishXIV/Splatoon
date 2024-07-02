@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Caloric_Theory : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(1, "tatad2");
+        public override Metadata? Metadata => new(2, "tatad2");
 
         private string ElementNamePrefix = "P12SCaloricTheory123";
 
@@ -127,15 +127,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Indicator1.color = ImGuiColors.HealerGreen.ToUint();
             Indicator2.color = ImGuiColors.HealerGreen.ToUint();
             distancePassed = 0;
-            //lastPosition = FakeParty.Get().First(x => x.ObjectId == 0x1017913F).Position.ToVector2();
+            //lastPosition = FakeParty.Get().First(x => x.EntityId == 0x1017913F).Position.ToVector2();
             lastPosition = Svc.ClientState.LocalPlayer.Position.ToVector2(); 
 
             if (debug)
             {
                 foreach (var player in FakeParty.Get())
                 {
-                    distanceDebug[player.ObjectId] = 0;
-                    positionDebug[player.ObjectId] = player.Position.ToVector2();
+                    distanceDebug[player.EntityId] = 0;
+                    positionDebug[player.EntityId] = player.Position.ToVector2();
                 }
             }
         }
@@ -152,7 +152,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 } 
                 else
                 {
-                    //Vector2 Position = FakeParty.Get().First(x => x.ObjectId == 0x1017913F).Position.ToVector2(); 
+                    //Vector2 Position = FakeParty.Get().First(x => x.EntityId == 0x1017913F).Position.ToVector2(); 
                     Vector2 Position = Svc.ClientState.LocalPlayer.Position.ToVector2();
                     float distance = Vector2.Distance(Position, lastPosition);
                     //PluginLog.Information($"pos:{Position}, lastPos:{lastPosition}, dis: {distance}"); 
@@ -170,9 +170,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         foreach (var player in FakeParty.Get())
                         {
                             Position = player.Position.ToVector2(); 
-                            distance = Vector2.Distance(Position, positionDebug[player.ObjectId]);
-                            positionDebug[player.ObjectId] = Position;
-                            distanceDebug[player.ObjectId] += distance; 
+                            distance = Vector2.Distance(Position, positionDebug[player.EntityId]);
+                            positionDebug[player.EntityId] = Position;
+                            distanceDebug[player.EntityId] += distance; 
                         }
                     }
                 }
@@ -184,7 +184,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     var stackers = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == stackStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
                     foreach (var stacker in stackers)
                     {
-                        uint objectId = stacker.ObjectId;
+                        uint objectId = stacker.EntityId;
                         if (StackSpreadRecord.Contains(objectId)) continue;
                         AddStackSpreadElement(objectId, true);
                         if (StackSpreadRecord.Count == 1)
@@ -194,7 +194,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     var spreaders = FakeParty.Get().Where(x => x.StatusList.Any(x => x.StatusId == spreadStatusId && x.RemainingTime <= Conf.StakcSpreadShowTime));
                     foreach (var spreader in spreaders)
                     {
-                        uint objectId = spreader.ObjectId;
+                        uint objectId = spreader.EntityId;
                         if (StackSpreadRecord.Contains(objectId)) continue;
                         AddStackSpreadElement(objectId, false);
                         if (StackSpreadRecord.Count == 1)
@@ -232,9 +232,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 {
                     foreach (var player in FakeParty.Get())
                     {
-                        if(distanceDebug.ContainsKey(player.ObjectId))
+                        if(distanceDebug.ContainsKey(player.EntityId))
                         {
-                            ImGui.Text($"{player.Name}, dis: {distanceDebug[player.ObjectId]}, pos: {player.Position}"); 
+                            ImGui.Text($"{player.Name}, dis: {distanceDebug[player.EntityId]}, pos: {player.Position}"); 
                         }
                     }
                 }

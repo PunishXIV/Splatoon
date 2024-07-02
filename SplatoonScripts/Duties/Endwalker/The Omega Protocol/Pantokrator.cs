@@ -21,16 +21,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public class Pantokrator : SplatoonScript
     {
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(4, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => new() { 1122 };
-        BattleChara? Omega => Svc.Objects.FirstOrDefault(x => x is BattleChara o && o.NameId == 7695 && o.IsTargetable()) as BattleChara;
+        IBattleChara? Omega => Svc.Objects.FirstOrDefault(x => x is IBattleChara o && o.NameId == 7695 && o.IsTargetable()) as IBattleChara;
 
         //  Condensed Wave Cannon Kyrios (3508), Remains = 9.6, Param = 0, Count = 0
         //  Guided Missile Kyrios Incoming (3497), Remains = 21.6, Param = 0, Count = 0
         const uint FirstInLine = 3004;
 
-        GameObject[] Lasers => Svc.Objects.Where(x => x is PlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3507, 3508, 3509, 3510) && z.RemainingTime <= 6f)).ToArray();
-        GameObject[] Rockets => Svc.Objects.Where(x => x is PlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3424, 3495, 3496, 3497) && (z.RemainingTime <= 6f || pc.StatusList.Any(c => c.StatusId == FirstInLine)))).ToArray();
+        IGameObject[] Lasers => Svc.Objects.Where(x => x is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3507, 3508, 3509, 3510) && z.RemainingTime <= 6f)).ToArray();
+        IGameObject[] Rockets => Svc.Objects.Where(x => x is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3424, 3495, 3496, 3497) && (z.RemainingTime <= 6f || pc.StatusList.Any(c => c.StatusId == FirstInLine)))).ToArray();
 
         public override void OnSetup()
         {
@@ -44,7 +44,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         public override void OnUpdate()
         {
-            if (!Omega || !ProperOnLogin.PlayerPresent) return;
+            if (Omega == null || !ProperOnLogin.PlayerPresent) return;
             
             if(Lasers.Length == 2)
             {
@@ -106,10 +106,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 Controller.GetElementByName("Rocket2").Enabled = false;
             }
 
-            var secondcasters = Svc.Objects.Where(x => x is BattleChara c && c.CastActionId == 32368).Cast<BattleChara>();
+            var secondcasters = Svc.Objects.Where(x => x is IBattleChara c && c.CastActionId == 32368).Cast<IBattleChara>();
             if(Controller.GetConfig<Config>().DisplayDirection && secondcasters.Count() >= 2)
             {
-                var firstcasters = Svc.Objects.Where(x => x is BattleChara c && c.CastActionId == 31501).Cast<BattleChara>();
+                var firstcasters = Svc.Objects.Where(x => x is IBattleChara c && c.CastActionId == 31501).Cast<IBattleChara>();
                 if (firstcasters.Count() >= 2)
                 {
                     foreach(var x in firstcasters)
@@ -188,9 +188,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             {
                 foreach(var x in Svc.Objects)
                 {
-                    if(x is BattleChara b && !b.IsTargetable() && b.IsCasting)
+                    if(x is IBattleChara b && !b.IsTargetable() && b.IsCasting)
                     {
-                        ImGuiEx.TextCopy($"{b} {b.ObjectId} casting {b.CastActionId} -> {b.CastTargetObjectId} {b.CurrentCastTime}/{b.TotalCastTime} heading {MathHelper.GetRelativeAngle(new(100, 100), b.Position.ToVector2()).RadToDeg()}");
+                        ImGuiEx.TextCopy($"{b} {b.EntityId} casting {b.CastActionId} -> {b.CastTargetObjectId} {b.CurrentCastTime}/{b.TotalCastTime} heading {MathHelper.GetRelativeAngle(new(100, 100), b.Position.ToVector2()).RadToDeg()}");
                     }
                 }
                 ImGuiEx.Text($"Lasers: ");

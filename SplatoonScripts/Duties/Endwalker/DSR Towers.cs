@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Towers : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(1, "Enthusiastus");
+        public override Metadata? Metadata => new(2, "Enthusiastus");
 
         Element? SolutionElement;
 
@@ -40,10 +40,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         string solutionText = "";
  
-        //BattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == ThordanDataId) as BattleNpc;
+        //IBattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == ThordanDataId) as IBattleNpc;
         string TestOverride = "";
 
-        PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+        IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
         Vector2 Center = new(100, 100);
 
         public override void OnSetup()
@@ -72,7 +72,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             if (vfxPath == "vfx/lockon/eff/r1fz_holymeteo_s12x.avfx")
             {
 
-                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     if(pvc.GetRole().ToString() == "Tank" || pvc.GetRole().ToString() == "Healer")
                     {
@@ -94,7 +94,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             if (Message.Contains("(3640>29563)"))
             {
-                var towers = Svc.Objects.Where(x => x is BattleNpc b && b.NameId == 3640 && b.DataId == 9020).OrderBy(x => x.Position.X).ThenBy(y => y.Position.Z);
+                var towers = Svc.Objects.Where(x => x is IBattleNpc b && b.NameId == 3640 && b.DataId == 9020).OrderBy(x => x.Position.X).ThenBy(y => y.Position.Z);
                 int i = 0;
                 foreach (var x in towers)
                 {
@@ -108,7 +108,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         TowerElements[cur].color = Conf.ColInnerTower.ToUint();
                         continue;
                     }
-                    //DuoLog.Information($"Found Tower #{cur} {x.Name}({x.ObjectId}) @{x.Position}");
+                    //DuoLog.Information($"Found Tower #{cur} {x.Name}({x.EntityId}) @{x.Position}");
                     TowerElements[cur].color = Conf.ColNoMeteorTower.ToUint();
                     //TowerElements[cur].overlayText = $"{x.Position} || {Math.Round(2 - 2 * Math.Atan2(x.Position.X-100, x.Position.Z-100) / Math.PI) % 4}";
                     // Coordinate -Center because Center is @ 100/100 and formula needs it to be at 0

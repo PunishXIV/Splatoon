@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P8S2_Dominion : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1088 };
-        public override Metadata? Metadata => new(7, "NightmareXIV");
+        public override Metadata? Metadata => new(8, "NightmareXIV");
         int Stage = 0;
         List<uint> FirstPlayers = new();
         List<uint> SecondPlayers = new();
@@ -50,13 +50,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
             if (Stage == 1)
             {
-                var playersSecondTowers = Svc.Objects.Where(x => x is PlayerCharacter pc && pc.StatusList.Any(x => x.StatusId == 3372 && x.RemainingTime > 6f));
+                var playersSecondTowers = Svc.Objects.Where(x => x is IPlayerCharacter pc && pc.StatusList.Any(x => x.StatusId == 3372 && x.RemainingTime > 6f));
                 if (playersSecondTowers.Count() == 4)
                 {
                     Stage = 2;
                     PluginLog.Information($"Stage 2: First towers");
-                    FirstPlayers = Svc.Objects.Where(x => x is PlayerCharacter pc && !pc.StatusList.Any(x => x.StatusId == 3372) && IsRoleMatching(pc)).Select(x => x.ObjectId).ToList();
-                    SecondPlayers = playersSecondTowers.Where(x => x is PlayerCharacter pc && IsRoleMatching(pc)).Select(x => x.ObjectId).ToList();
+                    FirstPlayers = Svc.Objects.Where(x => x is IPlayerCharacter pc && !pc.StatusList.Any(x => x.StatusId == 3372) && IsRoleMatching(pc)).Select(x => x.EntityId).ToList();
+                    SecondPlayers = playersSecondTowers.Where(x => x is IPlayerCharacter pc && IsRoleMatching(pc)).Select(x => x.EntityId).ToList();
                     PluginLog.Information($"First towers: {FirstPlayers.Select(x => x.GetObject()?.Name).Print()}\nSecond towers: {SecondPlayers.Select(x => x.GetObject()?.Name).Print()}");
                 }
             }
@@ -115,9 +115,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        void Process(BattleChara[] towers, List<uint> players)
+        void Process(IBattleChara[] towers, List<uint> players)
         {
-            if (players.Contains(Svc.ClientState.LocalPlayer!.ObjectId) && Controller.TryGetElementByName("MyTower", out var e))
+            if (players.Contains(Svc.ClientState.LocalPlayer!.EntityId) && Controller.TryGetElementByName("MyTower", out var e))
             {
                 var prio = GetPriority().Where(x => players.Select(z => z.GetObject()!.Name.ToString()).Contains(x)).ToArray();
                 if (prio.Length == 2)
@@ -144,7 +144,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        bool IsRoleMatching(PlayerCharacter pc)
+        bool IsRoleMatching(IPlayerCharacter pc)
         {
             if(Svc.ClientState.LocalPlayer.GetRole() == CombatRole.DPS)
             {
@@ -158,7 +158,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         List<string> GetPriority(bool verbose = false)
         {
-            var x = this.Controller.GetConfig<Config>().Priorities.FirstOrDefault(z => z.All(n => Svc.Objects.Any(e => e is PlayerCharacter pc && pc.Name.ToString() == n && (pc.GetRole() == CombatRole.DPS) == (Svc.ClientState.LocalPlayer?.GetRole() == CombatRole.DPS)  )));
+            var x = this.Controller.GetConfig<Config>().Priorities.FirstOrDefault(z => z.All(n => Svc.Objects.Any(e => e is IPlayerCharacter pc && pc.Name.ToString() == n && (pc.GetRole() == CombatRole.DPS) == (Svc.ClientState.LocalPlayer?.GetRole() == CombatRole.DPS)  )));
             if(x != null)
             {
                 var t = $"Got priority list: {x.Print()}";
@@ -173,19 +173,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             return new();
         }
 
-        int GetAngle(BattleChara x)
+        int GetAngle(IBattleChara x)
         {
             return (int)(MathHelper.GetRelativeAngle(new(100, 0, 100), x.Position) + 180) % 360;
         }
 
-        IEnumerable<BattleChara> GetEarliestTowers()
+        IEnumerable<IBattleChara> GetEarliestTowers()
         {
             return GetTowers().OrderBy(x => x.CurrentCastTime).Take(4);
         }
 
-        IEnumerable<BattleChara> GetTowers()
+        IEnumerable<IBattleChara> GetTowers()
         {
-            return Svc.Objects.Where(x => x is BattleChara b && b.IsCasting && b.CastActionId == 31196).Cast<BattleChara>();
+            return Svc.Objects.Where(x => x is IBattleChara b && b.IsCasting && b.CastActionId == 31196).Cast<IBattleChara>();
         }
 
         public override void OnSettingsDraw()
@@ -234,9 +234,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             {
                 foreach (var x in people)
                 {
-                    if (Svc.Objects.TryGetFirst(z => z is PlayerCharacter pc && pc.Name.ToString() == x, out var o))
+                    if (Svc.Objects.TryGetFirst(z => z is IPlayerCharacter pc && pc.Name.ToString() == x, out var o))
                     {
-                        if (!IsRoleMatching((PlayerCharacter)o))
+                        if (!IsRoleMatching((IPlayerCharacter)o))
                         {
                             Svc.Chat.PrintChat(new() { Message = new SeStringBuilder().AddUiForeground($"Role mismatch with {o.Name}", (ushort)UIColor.Red).Build() });
                             s = false;
@@ -275,7 +275,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     s[i] = t;
                 }
                 ImGui.SameLine();
-                if (ImGui.Button($"  T  ##{i}") && Svc.Targets.Target is PlayerCharacter pc)
+                if (ImGui.Button($"  T  ##{i}") && Svc.Targets.Target is IPlayerCharacter pc)
                 {
                     s[i] = pc.Name.ToString();
                 }

@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P10S_Tethers : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1150 };
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
         List<TetherData> Tethers = new();
 
         public class TetherData
@@ -106,7 +106,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             int num = 1;
             foreach(var x in Tethers)
             {
-                if(x.source.TryGetObject(out var pillar) && pillar is BattleChara p && p.NameId == 12354 && x.target.TryGetObject(out var player) && player is PlayerCharacter pc && Controller.TryGetElementByName($"Cone{num}", out var e))
+                if(x.source.TryGetObject(out var pillar) && pillar is IBattleChara p && p.NameId == 12354 && x.target.TryGetObject(out var player) && player is IPlayerCharacter pc && Controller.TryGetElementByName($"Cone{num}", out var e))
                 {
                     num++;
                     e.Enabled = true;

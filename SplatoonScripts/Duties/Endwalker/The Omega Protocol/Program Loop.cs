@@ -31,7 +31,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public unsafe class Program_Loop : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
-        public override Metadata? Metadata => new(13, "NightmareXIV");
+        public override Metadata? Metadata => new(14, "NightmareXIV");
         Config Conf => Controller.GetConfig<Config>();
         HashSet<uint> TetheredPlayers = new();
         List<uint> Towers = new();
@@ -126,7 +126,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 {
                     if (Controller.TryGetElementByName("SelfTetherReminder", out var e))
                     {
-                        if (IsTakingCurrentTether(Svc.ClientState.LocalPlayer.ObjectId))
+                        if (IsTakingCurrentTether(Svc.ClientState.LocalPlayer.EntityId))
                         {
                             e.Enabled = true;
                             myTether = 0;
@@ -146,7 +146,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                 SwitchTetherSafeSpots(false);
                             }
 
-                            if (tetheredPlayers.Contains(Svc.ClientState.LocalPlayer.ObjectId))
+                            if (tetheredPlayers.Contains(Svc.ClientState.LocalPlayer.EntityId))
                             {
                                 e.overlayBGColor = Conf.ValidTetherColor.ToUint();
                                 e.overlayTextColor = Conf.OverlayTextColor.ToUint();
@@ -252,7 +252,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 {
                     if (Conf.Towers != TowerStartPoint.Disable_towers && Controller.TryGetElementByName("SelfTower", out var e))
                     {
-                        if (IsTakingCurrentTower(Svc.ClientState.LocalPlayer.ObjectId))
+                        if (IsTakingCurrentTower(Svc.ClientState.LocalPlayer.EntityId))
                         {
                             e.Enabled = true;
                             e.color = GradientColor.Get(Conf.TowerColor1, Conf.TowerColor2).ToUint();
@@ -261,7 +261,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             var currentTowers = GetCurrentTowers();
                             if (currentTowers.Length == 2)
                             {
-                                if (Conf.Swappers.Count != 0 && Svc.Objects.Any(x => x is PlayerCharacter pc && pc.Name.ToString().EqualsAny(Conf.Swappers) && pc.StatusList.Any(z => z.StatusId == GetDebuffByNumber(GetCurrentMechanicStep()))))
+                                if (Conf.Swappers.Count != 0 && Svc.Objects.Any(x => x is IPlayerCharacter pc && pc.Name.ToString().EqualsAny(Conf.Swappers) && pc.StatusList.Any(z => z.StatusId == GetDebuffByNumber(GetCurrentMechanicStep()))))
                                 {
                                     e.refActorObjectID = currentTowers[Conf.MyDirection == Direction.Counter_clockwise ? 0 : 1];
                                 }
@@ -368,17 +368,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                     }
                     if (obj.DataId == 2013244 && GetOmega() != null)
                     {
-                        Towers.Add(obj.ObjectId);
+                        Towers.Add(obj.EntityId);
                         if (TowerOrder.Count == 0)
                         {
-                            GetPlayersWithNumber(1).Each(x => TowerOrder.Add(x.ObjectId));
-                            GetPlayersWithNumber(2).Each(x => TowerOrder.Add(x.ObjectId));
-                            GetPlayersWithNumber(3).Each(x => TowerOrder.Add(x.ObjectId));
-                            GetPlayersWithNumber(4).Each(x => TowerOrder.Add(x.ObjectId));
-                            GetPlayersWithNumber(3).Each(x => TetherOrder.Add(x.ObjectId));
-                            GetPlayersWithNumber(4).Each(x => TetherOrder.Add(x.ObjectId));
-                            GetPlayersWithNumber(1).Each(x => TetherOrder.Add(x.ObjectId));
-                            GetPlayersWithNumber(2).Each(x => TetherOrder.Add(x.ObjectId));
+                            GetPlayersWithNumber(1).Each(x => TowerOrder.Add(x.EntityId));
+                            GetPlayersWithNumber(2).Each(x => TowerOrder.Add(x.EntityId));
+                            GetPlayersWithNumber(3).Each(x => TowerOrder.Add(x.EntityId));
+                            GetPlayersWithNumber(4).Each(x => TowerOrder.Add(x.EntityId));
+                            GetPlayersWithNumber(3).Each(x => TetherOrder.Add(x.EntityId));
+                            GetPlayersWithNumber(4).Each(x => TetherOrder.Add(x.EntityId));
+                            GetPlayersWithNumber(1).Each(x => TetherOrder.Add(x.EntityId));
+                            GetPlayersWithNumber(2).Each(x => TetherOrder.Add(x.EntityId));
                         }
                     }
                 }
@@ -428,14 +428,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             return 0;
         }
 
-        IEnumerable<PlayerCharacter> GetPlayersWithNumber(int n)
+        IEnumerable<IPlayerCharacter> GetPlayersWithNumber(int n)
         {
             var debuff = GetDebuffByNumber(n);
             foreach (var x in Svc.Objects)
             {
-                if (x is PlayerCharacter p && p.StatusList.Any(z => z.StatusId == debuff))
+                if (x is IPlayerCharacter p && p.StatusList.Any(z => z.StatusId == debuff))
                 {
-                    yield return (PlayerCharacter)x;
+                    yield return (IPlayerCharacter)x;
                 }
             }
         }
@@ -449,14 +449,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             throw new Exception($"Invalid GetDebuffByNumber query {n}");
         }
 
-        BattleChara? GetOmega()
+        IBattleChara? GetOmega()
         {
-            return Svc.Objects.FirstOrDefault(x => x is BattleChara o && o.NameId == 7695 && o.IsTargetable()) as BattleChara;
+            return Svc.Objects.FirstOrDefault(x => x is IBattleChara o && o.NameId == 7695 && o.IsTargetable()) as IBattleChara;
         }
 
-        bool IsOmega(uint oid, [NotNullWhen(true)] out BattleChara? omega)
+        bool IsOmega(uint oid, [NotNullWhen(true)] out IBattleChara? omega)
         {
-            if (oid.TryGetObject(out var obj) && obj is BattleChara o && o.NameId == 7695)
+            if (oid.TryGetObject(out var obj) && obj is IBattleChara o && o.NameId == 7695)
             {
                 omega = o;
                 return true;

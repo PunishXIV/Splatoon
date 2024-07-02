@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public class Oversampled_Wave_Cannon : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
-        public override Metadata? Metadata => new(4, "NightmareXIV");
+        public override Metadata? Metadata => new(5, "NightmareXIV");
         Config Conf => Controller.GetConfig<Config>();
 
         public override void OnSetup()
@@ -138,7 +138,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         bool IsMechanicRunning(out CardinalDirection mechanicStep)
         {
-            var caster = Svc.Objects.FirstOrDefault(x => x is BattleChara b && b.CastActionId.EqualsAny<uint>(31595, 31596)) as BattleChara;
+            var caster = Svc.Objects.FirstOrDefault(x => x is IBattleChara b && b.CastActionId.EqualsAny<uint>(31595, 31596)) as IBattleChara;
             if (caster != null)
             {
                 mechanicStep = caster.CastActionId == 31595 ? CardinalDirection.East : CardinalDirection.West;
@@ -187,7 +187,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             return (0, false);
         }
 
-        PlayerCharacter? GetPlayer(string name)
+        IPlayerCharacter? GetPlayer(string name)
         {
             return FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == name);
         }
@@ -257,7 +257,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
     public static class OWCExtensions
     {
-        public static bool HasMonitor(this PlayerCharacter c)
+        public static bool HasMonitor(this IPlayerCharacter c)
         {
             return c.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3453, 3452));
         }

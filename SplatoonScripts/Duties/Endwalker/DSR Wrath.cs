@@ -19,29 +19,29 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Wrath : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(1, "Enthusiastus");
+        public override Metadata? Metadata => new(2, "Enthusiastus");
 
         Element? SkydiveTargetElement;
         Element? NoSkydiveTargetElement;
         Element? BahamutDiveTargetElement;
         Element? IgnasseTargetElement;
         Element? IgnasseHitboxElement;
-        PlayerCharacter? IgnassePlayer;
+        IPlayerCharacter? IgnassePlayer;
         Element? VellguineTargetElement;
         Element? VellguineHitboxElement;
-        PlayerCharacter? VellguinePlayer;
+        IPlayerCharacter? VellguinePlayer;
 
         bool active = false;
         bool gottether = false;
 
         uint IgnasseDataId = 12635;
-        BattleNpc? Ignasse => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == IgnasseDataId) as BattleNpc;
+        IBattleNpc? Ignasse => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == IgnasseDataId) as IBattleNpc;
         uint VellguineDataId = 12633;
-        BattleNpc? Vellguine => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == VellguineDataId) as BattleNpc;
+        IBattleNpc? Vellguine => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == VellguineDataId) as IBattleNpc;
 
         string TestOverride = "";
 
-        PlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is PlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+        IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
 
         Vector2 Center = new(100, 100);
 
@@ -91,7 +91,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             if (vfxPath == "vfx/lockon/eff/m0005sp_19o0t.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"Local player is {PC.Name}");
                     if (PC == pvc)
@@ -115,7 +115,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
             if (vfxPath == "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is PlayerCharacter pvc && pvc == PC)
+                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc && pvc == PC)
                 {
                     //DuoLog.Information($"Oh no BahamutWYVNGLIDER on {pvc}");
                     BahamutDiveTargetElement.Enabled = true;
@@ -131,7 +131,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             // Look for tethers only in p5 wrath (see OnMessage)
             if (!active) return;
-            if (source.TryGetObject(out var ignasse) && ignasse is BattleChara ig && ig.NameId == 3638 && target.TryGetObject(out var pi) && pi is PlayerCharacter pic)
+            if (source.TryGetObject(out var ignasse) && ignasse is IBattleChara ig && ig.NameId == 3638 && target.TryGetObject(out var pi) && pi is IPlayerCharacter pic)
             {
                 IgnassePlayer = pic;
                 //DuoLog.Information($"Ignasse tether from {ignasse.Name} to {IgnassePlayer.Name} data {data2} || {data3} || {data5}");
@@ -157,7 +157,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     });
                 }
             }
-            else if (source.TryGetObject(out var vellguine) && vellguine is BattleChara vg && vg.NameId == 3636 && target.TryGetObject(out var pv) && pv is PlayerCharacter pvc)
+            else if (source.TryGetObject(out var vellguine) && vellguine is IBattleChara vg && vg.NameId == 3636 && target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
             {
                 VellguinePlayer = pvc;
                 //DuoLog.Information($"Vellguine tether from {vellguine.Name} to {VellguinePlayer.Name} data {data2} || {data3} || {data5}");

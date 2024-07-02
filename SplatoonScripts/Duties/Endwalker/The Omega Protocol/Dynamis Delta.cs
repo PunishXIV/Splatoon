@@ -21,11 +21,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
 
-        public override Metadata? Metadata => new(7, "NightmareXIV");
+        public override Metadata? Metadata => new(8, "NightmareXIV");
 
         Config Conf => Controller.GetConfig<Config>();
 
-        PlayerCharacter Player => Svc.ClientState.LocalPlayer;
+        IPlayerCharacter Player => Svc.ClientState.LocalPlayer;
 
         int Stage = 0;
         uint myTether;
@@ -120,8 +120,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             foreach(var player in FakeParty.Get())
                             {
                                 var h = Svc.Objects.Where(x => x.DataId.EqualsAny<uint>(HandRed, HandBlue)).OrderBy(x => Vector3.Distance(x.Position, player.Position)).First();
-                                PlayerHands[player.ObjectId] = h.DataId;
-                                PluginLog.Information($"Player {player} {player.Position}, hand {h} {h.Position} {(PlayerHands[player.ObjectId]==HandBlue?"blue":"red")}");
+                                PlayerHands[player.EntityId] = h.DataId;
+                                PluginLog.Information($"Player {player} {player.Position}, hand {h} {h.Position} {(PlayerHands[player.EntityId]==HandBlue?"blue":"red")}");
                             }
                             Stage = 1;
                             DuoLog.Information("Stage 1");
@@ -129,7 +129,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                     }
                     else if(Stage == 1)
                     {
-                        if (isMeClose && PlayerHands[GetClosestPlayer().ObjectId] == PlayerHands[Svc.ClientState.LocalPlayer.ObjectId])
+                        if (isMeClose && PlayerHands[GetClosestPlayer().EntityId] == PlayerHands[Svc.ClientState.LocalPlayer.EntityId])
                         {
                             Alert("Swap to other side!", GradientColor.Get(ImGuiColors.ParsedPink, 0xFF000000.ToVector4(), 200));
                         }
@@ -195,7 +195,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         var arms = GetArms().ToArray();
                         if (arms.Length == 6)
                         {
-                            BattleChara? myArm = null;
+                            IBattleChara? myArm = null;
                             if(myTether == Effects.UpcomingBlueTether)
                             {
                                 if (isMeClose)
@@ -347,7 +347,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        PlayerCharacter GetClosestPlayer()
+        IPlayerCharacter GetClosestPlayer()
         {
             return FakeParty.Get().Where(x => x.Address != Svc.ClientState.LocalPlayer.Address).OrderBy(x => Vector3.Distance(Svc.ClientState.LocalPlayer.Position, x.Position)).FirstOrDefault();
         }
@@ -395,11 +395,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         }
 
 
-        IEnumerable<BattleChara> GetArms()
+        IEnumerable<IBattleChara> GetArms()
         {
             foreach(var x in Svc.Objects)
             {
-                if (x is BattleChara b && b.DataId.EqualsAny<uint>(15719, 15718)) yield return x as BattleChara;
+                if (x is IBattleChara b && b.DataId.EqualsAny<uint>(15719, 15718)) yield return x as IBattleChara;
             }
         }
 
@@ -408,14 +408,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         }
 
-        BattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is BattleChara c && c.Struct()->Character.CharacterData.ModelCharaId == 3771) as BattleChara;
+        IBattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->Character.CharacterData.ModelCharaId == 3771) as IBattleChara;
 
-        BattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is BattleChara c && c.Struct()->Character.CharacterData.ModelCharaId == 3775) as BattleChara;
+        IBattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->Character.CharacterData.ModelCharaId == 3775) as IBattleChara;
 
         bool HasEffect(uint id) => Player.StatusList.Any(x => x.StatusId == id);
         bool HasEffect(uint id, float remainsMin, float remainsMax) => Player.StatusList.Any(x => x.StatusId == id && x.RemainingTime.InRange(remainsMin,remainsMax));
 
-        float GetAngleRelativeToObject(GameObject source, GameObject target, bool invert = false)
+        float GetAngleRelativeToObject(IGameObject source, IGameObject target, bool invert = false)
         {
             var angle = MathHelper.GetRelativeAngle(source.Position, target.Position);
             var angleRot = source.Rotation.RadToDeg();
@@ -431,7 +431,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
     public static class Dynamis_Delta_Extensions
     {
-        public static bool HasEffect(this BattleChara obj, uint id) => obj.StatusList.Any(x => x.StatusId == id);
-        public static bool HasEffect(this BattleChara obj, uint id, float remainsMin, float remainsMax) => obj.StatusList.Any(x => x.StatusId == id && x.RemainingTime.InRange(remainsMin, remainsMax));
+        public static bool HasEffect(this IBattleChara obj, uint id) => obj.StatusList.Any(x => x.StatusId == id);
+        public static bool HasEffect(this IBattleChara obj, uint id, float remainsMin, float remainsMax) => obj.StatusList.Any(x => x.StatusId == id && x.RemainingTime.InRange(remainsMin, remainsMax));
     }
 }

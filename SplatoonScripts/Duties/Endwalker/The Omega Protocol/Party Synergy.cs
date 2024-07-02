@@ -28,7 +28,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
 
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
 
         const string StackVFX = "vfx/lockon/eff/com_share2i.avfx";
         const string ChainVFX = "vfx/lockon/eff/z3oz_firechain_0";
@@ -54,7 +54,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             if (vfxPath == StackVFX && Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3427, 3428)))
             {
                 var stackers = AttachedInfo.VFXInfos.Where(x => x.Value.Any(z => z.Key == StackVFX && z.Value.Age < 1000)).Select(x => x.Key).Select(x => Svc.Objects.FirstOrDefault(z => z.Address == x)).ToArray();
-                var opticalUnit = Svc.Objects.FirstOrDefault(x => x is Character c && c.NameId == 7640);
+                var opticalUnit = Svc.Objects.FirstOrDefault(x => x is ICharacter c && c.NameId == 7640);
                 var mid = MathHelper.GetRelativeAngle(new(100, 100), opticalUnit.Position.ToVector2());
                 var myAngle = (MathHelper.GetRelativeAngle(Svc.ClientState.LocalPlayer.Position, opticalUnit.Position) - mid + 360) % 360;
                 if (stackers.Length == 2 && opticalUnit != null)
@@ -138,14 +138,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             ImGui.Checkbox($"Explicit position tether (unfinished feature, supports right side adjust only)", ref Conf.ExplicitTether);
             if (ImGui.CollapsingHeader("Debug"))
             {
-                var opticalUnit = Svc.Objects.FirstOrDefault(x => x is Character c && c.NameId == 7640);
+                var opticalUnit = Svc.Objects.FirstOrDefault(x => x is ICharacter c && c.NameId == 7640);
                 if (opticalUnit != null)
                 {
                     var mid = MathHelper.GetRelativeAngle(new(100, 100), opticalUnit.Position.ToVector2());
                     ImGuiEx.Text($"Mid: {mid}");
                     foreach (var x in Svc.Objects)
                     {
-                        if (x is PlayerCharacter pc)
+                        if (x is IPlayerCharacter pc)
                         {
                             var pos = (MathHelper.GetRelativeAngle(pc.Position.ToVector2(), opticalUnit.Position.ToVector2()) - mid + 360) % 360;
                             ImGuiEx.Text($"{pc.Name} {pos} {(pos > 180 ? "right" : "left")}");

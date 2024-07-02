@@ -4,6 +4,7 @@ using ECommons;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
+using ECommons.Logging;
 using ECommons.Schedulers;
 using Splatoon.SplatoonScripting;
 using System;
@@ -52,7 +53,7 @@ namespace SplatoonScriptsOfficial.Tests
                 .Append('|')
                 .Append(targetOID)
                 .Append('|')
-                .Append(Svc.Objects.FirstOrDefault(x => (ulong)(x.Struct()->GetObjectID()) == (ulong)targetOID)?.Name ?? "");
+                .Append(Svc.Objects.FirstOrDefault(x => (ulong)(x.Struct()->GetGameObjectId()) == (ulong)targetOID)?.Name ?? "");
             Send(str);
         }
 
@@ -100,14 +101,14 @@ namespace SplatoonScriptsOfficial.Tests
             {
                 if(Svc.Objects.TryGetFirst(x => x.Address == newObjectPtr, out var obj))
                 {
-                    var chr = obj is Character character ? character: null;
+                    var chr = obj is ICharacter character ? character: null;
                     //name|ObjectID|DataID|NPCID|ModelID|TransformID|Position.X|Position.Y|Position.Z|Angle
                     var str = new string[]
                     {
                         $"{obj.Name.ExtractText()}",
-                        $"{obj.ObjectId}",
+                        $"{obj.EntityId}",
                         $"{obj.DataId}",
-                        $"{obj.Struct()->GetNpcID()}",
+                        $"{obj.Struct()->GetNameId()}",
                         chr == null?"":$"{chr.Struct()->CharacterData.ModelCharaId}",
                         chr == null?"":$"{chr.GetTransformationID()}",
                         $"{obj.Position.X}",

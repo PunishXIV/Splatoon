@@ -15,7 +15,7 @@ public class ActionEffectTest : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if(set.Target.Address == Player.Object.Address)
+        if (set.Target.Address == Player.Object.Address)
         {
             foreach (var effect in set.TargetEffects)
             {
@@ -24,5 +24,6 @@ public class ActionEffectTest : SplatoonScript
                     DuoLog.Information($"{effect[i]}={effect[i].Damage}/{effect[i].mult}");
                 }
             }
+        }
     }
 }

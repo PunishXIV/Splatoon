@@ -54,11 +54,11 @@ namespace SplatoonScriptsOfficial.Tests
         {
             if (Mechanic)
             {
-                var casters = Svc.Objects.Where(x => x is BattleNpc b && !b.IsTargetable() && b.IsCharacterVisible() && b.IsCasting).Cast<BattleNpc>();
+                var casters = Svc.Objects.Where(x => x is IBattleNpc b && !b.IsTargetable() && b.IsCharacterVisible() && b.IsCasting).Cast<IBattleNpc>();
                 foreach (var x in casters)
                 {
                     DuoLog.Information($"Cast {x} - {Environment.TickCount64}");
-                    if (Values.TryGetValue(x.ObjectId, out var coll))
+                    if (Values.TryGetValue(x.EntityId, out var coll))
                     {
                         foreach (var z in coll)
                         {

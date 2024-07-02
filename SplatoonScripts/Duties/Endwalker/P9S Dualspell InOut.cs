@@ -21,9 +21,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P9S_Dualspell_InOut : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1148 };
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
         TickScheduler? sched = null;
-        BattleNpc? Kokytos => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == 16087 && b.IsTargetable()) as BattleNpc;
+        IBattleNpc? Kokytos => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 16087 && b.IsTargetable()) as IBattleNpc;
 
 
 
@@ -95,7 +95,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             vfx/common/eff/m0842cast02c0g.avfx icethunder
             */
         enum Color { Unknown, FireIce, LightningIce, FireWind };
-        Color GetColor(GameObject obj)
+        Color GetColor(IGameObject obj)
         {
             Color col = Color.Unknown;
             long age = long.MaxValue;

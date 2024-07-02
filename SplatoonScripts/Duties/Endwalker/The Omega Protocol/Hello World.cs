@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public class Hello_World : SplatoonScript
     {
-        public override Metadata? Metadata => new(7, "NightmareXIV");
+        public override Metadata? Metadata => new(8, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => new() { 1122 };
         bool RotPicker = false;
         int counter = 0;
@@ -123,7 +123,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         {
                             if (!x.StatusList.Any(z => z.StatusId.EqualsAny(Effects.BlueRot, Effects.NoBlueRot)))
                             {
-                                GetAvoidElementByOID(x.ObjectId).Enabled = true;
+                                GetAvoidElementByOID(x.EntityId).Enabled = true;
                             }
                         }
                     }
@@ -135,7 +135,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             {
                                 if (x.StatusList.Any(z => z.StatusId.EqualsAny(Effects.BlueRot)))
                                 {
-                                    GetAvoidElementByOID(x.ObjectId).Enabled = true;
+                                    GetAvoidElementByOID(x.EntityId).Enabled = true;
                                 }
                             }
                         }
@@ -146,7 +146,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         {
                             if (!x.StatusList.Any(z => z.StatusId.EqualsAny(Effects.RedRot, Effects.NoRedRot)))
                             {
-                                GetAvoidElementByOID(x.ObjectId).Enabled = true;
+                                GetAvoidElementByOID(x.EntityId).Enabled = true;
                             }
                         }
                     }
@@ -158,7 +158,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             {
                                 if (x.StatusList.Any(z => z.StatusId.EqualsAny(Effects.RedRot)))
                                 {
-                                    GetAvoidElementByOID(x.ObjectId).Enabled = true;
+                                    GetAvoidElementByOID(x.EntityId).Enabled = true;
                                 }
                             }
                         }
@@ -174,9 +174,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             {
                 RotPicker = false;
             }
-            if (Svc.Objects.Any(x => x is BattleChara b && b.CastActionId == 31599))
+            if (Svc.Objects.Any(x => x is IBattleChara b && b.CastActionId == 31599))
             {
-                var isDefamationRed = Svc.Objects.Any(x => x is PlayerCharacter pc && HasEffect(Effects.Defamation, null, pc) && HasEffect(Effects.RedRot, null, pc));
+                var isDefamationRed = Svc.Objects.Any(x => x is IPlayerCharacter pc && HasEffect(Effects.Defamation, null, pc) && HasEffect(Effects.RedRot, null, pc));
                 if (HasEffect(Effects.RedRot))
                 {
                     if(Conf.EnableVisualElementsTowers) TowerRed(false);
@@ -223,7 +223,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             {
                                 Controller.GetElementByName("DefaPartner").Enabled = true;
                                 Controller.GetElementByName("DefaPartner").tether = Conf.EnableDefamationPartnerTether;
-                                Controller.GetElementByName("DefaPartner").refActorObjectID = partner.ObjectId;
+                                Controller.GetElementByName("DefaPartner").refActorObjectID = partner.EntityId;
                             }
                         }
                     }
@@ -274,7 +274,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                     {
                         if(Conf.EnableOverheadHintsTether) Reminder("Break tethers - go FAR", ImGuiColors.HealerGreen);
                     }
-                    if (HasEffect(Effects.CloseTether) && !Svc.Objects.Any(x => x is PlayerCharacter pc && HasEffect(Effects.FarTether)))
+                    if (HasEffect(Effects.CloseTether) && !Svc.Objects.Any(x => x is IPlayerCharacter pc && HasEffect(Effects.FarTether)))
                     {
                         if (Conf.EnableOverheadHintsTether) Reminder("Break tethers - go CLOSE", ImGuiColors.ParsedBlue);
                     }
@@ -300,7 +300,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             AvoidAlerts.Clear();
             for (var i = 0; i < list.Length; i++)
             {
-                AvoidAlerts.Add(Controller.RegisterElementFromCode($"Avoid{i}", "{\"Name\":\"\",\"type\":3,\"Enabled\":false,\"refZ\":1.2,\"radius\":0.0,\"color\":3355473407,\"overlayFScale\":5.0,\"thicc\":25.0,\"refActorObjectID\":12345678,\"refActorComparisonType\":2}".Replace("12345678", $"{list[i].ObjectId}")));
+                AvoidAlerts.Add(Controller.RegisterElementFromCode($"Avoid{i}", "{\"Name\":\"\",\"type\":3,\"Enabled\":false,\"refZ\":1.2,\"radius\":0.0,\"color\":3355473407,\"overlayFScale\":5.0,\"thicc\":25.0,\"refActorObjectID\":12345678,\"refActorComparisonType\":2}".Replace("12345678", $"{list[i].EntityId}")));
             }
         }
 
@@ -348,7 +348,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             Controller.GetElementByName("BlueTower").Enabled = false;
         }
 
-        static bool HasEffect(uint effect, float? remainingTile = null, BattleChara? obj = null)
+        static bool HasEffect(uint effect, float? remainingTile = null, IBattleChara? obj = null)
         {
             return (obj ?? Svc.ClientState.LocalPlayer).StatusList.Any(x => x.StatusId == effect && (remainingTile == null || x.RemainingTime < remainingTile));
         }

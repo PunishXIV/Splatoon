@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Wing_Cleaves : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1153, 1154 };
-        public override Metadata? Metadata => new(5, "NightmareXIV");
+        public override Metadata? Metadata => new(6, "NightmareXIV");
         Queue<string> Cleaves = new();
         bool isSpin = false;
         Vector3 firstPos;
@@ -30,7 +30,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         const uint AthenaNameId = 12377;
         readonly uint[] Casts = new uint[] { 33473, 33474, 33475, 33476, 33477, 33478, 33505, 33506, 33507, 33508, 33509, 33510, 33511, 33512, 33513, 33514, 33515, 33516 };
 
-        BattleNpc? Athena => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.NameId == AthenaNameId && b.IsTargetable()) as BattleNpc;
+        IBattleNpc? Athena => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.NameId == AthenaNameId && b.IsTargetable()) as IBattleNpc;
         Vector2 Center = new(100, 100);
         bool IsSavage => Svc.ClientState.TerritoryType == 1154;
 

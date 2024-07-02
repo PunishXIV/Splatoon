@@ -16,7 +16,7 @@ namespace SplatoonScriptsOfficial.Tests
         public override HashSet<uint> ValidTerritories => new();
         public override void OnActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage)
         {
-            if(sourceID.GetObject() is BattleNpc b)
+            if(sourceID.GetObject() is IBattleNpc b)
             {
                 PluginLog.Debug($"Action {ActionID} from {b.Name} on {((uint)(targetOID)).GetObject()?.Name}");
             }

@@ -26,13 +26,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P11S_Multiscript : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1152 };
-        public override Metadata? Metadata => new(3, "NightmareXIV");
+        public override Metadata? Metadata => new(4, "NightmareXIV");
 
         const string DarkVFX = "vfx/common/eff/m0830_dark_castloopc0k1.avfx";
         const string LightVFX = "vfx/common/eff/m0830_light_castloopc0k1.avfx";
         enum Color { Unknown, Light, Dark };
-        BattleNpc? Themis => Svc.Objects.FirstOrDefault(x => x is BattleNpc b && b.DataId == 16114 && b.IsTargetable()) as BattleNpc;
-        IEnumerable<BattleNpc> IllusoryThemises => Svc.Objects.Where(x => x is BattleNpc b && b.DataId == 16115).Cast<BattleNpc>();
+        IBattleNpc? Themis => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 16114 && b.IsTargetable()) as IBattleNpc;
+        IEnumerable<IBattleNpc> IllusoryThemises => Svc.Objects.Where(x => x is IBattleNpc b && b.DataId == 16115).Cast<IBattleNpc>();
         TickScheduler? DonutScheduler;
         TickScheduler? TowerScheduler;
 
@@ -156,7 +156,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
-            if(set.Source != null && set.Source is BattleNpc b)
+            if(set.Source != null && set.Source is IBattleNpc b)
             {
                 //DuoLog.Information($"{set.Action.RowId} - {set.Action.Name} ({b.Name})");
                 if(C.EnableProteanLinger && set.Action.RowId.EqualsAny<uint>(33257, 33256)) //protean
@@ -182,7 +182,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        Color GetColor(GameObject obj)
+        Color GetColor(IGameObject obj)
         {
             Color col = Color.Unknown;
             long age = long.MaxValue;

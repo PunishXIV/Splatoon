@@ -44,10 +44,10 @@ public class EnemyAggro : SplatoonScript
             int i = 0;
             foreach (var x in Svc.Objects)
             {
-                if (x is PlayerCharacter pc && pc.Address != Player.Object.Address && pc.Address.ToInt64() != 0 && pc.CurrentHp > 0 && pc.TargetObjectId == Svc.ClientState.LocalPlayer.ObjectId)
+                if (x is IPlayerCharacter pc && pc.Address != Player.Object.Address && pc.Address.ToInt64() != 0 && pc.CurrentHp > 0 && pc.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId)
                 {
                     var element = GetElement(i++);
-                    element.refActorObjectID = pc.ObjectId;
+                    element.refActorObjectID = pc.EntityId;
                     element.Enabled = true;
                 }
             }
@@ -100,7 +100,7 @@ public class EnemyAggro : SplatoonScript
             ImGuiEx.Text($"Targeting you: ");
             foreach(var x in Svc.Objects)
             {
-                if(x.TargetObjectId == Player.Object?.ObjectId)
+                if(x.TargetObjectId == Player.Object?.EntityId)
                 {
                     ImGuiEx.Text($"{x}");
                     if (ImGuiEx.HoveredAndClicked())

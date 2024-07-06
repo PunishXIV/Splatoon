@@ -236,27 +236,27 @@ public unsafe class QuestHighlighter : SplatoonScript
 
         SImGuiEx.SizedText("Main Story Quest:", 125f);
         ImGui.SameLine();
-        ImGui.Checkbox("Available", ref C.ShowMSQ);
+        ImGui.Checkbox("Available##showMSQAvailable", ref C.ShowMSQ);
         ImGui.SameLine();
         ImGui.Text("     ");
         ImGui.SameLine();
-        ImGui.Checkbox("Locked", ref C.ShowMSQL);
+        ImGui.Checkbox("Locked##showMSQLocked", ref C.ShowMSQL);
 
         SImGuiEx.SizedText("Feature Quest:", 125f);
         ImGui.SameLine();
-        ImGui.Checkbox("Available", ref C.ShowFQ);
+        ImGui.Checkbox("Available##showFQAvailable", ref C.ShowFQ);
         ImGui.SameLine();
         ImGui.Text("     ");
         ImGui.SameLine();
-        ImGui.Checkbox("Locked", ref C.ShowFQL);
+        ImGui.Checkbox("Locked##showFQLocked", ref C.ShowFQL);
 
         SImGuiEx.SizedText("Side Quest:", 125f);
         ImGui.SameLine();
-        ImGui.Checkbox("Available", ref C.ShowSQ);
+        ImGui.Checkbox("Available##showSQAvailable", ref C.ShowSQ);
         ImGui.SameLine();
         ImGui.Text("     ");
         ImGui.SameLine();
-        ImGui.Checkbox("Locked", ref C.ShowSQL);
+        ImGui.Checkbox("Locked##showSQLocked", ref C.ShowSQL);
 
         ImGui.NewLine();
     }

@@ -1,5 +1,6 @@
 ﻿using Dalamud.Interface.Colors;
 using ECommons;
+using ECommons.Funding;
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
 using PInvoke;
@@ -122,7 +123,7 @@ unsafe partial class CGui:IDisposable
                             ImGui.EndCombo();
                         }
                         ImGui.SameLine();
-                        KoFiButton.DrawButton();
+                        PatreonBanner.DrawButton();
                     }, false);
                     ImGui.SetCursorPos(curCursor);
 
@@ -144,8 +145,8 @@ unsafe partial class CGui:IDisposable
                             ("Conversion".Loc(), DisplayConversion, null, true)
                             );
                         }, null, true),
-                        ("Contribute".Loc(), Contribute.Draw, null, true),
-                        ("Contributors".Loc(), TabContributors.Draw, null, true)
+                        ("Contribute".Loc(), Contribute.Draw, null, true)
+                        //("Contributors".Loc(), TabContributors.Draw, null, true)
                         );
                 }
             }

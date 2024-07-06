@@ -61,14 +61,23 @@ internal class Contribute
         }*/
         ImGui.Separator();
         ImGuiEx.Text("- Financial".Loc());
-        ImGuiEx.Text("Should you like my work and have a coin to spare, I will be happy to accept it. Please note that work on the plugin will continue regardless of donations; I do not require them.".Loc());
-        KoFiButton.DrawRaw();
-        if (ImGui.CollapsingHeader("Show crypto wallet info"))
+        ImGuiEx.Text("If you would like to financially support me, you may use Patreon, Ko-Fi or cryptocurrency. Financial support allows me to put extra time into plugin!".Loc());
+
+        if (ImGui.Button("Patreon"))
         {
-            ImGuiEx.Text("You may send tokens to any of the following crypto wallets: (click on the button to copy address)".Loc());
-            Donation.PrintDonationInfo();
-            ImGui.Separator();
+            ShellStart("https://subscribe.nightmarexiv.com/");
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Ko-Fi"))
+        {
+            ShellStart("https://donate.nightmarexiv.com/");
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Crypto"))
+        {
+            ShellStart("https://crypto.nightmarexiv.com/");
+        }
+
         ImGuiEx.Text("Thank you for your contributions!".Loc());
         ImGui.PopTextWrapPos();
         ImGui.PopID();

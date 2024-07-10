@@ -290,6 +290,15 @@ unsafe partial class CGui
                             }
                         }
                     }
+                    else if (el.refActorComparisonType == 9)
+                    {
+                        ImGui.SetNextItemWidth(200f);
+                        ImGuiEx.InputUint("##nameplateiconid" + i + k, ref el.refActorNamePlateIconID);
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.SetTooltip("Decimal input");
+                        }
+                    }
 
                     if (Svc.Targets.Target != null && !el.refActorComparisonType.EqualsAny(7, 8))
                     {
@@ -305,6 +314,7 @@ unsafe partial class CGui
                                 el.refActorNPCNameID = c.NameId;
                             }
                             el.refActorNPCID = Svc.Targets.Target.Struct()->GetNameId();
+                            el.refActorNamePlateIconID = Svc.Targets.Target.Struct()->NamePlateIconId;
                         }
                     }
                     SImGuiEx.SizedText("Targetability: ".Loc(), WidthElement);

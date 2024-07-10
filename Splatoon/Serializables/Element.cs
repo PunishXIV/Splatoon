@@ -37,7 +37,8 @@ public class Element
             "Placeholder".Loc(),
             "NPC Name ID".Loc(),
             "VFX Path".Loc(),
-            "Object Effect".Loc()
+            "Object Effect".Loc(),
+            "Icon ID".Loc()
         };
     }
 
@@ -99,6 +100,7 @@ public class Element
     [DefaultValue(0)] public uint refActorTargetingYou = 0;
     [DefaultValue("")] public List<string> refActorPlaceholder = new();
     [DefaultValue(0)] public uint refActorNPCNameID = 0;
+    [DefaultValue(0)] public uint refActorNamePlateIconID = 0;
     [DefaultValue(false)] public bool refActorComparisonAnd = false;
     [DefaultValue(false)] public bool refActorRequireCast = false;
     [DefaultValue(false)] public bool refActorCastReverse = false;
@@ -130,6 +132,7 @@ public class Element
     /// 6: Name ID | 
     /// 7: VFX Path |
     /// 8: Object Effect
+    /// 9: Icon ID
     /// </summary>
     [DefaultValue(0)] public int refActorComparisonType = 0;
     /// <summary>
@@ -328,6 +331,11 @@ public class Element
     public bool ShouldSerializerefActorObjectEffectData1()
     {
         return refActorComparisonType == 8 || refActorComparisonAnd;
+    }
+
+    public bool ShouldSerializerefActorNamePlateIconId()
+    {
+        return refActorComparisonType == 9 || refActorComparisonAnd;
     }
 
     public bool ShouldSerializeRotationMax()

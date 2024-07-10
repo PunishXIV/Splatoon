@@ -928,6 +928,8 @@ unsafe partial class CGui
                     ImGui.SameLine();
                     ImGuiEx.TextCopy("$NAMEID");
                     ImGui.SameLine();
+                    ImGuiEx.TextCopy("$DISTANCE");
+                    ImGui.SameLine();
                     ImGuiEx.TextCopy("\\n");
                 }
                 if (el.overlayText.Length > 0)

@@ -258,7 +258,7 @@ unsafe partial class CGui
                             el.refActorVFXMax = (int)(a2 * 1000);
                         }
                     }
-                    if (el.refActorComparisonType == 8)
+                    else if (el.refActorComparisonType == 8)
                     {
                         ImGui.SetNextItemWidth(50f);
                         ImGuiEx.InputUint("##edata1", ref el.refActorObjectEffectData1);

@@ -32,3 +32,7 @@
 ```
 ~Lv2~{"Name":"Hail of Feathers","Group":"Worqor Lar Dor - Extreme","ZoneLockH":[1196],"ElementsL":[{"Name":"Death Zone","type":1,"radius":20.0,"Filled":false,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNameIntl":{"En":"*"},"refActorRequireCast":true,"refActorCastId":[36170,36171,36361,36829,36830,36893,36894,36895,36896,36897,36898],"mechanicType":1}]}
 ```
+[EN] Avalanche
+```
+~Lv2~{"Name":"Avalanche","Group":"Worqor Lar Dor - Extreme","ZoneLockH":[1196],"ElementsL":[{"Name":"Avalanche - North","type":3,"refX":10.5,"refY":25.0,"offX":10.5,"offY":-25.0,"radius":10.0,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNPCNameID":12854,"refActorRequireCast":true,"refActorCastId":[36827],"refActorComparisonType":6,"includeHitbox":true,"includeRotation":true,"mechanicType":1},{"Name":"Avalanche - South","type":3,"refX":10.5,"refY":25.0,"offX":10.5,"offY":-25.0,"radius":10.0,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNPCNameID":12854,"refActorRequireCast":true,"refActorCastId":[36828],"refActorComparisonType":6,"includeHitbox":true,"includeRotation":true,"AdditionalRotation":3.1415927,"mechanicType":1}]}
+```

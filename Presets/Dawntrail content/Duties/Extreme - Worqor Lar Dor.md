@@ -36,3 +36,7 @@
 ```
 ~Lv2~{"Name":"Avalanche","Group":"Worqor Lar Dor - Extreme","ZoneLockH":[1196],"ElementsL":[{"Name":"Avalanche - North","type":3,"refX":10.5,"refY":25.0,"offX":10.5,"offY":-25.0,"radius":10.0,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNPCNameID":12854,"refActorRequireCast":true,"refActorCastId":[36827],"refActorComparisonType":6,"includeHitbox":true,"includeRotation":true,"mechanicType":1},{"Name":"Avalanche - South","type":3,"refX":10.5,"refY":25.0,"offX":10.5,"offY":-25.0,"radius":10.0,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNPCNameID":12854,"refActorRequireCast":true,"refActorCastId":[36828],"refActorComparisonType":6,"includeHitbox":true,"includeRotation":true,"AdditionalRotation":3.1415927,"mechanicType":1}]}
 ```
+[EN] Thunderous Breath
+```
+~Lv2~{"Name":"Thunderous Breath","Group":"Worqor Lar Dor - Extreme","ZoneLockH":[1196],"ElementsL":[{"Name":"Thunderous Breath","type":3,"offY":40.0,"radius":2.5,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":16770,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true,"mechanicType":1}]}
+```

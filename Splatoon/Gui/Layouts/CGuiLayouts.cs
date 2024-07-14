@@ -62,7 +62,7 @@ partial class CGui
                 {
                     P.Config.GroupOrder.Sort();
                 }
-                ImGuiEx.Tooltip("Sort layouts and groups alphabetically.".Loc());
+                ImGuiEx.Tooltip("Sorts groups alphabetically.".Loc());
             });
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
             if (ImGui.Button("Import from clipboard".Loc(), new(ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("A").Y)))

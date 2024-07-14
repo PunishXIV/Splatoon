@@ -64,12 +64,16 @@ Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8k
 ~Lv2~{"Name":"Hail of Feathers","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"ElementsL":[{"Name":"Death Zone","type":1,"radius":20.0,"Filled":false,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNameIntl":{"En":"*"},"refActorRequireCast":true,"refActorCastId":[36170,36171,36361,36829,36830,36893,36894,36895,36896,36897,36898],"mechanicType":1}]}
 ```
 
-## [EN] Avalanche
+## [EN] Avalanche (North and South)
 
 Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 ```
-~Lv2~{"Name":"Avalanche","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"ElementsL":[{"Name":"Avalanche - North","type":3,"refX":10.5,"refY":25.0,"offX":10.5,"offY":-25.0,"radius":10.0,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNPCNameID":12854,"refActorRequireCast":true,"refActorCastId":[36827],"refActorComparisonType":6,"includeHitbox":true,"includeRotation":true,"mechanicType":1},{"Name":"Avalanche - South","type":3,"refX":10.5,"refY":25.0,"offX":10.5,"offY":-25.0,"radius":10.0,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNPCNameID":12854,"refActorRequireCast":true,"refActorCastId":[36828],"refActorComparisonType":6,"includeHitbox":true,"includeRotation":true,"AdditionalRotation":3.1415927,"mechanicType":1}]}
+~Lv2~{"Name":"North Avalanche","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"North Unsafe","type":2,"refX":125.0,"refY":105.0,"refZ":4.7683716E-07,"offX":85.0,"offY":75.0,"offZ":1.9073486E-06,"radius":11.0,"color":3355451647,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"mechanicType":1}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":9.0,"Match":"MapEffect: 3, 16, 32"}]}
+```
+
+```
+~Lv2~{"Name":"South Avalanche","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"South Unsafe","type":2,"refX":112.76,"refY":123.36,"refZ":-9.536743E-07,"offX":75.0,"offY":95.0,"offZ":-9.536743E-07,"radius":11.0,"color":3355444991,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"mechanicType":1}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":9.0,"Match":"MapEffect: 3, 1, 2"}]}
 ```
 
 ## [EN] Thunderous Breath

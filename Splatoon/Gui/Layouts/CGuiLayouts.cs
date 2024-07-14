@@ -57,6 +57,12 @@ partial class CGui
                     P.Config.FocusMode = !P.Config.FocusMode;
                 }
                 ImGuiEx.Tooltip("Toggle focus mode.\nFocus mode: when layout is selected, hide all other layouts.".Loc());
+                ImGui.SameLine(0, 2);
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Sort))
+                {
+                    P.Config.GroupOrder.Sort();
+                }
+                ImGuiEx.Tooltip("Sort layouts and groups alphabetically.".Loc());
             });
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
             if (ImGui.Button("Import from clipboard".Loc(), new(ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("A").Y)))

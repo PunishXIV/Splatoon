@@ -17,7 +17,7 @@ Presets may contain the following tags:
 
 - `[EN]`, `[JP]`, `[DE]`, and `[FR]` mean that preset or script will work with the indicated client language(s). Usually, porting it to another language will involve adding some localized lines from game's log to triggers or object names.
 
-- `[International]` presets or scripts do not relies on data derived from client language and can be used on any game language without modifications.
+- `[International]` presets or scripts do not rely on data derived from client language and can be used on any game language without modifications.
 
 - `[Untested]` presets or scripts have no data about whether they work correctly or at all. Please use caution when adding these. It's advised to try them out in Duty Recorder before using them in a duty or event.
 

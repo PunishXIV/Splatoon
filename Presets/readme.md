@@ -2,6 +2,8 @@
 
 This is a repository of layout and script presets for Splatoon. These presets have been developed and provided by numerous people from the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy). The scripts in this directory are vetted and verified to be trustworthy by the Spaltoon development team.
 
+Above is a directory of folders leading to different types of content presets exist for. Navigate through those to find other `.md` files containing text or URLs for you to import presets or scripts with.
+
 ## Definitions
 
 There are 2 types of presets:
@@ -28,11 +30,11 @@ Presets may contain the following tags:
 
 Once you've decided that you want to import a preset, you need to copy the preset code into your clipboard by pressing button on the right side of code block:
 
-![](/docs/images/preset_import/image_3.png)
+![](/docs/images/preset_import/copy_button.png)
 
 Then, import your preset into the Splatoon plugin by opening it with the `/splatoon` command in-game. Proceed to `Layouts` tab and then press the `Import from clipboard` button.
 
-![](/docs/images/preset_import/image_4.png)
+![](/docs/images/preset_import/ingame_import.png)
 
 If you did everything correctly, the preset should be added to the list on the left side. If this isn't working, please visit the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) for support.
 
@@ -46,3 +48,11 @@ Below is a list of third-party repositories and websites that have additional Sp
 - https://github.com/adamchris1992/ffxivsplat
 - https://github.com/cptjabberwock/SplatoonPresetsList/wiki
 - https://github.com/Ksirashi/Presets
+
+## Tools to Make Presets
+
+Most presets are not made directly in duties or events. They are created using recordings of them, provided by a first-party plugin called [A Realm Recorded](https://github.com/UnknownX7/ARealmRecorded). This is available directly through the `/xlplugins` command. It records _any_ duty and you can play them back at any inn.
+
+[Triggevent](https://github.com/xpdota/event-trigger) is an addon for ACT that is helpful for figuring out triggers, effects, and other game events happening during a fight.
+
+Lastly, [BossMod](https://github.com/awgil/ffxiv_bossmod) has a useful replay feature to capture all of the events that happen in a duty into an organized log file for you to reference when developing a preset. Another helpful feature of BossMod is when it gets updated for a certain fight, a list of all of the encounter's spells are published to their GitHub. See [here](https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Modules/Dawntrail/Extreme/Ex1Valigarmanda/Ex1ValigarmandaEnums.cs) for an example.

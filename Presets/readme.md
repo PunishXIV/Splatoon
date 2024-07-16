@@ -48,7 +48,6 @@ Below is a list of third-party repositories and websites that have additional Sp
 - https://github.com/adamchris1992/ffxivsplat
 - https://github.com/cptjabberwock/SplatoonPresetsList/wiki
 - https://github.com/Ksirashi/Presets
-- https://github.com/cptjabberwock/SplatoonPresetsList/wiki
 
 ## Making Presets
 

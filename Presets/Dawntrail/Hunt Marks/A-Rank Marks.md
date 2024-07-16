@@ -1,49 +1,8 @@
-# The Hunt - DT A-Ranks
-
-## [EN] Urqopacha
-
-Created by `nelament` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
-
 ```
-~Lv2~{"Name":"Urqopacha","Group":"The Hunt - DT A-Ranks","ZoneLockH":[1187],"ElementsL":[{"Name":"Queen Hawk","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorName":"Queen Hawk","refActorNameIntl":{"En":"Queen Hawk"},"tether":true},{"Name":"Nechucho","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Nechuciho"},"tether":true}]}
-```
-
-## [EN] Kozama'uka
-
-Created by `nelament` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
-
-```
-~Lv2~{"Name":"Kozama'uka","Group":"The Hunt - DT A-Ranks","ZoneLockH":[1188],"ElementsL":[{"Name":"The Raintriller","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"The Raintriller"},"tether":true},{"Name":"Pkuucha","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Pkuucha"},"tether":true}]}
-```
-
-## [EN] Yak T'el
-
-Created by `nelament` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
-
-```
-~Lv2~{"Name":"Yak T'el","Group":"The Hunt - DT A-Ranks","ZoneLockH":[1189],"ElementsL":[{"Name":"Starcrier","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Starcrier"},"tether":true},{"Name":"Rrax Yity'a","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Rrax Yity'a"},"tether":true}]}
-```
-
-## [EN] Shaaloani
-
-Created by `nelament` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
-
-```
-~Lv2~{"Name":"Shaaloani","Group":"The Hunt - DT A-Ranks","ZoneLockH":[1187,1190],"ElementsL":[{"Name":"Keheniheyamewi","type":1,"color":3355484415,"fillIntensity":0.5,"originFillColor":1677762815,"endFillColor":1677762815,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Keheniheyamewi"},"tether":true},{"Name":"Yehehetoaua'pyo","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Yehehetoaua'pyo"},"tether":true}]}
-```
-
-## [EN] Heritage Found
-
-Created by `nelament` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
-
-```
-~Lv2~{"Name":"Heritage Found","Group":"The Hunt - DT A-Ranks","ZoneLockH":[1187,1191],"ElementsL":[{"Name":"Urna Variabilis","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Urna Variabilis"},"tether":true},{"Name":"Heshuala","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Heshuala"},"tether":true}]}
-```
-
-## [EN] Living Memory
-
-Created by `nelament` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
-
-```
-~Lv2~{"Name":"Living Memory","Group":"The Hunt - DT A-Ranks","ZoneLockH":[1187,1192],"ElementsL":[{"Name":"Cat's Eye","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Cat's Eye"},"tether":true},{"Name":"Sally the Sweeper","type":1,"color":3355484415,"overlayTextColor":3355506943,"thicc":3.0,"refActorNameIntl":{"En":"Sally the Sweeper"},"tether":true}]}
+~Lv2~{"Name":"A Ranks: Urqopacha","Group":"The Hunt - DT A Ranks","ZoneLockH":[1187],"ElementsL":[{"Name":"Nechuciho","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13362,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Queen Hawk","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13361,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"A Ranks: Kozama'uka","Group":"The Hunt - DT A Ranks","ZoneLockH":[1188],"ElementsL":[{"Name":"Pkuucha","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13443,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"The Raintriller","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13442,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"A Ranks: Yak T'el","Group":"The Hunt - DT A Ranks","ZoneLockH":[1189],"ElementsL":[{"Name":"Rrax Yity'a","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":12753,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Starcrier","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":12692,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"A Ranks: Shaaloani","Group":"The Hunt - DT A Ranks","ZoneLockH":[1190],"ElementsL":[{"Name":"Keheniheyamewi","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13401,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Yehehetoaua'pyo","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13400,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"A Ranks: Heritage Found","Group":"The Hunt - DT A Ranks","ZoneLockH":[1191],"ElementsL":[{"Name":"Heshuala","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13157,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Urna Variabilis","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13158,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"A Ranks: Living Memory","Group":"The Hunt - DT A Ranks","ZoneLockH":[1192],"ElementsL":[{"Name":"Cat's Eye","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13436,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Sally the Sweeper","type":1,"Filled":false,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":13435,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ```

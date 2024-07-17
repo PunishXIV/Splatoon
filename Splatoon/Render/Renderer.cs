@@ -3,7 +3,6 @@ using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Drawing;
 using System.Runtime.InteropServices;
-using static System.Windows.Forms.AxHost;
 
 namespace Splatoon.Render;
 

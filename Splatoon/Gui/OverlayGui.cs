@@ -1,14 +1,14 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
-using Splatoon.Structures;
-using Splatoon.Render;
-using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Splatoon.Render;
+using Splatoon.Structures;
 
 
 namespace Splatoon.Gui;
 
 unsafe class OverlayGui : IDisposable
 {
+    private readonly TimeSpan ErrorLogFrequency = TimeSpan.FromSeconds(30);
     const int RADIAL_SEGMENTS_PER_RADIUS_UNIT = 20;
     const int MINIMUM_CIRCLE_SEGMENTS = 24;
     public const int MAXIMUM_CIRCLE_SEGMENTS = 240;
@@ -17,6 +17,7 @@ unsafe class OverlayGui : IDisposable
     AutoClipZones autoClipZones;
     readonly Splatoon p;
     int uid = 0;
+    DateTime lastErrorLogTime = DateTime.MinValue;
     public OverlayGui(Splatoon p)
     {
         this.p = p;
@@ -114,9 +115,21 @@ unsafe class OverlayGui : IDisposable
             }
             catch (Exception e)
             {
-                p.Log("Splatoon exception: please report it to developer", true);
-                p.Log(e.Message, true);
-                p.Log(e.StackTrace, true);
+                var now = DateTime.Now;
+                if (now - lastErrorLogTime > ErrorLogFrequency)
+                {
+                    lastErrorLogTime = now;
+                    if (e is IndexOutOfRangeException)
+                    {
+                        p.Log("Splatoon exception: " + e.Message + " Please adjust misconfigured presets causing excessive elements, or report it to developer if you believe this limit is too low.", true);
+                    }
+                    else
+                    {
+                        p.Log("Splatoon exception: please report it to developer", true);
+                        p.Log(e.Message, true);
+                        p.Log(e.StackTrace, true);
+                    }
+                }
             }
         }
         catch (Exception e)

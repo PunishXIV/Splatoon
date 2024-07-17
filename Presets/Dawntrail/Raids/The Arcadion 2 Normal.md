@@ -23,3 +23,11 @@ Created by `lillylilim` on the [Puni.sh Discord server](https://discord.gg/Zzrcc
 ```
 ~Lv2~{"Name":"Honey Beeline","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Boss Center Line","type":3,"refY":25.0,"offY":-25.0,"radius":7.0,"refActorNameIntl":{"En":"Honey B. Lovely"},"refActorRequireCast":true,"refActorCastId":[37221,37227],"includeRotation":true,"onlyVisible":true,"mechanicType":1}]}
 ```
+
+## [EN] Splinter (Yellow Blob AOEs)
+
+Created by `lillylilim` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
+
+```
+~Lv2~{"Name":"Splinter","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Blob AOE","type":1,"radius":8.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37230],"mechanicType":1}]}
+```

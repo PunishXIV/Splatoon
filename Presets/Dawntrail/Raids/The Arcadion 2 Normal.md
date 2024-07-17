@@ -13,7 +13,7 @@ Created by `lillylilim` on the [Puni.sh Discord server](https://discord.gg/Zzrcc
 Created by `lillylilim` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 ```
-~Lv2~{"Name":"Blinding Love","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Edge Bee Line","type":3,"refY":48.0,"radius":4.0,"overlayPlaceholders":true,"overlayText":"$NAME $CAST","refActorName":"*","refActorRequireCast":true,"refActorCastId":[39525,37247,37246,37247,39525,39526],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":7.0,"refActorUseOvercast":true,"includeRotation":true,"mechanicType":1}]}
+~Lv2~{"Name":"Blinding Love","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Edge Bee Line","type":3,"refY":48.0,"radius":4.0,"overlayPlaceholders":true,"overlayText":"$NAME $CAST","refActorName":"*","refActorRequireCast":true,"refActorCastId":[39525,37247,37246,37247,39525,39526],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.7,"refActorUseOvercast":true,"includeRotation":true,"mechanicType":1}]}
 ```
 
 ## [EN] Honey Beeline (Boss Center Line)

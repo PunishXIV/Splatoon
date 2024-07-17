@@ -1,7 +1,5 @@
 ﻿using SharpDX;
 using SharpDX.Direct3D11;
-using Splatoon.Render;
-using System;
 using System.Runtime.CompilerServices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
@@ -63,21 +61,22 @@ public class RenderBuffer<T> : IDisposable where T : unmanaged
         public unsafe void Add(ref T item)
         {
             if (_buffer.CurElements >= _buffer.MaxElements)
-                throw new ArgumentOutOfRangeException("Buffer overflow");
+                throw new IndexOutOfRangeException(_buffer.FriendlyName + " max buffer size of " + _buffer.MaxElements + " exceeded. Futher elements will not be displayed.");
             ++_buffer.CurElements;
             _stream.Write((nint)Unsafe.AsPointer(ref item), 0, sizeof(T));
         }
         public void Add(T item) => Add(ref item);
     }
-
+    public string FriendlyName { get; private set; }
     public bool Dynamic { get; init; }
     public int ElementSize { get; init; }
     public int MaxElements { get; init; }
     public int CurElements { get; private set; }
     public Buffer Buffer { get; init; }
 
-    public unsafe RenderBuffer(RenderContext ctx, int maxElements, BindFlags bindFlags, bool dynamic)
+    public unsafe RenderBuffer(string friendlyName, RenderContext ctx, int maxElements, BindFlags bindFlags, bool dynamic)
     {
+        FriendlyName = friendlyName;
         dynamic = true; // TODO: figure why it doesn't work as expected..
         Dynamic = dynamic;
         ElementSize = sizeof(T);

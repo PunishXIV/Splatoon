@@ -1,4 +1,4 @@
-# M3N - AAC Light-Heavyweight M3 (Brute Bomber)
+# AAC Light-Heavyweight M3 (Brute Bomber)
 
 ## [EN] Knuckle Sandwich (Tank Soak)
 

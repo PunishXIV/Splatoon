@@ -1,39 +1,81 @@
-# Additional sources of presets
-Here is located list of repos and websites that have additional, maintained by third parties presets for various battles. 
-|WARNING!! If you are installing a script from different source than this repo, please make sure you understand it's code, otherwise - make a support request in discord before installing.|
-|---|
+# Splatoon Presets
+
+This is a repository of layout and script presets for Splatoon. These presets have been developed and provided by numerous people from the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy). The scripts in this directory are vetted and verified to be trustworthy by the Spaltoon development team.
+
+Above is a directory of folders leading to different types of content presets exist for. Navigate through those to find other `.md` files containing text or URLs for you to import presets or scripts with.
+
+## Definitions
+
+There are 2 types of presets:
+
+- **Normal presets** consists of one or multiple layouts and are shared via a line of text.
+- **Scripts** are basically microplugins that run in a specific instance. They are used when mechanics are too complex to be contained in normal presets. Scripts are imported from via a URL and not from a text box.
+
+## Tags
+
+Presets may contain the following tags:
+
+- `[EN]`, `[JP]`, `[DE]`, and `[FR]` mean that preset or script will work with the indicated client language(s). Usually, porting it to another language will involve adding some localized lines from game's log to triggers or object names.
+
+- `[International]` presets or scripts do not rely on data derived from client language and can be used on any game language without modifications.
+
+- `[Untested]` presets or scripts have no data about whether they work correctly or at all. Please use caution when adding these. It's advised to try them out in Duty Recorder before using them in a duty or event.
+
+- `[Beta]` incidates that the preset or script has passed initial testing but it may contain problems, not cover all possible patterns or is still undergoing development. They may be significantly changed in future, so check back for updates.
+
+## Importing Presets
+
+> [!IMPORTANT]  
+> Do not blindly import everything. You will just end up with a visual mess on your screen. Find presets for the mechanics you want to display and import those.
+
+Once you've decided that you want to import a preset, you need to copy the preset code into your clipboard by pressing button on the right side of code block:
+
+![](/docs/images/preset_import/copy_button.png)
+
+Then, import your preset into the Splatoon plugin by opening it with the `/splatoon` command in-game. Proceed to `Layouts` tab and then press the `Import from clipboard` button.
+
+![](/docs/images/preset_import/ingame_import.png)
+
+If you did everything correctly, the preset should be added to the list on the left side. If this isn't working, please visit the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) for support.
+
+## Additional Sources of Presets
+
+Below is a list of third-party repositories and websites that have additional Splatoon presets. If something is not here, please check these to see if what you are looking for was developed elsewhere.
+
+> [!WARNING]
+> If you are installing a script from a source other than this repo, please make sure you understand its code. Scripts have full access to your computer, similar to how plugins do. If you don't understand it, at least make a support request in their developer's Discord server before installing.
 
 - https://github.com/adamchris1992/ffxivsplat
 - https://github.com/cptjabberwock/SplatoonPresetsList/wiki
 - https://github.com/Ksirashi/Presets
 
-A collection of user-submitted presets. 
+## Making Presets
 
-# Definitions
-In general, there are 2 types of presets.
-- Normal preset. Consists of one or few layouts. 
-- Script. It is basically a microplugin that runs in a specific instance. Used when mechanics are too complex to be contained in normal presets.
+### Tools to Make Presets
 
-# Tags meaning
-Presets may contain tags.
+Most presets are not made directly in duties or events. They are created using recordings of them, provided by a first-party plugin called [A Realm Recorded](https://github.com/UnknownX7/ARealmRecorded). This is available directly through the `/xlplugins` command. It records _any_ duty and you can play them back at any inn.
 
-[EN], [JP], [DE], [FR] - means that preset/script will work with the following client languages. Usually to port it to another language you will have to add some localized lines from game's log into triggers or object name.
+[Triggevent](https://github.com/xpdota/event-trigger) is an addon for ACT that is helpful for figuring out triggers, effects, and other game events happening during a fight.
 
-[International] - preset/script does not relies on data affected by client language and can be used on any game language without modifications.
+Lastly, [BossMod](https://github.com/awgil/ffxiv_bossmod) has a useful replay feature to capture all of the events that happen in a duty into an organized log file for you to reference when developing a preset. Another helpful feature of BossMod is when it gets updated for a certain fight, a list of all of the encounter's spells are published to their GitHub. See [here](https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Modules/Dawntrail/Extreme/Ex1Valigarmanda/Ex1ValigarmandaEnums.cs) for an example.
 
-[Untested] - there is no data about whether this preset/script works correctly or at all. 
+### Naming
 
-[Beta] - the preset/script passed initial testing but it may contain problems, not cover all possible patterns or still undergoing development and may be significantly changed in future. 
+Presets should adhere to the following naming scheme:
 
-# How to import preset
-First of all: do not blindly import everything - you will just end up with visual mess on your screen. Find presets for mechanics that you want to display first.
+- Groups are named after the dungeon, trial, boss name, or raid, prepended by it's abbreviation, difficulty, or level. Some examples (the text in parentheses is not required):
 
-After you have decided, you need to copy preset code into your clipboard by pressing button on the right side of code block:
+  - `EX1 - Worqor Lar Dor` (Dawntrail's first extreme trial)
+  - `97 - Worqor Lar Door` (Dawntrail's first normal trial)
+  - `P1S - Erichthonios` (Asphodelos: The First Circle, Pandæmonium's first boss on Savage difficulty)
+  - `97 - Alexandria` (level 97 dungeon)
 
-![](/docs/images/preset_import/image_3.png)
+- Layouts are named after the mechanic or boss it covers. This may not be adhered to all the time, but please try to stay true to this when developing new presets. Some examples (the text in parentheses is not required):
 
-And then, to import your preset into Splatoon plugin, open it up with `/splatoon` command, proceed to "Layouts" tab and press "Import from clipboard" button.
+  - `Avalanche` (for EX1 in Dawntrail)
+  - `Half Full` (for EX2 in Dawntrail)
+  - `Amalgam` (for the second boss of the level 100 dungeon Alexandria in Dawntrail)
 
-![](/docs/images/preset_import/image_4.png)
+- Elements you have free reign over, just try to be descriptive of what the element is. For example, during `Projection of Triumph` in Dawntrail's EX2, the elements are called `Line Donuts` and `Line Point-blanks`.
 
-If you have done everything correctly, you should have preset added into the plugin.
+Most importantly, **make sure everything is _descriptive_**.

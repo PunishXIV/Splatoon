@@ -1,4 +1,4 @@
-The Hunt - HW B Ranks
+<!-- The Hunt - HW B Ranks
 ```
 ~Lv2~{"Name":"B Ranks: The Fringes","Group":"The Hunt - SB B Ranks","ZoneLockH":[612],"ElementsL":[{"Name":"Shadow-dweller Yamini","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6008,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Ouzelum","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6009,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"B Ranks: Yanxia","Group":"The Hunt - SB B Ranks","ZoneLockH":[614],"ElementsL":[{"Name":"Deidar","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6004,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Gyorai Quickstrike","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6005,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
@@ -6,9 +6,10 @@ The Hunt - HW B Ranks
 ~Lv2~{"Name":"B Ranks: The Peaks","Group":"The Hunt - SB B Ranks","ZoneLockH":[620],"ElementsL":[{"Name":"Gwas-y-neidr","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6010,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Buccaboo","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6011,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"B Ranks: The Azim Steppe","Group":"The Hunt - SB B Ranks","ZoneLockH":[622],"ElementsL":[{"Name":"Aswang","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6007,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Kurma","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6006,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"B Ranks: The Lochs","Group":"The Hunt - SB B Ranks","ZoneLockH":[621],"ElementsL":[{"Name":"Kiwa","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6013,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Manes","type":1,"color":3372196352,"thicc":3.0,"overlayText":"B Rank","refActorNPCID":6012,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
-```
+``` -->
 
 The Hunt - HW A Ranks
+
 ```
 ~Lv2~{"Name":"A Ranks: Coerthas Western Highlands","Group":"The Hunt - HW A Ranks","ZoneLockH":[397],"ElementsL":[{"Name":"Mirka","type":1,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":4362,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Lyuba","type":1,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":4363,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"A Ranks: The Dravanian Forelands","Group":"The Hunt - HW A Ranks","ZoneLockH":[398],"ElementsL":[{"Name":"Pylraster","type":1,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":4364,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Lord of the Wyverns","type":1,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":4365,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
@@ -18,7 +19,7 @@ The Hunt - HW A Ranks
 ~Lv2~{"Name":"A Ranks: Azys Lla","Group":"The Hunt - HW A Ranks","ZoneLockH":[402],"ElementsL":[{"Name":"Campacti","type":1,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":4372,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Stench Blossom","type":1,"thicc":3.0,"overlayText":"A Rank","refActorNPCID":4373,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ```
 
-The Hunt - HW S Ranks
+<!-- The Hunt - HW S Ranks
 ```
 ~Lv2~{"Name":"S Ranks: The Fringes","Group":"The Hunt - SB S Ranks","ZoneLockH":[612],"ElementsL":[{"Name":"Udumbara","type":1,"color":3355484415,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":5987,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"S Ranks: Yanxia","Group":"The Hunt - SB S Ranks","ZoneLockH":[614],"ElementsL":[{"Name":"Gamma","type":1,"color":3355484415,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":5985,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
@@ -26,4 +27,4 @@ The Hunt - HW S Ranks
 ~Lv2~{"Name":"S Ranks: The Peaks","Group":"The Hunt - SB S Ranks","ZoneLockH":[620],"ElementsL":[{"Name":"Bone Crawler","type":1,"color":3355484415,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":5988,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"S Ranks: The Azim Steppe","Group":"The Hunt - SB S Ranks","ZoneLockH":[622],"ElementsL":[{"Name":"Orghana","type":1,"color":3355484415,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":5986,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ~Lv2~{"Name":"S Ranks: The Lochs","Group":"The Hunt - SB S Ranks","ZoneLockH":[621],"ElementsL":[{"Name":"Salt and Light","type":1,"color":3355484415,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":5989,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
-```
+``` -->

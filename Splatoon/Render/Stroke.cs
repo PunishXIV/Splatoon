@@ -54,7 +54,7 @@ public class Stroke : IDisposable
                         World = world[i],
                         Thickness = thickness,
                         Color = color,
-                        Index = (ushort) (i+1)
+                        Index = (ushort)(i + 1)
                     });
                 }
                 if (closed)
@@ -74,7 +74,7 @@ public class Stroke : IDisposable
 
         public Data(RenderContext ctx, int maxCount, bool dynamic)
         {
-            _buffer = new(ctx, maxCount, BindFlags.VertexBuffer, dynamic);
+            _buffer = new("Stroke (outline or tether)", ctx, maxCount, BindFlags.VertexBuffer, dynamic);
         }
 
         public void Dispose()

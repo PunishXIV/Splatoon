@@ -258,7 +258,7 @@ unsafe partial class CGui
                             el.refActorVFXMax = (int)(a2 * 1000);
                         }
                     }
-                    if (el.refActorComparisonType == 8)
+                    else if (el.refActorComparisonType == 8)
                     {
                         ImGui.SetNextItemWidth(50f);
                         ImGuiEx.InputUint("##edata1", ref el.refActorObjectEffectData1);
@@ -290,6 +290,15 @@ unsafe partial class CGui
                             }
                         }
                     }
+                    else if (el.refActorComparisonType == 9)
+                    {
+                        ImGui.SetNextItemWidth(200f);
+                        ImGuiEx.InputUint("##nameplateiconid" + i + k, ref el.refActorNamePlateIconID);
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.SetTooltip("Decimal input");
+                        }
+                    }
 
                     if (Svc.Targets.Target != null && !el.refActorComparisonType.EqualsAny(7, 8))
                     {
@@ -305,6 +314,7 @@ unsafe partial class CGui
                                 el.refActorNPCNameID = c.NameId;
                             }
                             el.refActorNPCID = Svc.Targets.Target.Struct()->GetNameId();
+                            el.refActorNamePlateIconID = Svc.Targets.Target.Struct()->NamePlateIconId;
                         }
                     }
                     SImGuiEx.SizedText("Targetability: ".Loc(), WidthElement);
@@ -917,6 +927,8 @@ unsafe partial class CGui
                     ImGuiEx.TextCopy("$LIFE");
                     ImGui.SameLine();
                     ImGuiEx.TextCopy("$NAMEID");
+                    ImGui.SameLine();
+                    ImGuiEx.TextCopy("$DISTANCE");
                     ImGui.SameLine();
                     ImGuiEx.TextCopy("\\n");
                 }

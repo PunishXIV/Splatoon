@@ -17,11 +17,11 @@ namespace SplatoonScriptsOfficial.Tests
     public class ActorControlTest : SplatoonScript
     {
         delegate void ProcessActorControlPacket(uint a1, uint a2, uint a3, uint a4, uint a5, uint a6, int a7, uint a8, long a9, byte a10);
-        [Signature("40 55 53 57 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 8B 85", DetourName =nameof(ProcessActorControlPacketDetour))]
+        [Signature("40 55 53 56 41 54 41 56 48 8D AC 24 ?? ?? ?? ?? B8", DetourName =nameof(ProcessActorControlPacketDetour))]
         Hook<ProcessActorControlPacket> ProcessActorControlPacketHook;
 
 
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => null;
 
         public override void OnEnable()
         {

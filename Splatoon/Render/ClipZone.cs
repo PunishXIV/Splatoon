@@ -53,7 +53,7 @@ public class ClipZone : IDisposable
 
         public Data(RenderContext ctx, int maxCount, bool dynamic)
         {
-            _buffer = new(ctx, maxCount, BindFlags.VertexBuffer, dynamic);
+            _buffer = new("ClipZone", ctx, maxCount, BindFlags.VertexBuffer, dynamic);
         }
 
         public void Dispose()

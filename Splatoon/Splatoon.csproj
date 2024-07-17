@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.5.1.1</Version>
+		<Version>3.5.1.2</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -17,7 +17,7 @@
 		<NoWarn>CS1591</NoWarn>
     <UseWindowsForms>true</UseWindowsForms>
     <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
-    <PathMap>$(AppOutputBase)=\NightmareXIV\</PathMap>
+    <PathMap>$(AppOutputBase)=Splatoon\</PathMap>
     <Deterministic>true</Deterministic>
 	</PropertyGroup>
 
@@ -124,5 +124,10 @@
 	  <None Update="Splatoon.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="RenderEngines\LegacyRender\" />
+	  <Folder Include="RenderEngines\Polyrender\" />
 	</ItemGroup>
 </Project>

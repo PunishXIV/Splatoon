@@ -1,8 +1,8 @@
-﻿using SharpDX.D3DCompiler;
+﻿using SharpDX;
+using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using SharpDX;
 using System.Runtime.InteropServices;
 using Vector3 = System.Numerics.Vector3;
 using Vector4 = System.Numerics.Vector4;
@@ -63,7 +63,7 @@ public class FanFill : IDisposable
 
         public Data(RenderContext ctx, int maxCount, bool dynamic)
         {
-            _buffer = new(ctx, maxCount, BindFlags.VertexBuffer, dynamic);
+            _buffer = new("Fan (circle, donut, or cone)", ctx, maxCount, BindFlags.VertexBuffer, dynamic);
         }
 
         public void Dispose()

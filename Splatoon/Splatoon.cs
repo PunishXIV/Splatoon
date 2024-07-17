@@ -71,14 +71,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal int Phase { get => phase; set { phase = value; ScriptingProcessor.OnPhaseChange(value); } }
     internal int LayoutAmount = 0;
     internal int ElementAmount = 0;
-    /*internal static readonly string[] LimitGaugeResets = new string[] 
-    {
-        "The limit gauge resets!",
-        "リミットゲージがリセットされた……",
-        "Der Limitrausch-Balken wurde geleert.",
-        "La jauge de Transcendance a été réinitialisée.",
-        "极限槽被清零了……"
-    };*/
     internal static string LimitGaugeResets = "";
     internal Loader loader;
     public static bool Init = false;
@@ -191,7 +183,7 @@ public unsafe class Splatoon : IDalamudPlugin
         DirectorUpdate.Init(DirectorUpdateProcessor.ProcessDirectorUpdate);
         ActionEffect.Init(ActionEffectProcessor.ProcessActionEffect);
         ActionEffect.ActionEffectEvent += ScriptingProcessor.OnActionEffectEvent;
-        ProperOnLogin.Register(delegate
+        ProperOnLogin.RegisterAvailable(delegate
         {
             ScriptingProcessor.TerritoryChanged();
         });

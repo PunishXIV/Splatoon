@@ -3,6 +3,7 @@ using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using Device = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device;
 
 namespace Splatoon.Render;
 
@@ -84,11 +85,13 @@ public unsafe class Renderer : IDisposable
 
     public void BeginFrame()
     {
+
+        var device = Device.Instance();
+        ViewportSize = new(device->Width, device->Height);
         ViewProj = ReadMatrix(_engineCoreSingleton + 0x1B4);
         Proj = ReadMatrix(_engineCoreSingleton + 0x174);
         View = ViewProj * SharpDX.Matrix.Invert(Proj);
         CameraWorld = SharpDX.Matrix.Invert(View);
-        ViewportSize = ReadVec2(_engineCoreSingleton + 0x1F4);
 
         FanFill.UpdateConstants(RenderContext, new() { ViewProj = ViewProj });
         LineFill.UpdateConstants(RenderContext, new() { ViewProj = ViewProj });

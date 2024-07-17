@@ -1,11 +1,11 @@
 # The Strayborough Deadwalk
 
-## [EN] His Royal Headness Leonogg I - Cup Spins
+## [EN, JP] His Royal Headness Leonogg I - Cup Spins
 
 Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 ```
-~Lv2~{"Name":"His Royal Headness Leonogg I -  Cup Spins","Group":"100 - The Strayborough Deadwalk","ZoneLockH":[1204],"DCond":5,"ElementsL":[{"Name":"Large AoEs","type":1,"radius":19.0,"fillIntensity":1.0,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"Stray Phantagenitrix","LimitDistance":true,"LimitDistanceInvert":true,"DistanceSourceX":16.916918,"DistanceSourceY":-170.00108,"DistanceSourceZ":-38.0,"DistanceMax":0.1,"mechanicType":1}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":14.0,"MatchIntl":{"En":"Jack-in-the-Pot casts Tea Awhirl"}}]}
+~Lv2~{"Name":"His Royal Headness Leonogg I -  Cup Spins","Group":"100 - The Strayborough Deadwalk","ZoneLockH":[1204],"DCond":5,"ElementsL":[{"Name":"Large AoEs","type":1,"radius":19.0,"fillIntensity":1.0,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"Stray Phantagenitrix","refActorNameIntl":{"Jp":"ストレイ・マザーゴースト"},"LimitDistance":true,"LimitDistanceInvert":true,"DistanceSourceX":16.916918,"DistanceSourceY":-170.00108,"DistanceSourceZ":-38.0,"DistanceMax":0.1,"mechanicType":1}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":14.0,"MatchIntl":{"En":"Jack-in-the-Pot casts Tea Awhirl","Jp":"ジャック・イン・ザ・ポットは「ティーアホワール」を唱えた。"}}]}
 ```
 
 ## [EN] Traumerei - Ghostduster

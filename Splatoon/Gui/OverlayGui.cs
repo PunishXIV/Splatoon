@@ -119,16 +119,9 @@ unsafe class OverlayGui : IDisposable
                 if (now - lastErrorLogTime > ErrorLogFrequency)
                 {
                     lastErrorLogTime = now;
-                    if (e is IndexOutOfRangeException)
-                    {
-                        p.Log("Splatoon exception: " + e.Message + " Please adjust misconfigured presets causing excessive elements, or report it to developer if you believe this limit is too low.", true);
-                    }
-                    else
-                    {
-                        p.Log("Splatoon exception: please report it to developer", true);
-                        p.Log(e.Message, true);
-                        p.Log(e.StackTrace, true);
-                    }
+                    p.Log("Splatoon exception: please report it to developer", true);
+                    p.Log(e.Message, true);
+                    p.Log(e.StackTrace, true);
                 }
             }
         }
@@ -142,25 +135,44 @@ unsafe class OverlayGui : IDisposable
 
     RenderTarget Direct3DDraw()
     {
-        renderer.BeginFrame();
-        foreach (var element in p.displayObjects)
+        try
         {
-            if (element is DisplayObjectFan elementFan)
+            renderer.BeginFrame();
+            foreach (var element in p.displayObjects)
             {
-                float totalAngle = elementFan.angleMax - elementFan.angleMin;
-                int segments = RadialSegments(elementFan.outerRadius, totalAngle);
-                renderer.DrawFan(elementFan, segments);
+                if (element is DisplayObjectFan elementFan)
+                {
+                    float totalAngle = elementFan.angleMax - elementFan.angleMin;
+                    int segments = RadialSegments(elementFan.outerRadius, totalAngle);
+                    renderer.DrawFan(elementFan, segments);
+                }
+                else if (element is DisplayObjectLine elementLine)
+                {
+                    renderer.DrawLine(elementLine);
+                }
             }
-            else if (element is DisplayObjectLine elementLine)
+            foreach (var zone in P.Config.ClipZones)
             {
-                renderer.DrawLine(elementLine);
+                renderer.AddClipZone(zone.Rect);
+            }
+            if (p.Config.AutoClipNativeUI) autoClipZones.Update();
+        }
+        catch (Exception e)
+        {
+            var now = DateTime.Now;
+            if (now - lastErrorLogTime > ErrorLogFrequency)
+            {
+                if (e is IndexOutOfRangeException)
+                {
+                    lastErrorLogTime = now;
+                    p.Log("Splatoon exception: " + e.Message + " Please adjust misconfigured presets causing excessive elements, or report it to developer if you believe this limit is too low.", true);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
-        foreach (var zone in P.Config.ClipZones)
-        {
-            renderer.AddClipZone(zone.Rect);
-        }
-        if (p.Config.AutoClipNativeUI) autoClipZones.Update();
 
         return renderer.EndFrame();
     }

@@ -85,7 +85,6 @@ public unsafe class Renderer : IDisposable
 
     public void BeginFrame()
     {
-
         var device = Device.Instance();
         ViewportSize = new(device->Width, device->Height);
         ViewProj = ReadMatrix(_engineCoreSingleton + 0x1B4);

@@ -71,7 +71,7 @@ unsafe class OverlayGui : IDisposable
                 void Draw()
                 {
                     // Draw pre-rendered shape fills.
-                    ImGui.GetWindowDrawList().AddImage(renderTarget.ImguiHandle, new(), new(renderTarget.Size.X, renderTarget.Size.Y));
+                    ImGui.GetWindowDrawList().AddImage(renderTarget.ImguiHandle, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2(renderTarget.Size.X, renderTarget.Size.Y));
 
                     // Draw dots and text last because they are most critical to be legible.
                     foreach (var element in p.displayObjects)

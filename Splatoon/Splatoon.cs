@@ -6,6 +6,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
@@ -90,15 +91,9 @@ public unsafe class Splatoon : IDalamudPlugin
         Loaded = true;
         ECommonsMain.Init(pluginInterface, this, Module.ObjectLife, Module.ObjectFunctions, Module.DalamudReflector);
         Svc.Commands.RemoveHandler("/loadsplatoon");
-        var configRaw = Svc.PluginInterface.GetPluginConfig();
-        Config = configRaw as Configuration ?? new Configuration();
+        EzConfig.Migrate<Configuration>();
+        Config = EzConfig.Init<Configuration>() ?? new();
         Config.Initialize(this);
-        ConfigurationMigrator1to2.Migrate(Config); //never delete this
-        if (configRaw == null)
-        {
-            Notify.Info("New configuration file has been created".Loc());
-            Config.Save();
-        }
         ChatMessageQueue = new Queue<string>();
         //Profiler = new Profiling(this);
         CommandManager = new Commands(this);
@@ -232,7 +227,8 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         P = this;
         Svc.Init(pluginInterface);
-        Localization.Init((Svc.PluginInterface.GetPluginConfig() is Configuration cfg) ? cfg.PluginLanguage : Localization.GameLanguageString);
+        var cfg = EzConfig.LoadConfiguration<Configuration>(EzConfig.DefaultConfigurationFileName);
+        Localization.Init(cfg.PluginLanguage);
         loader = new Loader(this);
     }
 

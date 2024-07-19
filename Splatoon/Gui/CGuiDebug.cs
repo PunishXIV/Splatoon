@@ -1,4 +1,5 @@
 ﻿using ECommons;
+using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
@@ -25,6 +26,17 @@ unsafe partial class CGui
 
     void DisplayDebug()
     {
+        if(ImGui.Button("Copy config"))
+        {
+            try
+            {
+                Copy(File.ReadAllText(EzConfig.DefaultConfigurationFileName));
+            }
+            catch(Exception e)
+            {
+                e.Log();
+            }
+        }
         ImGui.BeginChild("##splatoonmaindbg");
         if (ImGui.CollapsingHeader("VFX"))
         {

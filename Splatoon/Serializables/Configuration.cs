@@ -1,5 +1,6 @@
 ﻿using Dalamud.Configuration;
 using Dalamud.Interface.ImGuiNotification;
+using ECommons.Configuration;
 using Newtonsoft.Json;
 using Splatoon.Gui;
 using Splatoon.RenderEngines;
@@ -12,10 +13,16 @@ using System.Threading;
 namespace Splatoon;
 
 [Serializable]
-class Configuration : IPluginConfiguration
+internal class Configuration : IEzConfig
 {
     [NonSerialized] Splatoon plugin;
     [NonSerialized] SemaphoreSlim ZipSemaphore;
+
+    private static JsonSerializerSettings JsonSerializerSettings = new()
+    {
+        TypeNameHandling = TypeNameHandling.None,
+        Formatting = Formatting.None,
+    };
 
     public int Version { get; set; } = 2;
 
@@ -98,7 +105,7 @@ class Configuration : IPluginConfiguration
 
     public void Save(bool suppressError = false)
     {
-        Svc.PluginInterface.SavePluginConfig(this);
+        EzConfig.Save();
         foreach (var x in ScriptingProcessor.Scripts)
         {
             //PluginLog.Debug($"Saving configuration for {x.InternalData.FullName}");
@@ -119,15 +126,15 @@ class Configuration : IPluginConfiguration
         string tempFile = null;
         try
         {
-            var cFile = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "..", "Splatoon.json");
-            var configStr = File.ReadAllText(cFile);
             var bkpFPath = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Backups");
             Directory.CreateDirectory(bkpFPath);
             tempDir = Path.Combine(bkpFPath, "temp");
             Directory.CreateDirectory(tempDir);
-            tempFile = Path.Combine(tempDir, "Splatoon.json");
+            tempFile = Path.Combine(tempDir, EzConfig.DefaultSerializationFactory.DefaultConfigFileName);
             bkpFile = Path.Combine(bkpFPath, "Backup." + DateTimeOffset.Now.ToString("yyyy-MM-dd HH-mm-ss-fffffff") + (update ? $"-update-" : "") + ".zip");
-            File.Copy(cFile, tempFile, true);
+            using var fileStream = new FileStream(EzConfig.DefaultConfigurationFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var writer = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+            fileStream.CopyTo(writer);
         }
         catch (FileNotFoundException e)
         {

@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using ECommons.Configuration;
 using static Splatoon.RenderEngines.ImGuiLegacy.ImGuiLegacyDisplayObjects;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;
@@ -7,10 +8,31 @@ internal class ImGuiLegacyScene : IDisposable
     internal readonly ImGuiLegacyRenderer ImGuiLegacyRenderer;
     private int uid = 0;
 
+    internal double CamAngleX;
+    internal float CamAngleY;
+    internal float CamZoom = 1.5f;
+    internal int CurrentLineSegments;
+
     public ImGuiLegacyScene(ImGuiLegacyRenderer imGuiLegacyRenderer)
     {
         ImGuiLegacyRenderer = imGuiLegacyRenderer;
         Svc.PluginInterface.UiBuilder.Draw += Draw;
+        Svc.Framework.Update += Update;
+    }
+
+    private void Update(object _)
+    {
+        if (Svc.ClientState.LocalPlayer != null)
+        {
+            CamAngleX = Camera.GetAngleX() + Math.PI;
+            if (CamAngleX > Math.PI) CamAngleX -= 2 * Math.PI;
+            CamAngleY = Camera.GetAngleY();
+            CamZoom = Math.Min(Camera.GetZoom(), 20);
+            /*Range conversion https://stackoverflow.com/questions/5731863/mapping-a-numeric-range-onto-another
+            slope = (output_end - output_start) / (input_end - input_start)
+            output = output_start + slope * (input - input_start) */
+            CurrentLineSegments = (int)((3f + -0.108108f * (CamZoom - 1.5f)) * P.Config.lineSegments);
+        }
     }
 
     private void Draw()
@@ -175,7 +197,7 @@ internal class ImGuiLegacyScene : IDisposable
         if (!resultA && !P.DisableLineFix)
         {
             var posA2 = GetLineClosestToVisiblePoint(pointA,
-            (pointB - pointA) / P.CurrentLineSegments, 0, P.CurrentLineSegments);
+            (pointB - pointA) / CurrentLineSegments, 0, CurrentLineSegments);
             if (posA2 == null)
             {
                 return (null, null);
@@ -189,7 +211,7 @@ internal class ImGuiLegacyScene : IDisposable
         if (!resultB && !P.DisableLineFix)
         {
             var posB2 = GetLineClosestToVisiblePoint(pointB,
-            (pointA - pointB) / P.CurrentLineSegments, 0, P.CurrentLineSegments);
+            (pointA - pointB) / CurrentLineSegments, 0, CurrentLineSegments);
             if (posB2 == null)
             {
                 return (null, null);
@@ -305,9 +327,9 @@ internal class ImGuiLegacyScene : IDisposable
     {
         var seg = P.Config.segments / 2;
         Svc.GameGui.WorldToScreen(new Vector3(
-            e.x + e.radius * (float)Math.Sin(P.CamAngleX),
+            e.x + e.radius * (float)Math.Sin(CamAngleX),
             e.z,
-            e.y + e.radius * (float)Math.Cos(P.CamAngleX)
+            e.y + e.radius * (float)Math.Cos(CamAngleX)
             ), out var refpos);
         var visible = false;
         var elements = new Vector2?[P.Config.segments];
@@ -398,5 +420,6 @@ internal class ImGuiLegacyScene : IDisposable
     public void Dispose()
     {
         Svc.PluginInterface.UiBuilder.Draw -= Draw;
+        Svc.Framework.Update -= Update;
     }
 }

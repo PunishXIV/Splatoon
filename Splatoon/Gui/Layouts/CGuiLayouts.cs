@@ -30,8 +30,6 @@ partial class CGui
                 }
             }
         }
-        ImGuiEx.ImGuiLineCentered("Warning1", () => ImGuiEx.Text(EColor.Red, "You are using testing version of a plugin. Please do not use it to share your layouts with others."));
-        ImGuiEx.ImGuiLineCentered("Warning2", () => ImGuiEx.Text(EColor.Red, "If you wish to share, please disable testing version and design the layout on stable."));
         ImGui.BeginChild("TableWrapper", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
         if (ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
         {

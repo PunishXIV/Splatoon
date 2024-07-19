@@ -119,9 +119,9 @@ unsafe partial class CGui
             ImGuiEx.Text($"Screen distance: {Vector2.Distance(v1, v2)}, {Vector2.Distance(v2, v3)}, {Vector2.Distance(v3, v4)}, {Vector2.Distance(v4, v5)}");
             ImGui.Separator();
         }
-        ImGuiEx.Text("Camera angle X:" + p.CamAngleX);
-        ImGuiEx.Text("Camera angle Y:" + p.CamAngleY);
-        ImGuiEx.Text("Camera zoom:" + p.CamZoom);
+        ImGuiEx.Text("Camera angle X:" + S.RenderManager.ImGuiLegacyRenderer.Scene.CamAngleX);
+        ImGuiEx.Text("Camera angle Y:" + S.RenderManager.ImGuiLegacyRenderer.Scene.CamAngleY);
+        ImGuiEx.Text("Camera zoom:" + S.RenderManager.ImGuiLegacyRenderer.Scene.CamZoom);
 
         if (ImGui.CollapsingHeader("Object table"))
         {

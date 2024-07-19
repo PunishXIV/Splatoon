@@ -42,14 +42,10 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Dictionary<ushort, TerritoryType> Zones;
     internal long CombatStarted = 0;
     internal HashSet<Element> InjectedElements = new();
-    internal double CamAngleX;
     internal Dictionary<int, string> Jobs = new();
     //internal HashSet<(float x, float y, float z, float r, float angle)> draw = new HashSet<(float x, float y, float z, float r, float angle)>();
-    internal float CamAngleY;
-    internal float CamZoom = 1.5f;
     internal bool prevMouseState = false;
     internal List<SearchInfo> SFind = new();
-    internal int CurrentLineSegments;
     internal ConcurrentQueue<System.Action> tickScheduler;
     internal List<DynamicElement> dynamicElements;
     internal HTTPServer HttpServer;
@@ -440,10 +436,6 @@ public unsafe class Splatoon : IDalamudPlugin
                     Log("Pointer to LocalPlayer.Address is zero");
                     return;
                 }
-                CamAngleX = Camera.GetAngleX() + Math.PI;
-                if (CamAngleX > Math.PI) CamAngleX -= 2 * Math.PI;
-                CamAngleY = Camera.GetAngleY();
-                CamZoom = Math.Min(Camera.GetZoom(), 20);
 
                 if (Svc.Condition[ConditionFlag.InCombat])
                 {

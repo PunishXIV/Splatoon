@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace Splatoon.RenderEngines;
 public class RenderManager : IDisposable
 {
-    private DirectX11Renderer DirectX11Renderer;
-    private ImGuiLegacyRenderer ImGuiLegacyRenderer;
+    internal readonly DirectX11Renderer DirectX11Renderer;
+    internal readonly ImGuiLegacyRenderer ImGuiLegacyRenderer;
 
     private RenderManager()
     {

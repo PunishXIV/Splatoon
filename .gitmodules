@@ -4,3 +4,6 @@
 [submodule "PunishLib"]
 	path = PunishLib
 	url = https://github.com/PunishXIV/PunishLib
+[submodule "NightmareUI"]
+	path = NightmareUI
+	url = https://github.com/NightmareXIV/NightmareUI

@@ -1,5 +1,4 @@
-﻿using Dalamud;
-using Dalamud.Game;
+﻿using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
@@ -15,21 +14,16 @@ using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.GeneratedSheets;
 using NotificationMasterAPI;
 using PInvoke;
 using Splatoon.Gui;
 using Splatoon.Memory;
 using Splatoon.Modules;
-using Splatoon.RenderEngines;
 using Splatoon.RenderEngines.DirectX11;
-using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
-using Splatoon.Utility;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
 
@@ -48,20 +42,16 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Dictionary<ushort, TerritoryType> Zones;
     internal long CombatStarted = 0;
     internal HashSet<Element> InjectedElements = new();
-    internal double CamAngleX;
     internal Dictionary<int, string> Jobs = new();
     //internal HashSet<(float x, float y, float z, float r, float angle)> draw = new HashSet<(float x, float y, float z, float r, float angle)>();
-    internal float CamAngleY;
-    internal float CamZoom = 1.5f;
     internal bool prevMouseState = false;
     internal List<SearchInfo> SFind = new();
-    internal int CurrentLineSegments;
     internal ConcurrentQueue<System.Action> tickScheduler;
     internal List<DynamicElement> dynamicElements;
     internal HTTPServer HttpServer;
     internal bool prevCombatState = false;
     static internal Vector3? PlayerPosCache = null;
-    internal Profiling Profiler;
+    //internal Profiling Profiler;
     internal Queue<string> ChatMessageQueue;
     internal HashSet<string> CurrentChatMessages = new();
     internal Element Clipboard = null;
@@ -89,7 +79,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal PinnedElementEdit PinnedElementEditWindow;
     internal RenderableZoneSelector RenderableZoneSelector;
     internal ClipZoneSelector ClipZoneSelector;
-    internal UnsafeElement UnsafeElement;
     public NotificationMasterApi NotificationMasterApi;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
@@ -112,7 +101,7 @@ public unsafe class Splatoon : IDalamudPlugin
             Config.Save();
         }
         ChatMessageQueue = new Queue<string>();
-        Profiler = new Profiling(this);
+        //Profiler = new Profiling(this);
         CommandManager = new Commands(this);
         Zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
         Jobs = Svc.Data.GetExcelSheet<ClassJob>().ToDictionary(row => (int)row.RowId, row => row.Name.ToString());
@@ -201,7 +190,6 @@ public unsafe class Splatoon : IDalamudPlugin
         EzConfigGui.WindowSystem.AddWindow(RenderableZoneSelector);
         ClipZoneSelector = new();
         EzConfigGui.WindowSystem.AddWindow(ClipZoneSelector);
-        UnsafeElement = new();
         NotificationMasterApi = new(pluginInterface);
         SingletonServiceManager.Initialize(typeof(S));
         Init = true;
@@ -277,7 +265,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal static readonly string[] InvalidSymbols = { "", "", "", "“", "”", "" };
     internal void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        if (Profiler.Enabled) Profiler.MainTickChat.StartTick();
         var inttype = (int)type;
         if (inttype == 2105 && LimitGaugeResets.Equals(message.ToString()))
         {
@@ -296,7 +283,6 @@ public unsafe class Splatoon : IDalamudPlugin
                 Logger.Log($"[{type}] {m}");
             }
         }
-        if (Profiler.Enabled) Profiler.MainTickChat.StopTick();
     }
 
     internal void SetupShutdownHttp(bool enable)
@@ -386,13 +372,8 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void Tick(IFramework framework)
     {
-        if (Profiler.Enabled) Profiler.MainTick.StartTick();
         try
         {
-            if (UnsafeElement.IsEnabled)
-            {
-                UnsafeElement.IsUnsafeElement[0] = false;
-            }
             PlaceholderCache.Clear();
             LayoutAmount = 0;
             ElementAmount = 0;
@@ -422,15 +403,9 @@ public unsafe class Splatoon : IDalamudPlugin
                     loggedObjectList[obj].Life = t.GetLifeTimeSeconds();
                 }
             }
-            if (Profiler.Enabled) Profiler.MainTickDequeue.StartTick();
             while (tickScheduler.TryDequeue(out var action))
             {
                 action.Invoke();
-            }
-            if (Profiler.Enabled)
-            {
-                Profiler.MainTickDequeue.StopTick();
-                Profiler.MainTickPrepare.StartTick();
             }
             PlayerPosCache = null;
             S.RenderManager.ClearDisplayObjects();
@@ -461,10 +436,6 @@ public unsafe class Splatoon : IDalamudPlugin
                     Log("Pointer to LocalPlayer.Address is zero");
                     return;
                 }
-                CamAngleX = Camera.GetAngleX() + Math.PI;
-                if (CamAngleX > Math.PI) CamAngleX -= 2 * Math.PI;
-                CamAngleY = Camera.GetAngleY();
-                CamZoom = Math.Min(Camera.GetZoom(), 20);
 
                 if (Svc.Condition[ConditionFlag.InCombat])
                 {
@@ -500,15 +471,9 @@ public unsafe class Splatoon : IDalamudPlugin
 
                 //if (CamAngleY > Config.maxcamY) return;
 
-                if (Profiler.Enabled)
-                {
-                    Profiler.MainTickPrepare.StopTick();
-                    Profiler.MainTickFind.StartTick();
-                }
-
                 if (PinnedElementEditWindow.Script != null && PinnedElementEditWindow.EditingElement != null && !PinnedElementEditWindow.Script.InternalData.UnconditionalDraw)
                 {
-                    ProcessElement(PinnedElementEditWindow.EditingElement, null, true);
+                    S.RenderManager.GetRenderer(PinnedElementEditWindow.EditingElement).ProcessElement(PinnedElementEditWindow.EditingElement, null, true);
                 }
 
                 if (SFind.Count > 0)
@@ -532,17 +497,11 @@ public unsafe class Splatoon : IDalamudPlugin
                             onlyTargetable = !obj.includeUntargetable,
                             tether = Config.TetherOnFind,
                         };
-                        ProcessElement(findEl);
+                        S.RenderManager.GetRenderer(findEl).ProcessElement(findEl);
                     }
                 }
 
                 ProcessS2W();
-
-                if (Profiler.Enabled)
-                {
-                    Profiler.MainTickFind.StopTick();
-                    Profiler.MainTickCalcPresets.StartTick();
-                }
 
                 foreach (var i in Config.LayoutsL)
                 {
@@ -550,19 +509,13 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
 
                 ScriptingProcessor.Scripts.ForEach(x => { if (x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
-                ScriptingProcessor.Scripts.ForEach(x => { if (x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
+                ScriptingProcessor.Scripts.ForEach(x => { if (x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
                 foreach (var e in InjectedElements)
                 {
-                    ProcessElement(e);
+                    S.RenderManager.GetRenderer(e).ProcessElement(e);
                     //PluginLog.Information("Processing type " + e.type + JsonConvert.SerializeObject(e, Formatting.Indented));
                 }
                 InjectedElements.Clear();
-
-                if (Profiler.Enabled)
-                {
-                    Profiler.MainTickCalcPresets.StopTick();
-                    Profiler.MainTickCalcDynamic.StartTick();
-                }
 
                 for (var i = dynamicElements.Count - 1; i >= 0; i--)
                 {
@@ -593,15 +546,12 @@ public unsafe class Splatoon : IDalamudPlugin
                     }
                     foreach (var e in de.Elements)
                     {
-                        ProcessElement(e);
+                        S.RenderManager.GetRenderer(e).ProcessElement(e);
                     }
                 }
-
-                if (Profiler.Enabled) Profiler.MainTickCalcDynamic.StopTick();
             }
             else
             {
-                Profiler.MainTickPrepare.StopTick();
             }
             prevCombatState = Svc.Condition[ConditionFlag.InCombat];
             CurrentChatMessages.Clear();
@@ -612,12 +562,11 @@ public unsafe class Splatoon : IDalamudPlugin
             Log("Caught exception: " + e.Message);
             Log(e.StackTrace);
         }
-        if (Profiler.Enabled) Profiler.MainTick.StopTick();
     }
 
     internal void ProcessLayout(Layout l)
     {
-        if (IsLayoutVisible(l))
+        if (LayoutUtils.IsLayoutVisible(l))
         {
             LayoutAmount++;
             if (l.Freezing)
@@ -627,7 +576,8 @@ public unsafe class Splatoon : IDalamudPlugin
                     S.RenderManager.StoreDisplayObjects();
                     for (var i = 0; i < l.ElementsL.Count; i++)
                     {
-                        ProcessElement(l.ElementsL[i], l);
+                        var element = l.ElementsL[i];
+                        S.RenderManager.GetRenderer(element).ProcessElement(element, l);
                     }
                     var union = S.RenderManager.GetUnifiedDisplayObjects();
                     if (union.Count > 0)
@@ -647,7 +597,8 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 for (var i = 0; i < l.ElementsL.Count; i++)
                 {
-                    ProcessElement(l.ElementsL[i], l);
+                    var element = l.ElementsL[i];
+                    S.RenderManager.GetRenderer(element).ProcessElement(element, l);
                 }
             }
         }
@@ -696,8 +647,8 @@ public unsafe class Splatoon : IDalamudPlugin
                 var x = coords.x;
                 var y = coords.y;
                 var z = coords.z;
-                S.RenderManager.GetRenderer().DisplayObjects.Add(new DisplayObjectLine(x + 2f, y + 2f, z, x - 2f, y - 2f, z, 2f, Colors.Red));
-                S.RenderManager.GetRenderer().DisplayObjects.Add(new DisplayObjectLine(x - 2f, y + 2f, z, x + 2f, y - 2f, z, 2f, Colors.Red));
+                S.RenderManager.GetRenderer().AddLine(x + 2f, y + 2f, z, x - 2f, y - 2f, z, 2f, Colors.Red);
+                S.RenderManager.GetRenderer().AddLine(x - 2f, y + 2f, z, x + 2f, y - 2f, z, 2f, Colors.Red);
             }
         }
     }
@@ -705,447 +656,6 @@ public unsafe class Splatoon : IDalamudPlugin
     public void InjectElement(Element e)
     {
         InjectedElements.Add(e);
-    }
-
-    internal void ProcessElement(Element e, Layout i = null, bool forceEnable = false)
-    {
-        if (!e.Enabled && !forceEnable) return;
-        ElementAmount++;
-        float radius = e.radius;
-        if (e.type == 0)
-        {
-            if (i == null || !i.UseDistanceLimit || CheckDistanceCondition(i, e.refX, e.refY, e.refZ))
-            {
-                S.RenderManager.GetRenderer().DrawCircle(e, e.refX, e.refY, e.refZ, radius, 0f);
-            }
-        }
-        else if (e.type == 1 || e.type == 3 || e.type == 4)
-        {
-            if (e.includeOwnHitbox) radius += Svc.ClientState.LocalPlayer.HitboxRadius;
-            if (e.refActorType == 1 && CheckCharacterAttributes(e, Svc.ClientState.LocalPlayer, true))
-            {
-                if (e.type == 1)
-                {
-                    var pointPos = Utils.GetPlayerPositionXZY();
-                    S.RenderManager.GetRenderer().DrawCircle(e, pointPos.X, pointPos.Y, pointPos.Z, radius, e.includeRotation ? Svc.ClientState.LocalPlayer.Rotation : 0f,
-                        e.overlayPlaceholders ? Svc.ClientState.LocalPlayer : null);
-                }
-                else if (e.type == 3)
-                {
-                    S.RenderManager.GetRenderer().AddRotatedLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.Rotation, e, radius, 0f);
-                }
-                else if (e.type == 4)
-                {
-                    S.RenderManager.GetRenderer().DrawCone(e, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.Rotation);
-                }
-            }
-            else if (e.refActorType == 2 && Svc.Targets.Target != null
-                && Svc.Targets.Target is IBattleNpc && CheckCharacterAttributes(e, Svc.Targets.Target, true))
-            {
-                if (i == null || !i.UseDistanceLimit || CheckDistanceCondition(i, Svc.Targets.Target.GetPositionXZY()))
-                {
-                    if (e.includeHitbox) radius += Svc.Targets.Target.HitboxRadius;
-                    if (e.type == 1)
-                    {
-                        S.RenderManager.GetRenderer().DrawCircle(e, Svc.Targets.Target.GetPositionXZY().X, Svc.Targets.Target.GetPositionXZY().Y,
-                            Svc.Targets.Target.GetPositionXZY().Z, radius, e.includeRotation ? Svc.Targets.Target.Rotation : 0f,
-                            e.overlayPlaceholders ? Svc.Targets.Target : null);
-                    }
-                    else if (e.type == 3)
-                    {
-                        var angle = e.FaceMe ?
-                                            (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
-                                            : Svc.Targets.Target.Rotation;
-                        S.RenderManager.GetRenderer().AddRotatedLine(Svc.Targets.Target.GetPositionXZY(), angle, e, radius, Svc.Targets.Target.HitboxRadius);
-                    }
-                    else if (e.type == 4)
-                    {
-                        var baseAngle = e.FaceMe ?
-                                    (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
-                                    : Svc.Targets.Target.Rotation;
-                        S.RenderManager.GetRenderer().DrawCone(e, Svc.Targets.Target.GetPositionXZY(), radius, baseAngle);
-                    }
-                }
-            }
-            else if (e.refActorType == 0)
-            {
-                if (Profiler.Enabled) Profiler.MainTickActorTableScan.StartTick();
-                foreach (var a in Svc.Objects)
-                {
-                    var targetable = a.Struct()->GetIsTargetable();
-                    if (IsAttributeMatches(e, a)
-                            && (!e.onlyTargetable || targetable)
-                            && (!e.onlyUnTargetable || !targetable)
-                            && CheckCharacterAttributes(e, a)
-                            && (!e.refTargetYou || CheckTargetingOption(e, a))
-                            && (!e.refActorObjectLife || a.GetLifeTimeSeconds().InRange(e.refActorLifetimeMin, e.refActorLifetimeMax))
-                            && (!e.LimitDistance || Vector3.Distance(a.GetPositionXZY(), new(e.DistanceSourceX, e.DistanceSourceY, e.DistanceSourceZ)).InRange(e.DistanceMin, e.DistanceMax).Invert(e.LimitDistanceInvert)))
-                    {
-                        if (i == null || !i.UseDistanceLimit || CheckDistanceCondition(i, a.GetPositionXZY()))
-                        {
-                            var aradius = radius;
-                            if (e.includeHitbox) aradius += a.HitboxRadius;
-                            if (e.type == 1)
-                            {
-                                S.RenderManager.GetRenderer().DrawCircle(e, a.GetPositionXZY().X, a.GetPositionXZY().Y, a.GetPositionXZY().Z, aradius,
-                                    e.includeRotation ? a.Rotation : 0f,
-                                    e.overlayPlaceholders ? a : null);
-                            }
-                            else if (e.type == 3)
-                            {
-                                var angle = e.FaceMe ?
-                                            (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
-                                            : a.Rotation;
-                                S.RenderManager.GetRenderer().AddRotatedLine(a.GetPositionXZY(), angle, e, aradius, a.HitboxRadius);
-                            }
-                            else if (e.type == 4)
-                            {
-                                var baseAngle = e.FaceMe ?
-                                    (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
-                                    : (a.Rotation);
-                                S.RenderManager.GetRenderer().DrawCone(e, a.GetPositionXZY(), aradius, baseAngle);
-                            }
-                        }
-                    }
-                }
-                if (Profiler.Enabled) Profiler.MainTickActorTableScan.StopTick();
-            }
-
-        }
-        else if (e.type == 2)
-        {
-            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
-            S.RenderManager.GetRenderer().DisplayObjects.Add(line);
-            if (e.radius > 0)
-            {
-
-                if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
-            }
-            else if (
-                    (
-                        i == null || !i.UseDistanceLimit || CheckDistanceToLineCondition(i, e)
-                    ) &&
-                    (
-                    ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)
-                    || ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
-                    )
-                    )
-                S.RenderManager.GetRenderer().DisplayObjects.Add(line);
-        }
-        else if (e.type == 5)
-        {
-            var baseAngle = e.FaceMe ?
-                (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
-                : 0;
-            var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
-            S.RenderManager.GetRenderer().DrawCone(e, pos, radius, baseAngle);
-        }
-    }
-
-    private bool CheckTargetingOption(Element e, IGameObject a)
-    {
-        if (e.refTargetYou)
-        {
-            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != Svc.ClientState.LocalPlayer.EntityId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId));
-        }
-
-        return false;
-    }
-
-    static bool CheckCharacterAttributes(Element e, IGameObject a, bool ignoreVisibility = false)
-    {
-        return
-            (ignoreVisibility || !e.onlyVisible || (a is ICharacter chr && chr.IsCharacterVisible()))
-            && (!e.refActorRequireCast || (e.refActorCastId.Count > 0 && a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
-            && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is IBattleChara chr3 && CheckEffect(e, chr3)))
-            && (!e.refActorUseTransformation || (a is IBattleChara chr4 && CheckTransformationID(e, chr4)))
-            && (!e.refMark || (a is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)e.refMarkID)))
-            && (!e.LimitRotation || (a.Rotation >= e.RotationMax && a.Rotation <= e.RotationMin));
-    }
-
-    static bool CheckTransformationID(Element e, ICharacter c)
-    {
-        return e.refActorTransformationID == c.GetTransformationID();
-    }
-
-    static bool IsCastingMatches(Element e, IBattleChara chr)
-    {
-        if (chr.IsCasting(e.refActorCastId))
-        {
-            if (e.refActorUseCastTime)
-            {
-                return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
-            }
-            else
-            {
-                return true;
-            }
-        }
-        else
-        {
-            if (e.refActorUseOvercast)
-            {
-                if (AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
-                {
-                    return castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                return false;
-            }
-        }
-    }
-
-    static bool CheckEffect(Element e, IBattleChara c)
-    {
-        if (e.refActorRequireAllBuffs)
-        {
-            if (e.refActorUseBuffTime)
-            {
-                return c.StatusList.Where(x => x.RemainingTime.InRange(e.refActorBuffTimeMin, e.refActorBuffTimeMax) && (!e.refActorUseBuffParam || x.Param == e.refActorBuffParam)).Select(x => x.StatusId).ContainsAll(e.refActorBuffId).Invert(e.refActorRequireBuffsInvert);
-            }
-            else
-            {
-                return c.StatusList.Where(x => !e.refActorUseBuffParam || x.Param == e.refActorBuffParam).Select(x => x.StatusId).ContainsAll(e.refActorBuffId).Invert(e.refActorRequireBuffsInvert);
-            }
-        }
-        else
-        {
-            if (e.refActorUseBuffTime)
-            {
-                return c.StatusList.Where(x => x.RemainingTime.InRange(e.refActorBuffTimeMin, e.refActorBuffTimeMax) && (!e.refActorUseBuffParam || x.Param == e.refActorBuffParam)).Select(x => x.StatusId).ContainsAny(e.refActorBuffId).Invert(e.refActorRequireBuffsInvert);
-            }
-            else
-            {
-                return c.StatusList.Where(x => !e.refActorUseBuffParam || x.Param == e.refActorBuffParam).Select(x => x.StatusId).ContainsAny(e.refActorBuffId).Invert(e.refActorRequireBuffsInvert);
-            }
-        }
-    }
-
-    static bool IsObjectEffectMatches(Element e, IGameObject o, List<CachedObjectEffectInfo> info)
-    {
-        if (e.refActorObjectEffectLastOnly)
-        {
-            if (info.Count > 0)
-            {
-                var last = info[info.Count - 1];
-                return last.data1 == e.refActorObjectEffectData1 && last.data2 == e.refActorObjectEffectData2;
-            }
-            return false;
-        }
-        else
-        {
-            return info.Any(last => last.data1 == e.refActorObjectEffectData1 && last.data2 == e.refActorObjectEffectData2 && last.Age.InRange(e.refActorObjectEffectMin, e.refActorObjectEffectMax));
-        }
-    }
-
-    static bool IsAttributeMatches(Element e, IGameObject o)
-    {
-        if (e.refActorComparisonAnd)
-        {
-            return (e.refActorNameIntl.Get(e.refActorName) == String.Empty || IsNameMatches(e, o)) &&
-             (e.refActorModelID == 0 || (o is ICharacter c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID)) &&
-             (e.refActorObjectID == 0 || o.EntityId == e.refActorObjectID) &&
-             (e.refActorDataID == 0 || o.DataId == e.refActorDataID) &&
-             (e.refActorNPCID == 0 || o.Struct()->GetNameId() == e.refActorNPCID) &&
-             (e.refActorPlaceholder.Count == 0 || e.refActorPlaceholder.Any(x => ResolvePlaceholder(x) == o.Address)) &&
-             (e.refActorNPCNameID == 0 || (o is ICharacter c2 && c2.NameId == e.refActorNPCNameID)) &&
-             (e.refActorVFXPath == "" || (AttachedInfo.TryGetSpecificVfxInfo(o, e.refActorVFXPath, out var info) && info.Age.InRange(e.refActorVFXMin, e.refActorVFXMax))) &&
-             ((e.refActorObjectEffectData1 == 0 && e.refActorObjectEffectData2 == 0) || (AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo)) &&
-             (e.refActorNamePlateIconID == 0 || o.Struct()->NamePlateIconId == e.refActorNamePlateIconID));
-        }
-        else
-        {
-            if (e.refActorComparisonType == 0 && IsNameMatches(e, o)) return true;
-            if (e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID) return true;
-            if (e.refActorComparisonType == 2 && o.EntityId == e.refActorObjectID) return true;
-            if (e.refActorComparisonType == 3 && o.DataId == e.refActorDataID) return true;
-            if (e.refActorComparisonType == 4 && o.Struct()->GetNameId() == e.refActorNPCID) return true;
-            if (e.refActorComparisonType == 5 && e.refActorPlaceholder.Any(x => ResolvePlaceholder(x) == o.Address)) return true;
-            if (e.refActorComparisonType == 6 && o is ICharacter c2 && c2.NameId == e.refActorNPCNameID) return true;
-            if (e.refActorComparisonType == 7 && AttachedInfo.TryGetSpecificVfxInfo(o, e.refActorVFXPath, out var info) && info.Age.InRange(e.refActorVFXMin, e.refActorVFXMax)) return true;
-            if (e.refActorComparisonType == 8 && AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo)) return true;
-            if (e.refActorComparisonType == 9 && o.Struct()->NamePlateIconId == e.refActorNamePlateIconID) return true;
-            return false;
-        }
-    }
-
-    static bool IsNameMatches(Element e, IGameObject o)
-    {
-        return !string.IsNullOrEmpty(e.refActorNameIntl.Get(e.refActorName)) && (e.refActorNameIntl.Get(e.refActorName) == "*" || o.Name.ToString().ContainsIgnoreCase(e.refActorNameIntl.Get(e.refActorName)));
-    }
-
-    static nint ResolvePlaceholder(string ph)
-    {
-        if (PlaceholderCache.TryGetValue(ph, out var val))
-        {
-            return val;
-        }
-        else
-        {
-            var result = nint.Zero;
-            if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-            {
-                result = (nint)FakePronoun.Resolve(ph);
-            }
-            else
-            {
-                if (ph.StartsWithIgnoreCase("<t") && int.TryParse(ph[2..3], out var n))
-                {
-                    result = Utils.GetRolePlaceholder(CombatRole.Tank, n)?.Address ?? 0;
-                }
-                else if (ph.StartsWithIgnoreCase("<h") && int.TryParse(ph[2..3], out n))
-                {
-                    result = Utils.GetRolePlaceholder(CombatRole.Healer, n)?.Address ?? 0;
-                }
-                else if (ph.StartsWithIgnoreCase("<d") && int.TryParse(ph[2..3], out n))
-                {
-                    result = Utils.GetRolePlaceholder(CombatRole.DPS, n)?.Address ?? 0;
-                }
-                else
-                {
-                    result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder(ph, 0, 0);
-                }
-            }
-            PlaceholderCache[ph] = result;
-            //PluginLog.Information($"Phaceholder {ph} result {result}");
-            return result;
-        }
-    }
-
-    internal bool IsLayoutVisible(Layout i)
-    {
-        if (!i.Enabled) return false;
-        if (i.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if ((i.ZoneLockH.Count > 0 && !i.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(i.IsZoneBlacklist)) return false;
-        if (i.Scenes.Count > 0 && !i.Scenes.Contains(*Scene.ActiveScene)) return false;
-        if (i.Phase != 0 && i.Phase != this.Phase) return false;
-        if (i.JobLock != 0 && !Bitmask.IsBitSet(i.JobLock, (int)Svc.ClientState.LocalPlayer.ClassJob.Id)) return false;
-        if ((i.DCond == 1 || i.DCond == 3) && !Svc.Condition[ConditionFlag.InCombat]) return false;
-        if ((i.DCond == 2 || i.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if (i.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]
-            || Svc.Condition[ConditionFlag.BoundByDuty])) return false;
-        if (i.UseDistanceLimit && i.DistanceLimitType == 0)
-        {
-            if (Svc.Targets.Target != null)
-            {
-                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (i.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (i.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
-                if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        if (i.UseTriggers)
-        {
-            foreach (var t in i.Triggers)
-            {
-                if (t.FiredState == 2) continue;
-                if ((t.Type == 2 || t.Type == 3) && !t.Disabled)
-                {
-                    foreach (var CurrentChatMessage in CurrentChatMessages)
-                    {
-                        var trg = t.MatchIntl.Get(t.Match);
-                        if (trg != string.Empty &&
-                            (t.IsRegex ? Regex.IsMatch(CurrentChatMessage, trg) : CurrentChatMessage.ContainsIgnoreCase(trg))
-                            )
-                        {
-                            if (t.Duration == 0)
-                            {
-                                t.FiredState = 0;
-                            }
-                            else
-                            {
-                                t.FiredState = 1;
-                                t.DisableAt.Add(Environment.TickCount64 + (int)(t.Duration * 1000) + (int)(t.MatchDelay * 1000));
-                            }
-                            if (t.MatchDelay != 0)
-                            {
-                                t.EnableAt.Add(Environment.TickCount64 + (int)(t.MatchDelay * 1000));
-                            }
-                            else
-                            {
-                                i.TriggerCondition = t.Type == 2 ? 1 : -1;
-                            }
-                            if (t.FireOnce)
-                            {
-                                t.Disabled = true;
-                            }
-                        }
-                    }
-                }
-                if (t.FiredState == 0 && (t.Type == 0 || t.Type == 1))
-                {
-                    if (CombatStarted != 0 && Environment.TickCount64 - CombatStarted > t.TimeBegin * 1000)
-                    {
-                        if (t.Duration == 0)
-                        {
-                            t.FiredState = 2;
-                        }
-                        else
-                        {
-                            t.FiredState = 1;
-                            t.DisableAt.Add(Environment.TickCount64 + (int)(t.Duration * 1000));
-                        }
-                        i.TriggerCondition = t.Type == 0 ? 1 : -1;
-                    }
-                }
-                for (var e = 0; e < t.EnableAt.Count; e++)
-                {
-                    if (Environment.TickCount64 > t.EnableAt[e])
-                    {
-                        i.TriggerCondition = t.Type == 2 ? 1 : -1;
-                        t.EnableAt.RemoveAt(e);
-                        break;
-                    }
-                }
-                for (var e = 0; e < t.DisableAt.Count; e++)
-                {
-                    if (Environment.TickCount64 > t.DisableAt[e])
-                    {
-                        t.FiredState = (t.Type == 2 || t.Type == 3) ? 0 : 2;
-                        t.DisableAt.RemoveAt(e);
-                        i.TriggerCondition = 0;
-                        break;
-                    }
-                }
-
-            }
-            if (i.TriggerCondition == -1 || (i.TriggerCondition == 0 && i.DCond == 5)) return false;
-        }
-        return true;
-    }
-
-    internal bool CheckDistanceCondition(Layout i, float x, float y, float z)
-    {
-        return CheckDistanceCondition(i, new Vector3(x, y, z));
-    }
-
-    internal bool CheckDistanceCondition(Layout i, Vector3 v)
-    {
-        if (i.DistanceLimitType != 1) return true;
-        var dist = Vector3.Distance(v, Utils.GetPlayerPositionXZY());
-        if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
-        return true;
-    }
-
-    internal bool CheckDistanceToLineCondition(Layout i, Element e)
-    {
-        if (i.DistanceLimitType != 1) return true;
-        var dist = Vector3.Distance(Utils.FindClosestPointOnLine(Utils.GetPlayerPositionXZY(), new Vector3(e.refX, e.refY, e.refZ), new Vector3(e.offX, e.offY, e.offZ)), Utils.GetPlayerPositionXZY());
-        if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
-        return true;
-    }
-
-    internal bool ShouldDraw(float x1, float x2, float y1, float y2)
-    {
-        return ((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)) < Config.maxdistance * Config.maxdistance;
     }
 
     internal void Log(string s, bool tochat = false, ushort? chatColor = null)

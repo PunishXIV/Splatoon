@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Splatoon.RenderEngines.DirectX11.Render;
 using Splatoon.Structures;
+using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 
 namespace Splatoon.RenderEngines.DirectX11;
@@ -44,7 +45,6 @@ internal unsafe class DirectX11Scene : IDisposable
 
     private void Draw()
     {
-        if (P.Profiler.Enabled) P.Profiler.Gui.StartTick();
         try
         {
             if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
@@ -63,9 +63,7 @@ internal unsafe class DirectX11Scene : IDisposable
             uid = 0;
             try
             {
-                if (P.Profiler.Enabled) P.Profiler.GuiDirect3d.StartTick();
                 var renderTarget = Direct3DDraw();
-                if (P.Profiler.Enabled) P.Profiler.GuiDirect3d.StopTick();
 
                 void Draw()
                 {
@@ -129,7 +127,6 @@ internal unsafe class DirectX11Scene : IDisposable
             P.Log("Caught exception: " + e.Message, true);
             P.Log(e.StackTrace, true);
         }
-        if (P.Profiler.Enabled) P.Profiler.Gui.StopTick();
     }
 
     private RenderTarget Direct3DDraw()

@@ -2,6 +2,7 @@
 using Dalamud.Interface.ImGuiNotification;
 using Newtonsoft.Json;
 using Splatoon.Gui;
+using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -18,6 +19,9 @@ class Configuration : IPluginConfiguration
 
     public int Version { get; set; } = 2;
 
+    public RenderEngineKind RenderEngineKind = RenderEngineKind.DirectX11;
+    public List<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];
+
     [Obsolete] public Dictionary<string, Layout> Layouts = new Dictionary<string, Layout>(); //never delete
     public List<Layout> LayoutsL = new();
     public List<string> GroupOrder = new();
@@ -33,6 +37,21 @@ class Configuration : IPluginConfiguration
     public bool DirectNameComparison = false;
     public bool ShowOnUiHide = false;
     public bool Hexadecimal = true;
+
+    public int segments = 100;
+    public int lineSegments = 10;
+    public bool AltRectFill = true;
+    public bool AltRectStepOverride = false;
+    public float AltRectStep = 0.01f;
+    public bool AltRectHighlightOutline = true;
+    public float AltRectMinLineThickness = 4f;
+    public bool AltRectForceMinLineThickness = false;
+    public bool AltDonutStepOverride = false;
+    public float AltDonutStep = 0.01f;
+    public bool AltConeStepOverride = false;
+    public int AltConeStep = 1;
+    public bool FillCone = true;
+    public bool UseFullDonutFill = false;
 
     public bool FocusMode = false;
     public bool NoStreamWarning = false;

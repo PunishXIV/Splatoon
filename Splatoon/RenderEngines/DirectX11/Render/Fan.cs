@@ -1,5 +1,6 @@
 ﻿using Splatoon.Serializables;
 using Splatoon.Structures;
+using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 namespace Splatoon.RenderEngines.DirectX11.Render;
 public class Fan

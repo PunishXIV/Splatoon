@@ -1,4 +1,5 @@
 ﻿using ECommons.LanguageHelpers;
+using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.Utility;
 using System.ComponentModel;
@@ -186,125 +187,12 @@ public class Element
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     [DefaultValue(0)] public int refActorTransformationID = 0;
     [DefaultValue(MechanicType.Unspecified)] public MechanicType mechanicType = MechanicType.Unspecified;
-    [Obsolete("Not used. Use mechanicType.")]
-    [DefaultValue(false)] public bool Unsafe = false;
     [DefaultValue(false)] public bool refMark = false;
     [DefaultValue(0)] public int refMarkID = 0;
     [DefaultValue("<1>")] public string faceplayer = "<1>";
-    [Obsolete("Not used. Use fillIntensity or originFillColor and endFillColor to change color and transparency.")]
     [DefaultValue(0.5f)] public float FillStep = 0.5f;
-    [Obsolete("Not used. Use mechanicType.")]
     [DefaultValue(false)] public bool LegacyFill = false;
-
-    [OnDeserialized]
-    public void OnDeserialized(StreamingContext context)
-    {
-        if (Unsafe && mechanicType == MechanicType.Unspecified)
-        {
-            mechanicType = MechanicType.Danger;
-        }
-    }
-
-    internal float DefaultFillIntensity()
-    {
-        // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
-        uint strokeAlpha = (color >> 24);
-        const uint defaultStrokeAlpha = 0xC8;
-        float transparencyFromStroke = (float)strokeAlpha / defaultStrokeAlpha;
-        float transparencyFromFillStep = 0.5f / FillStep;
-        if (type.EqualsAny(0, 1))
-        {
-            // Donut
-            if (Donut > 0)
-            {
-                transparencyFromFillStep /= 2;
-            }
-            // Circle
-            else
-            {
-                transparencyFromFillStep *= 2;
-            }
-        }
-        // Cone
-        if (type.EqualsAny(4, 5))
-        {
-            transparencyFromFillStep *= 4;
-        }
-        uint fillAlpha = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
-        float fillIntensity = (float)fillAlpha / strokeAlpha;
-        return Math.Clamp(fillIntensity, 0, 1);
-    }
-
-    [IgnoreDataMember]
-    public DisplayStyle Style
-    {
-        set
-        {
-            color = value.strokeColor;
-            thicc = value.strokeThickness;
-            Filled = value.filled;
-            overrideFillColor = value.overrideFillColor;
-            fillIntensity = value.fillIntensity;
-            originFillColor = value.originFillColor;
-            endFillColor = value.endFillColor;
-        }
-
-        get
-        {
-            // Most elements used line fill with Filled = false and need fill migration.
-            bool needsPolygonalFillMigration = this.fillIntensity == null;
-            float fillIntensity = this.fillIntensity ?? DefaultFillIntensity();
-            if (needsPolygonalFillMigration)
-            {
-                // Non-donut circles are the only shapes that don't need fill migration because they had functioning Fill.
-                bool isCircle = type.EqualsAny(0, 1) && Donut == 0;
-                if (!isCircle)
-                {
-                    Filled = true;
-                }
-            }
-
-            uint originFillColor = this.originFillColor ?? Colors.MultiplyAlpha(color, fillIntensity);
-            uint endFillColor = this.endFillColor ?? Colors.MultiplyAlpha(color, fillIntensity);
-
-            return new DisplayStyle(color, thicc, fillIntensity, originFillColor, endFillColor, Filled, overrideFillColor);
-        }
-    }
-
-
-    [IgnoreDataMember]
-    public DisplayStyle StyleWithOverride
-    {
-        get
-        {
-            DisplayStyle style = Style;
-
-            if (P.Config.StyleOverrides.ContainsKey(mechanicType))
-            {
-                (var overrideEnabled, var overrideStyle) = P.Config.StyleOverrides[mechanicType];
-                if (overrideEnabled)
-                {
-                    style = overrideStyle;
-                }
-            }
-            if (!style.overrideFillColor)
-            {
-                uint defaultColor = Colors.MultiplyAlpha(style.strokeColor, style.fillIntensity);
-                style.originFillColor = defaultColor;
-                style.endFillColor = defaultColor;
-            }
-
-            style.originFillColor = P.Config.ClampFillColorAlpha(style.originFillColor);
-            style.endFillColor = P.Config.ClampFillColorAlpha(style.endFillColor);
-            return style;
-        }
-    }
-
-    [IgnoreDataMember]
-    public bool IsDangerous
-    {
-        get => mechanicType == MechanicType.Danger;
-    }
+    [DefaultValue(RenderEngineKind.Unspecified)] public RenderEngineKind RenderEngineKind = RenderEngineKind.Unspecified;
 
     public bool ShouldSerializerefActorTransformationID()
     {

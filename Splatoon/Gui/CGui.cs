@@ -21,7 +21,7 @@ unsafe partial class CGui:IDisposable
 {
     Dictionary<uint, string> ActionNames;
     Dictionary<uint, string> BuffNames;
-    const float WidthLayout = 150f;
+    internal const float WidthLayout = 150f;
     internal static float WidthElement
     {
         get
@@ -34,7 +34,6 @@ unsafe partial class CGui:IDisposable
     public bool Open = false;
     bool WasOpen = false;
     float RightWidth = 0;
-    internal static GCHandle imGuiPayloadPtr;
 
     public CGui(Splatoon p)
     {
@@ -46,10 +45,6 @@ unsafe partial class CGui:IDisposable
 
     public void Dispose()
     {
-        if (imGuiPayloadPtr.IsAllocated)
-        {
-            imGuiPayloadPtr.Free();
-        }
         Svc.PluginInterface.UiBuilder.Draw -= Draw;
     }
             
@@ -128,7 +123,8 @@ unsafe partial class CGui:IDisposable
                     ImGui.SetCursorPos(curCursor);
 
                     ImGuiEx.EzTabBar("SplatoonSettings",
-                        ("General".Loc()+"###tab1", DisplayGeneralSettings, null, true),
+                        ("General".Loc() + "###tab1", DisplayGeneralSettings, null, true),
+                        ("Render".Loc() + "###tab2", DisplayRenderers, null, true),
                         ("Layouts".Loc(), DislayLayouts, Colors.Green.ToVector4(), true),
                         ("Scripts".Loc(), TabScripting.Draw, Colors.Yellow.ToVector4(), true),
                         ("Mass Import".Loc(), RapidImport.Draw, null, true),
@@ -141,7 +137,6 @@ unsafe partial class CGui:IDisposable
                             ("Debug".Loc(), DisplayDebug, null, true),
                             ("Log".Loc(), InternalLog.PrintImgui, null, false),
                             ("Dynamic".Loc(), DisplayDynamicElements, null, true),
-                            ("Profiling".Loc(), DisplayProfiling, null, true),
                             ("Conversion".Loc(), DisplayConversion, null, true)
                             );
                         }, null, true),

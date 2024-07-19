@@ -55,7 +55,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal HTTPServer HttpServer;
     internal bool prevCombatState = false;
     static internal Vector3? PlayerPosCache = null;
-    internal Profiling Profiler;
+    //internal Profiling Profiler;
     internal Queue<string> ChatMessageQueue;
     internal HashSet<string> CurrentChatMessages = new();
     internal Element Clipboard = null;
@@ -105,7 +105,7 @@ public unsafe class Splatoon : IDalamudPlugin
             Config.Save();
         }
         ChatMessageQueue = new Queue<string>();
-        Profiler = new Profiling(this);
+        //Profiler = new Profiling(this);
         CommandManager = new Commands(this);
         Zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
         Jobs = Svc.Data.GetExcelSheet<ClassJob>().ToDictionary(row => (int)row.RowId, row => row.Name.ToString());
@@ -269,7 +269,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal static readonly string[] InvalidSymbols = { "", "", "", "“", "”", "" };
     internal void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        if (Profiler.Enabled) Profiler.MainTickChat.StartTick();
         var inttype = (int)type;
         if (inttype == 2105 && LimitGaugeResets.Equals(message.ToString()))
         {
@@ -288,7 +287,6 @@ public unsafe class Splatoon : IDalamudPlugin
                 Logger.Log($"[{type}] {m}");
             }
         }
-        if (Profiler.Enabled) Profiler.MainTickChat.StopTick();
     }
 
     internal void SetupShutdownHttp(bool enable)
@@ -378,7 +376,6 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void Tick(IFramework framework)
     {
-        if (Profiler.Enabled) Profiler.MainTick.StartTick();
         try
         {
             PlaceholderCache.Clear();
@@ -410,15 +407,9 @@ public unsafe class Splatoon : IDalamudPlugin
                     loggedObjectList[obj].Life = t.GetLifeTimeSeconds();
                 }
             }
-            if (Profiler.Enabled) Profiler.MainTickDequeue.StartTick();
             while (tickScheduler.TryDequeue(out var action))
             {
                 action.Invoke();
-            }
-            if (Profiler.Enabled)
-            {
-                Profiler.MainTickDequeue.StopTick();
-                Profiler.MainTickPrepare.StartTick();
             }
             PlayerPosCache = null;
             S.RenderManager.ClearDisplayObjects();
@@ -488,12 +479,6 @@ public unsafe class Splatoon : IDalamudPlugin
 
                 //if (CamAngleY > Config.maxcamY) return;
 
-                if (Profiler.Enabled)
-                {
-                    Profiler.MainTickPrepare.StopTick();
-                    Profiler.MainTickFind.StartTick();
-                }
-
                 if (PinnedElementEditWindow.Script != null && PinnedElementEditWindow.EditingElement != null && !PinnedElementEditWindow.Script.InternalData.UnconditionalDraw)
                 {
                     S.RenderManager.GetRenderer(PinnedElementEditWindow.EditingElement).ProcessElement(PinnedElementEditWindow.EditingElement, null, true);
@@ -526,12 +511,6 @@ public unsafe class Splatoon : IDalamudPlugin
 
                 ProcessS2W();
 
-                if (Profiler.Enabled)
-                {
-                    Profiler.MainTickFind.StopTick();
-                    Profiler.MainTickCalcPresets.StartTick();
-                }
-
                 foreach (var i in Config.LayoutsL)
                 {
                     ProcessLayout(i);
@@ -545,12 +524,6 @@ public unsafe class Splatoon : IDalamudPlugin
                     //PluginLog.Information("Processing type " + e.type + JsonConvert.SerializeObject(e, Formatting.Indented));
                 }
                 InjectedElements.Clear();
-
-                if (Profiler.Enabled)
-                {
-                    Profiler.MainTickCalcPresets.StopTick();
-                    Profiler.MainTickCalcDynamic.StartTick();
-                }
 
                 for (var i = dynamicElements.Count - 1; i >= 0; i--)
                 {
@@ -584,12 +557,9 @@ public unsafe class Splatoon : IDalamudPlugin
                         S.RenderManager.GetRenderer(e).ProcessElement(e);
                     }
                 }
-
-                if (Profiler.Enabled) Profiler.MainTickCalcDynamic.StopTick();
             }
             else
             {
-                Profiler.MainTickPrepare.StopTick();
             }
             prevCombatState = Svc.Condition[ConditionFlag.InCombat];
             CurrentChatMessages.Clear();
@@ -600,7 +570,6 @@ public unsafe class Splatoon : IDalamudPlugin
             Log("Caught exception: " + e.Message);
             Log(e.StackTrace);
         }
-        if (Profiler.Enabled) Profiler.MainTick.StopTick();
     }
 
     internal void ProcessLayout(Layout l)

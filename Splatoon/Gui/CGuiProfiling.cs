@@ -1,11 +1,10 @@
 ﻿using Splatoon.Utility;
-using static Splatoon.Modules.Profiling;
 
 namespace Splatoon;
 
 partial class CGui
 {
-    void DisplayProfiling()
+    /*void DisplayProfiling()
     {
         ImGui.BeginChild("Profiling");
         ImGui.Checkbox("Enable profiler", ref p.Profiler.Enabled);
@@ -67,5 +66,5 @@ partial class CGui
         {
             w.Reset();
         }
-    }
+    }*/
 }

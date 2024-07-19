@@ -17,23 +17,23 @@ using System.Threading.Tasks;
 using static Splatoon.RenderEngines.ImGuiLegacy.ImGuiLegacyDisplayObjects;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;
-public unsafe sealed class ImGuiLegacyRenderer : RenderEngine
+public sealed unsafe class ImGuiLegacyRenderer : RenderEngine
 {
     public override void Dispose()
     {
-        
+
     }
 
     internal override void AddLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
     {
-        
+
     }
 
     internal override void ProcessElement(Element e, Layout i = null, bool forceEnable = false)
     {
         if (!e.Enabled && !forceEnable) return;
         P.ElementAmount++;
-        float radius = e.radius;
+        var radius = e.radius;
         if (e.type == 0)
         {
             if (i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, e.refX, e.refY, e.refZ))
@@ -257,7 +257,7 @@ public unsafe sealed class ImGuiLegacyRenderer : RenderEngine
         }
     }
 
-    void DrawCircle(Element e, float x, float y, float z, float r, float angle, IGameObject go = null)
+    private void DrawCircle(Element e, float x, float y, float z, float r, float angle, IGameObject go = null)
     {
         var cx = x + e.offX;
         var cy = y + e.offY;
@@ -309,43 +309,19 @@ public unsafe sealed class ImGuiLegacyRenderer : RenderEngine
             var text = e.overlayText;
             if (go != null)
             {
-                text = text
-                    .Replace("$NAMEID", $"{(go is ICharacter chr2 ? chr2.NameId : 0).Format()}")
-                    .Replace("$NAME", go.Name.ToString())
-                    .Replace("$OBJECTID", $"{go.EntityId.Format()}")
-                    .Replace("$DATAID", $"{go.DataId.Format()}")
-                    .Replace("$MODELID", $"{(go is ICharacter chr ? chr.Struct()->CharacterData.ModelCharaId : 0).Format()}")
-                    .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
-                    .Replace("$KIND", $"{go.ObjectKind}")
-                    .Replace("$NPCID", $"{go.Struct()->GetNpcID().Format()}")
-                    .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
-                    .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
-                    .Replace("$CAST", go is BattleChara chr3 ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
-                    .Replace("\\n", "\n")
-                    .Replace("$VFXID", $"{(go is Character chr4 ? chr4.GetStatusVFXId() : 0).Format()}")
-                    .Replace("$TRANSFORM", $"{(go is Character chr5 ? chr5.GetTransformationID() : 0).Format()}")
-                    .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
+                text = text.ProcessPlaceholders(go);
             }
             DisplayObjects.Add(new DisplayObjectText(cx, cy, z + e.offZ + e.overlayVOffset, text, e.overlayBGColor, e.overlayTextColor, e.overlayFScale));
         }
     }
 
-    void AddRotatedLine(Vector3 tPos, float angle, Element e, float aradius, float hitboxRadius)
+    private void AddRotatedLine(Vector3 tPos, float angle, Element e, float aradius, float hitboxRadius)
     {
         if (e.includeRotation)
         {
             if (aradius == 0f)
             {
-                var pointA = Utils.RotatePoint(tPos.X, tPos.Y,
-                    -angle + e.AdditionalRotation, new Vector3(
-                    tPos.X + -e.refX,
-                    tPos.Y + e.refY,
-                    tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
-                var pointB = Utils.RotatePoint(tPos.X, tPos.Y,
-                    -angle + e.AdditionalRotation, new Vector3(
-                    tPos.X + -e.offX,
-                    tPos.Y + e.offY,
-                    tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
+                var (pointA, pointB) = CommonRenderUtils.GetRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
                 DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
                     pointB.X, pointB.Y, pointB.Z,
                     e.thicc, e.color));
@@ -394,21 +370,14 @@ public unsafe sealed class ImGuiLegacyRenderer : RenderEngine
         }
         else
         {
-            var pointA = new Vector3(
-                tPos.X + e.refX,
-                tPos.Y + e.refY,
-                tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
-            var pointB = new Vector3(
-                tPos.X + e.offX,
-                tPos.Y + e.offY,
-                tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
+            var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
             DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
                 pointB.X, pointB.Y, pointB.Z,
                 e.thicc, e.color));
         }
     }
 
-    void AddCone(Vector3 center, float startRad, float endRad, Element e, float radius)
+    private void AddCone(Vector3 center, float startRad, float endRad, Element e, float radius)
     {
         //PluginLog.Debug($"[addcone] {center}, {startRad} -> {endRad}"); 
         DisplayObjects.Add(new DisplayObjectCone(
@@ -417,7 +386,7 @@ public unsafe sealed class ImGuiLegacyRenderer : RenderEngine
             ));
     }
 
-    void AddConeLine(Vector3 tPos, float baseAngle, float angle, Element e, float radius)
+    private void AddConeLine(Vector3 tPos, float baseAngle, float angle, Element e, float radius)
     {
         tPos = Utils.RotatePoint(tPos.X, tPos.Y, -baseAngle, tPos + new Vector3(-e.offX, e.offY, e.offZ));
         var pointA = Utils.RotatePoint(tPos.X, tPos.Y,
@@ -435,7 +404,7 @@ public unsafe sealed class ImGuiLegacyRenderer : RenderEngine
             e.thicc, e.color));
     }
 
-    void AddAlternativeFillingRect(DisplayObjectRect rect, float step)
+    private void AddAlternativeFillingRect(DisplayObjectRect rect, float step)
     {
         var thc = P.Config.AltRectForceMinLineThickness || rect.l1.thickness < P.Config.AltRectMinLineThickness ? P.Config.AltRectMinLineThickness : rect.l1.thickness;
         var col = P.Config.AltRectHighlightOutline ? (rect.l1.color.ToVector4() with { W = 1f }).ToUint() : rect.l1.color;

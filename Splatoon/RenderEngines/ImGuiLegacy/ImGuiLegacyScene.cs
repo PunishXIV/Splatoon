@@ -21,7 +21,6 @@ internal class ImGuiLegacyScene
     void Draw()
     {
         uid = 0;
-        if (P.Profiler.Enabled) P.Profiler.Gui.StartTick();
         try
         {
             if (!Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]
@@ -116,7 +115,6 @@ internal class ImGuiLegacyScene
             P.Log("Caught exception: " + e.Message, true);
             P.Log(e.StackTrace, true);
         }
-        if (P.Profiler.Enabled) P.Profiler.Gui.StopTick();
     }
 
     internal Vector3 TranslateToScreen(double x, double y, double z)

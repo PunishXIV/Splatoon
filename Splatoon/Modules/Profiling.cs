@@ -2,7 +2,7 @@
 
 namespace Splatoon.Modules;
 
-class Profiling
+/*class Profiling
 {
     Splatoon p;
     public bool Enabled = false;
@@ -78,3 +78,4 @@ class Profiling
         }
     }
 }
+*/

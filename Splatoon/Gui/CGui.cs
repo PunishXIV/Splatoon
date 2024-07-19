@@ -141,7 +141,6 @@ unsafe partial class CGui:IDisposable
                             ("Debug".Loc(), DisplayDebug, null, true),
                             ("Log".Loc(), InternalLog.PrintImgui, null, false),
                             ("Dynamic".Loc(), DisplayDynamicElements, null, true),
-                            ("Profiling".Loc(), DisplayProfiling, null, true),
                             ("Conversion".Loc(), DisplayConversion, null, true)
                             );
                         }, null, true),

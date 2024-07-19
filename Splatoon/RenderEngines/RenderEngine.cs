@@ -14,6 +14,7 @@ public abstract class RenderEngine : IDisposable
     internal List<DisplayObject> DisplayObjects { get; private set; } = [];
     private List<DisplayObject> TempObjects = null;
     internal virtual bool CanBeDisabled { get; } = true;
+    internal bool Enabled => P.Config.EnabledRenderers.Contains(this.RenderEngineKind);
 
     internal abstract void AddLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None);
 

@@ -197,6 +197,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
                     edited = true;
                 }
                 if (!style.overrideFillColor) ImGui.EndDisabled();
+                ImGuiEx.HelpMarker("Unsupported in ImGui Legacy renderer");
             }
             ImGui.Unindent(CGui.WidthElement + 15f);
         }

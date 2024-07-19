@@ -21,14 +21,14 @@ public class RenderManager : IDisposable
 
     internal RenderEngine GetRenderer()
     {
-        if (P.Config.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
+        if (P.Config.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.Enabled && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
         return ImGuiLegacyRenderer;
     }
 
     internal RenderEngine GetRenderer(Element element)
     {
         if (element.RenderEngineKind == RenderEngineKind.Unspecified) return GetRenderer();
-        if (element.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
+        if (element.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.Enabled && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
         return ImGuiLegacyRenderer;
     }
 

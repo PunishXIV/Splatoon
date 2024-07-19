@@ -45,6 +45,7 @@ internal unsafe class DirectX11Scene : IDisposable
 
     private void Draw()
     {
+        if (!DirectX11Renderer.Enabled) return;
         try
         {
             if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])

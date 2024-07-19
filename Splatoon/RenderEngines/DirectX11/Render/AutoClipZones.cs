@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 /**
  * Automatically clip UI elements so they appear in front of Splatoon elements.
@@ -85,7 +85,7 @@ internal class AutoClipZones
                     continue;
                 }
 
-                string? name = addon->Name.Read();
+                string name = addon->Name.Read();
                 if (name != null && !_ignoredAddonNames.Contains(name))
                 {
                     names.Add(name);
@@ -116,7 +116,7 @@ internal class AutoClipZones
             if (slotNode->IsVisible())
             {
                 Vector2 pos = new Vector2(
-                    slotNode->ScreenX + (18f * addon->Scale),
+                    slotNode->ScreenX + 18f * addon->Scale,
                     slotNode->ScreenY
                     );
                 Vector2 size = new Vector2(
@@ -161,7 +161,7 @@ internal class AutoClipZones
                     continue;
                 }
 
-                string? name = addon->Name.Read();
+                string name = addon->Name.Read();
                 if (name != null && _ignoredAddonNames.Contains(name))
                 {
                     continue;
@@ -179,8 +179,8 @@ internal class AutoClipZones
                 // special case for duty finder
                 if (name == "ContentsFinder")
                 {
-                    size.X += size.X + (16 * addon->Scale);
-                    size.Y += (30 * addon->Scale);
+                    size.X += size.X + 16 * addon->Scale;
+                    size.Y += 30 * addon->Scale;
                 }
 
                 renderer.AddClipZone(ClipRect(pos, pos + size));

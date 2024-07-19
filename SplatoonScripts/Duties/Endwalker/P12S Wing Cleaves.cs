@@ -138,8 +138,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     e.coneAngleMax = (int)(BaseRotation + 180) - 1;
                 }
                 l.Enabled = true;
-                var fpos = Static.GetPositionXZY(Athena);
-                SetPos(l, Static.RotatePoint(fpos.X, fpos.Y, -arot, fpos with { Y = fpos.Y + 30 }), Static.RotatePoint(fpos.X, fpos.Y, -arot + 180f.DegreesToRadians(), fpos with { Y = fpos.Y + 30 }));
+                var fpos = Utils.GetPositionXZY(Athena);
+                SetPos(l, Utils.RotatePoint(fpos.X, fpos.Y, -arot, fpos with { Y = fpos.Y + 30 }), Utils.RotatePoint(fpos.X, fpos.Y, -arot + 180f.DegreesToRadians(), fpos with { Y = fpos.Y + 30 }));
             }
         }
 

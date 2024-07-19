@@ -3,7 +3,7 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using System.Runtime.InteropServices;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 /**
  * Full screen pass shader for correcting alpha multiplication.

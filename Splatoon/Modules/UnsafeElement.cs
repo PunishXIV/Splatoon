@@ -46,7 +46,7 @@ namespace Splatoon.Modules
         internal void ProcessLine(DisplayObjectLine line)
         {
             if (!Player.Available) return;
-            var p = Static.GetPlayerPositionXZY();
+            var p = Utils.Utils.GetPlayerPositionXZY();
             if (PointInPolygon(p.X, p.Y, line.Bounds))
             {
                 IsUnsafeElement[0] = true;

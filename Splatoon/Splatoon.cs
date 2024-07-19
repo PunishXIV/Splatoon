@@ -996,15 +996,15 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if (ph.StartsWithIgnoreCase("<t") && int.TryParse(ph[2..3], out var n))
                 {
-                    result = Static.GetRolePlaceholder(CombatRole.Tank, n)?.Address ?? nint.Zero;
+                    result = Utils.Utils.GetRolePlaceholder(CombatRole.Tank, n)?.Address ?? System.nint.Zero;
                 }
                 else if (ph.StartsWithIgnoreCase("<h") && int.TryParse(ph[2..3], out n))
                 {
-                    result = Static.GetRolePlaceholder(CombatRole.Healer, n)?.Address ?? nint.Zero;
+                    result = Utils.Utils.GetRolePlaceholder(CombatRole.Healer, n)?.Address ?? System.nint.Zero;
                 }
                 else if (ph.StartsWithIgnoreCase("<d") && int.TryParse(ph[2..3], out n))
                 {
-                    result = Static.GetRolePlaceholder(CombatRole.DPS, n)?.Address ?? nint.Zero;
+                    result = Utils.Utils.GetRolePlaceholder(CombatRole.DPS, n)?.Address ?? System.nint.Zero;
                 }
                 else
                 {
@@ -1083,6 +1083,7 @@ public unsafe class Splatoon : IDalamudPlugin
             displayObjects.Add(new DisplayObjectText(cx, cy, z + e.offZ + e.overlayVOffset, text, e.overlayBGColor, e.overlayTextColor, e.overlayFScale));
         }
     }
+
     internal void DrawCone(Element e, Vector3 origin, float? radius = null, float baseAngle = 0f)
     {
         if (e.coneAngleMax > e.coneAngleMin)

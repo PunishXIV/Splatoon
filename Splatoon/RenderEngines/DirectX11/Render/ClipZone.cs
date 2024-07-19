@@ -5,7 +5,7 @@ using SharpDX.DXGI;
 using System.Runtime.InteropServices;
 using Vector2 = System.Numerics.Vector2;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 public class ClipZone : IDisposable
 {

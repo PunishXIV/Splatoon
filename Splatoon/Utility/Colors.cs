@@ -1,4 +1,4 @@
-﻿namespace Splatoon.Utils;
+﻿namespace Splatoon.Utility;
 
 public static class Colors
 { //abgr

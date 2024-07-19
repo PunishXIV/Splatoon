@@ -2,9 +2,9 @@
 using ECommons.LanguageHelpers;
 using Splatoon.Serializables;
 
-namespace Splatoon.Utils;
+namespace Splatoon.Utility;
 
-public static class SImGuiEx //came here to laugh on how scuffed it is? let's do so together.
+public static class ImGuiUtils //came here to laugh on how scuffed it is? let's do so together.
 {
     public static void DrawLine(Vector2 curpos, float contRegion)
     {
@@ -134,7 +134,7 @@ public static class SImGuiEx //came here to laugh on how scuffed it is? let's do
     public static bool StyleEdit(string name, ref DisplayStyle style)
     {
         bool edited = false;
-        SImGuiEx.SizedText("Stroke:".Loc(), CGui.WidthElement);
+        ImGuiUtils.SizedText("Stroke:".Loc(), CGui.WidthElement);
         ImGui.SameLine();
         var v4 = ImGui.ColorConvertU32ToFloat4(style.strokeColor);
         if (ImGui.ColorEdit4("##strokecolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
@@ -153,7 +153,7 @@ public static class SImGuiEx //came here to laugh on how scuffed it is? let's do
 
         if (ImGui.IsItemHovered()) ImGui.SetTooltip("This value is also used for tether".Loc());
 
-        SImGuiEx.SizedText("Fill:".Loc(), CGui.WidthElement);
+        ImGuiUtils.SizedText("Fill:".Loc(), CGui.WidthElement);
         ImGui.SameLine();
         if (ImGui.Checkbox("Enabled".Loc() + "##name" + name, ref style.filled))
         {

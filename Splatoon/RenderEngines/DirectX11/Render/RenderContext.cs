@@ -1,7 +1,7 @@
 ﻿using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 // device + deferred context
 public class RenderContext : IDisposable

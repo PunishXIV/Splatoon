@@ -318,7 +318,7 @@ partial class CGui
 
     internal static bool ImportFromClipboard()
     {
-        var ls = Static.ImportLayouts(ImGui.GetClipboardText());
+        var ls = Utils.Utils.ImportLayouts(ImGui.GetClipboardText());
         {
             foreach (var l in ls)
             {

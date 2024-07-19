@@ -4,7 +4,7 @@ using Splatoon.Serializables;
 using Format = SharpDX.DXGI.Format;
 using Vector2 = SharpDX.Vector2;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 // render target texture with utilities to render to self
 public unsafe class RenderTarget : IDisposable

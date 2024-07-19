@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using Device = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 public unsafe class Renderer : IDisposable
 {
@@ -16,8 +16,8 @@ public unsafe class Renderer : IDisposable
 
     public RenderContext RenderContext { get; init; } = new();
 
-    public RenderTarget? RenderTarget { get; private set; }
-    public RenderTarget? FSPRenderTarget { get; private set; }
+    public RenderTarget RenderTarget { get; private set; }
+    public RenderTarget FSPRenderTarget { get; private set; }
 
     public FanFill FanFill { get; init; }
     public LineFill LineFill { get; init; }
@@ -36,16 +36,16 @@ public unsafe class Renderer : IDisposable
     private nint _engineCoreSingleton;
 
     private FanFill.Data _fanFillDynamicData;
-    private FanFill.Data.Builder? _fanFillDynamicBuilder;
+    private FanFill.Data.Builder _fanFillDynamicBuilder;
 
     private LineFill.Data _lineFillDynamicData;
-    private LineFill.Data.Builder? _lineFillDynamicBuilder;
+    private LineFill.Data.Builder _lineFillDynamicBuilder;
 
     private Stroke.Data _strokeDynamicData;
-    private Stroke.Data.Builder? _strokeDynamicBuilder;
+    private Stroke.Data.Builder _strokeDynamicBuilder;
 
     private ClipZone.Data _clipDynamicData;
-    private ClipZone.Data.Builder? _clipDynamicBuilder;
+    private ClipZone.Data.Builder _clipDynamicBuilder;
 
     private AlphaBlendMode _alphaBlendMode;
     public Renderer()
@@ -230,7 +230,7 @@ public unsafe class Renderer : IDisposable
     }
     private ClipZone.Data.Builder GetClipZones() => _clipDynamicBuilder ??= _clipDynamicData.Map(RenderContext);
 
-    private unsafe SharpDX.Matrix ReadMatrix(IntPtr address)
+    private unsafe SharpDX.Matrix ReadMatrix(nint address)
     {
         var p = (float*)address;
         SharpDX.Matrix mtx = new();
@@ -239,7 +239,7 @@ public unsafe class Renderer : IDisposable
         return mtx;
     }
 
-    private unsafe SharpDX.Vector2 ReadVec2(IntPtr address)
+    private unsafe SharpDX.Vector2 ReadVec2(nint address)
     {
         var p = (float*)address;
         return new(p[0], p[1]);

@@ -7,9 +7,9 @@ using Splatoon.Structures;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace Splatoon.Utils;
+namespace Splatoon.Utility;
 
-public static unsafe class Static
+public static unsafe class Utils
 {
 
     public static uint[] BlacklistedMessages = new uint[] { 4777, 4139, 4398, 2091, 2218, 2350, 4397, 2224, 4270, 4269, 2729, 4400, 10537, 10409, 10543, 2222, 4401, 2874, 4905, 12585, 4783, 4140 };

@@ -128,7 +128,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="RenderEngines\LegacyRender\" />
-	  <Folder Include="RenderEngines\Polyrender\" />
+	  <Folder Include="RenderEngines\ImGuiLegacy\" />
 	</ItemGroup>
 </Project>

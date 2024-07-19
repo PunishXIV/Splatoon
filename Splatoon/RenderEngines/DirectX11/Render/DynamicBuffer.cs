@@ -3,7 +3,7 @@ using SharpDX.Direct3D11;
 using System;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 public unsafe class DynamicBuffer : IDisposable
 {
@@ -18,7 +18,7 @@ public unsafe class DynamicBuffer : IDisposable
         {
             _ctx = ctx;
             _buffer = buffer;
-            ctx.MapSubresource(buffer.Buffer, MapMode.WriteDiscard, SharpDX.Direct3D11.MapFlags.None, out _stream);
+            ctx.MapSubresource(buffer.Buffer, MapMode.WriteDiscard, MapFlags.None, out _stream);
         }
 
         public void Dispose()
@@ -40,7 +40,7 @@ public unsafe class DynamicBuffer : IDisposable
     public int NumElements { get; init; }
     public Buffer Buffer { get; init; }
 
-    public DynamicBuffer(SharpDX.Direct3D11.Device device, int elementSize, int numElements, BindFlags bindFlags)
+    public DynamicBuffer(Device device, int elementSize, int numElements, BindFlags bindFlags)
     {
         ElementSize = elementSize;
         NumElements = numElements;

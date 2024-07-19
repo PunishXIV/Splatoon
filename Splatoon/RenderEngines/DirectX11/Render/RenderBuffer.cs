@@ -3,7 +3,7 @@ using SharpDX.Direct3D11;
 using System.Runtime.CompilerServices;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 
 // base class for large buffers
 // there are two flavours with slightly different performance characteristics and update methods:
@@ -18,7 +18,7 @@ public class RenderBuffer<T> : IDisposable where T : unmanaged
         private RenderContext _ctx;
         private RenderBuffer<T> _buffer;
         private DataStream _stream;
-        private Buffer? _staging; // only for non-dynamic
+        private Buffer _staging; // only for non-dynamic
 
         public int CurElements => _buffer.CurElements;
 

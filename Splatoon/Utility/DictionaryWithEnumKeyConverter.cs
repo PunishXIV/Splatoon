@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
-namespace Splatoon.Utils
+namespace Splatoon.Utility
 {
     // Normally, enums are serialized as their int values in JSON.
     // Dictionaries with enum keys normally serialize the enum's name as the key.

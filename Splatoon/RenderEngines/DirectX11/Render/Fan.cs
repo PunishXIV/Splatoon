@@ -1,7 +1,7 @@
 ﻿using Splatoon.Serializables;
 using Splatoon.Structures;
 
-namespace Splatoon.Render;
+namespace Splatoon.RenderEngines.DirectX11.Render;
 public class Fan
 {
     public static void Stroke(Stroke.Data.Builder stroke, DisplayObjectFan fan, int segments)

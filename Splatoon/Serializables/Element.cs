@@ -1,6 +1,6 @@
 ﻿using ECommons.LanguageHelpers;
 using Splatoon.Serializables;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System.ComponentModel;
 using System.Runtime.Serialization;
 

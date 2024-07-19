@@ -1,6 +1,6 @@
 ﻿using Dalamud.Interface.Colors;
 using ECommons.LanguageHelpers;
-using Splatoon.Utils;
+using Splatoon.Utility;
 
 namespace Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
 

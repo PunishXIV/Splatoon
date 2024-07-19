@@ -2,7 +2,7 @@
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using static Splatoon.ConfigGui.CGuiLayouts.LayoutDrawSelector;
 
 namespace Splatoon;
@@ -318,7 +318,7 @@ partial class CGui
 
     internal static bool ImportFromClipboard()
     {
-        var ls = Utils.Utils.ImportLayouts(ImGui.GetClipboardText());
+        var ls = Utils.ImportLayouts(ImGui.GetClipboardText());
         {
             foreach (var l in ls)
             {

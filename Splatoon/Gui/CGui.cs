@@ -9,7 +9,7 @@ using Splatoon.Gui;
 using Splatoon.Gui.Scripting;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Web;

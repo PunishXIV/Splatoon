@@ -1,5 +1,5 @@
 ﻿using Dalamud.Interface.Windowing;
-using Splatoon.Utils;
+using Splatoon.Utility;
 
 namespace Splatoon.Gui;
 

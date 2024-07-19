@@ -1,7 +1,7 @@
 ﻿using ECommons.GameHelpers;
 using ECommons.MathHelpers;
 using Splatoon.Structures;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +46,7 @@ namespace Splatoon.Modules
         internal void ProcessLine(DisplayObjectLine line)
         {
             if (!Player.Available) return;
-            var p = Utils.Utils.GetPlayerPositionXZY();
+            var p = Utils.GetPlayerPositionXZY();
             if (PointInPolygon(p.X, p.Y, line.Bounds))
             {
                 IsUnsafeElement[0] = true;

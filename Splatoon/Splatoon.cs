@@ -14,6 +14,7 @@ using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using ECommons.SimpleGui;
+using ECommons.Singletons;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Lumina.Excel.GeneratedSheets;
 using NotificationMasterAPI;
@@ -21,13 +22,15 @@ using PInvoke;
 using Splatoon.Gui;
 using Splatoon.Memory;
 using Splatoon.Modules;
+using Splatoon.RenderEngines;
+using Splatoon.RenderEngines.DirectX11;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using Colors = Splatoon.Utils.Colors;
+using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
 
 namespace Splatoon;
@@ -37,14 +40,13 @@ public unsafe class Splatoon : IDalamudPlugin
     public string Name => "Splatoon";
     public static Splatoon P;
     public const int MAX_CONFIGURABLE_CLIP_ZONES = 32;
-    internal OverlayGui DrawingGui;
+    internal DirectX11Scene DrawingGui;
     internal CGui ConfigGui;
     internal Commands CommandManager;
     internal ChlogGui ChangelogGui = null;
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
     internal long CombatStarted = 0;
-    internal HashSet<DisplayObject> displayObjects = new();
     internal HashSet<Element> injectedElements = new();
     internal double CamAngleX;
     internal Dictionary<int, string> Jobs = new();
@@ -122,7 +124,6 @@ public unsafe class Splatoon : IDalamudPlugin
         dynamicElements = new List<DynamicElement>();
         SetupShutdownHttp(Config.UseHttpServer);
 
-        DrawingGui = new OverlayGui(this);
         ConfigGui = new CGui(this);
         EzConfigGui.Init(() => { });
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= EzConfigGui.Open;
@@ -202,6 +203,7 @@ public unsafe class Splatoon : IDalamudPlugin
         EzConfigGui.WindowSystem.AddWindow(ClipZoneSelector);
         UnsafeElement = new();
         NotificationMasterApi = new(pluginInterface);
+        SingletonServiceManager.Initialize(typeof(S));
         Init = true;
         SplatoonIPC.Init();
     }
@@ -224,7 +226,6 @@ public unsafe class Splatoon : IDalamudPlugin
         Init = false;
         Safe(delegate { Config.Save(); });
         Safe(delegate { SetupShutdownHttp(false); });
-        Safe(DrawingGui.Dispose);
         Safe(ConfigGui.Dispose);
         Safe(CommandManager.Dispose);
         Safe(delegate
@@ -290,7 +291,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     .Cast<ITextProvider>()
                     .Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.Text.RemoveSymbols(InvalidSymbols).Replace("\n", " ")), sb => sb.ToString());
             ChatMessageQueue.Enqueue(m);
-            if (P.Config.Logging && !((uint)type).EqualsAny(BlacklistedMessages))
+            if (P.Config.Logging && !((uint)type).EqualsAny(Utils.BlacklistedMessages))
             {
                 Logger.Log($"[{type}] {m}");
             }
@@ -432,7 +433,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 Profiler.MainTickPrepare.StartTick();
             }
             PlayerPosCache = null;
-            displayObjects.Clear();
+            S.RenderManager.ClearDisplayObjects();
             if (Svc.ClientState.LocalPlayer != null)
             {
                 if (ChatMessageQueue.Count > 5 * dequeueConcurrency)
@@ -725,17 +726,17 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if (e.type == 1)
                 {
-                    var pointPos = GetPlayerPositionXZY();
+                    var pointPos = Utils.GetPlayerPositionXZY();
                     DrawCircle(e, pointPos.X, pointPos.Y, pointPos.Z, radius, e.includeRotation ? Svc.ClientState.LocalPlayer.Rotation : 0f,
                         e.overlayPlaceholders ? Svc.ClientState.LocalPlayer : null);
                 }
                 else if (e.type == 3)
                 {
-                    AddRotatedLine(GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.Rotation, e, radius, 0f);
+                    AddRotatedLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.Rotation, e, radius, 0f);
                 }
                 else if (e.type == 4)
                 {
-                    DrawCone(e, GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.Rotation);
+                    DrawCone(e, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.Rotation);
                 }
             }
             else if (e.refActorType == 2 && Svc.Targets.Target != null
@@ -825,8 +826,8 @@ public unsafe class Splatoon : IDalamudPlugin
                         i == null || !i.UseDistanceLimit || CheckDistanceToLineCondition(i, e)
                     ) &&
                     (
-                    ShouldDraw(e.offX, GetPlayerPositionXZY().X, e.offY, GetPlayerPositionXZY().Y)
-                    || ShouldDraw(e.refX, GetPlayerPositionXZY().X, e.refY, GetPlayerPositionXZY().Y)
+                    ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)
+                    || ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
                     )
                     )
                 displayObjects.Add(line);
@@ -996,15 +997,15 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if (ph.StartsWithIgnoreCase("<t") && int.TryParse(ph[2..3], out var n))
                 {
-                    result = Utils.Utils.GetRolePlaceholder(CombatRole.Tank, n)?.Address ?? System.nint.Zero;
+                    result = Utils.GetRolePlaceholder(CombatRole.Tank, n)?.Address ?? 0;
                 }
                 else if (ph.StartsWithIgnoreCase("<h") && int.TryParse(ph[2..3], out n))
                 {
-                    result = Utils.Utils.GetRolePlaceholder(CombatRole.Healer, n)?.Address ?? System.nint.Zero;
+                    result = Utils.GetRolePlaceholder(CombatRole.Healer, n)?.Address ?? 0;
                 }
                 else if (ph.StartsWithIgnoreCase("<d") && int.TryParse(ph[2..3], out n))
                 {
-                    result = Utils.Utils.GetRolePlaceholder(CombatRole.DPS, n)?.Address ?? System.nint.Zero;
+                    result = Utils.GetRolePlaceholder(CombatRole.DPS, n)?.Address ?? 0;
                 }
                 else
                 {
@@ -1023,21 +1024,21 @@ public unsafe class Splatoon : IDalamudPlugin
         var cy = y + e.offY;
         if (e.includeRotation)
         {
-            var rotatedPoint = RotatePoint(x, y, -angle + e.AdditionalRotation, new Vector3(x - e.offX, y + e.offY, z));
+            var rotatedPoint = Utils.RotatePoint(x, y, -angle + e.AdditionalRotation, new Vector3(x - e.offX, y + e.offY, z));
             cx = rotatedPoint.X;
             cy = rotatedPoint.Y;
         }
         if (e.tether)
         {
             Vector3 origin = new(cx, z, cy);
-            Vector3 end = XZY(GetPlayerPositionXZY());
+            Vector3 end = Utils.XZY(Utils.GetPlayerPositionXZY());
             if (e.ExtraTetherLength > 0)
             {
                 end += Vector3.Normalize(end - origin) * e.ExtraTetherLength;
             }
             displayObjects.Add(new DisplayObjectLine(origin, end, 0, e.StyleWithOverride, e.LineEndA, e.LineEndB));
         }
-        if (!ShouldDraw(cx, GetPlayerPositionXZY().X, cy, GetPlayerPositionXZY().Y)) return;
+        if (!ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
         if (e.thicc > 0)
         {
             if (r > 0)
@@ -1097,7 +1098,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 angleMax = 2 * MathF.PI;
             }
 
-            var center = XZY(RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ)));
+            var center = Utils.XZY(Utils.RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ)));
             float innerRadius = 0;
             float outerRadius = radius ?? e.radius;
             if (e.Donut > 0)
@@ -1107,7 +1108,7 @@ public unsafe class Splatoon : IDalamudPlugin
             }
             if (e.tether)
             {
-                Vector3 end = XZY(GetPlayerPositionXZY());
+                Vector3 end = Utils.XZY(Utils.GetPlayerPositionXZY());
                 if (e.ExtraTetherLength > 0)
                 {
                     end += Vector3.Normalize(end - center) * e.ExtraTetherLength;
@@ -1124,12 +1125,12 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             if (aradius == 0f)
             {
-                var pointA = RotatePoint(tPos.X, tPos.Y,
+                var pointA = Utils.RotatePoint(tPos.X, tPos.Y,
                     -angle + e.AdditionalRotation, new Vector3(
                     tPos.X + -e.refX,
                     tPos.Y + e.refY,
                     tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
-                var pointB = RotatePoint(tPos.X, tPos.Y,
+                var pointB = Utils.RotatePoint(tPos.X, tPos.Y,
                     -angle + e.AdditionalRotation, new Vector3(
                     tPos.X + -e.offX,
                     tPos.Y + e.offY,
@@ -1140,18 +1141,18 @@ public unsafe class Splatoon : IDalamudPlugin
             }
             else
             {
-                var start = RotatePoint(tPos.X, tPos.Y,
+                var start = Utils.RotatePoint(tPos.X, tPos.Y,
                     -angle + e.AdditionalRotation, new Vector3(
                     tPos.X + -e.refX,
                     tPos.Y + e.refY,
                     tPos.Z + e.refZ));
-                var stop = RotatePoint(tPos.X, tPos.Y,
+                var stop = Utils.RotatePoint(tPos.X, tPos.Y,
                     -angle + e.AdditionalRotation, new Vector3(
                     tPos.X + -e.offX,
                     tPos.Y + e.offY,
                     tPos.Z + e.offZ));
 
-                var line = new DisplayObjectLine(XZY(start), XZY(stop), aradius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
+                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
                 displayObjects.Add(line);
                 if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
             }
@@ -1188,7 +1189,7 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             if (Svc.Targets.Target != null)
             {
-                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), GetPlayerPositionXZY()) - (i.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (i.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
+                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (i.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (i.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
                 if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
             }
             else
@@ -1284,7 +1285,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal bool CheckDistanceCondition(Layout i, Vector3 v)
     {
         if (i.DistanceLimitType != 1) return true;
-        var dist = Vector3.Distance(v, GetPlayerPositionXZY());
+        var dist = Vector3.Distance(v, Utils.GetPlayerPositionXZY());
         if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
         return true;
     }
@@ -1292,7 +1293,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal bool CheckDistanceToLineCondition(Layout i, Element e)
     {
         if (i.DistanceLimitType != 1) return true;
-        var dist = Vector3.Distance(FindClosestPointOnLine(GetPlayerPositionXZY(), new Vector3(e.refX, e.refY, e.refZ), new Vector3(e.offX, e.offY, e.offZ)), GetPlayerPositionXZY());
+        var dist = Vector3.Distance(Utils.FindClosestPointOnLine(Utils.GetPlayerPositionXZY(), new Vector3(e.refX, e.refY, e.refZ), new Vector3(e.offX, e.offY, e.offZ)), Utils.GetPlayerPositionXZY());
         if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
         return true;
     }

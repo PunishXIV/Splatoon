@@ -2,7 +2,7 @@
 using Dalamud.Interface.Components;
 using ECommons.LanguageHelpers;
 using Splatoon.Gui;
-using Splatoon.Utils;
+using Splatoon.Utility;
 
 namespace Splatoon;
 

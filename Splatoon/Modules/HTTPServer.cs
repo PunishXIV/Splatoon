@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Splatoon.Structures;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System.Net;
 using System.Threading;
 

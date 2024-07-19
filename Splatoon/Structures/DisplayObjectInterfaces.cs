@@ -1,6 +1,7 @@
 ﻿
 
 using ECommons.MathHelpers;
+using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 
 namespace Splatoon.Structures;
@@ -130,5 +131,8 @@ public class DisplayObjectText : DisplayObject
         this.fscale = fscale;
     }
 }
-public interface DisplayObject { }
+public abstract class DisplayObject 
+{
+    public RenderEngineKind RenderEngineKind;
+}
 

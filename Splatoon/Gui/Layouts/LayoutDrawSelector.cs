@@ -1,7 +1,7 @@
 ﻿using Dalamud.Interface.Colors;
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
-using Splatoon.Utils;
+using Splatoon.Utility;
 
 namespace Splatoon.ConfigGui.CGuiLayouts;
 

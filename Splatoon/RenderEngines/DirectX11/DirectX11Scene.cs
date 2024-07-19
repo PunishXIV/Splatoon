@@ -4,25 +4,24 @@ using Splatoon.RenderEngines.DirectX11.Render;
 using Splatoon.Structures;
 
 
-namespace Splatoon.Gui;
+namespace Splatoon.RenderEngines.DirectX11;
 
-unsafe class OverlayGui : IDisposable
+internal unsafe class DirectX11Scene : IDisposable
 {
     private readonly TimeSpan ErrorLogFrequency = TimeSpan.FromSeconds(30);
-    const int RADIAL_SEGMENTS_PER_RADIUS_UNIT = 20;
-    const int MINIMUM_CIRCLE_SEGMENTS = 24;
+    private const int RADIAL_SEGMENTS_PER_RADIUS_UNIT = 20;
+    private const int MINIMUM_CIRCLE_SEGMENTS = 24;
     public const int MAXIMUM_CIRCLE_SEGMENTS = 240;
-
-    Renderer renderer;
-    AutoClipZones autoClipZones;
-    readonly Splatoon p;
-    int uid = 0;
-    DateTime lastErrorLogTime = DateTime.MinValue;
-    public OverlayGui(Splatoon p)
+    private Renderer renderer;
+    private AutoClipZones autoClipZones;
+    private int uid = 0;
+    private DateTime lastErrorLogTime = DateTime.MinValue;
+    private DirectX11Renderer DirectX11Renderer;
+    public DirectX11Scene(DirectX11Renderer dx11renderer)
     {
-        this.p = p;
+        this.DirectX11Renderer = dx11renderer;
         renderer = new Renderer();
-        autoClipZones = new AutoClipZones(renderer, p);
+        autoClipZones = new AutoClipZones(renderer);
         Svc.PluginInterface.UiBuilder.Draw += Draw;
     }
 
@@ -36,16 +35,16 @@ unsafe class OverlayGui : IDisposable
     // TODO it would be would be more efficient to adjust based on camera distance
     public static int RadialSegments(float radius, float angleRadians = MathF.PI * 2)
     {
-        float angularPercent = angleRadians / (MathF.PI * 2);
-        int segments = (int)(RADIAL_SEGMENTS_PER_RADIUS_UNIT * radius * angularPercent);
-        int minimumSegments = Math.Max((int)(MINIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
-        int maximumSegments = Math.Max((int)(MAXIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
+        var angularPercent = angleRadians / (MathF.PI * 2);
+        var segments = (int)(RADIAL_SEGMENTS_PER_RADIUS_UNIT * radius * angularPercent);
+        var minimumSegments = Math.Max((int)(MINIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
+        var maximumSegments = Math.Max((int)(MAXIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
         return Math.Clamp(segments, minimumSegments, maximumSegments);
     }
 
-    void Draw()
+    private void Draw()
     {
-        if (p.Profiler.Enabled) p.Profiler.Gui.StartTick();
+        if (P.Profiler.Enabled) P.Profiler.Gui.StartTick();
         try
         {
             if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
@@ -55,8 +54,8 @@ unsafe class OverlayGui : IDisposable
 
             var fadeMiddleWidget = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FadeMiddle", 1);
             var fadeBlackWidget = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FadeBlack", 1);
-            if (fadeMiddleWidget != null && fadeMiddleWidget->IsVisible ||
-                fadeBlackWidget != null && fadeBlackWidget->IsVisible)
+            if ((fadeMiddleWidget != null && fadeMiddleWidget->IsVisible) ||
+                (fadeBlackWidget != null && fadeBlackWidget->IsVisible))
             {
                 return;
             }
@@ -64,9 +63,9 @@ unsafe class OverlayGui : IDisposable
             uid = 0;
             try
             {
-                if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StartTick();
-                RenderTarget renderTarget = Direct3DDraw();
-                if (p.Profiler.Enabled) p.Profiler.GuiDirect3d.StopTick();
+                if (P.Profiler.Enabled) P.Profiler.GuiDirect3d.StartTick();
+                var renderTarget = Direct3DDraw();
+                if (P.Profiler.Enabled) P.Profiler.GuiDirect3d.StopTick();
 
                 void Draw()
                 {
@@ -74,7 +73,7 @@ unsafe class OverlayGui : IDisposable
                     ImGui.GetWindowDrawList().AddImage(renderTarget.ImguiHandle, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2(renderTarget.Size.X, renderTarget.Size.Y));
 
                     // Draw dots and text last because they are most critical to be legible.
-                    foreach (var element in p.displayObjects)
+                    foreach (var element in DirectX11Renderer.DisplayObjects)
                     {
                         if (element is DisplayObjectDot elementDot)
                         {
@@ -91,8 +90,8 @@ unsafe class OverlayGui : IDisposable
                 ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
                 ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
                 ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-                ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
-                    | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
+                ImGui.Begin("Splatoon DirectX11 Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
+                    | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings);
                 if (P.Config.SplatoonLowerZ)
                 {
                     CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
@@ -119,31 +118,31 @@ unsafe class OverlayGui : IDisposable
                 if (now - lastErrorLogTime > ErrorLogFrequency)
                 {
                     lastErrorLogTime = now;
-                    p.Log("Splatoon exception: please report it to developer", true);
-                    p.Log(e.Message, true);
-                    p.Log(e.StackTrace, true);
+                    P.Log("Splatoon exception: please report it to developer", true);
+                    P.Log(e.Message, true);
+                    P.Log(e.StackTrace, true);
                 }
             }
         }
         catch (Exception e)
         {
-            p.Log("Caught exception: " + e.Message, true);
-            p.Log(e.StackTrace, true);
+            P.Log("Caught exception: " + e.Message, true);
+            P.Log(e.StackTrace, true);
         }
-        if (p.Profiler.Enabled) p.Profiler.Gui.StopTick();
+        if (P.Profiler.Enabled) P.Profiler.Gui.StopTick();
     }
 
-    RenderTarget Direct3DDraw()
+    private RenderTarget Direct3DDraw()
     {
         try
         {
             renderer.BeginFrame();
-            foreach (var element in p.displayObjects)
+            foreach (var element in DirectX11Renderer.DisplayObjects)
             {
                 if (element is DisplayObjectFan elementFan)
                 {
-                    float totalAngle = elementFan.angleMax - elementFan.angleMin;
-                    int segments = RadialSegments(elementFan.outerRadius, totalAngle);
+                    var totalAngle = elementFan.angleMax - elementFan.angleMin;
+                    var segments = RadialSegments(elementFan.outerRadius, totalAngle);
                     renderer.DrawFan(elementFan, segments);
                 }
                 else if (element is DisplayObjectLine elementLine)
@@ -155,7 +154,7 @@ unsafe class OverlayGui : IDisposable
             {
                 renderer.AddClipZone(zone.Rect);
             }
-            if (p.Config.AutoClipNativeUI) autoClipZones.Update();
+            if (P.Config.AutoClipNativeUI) autoClipZones.Update();
         }
         catch (Exception e)
         {
@@ -165,7 +164,7 @@ unsafe class OverlayGui : IDisposable
                 if (e is IndexOutOfRangeException)
                 {
                     lastErrorLogTime = now;
-                    p.Log("Splatoon exception: " + e.Message + " Please adjust misconfigured presets causing excessive elements, or report it to developer if you believe this limit is too low.", true);
+                    P.Log("Splatoon exception: " + e.Message + " Please adjust misconfigured presets causing excessive elements, or report it to developer if you believe this limit is too low.", true);
                 }
                 else
                 {
@@ -181,7 +180,7 @@ unsafe class OverlayGui : IDisposable
     {
         if (Svc.GameGui.WorldToScreen(
                         new Vector3(e.x, e.z, e.y),
-                        out Vector2 pos))
+                        out var pos))
         {
             DrawText(e, pos);
         }
@@ -211,7 +210,7 @@ unsafe class OverlayGui : IDisposable
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.y, e.z), out Vector2 pos))
+        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.y, e.z), out var pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,

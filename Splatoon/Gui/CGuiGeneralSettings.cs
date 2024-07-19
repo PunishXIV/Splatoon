@@ -3,7 +3,7 @@ using Dalamud.Interface.Components;
 using ECommons.LanguageHelpers;
 using Splatoon.Modules;
 using Splatoon.Serializables;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using Localization = ECommons.LanguageHelpers.Localization;
 
 namespace Splatoon;

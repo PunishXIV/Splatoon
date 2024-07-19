@@ -1,6 +1,6 @@
 ﻿using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
-using Splatoon.Utils;
+using Splatoon.Utility;
 
 namespace Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
 

@@ -6,7 +6,7 @@ using ECommons.LanguageHelpers;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
 using Splatoon.Serializables;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System;
 
 namespace Splatoon;

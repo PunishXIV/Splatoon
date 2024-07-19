@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Splatoon.Gui;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System.Drawing;
 using System.Threading;
 

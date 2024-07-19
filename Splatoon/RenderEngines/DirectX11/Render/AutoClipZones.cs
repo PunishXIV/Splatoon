@@ -20,12 +20,10 @@ internal class AutoClipZones
             "_FocusTargetInfo",
         };
     private Renderer renderer;
-    private Splatoon p;
 
-    public AutoClipZones(Renderer renderer, Splatoon p)
+    public AutoClipZones(Renderer renderer)
     {
         this.renderer = renderer;
-        this.p = p;
     }
 
     public void Update()
@@ -58,9 +56,9 @@ internal class AutoClipZones
     private unsafe void PrintDebugState(ArgumentOutOfRangeException e)
     {
         const ushort UIForegroundRed = 17;
-        p.Log("Shiny Splatoon exception: please report it to developer", true, UIForegroundRed);
-        p.Log(GetDebugString(), true, UIForegroundRed);
-        p.Log(e.StackTrace, true, UIForegroundRed);
+        P.Log("Shiny Splatoon exception: please report it to developer", true, UIForegroundRed);
+        P.Log(GetDebugString(), true, UIForegroundRed);
+        P.Log(e.StackTrace, true, UIForegroundRed);
     }
 
     private unsafe string GetDebugString()

@@ -1,5 +1,4 @@
-﻿using Splatoon.Gui;
-using Splatoon.Serializables;
+﻿using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Drawing;
 using System.Runtime.InteropServices;
@@ -11,7 +10,7 @@ public unsafe class Renderer : IDisposable
 {
     public const int MAX_FANS = 1024;
     public const int MAX_LINES = 1024;
-    public const int MAX_STROKE_SEGMENTS = MAX_FANS * OverlayGui.MAXIMUM_CIRCLE_SEGMENTS;
+    public const int MAX_STROKE_SEGMENTS = MAX_FANS * DirectX11Scene.MAXIMUM_CIRCLE_SEGMENTS;
     public const int MAX_CLIP_ZONES = 256 + MAX_CONFIGURABLE_CLIP_ZONES;
 
     public RenderContext RenderContext { get; init; } = new();

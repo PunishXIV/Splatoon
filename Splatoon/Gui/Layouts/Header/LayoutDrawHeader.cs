@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Splatoon.ConfigGui;
 using Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
 using Splatoon.Gui.Layouts.Header.Sections;
-using Splatoon.Utils;
+using Splatoon.Utility;
 
 namespace Splatoon;
 

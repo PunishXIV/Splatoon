@@ -5,12 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Splatoon.RenderEngines.ImGuiLegacy.ImGuiLegacyDisplayObjects;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;
 internal class ImGuiLegacyScene
 {
-    /*
     internal readonly ImGuiLegacyRenderer ImGuiLegacyRenderer;
+    int uid = 0;
 
     public ImGuiLegacyScene(ImGuiLegacyRenderer imGuiLegacyRenderer)
     {
@@ -19,28 +20,28 @@ internal class ImGuiLegacyScene
 
     void Draw()
     {
-        if (p.Profiler.Enabled) p.Profiler.Gui.StartTick();
+        uid = 0;
+        if (P.Profiler.Enabled) P.Profiler.Gui.StartTick();
         try
         {
             if (!Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]
                 && !Svc.Condition[ConditionFlag.WatchingCutscene78])
             {
-                uid = 0;
-                if (p.Config.segments > 1000 || p.Config.segments < 4)
+                if (P.Config.segments > 1000 || P.Config.segments < 4)
                 {
-                    p.Config.segments = 100;
-                    p.Log("Your smoothness setting was unsafe. It was reset to 100.");
+                    P.Config.segments = 100;
+                    P.Log("Your smoothness setting was unsafe. It was reset to 100.");
                 }
-                if (p.Config.lineSegments > 50 || p.Config.lineSegments < 4)
+                if (P.Config.lineSegments > 50 || P.Config.lineSegments < 4)
                 {
-                    p.Config.lineSegments = 20;
-                    p.Log("Your line segment setting was unsafe. It was reset to 20.");
+                    P.Config.lineSegments = 20;
+                    P.Log("Your line segment setting was unsafe. It was reset to 20.");
                 }
                 try
                 {
                     void Draw()
                     {
-                        foreach (var element in p.displayObjects)
+                        foreach (var element in ImGuiLegacyRenderer.DisplayObjects)
                         {
                             if (element is DisplayObjectCircle elementCircle)
                             {
@@ -104,28 +105,28 @@ internal class ImGuiLegacyScene
                 }
                 catch (Exception e)
                 {
-                    p.Log("Splatoon exception: please report it to developer", true);
-                    p.Log(e.Message, true);
-                    p.Log(e.StackTrace, true);
+                    P.Log("Splatoon exception: please report it to developer", true);
+                    P.Log(e.Message, true);
+                    P.Log(e.StackTrace, true);
                 }
             }
         }
         catch (Exception e)
         {
-            p.Log("Caught exception: " + e.Message, true);
-            p.Log(e.StackTrace, true);
+            P.Log("Caught exception: " + e.Message, true);
+            P.Log(e.StackTrace, true);
         }
-        if (p.Profiler.Enabled) p.Profiler.Gui.StopTick();
+        if (P.Profiler.Enabled) P.Profiler.Gui.StopTick();
     }
 
     internal Vector3 TranslateToScreen(double x, double y, double z)
     {
-        Vector2 tenp;
+        Vector2 temp;
         Svc.GameGui.WorldToScreen(
             new Vector3((float)x, (float)y, (float)z),
-            out tenp
+            out temp
         );
-        return new Vector3(tenp.X, tenp.Y, (float)z);
+        return new Vector3(temp.X, temp.Y, (float)z);
     }
 
     private void DrawDonutWorld(DisplayObjectDonut elementDonut)
@@ -169,25 +170,22 @@ internal class ImGuiLegacyScene
 
     void DrawLineWorld(DisplayObjectLine e)
     {
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
         var result = GetAdjustedLine(new Vector3(e.ax, e.ay, e.az), new Vector3(e.bx, e.by, e.bz));
         if (result.posA == null) return;
         ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posA.Value.X, result.posA.Value.Y));
         ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posB.Value.X, result.posB.Value.Y));
         ImGui.GetWindowDrawList().PathStroke(e.color, ImDrawFlags.None, e.thickness);
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
     }
 
     (Vector2? posA, Vector2? posB) GetAdjustedLine(Vector3 pointA, Vector3 pointB)
     {
         var resultA = Svc.GameGui.WorldToScreen(new Vector3(pointA.X, pointA.Z, pointA.Y), out Vector2 posA);
-        if (!resultA && !p.DisableLineFix)
+        if (!resultA && !P.DisableLineFix)
         {
             var posA2 = GetLineClosestToVisiblePoint(pointA,
-            (pointB - pointA) / p.CurrentLineSegments, 0, p.CurrentLineSegments);
+            (pointB - pointA) / P.CurrentLineSegments, 0, P.CurrentLineSegments);
             if (posA2 == null)
             {
-                if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
                 return (null, null);
             }
             else
@@ -196,13 +194,12 @@ internal class ImGuiLegacyScene
             }
         }
         var resultB = Svc.GameGui.WorldToScreen(new Vector3(pointB.X, pointB.Z, pointB.Y), out Vector2 posB);
-        if (!resultB && !p.DisableLineFix)
+        if (!resultB && !P.DisableLineFix)
         {
             var posB2 = GetLineClosestToVisiblePoint(pointB,
-            (pointA - pointB) / p.CurrentLineSegments, 0, p.CurrentLineSegments);
+            (pointA - pointB) / P.CurrentLineSegments, 0, P.CurrentLineSegments);
             if (posB2 == null)
             {
-                if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
                 return (null, null);
             }
             else
@@ -216,9 +213,8 @@ internal class ImGuiLegacyScene
 
     void DrawRectWorld(DisplayObjectRect e) //oof
     {
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StartTick();
 
-        if (!p.Config.AltRectFill)
+        if (!P.Config.AltRectFill)
         {
             Svc.GameGui.WorldToScreen(new Vector3(e.l1.ax, e.l1.az, e.l1.ay), out Vector2 v1);
             Svc.GameGui.WorldToScreen(new Vector3(e.l1.bx, e.l1.bz, e.l1.by), out Vector2 v2);
@@ -246,7 +242,7 @@ internal class ImGuiLegacyScene
             new Vector2(result2.posA.Value.X, result2.posA.Value.Y), e.l1.color
             );
     Quit:
-        if (p.Profiler.Enabled) p.Profiler.GuiLines.StopTick();
+        return;
     }
 
     Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 targetPos, float eps)
@@ -272,7 +268,7 @@ internal class ImGuiLegacyScene
         var nextPos = currentPos + delta;
         if (Svc.GameGui.WorldToScreen(new Vector3(nextPos.X, nextPos.Z, nextPos.Y), out Vector2 pos))
         {
-            var preciseVector = GetLineClosestToVisiblePoint(currentPos, (nextPos - currentPos) / p.Config.lineSegments, 0, p.Config.lineSegments);
+            var preciseVector = GetLineClosestToVisiblePoint(currentPos, (nextPos - currentPos) / P.Config.lineSegments, 0, P.Config.lineSegments);
             return preciseVector.HasValue ? preciseVector.Value : pos;
         }
         else
@@ -315,15 +311,15 @@ internal class ImGuiLegacyScene
 
     public void DrawRingWorld(DisplayObjectCircle e)
     {
-        int seg = p.Config.segments / 2;
+        int seg = P.Config.segments / 2;
         Svc.GameGui.WorldToScreen(new Vector3(
-            e.x + e.radius * (float)Math.Sin(p.CamAngleX),
+            e.x + e.radius * (float)Math.Sin(P.CamAngleX),
             e.z,
-            e.y + e.radius * (float)Math.Cos(p.CamAngleX)
+            e.y + e.radius * (float)Math.Cos(P.CamAngleX)
             ), out Vector2 refpos);
         var visible = false;
-        Vector2?[] elements = new Vector2?[p.Config.segments];
-        for (int i = 0; i < p.Config.segments; i++)
+        Vector2?[] elements = new Vector2?[P.Config.segments];
+        for (int i = 0; i < P.Config.segments; i++)
         {
             visible = Svc.GameGui.WorldToScreen(
                 new Vector3(e.x + e.radius * (float)Math.Sin(Math.PI / seg * i),
@@ -405,5 +401,5 @@ internal class ImGuiLegacyScene
             e.thickness,
             ImGui.GetColorU32(e.color),
             100);
-    }*/
+    }
 }

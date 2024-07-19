@@ -34,6 +34,21 @@ class Configuration : IPluginConfiguration
     public bool ShowOnUiHide = false;
     public bool Hexadecimal = true;
 
+    public int segments = 100;
+    public int lineSegments = 10;
+    public bool AltRectFill = true;
+    public bool AltRectStepOverride = false;
+    public float AltRectStep = 0.01f;
+    public bool AltRectHighlightOutline = true;
+    public float AltRectMinLineThickness = 4f;
+    public bool AltRectForceMinLineThickness = false;
+    public bool AltDonutStepOverride = false;
+    public float AltDonutStep = 0.01f;
+    public bool AltConeStepOverride = false;
+    public int AltConeStep = 1;
+    public bool FillCone = true;
+    public bool UseFullDonutFill = false;
+
     public bool FocusMode = false;
     public bool NoStreamWarning = false;
     public bool Logging = false;

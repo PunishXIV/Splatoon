@@ -51,7 +51,7 @@ public class RenderManager
         return ret;
     }
 
-    internal void InjectOwnDisplayObjects(List<DisplayObject> displayObjects)
+    internal void InjectDisplayObjects(List<DisplayObject> displayObjects)
     {
         foreach(var x in displayObjects)
         {

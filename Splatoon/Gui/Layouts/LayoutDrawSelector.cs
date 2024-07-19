@@ -77,7 +77,7 @@ internal static class LayoutDrawSelector
                     if (ImGuiDragDrop.AcceptDragDropPayload("MoveLayout", out int indexOfMovedObj, 
                         ImGuiDragDropFlags.AcceptNoDrawDefaultRect | ImGuiDragDropFlags.AcceptBeforeDelivery))
                     {
-                        SImGuiEx.DrawLine(curpos, contRegion);
+                        ImGuiUtils.DrawLine(curpos, contRegion);
                         if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                         {
                             var exch = P.Config.LayoutsL[indexOfMovedObj];
@@ -155,7 +155,7 @@ internal static class LayoutDrawSelector
                     if (ImGuiDragDrop.AcceptDragDropPayload($"MoveElement{index}", out int indexOfMovedObj,
                         ImGuiDragDropFlags.AcceptNoDrawDefaultRect | ImGuiDragDropFlags.AcceptBeforeDelivery))
                     {
-                        SImGuiEx.DrawLine(curpos, contRegion);
+                        ImGuiUtils.DrawLine(curpos, contRegion);
                         if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                         {
                             var exch = CurrentLayout.ElementsL[indexOfMovedObj];

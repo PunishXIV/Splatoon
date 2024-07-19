@@ -78,7 +78,7 @@ public class InternationalString
                 }
             }
 
-            SImGuiEx.SizedText("Default:".Loc(), 100);
+            ImGuiUtils.SizedText("Default:".Loc(), 100);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(300f);
             ImGui.InputText($"##{guid}default", ref DefaultValue, 1000);
@@ -117,7 +117,7 @@ public class InternationalString
             col = true;
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
         }
-        SImGuiEx.SizedText($"{language.ToString().Loc()}:", 100);
+        ImGuiUtils.SizedText($"{language.ToString().Loc()}:", 100);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(300f);
         ImGui.InputText($"##{guid}{language}", ref str, 1000);

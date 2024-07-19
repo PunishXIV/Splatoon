@@ -55,7 +55,7 @@ public class Layout
     [DefaultValue(true)] public bool FreezeResetCombat = true;
     [DefaultValue(true)] public bool FreezeResetTerr = true;
     [DefaultValue(0f)] public float FreezeDisplayDelay = 0f;
-    [NonSerialized] internal FreezeInfo freezeInfo = new();
+    [NonSerialized] internal FreezeInfo FreezeInfo = new();
 
     public bool ShouldSerializeScenes()
     {

@@ -170,7 +170,7 @@ partial class CGui
                         if (ImGuiDragDrop.AcceptDragDropPayload("MoveGroup", out int indexOfMovedGroup
                             , ImGuiDragDropFlags.AcceptNoDrawDefaultRect | ImGuiDragDropFlags.AcceptBeforeDelivery))
                         {
-                            SImGuiEx.DrawLine(curpos, contRegion);
+                            ImGuiUtils.DrawLine(curpos, contRegion);
                             if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                             {
                                 var exch = P.Config.GroupOrder[indexOfMovedGroup];

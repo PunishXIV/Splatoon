@@ -23,7 +23,7 @@ public class ScriptingEngine
             }
             else
             {
-                l = DeserializeLegacyLayout(s);
+                l = Utils.DeserializeLegacyLayout(s);
                 return true;
             }
         }

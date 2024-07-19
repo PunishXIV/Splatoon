@@ -70,7 +70,7 @@ unsafe partial class CGui
         ImGui.Separator();
         if (Svc.ClientState.LocalPlayer != null)
         {
-            var mypos = GetPlayerPositionXZY();
+            var mypos = Utils.GetPlayerPositionXZY();
             ImGuiEx.Text("My pos XYZ: \n" + mypos.X + "\n" + mypos.Y + "\n" + mypos.Z);
             ImGuiEx.Text("Rotation: " + Svc.ClientState.LocalPlayer.Rotation);
             var tar = Svc.Targets.Target;
@@ -92,7 +92,7 @@ unsafe partial class CGui
         ImGui.PopItemWidth();
         if (ImGui.Button("To my pos"))
         {
-            var mypos = GetPlayerPositionXZY();
+            var mypos = Utils.GetPlayerPositionXZY();
             s2wx = mypos.X;
             s2wy = mypos.Y;
             s2wz = mypos.Z;

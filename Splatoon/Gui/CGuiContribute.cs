@@ -8,13 +8,13 @@ internal class Contribute
     {
         var url = "https://github.com/PunishXIV/Splatoon/tree/main/Presets#adding-your-preset";
         Svc.Chat.Print("[Splatoon] How to submit your preset: ".Loc() + url);
-        ProcessStart(url);
+        Utils.ProcessStart(url);
     }
 
     internal static void OpenDiscordLink()
     {
         Svc.Chat.Print("[Splatoon] Server invite link: ".Loc() + Splatoon.DiscordURL);
-        ProcessStart(Splatoon.DiscordURL);
+        Utils.ProcessStart(Splatoon.DiscordURL);
     }
 
     internal static void Draw()
@@ -50,7 +50,7 @@ internal class Contribute
         {
             var url = "https://github.com/PunishXIV/Splatoon";
             Svc.Chat.Print("[Splatoon] Splatoon repo: ".Loc() + url);
-            ProcessStart(url);
+            Utils.ProcessStart(url);
         }
         /*ImGui.SameLine();
         if (ImGui.Button("Open NightmareXIV plugins repo".Loc()))

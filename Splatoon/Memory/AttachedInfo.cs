@@ -71,7 +71,7 @@ public unsafe static class AttachedInfo
             };
             var obj = Svc.Objects.CreateObjectReference(a2)!;
             ScriptingProcessor.OnVFXSpawn(obj.EntityId, vfxPath);
-            if (!BlacklistedVFX.Contains(vfxPath))
+            if (!Utils.BlacklistedVFX.Contains(vfxPath))
             {
                 if (obj is ICharacter c)
                 {

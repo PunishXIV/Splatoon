@@ -13,7 +13,7 @@ public class FreezeInfo
 
 public class FreezeState
 {
-    public HashSet<DisplayObject> Objects;
+    public List<DisplayObject> Objects;
     public long ShowUntil;
     public long ShowAt = 0;
 

@@ -47,7 +47,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
     internal long CombatStarted = 0;
-    internal HashSet<Element> injectedElements = new();
+    internal HashSet<Element> InjectedElements = new();
     internal double CamAngleX;
     internal Dictionary<int, string> Jobs = new();
     //internal HashSet<(float x, float y, float z, float r, float angle)> draw = new HashSet<(float x, float y, float z, float r, float angle)>();
@@ -379,7 +379,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         if (l.Freezing && l.FreezeResetTerr)
         {
-            l.freezeInfo = new();
+            l.FreezeInfo = new();
         }
     }
 
@@ -551,12 +551,12 @@ public unsafe class Splatoon : IDalamudPlugin
 
                 ScriptingProcessor.Scripts.ForEach(x => { if (x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
                 ScriptingProcessor.Scripts.ForEach(x => { if (x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
-                foreach (var e in injectedElements)
+                foreach (var e in InjectedElements)
                 {
                     ProcessElement(e);
                     //PluginLog.Information("Processing type " + e.type + JsonConvert.SerializeObject(e, Formatting.Indented));
                 }
-                injectedElements.Clear();
+                InjectedElements.Clear();
 
                 if (Profiler.Enabled)
                 {
@@ -622,25 +622,25 @@ public unsafe class Splatoon : IDalamudPlugin
             LayoutAmount++;
             if (l.Freezing)
             {
-                if (l.freezeInfo.CanDisplay())
+                if (l.FreezeInfo.CanDisplay())
                 {
-                    var a = displayObjects;
-                    displayObjects = new();
+                    S.RenderManager.StoreDisplayObjects();
                     for (var i = 0; i < l.ElementsL.Count; i++)
                     {
                         ProcessElement(l.ElementsL[i], l);
                     }
-                    if (displayObjects.Count > 0)
+                    var union = S.RenderManager.GetUnifiedDisplayObjects();
+                    if (union.Count > 0)
                     {
-                        l.freezeInfo.States.Add(new()
+                        l.FreezeInfo.States.Add(new()
                         {
-                            Objects = displayObjects,
+                            Objects = union,
                             ShowUntil = Environment.TickCount64 + (int)(l.FreezeFor * 1000f),
                             ShowAt = Environment.TickCount64 + (int)(l.FreezeDisplayDelay * 1000f)
                         });
-                        l.freezeInfo.AllowRefreezeAt = Environment.TickCount64 + (int)(l.IntervalBetweenFreezes * 1000f);
+                        l.FreezeInfo.AllowRefreezeAt = Environment.TickCount64 + (int)(l.IntervalBetweenFreezes * 1000f);
                     }
-                    displayObjects = a;
+                    S.RenderManager.RestoreDisplayObjects();
                 }
             }
             else
@@ -651,18 +651,18 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
         }
-        for (var i = l.freezeInfo.States.Count - 1; i >= 0; i--)
+        for (var i = l.FreezeInfo.States.Count - 1; i >= 0; i--)
         {
-            var x = l.freezeInfo.States[i];
+            var x = l.FreezeInfo.States[i];
             if (x.IsActive())
             {
-                displayObjects.UnionWith(x.Objects);
+                S.RenderManager.InjectDisplayObjects(x.Objects);
             }
             else
             {
                 if (x.IsExpired())
                 {
-                    l.freezeInfo.States.RemoveAt(i);
+                    l.FreezeInfo.States.RemoveAt(i);
                 }
             }
         }
@@ -696,15 +696,15 @@ public unsafe class Splatoon : IDalamudPlugin
                 var x = coords.x;
                 var y = coords.y;
                 var z = coords.z;
-                displayObjects.Add(new DisplayObjectLine(x + 2f, y + 2f, z, x - 2f, y - 2f, z, 2f, Colors.Red));
-                displayObjects.Add(new DisplayObjectLine(x - 2f, y + 2f, z, x + 2f, y - 2f, z, 2f, Colors.Red));
+                S.RenderManager.GetRenderer().DisplayObjects.Add(new DisplayObjectLine(x + 2f, y + 2f, z, x - 2f, y - 2f, z, 2f, Colors.Red));
+                S.RenderManager.GetRenderer().DisplayObjects.Add(new DisplayObjectLine(x - 2f, y + 2f, z, x + 2f, y - 2f, z, 2f, Colors.Red));
             }
         }
     }
 
     public void InjectElement(Element e)
     {
-        injectedElements.Add(e);
+        InjectedElements.Add(e);
     }
 
     internal void ProcessElement(Element e, Layout i = null, bool forceEnable = false)
@@ -716,7 +716,7 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             if (i == null || !i.UseDistanceLimit || CheckDistanceCondition(i, e.refX, e.refY, e.refZ))
             {
-                DrawCircle(e, e.refX, e.refY, e.refZ, radius, 0f);
+                S.RenderManager.GetRenderer().DrawCircle(e, e.refX, e.refY, e.refZ, radius, 0f);
             }
         }
         else if (e.type == 1 || e.type == 3 || e.type == 4)
@@ -727,16 +727,16 @@ public unsafe class Splatoon : IDalamudPlugin
                 if (e.type == 1)
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
-                    DrawCircle(e, pointPos.X, pointPos.Y, pointPos.Z, radius, e.includeRotation ? Svc.ClientState.LocalPlayer.Rotation : 0f,
+                    S.RenderManager.GetRenderer().DrawCircle(e, pointPos.X, pointPos.Y, pointPos.Z, radius, e.includeRotation ? Svc.ClientState.LocalPlayer.Rotation : 0f,
                         e.overlayPlaceholders ? Svc.ClientState.LocalPlayer : null);
                 }
                 else if (e.type == 3)
                 {
-                    AddRotatedLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.Rotation, e, radius, 0f);
+                    S.RenderManager.GetRenderer().AddRotatedLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.Rotation, e, radius, 0f);
                 }
                 else if (e.type == 4)
                 {
-                    DrawCone(e, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.Rotation);
+                    S.RenderManager.GetRenderer().DrawCone(e, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.Rotation);
                 }
             }
             else if (e.refActorType == 2 && Svc.Targets.Target != null
@@ -747,7 +747,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     if (e.includeHitbox) radius += Svc.Targets.Target.HitboxRadius;
                     if (e.type == 1)
                     {
-                        DrawCircle(e, Svc.Targets.Target.GetPositionXZY().X, Svc.Targets.Target.GetPositionXZY().Y,
+                        S.RenderManager.GetRenderer().DrawCircle(e, Svc.Targets.Target.GetPositionXZY().X, Svc.Targets.Target.GetPositionXZY().Y,
                             Svc.Targets.Target.GetPositionXZY().Z, radius, e.includeRotation ? Svc.Targets.Target.Rotation : 0f,
                             e.overlayPlaceholders ? Svc.Targets.Target : null);
                     }
@@ -756,14 +756,14 @@ public unsafe class Splatoon : IDalamudPlugin
                         var angle = e.FaceMe ?
                                             (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                             : Svc.Targets.Target.Rotation;
-                        AddRotatedLine(Svc.Targets.Target.GetPositionXZY(), angle, e, radius, Svc.Targets.Target.HitboxRadius);
+                        S.RenderManager.GetRenderer().AddRotatedLine(Svc.Targets.Target.GetPositionXZY(), angle, e, radius, Svc.Targets.Target.HitboxRadius);
                     }
                     else if (e.type == 4)
                     {
                         var baseAngle = e.FaceMe ?
                                     (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                     : Svc.Targets.Target.Rotation;
-                        DrawCone(e, Svc.Targets.Target.GetPositionXZY(), radius, baseAngle);
+                        S.RenderManager.GetRenderer().DrawCone(e, Svc.Targets.Target.GetPositionXZY(), radius, baseAngle);
                     }
                 }
             }
@@ -787,7 +787,7 @@ public unsafe class Splatoon : IDalamudPlugin
                             if (e.includeHitbox) aradius += a.HitboxRadius;
                             if (e.type == 1)
                             {
-                                DrawCircle(e, a.GetPositionXZY().X, a.GetPositionXZY().Y, a.GetPositionXZY().Z, aradius,
+                                S.RenderManager.GetRenderer().DrawCircle(e, a.GetPositionXZY().X, a.GetPositionXZY().Y, a.GetPositionXZY().Z, aradius,
                                     e.includeRotation ? a.Rotation : 0f,
                                     e.overlayPlaceholders ? a : null);
                             }
@@ -796,14 +796,14 @@ public unsafe class Splatoon : IDalamudPlugin
                                 var angle = e.FaceMe ?
                                             (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                             : a.Rotation;
-                                AddRotatedLine(a.GetPositionXZY(), angle, e, aradius, a.HitboxRadius);
+                                S.RenderManager.GetRenderer().AddRotatedLine(a.GetPositionXZY(), angle, e, aradius, a.HitboxRadius);
                             }
                             else if (e.type == 4)
                             {
                                 var baseAngle = e.FaceMe ?
                                     (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                     : (a.Rotation);
-                                DrawCone(e, a.GetPositionXZY(), aradius, baseAngle);
+                                S.RenderManager.GetRenderer().DrawCone(e, a.GetPositionXZY(), aradius, baseAngle);
                             }
                         }
                     }
@@ -815,7 +815,7 @@ public unsafe class Splatoon : IDalamudPlugin
         else if (e.type == 2)
         {
             var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
-            displayObjects.Add(line);
+            S.RenderManager.GetRenderer().DisplayObjects.Add(line);
             if (e.radius > 0)
             {
 
@@ -830,7 +830,7 @@ public unsafe class Splatoon : IDalamudPlugin
                     || ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
                     )
                     )
-                displayObjects.Add(line);
+                S.RenderManager.GetRenderer().DisplayObjects.Add(line);
         }
         else if (e.type == 5)
         {
@@ -838,7 +838,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                 : 0;
             var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
-            DrawCone(e, pos, radius, baseAngle);
+            S.RenderManager.GetRenderer().DrawCone(e, pos, radius, baseAngle);
         }
     }
 
@@ -1015,161 +1015,6 @@ public unsafe class Splatoon : IDalamudPlugin
             PlaceholderCache[ph] = result;
             //PluginLog.Information($"Phaceholder {ph} result {result}");
             return result;
-        }
-    }
-
-    void DrawCircle(Element e, float x, float y, float z, float r, float angle, IGameObject go = null)
-    {
-        var cx = x + e.offX;
-        var cy = y + e.offY;
-        if (e.includeRotation)
-        {
-            var rotatedPoint = Utils.RotatePoint(x, y, -angle + e.AdditionalRotation, new Vector3(x - e.offX, y + e.offY, z));
-            cx = rotatedPoint.X;
-            cy = rotatedPoint.Y;
-        }
-        if (e.tether)
-        {
-            Vector3 origin = new(cx, z, cy);
-            Vector3 end = Utils.XZY(Utils.GetPlayerPositionXZY());
-            if (e.ExtraTetherLength > 0)
-            {
-                end += Vector3.Normalize(end - origin) * e.ExtraTetherLength;
-            }
-            displayObjects.Add(new DisplayObjectLine(origin, end, 0, e.StyleWithOverride, e.LineEndA, e.LineEndB));
-        }
-        if (!ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
-        if (e.thicc > 0)
-        {
-            if (r > 0)
-            {
-                if (e.Donut > 0)
-                {
-                    displayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.StyleWithOverride));
-                    if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
-                }
-                else
-                {
-                    DisplayStyle style = e.StyleWithOverride;
-                    displayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, style));
-                    if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
-                }
-            }
-            else
-            {
-                displayObjects.Add(new DisplayObjectDot(cx, z + e.offZ, cy, e.thicc, e.color));
-            }
-        }
-        if (e.overlayText.Length > 0)
-        {
-            var text = e.overlayText;
-            if (go != null)
-            {
-                text = text
-                    .Replace("$NAMEID", $"{(go is ICharacter chr2 ? chr2.NameId : 0).Format()}")
-                    .Replace("$NAME", go.Name.ToString())
-                    .Replace("$OBJECTID", $"{go.EntityId.Format()}")
-                    .Replace("$DATAID", $"{go.DataId.Format()}")
-                    .Replace("$MODELID", $"{(go is ICharacter chr ? chr.Struct()->CharacterData.ModelCharaId : 0).Format()}")
-                    .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
-                    .Replace("$KIND", $"{go.ObjectKind}")
-                    .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
-                    .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
-                    .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
-                    .Replace("$CAST", go is IBattleChara chr3 ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
-                    .Replace("\\n", "\n")
-                    .Replace("$TRANSFORM", $"{(go is ICharacter chr5 ? chr5.GetTransformationID() : 0).Format()}")
-                    .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
-            }
-            displayObjects.Add(new DisplayObjectText(cx, cy, z + e.offZ + e.overlayVOffset, text, e.overlayBGColor, e.overlayTextColor, e.overlayFScale));
-        }
-    }
-
-    internal void DrawCone(Element e, Vector3 origin, float? radius = null, float baseAngle = 0f)
-    {
-        if (e.coneAngleMax > e.coneAngleMin)
-        {
-            float angleMin = -baseAngle + e.AdditionalRotation + e.coneAngleMin.DegreesToRadians();
-            float angleMax = -baseAngle + e.AdditionalRotation + e.coneAngleMax.DegreesToRadians();
-            float totalAngle = angleMax - angleMin;
-            if (totalAngle >= 2 * MathF.PI)
-            {
-                angleMin = 0;
-                angleMax = 2 * MathF.PI;
-            }
-
-            var center = Utils.XZY(Utils.RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ)));
-            float innerRadius = 0;
-            float outerRadius = radius ?? e.radius;
-            if (e.Donut > 0)
-            {
-                innerRadius = outerRadius;
-                outerRadius = innerRadius + e.Donut;
-            }
-            if (e.tether)
-            {
-                Vector3 end = Utils.XZY(Utils.GetPlayerPositionXZY());
-                if (e.ExtraTetherLength > 0)
-                {
-                    end += Vector3.Normalize(end - center) * e.ExtraTetherLength;
-                }
-                displayObjects.Add(new DisplayObjectLine(center, end, 0, e.StyleWithOverride, e.LineEndA, e.LineEndB));
-            }
-            displayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.StyleWithOverride));
-        }
-    }
-
-    void AddRotatedLine(Vector3 tPos, float angle, Element e, float aradius, float hitboxRadius)
-    {
-        if (e.includeRotation)
-        {
-            if (aradius == 0f)
-            {
-                var pointA = Utils.RotatePoint(tPos.X, tPos.Y,
-                    -angle + e.AdditionalRotation, new Vector3(
-                    tPos.X + -e.refX,
-                    tPos.Y + e.refY,
-                    tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
-                var pointB = Utils.RotatePoint(tPos.X, tPos.Y,
-                    -angle + e.AdditionalRotation, new Vector3(
-                    tPos.X + -e.offX,
-                    tPos.Y + e.offY,
-                    tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
-                displayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
-                    pointB.X, pointB.Y, pointB.Z,
-                    e.thicc, e.color, e.LineEndA, e.LineEndB));
-            }
-            else
-            {
-                var start = Utils.RotatePoint(tPos.X, tPos.Y,
-                    -angle + e.AdditionalRotation, new Vector3(
-                    tPos.X + -e.refX,
-                    tPos.Y + e.refY,
-                    tPos.Z + e.refZ));
-                var stop = Utils.RotatePoint(tPos.X, tPos.Y,
-                    -angle + e.AdditionalRotation, new Vector3(
-                    tPos.X + -e.offX,
-                    tPos.Y + e.offY,
-                    tPos.Z + e.offZ));
-
-                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
-                displayObjects.Add(line);
-                if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
-            }
-        }
-        else
-        {
-            var pointA = new Vector3(
-                tPos.X + e.refX,
-                tPos.Y + e.refY,
-                tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
-            var pointB = new Vector3(
-                tPos.X + e.offX,
-                tPos.Y + e.offY,
-                tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
-            displayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
-                pointB.X, pointB.Y, pointB.Z,
-                e.thicc, e.color, e.LineEndA, e.LineEndB));
         }
     }
 

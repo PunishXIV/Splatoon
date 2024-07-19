@@ -15,7 +15,7 @@ partial class CGui
         ImGuiEx.Text("Game version: ".Loc());
         ImGui.SameLine(0, 0);
         ImGuiEx.TextCopy(p.loader.gVersion);
-        SImGuiEx.SizedText("Use web API".Loc(), WidthLayout);
+        ImGuiUtils.SizedText("Use web API".Loc(), WidthLayout);
         ImGui.SameLine();
         if (ImGui.Checkbox("##usewebapi", ref p.Config.UseHttpServer))
         {
@@ -30,7 +30,7 @@ partial class CGui
                 ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                 if (ImGui.IsMouseReleased(ImGuiMouseButton.Left) && ImGui.GetMouseDragDelta(ImGuiMouseButton.Left) == Vector2.Zero)
                 {
-                    ProcessStart("http://127.0.0.1:" + p.Config.port + "/");
+                    Utils.ProcessStart("http://127.0.0.1:" + p.Config.port + "/");
                 }
             }
         }
@@ -56,7 +56,7 @@ partial class CGui
         ImGui.SetNextItemWidth(250f);
         if (ImGui.Button("Open web API guide".Loc()))
         {
-            ProcessStart("https://github.com/PunishXIV/Splatoon#web-api-beta");
+            Utils.ProcessStart("https://github.com/PunishXIV/Splatoon#web-api-beta");
         }
 
         if (ImGui.Checkbox("Enable logging".Loc(), ref P.Config.Logging))
@@ -105,17 +105,17 @@ partial class CGui
         if (ImGui.CollapsingHeader("Global Style Overrides"))
         {
             ImGui.Indent();
-            SImGuiEx.SizedText("Minimum Fill Alpha:", CGui.WidthElement);
+            ImGuiUtils.SizedText("Minimum Fill Alpha:", CGui.WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
             ImGui.SliderInt("##minfillalpha", ref P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
 
-            SImGuiEx.SizedText("Maximum Fill Alpha:", CGui.WidthElement);
+            ImGuiUtils.SizedText("Maximum Fill Alpha:", CGui.WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
             ImGui.SliderInt("##maxfillalpha", ref P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
 
-            SImGuiEx.SizedText("Maximum Alpha:", CGui.WidthElement);
+            ImGuiUtils.SizedText("Maximum Alpha:", CGui.WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
             ImGui.SliderInt("##maxalpha", ref P.Config.MaxAlpha, P.Config.MaxFillAlpha, 255);
@@ -140,7 +140,7 @@ partial class CGui
                 }
 
                 ImGui.PushStyleColor(ImGuiCol.Text, style.strokeColor);
-                SImGuiEx.SizedText(name, CGui.WidthElement);
+                ImGuiUtils.SizedText(name, CGui.WidthElement);
                 ImGui.PopStyleColor();
 
                 ImGui.SameLine();
@@ -153,7 +153,7 @@ partial class CGui
                 }
                 ImGui.PopStyleColor();
 
-                SImGuiEx.StyleEdit(name, ref style);
+                ImGuiUtils.StyleEdit(name, ref style);
 
                 P.Config.StyleOverrides[mech] = new(enableOverride, style);
                 ImGui.Separator();
@@ -161,16 +161,16 @@ partial class CGui
             ImGui.Unindent();
         }
 
-        SImGuiEx.SizedText("Drawing distance:".Loc(), WidthLayout);
+        ImGuiUtils.SizedText("Drawing distance:".Loc(), WidthLayout);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(100f);
         ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
         ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
-        SImGuiEx.SizedText("Alpha Blend Mode:".Loc(), WidthLayout);
+        ImGuiUtils.SizedText("Alpha Blend Mode:".Loc(), WidthLayout);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(100f);
-        SImGuiEx.EnumCombo("##alphablendmode", ref p.Config.AlphaBlendMode, AlphaBlendModes.Names, AlphaBlendModes.Tooltips);
+        ImGuiUtils.EnumCombo("##alphablendmode", ref p.Config.AlphaBlendMode, AlphaBlendModes.Names, AlphaBlendModes.Tooltips);
         if (ImGui.IsItemHovered())
         {
             ImGui.SetTooltip(
@@ -201,21 +201,21 @@ partial class CGui
         //ImGui.Checkbox("Always compare names directly (debug option, ~4x performance loss)", ref p.Config.DirectNameComparison);
         if (ImGui.Button("Open backup directory".Loc()))
         {
-            ProcessStart(Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Backups"));
+            Utils.ProcessStart(Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Backups"));
         }
         ImGui.Separator();
         ImGuiEx.Text("Contact developer:".Loc());
         ImGui.SameLine();
         if (ImGui.Button("Github".Loc()))
         {
-            ProcessStart("https://github.com/PunishXIV/Splatoon/issues");
+            Utils.ProcessStart("https://github.com/PunishXIV/Splatoon/issues");
         }
         ImGui.SameLine();
         if (ImGui.Button("Discord".Loc()))
         {
             ImGui.SetClipboardText(Splatoon.DiscordURL);
             Svc.Chat.Print("[Splatoon] Server invite link: ".Loc() + Splatoon.DiscordURL);
-            ProcessStart(Splatoon.DiscordURL);
+            Utils.ProcessStart(Splatoon.DiscordURL);
         }
         ImGui.Checkbox("Disable stream notice (effective only after restart)".Loc(), ref P.Config.NoStreamWarning);
     }

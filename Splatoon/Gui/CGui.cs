@@ -84,15 +84,7 @@ unsafe partial class CGui:IDisposable
         {
             try
             {
-                if (ChlogGui.ChlogVersion > p.Config.ChlogReadVer)
-                {
-                    ImGuiEx.Text("You may not change configuration until you have read changelog and closed window.".Loc());
-                    if (ImGui.Button("Open changelog now".Loc()))
-                    {
-                        p.ChangelogGui.openLoggedOut = true;
-                    }
-                }
-                else if (RapidImport.RapidImportEnabled)
+                if (RapidImport.RapidImportEnabled)
                 {
                     RapidImport.Draw();
                 }

@@ -37,7 +37,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal DirectX11Scene DrawingGui;
     internal CGui ConfigGui;
     internal Commands CommandManager;
-    internal ChlogGui ChangelogGui = null;
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
     internal long CombatStarted = 0;
@@ -105,10 +104,6 @@ public unsafe class Splatoon : IDalamudPlugin
         CommandManager = new Commands(this);
         Zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
         Jobs = Svc.Data.GetExcelSheet<ClassJob>().ToDictionary(row => (int)row.RowId, row => row.Name.ToString());
-        if (ChlogGui.ChlogVersion > Config.ChlogReadVer && ChangelogGui == null)
-        {
-            ChangelogGui = new ChlogGui(this);
-        }
         tickScheduler = new ConcurrentQueue<System.Action>();
         dynamicElements = new List<DynamicElement>();
         SetupShutdownHttp(Config.UseHttpServer);

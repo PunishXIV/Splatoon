@@ -30,7 +30,6 @@ class Configuration : IPluginConfiguration
     public float maxdistance = 100;
     public AlphaBlendMode AlphaBlendMode = AlphaBlendMode.Add;
     //public float maxcamY = 0.05f;
-    public int ChlogReadVer = ChlogGui.ChlogVersion;
     public bool UseHttpServer = false;
     public int port = 47774;
     public bool TetherOnFind = true;
@@ -99,23 +98,12 @@ class Configuration : IPluginConfiguration
 
     public void Save(bool suppressError = false)
     {
-        if (ChlogGui.ChlogVersion > ChlogReadVer)
+        Svc.PluginInterface.SavePluginConfig(this);
+        foreach (var x in ScriptingProcessor.Scripts)
         {
-            if (!suppressError)
-            {
-                Svc.Chat.PrintError("[Splatoon] Configuration can not be saved until you have read changelog and closed window");
-                Svc.PluginInterface.UiBuilder.AddNotification("[Splatoon] Configuration can not be saved until you have read changelog and closed window", plugin.Name, NotificationType.Error);
-            }
-        }
-        else
-        {
-            Svc.PluginInterface.SavePluginConfig(this);
-            foreach(var x in ScriptingProcessor.Scripts)
-            {
-                //PluginLog.Debug($"Saving configuration for {x.InternalData.FullName}");
-                Safe(x.Controller.SaveConfig);
-                Safe(x.Controller.SaveOverrides);
-            }
+            //PluginLog.Debug($"Saving configuration for {x.InternalData.FullName}");
+            Safe(x.Controller.SaveConfig);
+            Safe(x.Controller.SaveOverrides);
         }
     }
 
@@ -138,7 +126,7 @@ class Configuration : IPluginConfiguration
             tempDir = Path.Combine(bkpFPath, "temp");
             Directory.CreateDirectory(tempDir);
             tempFile = Path.Combine(tempDir, "Splatoon.json");
-            bkpFile = Path.Combine(bkpFPath, "Backup." + DateTimeOffset.Now.ToString("yyyy-MM-dd HH-mm-ss-fffffff") + (update ? $"-update-{ChlogGui.ChlogVersion}" : "") + ".zip");
+            bkpFile = Path.Combine(bkpFPath, "Backup." + DateTimeOffset.Now.ToString("yyyy-MM-dd HH-mm-ss-fffffff") + (update ? $"-update-" : "") + ".zip");
             File.Copy(cFile, tempFile, true);
         }
         catch (FileNotFoundException e)

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Splatoon.Modules
 {
-    internal class UnsafeElement
+    /*internal class UnsafeElement
     {
         internal bool[] IsUnsafeElement;
         internal HashSet<string> UnsafeElementRequesters = [];
@@ -128,5 +128,5 @@ namespace Splatoon.Modules
             // Calculate the Z coordinate of the cross product.
             return (BAx * BCy - BAy * BCx);
         }
-    }
+    }*/
 }

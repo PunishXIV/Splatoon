@@ -814,10 +814,10 @@ unsafe partial class CGui
                 ImGuiEx.Tooltip("Select on screen".Loc());
             }
 
-            var style = el.Style;
+            var style = el.GetDisplayStyle();
             if (ImGuiUtils.StyleEdit("Style", ref style))
             {
-                el.Style = style;
+                el.SetDisplayStyle(style);
             }
             
             if ((el.type != 3) || el.includeRotation)

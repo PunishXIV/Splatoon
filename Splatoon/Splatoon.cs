@@ -89,7 +89,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal PinnedElementEdit PinnedElementEditWindow;
     internal RenderableZoneSelector RenderableZoneSelector;
     internal ClipZoneSelector ClipZoneSelector;
-    internal UnsafeElement UnsafeElement;
     public NotificationMasterApi NotificationMasterApi;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
@@ -201,7 +200,6 @@ public unsafe class Splatoon : IDalamudPlugin
         EzConfigGui.WindowSystem.AddWindow(RenderableZoneSelector);
         ClipZoneSelector = new();
         EzConfigGui.WindowSystem.AddWindow(ClipZoneSelector);
-        UnsafeElement = new();
         NotificationMasterApi = new(pluginInterface);
         SingletonServiceManager.Initialize(typeof(S));
         Init = true;
@@ -389,10 +387,6 @@ public unsafe class Splatoon : IDalamudPlugin
         if (Profiler.Enabled) Profiler.MainTick.StartTick();
         try
         {
-            if (UnsafeElement.IsEnabled)
-            {
-                UnsafeElement.IsUnsafeElement[0] = false;
-            }
             PlaceholderCache.Clear();
             LayoutAmount = 0;
             ElementAmount = 0;
@@ -814,12 +808,11 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         else if (e.type == 2)
         {
-            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
+            var line = new DisplayObjectLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
             S.RenderManager.GetRenderer().DisplayObjects.Add(line);
             if (e.radius > 0)
             {
-
-                if (UnsafeElement.IsEnabled && e.IsDangerous) UnsafeElement.ProcessLine(line);
+                // ?????
             }
             else if (
                     (

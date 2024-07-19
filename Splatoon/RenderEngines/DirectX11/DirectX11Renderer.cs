@@ -43,7 +43,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             {
                 end += Vector3.Normalize(end - origin) * e.ExtraTetherLength;
             }
-            DisplayObjects.Add(new DisplayObjectLine(origin, end, 0, e.StyleWithOverride, e.LineEndA, e.LineEndB));
+            DisplayObjects.Add(new DisplayObjectLine(origin, end, 0, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB));
         }
         if (!P.ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
         if (e.thicc > 0)
@@ -52,14 +52,12 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             {
                 if (e.Donut > 0)
                 {
-                    DisplayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.StyleWithOverride));
-                    if (P.UnsafeElement.IsEnabled && e.IsDangerous) P.UnsafeElement.ProcessDonut(new(cx, z + e.offZ, cy), r, e.Donut);
+                    DisplayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.GetDisplayStyleWithOverride()));
                 }
                 else
                 {
-                    var style = e.StyleWithOverride;
+                    var style = e.GetDisplayStyleWithOverride();
                     DisplayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, style));
-                    if (P.UnsafeElement.IsEnabled && e.IsDangerous) P.UnsafeElement.ProcessCircle(new(cx, z + e.offZ, cy), r);
                 }
             }
             else
@@ -120,9 +118,9 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     end += Vector3.Normalize(end - center) * e.ExtraTetherLength;
                 }
-                DisplayObjects.Add(new DisplayObjectLine(center, end, 0, e.StyleWithOverride, e.LineEndA, e.LineEndB));
+                DisplayObjects.Add(new DisplayObjectLine(center, end, 0, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB));
             }
-            DisplayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.StyleWithOverride));
+            DisplayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.GetDisplayStyleWithOverride()));
         }
     }
 
@@ -159,9 +157,8 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     tPos.Y + e.offY,
                     tPos.Z + e.offZ));
 
-                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.StyleWithOverride, e.LineEndA, e.LineEndB);
+                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
                 DisplayObjects.Add(line);
-                if (P.UnsafeElement.IsEnabled && e.IsDangerous) P.UnsafeElement.ProcessLine(line);
             }
         }
         else

@@ -18,7 +18,7 @@ Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8k
 
 ## [EN] Vollok / Sync
 
-There are 4 disabled elements in this layout. Those elements, once enabled, will show you the location of where the swords will land on the main platform.
+There are 4 disabled elements in this layout. Those elements, once enabled, will show you the location of where the swords will land on the main platform. These are disabled by default to reduce visual clutter.
 
 Created by `constmar`, additional helper layouts created by `.leathen.`, on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 

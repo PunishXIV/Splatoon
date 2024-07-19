@@ -12,6 +12,8 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
 {
     private DirectX11Scene DirectX11Scene;
 
+    internal override RenderEngineKind RenderEngineKind { get; } = RenderEngineKind.DirectX11;
+
     internal DirectX11Renderer()
     {
         try

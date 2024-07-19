@@ -2,6 +2,7 @@
 using Dalamud.Interface.ImGuiNotification;
 using Newtonsoft.Json;
 using Splatoon.Gui;
+using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -17,6 +18,9 @@ class Configuration : IPluginConfiguration
     [NonSerialized] SemaphoreSlim ZipSemaphore;
 
     public int Version { get; set; } = 2;
+
+    public RenderEngineKind RenderEngineKind = RenderEngineKind.DirectX11;
+    public List<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];
 
     [Obsolete] public Dictionary<string, Layout> Layouts = new Dictionary<string, Layout>(); //never delete
     public List<Layout> LayoutsL = new();

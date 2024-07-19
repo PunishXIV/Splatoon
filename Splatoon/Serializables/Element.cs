@@ -1,4 +1,5 @@
 ﻿using ECommons.LanguageHelpers;
+using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.Utility;
 using System.ComponentModel;
@@ -191,6 +192,7 @@ public class Element
     [DefaultValue("<1>")] public string faceplayer = "<1>";
     [DefaultValue(0.5f)] public float FillStep = 0.5f;
     [DefaultValue(false)] public bool LegacyFill = false;
+    [DefaultValue(RenderEngineKind.Unspecified)] public RenderEngineKind RenderEngineKind = RenderEngineKind.Unspecified;
 
     public bool ShouldSerializerefActorTransformationID()
     {

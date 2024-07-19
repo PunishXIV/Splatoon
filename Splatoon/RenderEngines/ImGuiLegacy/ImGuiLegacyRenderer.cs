@@ -17,16 +17,33 @@ using System.Threading.Tasks;
 using static Splatoon.RenderEngines.ImGuiLegacy.ImGuiLegacyDisplayObjects;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;
-public sealed unsafe class ImGuiLegacyRenderer : RenderEngine
+internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
 {
+    internal override RenderEngineKind RenderEngineKind { get; } = RenderEngineKind.ImGui_Legacy;
+    internal ImGuiLegacyScene Scene;
+    internal override bool CanBeDisabled { get; } = false;
+
+    internal ImGuiLegacyRenderer()
+    {
+        try
+        {
+            Scene = new(this);
+        }
+        catch(Exception e)
+        {
+            this.LoadError = e;
+            e.Log();
+        }
+    }
+
     public override void Dispose()
     {
-
+        Scene.Dispose();
     }
 
     internal override void AddLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
     {
-
+        DisplayObjects.Add(new DisplayObjectLine(ax, ay, az, bx, by, bz, thickness, color));
     }
 
     internal override void ProcessElement(Element e, Layout i = null, bool forceEnable = false)

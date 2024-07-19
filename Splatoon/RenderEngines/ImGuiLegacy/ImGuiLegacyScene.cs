@@ -1,24 +1,19 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
-using Splatoon.Structures;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Splatoon.RenderEngines.ImGuiLegacy.ImGuiLegacyDisplayObjects;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;
-internal class ImGuiLegacyScene
+internal class ImGuiLegacyScene : IDisposable
 {
     internal readonly ImGuiLegacyRenderer ImGuiLegacyRenderer;
-    int uid = 0;
+    private int uid = 0;
 
     public ImGuiLegacyScene(ImGuiLegacyRenderer imGuiLegacyRenderer)
     {
         ImGuiLegacyRenderer = imGuiLegacyRenderer;
+        Svc.PluginInterface.UiBuilder.Draw += Draw;
     }
 
-    void Draw()
+    private void Draw()
     {
         uid = 0;
         try
@@ -77,8 +72,7 @@ internal class ImGuiLegacyScene
                     ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
                     ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
                     ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-                    ImGui.Begin("Splatoon scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
-                        | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding);
+                    ImGui.Begin("Splatoon Legacy Renderer Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings);
                     if (P.Config.SplatoonLowerZ)
                     {
                         CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
@@ -141,7 +135,7 @@ internal class ImGuiLegacyScene
             elementDonut.z,
             elementDonut.y + (outerradiuschonk * Math.Cos((Math.PI / 24.0) * 0))
         );
-        for (int i = 0; i <= 47; i++)
+        for (var i = 0; i <= 47; i++)
         {
             v2 = TranslateToScreen(
                 elementDonut.x + (elementDonut.radius * Math.Sin((Math.PI / 24.0) * (i + 1))),
@@ -166,7 +160,7 @@ internal class ImGuiLegacyScene
         }
     }
 
-    void DrawLineWorld(DisplayObjectLine e)
+    private void DrawLineWorld(DisplayObjectLine e)
     {
         var result = GetAdjustedLine(new Vector3(e.ax, e.ay, e.az), new Vector3(e.bx, e.by, e.bz));
         if (result.posA == null) return;
@@ -175,9 +169,9 @@ internal class ImGuiLegacyScene
         ImGui.GetWindowDrawList().PathStroke(e.color, ImDrawFlags.None, e.thickness);
     }
 
-    (Vector2? posA, Vector2? posB) GetAdjustedLine(Vector3 pointA, Vector3 pointB)
+    private (Vector2? posA, Vector2? posB) GetAdjustedLine(Vector3 pointA, Vector3 pointB)
     {
-        var resultA = Svc.GameGui.WorldToScreen(new Vector3(pointA.X, pointA.Z, pointA.Y), out Vector2 posA);
+        var resultA = Svc.GameGui.WorldToScreen(new Vector3(pointA.X, pointA.Z, pointA.Y), out var posA);
         if (!resultA && !P.DisableLineFix)
         {
             var posA2 = GetLineClosestToVisiblePoint(pointA,
@@ -191,7 +185,7 @@ internal class ImGuiLegacyScene
                 posA = posA2.Value;
             }
         }
-        var resultB = Svc.GameGui.WorldToScreen(new Vector3(pointB.X, pointB.Z, pointB.Y), out Vector2 posB);
+        var resultB = Svc.GameGui.WorldToScreen(new Vector3(pointB.X, pointB.Z, pointB.Y), out var posB);
         if (!resultB && !P.DisableLineFix)
         {
             var posB2 = GetLineClosestToVisiblePoint(pointB,
@@ -209,15 +203,15 @@ internal class ImGuiLegacyScene
         return (posA, posB);
     }
 
-    void DrawRectWorld(DisplayObjectRect e) //oof
+    private void DrawRectWorld(DisplayObjectRect e) //oof
     {
 
         if (!P.Config.AltRectFill)
         {
-            Svc.GameGui.WorldToScreen(new Vector3(e.l1.ax, e.l1.az, e.l1.ay), out Vector2 v1);
-            Svc.GameGui.WorldToScreen(new Vector3(e.l1.bx, e.l1.bz, e.l1.by), out Vector2 v2);
-            Svc.GameGui.WorldToScreen(new Vector3(e.l2.bx, e.l2.bz, e.l2.by), out Vector2 v3);
-            Svc.GameGui.WorldToScreen(new Vector3(e.l2.ax, e.l2.az, e.l2.ay), out Vector2 v4);
+            Svc.GameGui.WorldToScreen(new Vector3(e.l1.ax, e.l1.az, e.l1.ay), out var v1);
+            Svc.GameGui.WorldToScreen(new Vector3(e.l1.bx, e.l1.bz, e.l1.by), out var v2);
+            Svc.GameGui.WorldToScreen(new Vector3(e.l2.bx, e.l2.bz, e.l2.by), out var v3);
+            Svc.GameGui.WorldToScreen(new Vector3(e.l2.ax, e.l2.az, e.l2.ay), out var v4);
             ImGui.GetWindowDrawList().AddQuadFilled(v1, v2, v3, v4, e.l1.color);
             goto Quit;
         }
@@ -243,14 +237,14 @@ internal class ImGuiLegacyScene
         return;
     }
 
-    Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 targetPos, float eps)
+    private Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 targetPos, float eps)
     {
-        if (!Svc.GameGui.WorldToScreen(targetPos, out Vector2 res)) return null;
+        if (!Svc.GameGui.WorldToScreen(targetPos, out var res)) return null;
 
         while (true)
         {
             var mid = (currentPos + targetPos) / 2;
-            if (Svc.GameGui.WorldToScreen(mid, out Vector2 pos))
+            if (Svc.GameGui.WorldToScreen(mid, out var pos))
             {
                 if ((res - pos).Length() < eps) return res;
                 targetPos = mid;
@@ -260,11 +254,11 @@ internal class ImGuiLegacyScene
         }
     }
 
-    Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 delta, int curSegment, int numSegments)
+    private Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 delta, int curSegment, int numSegments)
     {
         if (curSegment > numSegments) return null;
         var nextPos = currentPos + delta;
-        if (Svc.GameGui.WorldToScreen(new Vector3(nextPos.X, nextPos.Z, nextPos.Y), out Vector2 pos))
+        if (Svc.GameGui.WorldToScreen(new Vector3(nextPos.X, nextPos.Z, nextPos.Y), out var pos))
         {
             var preciseVector = GetLineClosestToVisiblePoint(currentPos, (nextPos - currentPos) / P.Config.lineSegments, 0, P.Config.lineSegments);
             return preciseVector.HasValue ? preciseVector.Value : pos;
@@ -279,7 +273,7 @@ internal class ImGuiLegacyScene
     {
         if (Svc.GameGui.WorldToScreen(
                         new Vector3(e.x, e.z, e.y),
-                        out Vector2 pos))
+                        out var pos))
         {
             DrawText(e, pos);
         }
@@ -309,22 +303,22 @@ internal class ImGuiLegacyScene
 
     public void DrawRingWorld(DisplayObjectCircle e)
     {
-        int seg = P.Config.segments / 2;
+        var seg = P.Config.segments / 2;
         Svc.GameGui.WorldToScreen(new Vector3(
             e.x + e.radius * (float)Math.Sin(P.CamAngleX),
             e.z,
             e.y + e.radius * (float)Math.Cos(P.CamAngleX)
-            ), out Vector2 refpos);
+            ), out var refpos);
         var visible = false;
-        Vector2?[] elements = new Vector2?[P.Config.segments];
-        for (int i = 0; i < P.Config.segments; i++)
+        var elements = new Vector2?[P.Config.segments];
+        for (var i = 0; i < P.Config.segments; i++)
         {
             visible = Svc.GameGui.WorldToScreen(
                 new Vector3(e.x + e.radius * (float)Math.Sin(Math.PI / seg * i),
                 e.z,
                 e.y + e.radius * (float)Math.Cos(Math.PI / seg * i)
                 ),
-                out Vector2 pos)
+                out var pos)
                 || visible;
             if (pos.Y > refpos.Y || P.Config.NoCircleFix) elements[i] = new Vector2(pos.X, pos.Y);
         }
@@ -359,24 +353,24 @@ internal class ImGuiLegacyScene
         Svc.GameGui.WorldToScreen(new Vector3(e.x + e.radius * MathF.Cos(e.startRad), e.y, e.z + e.radius * MathF.Sin(e.startRad)), out v);
         drawList.PathLineTo(v);
 
-        for (float i = e.startRad; i < e.endRad; i += MathF.PI / 2)
+        for (var i = e.startRad; i < e.endRad; i += MathF.PI / 2)
         {
-            float theta = MathF.Min(e.endRad - i, MathF.PI / 2);
-            float h = 1.3f * (1 - MathF.Cos(theta / 2)) / MathF.Sin(theta / 2);
+            var theta = MathF.Min(e.endRad - i, MathF.PI / 2);
+            var h = 1.3f * (1 - MathF.Cos(theta / 2)) / MathF.Sin(theta / 2);
 
-            Vector3 arcMid1 = new Vector3(
+            var arcMid1 = new Vector3(
                 e.x + e.radius * (MathF.Cos(i) - h * MathF.Sin(i)),
                 e.y,
                 e.z + e.radius * (MathF.Sin(i) + h * MathF.Cos(i)));
-            Vector3 arcMid2 = new Vector3(
+            var arcMid2 = new Vector3(
                 e.x + e.radius * (MathF.Cos(i + theta) + h * MathF.Sin(i + theta)),
                 e.y,
                 e.z + e.radius * (MathF.Sin(i + theta) - h * MathF.Cos(i + theta)));
-            Vector3 endPoint = new Vector3(
+            var endPoint = new Vector3(
                 e.x + e.radius * MathF.Cos(i + theta), e.y, e.z + e.radius * MathF.Sin(i + theta));
 
-            Svc.GameGui.WorldToScreen(arcMid1, out Vector2 v1);
-            Svc.GameGui.WorldToScreen(arcMid2, out Vector2 v2);
+            Svc.GameGui.WorldToScreen(arcMid1, out var v1);
+            Svc.GameGui.WorldToScreen(arcMid2, out var v2);
             Svc.GameGui.WorldToScreen(endPoint, out v);
             drawList.PathBezierCubicCurveTo(v1, v2, v);
         }
@@ -393,11 +387,16 @@ internal class ImGuiLegacyScene
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.z, e.y), out Vector2 pos))
+        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.z, e.y), out var pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,
             ImGui.GetColorU32(e.color),
             100);
+    }
+
+    public void Dispose()
+    {
+        Svc.PluginInterface.UiBuilder.Draw -= Draw;
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Splatoon.RenderEngines;
 public enum RenderEngineKind
 {
+    Unspecified,
     DirectX11,
     ImGui_Legacy,
 }

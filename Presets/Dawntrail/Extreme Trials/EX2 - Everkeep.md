@@ -5,7 +5,7 @@
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 ```
-~Lv2~{"Name":"Multidirectional Divide","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Multidirectional Divide Lines H","type":3,"refX":20.0,"offX":-20.0,"radius":2.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"mechanicType":1},{"Name":"Multidirectional Divide Lines V","type":3,"refX":20.0,"offX":-20.0,"radius":2.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"AdditionalRotation":1.5707964,"mechanicType":1}]}
+~Lv2~{"Name":"Multidirectional Divide","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Multidirectional Divide Lines H","type":3,"refX":20.0,"offX":-20.0,"radius":4.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"mechanicType":1},{"Name":"Multidirectional Divide Lines V","type":3,"refX":20.0,"offX":-20.0,"radius":2.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"AdditionalRotation":1.5707964,"mechanicType":1}]}
 ```
 
 ## [EN] Forward/Backward Half

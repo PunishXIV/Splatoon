@@ -8,6 +8,7 @@ Even if current code is unoptimal, please avoid refactoring existing code.
 - Do not replace if trees with switch statements
 - Do not change accessibility modifiers
 - Do not replace manual ImGui.Begin calls with windows
+
 If you know how to significantly improve something, please create an issue describing method of improvement instead.
 
 ### Keep your additions in uniform with the rest of the code

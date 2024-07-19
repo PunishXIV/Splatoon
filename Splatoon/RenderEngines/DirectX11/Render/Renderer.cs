@@ -2,6 +2,7 @@
 using Splatoon.Structures;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 using Device = FFXIVClientStructs.FFXIV.Client.Graphics.Kernel.Device;
 
 namespace Splatoon.RenderEngines.DirectX11.Render;

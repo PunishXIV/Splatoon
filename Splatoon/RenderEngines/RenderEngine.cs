@@ -1,4 +1,5 @@
-﻿using Splatoon.Structures;
+﻿using Splatoon.Serializables;
+using Splatoon.Structures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +13,9 @@ public abstract class RenderEngine : IDisposable
     internal List<DisplayObject> DisplayObjects { get; private set; } = [];
     private List<DisplayObject> TempObjects = null;
 
-    internal abstract void DrawCircle(Element e, float x, float y, float z, float r, float angle, IGameObject go = null);
-    internal abstract void DrawCone(Element e, Vector3 origin, float? radius = null, float baseAngle = 0f);
-    internal abstract void AddRotatedLine(Vector3 tPos, float angle, Element e, float aradius, float hitboxRadius);
+    internal abstract void AddLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None);
+
+    internal abstract void ProcessElement(Element e, Layout i = null, bool forceEnable = false);
 
     internal void StoreDisplayObjects()
     {

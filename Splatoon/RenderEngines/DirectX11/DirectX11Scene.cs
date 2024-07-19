@@ -2,6 +2,7 @@
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Splatoon.RenderEngines.DirectX11.Render;
 using Splatoon.Structures;
+using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 
 namespace Splatoon.RenderEngines.DirectX11;

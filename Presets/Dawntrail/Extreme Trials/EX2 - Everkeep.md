@@ -5,7 +5,7 @@
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 ```
-~Lv2~{"Name":"Multidirectional Divide","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Multidirectional Divide Lines H","type":3,"refX":20.0,"offX":-20.0,"radius":2.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"mechanicType":1},{"Name":"Multidirectional Divide Lines V","type":3,"refX":20.0,"offX":-20.0,"radius":2.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"AdditionalRotation":1.5707964,"mechanicType":1}]}
+~Lv2~{"Name":"Multidirectional Divide","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Multidirectional Divide Lines H","type":3,"refX":20.0,"offX":-20.0,"radius":4.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"mechanicType":1},{"Name":"Multidirectional Divide Lines V","type":3,"refX":20.0,"offX":-20.0,"radius":2.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"AdditionalRotation":1.5707964,"mechanicType":1}]}
 ```
 
 ## [EN] Forward/Backward Half
@@ -13,12 +13,12 @@ Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8k
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 ```
-~Lv2~{"Name":"Backward/Forward Half","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Backward Half Right cleave","type":4,"refX":5.0,"offY":-10.0,"radius":30.0,"coneAngleMin":-90,"coneAngleMax":180,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37757],"includeRotation":true,"mechanicType":1},{"Name":"Backward Half Left cleave","type":4,"refX":5.0,"offY":-10.0,"radius":30.0,"coneAngleMin":-180,"coneAngleMax":90,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37758],"includeRotation":true,"mechanicType":1},{"Name":"Forward Half Right cleave","type":4,"refX":5.0,"offY":10.0,"radius":30.0,"coneAngleMin":90,"coneAngleMax":360,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37755],"includeRotation":true,"mechanicType":1},{"Name":"Forward Half Left cleave","type":4,"refX":5.0,"offY":10.0,"radius":30.0,"coneAngleMax":270,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37756],"includeRotation":true,"mechanicType":1}]}
+~Lv2~{"Name":"Backward/Forward Half","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Backward Half Right cleave","type":4,"refX":5.0,"offY":-10.0,"radius":30.0,"coneAngleMin":-90,"coneAngleMax":180,"fillIntensity":1.0,"originFillColor":1677721855,"endFillColor":1677721855,"thicc":5.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37757,39324],"includeRotation":true,"mechanicType":1},{"Name":"Backward Half Left cleave","type":4,"refX":5.0,"offY":-10.0,"radius":30.0,"coneAngleMin":-180,"coneAngleMax":90,"fillIntensity":1.0,"originFillColor":1677721855,"endFillColor":1677721855,"thicc":5.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37758,39325],"includeRotation":true,"mechanicType":1},{"Name":"Forward Half Right cleave","type":4,"refX":5.0,"offY":10.0,"radius":30.0,"coneAngleMin":90,"coneAngleMax":360,"color":4278190335,"fillIntensity":1.0,"originFillColor":1677721855,"endFillColor":1677721855,"thicc":5.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37755,39322],"includeRotation":true,"mechanicType":1},{"Name":"Forward Half Left cleave","type":4,"refX":5.0,"offY":10.0,"radius":30.0,"coneAngleMax":270,"fillIntensity":1.0,"originFillColor":1677721855,"endFillColor":1677721855,"thicc":5.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37756,39323],"includeRotation":true,"mechanicType":1}]}
 ```
 
 ## [EN] Vollok / Sync
 
-There are 4 disabled elements in this layout. Those elements, once enabled, will show you the location of where the swords will land on the main platform.
+There are 4 disabled elements in this layout. Those elements, once enabled, will show you the location of where the swords will land on the main platform. These are disabled by default to reduce visual clutter.
 
 Created by `constmar`, additional helper layouts created by `.leathen.`, on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 

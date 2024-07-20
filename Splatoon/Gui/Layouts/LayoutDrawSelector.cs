@@ -93,6 +93,13 @@ internal static class LayoutDrawSelector
             if (ImGui.BeginPopup("LayoutContext"))
             {
                 ImGuiEx.Text($"Layout ??".Loc(x.GetName()));
+                if (ImGui.Selectable("Archive layout".Loc()))
+                {
+                    P.Archive.LayoutsL.Add(x.JSONClone());
+                    P.SaveArchive();
+                    x.Delete = true;
+                }
+                ImGui.Separator();
                 if (ImGui.Selectable("Delete layout".Loc()))
                 {
                     x.Delete = true;

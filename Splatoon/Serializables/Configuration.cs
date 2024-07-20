@@ -124,6 +124,7 @@ internal class Configuration : IEzConfig
         string tempDir = null;
         string bkpFile = null;
         string tempFile = null;
+        string archiveFile = null;
         try
         {
             var bkpFPath = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Backups");
@@ -131,10 +132,23 @@ internal class Configuration : IEzConfig
             tempDir = Path.Combine(bkpFPath, "temp");
             Directory.CreateDirectory(tempDir);
             tempFile = Path.Combine(tempDir, EzConfig.DefaultSerializationFactory.DefaultConfigFileName);
+            archiveFile = Path.Combine(tempDir, "Archive.json");
             bkpFile = Path.Combine(bkpFPath, "Backup." + DateTimeOffset.Now.ToString("yyyy-MM-dd HH-mm-ss-fffffff") + (update ? $"-update-" : "") + ".zip");
-            using var fileStream = new FileStream(EzConfig.DefaultConfigurationFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var writer = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-            fileStream.CopyTo(writer);
+            Copy(EzConfig.DefaultConfigurationFileName, tempFile);
+            try
+            {
+                Copy(Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Archive.json"), archiveFile);
+            }
+            catch(Exception e)
+            {
+                e.LogWarning();
+            }
+            void Copy(string source, string target)
+            {
+                using var fileStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var writer = new FileStream(target, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+                fileStream.CopyTo(writer);
+            }
         }
         catch (FileNotFoundException e)
         {
@@ -152,6 +166,14 @@ internal class Configuration : IEzConfig
             {
                 ZipFile.CreateFromDirectory(tempDir, bkpFile, CompressionLevel.Optimal, false);
                 File.Delete(tempFile);
+                try
+                {
+                    File.Delete(archiveFile);
+                }
+                catch(Exception e)
+                {
+                    e.Log();
+                }
                 plugin.tickScheduler.Enqueue(delegate
                 {
                     plugin.Log("Backup created: " + bkpFile);

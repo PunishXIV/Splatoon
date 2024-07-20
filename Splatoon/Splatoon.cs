@@ -22,6 +22,7 @@ using Splatoon.Gui;
 using Splatoon.Memory;
 using Splatoon.Modules;
 using Splatoon.RenderEngines.DirectX11;
+using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using System.Net.Http;
@@ -80,6 +81,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal RenderableZoneSelector RenderableZoneSelector;
     internal ClipZoneSelector ClipZoneSelector;
     public NotificationMasterApi NotificationMasterApi;
+    public Archive Archive;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -182,6 +184,7 @@ public unsafe class Splatoon : IDalamudPlugin
         EzConfigGui.WindowSystem.AddWindow(ClipZoneSelector);
         NotificationMasterApi = new(pluginInterface);
         SingletonServiceManager.Initialize(typeof(S));
+        Archive = EzConfig.LoadConfiguration<Archive>("Archive.json");
         Init = true;
         SplatoonIPC.Init();
     }
@@ -204,6 +207,7 @@ public unsafe class Splatoon : IDalamudPlugin
         Init = false;
         Safe(delegate { Config.Save(); });
         Safe(delegate { SetupShutdownHttp(false); });
+        Safe(() => SaveArchive());
         Safe(ConfigGui.Dispose);
         Safe(CommandManager.Dispose);
         Safe(delegate
@@ -221,6 +225,11 @@ public unsafe class Splatoon : IDalamudPlugin
         ECommonsMain.Dispose();
         P = null;
         //Svc.Chat.Print("Disposing");
+    }
+
+    public void SaveArchive()
+    {
+        Archive.SaveConfiguration("Archive.json");
     }
 
     public Splatoon(IDalamudPluginInterface pluginInterface)

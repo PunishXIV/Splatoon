@@ -59,6 +59,7 @@ unsafe partial class CGui:IDisposable
                 WasOpen = false;
                 Notify.Success("Configuration saved".Loc());
                 if(p.Config.verboselog) p.Log("Configuration saved");
+                P.SaveArchive();
                 ScriptingProcessor.Scripts.Each(x => x.InternalData.UnconditionalDraw = false);
             }
             return;
@@ -123,13 +124,13 @@ unsafe partial class CGui:IDisposable
                         ("Tools".Loc(), delegate
                         {
                             ImGuiEx.EzTabBar("Tools",
-                                    ("Logger".Loc(), DisplayLogger, null, true),
+                            ("Logger".Loc(), DisplayLogger, null, true),
                             ("Explorer".Loc(), Explorer.Draw, null, true),
+                            ("Archive".Loc(), DrawArchive, null, true),
                             ("Find".Loc(), TabFind.Draw, null, true),
                             ("Debug".Loc(), DisplayDebug, null, true),
                             ("Log".Loc(), InternalLog.PrintImgui, null, false),
-                            ("Dynamic".Loc(), DisplayDynamicElements, null, true),
-                            ("Conversion".Loc(), DisplayConversion, null, true)
+                            ("Dynamic".Loc(), DisplayDynamicElements, null, true)
                             );
                         }, null, true),
                         ("Contribute".Loc(), Contribute.Draw, null, true)

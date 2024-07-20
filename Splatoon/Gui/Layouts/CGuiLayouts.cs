@@ -218,7 +218,23 @@ partial class CGui
                                 PopupRename = "";
                             }
                         }
-                        if (ImGui.Selectable("Remove group and disband layouts".Loc()) && ImGui.GetIO().KeyCtrl)
+                        if (ImGui.Selectable("Archive group".Loc()) && ImGui.GetIO().KeyCtrl)
+                        {
+                            foreach (var l in P.Config.LayoutsL)
+                            {
+                                if (l.Group == g)
+                                {
+                                    P.Archive.LayoutsL.Add(l.JSONClone());
+                                    l.Group = "";
+                                    l.Delete = true;
+                                }
+                            }
+                            groupToRemove = i;
+                            P.SaveArchive();
+                        }
+                        ImGuiEx.Tooltip("Hold CTRL+click".Loc());
+                        ImGui.Separator();
+                        if (ImGui.Selectable("Remove group and disband layouts".Loc()) && ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift)
                         {
                             foreach (var l in P.Config.LayoutsL)
                             {
@@ -229,7 +245,7 @@ partial class CGui
                             }
                             groupToRemove = i;
                         }
-                        ImGuiEx.Tooltip("Hold CTRL+click".Loc());
+                        ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
                         if (ImGui.Selectable("Remove group and it's layouts".Loc()) && ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift)
                         {
                             foreach (var l in P.Config.LayoutsL)

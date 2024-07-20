@@ -303,16 +303,17 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 }
                 else
                 {
-                    DisplayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r, e.thicc, e.color, false));
+                    var filled = e.Filled && e.Donut == 0;
+                    DisplayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r, e.thicc, e.color, filled));
                     if (e != null && e.Donut > 0)
                     {
                         var donutR = GetFillStepDonut(e.FillStep);
                         while (donutR < e.Donut)
                         {
-                            DisplayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + donutR, e.thicc, e.color, false));
+                            DisplayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + donutR, e.thicc, e.color, filled));
                             donutR += GetFillStepDonut(e.FillStep);
                         }
-                        DisplayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + e.Donut, e.thicc, e.color, false));
+                        DisplayObjects.Add(new DisplayObjectCircle(cx, cy, z + e.offZ, r + e.Donut, e.thicc, e.color, filled));
                     }
                 }
             }

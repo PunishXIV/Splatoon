@@ -8,7 +8,7 @@ using ECommons.ImGuiMethods;
 using ImGuiNET;
 using Lumina.Data.Parsing.Tex.Buffers;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;

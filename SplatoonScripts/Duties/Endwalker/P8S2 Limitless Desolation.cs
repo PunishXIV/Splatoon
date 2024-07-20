@@ -6,7 +6,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.Schedulers;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;

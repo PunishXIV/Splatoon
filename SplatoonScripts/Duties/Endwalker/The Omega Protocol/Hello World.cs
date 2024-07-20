@@ -12,7 +12,7 @@ using ImGuiNET;
 using Lumina.Data;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public class Hello_World : SplatoonScript
     {
-        public override Metadata? Metadata => new(8, "NightmareXIV");
+        public override Metadata? Metadata => new(9, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => new() { 1122 };
         bool RotPicker = false;
         int counter = 0;

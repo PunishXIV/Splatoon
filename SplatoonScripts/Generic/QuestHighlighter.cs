@@ -8,7 +8,7 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +21,8 @@ public unsafe class QuestHighlighter : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => new();
     Config C => Controller.GetConfig<Config>();
+
+    public override Metadata? Metadata => new(2, "???");
 
     public static class Markers
     {
@@ -206,27 +208,27 @@ public unsafe class QuestHighlighter : SplatoonScript
     {
         ImGui.NewLine();
 
-        SImGuiEx.SizedText("Max 2D Distance:", 125f);
+        ImGuiUtils.SizedText("Max 2D Distance:", 125f);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(250f);
         ImGui.DragInt("##max2DDistance", ref C.MaxDistance2D, 1, 0, 2048);
 
-        SImGuiEx.SizedText("Line Thickness:", 125f);
+        ImGuiUtils.SizedText("Line Thickness:", 125f);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(250f);
         ImGui.DragFloat("##lineThickness", ref C.LineThickness, 0.05f, 0f, 8f);
 
         ImGui.NewLine();
 
-        SImGuiEx.SizedText("Show Target Name:", 125f);
+        ImGuiUtils.SizedText("Show Target Name:", 125f);
         ImGui.SameLine();
         ImGui.Checkbox("##showTargetName", ref C.ShowTargetName);
 
-        SImGuiEx.SizedText("Show Tether:", 125f);
+        ImGuiUtils.SizedText("Show Tether:", 125f);
         ImGui.SameLine();
         ImGui.Checkbox("##showTether", ref C.ShowTether);
 
-        SImGuiEx.SizedText("Show Event Objects:", 125f);
+        ImGuiUtils.SizedText("Show Event Objects:", 125f);
         ImGui.SameLine();
         ImGui.Checkbox("##showEventObjects", ref C.ShowEO);
 
@@ -234,7 +236,7 @@ public unsafe class QuestHighlighter : SplatoonScript
 
         // I originally had this as a table layout, but I didn't like how it expanded to 100% of the width
 
-        SImGuiEx.SizedText("Main Story Quest:", 125f);
+        ImGuiUtils.SizedText("Main Story Quest:", 125f);
         ImGui.SameLine();
         ImGui.Checkbox("Available##showMSQAvailable", ref C.ShowMSQ);
         ImGui.SameLine();
@@ -242,7 +244,7 @@ public unsafe class QuestHighlighter : SplatoonScript
         ImGui.SameLine();
         ImGui.Checkbox("Locked##showMSQLocked", ref C.ShowMSQL);
 
-        SImGuiEx.SizedText("Feature Quest:", 125f);
+        ImGuiUtils.SizedText("Feature Quest:", 125f);
         ImGui.SameLine();
         ImGui.Checkbox("Available##showFQAvailable", ref C.ShowFQ);
         ImGui.SameLine();
@@ -250,7 +252,7 @@ public unsafe class QuestHighlighter : SplatoonScript
         ImGui.SameLine();
         ImGui.Checkbox("Locked##showFQLocked", ref C.ShowFQL);
 
-        SImGuiEx.SizedText("Side Quest:", 125f);
+        ImGuiUtils.SizedText("Side Quest:", 125f);
         ImGui.SameLine();
         ImGui.Checkbox("Available##showSQAvailable", ref C.ShowSQ);
         ImGui.SameLine();

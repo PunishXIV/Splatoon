@@ -10,7 +10,7 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;

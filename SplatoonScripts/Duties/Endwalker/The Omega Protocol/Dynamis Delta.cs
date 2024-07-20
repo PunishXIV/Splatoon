@@ -10,7 +10,7 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utils;
+using Splatoon.Utility;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     {
         public override HashSet<uint> ValidTerritories => new() { 1122 };
 
-        public override Metadata? Metadata => new(8, "NightmareXIV");
+        public override Metadata? Metadata => new(9, "NightmareXIV");
 
         Config Conf => Controller.GetConfig<Config>();
 

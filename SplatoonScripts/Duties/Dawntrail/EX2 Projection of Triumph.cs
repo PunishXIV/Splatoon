@@ -68,7 +68,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
             var originalPos = t.Position;
             var rotatedPos = RotateRelative(originalPos);
             element.SetRefPosition(originalPos);
-            element.overlayText = $"Original: {originalPos}\nRotated:{rotatedPos}";
+            //element.overlayText = $"Original: {originalPos}\nRotated:{rotatedPos}";
             element.overlayVOffset = 2;
             foreach (var x in Donuts.Concat(Circles))
             {

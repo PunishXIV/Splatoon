@@ -1,6 +1,11 @@
 # Everkeep (Extreme)
 
-## [EN] Multidirectional Divide
+## [Script] Projection of Triumph
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX2%20Projection%20of%20Triumph.cs
+```
+
+## [International] Multidirectional Divide
 
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
@@ -8,7 +13,7 @@ Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8k
 ~Lv2~{"Name":"Multidirectional Divide","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Multidirectional Divide Lines H","type":3,"refX":20.0,"offX":-20.0,"radius":4.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"mechanicType":1},{"Name":"Multidirectional Divide Lines V","type":3,"refX":20.0,"offX":-20.0,"radius":2.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37796],"includeRotation":true,"AdditionalRotation":1.5707964,"mechanicType":1}]}
 ```
 
-## [EN] Forward/Backward Half
+## [International] Forward/Backward Half
 
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
@@ -26,7 +31,7 @@ Created by `constmar`, additional helper layouts created by `.leathen.`, on the 
 ~Lv2~{"Name":"Vollok/Sync","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Square","type":3,"refX":-2.0,"offX":2.0,"radius":2.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37720,37722,37768,37769,37780,37785,37786],"includeRotation":true,"mechanicType":1},{"Name":"Square +X","type":3,"Enabled":false,"refX":27.5,"offX":32.5,"radius":2.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37720,37722,37768,37769,37780,37785,37786],"includeRotation":true,"mechanicType":1},{"Name":"Square -Y","type":3,"Enabled":false,"refX":-2.5,"refY":-30.0,"offX":2.5,"offY":-30.0,"radius":2.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37720,37722,37768,37769,37780,37785,37786],"includeRotation":true,"DistanceSourceX":39.14,"mechanicType":1},{"Name":"Square +Y","type":3,"Enabled":false,"refX":-2.5,"refY":30.0,"offX":2.5,"offY":30.0,"radius":2.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37720,37722,37768,37769,37780,37785,37786],"includeRotation":true,"mechanicType":1},{"Name":"Square -X","type":3,"Enabled":false,"refX":-27.5,"offX":-32.5,"radius":2.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37720,37722,37768,37769,37780,37785,37786],"includeRotation":true,"mechanicType":1}]}
 ```
 
-## [EN] Greater Gateway (Fire/Wind Swords)
+## [International] Greater Gateway (Fire/Wind Swords)
 
 Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
@@ -37,7 +42,7 @@ Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8
 ~Lv2~{"Name":"Greater Gateway - WWFF","Group":"EX2 - Everkeep","ZoneLockH":[1201],"DCond":5,"ElementsL":[{"Name":"North Left Outer - Wind","type":3,"refX":-5.0,"refY":50.0,"offX":-5.0,"offY":30.0,"radius":2.5,"color":3355508735,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":122.87493,"DistanceSourceY":66.543396,"DistanceSourceZ":-1.9073486E-06,"DistanceMax":2.0,"mechanicType":5},{"Name":"North Left Inner - Wind","type":3,"refX":-5.0,"refY":50.0,"offX":-5.0,"offY":30.0,"radius":2.5,"color":3355508735,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":126.45091,"DistanceSourceY":69.996925,"DistanceSourceZ":1.9073486E-06,"DistanceMax":2.0,"mechanicType":5},{"Name":"North Right Inner - Fire","type":3,"refX":5.0,"refY":50.0,"offX":5.0,"offY":30.0,"radius":7.5,"color":3355456767,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":130.0576,"DistanceSourceY":73.644966,"DistanceMax":2.0,"mechanicType":1},{"Name":"North Right Outer - Fire","type":3,"refX":5.0,"refY":50.0,"offX":5.0,"offY":30.0,"radius":7.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":133.49307,"DistanceSourceY":77.14258,"DistanceMax":2.0,"mechanicType":1},{"Name":"West Left Outer - Fire","type":3,"refX":-5.0,"refY":50.0,"offX":-5.0,"offY":30.0,"radius":7.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":66.596,"DistanceSourceY":77.013,"DistanceSourceZ":-9.536743E-07,"DistanceMax":2.0,"mechanicType":1},{"Name":"West Left Inner - Fire","type":3,"refX":-5.0,"refY":50.0,"offX":-5.0,"offY":30.0,"radius":7.5,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":70.03704,"DistanceSourceY":73.61331,"DistanceSourceZ":-9.536743E-07,"DistanceMax":2.0,"mechanicType":1},{"Name":"West Right Inner - Wind","type":3,"refX":5.0,"refY":50.0,"offX":5.0,"offY":30.0,"radius":2.5,"color":3355508735,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":73.57553,"DistanceSourceY":70.008484,"DistanceSourceZ":-9.536743E-07,"DistanceMax":2.0,"mechanicType":5},{"Name":"West Right Outer - Wind","type":3,"refX":5.0,"refY":50.0,"offX":5.0,"offY":30.0,"radius":2.5,"color":3355508735,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17067,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":77.043564,"DistanceSourceY":66.54532,"DistanceMax":2.0,"mechanicType":5}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":40.0,"Match":"MapEffect: 5, 16, 32"},{"Type":3,"Duration":5.0,"Match":"VFX vfx/lockon/eff/m0561tag_a0t.avfx spawned on me","MatchDelay":2.0}]}
 ```
 
-## [EN] Half Full
+## [International] Half Full
 
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
@@ -45,7 +50,7 @@ Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8k
 ~Lv2~{"Name":"Half Full","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Half Full L","type":3,"offX":-30.0,"radius":30.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37737],"includeRotation":true,"mechanicType":1},{"Name":"Half Full R","type":3,"offX":30.0,"radius":30.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37736],"includeRotation":true,"mechanicType":1}]}
 ```
 
-## [EN] Half Circuit
+## [International] Half Circuit
 
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
@@ -53,18 +58,19 @@ Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8k
 ~Lv2~{"Name":"Half Circuit","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Half Circuit In","type":1,"radius":10.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37793,37743],"includeRotation":true,"mechanicType":1},{"Name":"Half Circuit Out","type":1,"radius":10.0,"Donut":20.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37792,37742],"includeRotation":true,"mechanicType":1},{"Name":"Half Circuit Left","type":3,"offX":-30.0,"radius":30.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37740],"includeRotation":true,"mechanicType":1},{"Name":"Half Circuit Right","type":3,"offX":30.0,"radius":30.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37739],"includeRotation":true,"mechanicType":1}]}
 ```
 
+## [International] Large Swords
+
+Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
+
+```
+~Lv2~{"Name":"Large Swords","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Square OG","type":3,"refX":-5.0,"offX":5.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go East","type":3,"refX":-5.0,"refY":30.0,"offX":5.0,"offY":30.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go West","type":3,"refX":-5.0,"refY":-30.0,"offX":5.0,"offY":-30.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go South","type":3,"refX":25.0,"offX":35.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go North","type":3,"refX":-35.0,"offX":-25.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1}]}
+```
+
+# Obsolete
 ## [EN] Projection of Triumph
 
 Created by `constmar` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
 
 ```
 ~Lv2~{"Name":"Projection of Triumph","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Line Donuts","type":1,"radius":2.0,"Donut":6.0,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37771],"includeRotation":true,"mechanicType":1},{"Name":"Line Pointblanks","type":1,"radius":4.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37772],"includeRotation":true,"mechanicType":1}]}
-```
-
-## [EN] Large Swords
-
-Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
-
-```
-~Lv2~{"Name":"Large Swords","Group":"EX2 - Everkeep","ZoneLockH":[1201],"ElementsL":[{"Name":"Square OG","type":3,"refX":-5.0,"offX":5.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go East","type":3,"refX":-5.0,"refY":30.0,"offX":5.0,"offY":30.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go West","type":3,"refX":-5.0,"refY":-30.0,"offX":5.0,"offY":-30.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go South","type":3,"refX":25.0,"offX":35.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1},{"Name":"Square Go North","type":3,"refX":-35.0,"offX":-25.0,"radius":5.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":17080,"refActorComparisonType":3,"includeRotation":true,"mechanicType":1}]}
 ```

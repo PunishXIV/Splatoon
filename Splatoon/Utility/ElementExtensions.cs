@@ -1,12 +1,4 @@
-﻿using FFXIVClientStructs;
-using FFXIVClientStructs.FFXIV.Common.Lua;
-using Splatoon.Serializables;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Splatoon.Serializables;
 
 namespace Splatoon.Utility;
 public static class ElementExtensions
@@ -51,7 +43,7 @@ public static class ElementExtensions
         e.originFillColor = value.originFillColor;
         e.endFillColor = value.endFillColor;
     }
-    
+
     public static DisplayStyle GetDisplayStyle(this Element e)
     {
         // Most elements used line fill with Filled = false and need fill migration.
@@ -96,6 +88,11 @@ public static class ElementExtensions
         style.originFillColor = P.Config.ClampFillColorAlpha(style.originFillColor);
         style.endFillColor = P.Config.ClampFillColorAlpha(style.endFillColor);
         return style;
+    }
+
+    public static bool IsStrokeVisible(this DisplayStyle style)
+    {
+        return style.strokeThickness > 0 && (style.strokeColor & 0xFF000000) > 0;
     }
 
     public static bool IsDangerous(this Element e)

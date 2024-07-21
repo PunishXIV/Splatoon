@@ -1,15 +1,10 @@
 ﻿using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
-using ECommons.ImGuiMethods;
 using ECommons.LanguageHelpers;
 using NightmareUI.PrimaryUI;
+using Pictomancy;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Splatoon;
 partial class CGui

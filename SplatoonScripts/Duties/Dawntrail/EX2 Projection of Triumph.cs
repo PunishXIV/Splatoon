@@ -27,6 +27,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
 
     private List<uint> RightMovers = [];
     private List<uint> LeftMovers = [];
+    private int? RotateModifier = null;
 
     public override void OnSetup()
     {
@@ -49,10 +50,16 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         Controller.GetRegisteredElements().Values.Each(x => x.Enabled = false);
         if (Towers.Length == 0)
         {
+            RotateModifier = null;
             LeftMovers.Clear();
             RightMovers.Clear();
             return;
         }
+        if(Donuts.Length + Circles.Length >= 2 && RotateModifier == null)
+        {
+            CalculateModifier();
+        }
+        if (RotateModifier == null) return;
         foreach (var x in Donuts.Concat(Circles))
         {
             var xPos = RotateRelative(x.Position);
@@ -97,6 +104,18 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         }
     }
 
+    void CalculateModifier()
+    {
+        if(Towers.Concat(Circles).Any(x => Vector3.Distance(x.Position, new(85,0,115)) < 3))
+        {
+            RotateModifier = -45;
+        }
+        else
+        {
+            RotateModifier = -45;
+        }
+    }
+
     void Assign(Element e, bool isDonut)
     {
         e.Enabled = true;
@@ -119,7 +138,17 @@ public class EX2_Projection_of_Triumph : SplatoonScript
     private Vector3 RotateRelative(Vector3 s)
     {
         var swapped = new Vector3(s.X, s.Z, s.Y);
-        var rotated = Utils.RotatePoint(100, 100, -45.DegreesToRadians(), swapped);
+        var rotated = Utils.RotatePoint(100, 100, this.RotateModifier.Value.DegreesToRadians(), swapped);
         return new(rotated.X, rotated.Z, rotated.Y);
+    }
+
+    public override void OnSettingsDraw()
+    {
+        ImGuiEx.Text($"""
+            Towers: {Towers.Print()}
+            Circles: {Circles.Print()}
+            Donuts: {Donuts.Print()}
+            RotateModifier: {RotateModifier}
+            """);
     }
 }

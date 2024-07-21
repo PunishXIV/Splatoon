@@ -19,7 +19,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1201];
 
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     private IBattleChara[] Donuts => [.. Svc.Objects.OfType<IBattleChara>().Where(x => x.DataId == 16727)];
 
@@ -36,7 +36,6 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         Controller.RegisterElement("Donut", new(0)
         {
             color = ImGuiEx.Vector4FromRGBA(0xFF8200C8).ToUint(),
-            fillIntensity = 1f,
             refX = 100, refY = 100,
         });
         Controller.RegisterElement("Circle", new(0)
@@ -57,7 +56,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
             RightMovers.Clear();
             return;
         }
-        if(Donuts.Length + Circles.Length >= 2 && RotateModifier == null)
+        if(Donuts.Length + Circles.Length >= 2)
         {
             CalculateModifier();
         }
@@ -108,11 +107,11 @@ public class EX2_Projection_of_Triumph : SplatoonScript
 
     void CalculateModifier()
     {
-        if(Towers.Concat(Circles).Any(x => Vector3.Distance(x.Position, new(85,0,115)) < 3))
+        if(Donuts.Concat(Circles).Any(x => Vector3.Distance(x.Position, new(85,0,115)) < 3))
         {
             RotateModifier = -45;
         }
-        else
+        else if(Donuts.Concat(Circles).Any(x => Vector3.Distance(x.Position, new(85, 0, 85)) < 3))
         {
             RotateModifier = 45;
         }

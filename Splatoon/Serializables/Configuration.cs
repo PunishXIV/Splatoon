@@ -75,8 +75,8 @@ internal class Configuration : IEzConfig
     public bool AutoClipNativeUI = true;
     public bool RenderableZonesValid = false;
     public bool SplatoonLowerZ = false;
-    public int MinFillAlpha = 0x19;
-    public int MaxFillAlpha = 0x64;
+    public int ElementMinFillAlpha = 0;
+    public int ElementMaxFillAlpha = 255;
     public int MaxAlpha = 0xFF;
     [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = new();
@@ -84,7 +84,7 @@ internal class Configuration : IEzConfig
     public uint ClampFillColorAlpha(uint fillColor)
     {
         uint alpha = fillColor >> 24;
-        alpha = Math.Clamp(alpha, (uint)MinFillAlpha, (uint)MaxFillAlpha);
+        alpha = Math.Clamp(alpha, (uint)ElementMinFillAlpha, (uint)ElementMaxFillAlpha);
         return fillColor & 0x00FFFFFF | (alpha << 24);
     }
 

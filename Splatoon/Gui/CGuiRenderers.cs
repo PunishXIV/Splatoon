@@ -70,22 +70,22 @@ partial class CGui
                     ImGuiUtils.SizedText("Minimum Fill Alpha:", CGui.WidthElement);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(200f);
-                    ImGui.SliderInt("##minfillalpha", ref P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
+                    ImGui.SliderInt("##minfillalpha", ref P.Config.ElementMinFillAlpha, 0, P.Config.ElementMaxFillAlpha);
 
                     ImGuiUtils.SizedText("Maximum Fill Alpha:", CGui.WidthElement);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(200f);
-                    ImGui.SliderInt("##maxfillalpha", ref P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
+                    ImGui.SliderInt("##maxfillalpha", ref P.Config.ElementMaxFillAlpha, P.Config.ElementMinFillAlpha, 255);
 
                     ImGuiUtils.SizedText("Maximum Alpha:", CGui.WidthElement);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(200f);
-                    ImGui.SliderInt("##maxalpha", ref P.Config.MaxAlpha, P.Config.MaxFillAlpha, 255);
+                    ImGui.SliderInt("##maxalpha", ref P.Config.MaxAlpha, P.Config.ElementMaxFillAlpha, 255);
                     ImGuiComponents.HelpMarker("The maximum alpha used for drawing.\nThis will only take effect for strokes or if using Alpha Blend Mode 'Add'. ".Loc());
                     // If min == max, users can break ints out of min and max values in the UI. Clamp to sane values for safety.
-                    P.Config.MinFillAlpha = Math.Clamp(P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
-                    P.Config.MaxFillAlpha = Math.Clamp(P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
-                    P.Config.MaxAlpha = Math.Clamp(P.Config.MaxAlpha, P.Config.MaxFillAlpha, 255);
+                    P.Config.ElementMinFillAlpha = Math.Clamp(P.Config.ElementMinFillAlpha, 0, P.Config.ElementMaxFillAlpha);
+                    P.Config.ElementMaxFillAlpha = Math.Clamp(P.Config.ElementMaxFillAlpha, P.Config.ElementMinFillAlpha, 255);
+                    P.Config.MaxAlpha = Math.Clamp(P.Config.MaxAlpha, P.Config.ElementMaxFillAlpha, 255);
 
                     ImGui.Separator();
                     foreach (MechanicType mech in MechanicTypes.Values)

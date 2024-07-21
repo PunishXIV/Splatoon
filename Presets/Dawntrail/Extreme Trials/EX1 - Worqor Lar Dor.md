@@ -100,3 +100,12 @@ Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8
 ```
 ~Lv2~{"Name":"Ice void zone","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"","type":2,"refX":78.0,"refY":85.0,"refZ":9.536743E-07,"offX":78.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":122.0,"refY":85.0,"refZ":9.536743E-07,"offX":122.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":124.0,"refY":117.0,"refZ":-1.9073486E-06,"offX":76.0,"offY":117.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159}],"UseTriggers":true,"Triggers":[{"Type":2,"Match":"(12854>36817)"}]}
 ```
+
+## [International] Volcanic Eruption
+
+Created by `.leathen.` on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy).
+
+```
+~Lv2~{"Name":"Volcanic Eruption - East","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"Volcano East","refX":112.22994,"refY":100.365715,"refZ":-9.536743E-07,"radius":20.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"Match":"MapEffect: 14, 64, 128"}]}
+~Lv2~{"Name":"Volcanic Eruption - West","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"Volcano East","refX":87.0,"refY":100.0,"refZ":-9.536743E-07,"radius":20.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"Match":"MapEffect: 15, 64, 128"}]}
+```

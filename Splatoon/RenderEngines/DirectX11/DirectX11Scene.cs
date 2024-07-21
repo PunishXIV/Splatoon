@@ -1,7 +1,4 @@
-﻿using Dalamud.Game.ClientState.Conditions;
-using FFXIVClientStructs.FFXIV.Component.GUI;
-using Splatoon.RenderEngines.DirectX11.Render;
-using Splatoon.Structures;
+﻿using Pictomancy;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 
@@ -10,37 +7,21 @@ namespace Splatoon.RenderEngines.DirectX11;
 internal unsafe class DirectX11Scene : IDisposable
 {
     private readonly TimeSpan ErrorLogFrequency = TimeSpan.FromSeconds(30);
-    private const int RADIAL_SEGMENTS_PER_RADIUS_UNIT = 20;
     private const int MINIMUM_CIRCLE_SEGMENTS = 24;
-    public const int MAXIMUM_CIRCLE_SEGMENTS = 240;
-    private Renderer renderer;
-    private AutoClipZones autoClipZones;
     private int uid = 0;
     private DateTime lastErrorLogTime = DateTime.MinValue;
     private DirectX11Renderer DirectX11Renderer;
     public DirectX11Scene(DirectX11Renderer dx11renderer)
     {
-        this.DirectX11Renderer = dx11renderer;
-        renderer = new Renderer();
-        autoClipZones = new AutoClipZones(renderer);
+        DirectX11Renderer = dx11renderer;
         Svc.PluginInterface.UiBuilder.Draw += Draw;
+        Svc.PluginInterface.Create<PictoService>();
     }
 
     public void Dispose()
     {
-        renderer.Dispose();
         Svc.PluginInterface.UiBuilder.Draw -= Draw;
-    }
-
-    // Dynamic LoD for circles and cones
-    // TODO it would be would be more efficient to adjust based on camera distance
-    public static int RadialSegments(float radius, float angleRadians = MathF.PI * 2)
-    {
-        var angularPercent = angleRadians / (MathF.PI * 2);
-        var segments = (int)(RADIAL_SEGMENTS_PER_RADIUS_UNIT * radius * angularPercent);
-        var minimumSegments = Math.Max((int)(MINIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
-        var maximumSegments = Math.Max((int)(MAXIMUM_CIRCLE_SEGMENTS * angularPercent), 1);
-        return Math.Clamp(segments, minimumSegments, maximumSegments);
+        PictoService.Dispose();
     }
 
     private void Draw()
@@ -48,28 +29,18 @@ internal unsafe class DirectX11Scene : IDisposable
         if (!DirectX11Renderer.Enabled) return;
         try
         {
-            if (Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent] || Svc.Condition[ConditionFlag.WatchingCutscene78])
-            {
-                return;
-            }
-
-            var fadeMiddleWidget = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FadeMiddle", 1);
-            var fadeBlackWidget = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FadeBlack", 1);
-            if ((fadeMiddleWidget != null && fadeMiddleWidget->IsVisible) ||
-                (fadeBlackWidget != null && fadeBlackWidget->IsVisible))
-            {
-                return;
-            }
-
             uid = 0;
             try
             {
-                var renderTarget = Direct3DDraw();
+                var texture = PictomancyDraw();
 
                 void Draw()
                 {
-                    // Draw pre-rendered shape fills.
-                    ImGui.GetWindowDrawList().AddImage(renderTarget.ImguiHandle, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2(renderTarget.Size.X, renderTarget.Size.Y));
+                    // Draw pre-rendered pictomancy texture with shapes and strokes.
+                    if (texture.HasValue)
+                    {
+                        ImGui.GetWindowDrawList().AddImage((nint)texture?.TextureId, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2((float)texture?.Width, (float)texture?.Height));
+                    }
 
                     // Draw dots and text last because they are most critical to be legible.
                     foreach (var element in DirectX11Renderer.DisplayObjects)
@@ -95,6 +66,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 {
                     CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
                 }
+
                 if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
                 {
                     Draw();
@@ -130,29 +102,64 @@ internal unsafe class DirectX11Scene : IDisposable
         }
     }
 
-    private RenderTarget Direct3DDraw()
+    private PctTexture? PictomancyDraw()
     {
+        PctTexture? texture = null;
         try
         {
-            renderer.BeginFrame();
+            PctDrawHints hints = new(
+                autoDraw: false,
+                maxAlpha: (byte)P.Config.MaxAlpha,
+                alphaBlendMode: P.Config.AlphaBlendMode,
+                clipNativeUI: P.Config.AutoClipNativeUI);
+            using var drawList = PictoService.Draw(ImGui.GetWindowDrawList(), hints);
+            if (drawList == null)
+                return null;
             foreach (var element in DirectX11Renderer.DisplayObjects)
             {
                 if (element is DisplayObjectFan elementFan)
                 {
-                    var totalAngle = elementFan.angleMax - elementFan.angleMin;
-                    var segments = RadialSegments(elementFan.outerRadius, totalAngle);
-                    renderer.DrawFan(elementFan, segments);
+                    if (elementFan.style.filled)
+                        drawList.AddFanFilled(
+                            elementFan.origin,
+                            elementFan.innerRadius,
+                            elementFan.outerRadius,
+                            elementFan.angleMin,
+                            elementFan.angleMax,
+                            elementFan.style.originFillColor,
+                            elementFan.style.endFillColor);
+                    if (elementFan.style.IsStrokeVisible())
+                        drawList.AddFan(
+                            elementFan.origin,
+                            elementFan.innerRadius,
+                            elementFan.outerRadius,
+                            elementFan.angleMin,
+                            elementFan.angleMax,
+                            elementFan.style.strokeColor,
+                            thickness: elementFan.style.strokeThickness);
                 }
                 else if (element is DisplayObjectLine elementLine)
                 {
-                    renderer.DrawLine(elementLine);
+                    if (elementLine.style.filled)
+                        drawList.AddLineFilled(
+                        elementLine.start,
+                        elementLine.stop,
+                        elementLine.radius,
+                        elementLine.style.originFillColor,
+                        elementLine.style.endFillColor);
+                    if (elementLine.style.IsStrokeVisible())
+                        drawList.AddLine(
+                        elementLine.start,
+                        elementLine.stop,
+                        elementLine.radius,
+                        elementLine.style.strokeColor);
                 }
             }
             foreach (var zone in P.Config.ClipZones)
             {
-                renderer.AddClipZone(zone.Rect);
+                drawList.AddClipZone(zone.Rect);
             }
-            if (P.Config.AutoClipNativeUI) autoClipZones.Update();
+            texture = drawList.DrawToTexture();
         }
         catch (Exception e)
         {
@@ -170,8 +177,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 }
             }
         }
-
-        return renderer.EndFrame();
+        return texture;
     }
 
     public void DrawTextWorld(DisplayObjectText e)

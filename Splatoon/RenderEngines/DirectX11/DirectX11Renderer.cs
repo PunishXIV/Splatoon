@@ -1,10 +1,8 @@
-﻿using ECommons.ExcelServices.TerritoryEnumeration;
-using ECommons.GameFunctions;
+﻿using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using Splatoon.Memory;
 using Splatoon.Serializables;
-using Splatoon.Structures;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 namespace Splatoon.RenderEngines.DirectX11;
@@ -53,24 +51,21 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             DisplayObjects.Add(new DisplayObjectLine(origin, end, 0, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB));
         }
         if (!LayoutUtils.ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
-        if (e.thicc > 0)
+        if (r > 0)
         {
-            if (r > 0)
+            if (e.Donut > 0)
             {
-                if (e.Donut > 0)
-                {
-                    DisplayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.GetDisplayStyleWithOverride()));
-                }
-                else
-                {
-                    var style = e.GetDisplayStyleWithOverride();
-                    DisplayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, style));
-                }
+                DisplayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.GetDisplayStyleWithOverride()));
             }
             else
             {
-                DisplayObjects.Add(new DisplayObjectDot(cx, z + e.offZ, cy, e.thicc, e.color));
+                var style = e.GetDisplayStyleWithOverride();
+                DisplayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, style));
             }
+        }
+        else
+        {
+            DisplayObjects.Add(new DisplayObjectDot(cx, z + e.offZ, cy, e.thicc, e.color));
         }
         if (e.overlayText.Length > 0)
         {

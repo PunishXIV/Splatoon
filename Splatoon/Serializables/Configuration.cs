@@ -1,13 +1,9 @@
-﻿using Dalamud.Configuration;
-using Dalamud.Interface.ImGuiNotification;
-using ECommons.Configuration;
+﻿using ECommons.Configuration;
 using Newtonsoft.Json;
-using Splatoon.Gui;
+using Pictomancy;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utility;
-using System.Drawing;
 using System.Threading;
 
 namespace Splatoon;
@@ -139,7 +135,7 @@ internal class Configuration : IEzConfig
             {
                 Copy(Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Archive.json"), archiveFile);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 e.LogWarning();
             }
@@ -170,7 +166,7 @@ internal class Configuration : IEzConfig
                 {
                     File.Delete(archiveFile);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     e.Log();
                 }

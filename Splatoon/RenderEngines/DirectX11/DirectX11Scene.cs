@@ -32,8 +32,16 @@ internal unsafe class DirectX11Scene : IDisposable
             uid = 0;
             try
             {
+                var texture = PictomancyDraw();
+
                 void Draw()
                 {
+                    // Draw pre-rendered pictomancy texture with shapes and strokes.
+                    if (texture.HasValue)
+                    {
+                        ImGui.GetWindowDrawList().AddImage((nint)texture?.TextureId, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2((float)texture?.Width, (float)texture?.Height));
+                    }
+
                     // Draw dots and text last because they are most critical to be legible.
                     foreach (var element in DirectX11Renderer.DisplayObjects)
                     {
@@ -58,8 +66,6 @@ internal unsafe class DirectX11Scene : IDisposable
                 {
                     CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
                 }
-
-                PictomancyDraw();
 
                 if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
                 {
@@ -96,16 +102,19 @@ internal unsafe class DirectX11Scene : IDisposable
         }
     }
 
-    private void PictomancyDraw()
+    private PctTexture? PictomancyDraw()
     {
+        PctTexture? texture = null;
         try
         {
             PctDrawHints hints = new(
+                autoDraw: false,
                 maxAlpha: (byte)P.Config.MaxAlpha,
                 alphaBlendMode: P.Config.AlphaBlendMode,
                 clipNativeUI: P.Config.AutoClipNativeUI);
             using var drawList = PictoService.Draw(ImGui.GetWindowDrawList(), hints);
-            if (drawList == null) return;
+            if (drawList == null)
+                return null;
             foreach (var element in DirectX11Renderer.DisplayObjects)
             {
                 if (element is DisplayObjectFan elementFan)
@@ -150,6 +159,7 @@ internal unsafe class DirectX11Scene : IDisposable
             {
                 drawList.AddClipZone(zone.Rect);
             }
+            texture = drawList.DrawToTexture();
         }
         catch (Exception e)
         {
@@ -167,6 +177,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 }
             }
         }
+        return texture;
     }
 
     public void DrawTextWorld(DisplayObjectText e)

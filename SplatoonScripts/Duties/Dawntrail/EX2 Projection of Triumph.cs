@@ -19,6 +19,8 @@ public class EX2_Projection_of_Triumph : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1201];
 
+    public override Metadata? Metadata => new(2, "NightmareXIV");
+
     private IBattleChara[] Donuts => [.. Svc.Objects.OfType<IBattleChara>().Where(x => x.DataId == 16727)];
 
     private IBattleChara[] Circles => [.. Svc.Objects.OfType<IBattleChara>().Where(x => x.DataId == 16726)];
@@ -87,7 +89,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
                     var distance = xPos.Z - rotatedPos.Z;
                     if (distance.InRange(0, 8))
                     {
-                        Assign(element, isDonut);
+                        Assign(element, isDonut, distance);
                         //element.overlayText += $"\n{(isDonut ? "Donut" : "Circle")}/{xPos}";
                     }
                 }
@@ -96,7 +98,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
                     var distance = rotatedPos.Z - xPos.Z;
                     if (distance.InRange(0, 8))
                     {
-                        Assign(element, isDonut);
+                        Assign(element, isDonut, distance);
                         //element.overlayText += $"\n{(isDonut ? "Donut" : "Circle")}/{xPos}";
                     }
                 }
@@ -112,13 +114,14 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         }
         else
         {
-            RotateModifier = -45;
+            RotateModifier = 45;
         }
     }
 
-    void Assign(Element e, bool isDonut)
+    void Assign(Element e, bool isDonut, float distance)
     {
         e.Enabled = true;
+        var percent = Math.Clamp(1f - distance / 8f, 0f, 1f);
         if (isDonut)
         {
             e.Filled = false;

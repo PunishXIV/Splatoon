@@ -17,14 +17,14 @@ partial class CGui
     void DisplayRenderers()
     {
         new NuiBuilder()
-            .Section("Common Settings")
+            .Section("Common Settings".Loc())
             .Widget(() =>
             {
                 ImGuiEx.TextWrapped($"""
                     Splatoon supports few renderers. On this page, you can select which ones you want to use, configure them and set one of them as default.
                     Render engine can be set globally and per-element. When set render engine is not available, either due to load error or because user has disabled it, other available render engine will be used automatically.
                     Settings present in this section affect all available renderes.
-                    """);
+                    """.Loc());
                 ImGui.Separator();
                 ImGuiUtils.SizedText("Drawing distance:".Loc(), WidthLayout);
                 ImGui.SameLine();
@@ -32,7 +32,7 @@ partial class CGui
                 ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
                 ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
-                if (ImGui.Button("Edit Draw Zones"))
+                if (ImGui.Button("Edit Draw Zones".Loc()))
                 {
                     P.RenderableZoneSelector.IsOpen = true;
                 }
@@ -40,7 +40,7 @@ partial class CGui
                 ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows".Loc(), ref P.Config.SplatoonLowerZ);
             })
 
-            .Section("DirectX11 Renderer")
+            .Section("DirectX11 Renderer".Loc())
             .Widget(() =>
             {
                 ImGuiEx.Text($"DirectX11 Render made by SourP. ");
@@ -55,29 +55,29 @@ partial class CGui
                     ImGui.SetTooltip("Change how overlapping elements' transparency is blended");
                 }
 
-                ImGui.Checkbox("Automatically clip Splatoon's elements around native UI elements and windows", ref P.Config.AutoClipNativeUI);
+                ImGui.Checkbox("Automatically clip Splatoon's elements around native UI elements and windows".Loc(), ref P.Config.AutoClipNativeUI);
                 ImGuiComponents.HelpMarker("Some native elements are not supported, but they may be added later. Text is currently not clipped.".Loc());
 
-                if (ImGui.Button("Edit Clip Zones"))
+                if (ImGui.Button("Edit Clip Zones".Loc()))
                 {
                     P.ClipZoneSelector.IsOpen = true;
                 }
                 ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will NOT draw elements. Text is currently not clipped.".Loc());
 
-                if (ImGui.CollapsingHeader("Global Style Overrides"))
+                if (ImGui.CollapsingHeader("Global Style Overrides".Loc()))
                 {
                     ImGui.Indent();
-                    ImGuiUtils.SizedText("Minimum Fill Alpha:", CGui.WidthElement);
+                    ImGuiUtils.SizedText("Minimum Fill Alpha:".Loc(), CGui.WidthElement);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(200f);
                     ImGui.SliderInt("##minfillalpha", ref P.Config.MinFillAlpha, 0, P.Config.MaxFillAlpha);
 
-                    ImGuiUtils.SizedText("Maximum Fill Alpha:", CGui.WidthElement);
+                    ImGuiUtils.SizedText("Maximum Fill Alpha:".Loc(), CGui.WidthElement);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(200f);
                     ImGui.SliderInt("##maxfillalpha", ref P.Config.MaxFillAlpha, P.Config.MinFillAlpha, 255);
 
-                    ImGuiUtils.SizedText("Maximum Alpha:", CGui.WidthElement);
+                    ImGuiUtils.SizedText("Maximum Alpha:".Loc(), CGui.WidthElement);
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(200f);
                     ImGui.SliderInt("##maxalpha", ref P.Config.MaxAlpha, P.Config.MaxFillAlpha, 255);
@@ -124,10 +124,10 @@ partial class CGui
                 }
             })
 
-            .Section("Legacy ImGui Renderer")
+            .Section("Legacy ImGui Renderer".Loc())
             .Widget(() =>
             {
-                ImGuiEx.Text($"Default rendering engine. ");
+                ImGuiEx.Text($"Default rendering engine. ".Loc());
                 S.RenderManager.DrawCommonSettings(RenderEngineKind.ImGui_Legacy);
 
                 ImGuiUtils.SizedText("Circle smoothness:".Loc(), WidthLayout);

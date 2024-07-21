@@ -1,4 +1,5 @@
-﻿using Splatoon.Serializables;
+﻿using ECommons.LanguageHelpers;
+using Splatoon.Serializables;
 using Splatoon.Structures;
 using System;
 using System.Collections.Generic;
@@ -62,15 +63,15 @@ public abstract class RenderEngine : IDisposable
         ImGuiEx.HelpMarker($"All drawings, unless overriden per element, will be drawn using this render engine.");
         if (LoadError == null)
         {
-            ImGuiEx.Text(EColor.GreenBright, $"Render engine loaded successfully.");
+            ImGuiEx.Text(EColor.GreenBright, $"Render engine loaded successfully.".Loc());
         }
         else
         {
             ImGui.NewLine();
             ImGuiEx.HelpMarker(LoadError.ToString(), EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
             ImGui.SameLine();
-            ImGuiEx.TextWrapped(EColor.RedBright, $"An error occurred during loading this render engine.");
-            ImGuiEx.TextWrapped(EColor.RedBright, $"Any draw calls directed to this render engine will be redirected to either default render engine or ImGui Legacy engine.");
+            ImGuiEx.TextWrapped(EColor.RedBright, $"An error occurred during loading this render engine.".Loc());
+            ImGuiEx.TextWrapped(EColor.RedBright, $"Any draw calls directed to this render engine will be redirected to either default render engine or ImGui Legacy engine.".Loc());
         }
         ImGui.PopID();
     }

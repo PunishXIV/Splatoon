@@ -55,6 +55,8 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 
 # Obsolete
 
+Presets here can be used for testing but are not advised to be used in practice because they've been replaced with something better. Please see above to find the replacement.
+
 ## [EN] Projection of Triumph
 
 ```

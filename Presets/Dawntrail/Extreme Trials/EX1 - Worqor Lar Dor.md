@@ -84,7 +84,7 @@ Derived from [Hector's guide](https://www.youtube.com/watch?v=8HV2dk3jvNo0) on t
 ## [International] Ice Phase Void Zone
 
 ```
-~Lv2~{"Name":"Ice Phase Void Zone","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"","type":2,"refX":78.0,"refY":85.0,"refZ":9.536743E-07,"offX":78.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":122.0,"refY":85.0,"refZ":9.536743E-07,"offX":122.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":124.0,"refY":117.0,"refZ":-1.9073486E-06,"offX":76.0,"offY":117.0,"radius":2.0,"color":4294901986,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159}],"UseTriggers":true,"Triggers":[{"Type":2,"Match":"(12854>36817)"}]}
+~Lv2~{"Name":"Ice Phase Void Zone","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"","type":2,"refX":78.0,"refY":85.0,"refZ":9.536743E-07,"offX":78.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":122.0,"refY":85.0,"refZ":9.536743E-07,"offX":122.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":124.0,"refY":117.0,"refZ":-1.9073486E-06,"offX":76.0,"offY":117.0,"radius":2.0,"color":4294901986,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159}],"UseTriggers":true,"Triggers":[{"Type":2,"Match":"(12854>36817)"}]}
 ```
 
 ## [International] Volcanic Eruption

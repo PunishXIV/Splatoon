@@ -11,7 +11,7 @@ Contributions by `.leathen.`.
 ## [EN] Mouser (Breaking Platforms)
 
 ```
-~Lv2~{"Name":"Mouser","Group":"M1N - Black Cat","ZoneLockH":[1225],"ElementsL":[{"Name":"Tiles","type":3,"refX":5.0,"offX":-5.0,"radius":5.0,"color":3355508725,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorDataID":9020,"refActorRequireCast":true,"refActorCastId":[39275],"refActorUseCastTime":true,"refActorCastTimeMin":0.3,"refActorCastTimeMax":0.7,"refActorComparisonType":3,"includeRotation":true,"onlyUnTargetable":true,"LimitDistanceInvert":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceSourceZ":9.536743E-07,"DistanceMax":5.0,"mechanicType":1}],"Freezing":true,"FreezeFor":10.0,"IntervalBetweenFreezes":0.8}
+~Lv2~{"Name":"Mouser","Group":"M1N - Black Cat","ZoneLockH":[1225],"ElementsL":[{"Name":"Tiles","type":3,"refX":5.0,"offX":-5.0,"radius":5.0,"color":3355508725,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":1.0,"refActorDataID":9020,"refActorRequireCast":true,"refActorCastId":[39275],"refActorUseCastTime":true,"refActorCastTimeMin":0.3,"refActorCastTimeMax":0.7,"refActorComparisonType":3,"includeRotation":true,"onlyUnTargetable":true,"LimitDistanceInvert":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceSourceZ":9.536743E-07,"DistanceMax":5.0,"mechanicType":1}],"Freezing":true,"FreezeFor":10.0,"IntervalBetweenFreezes":0.8}
 ```
 
 ## [EN] One-two Paw (Left/Right)

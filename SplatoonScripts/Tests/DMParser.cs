@@ -13,6 +13,8 @@ public class DMParser : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = new();
 
+    public override Metadata? Metadata => new(1, "NightmareXIV");
+
     public override void OnEnable()
     {
         Svc.Chat.ChatMessage += Chat_ChatMessage;

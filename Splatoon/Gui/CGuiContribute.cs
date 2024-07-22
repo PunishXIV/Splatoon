@@ -24,7 +24,7 @@ internal class Contribute
         ImGuiEx.Text("If you like Splatoon, you may consider contributing in any following way:".Loc());
         ImGui.Separator();
         ImGuiEx.Text("- Contributing combat data of new battles".Loc());
-        ImGuiEx.Text("When a new battle comes, I would greatly benefit from obtaining it's combat data. If you are doing these battles early and wish to contribute combat data, please contact me via Discord to receive instructions on how to do so.");
+        ImGuiEx.Text("When a new battle comes, I would greatly benefit from obtaining it's combat data. If you are doing these battles early and wish to contribute combat data, please contact me via Discord to receive instructions on how to do so.".Loc());
         if (ImGui.Button("Open Discord server##2".Loc()))
         {
             OpenDiscordLink();

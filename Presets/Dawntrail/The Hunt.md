@@ -1,8 +1,23 @@
 # The Hunt (Dawntrail)
 
-## A-Rank Marks
+Contributions by an anonymous user.
 
-Created by an anonymous user.
+## SS-Rank Marks
+
+```
+~Lv2~{"Name":"Arch Aethereater","Group":"The Hunt - DT SS-Rank","ZoneLockH":[1190,1192,1191,1189,1188,1187],"ElementsL":[{"Name":"Arch Aethereater","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"SS Rank","refActorNPCID":13406,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Crystal Incarnation","type":1,"color":3372196352,"Filled":false,"thicc":3.0,"overlayText":"SS Minion","refActorNPCID":13407,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+```
+
+## S-Rank Marks
+
+```
+~Lv2~{"Name":"Yak T'el","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1189],"ElementsL":[{"Name":"Neyoozoteel","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":12754,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"Shaaloani","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1190],"ElementsL":[{"Name":"Sansheya","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13399,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"Heritage Found","Group":"The Hunt - DT-S Ranks","ZoneLockH":[1191],"ElementsL":[{"Name":"Atticus the Primogenitor","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13156,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"Living Memory","Group":"The Hunt - DT-S Ranks","ZoneLockH":[1192],"ElementsL":[{"Name":"The Forecaster","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13437,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+```
+
+## A-Rank Marks
 
 ```
 ~Lv2~{"Name":"Urqopacha","Group":"The Hunt - DT A-Ranks","ZoneLockH":[1187],"ElementsL":[{"Name":"Nechuciho","type":1,"Filled":false,"thicc":3.0,"overlayText":"A-Rank","refActorNPCID":13362,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Queen Hawk","type":1,"Filled":false,"thicc":3.0,"overlayText":"A-Rank","refActorNPCID":13361,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
@@ -14,8 +29,6 @@ Created by an anonymous user.
 ```
 
 ## B-Rank Marks
-
-Created by an anonymous user.
 
 ```
 ~Lv2~{"Name":"Urqopacha","Group":"The Hunt - DT B-Ranks","ZoneLockH":[1187],"ElementsL":[{"Name":"Chupacabra","type":1,"color":3372196352,"Filled":false,"thicc":3.0,"overlayText":"B-Rank","refActorNPCID":13145,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Mad Maguey","type":1,"color":3372196352,"Filled":false,"thicc":3.0,"overlayText":"B-Rank","refActorNPCID":13144,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}

@@ -1,6 +1,6 @@
 # AAC Light-Heavyweight M2 (Honey B. Lovely)
 
-Contributions by `lillylilim` and `mitsune_shiratama`.
+Contributions by `.leathen.`, `lillylilim`, and `mitsune_shiratama`.
 
 ## [International] Tempting Twist (Boss Donut)
 
@@ -8,10 +8,16 @@ Contributions by `lillylilim` and `mitsune_shiratama`.
 ~Lv2~{"Name":"Tempting Twist","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Donut","type":1,"radius":7.0,"Donut":11.0,"overlayPlaceholders":true,"overlayText":"$NAME $CAST","refActorNPCNameID":12685,"refActorRequireCast":true,"refActorCastId":[37222,37228,39738,39740],"refActorComparisonType":6,"onlyVisible":true,"mechanicType":1}]}
 ```
 
-## [EN] Blinding Love (Edge Bee Lines)
+## [International] Blinding Love (Edge Bee Lines)
 
 ```
-~Lv2~{"Name":"Blinding Love","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Edge Bee Line","type":3,"refY":48.0,"radius":4.0,"overlayPlaceholders":true,"overlayText":"$NAME $CAST","refActorName":"*","refActorRequireCast":true,"refActorCastId":[39525,37247,37246,37247,39525,39526],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.7,"refActorUseOvercast":true,"includeRotation":true,"mechanicType":1}]}
+~Lv2~{"Name":"Blinding Love","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Edge Bee Line","type":3,"refY":48.0,"radius":4.0,"fillIntensity":0.208,"originFillColor":1157628159,"endFillColor":1157628159,"overlayPlaceholders":true,"overlayText":"$NAME $CAST","refActorDataID":16939,"refActorRequireCast":true,"refActorCastId":[37246,37247,39525,39526],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":10.0,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true,"mechanicType":1}]}
+```
+
+## [EN] Blow Kiss (Pink Cone)
+
+```
+~Lv2~{"Name":"Blow Kiss","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Kiss Cone","type":4,"radius":25.0,"coneAngleMin":-60,"coneAngleMax":60,"fillIntensity":0.413,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNameIntl":{"En":"Honey B. Lovely"},"refActorRequireCast":true,"refActorCastId":[37235],"includeRotation":true,"onlyVisible":true}]}
 ```
 
 ## [International] Honey Beeline (Boss Center Line)

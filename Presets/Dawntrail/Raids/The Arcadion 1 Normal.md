@@ -1,6 +1,6 @@
 # AAC Light-Heavyweight M1 (Black Cat)
 
-Contributions by `.leathen.`.
+Contributions by `aimsucks` and `.leathen.`.
 
 ## [EN] Predaceous Pounce (Charge AOEs)
 

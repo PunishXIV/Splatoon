@@ -77,7 +77,13 @@ public class DirectX11DisplayObjects
             this.startStyle = startStyle;
             this.endStyle = endStyle;
         }
-
+        public float Length
+        {
+            get
+            {
+                return (stop - start).Length();
+            }
+        }
         public Vector3 Direction
         {
             get
@@ -107,10 +113,10 @@ public class DirectX11DisplayObjects
             {
                 return [
                     (start - PerpendicularRadius).ToVector2(),
-                (start + PerpendicularRadius).ToVector2(),
-                (stop - PerpendicularRadius).ToVector2(),
-                (stop + PerpendicularRadius).ToVector2(),
-            ];
+                    (start + PerpendicularRadius).ToVector2(),
+                    (stop - PerpendicularRadius).ToVector2(),
+                    (stop + PerpendicularRadius).ToVector2(),
+                ];
             }
         }
     }

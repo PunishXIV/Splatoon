@@ -55,19 +55,18 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         {
             if (e.Donut > 0)
             {
-                DisplayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.GetDisplayStyleWithOverride()));
+                DisplayObjects.Add(new DisplayObjectDonut(new(cx, z + e.offZ, cy), r, e.Donut, e.GetDisplayStyleWithOverride(go)));
             }
             else
             {
-                var style = e.GetDisplayStyleWithOverride();
-                DisplayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, style));
+                DisplayObjects.Add(new DisplayObjectCircle(new(cx, z + e.offZ, cy), r, e.GetDisplayStyleWithOverride(go)));
             }
         }
         else
         {
             DisplayObjects.Add(new DisplayObjectDot(cx, z + e.offZ, cy, e.thicc, e.color));
         }
-        if (e.overlayText.Length > 0)
+        if (e.overlayPlaceholders && e.overlayText.Length > 0)
         {
             var text = e.overlayText;
             if (go != null)
@@ -78,7 +77,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
     }
 
-    internal void DrawCone(Element e, Vector3 origin, float? radius = null, float baseAngle = 0f)
+    internal void DrawCone(Element e, Vector3 origin, float? radius = null, float baseAngle = 0f, IGameObject go = null)
     {
         if (e.coneAngleMax > e.coneAngleMin)
         {
@@ -108,11 +107,11 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 }
                 DisplayObjects.Add(new DisplayObjectLine(center, end, 0, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB));
             }
-            DisplayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.GetDisplayStyleWithOverride()));
+            DisplayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.GetDisplayStyleWithOverride(go)));
         }
     }
 
-    internal void AddRotatedLine(Vector3 tPos, float angle, Element e, float aradius, float hitboxRadius)
+    internal void AddRotatedLine(Vector3 tPos, float angle, Element e, float aradius, float hitboxRadius, IGameObject go = null)
     {
         if (e.includeRotation)
         {
@@ -136,7 +135,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     tPos.Y + e.offY,
                     tPos.Z + e.offZ));
 
-                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
+                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(go), e.LineEndA, e.LineEndB);
                 DisplayObjects.Add(line);
             }
         }
@@ -170,15 +169,15 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
                     DrawCircle(e, pointPos.X, pointPos.Y, pointPos.Z, radius, e.includeRotation ? Svc.ClientState.LocalPlayer.Rotation : 0f,
-                        e.overlayPlaceholders ? Svc.ClientState.LocalPlayer : null);
+                        Svc.ClientState.LocalPlayer);
                 }
                 else if (e.type == 3)
                 {
-                    AddRotatedLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.Rotation, e, radius, 0f);
+                    AddRotatedLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.Rotation, e, radius, 0f, Svc.ClientState.LocalPlayer);
                 }
                 else if (e.type == 4)
                 {
-                    DrawCone(e, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.Rotation);
+                    DrawCone(e, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.Rotation, Svc.ClientState.LocalPlayer);
                 }
             }
             else if (e.refActorType == 2 && Svc.Targets.Target != null
@@ -191,19 +190,19 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     {
                         DrawCircle(e, Svc.Targets.Target.GetPositionXZY().X, Svc.Targets.Target.GetPositionXZY().Y,
                             Svc.Targets.Target.GetPositionXZY().Z, radius, e.includeRotation ? Svc.Targets.Target.Rotation : 0f,
-                            e.overlayPlaceholders ? Svc.Targets.Target : null);
+                            Svc.Targets.Target);
                     }
                     else if (e.type == 3)
                     {
                         var angle = e.FaceMe ?
                                             (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                             : Svc.Targets.Target.Rotation;
-                        AddRotatedLine(Svc.Targets.Target.GetPositionXZY(), angle, e, radius, Svc.Targets.Target.HitboxRadius);
+                        AddRotatedLine(Svc.Targets.Target.GetPositionXZY(), angle, e, radius, Svc.Targets.Target.HitboxRadius, Svc.Targets.Target);
                     }
                     else if (e.type == 4)
                     {
                         var baseAngle = e.FaceMe ? (180 - (MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians() : Svc.Targets.Target.Rotation;
-                        DrawCone(e, Svc.Targets.Target.GetPositionXZY(), radius, baseAngle);
+                        DrawCone(e, Svc.Targets.Target.GetPositionXZY(), radius, baseAngle, Svc.Targets.Target);
                     }
                 }
             }
@@ -228,21 +227,21 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                             {
                                 DrawCircle(e, a.GetPositionXZY().X, a.GetPositionXZY().Y, a.GetPositionXZY().Z, aradius,
                                     e.includeRotation ? a.Rotation : 0f,
-                                    e.overlayPlaceholders ? a : null);
+                                    a);
                             }
                             else if (e.type == 3)
                             {
                                 var angle = e.FaceMe ?
                                             (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                             : a.Rotation;
-                                AddRotatedLine(a.GetPositionXZY(), angle, e, aradius, a.HitboxRadius);
+                                AddRotatedLine(a.GetPositionXZY(), angle, e, aradius, a.HitboxRadius, a);
                             }
                             else if (e.type == 4)
                             {
                                 var baseAngle = e.FaceMe ?
                                     (180 - (MathHelper.GetRelativeAngle(a.Position.ToVector2(), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                                     : (a.Rotation);
-                                DrawCone(e, a.GetPositionXZY(), aradius, baseAngle);
+                                DrawCone(e, a.GetPositionXZY(), aradius, baseAngle, a);
                             }
                         }
                     }

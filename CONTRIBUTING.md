@@ -20,6 +20,10 @@ If you would add new functions, please create own classes for them and keep them
 ### No configuration resets
 Users should not experience any partial or full configuration resets upon updating.
 
+### Plugin-specific requirements
+- Do not modify Legacy render engine (with the exception of addition of new element types)
+- If you want to add an additional element type, it needs to be added to all existing render engines
+
 ## Most welcomed changes
 Please feel free to:
 - Correct spelling mistakes

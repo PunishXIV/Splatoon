@@ -119,40 +119,11 @@ internal unsafe class DirectX11Scene : IDisposable
             {
                 if (element is DisplayObjectFan elementFan)
                 {
-                    if (elementFan.style.filled)
-                        drawList.AddFanFilled(
-                            elementFan.origin,
-                            elementFan.innerRadius,
-                            elementFan.outerRadius,
-                            elementFan.angleMin,
-                            elementFan.angleMax,
-                            elementFan.style.originFillColor,
-                            elementFan.style.endFillColor);
-                    if (elementFan.style.IsStrokeVisible())
-                        drawList.AddFan(
-                            elementFan.origin,
-                            elementFan.innerRadius,
-                            elementFan.outerRadius,
-                            elementFan.angleMin,
-                            elementFan.angleMax,
-                            elementFan.style.strokeColor,
-                            thickness: elementFan.style.strokeThickness);
+                    DrawFan(elementFan, drawList);
                 }
                 else if (element is DisplayObjectLine elementLine)
                 {
-                    if (elementLine.style.filled)
-                        drawList.AddLineFilled(
-                        elementLine.start,
-                        elementLine.stop,
-                        elementLine.radius,
-                        elementLine.style.originFillColor,
-                        elementLine.style.endFillColor);
-                    if (elementLine.style.IsStrokeVisible())
-                        drawList.AddLine(
-                        elementLine.start,
-                        elementLine.stop,
-                        elementLine.radius,
-                        elementLine.style.strokeColor);
+                    DrawLine(elementLine, drawList);
                 }
             }
             foreach (var zone in P.Config.ClipZones)
@@ -178,6 +149,98 @@ internal unsafe class DirectX11Scene : IDisposable
             }
         }
         return texture;
+    }
+
+    public void DrawFan(DisplayObjectFan fan, PctDrawList drawList)
+    {
+        if (fan.style.filled)
+            drawList.AddFanFilled(
+                fan.origin,
+                fan.innerRadius,
+                fan.outerRadius,
+                fan.angleMin,
+                fan.angleMax,
+                fan.style.originFillColor,
+                fan.style.endFillColor);
+        if (fan.style.IsStrokeVisible())
+            drawList.AddFan(
+                fan.origin,
+                fan.innerRadius,
+                fan.outerRadius,
+                fan.angleMin,
+                fan.angleMax,
+                fan.style.strokeColor,
+                thickness: fan.style.strokeThickness);
+        if (fan.style.castFraction > 0)
+        {
+            if (fan.style.animation.kind is Serializables.CastAnimationKind.Pulse)
+            {
+                var size = fan.style.animation.size + fan.outerRadius - fan.innerRadius;
+                var pulsePosition = size * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % fan.style.animation.frequency) / fan.style.animation.frequency;
+                drawList.AddFanFilled(
+                    fan.origin,
+                    MathF.Max(fan.innerRadius, fan.innerRadius + pulsePosition - fan.style.animation.size),
+                    MathF.Min(fan.outerRadius, fan.innerRadius + pulsePosition),
+                    fan.angleMin,
+                    fan.angleMax,
+                    fan.style.animation.color & 0x00FFFFFF,
+                    fan.style.animation.color);
+            }
+            else if (fan.style.animation.kind is Serializables.CastAnimationKind.Fill)
+            {
+                var size = fan.outerRadius - fan.innerRadius;
+                var castRadius = size * fan.style.castFraction;
+                drawList.AddFanFilled(
+                    fan.origin,
+                    fan.innerRadius,
+                    fan.innerRadius + castRadius,
+                    fan.angleMin,
+                    fan.angleMax,
+                    fan.style.animation.color,
+                    fan.style.animation.color);
+            }
+        }
+    }
+
+    public void DrawLine(DisplayObjectLine line, PctDrawList drawList)
+    {
+        if (line.style.filled)
+            drawList.AddLineFilled(
+            line.start,
+            line.stop,
+            line.radius,
+            line.style.originFillColor,
+            line.style.endFillColor);
+        if (line.style.IsStrokeVisible())
+            drawList.AddLine(
+            line.start,
+            line.stop,
+            line.radius,
+            line.style.strokeColor);
+        if (line.style.castFraction > 0)
+        {
+            if (line.style.animation.kind is Serializables.CastAnimationKind.Pulse)
+            {
+                var length = line.style.animation.size + line.Length;
+                var pulsePosition = length * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % line.style.animation.frequency) / line.style.animation.frequency;
+                drawList.AddLineFilled(
+                    line.start + line.Direction * MathF.Max(0, pulsePosition - line.style.animation.size),
+                    line.start + line.Direction * MathF.Min(pulsePosition, line.Length),
+                    line.radius,
+                    line.style.animation.color & 0x00FFFFFF,
+                    line.style.animation.color);
+            }
+            else if (line.style.animation.kind is Serializables.CastAnimationKind.Fill)
+            {
+                var castLength = line.style.castFraction * line.Length;
+                drawList.AddLineFilled(
+                    line.start,
+                    line.start + line.Direction * castLength,
+                    line.radius,
+                    line.style.animation.color,
+                    line.style.animation.color);
+            }
+        }
     }
 
     public void DrawTextWorld(DisplayObjectText e)

@@ -11,7 +11,7 @@ Contributions by `constmar`, `.leathen.`, and `limiana`.
 ## [International] Ice Boulder
 
 ```
-~Lv2~{"Name":"Ice Boulder","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"ElementsL":[{"Name":"Ice Boulder Cast","type":1,"Enabled":false,"radius":13.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[39261],"onlyVisible":true},{"Name":"Ice Boulder Radius","type":1,"radius":13.0,"color":1342242792,"fillIntensity":1.0,"originFillColor":1677721855,"endFillColor":1677721855,"refActorModelID":3090,"refActorRequireCast":true,"refActorCastReverse":true,"refActorCastId":[39261],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":15.0,"refActorUseOvercast":true,"refActorObjectLife":true,"refActorLifetimeMin":2.5,"refActorLifetimeMax":99.0,"refActorComparisonType":1,"onlyVisible":true}],"UseTriggers":true}
+~Lv2~{"Name":"Ice Boulder","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"ElementsL":[{"Name":"Ice Boulder Cast","type":1,"Enabled":false,"radius":13.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[39261],"onlyVisible":true},{"Name":"Ice Boulder Radius","type":1,"radius":13.0,"color":1342242792,"fillIntensity":0.4,"originFillColor":1677721855,"endFillColor":1677721855,"refActorModelID":3090,"refActorRequireCast":true,"refActorCastReverse":true,"refActorCastId":[39261],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":15.0,"refActorUseOvercast":true,"refActorObjectLife":true,"refActorLifetimeMin":2.5,"refActorLifetimeMax":99.0,"refActorComparisonType":1,"onlyVisible":true}],"UseTriggers":true}
 ```
 
 ## [International] Spikesickle Starting Position
@@ -72,7 +72,7 @@ Derived from [Hector's guide](https://www.youtube.com/watch?v=8HV2dk3jvNo0) on t
 ## [International] Thunderous Breath
 
 ```
-~Lv2~{"Name":"Thunderous Breath","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"ElementsL":[{"Name":"Thunderous Breath","type":3,"offY":40.0,"radius":2.5,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":16770,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true,"mechanicType":1}]}
+~Lv2~{"Name":"Thunderous Breath","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"ElementsL":[{"Name":"Thunderous Breath","type":3,"offY":40.0,"radius":2.5,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159,"refActorDataID":16770,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true,"mechanicType":1}]}
 ```
 
 ## [International] Arcane Sphere
@@ -84,7 +84,7 @@ Derived from [Hector's guide](https://www.youtube.com/watch?v=8HV2dk3jvNo0) on t
 ## [International] Ice Phase Void Zone
 
 ```
-~Lv2~{"Name":"Ice Phase Void Zone","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"","type":2,"refX":78.0,"refY":85.0,"refZ":9.536743E-07,"offX":78.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":122.0,"refY":85.0,"refZ":9.536743E-07,"offX":122.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":124.0,"refY":117.0,"refZ":-1.9073486E-06,"offX":76.0,"offY":117.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159}],"UseTriggers":true,"Triggers":[{"Type":2,"Match":"(12854>36817)"}]}
+~Lv2~{"Name":"Ice Phase Void Zone","Group":"EX1 - Worqor Lar Dor","ZoneLockH":[1196],"DCond":5,"ElementsL":[{"Name":"","type":2,"refX":78.0,"refY":85.0,"refZ":9.536743E-07,"offX":78.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":1.0,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":122.0,"refY":85.0,"refZ":9.536743E-07,"offX":122.0,"offY":115.0,"radius":2.0,"color":4294901986,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159},{"Name":"","type":2,"refX":124.0,"refY":117.0,"refZ":-1.9073486E-06,"offX":76.0,"offY":117.0,"radius":2.0,"color":4294901986,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159}],"UseTriggers":true,"Triggers":[{"Type":2,"Match":"(12854>36817)"}]}
 ```
 
 ## [International] Volcanic Eruption

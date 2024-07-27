@@ -5,6 +5,7 @@ SplatoonScriptsOfficial.Generic@ShowEmote,2,https://github.com/PunishXIV/Splatoo
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
+SplatoonScriptsOfficial.Tests@DMParser,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@EX2_Projection_of_Triumph,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX2 Projection of Triumph.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_Wrath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Wrath.cs
 SplatoonScriptsOfficial.Duties.Endwalker@Aloalo_Bombs,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Aloalo Bombs.cs

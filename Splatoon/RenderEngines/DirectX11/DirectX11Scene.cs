@@ -32,10 +32,10 @@ internal unsafe class DirectX11Scene : IDisposable
             uid = 0;
             try
             {
-                var texture = PictomancyDraw();
 
                 void Draw()
                 {
+                    var texture = PictomancyDraw();
                     // Draw pre-rendered pictomancy texture with shapes and strokes.
                     if (texture.HasValue)
                     {
@@ -61,7 +61,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
                 ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
                 ImGui.Begin("Splatoon DirectX11 Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
-                    | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings);
+                    | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing);
                 if (P.Config.SplatoonLowerZ)
                 {
                     CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());

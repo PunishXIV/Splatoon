@@ -33,9 +33,8 @@ internal unsafe class DirectX11Scene : IDisposable
             try
             {
 
-                void Draw()
+                void Draw(PctTexture? texture)
                 {
-                    var texture = PictomancyDraw();
                     // Draw pre-rendered pictomancy texture with shapes and strokes.
                     if (texture.HasValue)
                     {
@@ -62,6 +61,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
                 ImGui.Begin("Splatoon DirectX11 Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
                     | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing);
+                var texture = PictomancyDraw();
                 if (P.Config.SplatoonLowerZ)
                 {
                     CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
@@ -69,14 +69,14 @@ internal unsafe class DirectX11Scene : IDisposable
 
                 if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
                 {
-                    Draw();
+                    Draw(texture);
                 }
                 else
                 {
                     foreach (var e in P.Config.RenderableZones)
                     {
                         ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
-                        Draw();
+                        Draw(texture);
                         ImGui.PopClipRect();
                     }
                 }

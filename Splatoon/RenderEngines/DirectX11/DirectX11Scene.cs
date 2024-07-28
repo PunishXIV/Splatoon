@@ -1,4 +1,5 @@
 ﻿using Pictomancy;
+using Splatoon.Serializables;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 
@@ -140,19 +141,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 }
                 else if (element is DisplayObjectLine elementLine)
                 {
-                    if (elementLine.style.filled)
-                        drawList.AddLineFilled(
-                        elementLine.start,
-                        elementLine.stop,
-                        elementLine.radius,
-                        elementLine.style.originFillColor,
-                        elementLine.style.endFillColor);
-                    if (elementLine.style.IsStrokeVisible())
-                        drawList.AddLine(
-                        elementLine.start,
-                        elementLine.stop,
-                        elementLine.radius,
-                        elementLine.style.strokeColor);
+                    DrawLine(elementLine, drawList);
                 }
             }
             foreach (var zone in P.Config.ClipZones)
@@ -178,6 +167,54 @@ internal unsafe class DirectX11Scene : IDisposable
             }
         }
         return texture;
+    }
+
+    public void DrawLine(DisplayObjectLine line, PctDrawList drawList)
+    {
+        if (line.radius == 0)
+        {
+            drawList.PathLineTo(line.start);
+            drawList.PathLineTo(line.stop);
+            drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
+
+            float arrowScale = MathF.Max(1, line.style.strokeThickness / 7f);
+            if (line.startStyle == LineEnd.Arrow)
+            {
+                var arrowStart = line.start + arrowScale * 0.4f * line.Direction;
+                var offset = arrowScale * 0.3f * line.Perpendicular;
+                drawList.PathLineTo(arrowStart + offset);
+                drawList.PathLineTo(line.start);
+                drawList.PathLineTo(arrowStart - offset);
+                drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
+            }
+
+            if (line.endStyle == LineEnd.Arrow)
+            {
+                var arrowStart = line.stop - arrowScale * 0.4f * line.Direction;
+                var offset = arrowScale * 0.3f * line.Perpendicular;
+                drawList.PathLineTo(arrowStart + offset);
+                drawList.PathLineTo(line.stop);
+                drawList.PathLineTo(arrowStart - offset);
+                drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
+            }
+        }
+        else
+        {
+            if (line.style.filled)
+                drawList.AddLineFilled(
+                    line.start,
+                    line.stop,
+                    line.radius,
+                    line.style.originFillColor,
+                    line.style.endFillColor);
+            if (line.style.IsStrokeVisible())
+                drawList.AddLine(
+                    line.start,
+                    line.stop,
+                    line.radius,
+                    line.style.strokeColor,
+                    thickness: line.style.strokeThickness);
+        }
     }
 
     public void DrawTextWorld(DisplayObjectText e)

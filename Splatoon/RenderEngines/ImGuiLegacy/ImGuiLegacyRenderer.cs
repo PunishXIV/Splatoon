@@ -240,7 +240,6 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             if (e.coneAngleMax > e.coneAngleMin)
             {
                 var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
-
                 if (P.Config.FillCone)
                 {
                     var baseAngle = e.FaceMe ? MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()).DegreesToRadians() + MathF.PI : 0;

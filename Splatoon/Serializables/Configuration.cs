@@ -25,7 +25,6 @@ internal class Configuration : IEzConfig
     public RenderEngineKind RenderEngineKind = RenderEngineKind.DirectX11;
     public List<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];
 
-    [Obsolete] public Dictionary<string, Layout> Layouts = new Dictionary<string, Layout>(); //never delete
     public List<Layout> LayoutsL = new();
     public List<string> GroupOrder = new();
     public bool dumplog = false;
@@ -52,7 +51,7 @@ internal class Configuration : IEzConfig
     public float AltDonutStep = 0.01f;
     public bool AltConeStepOverride = false;
     public int AltConeStep = 1;
-    public bool FillCone = true;
+    internal bool FillCone = false;
     public bool UseFullDonutFill = true;
 
     public bool FocusMode = false;

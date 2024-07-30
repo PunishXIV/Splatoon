@@ -216,10 +216,6 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 {
                     AddAlternativeFillingRect(rect, GetFillStepRect(e.FillStep));
                 }
-                else
-                {
-                    DisplayObjects.Add(rect);
-                }
             }
             else
             {
@@ -378,10 +374,6 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 if (P.Config.AltRectFill)
                 {
                     AddAlternativeFillingRect(rect, GetFillStepRect(e.FillStep));
-                }
-                else
-                {
-                    DisplayObjects.Add(rect);
                 }
             }
         }

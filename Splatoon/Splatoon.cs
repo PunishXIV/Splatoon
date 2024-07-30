@@ -588,7 +588,7 @@ public unsafe class Splatoon : IDalamudPlugin
                             ShowUntil = Environment.TickCount64 + (int)(l.FreezeFor * 1000f),
                             ShowAt = Environment.TickCount64 + (int)(l.FreezeDisplayDelay * 1000f)
                         });
-                        l.FreezeInfo.AllowRefreezeAt = Environment.TickCount64 + (int)(l.IntervalBetweenFreezes * 1000f);
+                        l.FreezeInfo.AllowRefreezeAt = Environment.TickCount64 + Math.Max(100, (int)(l.IntervalBetweenFreezes * 1000f));
                     }
                     S.RenderManager.RestoreDisplayObjects();
                 }

@@ -18,12 +18,13 @@ internal class Configuration : IEzConfig
     {
         TypeNameHandling = TypeNameHandling.None,
         Formatting = Formatting.None,
+        ObjectCreationHandling = ObjectCreationHandling.Replace,
     };
 
     public int Version { get; set; } = 2;
 
     public RenderEngineKind RenderEngineKind = RenderEngineKind.DirectX11;
-    public List<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];
+    public HashSet<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];
 
     public List<Layout> LayoutsL = new();
     public List<string> GroupOrder = new();

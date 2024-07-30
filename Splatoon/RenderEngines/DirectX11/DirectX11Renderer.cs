@@ -14,6 +14,11 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
 
     internal DirectX11Renderer()
     {
+        if(!Enabled)
+        {
+            this.LoadError = new RenderEngineDisabledException();
+            return;
+        }
         try
         {
             DirectX11Scene = new(this);

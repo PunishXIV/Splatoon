@@ -64,14 +64,28 @@ public abstract class RenderEngine : IDisposable
         if (LoadError == null)
         {
             ImGuiEx.Text(EColor.GreenBright, $"Render engine loaded successfully.".Loc());
+            if(!this.Enabled)
+            {
+                ImGuiEx.TextWrapped(EColor.OrangeBright, $"You have disabled this render engine. However, until you restart Splatoon or game, it will remain loaded but inactive.");
+            }
         }
         else
         {
             ImGui.NewLine();
-            ImGuiEx.HelpMarker(LoadError.ToString(), EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
-            ImGui.SameLine();
-            ImGuiEx.TextWrapped(EColor.RedBright, $"An error occurred during loading this render engine.".Loc());
-            ImGuiEx.TextWrapped(EColor.RedBright, $"Any draw calls directed to this render engine will be redirected to either default render engine or ImGui Legacy engine.".Loc());
+            if(this.LoadError is RenderEngineDisabledException)
+            {
+                ImGuiEx.HelpMarker(LoadError.ToString(), EColor.OrangeBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                ImGui.SameLine();
+                ImGuiEx.TextWrapped(EColor.OrangeBright, $"Render engine was disabled by user.".Loc());
+                ImGuiEx.TextWrapped(EColor.OrangeBright, $"In order to use this render engine again, you must enable it and restart Splatoon or game.".Loc());
+            }
+            else
+            {
+                ImGuiEx.HelpMarker(LoadError.ToString(), EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
+                ImGui.SameLine();
+                ImGuiEx.TextWrapped(EColor.RedBright, $"An error occurred during loading this render engine.".Loc());
+                ImGuiEx.TextWrapped(EColor.RedBright, $"Any draw calls directed to this render engine will be redirected to either default render engine or ImGui Legacy engine.".Loc());
+            }
         }
         ImGui.PopID();
     }

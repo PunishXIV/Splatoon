@@ -1,4 +1,5 @@
 ﻿using ECommons.LanguageHelpers;
+﻿using Dalamud.Interface.Components;
 using Newtonsoft.Json;
 using Splatoon.ConfigGui;
 using Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
@@ -157,6 +158,11 @@ partial class CGui
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Freeze".Loc(), ref layout.Freezing);
+            ImGuiComponents.HelpMarker(
+@"Freeze is an advanced setting that can have negative side effects.
+When the requirements to display an element are met,
+a new element is created and frozen in place and displayed for a duration.
+New frozen elements are created every refreeze interval.".Loc());
             ImGui.TableNextColumn();
             layout.DrawFreezing();
 

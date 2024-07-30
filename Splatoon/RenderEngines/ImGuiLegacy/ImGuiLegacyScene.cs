@@ -175,7 +175,7 @@ internal class ImGuiLegacyScene : IDisposable
             ImGui.GetWindowDrawList().PathLineTo(new Vector2(v4.X, v4.Y));
             ImGui.GetWindowDrawList().PathLineTo(new Vector2(v1.X, v1.Y));
             ImGui.GetWindowDrawList().PathFillConvex(
-                elementDonut.color
+                Utils.TransformAlpha(elementDonut.color, elementDonut.intensity)
             );
             v1 = v2;
             v4 = v3;

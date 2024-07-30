@@ -25,10 +25,10 @@ public class ImGuiLegacyDisplayObjects
 
     public class DisplayObjectCircle : DisplayObject
     {
-        public float x, y, z, radius, thickness;
+        public float x, y, z, radius, thickness, intensity;
         public uint color;
         public bool filled;
-        public DisplayObjectCircle(float x, float y, float z, float radius, float thickness, uint color, bool filled)
+        public DisplayObjectCircle(float x, float y, float z, float radius, float thickness, uint color, bool filled, float intensity)
         {
             this.x = x;
             this.y = y;
@@ -37,14 +37,15 @@ public class ImGuiLegacyDisplayObjects
             this.thickness = thickness;
             this.color = color;
             this.filled = filled;
+            this.intensity = intensity;
         }
     }
 
     public class DisplayObjectDonut : DisplayObject
     {
-        public float x, y, z, radius, donut;
+        public float x, y, z, radius, donut, intensity;
         public uint color;
-        public DisplayObjectDonut(float x, float y, float z, float radius, float donut, uint color)
+        public DisplayObjectDonut(float x, float y, float z, float radius, float donut, uint color, float intensity)
         {
             this.x = x;
             this.y = y;
@@ -52,6 +53,7 @@ public class ImGuiLegacyDisplayObjects
             this.radius = radius;
             this.donut = donut;
             this.color = color;
+            this.intensity = intensity;
         }
     }
 

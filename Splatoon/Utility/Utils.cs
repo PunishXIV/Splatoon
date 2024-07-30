@@ -42,6 +42,16 @@ public static unsafe class Utils
         "",
     };
 
+    public static uint TransformAlpha(uint sourceColor, float? fillIntensity)
+    {
+        var alpha = Math.Clamp(fillIntensity ?? DefaultFillIntensity, 0f, 1f);
+        var colPtr = (byte*)&sourceColor;
+        colPtr[3] = (byte)((float)colPtr[3] * alpha);
+        return sourceColor;
+    }
+
+    public const float DefaultFillIntensity = 0.5f;
+
     public static byte[][] Separate(byte[] source, byte[] separator)
     {
         var Parts = new List<byte[]>();

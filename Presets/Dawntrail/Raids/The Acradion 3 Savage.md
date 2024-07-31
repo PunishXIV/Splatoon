@@ -1,5 +1,3 @@
-# None of these presets are tested in real combat yet!
-
 ### In/out/protean/pair/spread/knockback mechanic group
 
 ```

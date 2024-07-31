@@ -1,6 +1,6 @@
 # AAC Light-Heavyweight M2 (Honey B. Lovely)
 
-Contributions by `.leathen.`, `lillylilim`, and `mitsune_shiratama`.
+Contributions by `.leathen.`, `lillylilim`, `mitsune_shiratama` and `arokhaerr`.
 
 ## [International] Tempting Twist (Boss Donut)
 

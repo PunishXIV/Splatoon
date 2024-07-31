@@ -603,7 +603,44 @@ internal unsafe partial class CGui
                     el.refActorTargetingYou = 2;
                 }
             }
+            ImGuiUtils.SizedText("Tether info:".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.Checkbox("##tether", ref el.refActorTether);
+            if(el.refActorTether)
+            {
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##tetherlife1" + i + k, ref el.refActorTetherTimeMin, 0.1f, 0f, float.MaxValue);
+                ImGui.SameLine();
+                ImGuiEx.Text("-");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##tetherlife2" + i + k, ref el.refActorTetherTimeMax, 0.1f, 0f, float.MaxValue);
+                ImGui.SameLine();
+                ImGuiEx.Text("(in seconds)".Loc());
 
+                ImGuiUtils.SizedText("         "+"Params:".Loc(), WidthElement);
+                ImGui.SameLine();
+                ImGuiEx.InputInt(100f, "##param1", ref el.refActorTetherParam1);
+                ImGui.SameLine();
+                ImGuiEx.InputInt(100f, "##param2", ref el.refActorTetherParam2);
+                ImGui.SameLine();
+                ImGuiEx.InputInt(100f, "##param3", ref el.refActorTetherParam3);
+
+                ImGuiUtils.SizedText("", WidthElement);
+                ImGui.SameLine();
+                ImGuiEx.Checkbox("Source", ref el.refActorIsTetherSource);
+                ImGuiEx.HelpMarker("Checked - only check if object is tether source; unchecked - only check if object is tether target; dot - check if object is either tether source or target.");
+                ImGui.SameLine();
+                ImGui.Checkbox("Invert condition", ref el.refActorIsTetherInvert);
+
+                ImGuiUtils.SizedText("         "+"Connected with:".Loc(), WidthElement);
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(200f);
+                ImGuiEx.InputListString("##pholderConnectedWith", el.refActorTetherConnectedWithPlayer);
+                ImGui.SameLine();
+                ImGuiEx.Text("Empty = with any");
+            }
         }
 
         if (el.type.EqualsAny(0, 2, 3, 5))

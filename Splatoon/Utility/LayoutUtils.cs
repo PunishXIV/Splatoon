@@ -4,6 +4,7 @@ using ECommons.MathHelpers;
 using Splatoon.Memory;
 using Splatoon.Structures;
 using System.Text.RegularExpressions;
+using static FFXIVClientStructs.FFXIV.Client.Game.Character.VfxContainer;
 
 namespace Splatoon.Utility;
 public static unsafe class LayoutUtils
@@ -117,7 +118,78 @@ public static unsafe class LayoutUtils
             && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is IBattleChara chr3 && CheckEffect(e, chr3)))
             && (!e.refActorUseTransformation || (a is IBattleChara chr4 && CheckTransformationID(e, chr4)))
             && (!e.refMark || (a is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)e.refMarkID)))
-            && (!e.LimitRotation || (a.Rotation >= e.RotationMax && a.Rotation <= e.RotationMin));
+            && (!e.LimitRotation || (a.Rotation >= e.RotationMax && a.Rotation <= e.RotationMin))
+            && (!e.refActorTether || IsTetherMatches(e, a) == !e.refActorIsTetherInvert);
+    }
+
+    public static bool IsTetherMatches(Element e, IGameObject obj)
+    {
+        if(e.refActorIsTetherSource == null || e.refActorIsTetherSource == true)
+        {
+            if(AttachedInfo.TetherInfos.TryGetValue(obj.Address, out var tethers))
+            {
+                foreach(var t in tethers)
+                {
+                    if(t.AgeF >= e.refActorTetherTimeMin && t.AgeF <= e.refActorTetherTimeMax
+                        && (e.refActorTetherParam1 == null || e.refActorTetherParam1 == t.Param1)
+                        && (e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Param2)
+                        && (e.refActorTetherParam3 == null || e.refActorTetherParam3 == t.Param3)
+                        )
+                    {
+                        if(e.refActorTetherConnectedWithPlayer.Count == 0)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            foreach(var p in e.refActorTetherConnectedWithPlayer)
+                            {
+                                var tar = FakePronoun.Resolve(p);
+                                if(tar != null)
+                                {
+                                    if(t.Target == tar->EntityId) return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if(e.refActorIsTetherSource == null || e.refActorIsTetherSource == false)
+        {
+            //reverse lookup goes brrrrr
+            foreach(var x in AttachedInfo.TetherInfos)
+            {
+                if(x.Key == obj.Address) continue;
+                foreach(var t in x.Value)
+                {
+                    if(t.AgeF >= e.refActorTetherTimeMin && t.AgeF <= e.refActorTetherTimeMax
+                        && (e.refActorTetherParam1 == null || e.refActorTetherParam1 == t.Param1)
+                        && (e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Param2)
+                        && (e.refActorTetherParam3 == null || e.refActorTetherParam3 == t.Param3)
+                        && t.Target == obj.EntityId
+                        )
+                    {
+                        if(e.refActorTetherConnectedWithPlayer.Count == 0)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            foreach(var p in e.refActorTetherConnectedWithPlayer)
+                            {
+                                var tar = FakePronoun.Resolve(p);
+                                if(tar != null)
+                                {
+                                    if(x.Key == (nint)tar) return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public static bool CheckTransformationID(Element e, ICharacter c)

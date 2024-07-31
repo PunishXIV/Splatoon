@@ -1,6 +1,6 @@
 # AAC Light-Heavyweight M3 (Brute Bomber)
 
-Contributions by `aimsucks`.
+Contributions by `aimsucks`, `arokhaerr`.
 
 ## [International] Knuckle Sandwich (Tank Soak)
 

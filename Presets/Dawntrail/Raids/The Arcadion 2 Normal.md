@@ -1,6 +1,6 @@
 # AAC Light-Heavyweight M2 (Honey B. Lovely)
 
-Contributions by `.leathen.`, `lillylilim`, and `mitsune_shiratama`.
+Contributions by `.leathen.`, `lillylilim`, `mitsune_shiratama` and `arokhaerr`.
 
 ## [International] Tempting Twist (Boss Donut)
 
@@ -14,10 +14,10 @@ Contributions by `.leathen.`, `lillylilim`, and `mitsune_shiratama`.
 ~Lv2~{"Name":"Blinding Love","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Edge Bee Line","type":3,"refY":48.0,"radius":4.0,"fillIntensity":0.208,"originFillColor":1157628159,"endFillColor":1157628159,"overlayPlaceholders":true,"overlayText":"$NAME $CAST","refActorDataID":16939,"refActorRequireCast":true,"refActorCastId":[37246,37247,39525,39526],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":10.0,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true,"mechanicType":1}]}
 ```
 
-## [EN] Blow Kiss (Pink Cone)
+## [International] Blow Kiss (Pink Cone)
 
 ```
-~Lv2~{"Name":"Blow Kiss","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Kiss Cone","type":4,"radius":25.0,"coneAngleMin":-60,"coneAngleMax":60,"fillIntensity":0.413,"originFillColor":1677721855,"endFillColor":1677721855,"refActorNameIntl":{"En":"Honey B. Lovely"},"refActorRequireCast":true,"refActorCastId":[37235],"includeRotation":true,"onlyVisible":true}]}
+~Lv2~{"Name":"Blow Kiss","Group":"M2N - Honey B. Lovely","ZoneLockH":[1227],"ElementsL":[{"Name":"Kiss Cone","type":4,"radius":25.0,"coneAngleMin":-60,"coneAngleMax":60,"fillIntensity":0.413,"refActorNPCNameID":12685,"refActorRequireCast":true,"refActorCastId":[37235],"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true}]}
 ```
 
 ## [International] Honey Beeline (Boss Center Line)

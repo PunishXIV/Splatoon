@@ -486,6 +486,13 @@ public static unsafe class Utils
         return radian * (180 / MathF.PI);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="origin">XZY</param>
+    /// <param name="angle"></param>
+    /// <param name="point"></param>
+    /// <returns></returns>
     public static Vector3 RotatePoint(Vector3 origin, float angle, Vector3 point)
     {
         if (angle == 0f) return point;

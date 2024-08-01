@@ -9,11 +9,12 @@ namespace Splatoon.Gui.Scripting;
 internal static class TabScripting
 {
     internal static volatile bool ForceUpdate = false;
+    internal static string Search = "";
     internal static void Draw()
     {
         if (ScriptingProcessor.ThreadIsRunning)
         {
-            ImGuiEx.ImGuiLineCentered("ThreadCompilerRunning", delegate
+            ImGuiEx.LineCentered("ThreadCompilerRunning", delegate
             {
                 ImGuiEx.Text(GradientColor.Get(ImGuiColors.DalamudWhite, ImGuiColors.ParsedPink), "Scripts are being installed, please wait...".Loc());
             });
@@ -49,6 +50,8 @@ internal static class TabScripting
             }
         }
         var del = -1;
+        ImGui.SetNextItemWidth(250f);
+        ImGui.InputTextWithHint("##search", "Search...", ref Search, 50);
         ImGui.BeginTable("##scriptsTable", 3, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit);
         ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupColumn("State");
@@ -60,6 +63,7 @@ internal static class TabScripting
         for (var i = 0;i<ScriptingProcessor.Scripts.Count;i++)
         {
             var x = ScriptingProcessor.Scripts[i];
+            if(!(Search == "" || x.InternalData.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || x.InternalData.Namespace.Contains(Search, StringComparison.OrdinalIgnoreCase))) continue;
             if (openConfig != null && !ReferenceEquals(x, openConfig)) continue;
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
@@ -233,7 +237,7 @@ internal static class TabScripting
                 (openConfig.Controller.GetRegisteredElements().Count>0?"Registered elements":null, openConfig.DrawRegisteredElements, null, false)
                 );
             
-            ImGuiEx.ImGuiLineCentered("ScriptConfig", delegate
+            ImGuiEx.LineCentered("ScriptConfig", delegate
             {
                 if (ImGui.Button("Close and save configuration"))
                 {

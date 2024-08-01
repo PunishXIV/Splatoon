@@ -1,7 +1,7 @@
 ### Extra Preset Contributors
 - Kari
 
-## Scripts
+# Scripts
 ### Narrowing/Widening witch hunt
 **You must configure your bait order**
 ```
@@ -19,6 +19,8 @@ Displays blast that is unsafe for your debuff. Does not requires configuration.
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Unsafe%20Cannon.cs
 ```
+
+# Presets
 
 ### Pairs and Spreads (WIP)
 ```

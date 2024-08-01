@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Witch_Hunt : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     uint CastNarrowing = 38369;
     uint CastWidening = 38368;
@@ -58,7 +58,10 @@ public class R4S_Witch_Hunt : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.SetNextItemWidth(150f);
-        ImGui.InputInt("Your turn to bait", ref Controller.GetConfig<Config>().MyTurn.ValidateRange(1, 4));
+        ImGui.InputInt("Your turn to bait (close first or both if far first isn't set)", ref C.MyTurn.ValidateRange(1, 4));
+
+        ImGuiEx.InputInt(150f, "Your turn to bait (far first)", ref C.MyTurnFarFirst);
+
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"Wicked thunder: {WickedThunder} / {WickedThunder?.CastActionId}");
@@ -94,6 +97,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                 ForceResetAt = Environment.TickCount64 + 30 * 1000;
             }
         }
+        var myTurn = IsInitialClose == false ? C.MyTurn : (C.MyTurnFarFirst ?? C.MyTurn);
         if(IsUnsafeMiddle != null)
         {
             Controller.GetElementByName(IsUnsafeMiddle.Value ? "In" : "Out")!.Enabled = true;
@@ -105,7 +109,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                 baiterZone.Enabled = true;
 
 
-                if(Controller.GetConfig<Config>().MyTurn - 1 == this.NumSwitches)
+                if(myTurn - 1 == this.NumSwitches)
                 {
                     var players = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector3.Distance(x.Position, this.WickedThunder!.Position)).ToList();
                     if(!baitsClose) players.Reverse();
@@ -124,7 +128,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                 {
                     baiterZone.color = ImGuiEx.Vector4FromRGBA(0xFFFF00C8).ToUint();
                 }
-                if(Controller.GetConfig<Config>().MyTurn - 1 == this.NumSwitches + 1)
+                if(myTurn - 1 == this.NumSwitches + 1)
                 {
                     Controller.GetElementByName("Prepare")!.Enabled = true;
                 }
@@ -154,8 +158,10 @@ public class R4S_Witch_Hunt : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
+    Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
     {
         public int MyTurn = 1;
+        public int? MyTurnFarFirst = null;
     }
 }

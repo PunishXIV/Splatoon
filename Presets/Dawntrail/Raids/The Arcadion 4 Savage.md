@@ -1,6 +1,13 @@
 ### Extra Preset Contributors
 - Kari
 
+## Scripts
+### Narrowing/Widening witch hunt
+**You must configure your bait order**
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Witch%20Hunt.cs
+```
+
 ### Pairs and Spreads (WIP)
 ```
 ~Lv2~{"Name":"R4S Pairs","Group":"Arcadion 4","ZoneLockH":[1232],"DCond":5,"ElementsL":[{"Name":"Self","type":1,"radius":6.0,"color":3355901696,"Filled":false,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"overlayTextColor":3355901696,"overlayFScale":1.5,"overlayText":"< PAIRS >","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.5,"Match":"vfx/common/eff/m0888_stlp01"}]}

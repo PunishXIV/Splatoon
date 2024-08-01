@@ -1,7 +1,7 @@
 ### Extra Preset Contributors
 - Kari
 
-## Scripts
+# Scripts
 ### Narrowing/Widening witch hunt
 **You must configure your bait order**
 ```
@@ -14,15 +14,18 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Electrope%20Edge.cs
 ```
 
+### Cannon - unsafe blast
+Displays blast that is unsafe for your debuff. Does not requires configuration.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Unsafe%20Cannon.cs
+```
+
+# Presets
+
 ### Pairs and Spreads (WIP)
 ```
 ~Lv2~{"Name":"R4S Pairs","Group":"Arcadion 4","ZoneLockH":[1232],"DCond":5,"ElementsL":[{"Name":"Self","type":1,"radius":6.0,"color":3355901696,"Filled":false,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"overlayTextColor":3355901696,"overlayFScale":1.5,"overlayText":"< PAIRS >","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.5,"Match":"vfx/common/eff/m0888_stlp01"}]}
 ~Lv2~{"Name":"R4S Spread","Group":"Arcadion 4","ZoneLockH":[1232],"DCond":5,"ElementsL":[{"Name":"Self","type":1,"radius":6.0,"Filled":false,"fillIntensity":0.5,"originFillColor":1677721855,"endFillColor":1677721855,"overlayTextColor":3355443455,"overlayFScale":1.5,"overlayText":"< SPREAD >","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.5,"Match":"vfx/common/eff/m0888_stlp02"}]}
-```
-
-### Stampeding Thunder
-```
-~Lv2~{"Name":"R4S Stampeding Thunder","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Dead Platform","type":3,"refX":-15.0,"refY":20.0,"offX":15.0,"offY":20.0,"radius":20.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[36399],"refActorCastTimeMax":2.3,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"mechanicType":1}]}
 ```
 
 ### Bewitching Flight
@@ -38,4 +41,25 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 ### Electromines
 ```
 ~Lv2~{"Name":"R4S Electromines","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Spark","type":3,"refY":-5.0,"offY":5.0,"radius":5.0,"refActorModelID":4226,"refActorRequireCast":true,"refActorCastId":[38345],"refActorComparisonType":1,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"mechanicType":1},{"Name":"Spark II","type":3,"refY":-15.0,"offY":15.0,"radius":15.0,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"refActorModelID":4226,"refActorRequireCast":true,"refActorCastId":[38346],"refActorComparisonType":1,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"mechanicType":1}]}
+```
+
+### Ion Cannon - early display
+```
+~Lv2~{"Name":"R4S Cannon","Group":"Arcadion 4","ZoneLockH":[1232],"DCond":5,"ElementsL":[{"Name":"Left","type":3,"refX":5.0,"refY":40.0,"offX":5.0,"radius":15.0,"refActorNPCNameID":13057,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"AdditionalRotation":6.0423303,"LimitRotation":true,"RotationMax":-3.1241393,"RotationMin":-0.017453292,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]},{"Name":"Right","type":3,"refX":-5.0,"refY":40.0,"offX":-5.0,"radius":15.0,"refActorNPCNameID":13057,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"AdditionalRotation":0.24085544,"LimitRotation":true,"RotationMax":0.017453292,"RotationMin":3.1241393,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":15.0,"Match":">38356)","MatchDelay":10.0}]}
+```
+
+### Stampeding Thunder (cannon blasts)
+```
+~Lv2~{"Name":"R4S Stampeding Thunder","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Dead Platform","type":3,"refX":-15.0,"refY":20.0,"offX":15.0,"offY":20.0,"radius":20.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[36399],"refActorCastTimeMax":2.3,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"mechanicType":1}]}
+```
+
+### Fulminous Field
+Only proteans, import all
+```
+~Lv2~{"Name":"R4S Fulminous Field 2","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Rotated","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"AdditionalRotation":0.3926991,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":6.0,"FreezeDisplayDelay":3.0}
+~Lv2~{"Name":"R4S Fulminous Field 3","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Normal","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":9.0,"FreezeDisplayDelay":6.0}
+~Lv2~{"Name":"R4S Fulminous Field 4","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Rotated","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"AdditionalRotation":0.3926991,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":12.0,"FreezeDisplayDelay":9.0}
+~Lv2~{"Name":"R4S Fulminous Field 5","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Normal","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":15.0,"FreezeDisplayDelay":12.0}
+~Lv2~{"Name":"R4S Fulminous Field 6","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Rotated","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"AdditionalRotation":0.3926991,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":18.0,"FreezeDisplayDelay":15.0}
+~Lv2~{"Name":"R4S Fulminous Field 7","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Normal","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":21.0,"FreezeDisplayDelay":18.0}
 ```

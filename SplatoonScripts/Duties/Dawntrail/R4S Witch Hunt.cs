@@ -22,7 +22,7 @@ public class R4S_Witch_Hunt : SplatoonScript
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
 
     uint CastNarrowing = 38369;
-    uint CastWidening = 0;
+    uint CastWidening = 38368;
     uint StatusCloseFar = 2970;
     uint StatusParamClose = 758;
     uint StatusParamFar = 759;

@@ -44,7 +44,7 @@ public class R4S_Witch_Hunt : SplatoonScript
             Controller.RegisterElementFromCode($"Target{i}", "{\"Name\":\"Hunted\",\"type\":1,\"radius\":6.0,\"color\":3355508712,\"fillIntensity\":0.25,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"thicc\":5.0,\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         }
 
-        Controller.RegisterElementFromCode("InClose", "{\"Name\":\"BaitersAreaInClose\",\"type\":1,\"Enabled\":false,\"radius\":5.0,\"color\":3355508490,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
+        Controller.RegisterElementFromCode("InClose", "{\"Name\":\"BaitersAreaInClose\",\"type\":1,\"Enabled\":false,\"radius\":7.0,\"color\":3355508490,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         Controller.RegisterElementFromCode("InFar", "{\"Name\":\"BaitersAreaInFar\",\"type\":1,\"Enabled\":false,\"radius\":9.0,\"Donut\":1.0,\"color\":3355508490,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         Controller.RegisterElementFromCode("OutClose", "{\"Name\":\"BaitersAreaOutClose\",\"type\":1,\"Enabled\":false,\"radius\":10.0,\"Donut\":1.0,\"color\":3355508490,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         Controller.RegisterElementFromCode("OutFar", "{\"Name\":\"BaitersAreaOutFar\",\"type\":1,\"Enabled\":false,\"radius\":12.0,\"Donut\":10.0,\"color\":3355508490,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
@@ -84,18 +84,10 @@ public class R4S_Witch_Hunt : SplatoonScript
                 NumSwitches = 0;
                 if(w.StatusList.Any(x => x.StatusId == this.StatusCloseFar && x.Param == this.StatusParamClose))
                 {
-                    if(EzThrottler.Throttle("AnnounceWitchHunt", 5000))
-                    {
-                        Svc.Toasts.ShowQuest($"{(!IsUnsafeMiddle.Value ? "In" : "Out")} first, party away from markers)");
-                    }
                     IsInitialClose = false;
                 }
                 if(w.StatusList.Any(x => x.StatusId == this.StatusCloseFar && x.Param == this.StatusParamFar))
                 {
-                    if(EzThrottler.Throttle("AnnounceWitchHunt", 5000))
-                    {
-                        Svc.Toasts.ShowQuest($"{(!IsUnsafeMiddle.Value ? "In" : "Out")} first, party on markers)");
-                    }
                     IsInitialClose = true;
                 }
             }
@@ -124,11 +116,11 @@ public class R4S_Witch_Hunt : SplatoonScript
                     var warning = Controller.GetElementByName("Warning")!;
                     warning.Enabled = true;
                     warning.color = GradientColor.Get(EColor.GreenBright, EColor.White, 500).ToUint();
-                    baiterZone.fillIntensity = Math.Abs((float)(Environment.TickCount64 % 500) / 500f * 1f - 0.5f) + 0.1f;
+                    baiterZone.color = ImGuiEx.Vector4FromRGBA(0x00FF00C8).ToUint();
                 }
                 else
                 {
-                    baiterZone.fillIntensity = 0.4f;
+                    baiterZone.color = ImGuiEx.Vector4FromRGBA(0xFFFF00C8).ToUint();
                 }
                 if(Controller.GetConfig<Config>().MyTurn - 1 == this.NumSwitches + 1)
                 {

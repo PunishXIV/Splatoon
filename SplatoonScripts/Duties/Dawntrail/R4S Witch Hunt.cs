@@ -42,7 +42,7 @@ public class R4S_Witch_Hunt : SplatoonScript
 
         for(int i = 0; i < 4; i++)
         {
-            Controller.RegisterElementFromCode($"Target{i}", "{\"Name\":\"Hunted\",\"type\":1,\"radius\":6.0,\"color\":3355508712,\"fillIntensity\":0.25,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"thicc\":5.0,\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
+            Controller.RegisterElementFromCode($"Target{i}", "{\"Name\":\"Hunted\",\"type\":1,\"radius\":6.0,\"color\":3355508712,\"fillIntensity\":0.05,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"thicc\":5.0,\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         }
 
         Controller.RegisterElementFromCode("InClose", "{\"Name\":\"BaitersAreaInClose\",\"type\":1,\"Enabled\":false,\"radius\":7.0,\"color\":3355508490,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
@@ -91,6 +91,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                 {
                     IsInitialClose = true;
                 }
+                ForceResetAt = Environment.TickCount64 + 30 * 1000;
             }
         }
         if(IsUnsafeMiddle != null)

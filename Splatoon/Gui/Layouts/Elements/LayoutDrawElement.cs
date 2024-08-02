@@ -922,7 +922,7 @@ internal unsafe partial class CGui
             ImGuiUtils.EnumCombo("##LineEndB" + i + k, ref el.LineEndB, LineEnds.Names, LineEnds.Tooltips);
             if (!canSetLineEnds) ImGui.EndDisabled();
         }
-        if (el.type == 0 || el.type == 1)
+        if (el.type == 0 || el.type == 1 || el.type == 4 || el.type == 5)
         {
             ImGuiUtils.SizedText("Overlay text:".Loc(), WidthElement);
             ImGui.SameLine();

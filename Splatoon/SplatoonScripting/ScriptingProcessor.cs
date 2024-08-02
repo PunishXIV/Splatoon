@@ -367,7 +367,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnUpdate();
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnUpdate)); }
             }
         }
     }
@@ -378,11 +378,12 @@ internal static partial class ScriptingProcessor
         {
             if (Scripts[i].IsEnabled)
             {
+                OnReset(i);
                 try
                 {
                     Scripts[i].OnCombatStart();
                 }
-                catch (Exception e) { e.Log(); }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnCombatStart)); }
             }
         }
     }
@@ -393,13 +394,23 @@ internal static partial class ScriptingProcessor
         {
             if (Scripts[i].IsEnabled)
             {
+                OnReset(i);
                 try
                 {
                     Scripts[i].OnCombatEnd();
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnCombatEnd)); }
             }
         }
+    }
+
+    internal static void OnReset(int i)
+    {
+        try
+        {
+            Scripts[i].OnReset();
+        }
+        catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnReset)); }
     }
 
     internal static void OnMapEffect(uint Position, ushort Param1, ushort Param2)
@@ -412,7 +423,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnMapEffect(Position, Param1, Param2);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnMapEffect)); }
             }
         }
     }
@@ -427,7 +438,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnObjectEffect(Target, Param1, Param2);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnObjectEffect)); }
             }
         }
     }
@@ -442,7 +453,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnMessage(Message);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnMessage)); }
             }
         }
     }
@@ -457,7 +468,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnVFXSpawn(target, vfxPath);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnVFXSpawn)); }
             }
         }
     }
@@ -472,7 +483,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnTetherCreate(source, target, data2, data3, data5);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnTetherCreate)); }
             }
         }
     }
@@ -487,7 +498,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnTetherRemoval(source, data2, data3, data5);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnTetherRemoval)); }
             }
         }
     }
@@ -498,11 +509,15 @@ internal static partial class ScriptingProcessor
         {
             if (Scripts[i].IsEnabled)
             {
+                if(category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence || category == DirectorUpdateCategory.Wipe)
+                {
+                    OnReset(i);
+                }
                 try
                 {
                     Scripts[i].OnDirectorUpdate(category);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnDirectorUpdate)); }
             }
         }
     }
@@ -517,7 +532,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnPhaseChange(phase);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnPhaseChange)); }
             }
         }
     }
@@ -532,7 +547,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnObjectCreation(newObjectPointer);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnObjectCreation)); }
             }
         }
     }
@@ -547,7 +562,22 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnActionEffect(ActionID, animationID, type, sourceID, targetOID, damage);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActionEffect)); }
+            }
+        }
+    }
+
+    internal static void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnActorControl(sourceId, command, p1, p2, p3, p4, p5, p6, targetId, replaying);
+                }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActorControl)); }
             }
         }
     }
@@ -562,7 +592,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnActionEffectEvent(set);
                 }
-                catch (Exception e) { e.Log(); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActionEffectEvent)); }
             }
         }
     }
@@ -599,6 +629,11 @@ internal static partial class ScriptingProcessor
             Scripts[i].Disable();
         }
         Scripts = ImmutableList<SplatoonScript>.Empty;
+    }
+
+    internal static void LogError(this SplatoonScript s, Exception e, string methodName)
+    {
+        PluginLog.Error($"[{s?.InternalData?.Name}] Exception in script {s?.InternalData?.FullName} while executing {methodName}:\n{e}");
     }
 
     [GeneratedRegex("namespace[\\s]+([a-z0-9_\\.]+)", RegexOptions.IgnoreCase, "en-US")]

@@ -72,10 +72,15 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         {
             DisplayObjects.Add(new DisplayObjectDot(cx, z + e.offZ, cy, e.thicc, e.color));
         }
-        if (e.overlayText.Length > 0)
+        DrawText(e, go, cx, cy, z);
+    }
+
+    void DrawText(Element e, IGameObject go, float cx, float cy, float z) 
+    {
+        if(e.overlayText.Length > 0)
         {
             var text = e.overlayText;
-            if (go != null)
+            if(go != null)
             {
                 text = text.ProcessPlaceholders(go);
             }
@@ -114,6 +119,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 DisplayObjects.Add(new DisplayObjectLine(center, end, 0, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB));
             }
             DisplayObjects.Add(new DisplayObjectFan(center, innerRadius, outerRadius, angleMin, angleMax, e.GetDisplayStyleWithOverride()));
+            DrawText(e, null, center.X, center.Z, center.Y);
         }
     }
 

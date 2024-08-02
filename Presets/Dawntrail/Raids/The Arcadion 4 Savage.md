@@ -55,11 +55,6 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 ~Lv2~{"Name":"R4S Cannon","Group":"Arcadion 4","ZoneLockH":[1232],"DCond":5,"ElementsL":[{"Name":"Left","type":3,"refX":5.0,"refY":40.0,"offX":5.0,"radius":15.0,"refActorNPCNameID":13057,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"AdditionalRotation":6.0423303,"LimitRotation":true,"RotationMax":-3.1241393,"RotationMin":-0.017453292,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]},{"Name":"Right","type":3,"refX":-5.0,"refY":40.0,"offX":-5.0,"radius":15.0,"refActorNPCNameID":13057,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"AdditionalRotation":0.24085544,"LimitRotation":true,"RotationMax":0.017453292,"RotationMin":3.1241393,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":15.0,"Match":">38356)","MatchDelay":10.0}]}
 ```
 
-### Stampeding Thunder (cannon blasts)
-```
-~Lv2~{"Name":"R4S Stampeding Thunder","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Dead Platform","type":3,"refX":-15.0,"refY":20.0,"offX":15.0,"offY":20.0,"radius":20.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[36399],"refActorCastTimeMax":2.3,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"mechanicType":1}]}
-```
-
 ### Fulminous Field
 Only proteans, import all
 ```
@@ -91,4 +86,12 @@ Will display precise safe spot after initial cast, but will cover screen in a LO
 ### Replica names (temporary preset)
 ```
 ~Lv2~{"Name":"R4S Replica Names (temp)","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Gun","type":1,"radius":0.0,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":2.0,"overlayText":"LINE","refActorName":"Wicked Replica","DistanceMax":200.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorUseTransformation":true,"refActorTetherConnectedWithPlayer":[],"refActorTransformationID":7},{"Name":"Gun Line","type":3,"Enabled":false,"refY":6.0,"offY":-2.0,"radius":5.0,"color":3355508735,"Filled":false,"fillIntensity":0.2,"originFillColor":1157628159,"endFillColor":1157628159,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":2.0,"overlayText":"LINE","refActorName":"Wicked Replica","includeRotation":true,"DistanceMax":200.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorUseTransformation":true,"refActorTetherConnectedWithPlayer":[],"refActorTransformationID":7},{"Name":"Wing","type":1,"radius":0.0,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":2.0,"overlayPlaceholders":true,"overlayText":"DONUT","refActorName":"Wicked Replica","DistanceMax":200.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorUseTransformation":true,"refActorTetherConnectedWithPlayer":[],"refActorTransformationID":31},{"Name":"Wing Donut","type":1,"Enabled":false,"radius":5.0,"Donut":8.0,"color":3355508735,"fillIntensity":0.2,"originFillColor":1677721855,"endFillColor":1677721855,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":2.0,"overlayPlaceholders":true,"refActorName":"Wicked Replica","onlyVisible":true,"DistanceMax":200.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorUseTransformation":true,"refActorTetherConnectedWithPlayer":[],"refActorTransformationID":31},{"Name":"Wing Donut (Mini)","type":1,"radius":5.0,"color":3355508735,"Filled":false,"fillIntensity":0.2,"originFillColor":1677721855,"endFillColor":1677721855,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":2.0,"overlayPlaceholders":true,"refActorName":"Wicked Replica","onlyVisible":true,"DistanceMax":200.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorUseTransformation":true,"refActorTetherConnectedWithPlayer":[],"refActorTransformationID":31}]}
+```
+
+# Obsolete
+These presets are obsolete. They are superseded by scripts or other presets.
+
+### Stampeding Thunder (cannon blasts)
+```
+~Lv2~{"Name":"R4S Stampeding Thunder","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Dead Platform","type":3,"refX":-15.0,"refY":20.0,"offX":15.0,"offY":20.0,"radius":20.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[36399],"refActorCastTimeMax":2.3,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"mechanicType":1}]}
 ```

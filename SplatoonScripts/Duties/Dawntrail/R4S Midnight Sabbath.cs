@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-internal class R4S_Replica_Wing_and_Line: SplatoonScript
+internal class R4S_Midnight_Sabbath: SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new() { 1232 };
 

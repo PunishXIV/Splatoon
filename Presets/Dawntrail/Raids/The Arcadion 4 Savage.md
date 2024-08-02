@@ -1,6 +1,7 @@
 ### Extra Preset Contributors
 - Kari
 - lilly
+- Fragile
 
 # Scripts
 ### Narrowing/Widening witch hunt
@@ -25,6 +26,12 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 Does not requires configuration
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Chain%20Lightning.cs
+```
+
+### Midnight Sabbath
+Beta
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Midnight%20Sabbath.cs
 ```
 
 # Presets

@@ -1,5 +1,6 @@
 ### Extra Preset Contributors
 - Kari
+- lilly
 
 # Scripts
 ### Narrowing/Widening witch hunt
@@ -68,6 +69,18 @@ Only proteans, import all
 ~Lv2~{"Name":"R4S Fulminous Field 5","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Normal","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":15.0,"FreezeDisplayDelay":12.0}
 ~Lv2~{"Name":"R4S Fulminous Field 6","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Rotated","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"AdditionalRotation":0.3926991,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":18.0,"FreezeDisplayDelay":15.0}
 ~Lv2~{"Name":"R4S Fulminous Field 7","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"Normal","type":4,"refY":30.0,"radius":30.0,"coneAngleMin":-15,"coneAngleMax":15,"fillIntensity":0.35,"originFillColor":1677721855,"endFillColor":1677721855,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[37118],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":21.0,"FreezeDisplayDelay":18.0}
+```
+
+### Exaflare - initial cast
+Will display exaflare directions during it's initial cast, enabling you to easily see safe spot.
+```
+~Lv2~{"Name":"R4S Exaflares hint","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"","type":3,"refY":40.0,"offY":6.0,"radius":2.0,"color":3355506687,"fillIntensity":0.2,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[38389],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}]}
+```
+
+### Exaflare - aftercast safe spot
+Will display precise safe spot after initial cast, but will cover screen in a LOT of elements. 
+```
+~Lv2~{"Name":"R4S Exaflares safe zone","Group":"Arcadion 4","ZoneLockH":[1232],"ElementsL":[{"Name":"","type":3,"refY":40.0,"offY":6.0,"radius":6.0,"color":3355506687,"fillIntensity":0.2,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[38389],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]}],"Freezing":true,"FreezeFor":12.0,"FreezeDisplayDelay":8.0}
 ```
 
 ### Wicked Special cleaves

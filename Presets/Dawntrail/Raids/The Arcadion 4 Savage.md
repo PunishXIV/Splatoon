@@ -29,7 +29,7 @@ Does not requires configuration
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Chain%20Lightning.cs
 ```
 
-### Midnight Sabbath
+### Midnight Sabbath REQUIRES SPLATOON 3.6.0.7
 Beta
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Midnight%20Sabbath.cs

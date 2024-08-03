@@ -30,9 +30,14 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 ```
 
 ### Midnight Sabbath REQUIRES SPLATOON 3.6.0.7
-Beta
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Midnight%20Sabbath.cs
+```
+
+### Sunrise Sabbath complete resolution
+**REQUIRES CONFIGURATION**
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Sunrise%20Sabbath.cs
 ```
 
 # Presets

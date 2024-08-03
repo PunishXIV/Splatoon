@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Electrope_Edge : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
     List<uint> Hits = [];
     List<uint> Longs = [];
     uint Debuff = 3999;
@@ -197,7 +197,7 @@ public class R4S_Electrope_Edge : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if(set.Action.RowId == 38790)
+        if(set.Action?.RowId == 38790)
         {
             for(int i = 0; i < set.TargetEffects.Length; i++)
             {

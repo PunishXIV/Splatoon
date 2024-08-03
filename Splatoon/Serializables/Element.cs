@@ -344,6 +344,8 @@ public class Element
 
     public bool ShouldSerializeDonut()
     {
-        return type.EqualsAny(0, 1) && Donut > 0;
+        return type.EqualsAny(0, 1, 2, 3) && Donut > 0;
     }
+
+    public bool ShouldSerializerefActorTetherConnectedWithPlayer() => refActorTether;
 }

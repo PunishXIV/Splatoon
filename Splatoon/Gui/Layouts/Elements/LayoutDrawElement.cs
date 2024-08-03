@@ -879,7 +879,7 @@ internal unsafe partial class CGui
                             "enable only \"+target hitbox\" to make indicators valid.").Loc());
                     }
                 }
-                if (el.type.EqualsAny(0, 1))
+                if (el.type.EqualsAny(0, 1, 4, 5))
                 {
                     ImGui.SameLine();
                     ImGuiEx.Text("Donut:".Loc());

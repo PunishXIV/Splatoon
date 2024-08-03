@@ -412,12 +412,12 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         var pointA = Utils.RotatePoint(tPos.X, tPos.Y,
                     -angle + e.AdditionalRotation, new Vector3(
                     tPos.X,
-                    tPos.Y,
+                    tPos.Y + e.Donut,
                     tPos.Z));
         var pointB = Utils.RotatePoint(tPos.X, tPos.Y,
             -angle + e.AdditionalRotation, new Vector3(
             tPos.X,
-            tPos.Y + radius,
+            tPos.Y + radius + e.Donut,
             tPos.Z));
         DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
             pointB.X, pointB.Y, pointB.Z,

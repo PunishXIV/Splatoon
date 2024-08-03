@@ -21,7 +21,8 @@ internal static class TabScripting
         }
         ImGuiEx.TextWrapped(ImGuiColors.DPSRed, $"Warning: scripting function is under alpha testing. Changes may come to the scripting system at any moment. Any scripts you write now may require manual updates later. There is no guarantee yet that all currently available methods will be kept. There is no guarantee that scripts which have been made now will keep working through further updates.".Loc());
         ImGuiEx.TextWrapped(ImGuiColors.DalamudOrange, "Please note that scripts have direct and unrestricted access to your PC and game. Ensure that you know what you're installing.".Loc());
-        ImGui.Checkbox($"Force Update".Loc(), ref ForceUpdate); ;
+        var force = ForceUpdate;
+        if(ImGui.Checkbox($"Force Update".Loc(), ref force)) ForceUpdate = force;
         ImGui.SameLine();
         if(ImGui.Button("Clear cache, rescan directory and reload all scripts".Loc()))
         {
@@ -52,65 +53,69 @@ internal static class TabScripting
         var del = -1;
         ImGui.SetNextItemWidth(250f);
         ImGui.InputTextWithHint("##search", "Search...", ref Search, 50);
-        ImGui.BeginTable("##scriptsTable", 3, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit);
+        ImGui.BeginTable("##scriptsTable", 6, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit);
         ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableSetupColumn("State");
-        ImGui.TableSetupColumn("Controls");
+        ImGui.TableSetupColumn("##c1");
+        ImGui.TableSetupColumn("##c2");
+        ImGui.TableSetupColumn("##c3");
+        ImGui.TableSetupColumn("##c4");
         ImGui.TableHeadersRow();
 
         var openConfig = ScriptingProcessor.Scripts.FirstOrDefault(x => x.InternalData.ConfigOpen);
 
         for (var i = 0;i<ScriptingProcessor.Scripts.Count;i++)
         {
-            var x = ScriptingProcessor.Scripts[i];
-            if(!(Search == "" || x.InternalData.Name.Contains(Search, StringComparison.OrdinalIgnoreCase) || x.InternalData.Namespace.Contains(Search, StringComparison.OrdinalIgnoreCase))) continue;
-            if (openConfig != null && !ReferenceEquals(x, openConfig)) continue;
+            var script = ScriptingProcessor.Scripts[i];
+            var searchSplot = Search.Split(",", StringSplitOptions.TrimEntries);
+            if(openConfig == null && !(Search == "" || script.InternalData.Name.ContainsAny(StringComparison.OrdinalIgnoreCase, searchSplot) || script.InternalData.Namespace.ContainsAny(StringComparison.OrdinalIgnoreCase, searchSplot))) continue;
+            if (openConfig != null && !ReferenceEquals(script, openConfig)) continue;
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.PushID(x.InternalData.GUID);
-            ImGuiEx.TextV($"{x.InternalData.Name.Replace("_", " ")}");
-            if(x.Metadata?.Description == null)
+            ImGui.PushID(script.InternalData.GUID);
+            ImGuiEx.TextV($"{script.InternalData.Name.Replace("_", " ")}");
+            if(script.Metadata?.Description == null)
             {
-                ImGuiEx.Tooltip($"{x.InternalData.Namespace}");
+                ImGuiEx.Tooltip($"{script.InternalData.Namespace}");
             }
             else
             {
-                ImGuiEx.Tooltip($"{x.InternalData.Namespace}\n{x.Metadata.Description}");
+                ImGuiEx.Tooltip($"{script.InternalData.Namespace}\n{script.Metadata.Description}");
             }
             if(ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
-                ImGui.SetClipboardText($"{x.InternalData.FullName}");
+                ImGui.SetClipboardText($"{script.InternalData.FullName}");
                 Notify.Success("Copied to clipboard");
             }
-            if (x.Metadata?.Version != null)
+            if (script.Metadata?.Version != null)
             {
                 ImGui.SameLine();
-                ImGuiEx.Text(ImGuiColors.DalamudGrey2, $"v{x.Metadata.Version}");
+                ImGuiEx.Text(ImGuiColors.DalamudGrey2, $"v{script.Metadata.Version}");
             }
-            if (x.Metadata?.Author != null)
+            if (script.Metadata?.Author != null)
             {
                 ImGui.SameLine();
-                ImGuiEx.Text(ImGuiColors.DalamudGrey2, $"by {x.Metadata.Author}");
+                ImGuiEx.Text(ImGuiColors.DalamudGrey2, $"by {script.Metadata.Author}");
             }
 
             ImGui.TableNextColumn();
 
-            if (x.InternalData.Blacklisted)
+            if (script.InternalData.Blacklisted)
             {
                 ImGuiEx.TextV(ImGuiColors.DalamudGrey3, "Blacklisted".Loc());
                 ImGuiComponents.HelpMarker("This script was blacklisted due to compatibility issues. Please wait for it's new version to be released.".Loc());
             }
-            else if (!x.InternalData.Allowed)
+            else if (!script.InternalData.Allowed)
             {
                 ImGuiEx.TextV(ImGuiColors.ParsedGold, "Preparing".Loc());
                 ImGuiComponents.HelpMarker("This script is being prepared for enabling and will be available shortly.".Loc());
             }
-            else if (x.IsDisabledByUser)
+            else if (script.IsDisabledByUser)
             {
                 ImGuiEx.TextV(ImGuiColors.DalamudRed, "Disabled".Loc());
                 ImGuiComponents.HelpMarker("This script has been disabled by you.".Loc());
             }
-            else if (x.IsEnabled)
+            else if (script.IsEnabled)
             {
                 ImGuiEx.TextV(ImGuiColors.ParsedGreen, "Active".Loc());
                 ImGuiComponents.HelpMarker("This script is currently active and being executed.".Loc());
@@ -122,58 +127,58 @@ internal static class TabScripting
             }
             ImGui.TableNextColumn();
 
-            if (!x.InternalData.Allowed || x.InternalData.Blacklisted)
+            if (!script.InternalData.Allowed || script.InternalData.Blacklisted)
             {
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Play))
                 {
-                    x.InternalData.Allowed = true;
-                    x.InternalData.Blacklisted = false;
-                    x.UpdateState();
+                    script.InternalData.Allowed = true;
+                    script.InternalData.Blacklisted = false;
+                    script.UpdateState();
                 }
                 ImGuiEx.Tooltip("Forcefully allow this script to be enabled. Consequences of this action will be unpredictable.");
             }
             else
             {
 
-                var e = P.Config.DisabledScripts.Contains(x.InternalData.FullName);
+                var e = P.Config.DisabledScripts.Contains(script.InternalData.FullName);
                 if (ImGuiEx.IconButton(e ? FontAwesomeIcon.PlayCircle : FontAwesomeIcon.PauseCircle))
                 {
                     if (e)
                     {
-                        P.Config.DisabledScripts.Remove(x.InternalData.FullName);
+                        P.Config.DisabledScripts.Remove(script.InternalData.FullName);
                     }
                     else
                     {
-                        P.Config.DisabledScripts.Add(x.InternalData.FullName);
+                        P.Config.DisabledScripts.Add(script.InternalData.FullName);
                     }
                     ScriptingProcessor.Scripts.ForEach(x => x.UpdateState());
                 }
                 ImGuiEx.Tooltip(e ? "Enable script".Loc() : "Disable script".Loc());
             }
 
-            ImGui.SameLine();
+            ImGui.TableNextColumn();
 
-            if (x.InternalData.SettingsPresent)
+            if (script.InternalData.SettingsPresent)
             {
                 if (ImGuiEx.IconButton(FontAwesomeIcon.Cog))
                 {
-                    if (x.InternalData.ConfigOpen)
+                    if (script.InternalData.ConfigOpen)
                     {
                         openConfig.Controller.SaveConfig();
                     }
-                    x.InternalData.ConfigOpen = !x.InternalData.ConfigOpen;
+                    script.InternalData.ConfigOpen = !script.InternalData.ConfigOpen;
                 }
                 ImGuiEx.Tooltip("Open script's settings".Loc());
             }
-            else if(x.Controller.GetRegisteredElements().Count > 0)
+            else if(script.Controller.GetRegisteredElements().Count > 0)
             {
                 if (ImGuiEx.IconButton(FontAwesomeIcon.PaintBrush))
                 {
-                    if (x.InternalData.ConfigOpen)
+                    if (script.InternalData.ConfigOpen)
                     {
                         openConfig.Controller.SaveConfig();
                     }
-                    x.InternalData.ConfigOpen = !x.InternalData.ConfigOpen;
+                    script.InternalData.ConfigOpen = !script.InternalData.ConfigOpen;
                 }
                 ImGuiEx.Tooltip("Open element editor".Loc());
             }
@@ -184,22 +189,23 @@ internal static class TabScripting
                 ImGui.PopStyleVar();
                 //ImGuiEx.Tooltip("This script contains no settings");
             }
-            ImGui.SameLine();
+
+            ImGui.TableNextColumn();
 
             if (ImGuiEx.IconButton("\uf0e2"))
             {
-                ScriptingProcessor.ReloadScript(x);
+                ScriptingProcessor.ReloadScript(script);
             }
             ImGuiEx.Tooltip("Reload this script");
 
-            ImGui.SameLine();
+            ImGui.TableNextColumn();
 
             if (ImGuiEx.IconButton(FontAwesomeIcon.Trash) && ImGui.GetIO().KeyCtrl)
             {
-                if (!x.InternalData.Path.IsNullOrEmpty() && x.InternalData.Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                if (!script.InternalData.Path.IsNullOrEmpty() && script.InternalData.Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                 {
                     del = i;
-                    DeleteFileToRecycleBin(x.InternalData.Path);
+                    DeleteFileToRecycleBin(script.InternalData.Path);
                 }
                 else
                 {
@@ -218,7 +224,7 @@ internal static class TabScripting
 
         if (openConfig != null)
         {
-            ImGuiEx.ImGuiLineCentered("ScriptConfigTitle", delegate
+            ImGuiEx.LineCentered("ScriptConfigTitle", delegate
             {
                 ImGuiEx.Text(ImGuiColors.DalamudYellow, $"{openConfig.InternalData.FullName} configuration");
             });

@@ -28,7 +28,7 @@ Tip: disable directions where you aren't going
 ```
 
 ### Chain Deathmatch/Lariat combo
-### WARNING! YOU MUST HAVE SPLATOON TO 3.6.0.6 TO USE THIS PRESET! 3.7.x WILL NOT WORK!
+### WARNING! YOU MUST HAVE SPLATOON TO 3.6.x.x TO USE THIS PRESET! 3.7.x WILL NOT WORK!
 ```
 ~Lv2~{"Name":"R3S Chain Deathmatch/Lariat combo","Group":"Arcadion 3","ZoneLockH":[1230],"ElementsL":[{"Name":"Left","type":3,"refX":-5.0,"refY":30.0,"offX":-5.0,"radius":10.0,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[39733,39735,39667,39898,39920],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]},{"Name":"Right","type":3,"refX":5.0,"refY":30.0,"offX":5.0,"radius":10.0,"fillIntensity":0.4,"originFillColor":1157628159,"endFillColor":1157628159,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[39732,39734,39657,39896,39919],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[]},{"Name":"Tether","type":1,"radius":0.0,"color":3358064384,"fillIntensity":0.345,"originFillColor":1157628159,"endFillColor":1157628159,"thicc":10.0,"refActorName":"*","includeRotation":true,"tether":true,"FaceMe":true,"refActorTether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":15.0,"refActorTetherParam2":274,"refActorIsTetherSource":true,"refActorTetherConnectedWithPlayer":["<1>"]}]}
 ```

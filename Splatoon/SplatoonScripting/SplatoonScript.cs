@@ -166,7 +166,7 @@ public abstract class SplatoonScript
     public virtual void OnUpdate() { }
 
     /// <summary>
-    /// Called BEFORE director update indicates commence, recommence or wipe; combat start; combat end.<br></br>
+    /// Called BEFORE director update indicates commence, recommence or wipe; combat start; combat end; disabling.<br></br>
     /// Also called AFTER enabling.<br></br>
     /// You can put cleanup here.
     /// </summary>
@@ -290,14 +290,7 @@ public abstract class SplatoonScript
             ScriptingProcessor.LogError(this, ex, nameof(Enable));
         }
         this.IsEnabled = true;
-        try
-        {
-            this.OnReset();
-        }
-        catch(Exception ex)
-        {
-            ScriptingProcessor.LogError(this, ex, nameof(OnReset));
-        }
+        ScriptingProcessor.OnReset(this);
         return true;
     }
 
@@ -308,6 +301,7 @@ public abstract class SplatoonScript
         {
             return false;
         }
+        ScriptingProcessor.OnReset(this);
         try
         {
             PluginLog.Information($"Disabling script {this}");

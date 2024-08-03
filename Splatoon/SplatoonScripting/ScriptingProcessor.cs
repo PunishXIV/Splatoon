@@ -359,15 +359,22 @@ internal static partial class ScriptingProcessor
 
     internal static void OnUpdate()
     {
+        var tickCount = Environment.TickCount64;
         for (var i = 0; i < Scripts.Count; i++)
         {
             if (Scripts[i].IsEnabled)
             {
+                var script = Scripts[i];
                 try
                 {
-                    Scripts[i].OnUpdate();
+                    script.OnUpdate();
                 }
                 catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnUpdate)); }
+                if(tickCount > script.Controller.AutoResetAt)
+                {
+                    PluginLog.Debug($"Resetting script {script.InternalData.Name} because of timer");
+                    OnReset(script);
+                }
             }
         }
     }
@@ -404,13 +411,18 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnReset(int i)
+    internal static void OnReset(int i) => OnReset(Scripts[i]);
+
+    internal static void OnReset(SplatoonScript script)
     {
         try
         {
-            Scripts[i].OnReset();
+            PluginLog.Debug($"OnReset called for script {script.InternalData.Name}");
+            script.Controller.CancelSchedulers();
+            script.OnReset();
+            script.Controller.AutoResetAt = long.MaxValue;
         }
-        catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnReset)); }
+        catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
     }
 
     internal static void OnMapEffect(uint Position, ushort Param1, ushort Param2)

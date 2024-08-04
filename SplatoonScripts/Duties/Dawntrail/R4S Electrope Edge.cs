@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Electrope_Edge : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
     List<uint> Hits = [];
     List<uint> Longs = [];
     uint Debuff = 3999;
@@ -112,7 +112,9 @@ public class R4S_Electrope_Edge : SplatoonScript
     {
         ImGui.SetNextItemWidth(150f);
         ImGui.Checkbox("Add 1 to long debuff bearers", ref C.AddOne);
+        ImGuiEx.HelpMarker("If you have long debuff, visually will add 1 to it's count. Does not affects actual functions of the script.");
         ImGui.Checkbox("Resolve safe spots", ref C.ResolveBox);
+        ImGuiEx.HelpMarker("If selected, these safe spots will be highlighted when it's time for you to explode.");
 
         if(C.ResolveBox)
         {
@@ -201,16 +203,13 @@ public class R4S_Electrope_Edge : SplatoonScript
         {
             for(int i = 0; i < set.TargetEffects.Length; i++)
             {
-                if(set.TargetEffects[i].GetSpecificTypeEffect(ActionEffectType.Damage, out var d))
+                var obj = ((uint)set.TargetEffects[i].TargetID).GetObject();
+                if(obj?.ObjectKind == ObjectKind.Player)
                 {
-                    var obj = ((uint)set.TargetEffects[i].TargetID).GetObject();
-                    if(obj?.ObjectKind == ObjectKind.Player)
-                    {
-                        PluginLog.Information($"Registered hit on {obj}");
-                        Hits.Add(obj.EntityId);
-                    }
+                    PluginLog.Information($"Registered hit on {obj}");
+                    Hits.Add(obj.EntityId);
+                    break;
                 }
-                
             }
         }
     }

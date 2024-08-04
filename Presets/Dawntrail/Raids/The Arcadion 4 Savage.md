@@ -4,23 +4,6 @@
 - Fragile
 - Errer
 
-### Chain Lightning
-Does not requires configuration
-```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Chain%20Lightning.cs
-```
-
-### Midnight Sabbath REQUIRES SPLATOON 3.6.0.7
-```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Midnight%20Sabbath.cs
-```
-
-### Sunrise Sabbath complete resolution
-**REQUIRES CONFIGURATION**
-```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Sunrise%20Sabbath.cs
-```
-
 # Presets
 ## Shared
 ### Pairs and Spreads
@@ -85,6 +68,23 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 ```
 
 ## Phase 2
+
+### [Script] Chain Lightning
+Does not requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Chain%20Lightning.cs
+```
+
+### [Script] Midnight Sabbath REQUIRES SPLATOON 3.6.0.7
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Midnight%20Sabbath.cs
+```
+
+### [Script] Sunrise Sabbath complete resolution
+**REQUIRES CONFIGURATION**
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Sunrise%20Sabbath.cs
+```
 
 ### Fulminous Field
 Only proteans, import all

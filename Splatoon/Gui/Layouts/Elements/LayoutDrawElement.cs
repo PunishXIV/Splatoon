@@ -204,6 +204,26 @@ internal unsafe partial class CGui
                 {
                     ImGui.SetNextItemWidth(200f);
                     ImGuiEx.InputListString("##pholder" + i + k, el.refActorPlaceholder);
+                    ImGui.SameLine();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.AngleDoubleDown))
+                    {
+                        ImGui.OpenPopup("PlaceholderFastSelect");
+                    }
+                    if(ImGui.BeginPopup("PlaceholderFastSelect"))
+                    {
+                        for(int s = 1; s <= 8; s++)
+                        {
+                            if(ImGui.Selectable($"<{s}>", false, ImGuiSelectableFlags.DontClosePopups)) el.refActorPlaceholder.Add($"<{s}>");
+                        }
+                        if(ImGui.Selectable("2-8", false, ImGuiSelectableFlags.DontClosePopups))
+                        {
+                            for(int s = 2; s <= 8; s++)
+                            {
+                                el.refActorPlaceholder.Add($"<{s}>");
+                            }
+                        }
+                        ImGui.EndPopup();
+                    }
                     ImGuiComponents.HelpMarker(("Placeholder like you'd type in macro <1>, <2>, <mo> etc. You can add multiple." +
                         "\nAdditional placeholders are supported:" +
                         "\n<d1>, <d2>, <d3> etc - DPS player in a party" +

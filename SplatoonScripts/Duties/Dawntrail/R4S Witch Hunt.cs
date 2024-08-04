@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Witch_Hunt : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
 
     uint CastNarrowing = 38369;
     uint CastWidening = 38368;
@@ -60,6 +60,11 @@ public class R4S_Witch_Hunt : SplatoonScript
         Controller.RegisterElementFromCode("NormalMid", "{\"Name\":\"\",\"type\":2,\"refX\":120.0,\"refY\":100.0,\"offX\":80.0,\"offY\":100.0,\"radius\":12.0,\"color\":3355508223,\"fillIntensity\":0.2,\"originFillColor\":1157628159,\"endFillColor\":1157628159,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("NormalSide1", "{\"Name\":\"\",\"type\":2,\"refX\":120.0,\"refY\":85.0,\"offX\":80.0,\"offY\":85.0,\"radius\":7.0,\"color\":3355508223,\"fillIntensity\":0.2,\"originFillColor\":1157628159,\"endFillColor\":1157628159,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("NormalSide2", "{\"Name\":\"\",\"type\":2,\"refX\":120.0,\"refY\":115.0,\"offX\":80.0,\"offY\":115.0,\"radius\":7.0,\"color\":3355508223,\"fillIntensity\":0.2,\"originFillColor\":1157628159,\"endFillColor\":1157628159,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("IdlersAreaOutClose", "{\"Name\":\"IdlersAreaOutClose\",\"type\":1,\"Enabled\":false,\"radius\":12.0,\"Donut\":1.0,\"color\":3372154884,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("IdlersAreaOutFar", "{\"Name\":\"IdlersAreaOutFar\",\"type\":1,\"Enabled\":false,\"radius\":10.0,\"Donut\":1.0,\"color\":3372154884,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("IdlersAreaInFar", "{\"Name\":\"IdlersAreaInFar\",\"type\":1,\"Enabled\":false,\"radius\":7.0,\"Donut\":1.0,\"color\":3372158464,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("IdlersAreaInClose", "{\"Name\":\"IdlersAreaInClose\",\"type\":1,\"Enabled\":false,\"radius\":9.0,\"Donut\":1.0,\"color\":3372158464,\"fillIntensity\":0.4,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     public override void OnSettingsDraw()
@@ -69,9 +74,11 @@ public class R4S_Witch_Hunt : SplatoonScript
         ImGui.Checkbox("Always show baits", ref C.Uncond);
 
         ImGui.SetNextItemWidth(150f);
-        ImGui.InputInt("Your turn to bait (close first or both if far first isn't set)", ref C.MyTurn.ValidateRange(1, 4));
+        ImGui.InputInt("Your turn to bait (close first or both if far first isn't set)", ref C.MyTurn.ValidateRange(0, 4));
 
         ImGuiEx.InputInt(150f, "Your turn to bait (far first)", ref C.MyTurnFarFirst);
+
+        ImGui.Checkbox("Show standby zone", ref C.ShowIdle);
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -151,8 +158,13 @@ public class R4S_Witch_Hunt : SplatoonScript
             if(IsInitialClose != null)
             {
                 var baitsClose = NumSwitches % 2 != 0 ? IsInitialClose.Value : !IsInitialClose.Value;
-                
-                var baiterZone = Controller.GetElementByName(!IsUnsafeMiddle.Value?(baitsClose?"InClose":"InFar"):(baitsClose?"OutClose":"OutFar"))!;
+
+                var baiterZone = Controller.GetElementByName(!IsUnsafeMiddle.Value ? (baitsClose ? "InClose" : "InFar") : (baitsClose ? "OutClose" : "OutFar"))!;
+                var idlerZone = Controller.GetElementByName("IdlersArea" + (!IsUnsafeMiddle.Value ? (baitsClose ? "InClose" : "InFar") : (baitsClose ? "OutClose" : "OutFar")));
+                if(idlerZone != null && C.ShowIdle && myTurn - 1 != this.NumSwitches)
+                {
+                    idlerZone.Enabled = true;
+                }
                 baiterZone.Enabled = true;
 
 
@@ -162,7 +174,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                     if(!baitsClose) players.Reverse();
                     for(int i = 0; i < 2; i++)
                     {
-                        var e = Controller.GetElementByName($"Target{i}");
+                        var e = Controller.GetElementByName($"Target{i}")!;
                         e.Enabled = true;
                         e.refActorObjectID = players[i].EntityId;
                     }
@@ -216,5 +228,6 @@ public class R4S_Witch_Hunt : SplatoonScript
         public bool Normal = true;
         public int MyTurn = 1;
         public int? MyTurnFarFirst = null;
+        public bool ShowIdle = false;
     }
 }

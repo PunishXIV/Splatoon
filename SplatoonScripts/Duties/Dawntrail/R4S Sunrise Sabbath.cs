@@ -22,13 +22,14 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Sunrise_Sabbath : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
     uint DebuffYellow = 4000;
     uint DebuffBlue = 4001;
     string GunYellow = "vfx/common/eff/m0888_stlp04_c0t1.avfx";
     string GunBlue = "vfx/common/eff/m0888_stlp03_c0t1.avfx";
     Vector3 Mid = new(100, 0, 165);
     IBattleNpc? WickedThunder => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == 13057 && x.IsTargetable);
+    IBattleNpc? WickedThunder2 => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == 13058 && x.IsTargetable);
 
     IBattleNpc[] ClonesTower => Svc.Objects.OfType<IBattleNpc>().Where(b => b.NameId == 13562 && b.GetTransformationID() == 28).ToArray();
     IBattleNpc[] ClonesGun => Svc.Objects.OfType<IBattleNpc>().Where(b => b.NameId == 13562 && b.GetTransformationID() == 57).ToArray();
@@ -58,7 +59,7 @@ public class R4S_Sunrise_Sabbath : SplatoonScript
 
     bool IsTakingGun => Player.Object.StatusList.Any(x => x.StatusId.EqualsAny<uint>(this.DebuffBlue, this.DebuffYellow) && x.RemainingTime < 16f && x.RemainingTime > 0.1f);
     bool IsMechanicActive(float remainingTime) => Controller.GetPartyMembers().Any(z => z.StatusList.Any(x => x.StatusId.EqualsAny<uint>(this.DebuffBlue, this.DebuffYellow) && x.RemainingTime < remainingTime && x.RemainingTime > 0.1f)) || Controller.GetPartyMembers().Count(x => x.StatusList.Any(s => s.StatusId == this.DebuffBlue)) == 4;
-    bool IsTowerHidden => Controller.GetPartyMembers().Count(z => z.StatusList.Any(x => x.StatusId.EqualsAny<uint>(2940) && x.RemainingTime > 11f)) == 4;
+    bool IsTowerHidden => Controller.GetPartyMembers().Count(z => z.StatusList.Any(x => x.StatusId.EqualsAny<uint>(2940) && x.RemainingTime > 11f)) == 4 || (WickedThunder2 != null && WickedThunder2.CastActionId.EqualsAny(38418u, 38416u));
     bool IsGunHidden => Controller.GetPartyMembers().Count(z => z.StatusList.Any(x => x.StatusId.EqualsAny<uint>(2998) && x.RemainingTime > 15f)) == 4;
 
     public override void OnUpdate()

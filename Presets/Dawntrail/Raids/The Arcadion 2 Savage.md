@@ -1,3 +1,8 @@
+### [Script] [Untested] Stored pair/spread 
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R2S%20Venom%20Love%20Pair%20Split.cs
+```
+
 ### Donut and Line AOEs
 ```
 ~Lv2~{"Name":"Tempting Twist (donut)","Group":"Arcadion 2","ZoneLockH":[1228],"ElementsL":[{"Name":"ドーナツ","type":1,"radius":6.6,"Donut":20.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":12685,"refActorRequireCast":true,"refActorCastId":[39626,39697],"refActorComparisonType":6,"includeRotation":true,"FillStep":1.0}]}

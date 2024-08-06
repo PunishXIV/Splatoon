@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Sunrise_Sabbath : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
     uint DebuffYellow = 4000;
     uint DebuffBlue = 4001;
     string GunYellow = "vfx/common/eff/m0888_stlp04_c0t1.avfx";
@@ -110,6 +110,10 @@ public class R4S_Sunrise_Sabbath : SplatoonScript
                 if(IsMechanicActive(9.5f))
                 {
                     var guns = ClonesGun.OrderBy(x => MathHelper.GetRelativeAngle(new(100, 0, 165), x.Position)).ToList();
+                    if(C.StartWest)
+                    {
+                        guns = ClonesGun.OrderBy(x => (MathHelper.GetRelativeAngle(new(100, 0, 165), x.Position) + 90 + 360) % 360).ToList();
+                    }
                     if(C.IsCcw) guns.Reverse();
                     int blues = 0;
                     int yellows = 0;
@@ -165,6 +169,7 @@ public class R4S_Sunrise_Sabbath : SplatoonScript
         ImGui.Checkbox($"East", ref C.TetherEast);
         ImGui.Separator();
         ImGui.Checkbox("Resolve bait priority", ref C.TetherBait);
+        ImGui.Checkbox("Start from West instead of North", ref C.StartWest);
         ImGuiEx.RadioButtonBool("Counter-Clockwise", "Clockwise", ref C.IsCcw);
     }
 
@@ -179,5 +184,6 @@ public class R4S_Sunrise_Sabbath : SplatoonScript
 
         public bool TetherBait = false;
         public bool IsCcw = false;
+        public bool StartWest = false;
     }
 }

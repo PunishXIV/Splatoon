@@ -22,7 +22,7 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
     }
     public override HashSet<uint>? ValidTerritories { get; } = [1228];
 
-    public override Metadata? Metadata => new(0, "Redmoon");
+    public override Metadata? Metadata => new(1, "Redmoon");
 
     const uint PoisonResistanceDownDebuffID = 3935;
     bool IsShow = false;
@@ -31,27 +31,10 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
 
     public override void OnSetup()
     {
-        Controller.RegisterElementFromCode("Pair", "{\"Name\":\"Pair\",\"type\":1,\"radius\":6.0,\"color\":4278255389,\"fillIntensity\":0.14,\"thicc\":2.0,\"refActorPlaceholder\":[\"<d1>\",\"<d2>\",\"<d3>\",\"<d4>\"],\"refActorComparisonType\":5,\"includeRotation\":true,\"FaceMe\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
-        Controller.RegisterElementFromCode("split", "{\"Name\":\"split\",\"type\":1,\"radius\":6.0,\"color\":4278190335,\"fillIntensity\":0.14,\"refActorComparisonType\":1,\"includeRotation\":true,\"FaceMe\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("Pair", "{\"Name\":\"Pair\",\"type\":1,\"radius\":6.0,\"color\":4278255389,\"Filled\":false,\"fillIntensity\":0.14,\"originFillColor\":587267869,\"endFillColor\":587267869,\"overlayTextColor\":3943235328,\"overlayVOffset\":1.0,\"overlayText\":\"Pairs\",\"refActorPlaceholder\":[\"<d1>\",\"<d2>\",\"<d3>\",\"<d4>\"],\"refActorComparisonType\":5,\"includeRotation\":true,\"FaceMe\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("split", "{\"Name\":\"split\",\"type\":1,\"Enabled\":false,\"radius\":6.0,\"color\":4278190335,\"Filled\":false,\"fillIntensity\":0.14,\"originFillColor\":587202815,\"endFillColor\":587202815,\"overlayTextColor\":4278190335,\"overlayVOffset\":1.0,\"overlayText\":\"<< Spread >>\",\"refActorComparisonType\":1,\"includeRotation\":true,\"FaceMe\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
-    public override void OnEnable()
-    {
-        Reset();
-    }
-
-    public override void OnDirectorUpdate(DirectorUpdateCategory category)
-    {
-        switch (category)
-        {
-            case DirectorUpdateCategory.Commence:
-            case DirectorUpdateCategory.Recommence:
-            case DirectorUpdateCategory.Complete:
-            case DirectorUpdateCategory.Wipe:
-                Reset();
-                break;
-        }
-    }
     public override void OnUpdate()
     {
         if (Player.Object.StatusList.Any(x => x.StatusId == PoisonResistanceDownDebuffID) && IsShow && !IsAdd)
@@ -119,7 +102,7 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
         IsShow = false;
     }
 
-    private void Reset()
+    public override void OnReset()
     {
         HideElement();
         LatchNextPairSplit = PairSplit.None;

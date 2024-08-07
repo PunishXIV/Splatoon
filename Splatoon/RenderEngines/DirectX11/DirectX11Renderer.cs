@@ -102,6 +102,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             }
 
             var center = Utils.XZY(Utils.RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ)));
+            if(!LayoutUtils.ShouldDraw(center.X, Utils.GetPlayerPositionXZY().X, center.Z, Utils.GetPlayerPositionXZY().Y)) return;
             float innerRadius = 0;
             var outerRadius = radius ?? e.radius;
             if (e.Donut > 0)
@@ -130,6 +131,8 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             if (aradius == 0f)
             {
                 var (pointA, pointB) = CommonRenderUtils.GetRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
+                if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
                 DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
                     pointB.X, pointB.Y, pointB.Z,
                     e.thicc, e.color, e.LineEndA, e.LineEndB));
@@ -147,6 +150,9 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     tPos.Y + e.offY,
                     tPos.Z + e.offZ));
 
+                if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;
+
                 var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
                 DisplayObjects.Add(line);
             }
@@ -154,6 +160,8 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         else
         {
             var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
+            if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
+                && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
             DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
                 pointB.X, pointB.Y, pointB.Z,
                 e.thicc, e.color, e.LineEndA, e.LineEndB));
@@ -224,12 +232,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     var targetable = a.Struct()->GetIsTargetable();
                     if (LayoutUtils.IsAttributeMatches(e, a)
-                            && (!e.onlyTargetable || targetable)
-                            && (!e.onlyUnTargetable || !targetable)
-                            && LayoutUtils.CheckCharacterAttributes(e, a)
-                            && (!e.refTargetYou || LayoutUtils.CheckTargetingOption(e, a))
-                            && (!e.refActorObjectLife || a.GetLifeTimeSeconds().InRange(e.refActorLifetimeMin, e.refActorLifetimeMax))
-                            && (!e.LimitDistance || Vector3.Distance(a.GetPositionXZY(), new(e.DistanceSourceX, e.DistanceSourceY, e.DistanceSourceZ)).InRange(e.DistanceMin, e.DistanceMax).Invert(e.LimitDistanceInvert)))
+                            && CommonRenderUtils.IsElementObjectMatches(e, targetable, a))
                     {
                         if (i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, a.GetPositionXZY()))
                         {
@@ -263,22 +266,12 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         else if (e.type == 2)
         {
-            void Line() => AddLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
-            Line();
-            if (e.radius > 0)
+            if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(i, e))
             {
-                // ?????
+                if(!LayoutUtils.ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
+    && !LayoutUtils.ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)) return;
+                AddLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
             }
-            else if (
-                    (
-                        i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(i, e)
-                    ) &&
-                    (
-                    LayoutUtils.ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)
-                    || LayoutUtils.ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
-                    )
-                    )
-                Line();
         }
         else if (e.type == 5)
         {

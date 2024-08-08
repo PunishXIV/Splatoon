@@ -70,32 +70,8 @@ public static unsafe class LayoutUtils
         }
         else
         {
-            var result = nint.Zero;
-            if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-            {
-                result = (nint)FakePronoun.Resolve(ph);
-            }
-            else
-            {
-                if (ph.StartsWithIgnoreCase("<t") && int.TryParse(ph[2..3], out var n))
-                {
-                    result = Utils.GetRolePlaceholder(CombatRole.Tank, n)?.Address ?? 0;
-                }
-                else if (ph.StartsWithIgnoreCase("<h") && int.TryParse(ph[2..3], out n))
-                {
-                    result = Utils.GetRolePlaceholder(CombatRole.Healer, n)?.Address ?? 0;
-                }
-                else if (ph.StartsWithIgnoreCase("<d") && int.TryParse(ph[2..3], out n))
-                {
-                    result = Utils.GetRolePlaceholder(CombatRole.DPS, n)?.Address ?? 0;
-                }
-                else
-                {
-                    result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder(ph, 0, 0);
-                }
-            }
+            var result = (nint)FakePronoun.Resolve(ph);
             PlaceholderCache[ph] = result;
-            //PluginLog.Information($"Phaceholder {ph} result {result}");
             return result;
         }
     }

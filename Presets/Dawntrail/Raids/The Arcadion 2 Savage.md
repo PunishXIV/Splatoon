@@ -1,4 +1,5 @@
-### [Script] [Untested] Stored pair/spread 
+### [Script] Stored pair/spread 
+No configuration required
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R2S%20Venom%20Love%20Pair%20Split.cs
 ```

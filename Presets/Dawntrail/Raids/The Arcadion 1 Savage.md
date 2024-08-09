@@ -2,7 +2,7 @@
 
 Contributions by `tooleroflight` and `limiana`.
 
-# Scripts
+## Scripts
 
 ### [Script] Quadruple Crossing Highlights
 
@@ -18,9 +18,7 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Protean%20Highlight.cs
 ```
 
----
-
-# Presets
+## Presets
 
 ### [International] Quadruple Crossing (and Leaping Quadruple Crossing)
 

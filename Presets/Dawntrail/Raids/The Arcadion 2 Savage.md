@@ -2,7 +2,7 @@
 
 Contributions by `tooleroflight` and `limiana`.
 
-# Scripts
+## Scripts
 
 ### [Script] Stored Splash / Drop of Venom
 
@@ -14,7 +14,7 @@ No configuration required.
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R2S%20Venom%20Love%20Pair%20Split.cs
 ```
 
-# Presets
+## Presets
 
 ### [International] Honey Beeline / Tempting Twist
 

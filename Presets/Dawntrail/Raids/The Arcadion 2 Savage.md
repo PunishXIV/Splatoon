@@ -56,7 +56,8 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 
 ### [International] Alarm Pheromones
 
-Note: This covers both Alarm Pheromones 1 and 2.
+> [!NOTE]
+> This covers both Alarm Pheromones 1 and 2.
 
 ```
 ~Lv2~{"Name":"M2S Alarm Pheromones","Group":"Arcadion 2 Savage","ZoneLockH":[1228],"ElementsL":[{"Name":"ラブ・イズ・ブラインド_遅延有","type":3,"refY":50.0,"radius":4.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13063,"refActorRequireCast":true,"refActorCastId":[37272],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":10.0,"refActorComparisonType":6,"includeRotation":true,"FillStep":2.0},{"Name":"ラブ・イズ・ブラインド_遅延有","type":3,"refY":50.0,"radius":4.0,"color":4278233087,"fillIntensity":0.242,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13063,"refActorRequireCast":true,"refActorCastId":[37272],"refActorUseCastTime":true,"refActorCastTimeMax":3.0,"refActorComparisonType":6,"includeRotation":true,"FillStep":2.0},{"Name":"ラブ・イズ・ブラインド_遅延無","type":3,"refY":50.0,"radius":5.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13063,"refActorRequireCast":true,"refActorCastId":[37264,37265],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":10.0,"refActorComparisonType":6,"includeRotation":true,"FillStep":2.0}]}

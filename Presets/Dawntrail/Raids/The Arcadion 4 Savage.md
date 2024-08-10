@@ -2,6 +2,8 @@
 
 Contributions by `limiana`, `kari`, `lilly`, `fragile`, and `errer`.
 
+## Shared Presets
+
 ### [International] Four / Eight Star (Pairs and Spreads)
 
 ```

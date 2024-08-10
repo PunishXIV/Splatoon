@@ -132,7 +132,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         ImGui.Checkbox("Add 1 to long debuff bearers", ref C.AddOne);
         ImGuiEx.HelpMarker("If you have long debuff, visually will add 1 to it's count. Does not affects actual functions of the script.");
         ImGui.Checkbox("Show much fewer", ref C.showMuchFew);
-        ImGuiEx.HelpMarker("If selected, In addition to shout and long, display much and few.");
+        ImGuiEx.HelpMarker("If selected, In addition to short and long, display much and few.");
         ImGui.TextWrapped("You can change the string to be displayed instead of much and few.");
         ImGui.TextWrapped("Much");
         ImGui.SameLine();

@@ -59,13 +59,31 @@ public class R4S_Electrope_Edge : SplatoonScript
         int i = 0;
         foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
         {
+            bool tooFew = false;
             var num = Hits.Count(s => s == x.EntityId);
+            string tooFewString = "";
             if(num > 0 && Controller.TryGetElementByName($"Count{i}", out var e))
             {
                 e.Enabled = true;
                 var l = Longs.Contains(x.EntityId);
+                if(l)
+                {
+                    if(num == 1) tooFew = true;
+                }
+                else
+                {
+                    if(num == 2) tooFew = true;
+                }
+                if(tooFew)
+                {
+                    tooFewString = Controller.GetConfig<Config>().stringFew;
+                }
+                else
+                {
+                    tooFewString = Controller.GetConfig<Config>().stringMuch;
+                }
                 e.overlayText = l ? "Long" : "Short";
-                e.overlayText += $"\n   {num + (Controller.GetConfig<Config>().AddOne && l?1:0)}";
+                e.overlayText += $"\n   {num + (Controller.GetConfig<Config>().AddOne && l?1:0)} {(Controller.GetConfig<Config>().showMuchFew? tooFewString:"")}";
                 e.overlayTextColor = (x.StatusList.FirstOrDefault(x => x.StatusId == Debuff)?.RemainingTime < 16f?EColor.RedBright:EColor.White).ToUint();
                 e.overlayFScale = x.Address == Player.Object.Address ? 2f : 1f;
                 e.refActorObjectID = x.EntityId;
@@ -113,6 +131,15 @@ public class R4S_Electrope_Edge : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGui.Checkbox("Add 1 to long debuff bearers", ref C.AddOne);
         ImGuiEx.HelpMarker("If you have long debuff, visually will add 1 to it's count. Does not affects actual functions of the script.");
+        ImGui.Checkbox("Show much fewer", ref C.showMuchFew);
+        ImGuiEx.HelpMarker("If selected, In addition to shout and long, display much and few.");
+        ImGui.TextWrapped("You can change the string to be displayed instead of much and few.");
+        ImGui.TextWrapped("Much");
+        ImGui.SameLine();
+        ImGui.InputText("##much", ref C.stringMuch, 100);
+        ImGui.TextWrapped("Few");
+        ImGui.SameLine();
+        ImGui.InputText("##few", ref C.stringFew, 100);
         ImGui.Checkbox("Resolve safe spots", ref C.ResolveBox);
         ImGuiEx.HelpMarker("If selected, these safe spots will be highlighted when it's time for you to explode.");
 
@@ -217,6 +244,9 @@ public class R4S_Electrope_Edge : SplatoonScript
     public class Config : IEzConfig
     {
         public bool AddOne = false;
+        public bool showMuchFew = false;
+        public string stringMuch = "Much";
+        public string stringFew = "Few";
         public bool ResolveBox = false;
         public (int, int) Position2 = (1, 4);
         public (int, int) Position3 = (4, 4);

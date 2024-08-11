@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Sunrise_Sabbath : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
     uint DebuffYellow = 4000;
     uint DebuffBlue = 4001;
     string GunYellow = "vfx/common/eff/m0888_stlp04_c0t1.avfx";
@@ -123,7 +123,8 @@ public class R4S_Sunrise_Sabbath : SplatoonScript
                         var gun = guns[i];
                         if(AttachedInfo.TryGetVfx(gun, out var vfx))
                         {
-                            if(vfx.Where(x => x.Key.EqualsAny(this.GunBlue, this.GunYellow)).OrderBy(x => x.Value.AgeF).FirstOrDefault().Key == this.GunBlue)
+                            var req = vfx?.Where(x => x.Key.EqualsAny(this.GunBlue, this.GunYellow) && x.Value.AgeF < 15f).OrderBy(x => x.Value.AgeF).FirstOrDefault().Key;
+                            if(req == this.GunBlue)
                             {
                                 if(showAoe)
                                 {
@@ -133,7 +134,7 @@ public class R4S_Sunrise_Sabbath : SplatoonScript
                                 }
                                 if(Player.Object.StatusList.Any(x => x.StatusId == this.DebuffYellow)) EnableTether();
                             }
-                            else
+                            else if(req == this.GunYellow)
                             {
                                 if(showAoe)
                                 {

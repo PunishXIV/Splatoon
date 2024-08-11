@@ -18,9 +18,15 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Protean%20Highlight.cs
 ```
 
-### [Script] [Untested] Multiscript
-Draws arrows indicating where soulshades will jump to
-Draws cleaves for One-Two Paw and Leaping One-Two Paw and when it is passed to the soulshades.
+### [Script] [Untested] Clones Multi-script
+
+> [!WARNING]  
+> This script might conflict with existing presets. Please test the script and report back on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) so we can verify that this script works.
+
+This script draws arrows indicating where the clones will jump to, draws cleaves for One-Two Paw and Leaping One-Two Paw, and telegraphs those abilities when they are passed to the clones.
+
+No configuration required.
+
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Multiscript.cs
 ```

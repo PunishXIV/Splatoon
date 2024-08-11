@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Chain_Lightning : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
     uint TowerID = 13061;
     List<List<uint>> Towers = [];
     Layout VoidZone = null!;
@@ -78,7 +78,7 @@ public class R4S_Chain_Lightning : SplatoonScript
                 Towers.Add([]);
             }
             Towers.Last().Add(target);
-            ResetAt = Environment.TickCount64 + 30 * 1000;
+            ResetAt = Environment.TickCount64 + 40 * 1000;
         }
         if(vfxPath == "vfx/channeling/eff/chn_chainlightning_1t1.avfx")
         {
@@ -87,7 +87,7 @@ public class R4S_Chain_Lightning : SplatoonScript
                 Towers.Add([]);
             }
             Towers.Last().Add(target);
-            ResetAt = Environment.TickCount64 + 30 * 1000;
+            ResetAt = Environment.TickCount64 + 40 * 1000;
         }
     }
 

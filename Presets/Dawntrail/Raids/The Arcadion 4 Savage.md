@@ -45,6 +45,7 @@ Configuration:
 
 - **Add 1 to long debuff bearers:** Adds an extra count if you have a long debuff because the mechanic in between the two sets of explosions "adds 1." _It's recommended to check this because all of the known strategies add 1 count to long debuffs._
 - **Resolve safe spots:** Creates a tether to your configured safe spot when it's your turn to explode. Refer to [this RaidPlan](https://raidplan.io/plan/yMwb_GE5-EzMo6Ei) for suggested safe spots, but check which your party is using.
+- **Show much/few:** (not pictured) Adds additional text next to the number displayed on your character. **Much** shows when you are a 3 + short debuff or 2 + long debuff and **few** shows when you are a 2 + short debuff or 1 + long debuff. _It is recommended to leave this unchecked to avoid confusion._
 
 ![R4S Electrope Edge Script Instructions](/docs/images/instructions/dawntrail/raids/R4S_2.png)
 

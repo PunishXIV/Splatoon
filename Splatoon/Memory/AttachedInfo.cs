@@ -169,6 +169,7 @@ public unsafe static class AttachedInfo
                         {
                             text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
                         }
+                        ScriptingProcessor.OnStartingCast(b, b.CastActionId);
                         P.ChatMessageQueue.Enqueue(text);
                         if (P.Config.Logging)
                         {

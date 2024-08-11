@@ -455,6 +455,21 @@ internal static partial class ScriptingProcessor
         }
     }
 
+    internal static void OnStartingCast(IBattleChara battleChar, uint castId)
+    {
+        for (var i = 0; i < Scripts.Count; i++)
+        {
+            if (Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnStartingCast(battleChar, castId);
+                }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnObjectEffect)); }
+            }
+        }
+    }
+
     internal static void OnMessage(string Message)
     {
         for (var i = 0; i < Scripts.Count; i++)

@@ -12,7 +12,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Unsafe_Cannon : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
     uint DebuffYellow = 4000;
     uint DebuffBlue = 4001;
 
@@ -24,14 +24,17 @@ public class R4S_Unsafe_Cannon : SplatoonScript
 
     public override void OnUpdate()
     {
-        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        if(Player.Object.StatusList.Any(x => x.StatusId == DebuffYellow))
+        if(Player.Available)
         {
-            Controller.GetElementByName("Yellow")!.Enabled = true;
-        }
-        if(Player.Object.StatusList.Any(x => x.StatusId == DebuffBlue))
-        {
-            Controller.GetElementByName("Blue")!.Enabled = true;
+            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            if(Player.Object.StatusList.Any(x => x.StatusId == DebuffYellow))
+            {
+                Controller.GetElementByName("Yellow")!.Enabled = true;
+            }
+            if(Player.Object.StatusList.Any(x => x.StatusId == DebuffBlue))
+            {
+                Controller.GetElementByName("Blue")!.Enabled = true;
+            }
         }
     }
 }

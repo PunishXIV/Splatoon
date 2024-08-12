@@ -1,6 +1,6 @@
 # AAC Light-Heavyweight M1 (Black Cat)
 
-Contributions by `tooleroflight` and `limiana`.
+Contributions by `tooleroflight`, `limiana`, `damolitionn`.
 
 ## Scripts
 
@@ -16,6 +16,13 @@ Configuration:
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Protean%20Highlight.cs
+```
+
+### [Script] [Untested] Multiscript
+Draws arrows indicating where soulshades will jump to
+Draws cleaves for One-Two Paw and Leaping One-Two Paw and when it is passed to the soulshades.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Multiscript.cs
 ```
 
 ## Presets

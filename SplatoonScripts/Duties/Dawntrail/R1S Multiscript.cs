@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 
 using ECommons.Schedulers;
+using ECommons;
 
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
@@ -512,8 +513,22 @@ public class R1S_Multiscript : SplatoonScript
         {
             clonePositions.Clear();
             jumpTargetPosition = new Vector3(0, 0, 0);
-            HideArrows(8);
-            HideArrows(9);
+            if (Controller.TryGetElementByName($"SArrowLeft", out var arrow1))
+            {
+                arrow1.Enabled = false;
+            }
+            if (Controller.TryGetElementByName($"SArrowRight", out var arrow2))
+            {
+                arrow2.Enabled = false;
+            }
+            if (Controller.TryGetElementByName($"NArrowLeft", out var arrow3))
+            {
+                arrow3.Enabled = false;
+            }
+            if (Controller.TryGetElementByName($"NArrowRight", out var arrow4))
+            {
+                arrow4.Enabled = false;
+            }
         }
     }
 
@@ -525,15 +540,6 @@ public class R1S_Multiscript : SplatoonScript
         sched?.Dispose();
         clonePositions.Clear();
         jumpTargetPosition = new Vector3(0, 0, 0);
-        HideArrows(8);
-        HideArrows(9);
-        if (Controller.TryGetElementByName($"Cleaves", out var e1))
-        {
-            e1.Enabled = false;
-        }
-        if (Controller.TryGetElementByName($"CloneCleave", out var e2))
-        {
-            e2.Enabled = false;
-        }
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 }

@@ -455,7 +455,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnStartingCast(IBattleChara battleChar, uint castId)
+    internal static void OnStartingCast(uint target, uint castId)
     {
         for (var i = 0; i < Scripts.Count; i++)
         {
@@ -463,7 +463,7 @@ internal static partial class ScriptingProcessor
             {
                 try
                 {
-                    Scripts[i].OnStartingCast(battleChar, castId);
+                    Scripts[i].OnStartingCast(target, castId);
                 }
                 catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnObjectEffect)); }
             }

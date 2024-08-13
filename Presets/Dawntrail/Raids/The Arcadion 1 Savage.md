@@ -21,7 +21,9 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 ### [Script] [Untested] Clones Multi-script
 
 > [!WARNING]  
-> This script might conflict with existing presets. Please test the script and report back on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) so we can verify that this script works. Initial testing suggests that this script doesn't provide anything extra compared to the presets below, but it does overlap some of the presets with "extra red." Because of this, it's not recommended to use this script until further testing takes place.
+> This script might conflict with existing presets. Please test the script and report back on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) so we can verify that this script works.
+
+> Initial testing suggests that this script doesn't provide anything extra compared to the presets below, but it does overlap some of the presets with "extra red." Because of this, it's not recommended to use this script until further testing takes place.
 
 This script draws arrows indicating where the clones will jump to, draws cleaves for One-Two Paw and Leaping One-Two Paw, and telegraphs those abilities when they are passed to the clones.
 

@@ -18,10 +18,14 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Protean%20Highlight.cs
 ```
 
+<!---
+
 ### [Script] [Untested] Clones Multi-script
 
-> [!WARNING]  
+> [!WARNING]
 > This script might conflict with existing presets. Please test the script and report back on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) so we can verify that this script works.
+>
+> Initial testing suggests that this script doesn't provide anything extra compared to the presets below, but it does overlap some of the presets with "extra red." Because of this, it's not recommended to use this script until further testing takes place.
 
 This script draws arrows indicating where the clones will jump to, draws cleaves for One-Two Paw and Leaping One-Two Paw, and telegraphs those abilities when they are passed to the clones.
 
@@ -30,6 +34,8 @@ No configuration required.
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Multiscript.cs
 ```
+
+-->
 
 ## Presets
 
@@ -124,7 +130,7 @@ This displays red when a tile will receive damage and black when a tile will bre
 
 ```
 ~Lv2~{"Name":"M1S Clone Cleaves","Group":"Arcadion 1 Savage","ZoneLockH":[1226],"ElementsL":[{"Name":"Left LeftRight 1","type":4,"offX":-10.0,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38000],"refActorCastTimeMax":5.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Left RightLeft 1","type":4,"offX":-10.0,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[37999],"refActorCastTimeMax":5.0,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Right LeftRight 1","type":4,"offX":10.0,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38002],"refActorCastTimeMax":5.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Right RightLeft 1","type":4,"offX":10.0,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38001],"refActorCastTimeMax":5.0,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"Freezing":true,"FreezeFor":6.5}
-~Lv2~{"Name":"M1S Clone cleave 2","Group":"Arcadion 1 Savage","ZoneLockH":[1226],"ElementsL":[{"Name":"Left LeftRight 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38000],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Left RightLeft 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[37999],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Right LeftRight 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38002],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Right RightLeft 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38001],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+~Lv2~{"Name":"M1S Clone Cleaves 2","Group":"Arcadion 1 Savage","ZoneLockH":[1226],"ElementsL":[{"Name":"Left LeftRight 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38000],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Left RightLeft 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[37999],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Right LeftRight 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38002],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Right RightLeft 3","type":4,"radius":40.0,"coneAngleMax":180,"refActorNPCNameID":13072,"refActorRequireCast":true,"refActorCastId":[38001],"refActorUseCastTime":true,"refActorCastTimeMin":6.5,"refActorCastTimeMax":9.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
 ### [International] [Beta] Raining Cats

@@ -16,7 +16,7 @@ public class R1S_Multiscript : SplatoonScript
 
     private List<Vector3> clonePositions = new List<Vector3>();
 
-    public override Metadata? Metadata => new(1, "damolitionn");
+    public override Metadata? Metadata => new(2, "damolitionn");
 
     private bool IsLeapingCleave = false;
     private bool LeftFirst = false;
@@ -28,8 +28,6 @@ public class R1S_Multiscript : SplatoonScript
     private Vector3 jumpTargetPosition;
 
     IBattleNpc? BlackCat => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17193 && b.IsTargetable) as IBattleNpc;
-    IBattleNpc? JumpMarker => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17195 && !b.IsTargetable) as IBattleNpc;
-    IBattleNpc? Clone => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17196) as IBattleNpc;
 
     public override void OnSetup()
     {
@@ -519,7 +517,7 @@ public class R1S_Multiscript : SplatoonScript
         }
     }
 
-    private void Reset()
+    public override void OnReset()
     {
         IsLeapingCleave = false;
         LeftFirst = false;
@@ -537,16 +535,5 @@ public class R1S_Multiscript : SplatoonScript
         {
             e2.Enabled = false;
         }
-
-    }
-
-    public override void OnCombatEnd()
-    {
-        Reset();
-    }
-
-    public override void OnCombatStart()
-    {
-        Reset();
     }
 }

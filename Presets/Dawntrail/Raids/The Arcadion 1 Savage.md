@@ -18,23 +18,6 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Protean%20Highlight.cs
 ```
 
-<!---
-
-### [Script] [Untested] Clones Multi-script
-
-> [!WARNING]
-> This script might conflict with existing presets. Please test the script and report back on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) so we can verify that this script works.
->
-> Initial testing suggests that this script doesn't provide anything extra compared to the presets below, but it does overlap some of the presets with "extra red." Because of this, it's not recommended to use this script until further testing takes place.
-
-This script draws arrows indicating where the clones will jump to, draws cleaves for One-Two Paw and Leaping One-Two Paw, and telegraphs those abilities when they are passed to the clones.
-
-No configuration required.
-
-```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Multiscript.cs
-```
-
 ### [Script] [Untested] Raining Cats
 
 No configuration required.
@@ -142,4 +125,21 @@ This displays red when a tile will receive damage and black when a tile will bre
 
 ```
 ~Lv2~{"Name":"M1S Predaceous Pounce","Group":"Arcadion 1 Savage","ZoneLockH":[1226],"ElementsL":[{"Name":"Circle1","type":1,"radius":11.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38027],"refActorUseCastTime":true,"refActorCastTimeMax":14.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle2","type":1,"radius":11.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38029],"refActorUseCastTime":true,"refActorCastTimeMax":15.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle3","type":1,"radius":11.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38031],"refActorUseCastTime":true,"refActorCastTimeMax":16.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle4","type":1,"radius":11.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38033],"refActorUseCastTime":true,"refActorCastTimeMax":17.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle5","type":1,"radius":11.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38035],"refActorUseCastTime":true,"refActorCastTimeMin":15.0,"refActorCastTimeMax":18.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle6","type":1,"radius":11.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[39633],"refActorUseCastTime":true,"refActorCastTimeMin":16.0,"refActorCastTimeMax":19.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Line1","type":3,"refY":20.0,"radius":3.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38026],"refActorUseCastTime":true,"refActorCastTimeMax":15.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0},{"Name":"Line2","type":3,"refY":20.0,"radius":3.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38028],"refActorUseCastTime":true,"refActorCastTimeMax":15.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0},{"Name":"Line3","type":3,"refY":20.0,"radius":3.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38030],"refActorUseCastTime":true,"refActorCastTimeMax":16.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0},{"Name":"Line4","type":3,"refY":20.0,"radius":3.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38032],"refActorUseCastTime":true,"refActorCastTimeMax":17.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0},{"Name":"Line5","type":3,"refY":20.0,"radius":3.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[38034],"refActorUseCastTime":true,"refActorCastTimeMin":15.0,"refActorCastTimeMax":18.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0},{"Name":"Line6","type":3,"refY":33.0,"radius":3.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13071,"refActorRequireCast":true,"refActorCastId":[39632],"refActorUseCastTime":true,"refActorCastTimeMin":16.0,"refActorCastTimeMax":19.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0}]}
+```
+
+# In development
+These presets and scripts are still in development and may be incomplete.
+### [Script] [Untested] Clones Multi-script
+
+> [!WARNING]
+> This script might conflict with existing presets. Please test the script and report back on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) so we can verify that this script works.
+>
+> Initial testing suggests that this script doesn't provide anything extra compared to the presets below, but it does overlap some of the presets with "extra red." Because of this, it's not recommended to use this script until further testing takes place.
+
+This script draws arrows indicating where the clones will jump to, draws cleaves for One-Two Paw and Leaping One-Two Paw, and telegraphs those abilities when they are passed to the clones.
+
+No configuration required.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Multiscript.cs
 ```

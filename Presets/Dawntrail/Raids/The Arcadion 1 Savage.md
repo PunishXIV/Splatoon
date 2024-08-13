@@ -31,6 +31,13 @@ No configuration required.
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Multiscript.cs
 ```
 
+### [Script] [Untested] Raining Cats
+
+No configuration required.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Raining%20Cats.cs
+```
+
 ## Presets
 
 ### [International] Quadruple Crossing (and Leaping Quadruple Crossing)

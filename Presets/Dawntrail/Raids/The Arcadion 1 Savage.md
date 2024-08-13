@@ -18,9 +18,11 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Protean%20Highlight.cs
 ```
 
+<!---
+
 ### [Script] [Untested] Clones Multi-script
 
-> [!WARNING]  
+> [!WARNING]
 > This script might conflict with existing presets. Please test the script and report back on the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) so we can verify that this script works.
 >
 > Initial testing suggests that this script doesn't provide anything extra compared to the presets below, but it does overlap some of the presets with "extra red." Because of this, it's not recommended to use this script until further testing takes place.
@@ -32,6 +34,8 @@ No configuration required.
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S%20Multiscript.cs
 ```
+
+-->
 
 ## Presets
 

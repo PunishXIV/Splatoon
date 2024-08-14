@@ -32,6 +32,7 @@ public class R4S_Electrope_Edge : SplatoonScript
 
     private readonly uint LeftSidewiseSparkCastActionId = 38381;
     private readonly uint RightSidewiseSparkCastActionId = 38380;
+    private bool IsPairSidewiseSpark = false;
 
 
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
@@ -131,8 +132,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
 
         var wickedThunder = WickedThunder;
-        if (C.ResolveBox && Hits.Count != 0 && wickedThunder is { IsCasting: true } &&
-            !wickedThunder.TryGetSpecificVfxInfo("vfx/common/eff/m0888_stlp02_c0t1.avfx", out _) &&
+        if (C.ResolveBox && wickedThunder is { IsCasting: true } && IsPairSidewiseSpark &&
             wickedThunder.CastActionId.EqualsAny(LeftSidewiseSparkCastActionId, RightSidewiseSparkCastActionId))
         {
             var isSafeRight = wickedThunder.CastActionId == LeftSidewiseSparkCastActionId;
@@ -146,6 +146,14 @@ public class R4S_Electrope_Edge : SplatoonScript
                 e.refX = safeArea.Value.X;
                 e.refY = safeArea.Value.Y;
             }
+        }
+    }
+
+    public override void OnVFXSpawn(uint target, string vfxPath)
+    {
+        if(vfxPath == "vfx/common/eff/m0888_stlp01_c0t1.avfx" && Hits.Count != 0)
+        {
+            IsPairSidewiseSpark = true;
         }
     }
 
@@ -264,6 +272,7 @@ public class R4S_Electrope_Edge : SplatoonScript
     void Reset()
     {
         Hits.Clear();
+        IsPairSidewiseSpark = false;
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)

@@ -17,7 +17,7 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
     private readonly List<IPlayerCharacter> TetheredPlayers = new(2);
 
     public override HashSet<uint>? ValidTerritories { get; } = new() { 1226 };
-    public override Metadata Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(2, "Garume");
 
     private IBattleNpc? BlackCat => Svc.Objects.OfType<IBattleNpc>()
         .FirstOrDefault(x => x is { IsTargetable: true, NameId: BlackCatNameId });
@@ -56,7 +56,7 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
 
         var players = Svc.Objects
             .OfType<IPlayerCharacter>()
-            .Where(x => !TetheredPlayers.Contains(x) && !x.IsDead)
+            .Where(x => !x.IsDead)
             .OrderBy(x => Vector3.Distance(x.Position, BlackCat.Position))
             .ToList();
 

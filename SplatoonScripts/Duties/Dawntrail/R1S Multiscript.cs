@@ -160,11 +160,6 @@ public class R1S_Multiscript : SplatoonScript
             {
                 RightCleaveFirst(20000, 4000, 17196, 17196);
             }
-            var flagResetScheduler = new TickScheduler(() =>
-            {
-                LeftFirst = false;
-                RightFirst = false;
-            }, 3000);
         }
     }
 
@@ -231,7 +226,6 @@ public class R1S_Multiscript : SplatoonScript
             leftCleave.AdditionalRotation = 4.712389f;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("Cleave", out var leftCleave))
@@ -266,7 +260,6 @@ public class R1S_Multiscript : SplatoonScript
             rightCleave.AdditionalRotation = 1.5707964f;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("Cleave", out var rightCleave))
@@ -302,7 +295,6 @@ public class R1S_Multiscript : SplatoonScript
             leftCleave.offY = jumpTargetPosition.Z;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("CloneCleave", out var leftCleave))
@@ -339,7 +331,6 @@ public class R1S_Multiscript : SplatoonScript
             rightCleave.offY = jumpTargetPosition.Z;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("CloneCleave", out var rightCleave))
@@ -381,10 +372,6 @@ public class R1S_Multiscript : SplatoonScript
         if (boss.StatusList.Any(status => status.StatusId == 4048))
         {
             attack = "Cleave";
-        }
-        else if (boss.StatusList.Any(status => status.StatusId == 4049))
-        {
-            attack = "Claw";
         }
         if (!string.IsNullOrEmpty(movement) && !string.IsNullOrEmpty(attack))
         {
@@ -495,6 +482,11 @@ public class R1S_Multiscript : SplatoonScript
 
     public override void OnUpdate()
     {
+        if (clonePositions.Count == 5)
+        {
+            LeftFirst = false;
+            RightFirst = false;
+        }
         if (clonePositions.Count == 9)
         {
             sched = new TickScheduler(() =>
@@ -534,6 +526,8 @@ public class R1S_Multiscript : SplatoonScript
 
     public override void OnReset()
     {
+        movement = "";
+        attack = "";
         IsLeapingCleave = false;
         LeftFirst = false;
         RightFirst = false;

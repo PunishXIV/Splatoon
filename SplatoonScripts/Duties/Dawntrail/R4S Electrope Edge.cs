@@ -62,12 +62,11 @@ public class R4S_Electrope_Edge : SplatoonScript
             Longs = longs.Select(x => x.EntityId).ToList();
         }
         if(Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == Debuff)) < 4)
-        // Hits must be left behind to define a safe for the Side Spark.
-        // Hits.RemoveAll(x => !(x.GetObject() is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId == Debuff)));
         {
             Reset();
         }
-        Hits.RemoveAll(x => !(x.GetObject() is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId == Debuff)));
+        // Hits must be left behind to define a safe for the Side Spark.
+        // Hits.RemoveAll(x => !(x.GetObject() is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId == Debuff)));
         int i = 0;
         foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
         {
@@ -133,7 +132,7 @@ public class R4S_Electrope_Edge : SplatoonScript
 
         var wickedThunder = WickedThunder;
         if (C.ResolveBox && Hits.Count != 0 && wickedThunder is { IsCasting: true } &&
-            wickedThunder.TryGetSpecificVfxInfo("vfx/common/eff/m0888_stlp01_c0t1.avfx", out _) &&
+            !wickedThunder.TryGetSpecificVfxInfo("vfx/common/eff/m0888_stlp02_c0t1.avfx", out _) &&
             wickedThunder.CastActionId.EqualsAny(LeftSidewiseSparkCastActionId, RightSidewiseSparkCastActionId))
         {
             var isSafeRight = wickedThunder.CastActionId == LeftSidewiseSparkCastActionId;

@@ -1,10 +1,12 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
-using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
@@ -12,20 +14,29 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ImGuiNET;
 using NightmareUI.PrimaryUI;
+using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Electrope_Edge : SplatoonScript
 {
+    public enum SidewiseSparkPosition : byte
+    {
+        None = 0,
+        North = 1,
+        Inside = 2,
+        South = 3,
+        Side = 4
+    }
+
+    private readonly uint LeftSidewiseSparkCastActionId = 38381;
+    private readonly uint RightSidewiseSparkCastActionId = 38380;
+    private bool IsPairSidewiseSpark = false;
+
+
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(4, "NightmareXIV");
+    public override Metadata? Metadata => new(5, "NightmareXIV");
     List<uint> Hits = [];
     List<uint> Longs = [];
     uint Debuff = 3999;
@@ -55,7 +66,8 @@ public class R4S_Electrope_Edge : SplatoonScript
         {
             Reset();
         }
-        Hits.RemoveAll(x => !(x.GetObject() is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId == Debuff)));
+        // Hits must be left behind to define a safe for the Side Spark.
+        // Hits.RemoveAll(x => !(x.GetObject() is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId == Debuff)));
         int i = 0;
         foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
         {
@@ -113,9 +125,35 @@ public class R4S_Electrope_Edge : SplatoonScript
             if(Controller.TryGetElementByName(doingMechanic?"Explode":"Safe", out var e))
             {
                 e.Enabled = true;
+                e.radius = 2f;
                 e.refX = newPoint.X;
                 e.refY = newPoint.Y;
             }
+        }
+
+        var wickedThunder = WickedThunder;
+        if (C.ResolveBox && wickedThunder is { IsCasting: true } && IsPairSidewiseSpark &&
+            wickedThunder.CastActionId.EqualsAny(LeftSidewiseSparkCastActionId, RightSidewiseSparkCastActionId))
+        {
+            var isSafeRight = wickedThunder.CastActionId == LeftSidewiseSparkCastActionId;
+            var num = Hits.Count(s => s == Player.Object.EntityId) + (Longs.Contains(Player.Object.EntityId) ? 1 : 0);
+            if (Controller.TryGetElementByName("Safe", out var e))
+            {
+                var safeArea = GetSidewiseSparkSafeArea(num == 2 ? C.SidewiseSpark2 : C.SidewiseSpark3, isSafeRight);
+                if (safeArea == null) return;
+                e.Enabled = true;
+                e.radius = 1.5f;
+                e.refX = safeArea.Value.X;
+                e.refY = safeArea.Value.Y;
+            }
+        }
+    }
+
+    public override void OnVFXSpawn(uint target, string vfxPath)
+    {
+        if(vfxPath == "vfx/common/eff/m0888_stlp01_c0t1.avfx" && Hits.Count != 0)
+        {
+            IsPairSidewiseSpark = true;
         }
     }
 
@@ -153,16 +191,24 @@ public class R4S_Electrope_Edge : SplatoonScript
                 Section("2 short / 1 long:")
                 .Widget(() =>
                 {
+                    ImGui.Text("Lightning Cage");
                     ImGui.PushID("Pos2");
                     DrawBox(ref C.Position2);
                     ImGui.PopID();
+
+                    ImGui.Text("Sidewise Spark");
+                    ImGuiEx.EnumCombo("", ref C.SidewiseSpark2);
                 })
                 .Section("3 short / 2 long:")
                 .Widget(() =>
                 {
+                    ImGui.Text("Lightning Cage");
                     ImGui.PushID("Pos3");
                     DrawBox(ref C.Position3);
                     ImGui.PopID();
+
+                    ImGui.Text("Sidewise Spark");
+                    ImGuiEx.EnumCombo("", ref C.SidewiseSpark3);
                 }).Draw();
         }
 
@@ -226,6 +272,7 @@ public class R4S_Electrope_Edge : SplatoonScript
     void Reset()
     {
         Hits.Clear();
+        IsPairSidewiseSpark = false;
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
@@ -245,6 +292,20 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
     }
 
+    public Vector2? GetSidewiseSparkSafeArea(SidewiseSparkPosition pos, bool isSafeRight = false)
+    {
+        var center = new Vector2(100, 100);
+        var offsetX = isSafeRight ? 1.5f : -1.5f;
+        return pos switch
+        {
+            SidewiseSparkPosition.North => center + new Vector2(offsetX, -10),
+            SidewiseSparkPosition.Inside => center + new Vector2(offsetX, 0),
+            SidewiseSparkPosition.South => center + new Vector2(offsetX, 10),
+            SidewiseSparkPosition.Side => center + new Vector2(offsetX * 7f, 0),
+            _ => null
+        };
+    }
+
     public class Config : IEzConfig
     {
         public bool AddOne = false;
@@ -254,5 +315,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         public bool ResolveBox = false;
         public (int, int) Position2 = (1, 4);
         public (int, int) Position3 = (4, 4);
+        public SidewiseSparkPosition SidewiseSpark2 = SidewiseSparkPosition.None;
+        public SidewiseSparkPosition SidewiseSpark3 = SidewiseSparkPosition.None;
     }
 }

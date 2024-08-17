@@ -12,9 +12,9 @@ internal class CastStartingTest :SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new();
 
-    public override void OnStartingCast(IBattleChara battleChar, uint castId)
+    public override void OnStartingCast(uint target, uint castId)
     {
-        if (battleChar.NameId != 0)
+        if (target.TryGetObject(out var obj) && obj is IBattleChara battleChar)
         {
             PluginLog.Information($"Starting cast test: {battleChar.Name} ({battleChar.NameId}) is casting {castId}");
         }

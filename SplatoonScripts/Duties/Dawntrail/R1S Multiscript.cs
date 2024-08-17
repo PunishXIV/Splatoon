@@ -7,6 +7,7 @@ using System.Linq;
 using System.Numerics;
 
 using ECommons.Schedulers;
+using ECommons;
 
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
@@ -16,7 +17,7 @@ public class R1S_Multiscript : SplatoonScript
 
     private List<Vector3> clonePositions = new List<Vector3>();
 
-    public override Metadata? Metadata => new(1, "damolitionn");
+    public override Metadata? Metadata => new(2, "damolitionn");
 
     private bool IsLeapingCleave = false;
     private bool LeftFirst = false;
@@ -28,8 +29,6 @@ public class R1S_Multiscript : SplatoonScript
     private Vector3 jumpTargetPosition;
 
     IBattleNpc? BlackCat => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17193 && b.IsTargetable) as IBattleNpc;
-    IBattleNpc? JumpMarker => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17195 && !b.IsTargetable) as IBattleNpc;
-    IBattleNpc? Clone => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17196) as IBattleNpc;
 
     public override void OnSetup()
     {
@@ -161,11 +160,6 @@ public class R1S_Multiscript : SplatoonScript
             {
                 RightCleaveFirst(20000, 4000, 17196, 17196);
             }
-            var flagResetScheduler = new TickScheduler(() =>
-            {
-                LeftFirst = false;
-                RightFirst = false;
-            }, 3000);
         }
     }
 
@@ -232,7 +226,6 @@ public class R1S_Multiscript : SplatoonScript
             leftCleave.AdditionalRotation = 4.712389f;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("Cleave", out var leftCleave))
@@ -267,7 +260,6 @@ public class R1S_Multiscript : SplatoonScript
             rightCleave.AdditionalRotation = 1.5707964f;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("Cleave", out var rightCleave))
@@ -303,7 +295,6 @@ public class R1S_Multiscript : SplatoonScript
             leftCleave.offY = jumpTargetPosition.Z;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("CloneCleave", out var leftCleave))
@@ -340,7 +331,6 @@ public class R1S_Multiscript : SplatoonScript
             rightCleave.offY = jumpTargetPosition.Z;
         }
 
-        sched?.Dispose();
         sched = new TickScheduler(() =>
         {
             if (Controller.TryGetElementByName("CloneCleave", out var rightCleave))
@@ -382,10 +372,6 @@ public class R1S_Multiscript : SplatoonScript
         if (boss.StatusList.Any(status => status.StatusId == 4048))
         {
             attack = "Cleave";
-        }
-        else if (boss.StatusList.Any(status => status.StatusId == 4049))
-        {
-            attack = "Claw";
         }
         if (!string.IsNullOrEmpty(movement) && !string.IsNullOrEmpty(attack))
         {
@@ -496,6 +482,11 @@ public class R1S_Multiscript : SplatoonScript
 
     public override void OnUpdate()
     {
+        if (clonePositions.Count == 5)
+        {
+            LeftFirst = false;
+            RightFirst = false;
+        }
         if (clonePositions.Count == 9)
         {
             sched = new TickScheduler(() =>
@@ -514,39 +505,35 @@ public class R1S_Multiscript : SplatoonScript
         {
             clonePositions.Clear();
             jumpTargetPosition = new Vector3(0, 0, 0);
-            HideArrows(8);
-            HideArrows(9);
+            if (Controller.TryGetElementByName($"SArrowLeft", out var arrow1))
+            {
+                arrow1.Enabled = false;
+            }
+            if (Controller.TryGetElementByName($"SArrowRight", out var arrow2))
+            {
+                arrow2.Enabled = false;
+            }
+            if (Controller.TryGetElementByName($"NArrowLeft", out var arrow3))
+            {
+                arrow3.Enabled = false;
+            }
+            if (Controller.TryGetElementByName($"NArrowRight", out var arrow4))
+            {
+                arrow4.Enabled = false;
+            }
         }
     }
 
-    private void Reset()
+    public override void OnReset()
     {
+        movement = "";
+        attack = "";
         IsLeapingCleave = false;
         LeftFirst = false;
         RightFirst = false;
         sched?.Dispose();
         clonePositions.Clear();
         jumpTargetPosition = new Vector3(0, 0, 0);
-        HideArrows(8);
-        HideArrows(9);
-        if (Controller.TryGetElementByName($"Cleaves", out var e1))
-        {
-            e1.Enabled = false;
-        }
-        if (Controller.TryGetElementByName($"CloneCleave", out var e2))
-        {
-            e2.Enabled = false;
-        }
-
-    }
-
-    public override void OnCombatEnd()
-    {
-        Reset();
-    }
-
-    public override void OnCombatStart()
-    {
-        Reset();
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 }

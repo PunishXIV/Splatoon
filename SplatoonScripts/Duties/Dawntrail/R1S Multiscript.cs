@@ -17,7 +17,7 @@ public class R1S_Multiscript : SplatoonScript
 
     private List<Vector3> clonePositions = new List<Vector3>();
 
-    public override Metadata? Metadata => new(2, "damolitionn");
+    public override Metadata? Metadata => new(3, "damolitionn");
 
     private bool IsLeapingCleave = false;
     private bool LeftFirst = false;

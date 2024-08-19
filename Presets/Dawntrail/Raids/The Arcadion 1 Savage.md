@@ -80,9 +80,6 @@ This displays red when a tile will receive damage and black when a tile will bre
 
 ### [International] Clone Mechanics
 
-> [!WARNING]  
-> These are translated and might not be correct. Please test these and report back in the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy) if they work as intented.
-
 ```
 ~Lv2~{"Name":"M1S First Clone One-Two Paw Right","Group":"Arcadion 1 Savage","ZoneLockH":[1226],"DCond":5,"ElementsL":[{"Name":"Right Half","type":3,"refY":30.0,"radius":43.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13072,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"AdditionalRotation":1.5707964,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"FillStep":2.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":29.0,"Match":"(12686>37942)"}]}
 ~Lv2~{"Name":"M1S First Clone One-Two Paw Left","Group":"Arcadion 1 Savage","ZoneLockH":[1226],"DCond":5,"ElementsL":[{"Name":"Left Half","type":3,"refY":30.0,"radius":43.0,"color":4278190335,"fillIntensity":0.3,"originFillColor":838861055,"endFillColor":838861055,"refActorNPCNameID":13072,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"AdditionalRotation":4.712389,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"refActorTetherConnectedWithPlayer":[],"FillStep":2.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":29.0,"Match":"(12686>37945)"}]}

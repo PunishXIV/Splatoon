@@ -2,10 +2,10 @@
 
 Contributions by an anonymous user.
 
-## SS-Rank Marks
+## SS-Rank Mark
 
 ```
-~Lv2~{"Name":"SS-Ranks: Arch Aethereater","Group":"The Hunt - DT SS-Ranks","ZoneLockH":[1190,1192,1191,1189,1188,1187],"ElementsL":[{"Name":"Arch Aethereater","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"SS Rank","refActorNPCID":13406,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Crystal Incarnation","type":1,"color":3372196352,"Filled":false,"thicc":3.0,"overlayText":"SS Minion","refActorNPCID":13407,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"SS-Ranks: Arch Aethereater","Group":"The Hunt - DT SS-Rank","ZoneLockH":[1190,1192,1191,1189,1188,1187],"ElementsL":[{"Name":"Arch Aethereater","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"SS Rank","refActorNPCID":13406,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Crystal Incarnation","type":1,"color":3372196352,"Filled":false,"thicc":3.0,"overlayText":"SS Minion","refActorNPCID":13407,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ```
 
 ## S-Rank Marks

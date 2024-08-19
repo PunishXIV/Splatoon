@@ -168,14 +168,13 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S%20Sunrise%20Sabbath.cs
 ```
 
-### [Modification] [Untested] Sunrise Sabbath Uptime Bait Markers
+### [Script] [Modification] Sunrise Sabbath Uptime Bait Markers
 
-> [!WARNING]
-> These customizations are currently untested. Please report if they work in the Splatoon channels in the Puni.sh Discord server.
-
-The follow script modification changes the bait markers for Sunrise Sabbath to the [uptime strategy](https://raidplan.io/plan/OnQXobwatopL1G8u). To import, go to the script's configuration, **registered elements** tab, and CTRL+click on the **import customized settings from clipboard** button. To remove them, click the **reset** checkbox for all of the customizations and then click the **reset selected elements and reload script** button at the bottom.
+The follow script modification changes the bait markers for Sunrise Sabbath to the [uptime strategy](https://raidplan.io/plan/OnQXobwatopL1G8u). To import, go to the script's configuration, **registered elements** tab, and CTRL+click on the **import customized settings from clipboard** button. Nothing else needs to be done for the customizations to work.
 
 ![R4S Sunrise Sabbath Uptime Script Instructions](/docs/images/instructions/dawntrail/raids/R4S_4.png)
+
+If you want to remove them and "reset" the script back to the _normal_ version of Sunrise Sabbath, go into the **Elements** tab for the script, click the **reset** checkbox for all of the customizations applied, and then click the **reset selected elements and reload script** button at the bottom.
 
 ![R4S Sunrise Sabbath Uptime Removal Script Instructions](/docs/images/instructions/dawntrail/raids/R4S_5.png)
 

@@ -206,6 +206,35 @@ public static unsafe class LayoutUtils
         }
     }
 
+    public static float CastFraction(Element e, IGameObject go)
+    {
+        if (go is IBattleChara chr)
+        {
+            float castTime = -1;
+            float totalCastTime = 1;
+            if (chr.IsCasting(e.refActorCastId))
+            {
+                castTime = chr.CurrentCastTime;
+                totalCastTime = chr.TotalCastTime;
+            }
+            else if (!(e.refActorUseOvercast && AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out castTime)))
+            {
+                return 0;
+            }
+
+            if (e.refActorUseCastTime)
+            {
+                castTime -= e.refActorCastTimeMin;
+                totalCastTime = e.refActorCastTimeMax - e.refActorCastTimeMin;
+            }
+            if (castTime <= 0 || totalCastTime <= 0) return 0;
+            if (castTime > totalCastTime) return 1;
+
+            return castTime / totalCastTime;
+        }
+        return 0;
+    }
+
     public static bool CheckEffect(Element e, IBattleChara c)
     {
         if (e.refActorRequireAllBuffs)

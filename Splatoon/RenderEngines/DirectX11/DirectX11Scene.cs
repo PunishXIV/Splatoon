@@ -120,24 +120,7 @@ internal unsafe class DirectX11Scene : IDisposable
             {
                 if (element is DisplayObjectFan elementFan)
                 {
-                    if (elementFan.style.filled)
-                        drawList.AddFanFilled(
-                            elementFan.origin,
-                            elementFan.innerRadius,
-                            elementFan.outerRadius,
-                            elementFan.angleMin,
-                            elementFan.angleMax,
-                            elementFan.style.originFillColor,
-                            elementFan.style.endFillColor);
-                    if (elementFan.style.IsStrokeVisible())
-                        drawList.AddFan(
-                            elementFan.origin,
-                            elementFan.innerRadius,
-                            elementFan.outerRadius,
-                            elementFan.angleMin,
-                            elementFan.angleMax,
-                            elementFan.style.strokeColor,
-                            thickness: elementFan.style.strokeThickness);
+                    DrawFan(elementFan, drawList);
                 }
                 else if (element is DisplayObjectLine elementLine)
                 {
@@ -169,51 +152,95 @@ internal unsafe class DirectX11Scene : IDisposable
         return texture;
     }
 
-    public void DrawLine(DisplayObjectLine line, PctDrawList drawList)
+    public void DrawFan(DisplayObjectFan fan, PctDrawList drawList)
     {
-        if (line.radius == 0)
+        if (fan.style.filled)
+            drawList.AddFanFilled(
+                fan.origin,
+                fan.innerRadius,
+                fan.outerRadius,
+                fan.angleMin,
+                fan.angleMax,
+                fan.style.originFillColor,
+                fan.style.endFillColor);
+        if (fan.style.IsStrokeVisible())
+            drawList.AddFan(
+                fan.origin,
+                fan.innerRadius,
+                fan.outerRadius,
+                fan.angleMin,
+                fan.angleMax,
+                fan.style.strokeColor,
+                thickness: fan.style.strokeThickness);
+        if (fan.style.castFraction > 0)
         {
-            drawList.PathLineTo(line.start);
-            drawList.PathLineTo(line.stop);
-            drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
-
-            float arrowScale = MathF.Max(1, line.style.strokeThickness / 7f);
-            if (line.startStyle == LineEnd.Arrow)
+            if (fan.style.animation.kind is Serializables.CastAnimationKind.Pulse)
             {
-                var arrowStart = line.start + arrowScale * 0.4f * line.Direction;
-                var offset = arrowScale * 0.3f * line.Perpendicular;
-                drawList.PathLineTo(arrowStart + offset);
-                drawList.PathLineTo(line.start);
-                drawList.PathLineTo(arrowStart - offset);
-                drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
+                var size = fan.style.animation.size + fan.outerRadius - fan.innerRadius;
+                var pulsePosition = size * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % fan.style.animation.frequency) / fan.style.animation.frequency;
+                drawList.AddFanFilled(
+                    fan.origin,
+                    MathF.Max(fan.innerRadius, fan.innerRadius + pulsePosition - fan.style.animation.size),
+                    MathF.Min(fan.outerRadius, fan.innerRadius + pulsePosition),
+                    fan.angleMin,
+                    fan.angleMax,
+                    fan.style.animation.color & 0x00FFFFFF,
+                    fan.style.animation.color);
             }
-
-            if (line.endStyle == LineEnd.Arrow)
+            else if (fan.style.animation.kind is Serializables.CastAnimationKind.Fill)
             {
-                var arrowStart = line.stop - arrowScale * 0.4f * line.Direction;
-                var offset = arrowScale * 0.3f * line.Perpendicular;
-                drawList.PathLineTo(arrowStart + offset);
-                drawList.PathLineTo(line.stop);
-                drawList.PathLineTo(arrowStart - offset);
-                drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
+                var size = fan.outerRadius - fan.innerRadius;
+                var castRadius = size * fan.style.castFraction;
+                drawList.AddFanFilled(
+                    fan.origin,
+                    fan.innerRadius,
+                    fan.innerRadius + castRadius,
+                    fan.angleMin,
+                    fan.angleMax,
+                    fan.style.animation.color,
+                    fan.style.animation.color);
             }
         }
-        else
+    }
+
+    public void DrawLine(DisplayObjectLine line, PctDrawList drawList)
+    {
+        if (line.style.filled)
+            drawList.AddLineFilled(
+            line.start,
+            line.stop,
+            line.radius,
+            line.style.originFillColor,
+            line.style.endFillColor);
+        if (line.style.IsStrokeVisible())
+            drawList.AddLine(
+            line.start,
+            line.stop,
+            line.radius,
+            line.style.strokeColor);
+        if (line.style.castFraction > 0)
         {
-            if (line.style.filled)
+            if (line.style.animation.kind is Serializables.CastAnimationKind.Pulse)
+            {
+                var length = line.style.animation.size + line.Length;
+                var pulsePosition = length * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % line.style.animation.frequency) / line.style.animation.frequency;
+                drawList.AddLineFilled(
+                    line.start + line.Direction * MathF.Max(0, pulsePosition - line.style.animation.size),
+                    line.start + line.Direction * MathF.Min(pulsePosition, line.Length),
+                    line.radius,
+                    line.style.animation.color & 0x00FFFFFF,
+                    line.style.animation.color);
+            }
+            else if (line.style.animation.kind is Serializables.CastAnimationKind.Fill)
+            {
+                var castLength = line.style.castFraction * line.Length;
                 drawList.AddLineFilled(
                     line.start,
-                    line.stop,
+                    line.start + line.Direction * castLength,
                     line.radius,
-                    line.style.originFillColor,
-                    line.style.endFillColor);
-            if (line.style.IsStrokeVisible())
-                drawList.AddLine(
-                    line.start,
-                    line.stop,
-                    line.radius,
-                    line.style.strokeColor,
-                    thickness: line.style.strokeThickness);
+                    line.style.animation.color,
+                    line.style.animation.color);
+            }
         }
     }
 

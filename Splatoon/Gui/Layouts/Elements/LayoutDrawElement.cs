@@ -1,14 +1,12 @@
-﻿using Dalamud;
-using Dalamud.Game;
+﻿using Dalamud.Game;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility.Raii;
 using ECommons.GameFunctions;
-using ECommons.ImGuiMethods;
 using ECommons.LanguageHelpers;
 using Lumina.Excel.GeneratedSheets;
 using Newtonsoft.Json;
+using Splatoon.RenderEngines;
 using Splatoon.Serializables;
-using Splatoon.Utility;
-using System;
 
 namespace Splatoon;
 
@@ -862,7 +860,62 @@ internal unsafe partial class CGui
         {
             el.SetDisplayStyle(style);
         }
+        using (ImRaii.Disabled(!el.Filled))
+        {
+            if (el.type.EqualsAny(1, 3, 4) && el.Filled)
+            {
+                bool canSetCastAnimation = el.refActorRequireCast && el.ConfiguredRenderEngineKind() == RenderEngineKind.DirectX11;
+                using (ImRaii.Disabled(!canSetCastAnimation))
+                {
+                    ImGuiUtils.SizedText("Cast Animation:".Loc(), WidthElement);
+                    ImGui.SameLine();
+                }
+                ImGuiEx.HelpMarker("Choose a cast animation for this element. Requires 'While Casting' checked.\nUnsupported in ImGui Legacy renderer");
+                ImGui.SameLine();
+                using (ImRaii.Disabled(!canSetCastAnimation))
+                {
+                    ImGui.SetNextItemWidth(WidthElement);
+                    ImGuiUtils.EnumCombo("##castanimation" + i + k, ref el.castAnimation, CastAnimations.Names, CastAnimations.Tooltips);
+                    using (ImRaii.Disabled(el.castAnimation is CastAnimationKind.Unspecified))
+                    {
+                        ImGui.SameLine();
+                        ImGuiEx.Text("Color:".Loc());
+                        ImGui.SameLine();
+                        var v4 = ImGui.ColorConvertU32ToFloat4(el.animationColor);
+                        if (ImGui.ColorEdit4("##animationcolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+                        {
+                            el.animationColor = ImGui.ColorConvertFloat4ToU32(v4);
+                        }
+                        ImGui.SameLine();
+                        if (ImGui.Button("Copy".Loc() + "##copyfromstroke" + i + k))
+                        {
+                            el.animationColor = style.strokeColor;
+                        }
+                        if (ImGui.IsItemHovered())
+                        {
+                            ImGui.SetTooltip("Copy Stroke Color".Loc());
+                        }
+                        if (el.castAnimation is CastAnimationKind.Pulse)
+                        {
+                            ImGuiUtils.SizedText("Pulse:".Loc(), WidthElement);
+                            ImGui.SameLine();
 
+                            ImGuiEx.Text("Size:".Loc());
+                            ImGui.SameLine();
+                            ImGui.SetNextItemWidth(60f);
+                            el.pulseSize = MathF.Min(el.pulseSize, el.EffectiveLength());
+                            ImGui.DragFloat("##animationsize" + i + k, ref el.pulseSize, 0.01f, 0.1f, el.EffectiveLength());
+                            ImGui.SameLine();
+
+                            ImGuiEx.Text("Frequency (s):".Loc());
+                            ImGui.SameLine();
+                            ImGui.SetNextItemWidth(60f);
+                            ImGui.DragFloat("##animationfreq" + i + k, ref el.pulseFrequency, 0.01f, 1, 10);
+                        }
+                    }
+                }
+            }
+        }
         if ((el.type != 3) || el.includeRotation)
         {
             if (!(el.type == 3 && !el.includeRotation))
@@ -1028,7 +1081,7 @@ internal unsafe partial class CGui
         ImGuiEx.HelpMarker("Choose a mechanic type that best represents this element.\n" +
                 "This is used for automatically setting default colors.\nOnly for DirectX11 renderer.");
         ImGui.SameLine();
-        ImGui.SetNextItemWidth(WidthCombo);
+        ImGui.SetNextItemWidth(WidthElement);
         ImGuiUtils.EnumCombo("##mechtype" + i + k, ref el.mechanicType, MechanicTypes.Names, MechanicTypes.Tooltips);
 
         if ((el.type.EqualsAny(0, 1) && el.Donut > 0) || el.type == 4 || (el.type.EqualsAny(2, 3) && (el.radius > 0 || el.includeHitbox || el.includeOwnHitbox)))

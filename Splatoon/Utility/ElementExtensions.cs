@@ -1,4 +1,5 @@
-﻿using Splatoon.Serializables;
+﻿using Splatoon.RenderEngines;
+using Splatoon.Serializables;
 
 namespace Splatoon.Utility;
 public static class ElementExtensions
@@ -62,11 +63,11 @@ public static class ElementExtensions
         uint originFillColor = e.originFillColor ?? Colors.MultiplyAlpha(e.color, fillIntensity);
         uint endFillColor = e.endFillColor ?? Colors.MultiplyAlpha(e.color, fillIntensity);
 
-        return new DisplayStyle(e.color, e.thicc, fillIntensity, originFillColor, endFillColor, e.Filled, e.overrideFillColor);
+        return new DisplayStyle(e.color, e.thicc, fillIntensity, originFillColor, endFillColor, e.Filled, e.overrideFillColor, 0, e.GetAnimationStyle());
     }
 
 
-    public static DisplayStyle GetDisplayStyleWithOverride(this Element e)
+    public static DisplayStyle GetDisplayStyleWithOverride(this Element e, IGameObject go = null)
     {
         DisplayStyle style = e.GetDisplayStyle();
 
@@ -84,9 +85,18 @@ public static class ElementExtensions
             style.originFillColor = defaultColor;
             style.endFillColor = defaultColor;
         }
-
-        style.originFillColor = P.Config.ClampFillColorAlpha(style.originFillColor);
-        style.endFillColor = P.Config.ClampFillColorAlpha(style.endFillColor);
+        style.animation = e.GetAnimationStyle();
+        style.castFraction = e.refActorRequireCast ? LayoutUtils.CastFraction(e, go) : 0f;
+        if (style.animation.kind is CastAnimationKind.ColorShift)
+        {
+            style.originFillColor = P.Config.ClampFillColorAlpha(Colors.Lerp(style.originFillColor, style.animation.color, style.castFraction));
+            style.endFillColor = P.Config.ClampFillColorAlpha(Colors.Lerp(style.endFillColor, style.animation.color, style.castFraction));
+        }
+        else
+        {
+            style.originFillColor = P.Config.ClampFillColorAlpha(style.originFillColor);
+            style.endFillColor = P.Config.ClampFillColorAlpha(style.endFillColor);
+        }
         return style;
     }
 
@@ -98,5 +108,38 @@ public static class ElementExtensions
     public static bool IsDangerous(this Element e)
     {
         return e.mechanicType == MechanicType.Danger;
+    }
+
+    public static AnimationStyle GetAnimationStyle(this Element e)
+    {
+        return new(e.castAnimation, e.animationColor, e.pulseSize, e.pulseFrequency);
+    }
+
+    public static float EffectiveLength(this Element e)
+    {
+        if (e.type.EqualsAny(0, 1))
+        {
+            if (e.Donut > 0)
+                return e.Donut;
+            return e.radius;
+        }
+        if (e.type.EqualsAny(2, 3))
+        {
+            return (new Vector3(e.refX, e.refY, e.refZ) - new Vector3(e.offX, e.offY, e.offZ)).Length();
+        }
+        if (e.type.EqualsAny(4, 5))
+        {
+            return e.radius;
+        }
+        return 0;
+    }
+
+    public static RenderEngineKind ConfiguredRenderEngineKind(this Element e)
+    {
+        if (e.RenderEngineKind != RenderEngineKind.Unspecified)
+            return e.RenderEngineKind;
+        if (P.Config.RenderEngineKind != RenderEngineKind.Unspecified)
+            return P.Config.RenderEngineKind;
+        return RenderEngineKind.DirectX11;
     }
 }

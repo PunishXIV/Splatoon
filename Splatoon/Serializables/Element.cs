@@ -1,9 +1,7 @@
 ﻿using ECommons.LanguageHelpers;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
-using Splatoon.Utility;
 using System.ComponentModel;
-using System.Runtime.Serialization;
 
 namespace Splatoon;
 
@@ -87,6 +85,10 @@ public class Element
     [DefaultValue(null)] public uint? endFillColor = null;
     [DefaultValue(0x70000000)] public uint overlayBGColor = 0x70000000;
     [DefaultValue(0xC8FFFFFF)] public uint overlayTextColor = 0xC8FFFFFF;
+    [DefaultValue(CastAnimationKind.Unspecified)] public CastAnimationKind castAnimation = CastAnimationKind.Unspecified;
+    [DefaultValue(0xc80000ff)] public uint animationColor = 0xc80000ff;
+    [DefaultValue(0.5f)] public float pulseSize = 0.5f;
+    [DefaultValue(1.5f)] public float pulseFrequency = 1.5f;
     [DefaultValue(0f)] public float overlayVOffset = 0f;
     [DefaultValue(1f)] public float overlayFScale = 1f;
     [DefaultValue(false)] public bool overlayPlaceholders = false;
@@ -346,6 +348,35 @@ public class Element
     {
         return type.EqualsAny(0, 1, 2, 3) && Donut > 0;
     }
+    public bool ShouldSerializeoverrideFillColor()
+    {
+        return Filled && overrideFillColor;
+    }
+    public bool ShouldSerializeoriginFillColor()
+    {
+        return ShouldSerializeoverrideFillColor();
+    }
+    public bool ShouldSerializeendFillColor()
+    {
+        return ShouldSerializeoverrideFillColor();
+    }
+    public bool ShouldSerializecastAnimation()
+    {
+        return refActorRequireCast && castAnimation is not CastAnimationKind.Unspecified;
+    }
+    public bool ShouldSerializeanimationColor()
+    {
+        return ShouldSerializecastAnimation();
+    }
+    public bool ShouldSerializepulseSize()
+    {
+        return ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
+    }
+    public bool ShouldSerializepulseFrequency()
+    {
+        return ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
+    }
 
     public bool ShouldSerializerefActorTetherConnectedWithPlayer() => refActorTether;
+
 }

@@ -159,7 +159,7 @@ Configuration:
 - **Show laser AOE when this seconds remains:** Leave this checked. It delays polluting the screen with too many Splatoon elements before it's relevant. Change the number to show the elements earlier or later.
 - **Select your towers:** Following [this RaidPlan](https://raidplan.io/plan/DGafL6v7CUTkx_5c), you should select North and East if you are a DPS and South and West if you are a support. Adjust according to your party's strategy.
 - **Resolve bait priority:** This enables the settings below. Recommended to leave checked.
-- **Start from West instead of North:** This depends on your group's strategy. Check this is if you're following [this RaidPlan](https://raidplan.io/plan/DGafL6v7CUTkx_5c) and are a support.
+- **Start from West instead of North:** This determines where you start looking for cannons from and it depends on your group's strategy. **Do not** check this if you're following [this RaidPlan](https://raidplan.io/plan/DGafL6v7CUTkx_5c) or any of the NA RaidPlans. This option was included for JP fight strategies.
 - **Counter-Clockwise or Clockwise:** Also depends on group's strategy. If following [this RaidPlan](https://raidplan.io/plan/DGafL6v7CUTkx_5c), select Counter-Clockwise if you are a support and Clockwise if you are a DPS.
 
 ![R4S Sunrise Sabbath Script Instructions](/docs/images/instructions/dawntrail/raids/R4S_3.png)

@@ -119,6 +119,13 @@ public abstract class SplatoonScript
     public virtual void OnVFXSpawn(uint target, string vfxPath) { }
 
     /// <summary>
+    /// Will be called when a hostile object starts casting. These are the same messages which layout trigger system receives. This method will only be called if a script is enabled.
+    /// </summary>
+    /// <param name="target">Object ID that is targeted by VFX.</param>
+    /// <param name="castId">ID of cast action.</param>
+    public virtual void OnStartingCast(uint target, uint castId) { }
+
+    /// <summary>
     /// Will be called whenever plugin processes a message. These are the same messages which layout trigger system receives. This method will only be called if a script is enabled.
     /// </summary>
     /// <param name="Message"></param>
@@ -130,7 +137,26 @@ public abstract class SplatoonScript
     /// <param name="category">Director update category</param>
     public virtual void OnDirectorUpdate(DirectorUpdateCategory category) { }
 
+    /// <summary>
+    /// Will be called after object creation.
+    /// </summary>
+    /// <param name="newObjectPtr"></param>
     public virtual void OnObjectCreation(nint newObjectPtr) { }
+
+    /// <summary>
+    /// Will be called on every ActorControl packet. <b>VOLATILE DATA WARNING.</b>
+    /// </summary>
+    /// <param name="sourceId"></param>
+    /// <param name="command"></param>
+    /// <param name="p1"></param>
+    /// <param name="p2"></param>
+    /// <param name="p3"></param>
+    /// <param name="p4"></param>
+    /// <param name="p5"></param>
+    /// <param name="p6"></param>
+    /// <param name="targetId"></param>
+    /// <param name="replaying"></param>
+    public virtual void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying) { }
 
     [Obsolete($"Please use {nameof(OnActionEffectEvent)}")]
     public virtual void OnActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage) { }
@@ -145,6 +171,13 @@ public abstract class SplatoonScript
     /// Will be called every framework update. You can execute general logic of your script here. 
     /// </summary>
     public virtual void OnUpdate() { }
+
+    /// <summary>
+    /// Called BEFORE director update indicates commence, recommence or wipe; combat start; combat end; disabling.<br></br>
+    /// Also called AFTER enabling.<br></br>
+    /// You can put cleanup here.
+    /// </summary>
+    public virtual void OnReset() { }
 
     /// <summary>
     /// If you override this method, settings section will be added to your script. You can call ImGui methods in this function to draw configuration UI. Keep it simple.
@@ -261,9 +294,10 @@ public abstract class SplatoonScript
         }
         catch (Exception ex)
         {
-            ex.Log();
+            ScriptingProcessor.LogError(this, ex, nameof(Enable));
         }
         this.IsEnabled = true;
+        ScriptingProcessor.OnReset(this);
         return true;
     }
 
@@ -274,6 +308,7 @@ public abstract class SplatoonScript
         {
             return false;
         }
+        ScriptingProcessor.OnReset(this);
         try
         {
             PluginLog.Information($"Disabling script {this}");
@@ -281,7 +316,7 @@ public abstract class SplatoonScript
         }
         catch (Exception ex)
         {
-            ex.Log();
+            ScriptingProcessor.LogError(this, ex, nameof(Disable));
         }
         this.IsEnabled = false;
         return true;

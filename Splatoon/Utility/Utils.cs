@@ -42,6 +42,16 @@ public static unsafe class Utils
         "",
     };
 
+    public static uint TransformAlpha(uint sourceColor, float? fillIntensity)
+    {
+        var alpha = Math.Clamp(fillIntensity ?? DefaultFillIntensity, 0f, 1f);
+        var colPtr = (byte*)&sourceColor;
+        colPtr[3] = (byte)((float)colPtr[3] * alpha);
+        return sourceColor;
+    }
+
+    public const float DefaultFillIntensity = 0.5f;
+
     public static byte[][] Separate(byte[] source, byte[] separator)
     {
         var Parts = new List<byte[]>();
@@ -416,6 +426,11 @@ public static unsafe class Utils
         return XZY(a.Position);
     }
 
+    /// <summary>
+    /// Swaps Y and Z coordinates in vector
+    /// </summary>
+    /// <param name="point"></param>
+    /// <returns></returns>
     public static Vector3 XZY(Vector3 point)
     {
         return new Vector3(point.X, point.Z, point.Y);
@@ -476,6 +491,13 @@ public static unsafe class Utils
         return radian * (180 / MathF.PI);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="origin">XZY</param>
+    /// <param name="angle"></param>
+    /// <param name="point"></param>
+    /// <returns></returns>
     public static Vector3 RotatePoint(Vector3 origin, float angle, Vector3 point)
     {
         if (angle == 0f) return point;
@@ -496,6 +518,14 @@ public static unsafe class Utils
         return point;
     }
 
+    /// <summary>
+    /// Accepts: Z-height vector. Returns: Z-height vector.
+    /// </summary>
+    /// <param name="cx"></param>
+    /// <param name="cy"></param>
+    /// <param name="angle"></param>
+    /// <param name="p"></param>
+    /// <returns></returns>
     public static Vector3 RotatePoint(float cx, float cy, float angle, Vector3 p)
     {
         if (angle == 0f) return p;
@@ -580,33 +610,6 @@ public static unsafe class Utils
             s.De = s.De.Replace(r, "");
             s.Fr = s.Fr.Replace(r, "");
             s.Other = s.Other.Replace(r, "");
-        }
-    }
-
-    public static string ToStringNullSup(this bool? b)
-    {
-        if (b == null) return "null";
-        return b.Value.ToString();
-    }
-
-    public static void BubbleSort(ref Vector2[] v2array, Func<Vector2, Vector2, bool> Comparer)
-    {
-        Vector2 temp;
-        int count = v2array.Length;
-        for (int outer = 1; outer <= count; outer++)
-        {
-            for (int inner = 0; inner < outer - 1; inner++)
-            {
-                Vector2 first = v2array[inner];
-                Vector2 second = v2array[inner + 1];
-
-                if (Comparer(first, second))
-                {
-                    temp = v2array[inner];
-                    v2array[inner] = v2array[inner + 1];
-                    v2array[inner + 1] = temp;
-                }
-            }
         }
     }
 

@@ -162,7 +162,6 @@ partial class CGui
                     P.Config.AltConeStepOverride = def.AltConeStepOverride;
                     P.Config.AltDonutStep = def.AltDonutStep;
                     P.Config.AltDonutStepOverride = def.AltDonutStepOverride;
-                    P.Config.AltRectFill = def.AltRectFill;
                     P.Config.AltRectForceMinLineThickness = def.AltRectForceMinLineThickness;
                     P.Config.AltRectHighlightOutline = def.AltRectHighlightOutline;
                     P.Config.AltRectMinLineThickness = def.AltRectMinLineThickness;
@@ -170,9 +169,6 @@ partial class CGui
                     P.Config.AltRectStepOverride = def.AltRectStepOverride;
                 }
 
-                ImGui.Checkbox("Fill cones".Loc(), ref p.Config.FillCone);
-
-                ImGui.Checkbox("Use line rectangle filling".Loc(), ref p.Config.AltRectFill);
                 ImGuiComponents.HelpMarker("Fill rectangles with stroke instead of full color. This will remove clipping issues, but may feel more disturbing.".Loc());
 
                 ImGui.SetNextItemWidth(60f);

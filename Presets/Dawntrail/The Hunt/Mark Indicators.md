@@ -1,8 +1,8 @@
-# The Hunt (Dawntrail)
+# The Hunt (Dawntrail) Indicators
 
 Contributions by an anonymous user.
 
-## SS-Rank Marks
+## SS-Rank Mark
 
 ```
 ~Lv2~{"Name":"SS-Ranks: Arch Aethereater","Group":"The Hunt - DT SS-Rank","ZoneLockH":[1190,1192,1191,1189,1188,1187],"ElementsL":[{"Name":"Arch Aethereater","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"SS Rank","refActorNPCID":13406,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true},{"Name":"Crystal Incarnation","type":1,"color":3372196352,"Filled":false,"thicc":3.0,"overlayText":"SS Minion","refActorNPCID":13407,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
@@ -11,10 +11,12 @@ Contributions by an anonymous user.
 ## S-Rank Marks
 
 ```
-~Lv2~{"Name":"S-Ranks: Yak T'el","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1189],"ElementsL":[{"Name":"Neyoozoteel","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":12754,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
-~Lv2~{"Name":"S-Ranks: Shaaloani","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1190],"ElementsL":[{"Name":"Sansheya","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13399,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
-~Lv2~{"Name":"S-Ranks: Heritage Found","Group":"The Hunt - DT-S Ranks","ZoneLockH":[1191],"ElementsL":[{"Name":"Atticus the Primogenitor","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13156,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
-~Lv2~{"Name":"S-Ranks: Living Memory","Group":"The Hunt - DT-S Ranks","ZoneLockH":[1192],"ElementsL":[{"Name":"The Forecaster","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13437,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"S Ranks: Urqopacha","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1187],"ElementsL":[{"Name":"Kirlirger the Abhorrent","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13360,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"S Ranks: Kozama'uka","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1188],"ElementsL":[{"Name":"Ihnuxokiy","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13444,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"S Ranks: Yak T'el","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1189],"ElementsL":[{"Name":"Neyoozoteel","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":12754,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"S Ranks: Shaaloani","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1190],"ElementsL":[{"Name":"Sansheya","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13399,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"S Ranks: Heritage Found","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1191],"ElementsL":[{"Name":"Atticus the Primogenitor","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13156,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"S Ranks: Living Memory","Group":"The Hunt - DT S-Ranks","ZoneLockH":[1192],"ElementsL":[{"Name":"The Forecaster","type":1,"color":3355484415,"Filled":false,"thicc":3.0,"overlayText":"S Rank","refActorNPCID":13437,"refActorComparisonType":4,"includeHitbox":true,"onlyTargetable":true,"tether":true}]}
 ```
 
 ## A-Rank Marks

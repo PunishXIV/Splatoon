@@ -175,7 +175,7 @@ internal class ImGuiLegacyScene : IDisposable
             ImGui.GetWindowDrawList().PathLineTo(new Vector2(v4.X, v4.Y));
             ImGui.GetWindowDrawList().PathLineTo(new Vector2(v1.X, v1.Y));
             ImGui.GetWindowDrawList().PathFillConvex(
-                elementDonut.color
+                Utils.TransformAlpha(elementDonut.color, elementDonut.intensity)
             );
             v1 = v2;
             v4 = v3;
@@ -227,17 +227,6 @@ internal class ImGuiLegacyScene : IDisposable
 
     private void DrawRectWorld(DisplayObjectRect e) //oof
     {
-
-        if (!P.Config.AltRectFill)
-        {
-            Svc.GameGui.WorldToScreen(new Vector3(e.l1.ax, e.l1.az, e.l1.ay), out var v1);
-            Svc.GameGui.WorldToScreen(new Vector3(e.l1.bx, e.l1.bz, e.l1.by), out var v2);
-            Svc.GameGui.WorldToScreen(new Vector3(e.l2.bx, e.l2.bz, e.l2.by), out var v3);
-            Svc.GameGui.WorldToScreen(new Vector3(e.l2.ax, e.l2.az, e.l2.ay), out var v4);
-            ImGui.GetWindowDrawList().AddQuadFilled(v1, v2, v3, v4, e.l1.color);
-            goto Quit;
-        }
-
         var result1 = GetAdjustedLine(new Vector3(e.l1.ax, e.l1.ay, e.l1.az), new Vector3(e.l1.bx, e.l1.by, e.l1.bz));
         if (result1.posA == null) goto Alternative;
         var result2 = GetAdjustedLine(new Vector3(e.l2.ax, e.l2.ay, e.l2.az), new Vector3(e.l2.bx, e.l2.by, e.l2.bz));

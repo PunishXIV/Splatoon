@@ -1,4 +1,5 @@
 ﻿using ECommons.GameFunctions;
+using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs;
 using System;
@@ -33,6 +34,14 @@ public unsafe static class CommonRenderUtils
         .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
     }
 
+    /// <summary>
+    /// Accepts: Z-height vector. Returns: Z-height vector.
+    /// </summary>
+    /// <param name="tPos"></param>
+    /// <param name="e"></param>
+    /// <param name="hitboxRadius"></param>
+    /// <param name="angle"></param>
+    /// <returns></returns>
     internal static (Vector3 pointA, Vector3 pointB) GetRotatedPointsForZeroRadius(Vector3 tPos, Element e, float hitboxRadius, float angle)
     {
         var pointA = Utils.RotatePoint(tPos.X, tPos.Y,
@@ -61,5 +70,13 @@ public unsafe static class CommonRenderUtils
         return (pointA, pointB);
     }
 
-
+    internal static bool IsElementObjectMatches(Element e, bool targetable, IGameObject a)
+    {
+        return (!e.onlyTargetable || targetable)
+                            && (!e.onlyUnTargetable || !targetable)
+                            && LayoutUtils.CheckCharacterAttributes(e, a)
+                            && (!e.refTargetYou || LayoutUtils.CheckTargetingOption(e, a))
+                            && (!e.refActorObjectLife || a.GetLifeTimeSeconds().InRange(e.refActorLifetimeMin, e.refActorLifetimeMax))
+                            && (!e.LimitDistance || Vector3.Distance(a.GetPositionXZY(), new(e.DistanceSourceX, e.DistanceSourceY, e.DistanceSourceZ)).InRange(e.DistanceMin, e.DistanceMax).Invert(e.LimitDistanceInvert));
+    }
 }

@@ -1,4 +1,5 @@
 ﻿using Pictomancy;
+using Splatoon.Serializables;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 
@@ -15,7 +16,7 @@ internal unsafe class DirectX11Scene : IDisposable
     {
         DirectX11Renderer = dx11renderer;
         Svc.PluginInterface.UiBuilder.Draw += Draw;
-        Svc.PluginInterface.Create<PictoService>();
+        PictoService.Initialize(Svc.PluginInterface);
     }
 
     public void Dispose()

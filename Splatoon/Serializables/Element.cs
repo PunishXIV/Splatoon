@@ -185,8 +185,17 @@ public class Element
     [DefaultValue(0)] public uint refActorObjectEffectData2 = 0;
     [DefaultValue(0)] public int refActorObjectEffectMin = 0;
     [DefaultValue(0)] public int refActorObjectEffectMax = 0;
+    [DefaultValue(false)] public bool refActorTether = false;
+    [DefaultValue(0)] public float refActorTetherTimeMin = 0;
+    [DefaultValue(0)] public float refActorTetherTimeMax = 0;
+    [DefaultValue(null)] public int? refActorTetherParam1 = null;
+    [DefaultValue(null)] public int? refActorTetherParam2 = null;
+    [DefaultValue(null)] public int? refActorTetherParam3 = null;
+    [DefaultValue(null)] public bool? refActorIsTetherSource = null;
+    [DefaultValue(false)] public bool refActorIsTetherInvert = false;
     [DefaultValue(false)] public bool refActorObjectEffectLastOnly = false;
     [DefaultValue(false)] public bool refActorUseTransformation = false;
+    public List<string> refActorTetherConnectedWithPlayer = [];
     [DefaultValue(0)] public int refActorTransformationID = 0;
     [DefaultValue(MechanicType.Unspecified)] public MechanicType mechanicType = MechanicType.Unspecified;
     [DefaultValue(false)] public bool refMark = false;
@@ -337,11 +346,7 @@ public class Element
 
     public bool ShouldSerializeDonut()
     {
-        return type.EqualsAny(0, 1) && Donut > 0;
-    }
-    public bool ShouldSerializefillIntensity()
-    {
-        return Filled && !overrideFillColor;
+        return type.EqualsAny(0, 1, 2, 3) && Donut > 0;
     }
     public bool ShouldSerializeoverrideFillColor()
     {
@@ -371,4 +376,7 @@ public class Element
     {
         return ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
     }
+
+    public bool ShouldSerializerefActorTetherConnectedWithPlayer() => refActorTether;
+
 }

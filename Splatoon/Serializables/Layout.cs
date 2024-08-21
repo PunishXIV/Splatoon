@@ -50,7 +50,7 @@ public class Layout
     [DefaultValue(0)] public int DistanceLimitType = 0;
     [DefaultValue(0)] public int Phase = 0;
     [DefaultValue(false)] public bool Freezing = false;
-    [DefaultValue(0f)] public float FreezeFor = 0f;
+    [DefaultValue(0.1f)] public float FreezeFor = 0.1f;
     [DefaultValue(10f)] public float IntervalBetweenFreezes = 10f;
     [DefaultValue(true)] public bool FreezeResetCombat = true;
     [DefaultValue(true)] public bool FreezeResetTerr = true;

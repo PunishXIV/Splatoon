@@ -82,6 +82,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal ClipZoneSelector ClipZoneSelector;
     public NotificationMasterApi NotificationMasterApi;
     public Archive Archive;
+    private ActorControlProcessor ActorControlProcessor;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -185,6 +186,7 @@ public unsafe class Splatoon : IDalamudPlugin
         NotificationMasterApi = new(pluginInterface);
         SingletonServiceManager.Initialize(typeof(S));
         Archive = EzConfig.LoadConfiguration<Archive>("Archive.json");
+        ActorControlProcessor = new ActorControlProcessor();
         Init = true;
         SplatoonIPC.Init();
     }
@@ -588,7 +590,7 @@ public unsafe class Splatoon : IDalamudPlugin
                             ShowUntil = Environment.TickCount64 + (int)(l.FreezeFor * 1000f),
                             ShowAt = Environment.TickCount64 + (int)(l.FreezeDisplayDelay * 1000f)
                         });
-                        l.FreezeInfo.AllowRefreezeAt = Environment.TickCount64 + (int)(l.IntervalBetweenFreezes * 1000f);
+                        l.FreezeInfo.AllowRefreezeAt = Environment.TickCount64 + Math.Max(100, (int)(l.IntervalBetweenFreezes * 1000f));
                     }
                     S.RenderManager.RestoreDisplayObjects();
                 }

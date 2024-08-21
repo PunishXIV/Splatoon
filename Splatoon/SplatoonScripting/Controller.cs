@@ -14,7 +14,9 @@ public unsafe class Controller
     internal SplatoonScript Script;
     internal Dictionary<string, Layout> Layouts = new();
     internal Dictionary<string, Element> Elements = new();
+    internal List<TickScheduler> TickSchedulers = [];
     internal IEzConfig? Configuration;
+    internal long AutoResetAt = long.MaxValue;
 
     internal int autoIncrement = 0;
     internal int AutoIncrement => ++autoIncrement;
@@ -295,5 +297,54 @@ public unsafe class Controller
                 File.Delete(Script.InternalData.OverridesPath);
             }
         }
+    }
+
+    /// <summary>
+    /// Resets the state of the script, calling your OnReset method AND performing additional cleanup tasks.
+    /// </summary>
+    public void Reset()
+    {
+        ScriptingProcessor.OnReset(this.Script);
+        this.CancelSchedulers();
+    }
+
+    /// <summary>
+    /// Schedules a task to be executed in specified amount of time. All tasks are cleaned up when script is reset.
+    /// </summary>
+    /// <param name="action"></param>
+    /// <param name="delayMs"></param>
+    public void Schedule(Action action, int delayMs)
+    {
+        TickSchedulers.Add(new(() =>
+        {
+            try
+            {
+                action();
+            }
+            catch(Exception ex)
+            {
+                ScriptingProcessor.LogError(this.Script, ex, nameof(Schedule));
+            }
+            TickSchedulers.RemoveAll(x => x.Disposed);
+        }, delayMs));
+    }
+
+    /// <summary>
+    /// Cancels all scheduled tasks. Auto-called upon calling Reset.
+    /// </summary>
+    public void CancelSchedulers()
+    {
+        PluginLog.Debug($"CancelSchedulers called for script {this.Script.InternalData.Name}");
+        TickSchedulers.Each(x => x.Dispose());
+        TickSchedulers.Clear();
+    }
+
+    /// <summary>
+    /// Schedules reset of script after specified amount of miliseconds have passed. 
+    /// </summary>
+    /// <param name="delayMs"></param>
+    public void ScheduleReset(uint delayMs = uint.MaxValue)
+    {
+        AutoResetAt = Environment.TickCount64 + delayMs;
     }
 }

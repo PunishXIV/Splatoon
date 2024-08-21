@@ -1,6 +1,8 @@
 ﻿using Dalamud.Hooking;
 using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Reloaded.Hooks.Definitions.X64;
 using Splatoon.Modules;
 using Splatoon.SplatoonScripting;
@@ -17,6 +19,7 @@ public unsafe static class AttachedInfo
     public static Dictionary<nint, CachedCastInfo> CastInfos = new();
     public static Dictionary<nint, List<CachedObjectEffectInfo>> ObjectEffectInfos = new();
     public static Dictionary<nint, Dictionary<string, VFXInfo>> VFXInfos = new();
+    public static Dictionary<nint, List<CachedTetherInfo>> TetherInfos = new();
     static HashSet<nint> Casters = new();
 
     [Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
@@ -105,6 +108,18 @@ public unsafe static class AttachedInfo
         return false;
     }
 
+    public static List<CachedTetherInfo> GetOrCreateTetherInfo(nint ptr)
+    {
+        if(TetherInfos.TryGetValue(ptr, out var list))
+        {
+            return list;
+        }
+        TetherInfos[ptr] = [];
+        return TetherInfos[ptr];
+    }
+
+    public static List<CachedTetherInfo> GetOrCreateTetherInfo(Character* ptr) => GetOrCreateTetherInfo((nint)ptr);
+
     public static bool TryGetSpecificVfxInfo(this IGameObject go, string path, out VFXInfo info)
     {
         if (TryGetVfx(go, out var dict) && dict?.ContainsKey(path) == true)
@@ -122,6 +137,7 @@ public unsafe static class AttachedInfo
         Casters.Remove(ptr);
         VFXInfos.Remove(ptr);
         ObjectEffectInfos.Remove(ptr);
+        TetherInfos.Remove(ptr);
         return GameObject_ctor_hook!.Original(ptr);
     }
     static void Tick(object _)
@@ -153,6 +169,7 @@ public unsafe static class AttachedInfo
                         {
                             text = $"{b.Name} starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
                         }
+                        ScriptingProcessor.OnStartingCast(b.EntityId, b.CastActionId);
                         P.ChatMessageQueue.Enqueue(text);
                         if (P.Config.Logging)
                         {

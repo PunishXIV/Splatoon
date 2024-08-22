@@ -23,7 +23,7 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
     }
     public override HashSet<uint>? ValidTerritories { get; } = [1228];
 
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
 
     const uint PoisonResistanceDownDebuffID = 3935;
     bool IsShow = false;
@@ -38,8 +38,12 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        PluginLog.Log($"StartingCast {source} {castId}");
-        if (source == 0 || source != 16941) return;
+        var sourceObj = source.GetObject();
+        if (sourceObj == null)
+            return;
+
+        if (sourceObj.DataId == 0 || sourceObj.DataId != 16941)
+            return;
 
         if ((castId == 37252) || (castId == 39688) )
         {
@@ -62,8 +66,6 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
     {
         if (set.Action == null || (set.Source == null)) return;
         if (set.Source.DataId == 0) return;
-
-        PluginLog.Log($"ActionEffectEvent {set.Action.Name} {set.Action.RowId} {set.Source.DataId}");
 
         if ((set.Action.RowId == 37256) && (set.Source.DataId == 16945))
         {

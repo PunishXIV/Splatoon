@@ -3,6 +3,7 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
+using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -35,71 +36,74 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
         Controller.RegisterElementFromCode("split", "{\"Name\":\"split\",\"type\":1,\"Enabled\":false,\"radius\":6.0,\"color\":4278190335,\"Filled\":false,\"fillIntensity\":0.14,\"originFillColor\":587202815,\"endFillColor\":587202815,\"overlayTextColor\":4278190335,\"overlayVOffset\":1.0,\"overlayText\":\"<< Spread >>\",\"refActorComparisonType\":1,\"includeRotation\":true,\"FaceMe\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
-    public override void OnUpdate()
+    public override void OnStartingCast(uint source, uint castId)
     {
-        if (Player.Object.StatusList.Any(x => x.StatusId == PoisonResistanceDownDebuffID) && IsShow && !IsAdd)
-        {
-            IsAdd = true;
-            HideElement();
-        }
+        PluginLog.Log($"StartingCast {source} {castId}");
+        if (source == 0 || source != 16941) return;
 
-        if (IsAdd && !(Player.Object.StatusList.Any(x => x.StatusId == PoisonResistanceDownDebuffID)))
-        {
-            IsAdd = false;
-        }
-    }
-
-    public override void OnVFXSpawn(uint target, string vfxPath)
-    {
-        if (IsShow && vfxPath.Contains("vfx/common/eff/m0906_stlp_ht4_03k2.avfx"))
-        {
-            HideElement();
-        }
-    }
-
-    public override void OnMessage(string Message)
-    {
-        if (Message.Contains("12685>37252") || (Message.Contains("12685>39688")))
+        if ((castId == 37252) || (castId == 39688) )
         {
             LatchNextPairSplit = PairSplit.Split;
         }
-        else if (Message.Contains("12685>37253") || (Message.Contains("12685>39689")))
+
+        if ((castId == 37253) || (castId == 39689))
         {
             LatchNextPairSplit = PairSplit.Pair;
         }
-        else if (Message.Contains("12685>37254") ||
-                (Message.Contains("12685>37255")) ||
-                (Message.Contains("12685>39696")) ||
-                (Message.Contains("12685>39697")))
+
+        if ((castId == 37254) || (castId == 37255) || (castId == 39692) || (castId == 39693))
         {
             ShowElement();
         }
-        else
+
+    }
+
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (set.Action == null || (set.Source == null)) return;
+        if (set.Source.DataId == 0) return;
+
+        PluginLog.Log($"ActionEffectEvent {set.Action.Name} {set.Action.RowId} {set.Source.DataId}");
+
+        if ((set.Action.RowId == 37256) && (set.Source.DataId == 16945))
         {
-            // NOP
+            HideElement();
+        }
+
+        if ((set.Action.RowId == 39691) && (set.Source.DataId == 16943))
+        {
+            HideElement();
         }
     }
 
     private void ShowElement()
     {
-        if (LatchNextPairSplit == PairSplit.Pair)
+        Element? element = Controller.GetElementByName("Pair");
+        if ((LatchNextPairSplit == PairSplit.Pair) && element != null && !element.Enabled)
         {
             Controller.GetElementByName("Pair")!.Enabled = true;
         }
-        else if (LatchNextPairSplit == PairSplit.Split)
+
+        element = Controller.GetElementByName("split");
+        if ((LatchNextPairSplit == PairSplit.Split) && element != null && !element.Enabled)
         {
             Controller.GetElementByName("split")!.Enabled = true;
         }
-        else
-        {
-        }
-        IsShow = true;
     }
 
     private void HideElement()
     {
-        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        IsShow = false;
+        Element? element = Controller.GetElementByName("Pair");
+        if (element != null && element.Enabled)
+        {
+            Controller.GetElementByName("Pair")!.Enabled = false;
+        }
+
+        element = Controller.GetElementByName("split");
+        if (element != null && element.Enabled)
+        {
+            Controller.GetElementByName("split")!.Enabled = false;
+        }
     }
 
     public override void OnReset()

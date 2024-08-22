@@ -121,9 +121,9 @@ public abstract class SplatoonScript
     /// <summary>
     /// Will be called when a hostile object starts casting. These are the same messages which layout trigger system receives. This method will only be called if a script is enabled.
     /// </summary>
-    /// <param name="target">Object ID that is targeted by VFX.</param>
+    /// <param name="source">Object ID that is source by VFX.</param>
     /// <param name="castId">ID of cast action.</param>
-    public virtual void OnStartingCast(uint target, uint castId) { }
+    public virtual void OnStartingCast(uint source, uint castId) { }
 
     /// <summary>
     /// Will be called whenever plugin processes a message. These are the same messages which layout trigger system receives. This method will only be called if a script is enabled.

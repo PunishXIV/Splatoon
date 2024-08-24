@@ -1,5 +1,4 @@
-# Creating your first preset
+# Walkthrough
 
-This walkthrough assumes that you have read all of the information on Splatoon. These include:
- -
-
+This walkthrough assumes you have read the information pages on Splatoon. These include:
+[Contributing](CONTRIBUTING.MD)

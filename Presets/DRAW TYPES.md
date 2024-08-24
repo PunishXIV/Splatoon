@@ -21,5 +21,8 @@ Line draws can start at one part of the map and end at another. These can be use
 <img src="https://github.com/user-attachments/assets/f74b041b-ea88-446b-96a6-b9c8b5a7d531" width=40% height=40%>
 <img src="https://github.com/user-attachments/assets/17f0e977-c364-4309-ad1d-ba71b1a463d2" width=40% height=40%>
 
+## Lines relative to an object
 
+Line draws can also be used so that they are relative to an object or NPC. Much like the circles, they move as the NPC moves and can also be configured to rotate so they are always at a fixed position relative to the NPC/Object you need.
 
+![Line Movement](https://github.com/user-attachments/assets/43593dd7-3919-4693-84c1-126c2c092eb3)

@@ -59,15 +59,6 @@ Most presets are not made directly in duties or events. They are created using r
 
 Lastly, [BossMod](https://github.com/awgil/ffxiv_bossmod) has a useful replay feature to capture all of the events that happen in a duty into an organized log file for you to reference when developing a preset. Another helpful feature of BossMod is when it gets updated for a certain fight, a list of all of the encounter's spells are published to their GitHub. See [here](https://github.com/awgil/ffxiv_bossmod/blob/master/BossMod/Modules/Dawntrail/Extreme/Ex1Valigarmanda/Ex1ValigarmandaEnums.cs) for an example.
 
-### Different types of draws
-
-Splatoon's capabilities are vast and it offers many different types of draws, each with their own use cases. Sometimes, you might want to create your own preset for a dungeon or raid.
-
-- Draws fall under the following categories:
-
-   - `Circles` - These draw a circle on the floor and can either be at fixed coordinates on a map or relative to an object's position.
-![](/docs/images/preset_import/ingame_import.png)
-
 ### Naming
 
 Presets should adhere to the following naming scheme:

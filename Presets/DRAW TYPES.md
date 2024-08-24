@@ -1,6 +1,5 @@
-# Draw Types
-
-This page lists the common types of draws that you can find within Splatoon. Before creating your own presets, it is important you understand each type of draw and what it can do.
+>[!NOTE]
+>This page lists the common types of draws that you can find within Splatoon. Before creating your own presets, it is important you understand each type of draw and what it can do.
 
 ## Circles at fixed co-ordinates.
 

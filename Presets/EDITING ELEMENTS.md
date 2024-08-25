@@ -7,10 +7,13 @@ Once you have selected a draw type that you want, the next step is to edit the d
 
 ## Editing Elements
 
+>[!note]
+>Depending on the element you have chosen, different editing options become available.
+
 <img width="389" alt="Circle Editing" src="https://github.com/user-attachments/assets/a52c0ac7-3829-44d3-9418-06191936ef3f">
 
 - **Reference Position and Offsets**
-   - These two options move the circular element along the X,Y and Z axis. These can be changed independently to enable you to precisely put the element where you want. The cursor icon allows you to place the element on the screen at the location of your cursor. This makes placing circular elements particularly easy.
+   - These two options move the element along the X,Y and Z axis. These can be changed independently to enable you to precisely put the element where you want. The cursor icon allows you to place the element on the screen at the location of your cursor. This makes placing circular elements particularly easy.
 - **Stroke**
    - This enables you to change the colour of the circular element. You might find it useful to colour the element green for a safespot, for example.
   <img width="302" alt="Colour Circles" src="https://github.com/user-attachments/assets/aeee2323-53f9-43a3-bf3d-3aca08179d89">
@@ -20,4 +23,6 @@ Once you have selected a draw type that you want, the next step is to edit the d
 - **Fill**
    - This changes the amount of colour within the element. At higher fill levels, you may not be able to see the floor at all.
   <img width="305" alt="Colour Fill" src="https://github.com/user-attachments/assets/e256f919-4ce4-47c3-8019-766c8415254b">
-
+- **Radius**
+   - This changes the size of the element. A higher value means a bigger element.
+  <img width="227" alt="image" src="https://github.com/user-attachments/assets/93f8ebb2-f75c-44c7-8f14-092840811626">

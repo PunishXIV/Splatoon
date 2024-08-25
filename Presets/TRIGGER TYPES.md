@@ -6,3 +6,4 @@
 [Editing Elements](https://github.com/HairyTofu/Splatoon/blob/3e4788a53d9193406244839c1c2d6dccb336cb44/Presets/EDITING%20ELEMENTS.md) as adding triggers to elements are more complex than simply drawing them.
 
 <img width="737" alt="Trigger Types" src="https://github.com/user-attachments/assets/ff1420f5-c022-4991-ad25-9ad15e533bb6">
+

@@ -5,8 +5,6 @@
 
 Once you have selected a draw type that you want, the next step is to edit the draw so it is more effective for what you want it to do.
 
-## Editing Elements
-
 >[!note]
 >Depending on the element you have chosen, different editing options become available.
 

@@ -5,7 +5,7 @@
 
 Once you have selected a draw type that you want, the next step is to edit the draw so it is more effective for what you want it to do.
 
-## Editing Circular Elements at fixed co-ordinates
+## Editing Elements
 
 <img width="389" alt="Circle Editing" src="https://github.com/user-attachments/assets/a52c0ac7-3829-44d3-9418-06191936ef3f">
 

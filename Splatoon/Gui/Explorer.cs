@@ -62,7 +62,7 @@ internal unsafe static class Explorer
         ImGuiEx.TextCopy($"{"Dead".Loc()}: {obj.Struct()->IsDead()}");
         ImGuiEx.TextCopy($"{"Hitbox radius".Loc()}: {obj.HitboxRadius}");
         ImGuiEx.TextCopy($"{"Targetable".Loc()}: {obj.Struct()->GetIsTargetable()}");
-        ImGuiEx.TextCopy($"{"Nameplate".Loc()}: {ObjectFunctions.GetNameplateColor(obj.Address)}");
+        ImGuiEx.TextCopy($"{"Nameplate".Loc()}: {ObjectFunctions.GetNameplateKind(obj)}");
         ImGuiEx.TextCopy($"{"Is hostile".Loc()}: {ObjectFunctions.IsHostile(obj)}");
         ImGuiEx.TextCopy($"{"VfxScale".Loc()}: {obj.Struct()->VfxScale}");
         ImGui.SameLine();

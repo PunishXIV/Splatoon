@@ -217,7 +217,8 @@ internal unsafe class DirectX11Scene : IDisposable
             line.start,
             line.stop,
             line.radius,
-            line.style.strokeColor);
+            line.style.strokeColor,
+            thickness:line.style.strokeThickness);
         if (line.style.castFraction > 0)
         {
             if (line.style.animation.kind is Serializables.CastAnimationKind.Pulse)

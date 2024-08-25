@@ -19,4 +19,5 @@ Once you have selected a draw type that you want, the next step is to edit the d
   <img width="302" alt="Colour Thickness" src="https://github.com/user-attachments/assets/7c3738f8-10b2-4a0b-bb44-f76f35fdbbc9">
 - **Fill**
    - This changes the amount of colour within the element. At higher fill levels, you may not be able to see the floor at all.
-   - 
+  <img width="305" alt="Colour Fill" src="https://github.com/user-attachments/assets/e256f919-4ce4-47c3-8019-766c8415254b">
+

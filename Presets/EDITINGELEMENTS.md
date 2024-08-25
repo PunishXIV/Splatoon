@@ -34,5 +34,5 @@ Once you have selected a draw type that you want, the next step is to edit the d
 - **Single attribute**
    - For basic element drawing, NPC IDs will perform most of what you are looking for. However, for draws that you want to be shown when the boss uses a certain skill or animation, other options such as "VFX Path" are available. For elements you want to show during mechanics with debuffs, Icon ID can work particularly well.
 - **Overlay Text**
-   - This will enable you to write on the element and can be drawn on any element to provide information.     This can be useful for giving you instructions mid fight, such as "STACK", "AVOID" or "MOVE HERE".
+   - This will enable you to write on the element and can be drawn on any element to provide information.
   ![safespot](/docs/images/walkthrough/ssexample.png)

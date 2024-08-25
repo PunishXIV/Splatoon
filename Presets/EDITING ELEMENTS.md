@@ -13,7 +13,7 @@ Once you have selected a draw type that you want, the next step is to edit the d
 - **Reference Position and Offsets**
    - These two options move the element along the X,Y and Z axis. These can be changed independently to enable you to precisely put the element where you want. The cursor icon allows you to place the element on the screen at the location of your cursor. This makes placing circular elements particularly easy.
 - **Stroke**
-   - This enables you to change the colour of the circular element. You might find it useful to colour the element green for a safespot, for example.
+   - This enables you to change the colour of the element. You might find it useful to colour the element green for a safespot, for example.
   <img width="302" alt="Colour Circles" src="https://github.com/user-attachments/assets/aeee2323-53f9-43a3-bf3d-3aca08179d89">
 - **Thickness**
    - This changes the thickness of the line surrounding the element. Thicker lines might be easier to see on different maps.

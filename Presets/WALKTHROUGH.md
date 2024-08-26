@@ -2,7 +2,9 @@
 > [!caution]
 >This walkthrough assumes you have read all of the documents located within the preset area and have a basic understanding of its content.
 
-<details open>
+</details>
+
+<details>
 <summary>Reading Requirements</summary>
 <ul>
   <li>
@@ -19,7 +21,7 @@
 </ul>  
 </details>
 
-<details open>
+<details>
 <summary>Programme Requirements</summary>
 <ul>
   <li>
@@ -46,7 +48,7 @@
 
 ## Creating your preset
 
-<details open>
+<details>
   
 <summary>Walkthrough</summary></summary>
 <ul>
@@ -69,7 +71,7 @@
   
 ## Creating a line AOE element
 
-<details open>
+<details>
   
 <summary>Walkthrough</summary></summary>
 
@@ -115,7 +117,7 @@ If you did everything correctly, your Crimson Cyclone element should draw correc
 
 ## Improving a line AOE element using triggers.
 
-<details open>
+<details>
   
 <summary>Walkthrough</summary></summary>
 

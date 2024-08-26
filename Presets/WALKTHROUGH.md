@@ -52,7 +52,7 @@
 <ul>
   <li>
     
-  Step 1: Create a layout and call it EX - The Bowl Of Embers Extreme.
+  Step 1: Create a layout and call it EX - The Bowl Of Embers.
   ![layoutcreation](/docs/images/walkthrough/createlayout.png)
   
   </li>
@@ -110,5 +110,65 @@ Step 4: Setting the width and length of the element
 If you did everything correctly, your Crimson Cyclone element should draw correctly when Ifrit begins to cast, giving you time to find the safe spots.
 
 ![ifritlinedraw](/docs/images/walkthrough/ifritlinecomplete.gif)
+
+</details>
+
+## Improving a line AOE element using triggers.
+
+<details open>
+  
+<summary>Walkthrough</summary></summary>
+
+This section will teach you how to expand upon the created line AOE using triggers. 
+
+![ifritlinedraw](/docs/images/walkthrough/ifritlinecomplete.gif)
+
+A big issue with the line AOE created above is that it requires Ifrit to be casting to display. In a mechanic where there are several NPCS that all cast the same spell ID and you are required to find multiple safe spots, it can be tricky. To this end, a trigger can be used to effectively draw ALL of the Ifrit line AOEs at the same time. This can create scenarios where there are evident safe spots within the mechanic that are not usually seen when solving them naturally.
+
+<ul>
+  <li>
+    
+  Step 1: Press the layout name you made earlier and press the group menu at the top of the page.
+  
+  ![groupname](/docs/images/walkthrough/groupname.png)
+  
+  </li>
+  
+  <li>
+    
+  Step 2: Scroll down to the bottom and type the name you want your grop of elements to be called and press "add".
+  
+  ![creategroup](/docs/images/walkthrough/creategroup.png)
+  
+  </li>
+
+  <li>
+    
+  Step 3: The layout should now be under the group you created. From now on, when creating new layouts, you can assign them to this group so they appear under the heading. This is useful when creating more advanced elements, where some need triggers and some do not.
+  
+  ![grouped](/docs/images/walkthrough/grouped.png)
+  
+  </li>
+
+  <li>
+    
+  Step 4: Change the display condition to "on trigger only" and down the bottom of the page, tick the "Enable Trigger" button. Make sure you change the option to "Show at log message" and put the log message to 1532 - the skill ID for crimson Cyclone.
+  
+  ![grouped](/docs/images/walkthrough/enabletrigger.png)
+  
+  </li>
+
+   <li>
+    
+  Step 5: Now make sure you untick "While casting" and tick "Visible characters only" in the element options as we are now using a trigger rather than a cast to draw these elements.
+
+  </li>
+</ul>
+
+If you did all the steps correctly, you should now notice that your elements draw on all of the Ifrits the moment the first begins their cast. This means you can see the safe spots instantly, rather than running around the arena dodging each ifrit!
+
+![ifritlinedraw](/docs/images/walkthrough/infrittrigger.gif)
+
+</details>
 
 

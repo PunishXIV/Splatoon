@@ -81,7 +81,7 @@ This section will teach you how to create a cone element. For this particular se
 <ul>
   <li>
     
-Step 1: Set your element type to 'line relative to object'
+Step 1: Set your element type to 'line relative to object'. This will make the line attach to an object, rather than a set of points on the map.
 ![coneoption](/docs/images/walkthrough/lineobject.png)</li>
 
 <li>
@@ -99,7 +99,7 @@ Step 3: While casting and Skill ID
 <li>
 
 Step 4: Setting the width and length of the element
- - We know that the element has a range of 44 and a radius of 6. Sometimes we know that because of bossmod and other times, particularly in new fights, we have to do some trial and error testing. We want to make sure that we have accounted for rotation by ticking the "account for rotation" box.
+ - We know that the element has a range of 44 and a radius of 6. Sometimes we know that because of bossmod and other times, particularly in new fights, we have to do some trial and error testing. We want to make sure that we have accounted for rotation by ticking the "account for rotation" box, which can be found under the element type box.
 ![account for rotation](/docs/images/walkthrough/accountrotate.png)
  - We then want to make Point A have Y:44 (the length) and change the radius to be 6.
 ![yandradius](/docs/images/walkthrough/yandradius.png)
@@ -107,10 +107,8 @@ Step 4: Setting the width and length of the element
 </li>
 
 
+If you did everything correctly, your Crimson Cyclone element should draw correctly when Ifrit begins to cast, giving you time to find the safe spots.
 
-  
-<li>
-
-
+![ifritlinedraw](/docs/images/walkthrough/ifritlinecomplete.gif)
 
 

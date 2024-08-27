@@ -46,10 +46,34 @@ internal unsafe partial class CGui
             if (ImGui.Button("Paste style".Loc() + "##" + i + k))
             {
                 el.color = p.Clipboard.color;
+                el.thicc = p.Clipboard.thicc;
+
+                if (p.Clipboard.Filled)
+                {
+                    el.Filled = p.Clipboard.Filled;
+                    el.fillIntensity = p.Clipboard.fillIntensity;
+                    if (p.Clipboard.overrideFillColor)
+                    {
+                        el.overrideFillColor = p.Clipboard.overrideFillColor;
+                        el.originFillColor = p.Clipboard.originFillColor;
+                        el.endFillColor = p.Clipboard.endFillColor;
+                    }
+                }
+
+                if (p.Clipboard.castAnimation != CastAnimationKind.Unspecified)
+                {
+                    el.castAnimation = p.Clipboard.castAnimation;
+                    el.animationColor = p.Clipboard.animationColor;
+                    el.pulseSize = p.Clipboard.pulseSize;
+                    el.pulseFrequency = p.Clipboard.pulseFrequency;
+                }
+
                 el.overlayBGColor = p.Clipboard.overlayBGColor;
                 el.overlayTextColor = p.Clipboard.overlayTextColor;
                 el.tether = p.Clipboard.tether;
-                el.thicc = p.Clipboard.thicc;
+                el.ExtraTetherLength = p.Clipboard.ExtraTetherLength;
+                el.LineEndA = p.Clipboard.LineEndA;
+                el.LineEndB = p.Clipboard.LineEndB;
                 el.overlayVOffset = p.Clipboard.overlayVOffset;
                 if (ImGui.GetIO().KeyCtrl)
                 {
@@ -73,6 +97,35 @@ internal unsafe partial class CGui
                 ImGuiEx.Text($"Color: 0x{p.Clipboard.color:X8}");
                 ImGui.SameLine();
                 ImGuiUtils.DisplayColor(p.Clipboard.color);
+                ImGuiEx.Text($"Thickness: {p.Clipboard.thicc}");
+                if (p.Clipboard.Filled)
+                {
+                    if (p.Clipboard.overrideFillColor)
+                    {
+                        ImGuiEx.Text($"Origin Fill Color: 0x{p.Clipboard.originFillColor:X8}");
+                        ImGui.SameLine();
+                        ImGuiUtils.DisplayColor(p.Clipboard.originFillColor ?? 0);
+                        ImGuiEx.Text($"End Fill Color: 0x{p.Clipboard.endFillColor:X8}");
+                        ImGui.SameLine();
+                        ImGuiUtils.DisplayColor(p.Clipboard.endFillColor ?? 0);
+                    }
+                    else
+                    {
+                        ImGuiEx.Text($"Fill Intensity: {p.Clipboard.fillIntensity}");
+                    }
+                }
+                if (p.Clipboard.castAnimation != CastAnimationKind.Unspecified)
+                {
+                    ImGuiEx.Text($"Animation: {CastAnimations.Names[(int)p.Clipboard.castAnimation]}");
+                    ImGuiEx.Text($"Animation Color: 0x{p.Clipboard.animationColor:X8}");
+                    ImGui.SameLine();
+                    ImGuiUtils.DisplayColor(p.Clipboard.animationColor);
+                    if (p.Clipboard.castAnimation == CastAnimationKind.Pulse)
+                    {
+                        ImGuiEx.Text($"Pulse Size: {p.Clipboard.pulseSize}");
+                        ImGuiEx.Text($"Pulse Frequency: {p.Clipboard.pulseFrequency}");
+                    }
+                }
                 ImGuiEx.Text($"Overlay BG color: 0x{p.Clipboard.overlayBGColor:X8}");
                 ImGui.SameLine();
                 ImGuiUtils.DisplayColor(p.Clipboard.overlayBGColor);
@@ -80,7 +133,6 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiUtils.DisplayColor(p.Clipboard.overlayTextColor);
                 ImGuiEx.Text($"Overlay vertical offset: {p.Clipboard.overlayVOffset}");
-                ImGuiEx.Text($"Thickness: {p.Clipboard.thicc}");
                 ImGuiEx.Text($"Tether: {p.Clipboard.tether}");
                 ImGui.Separator();
                 ImGuiEx.Text((ImGui.GetIO().KeyCtrl ? Colors.Green : Colors.Gray).ToVector4(),
@@ -203,19 +255,19 @@ internal unsafe partial class CGui
                     ImGui.SetNextItemWidth(200f);
                     ImGuiEx.InputListString("##pholder" + i + k, el.refActorPlaceholder);
                     ImGui.SameLine();
-                    if(ImGuiEx.IconButton(FontAwesomeIcon.AngleDoubleDown))
+                    if (ImGuiEx.IconButton(FontAwesomeIcon.AngleDoubleDown))
                     {
                         ImGui.OpenPopup("PlaceholderFastSelect");
                     }
-                    if(ImGui.BeginPopup("PlaceholderFastSelect"))
+                    if (ImGui.BeginPopup("PlaceholderFastSelect"))
                     {
-                        for(int s = 1; s <= 8; s++)
+                        for (int s = 1; s <= 8; s++)
                         {
-                            if(ImGui.Selectable($"<{s}>", false, ImGuiSelectableFlags.DontClosePopups)) el.refActorPlaceholder.Add($"<{s}>");
+                            if (ImGui.Selectable($"<{s}>", false, ImGuiSelectableFlags.DontClosePopups)) el.refActorPlaceholder.Add($"<{s}>");
                         }
-                        if(ImGui.Selectable("2-8", false, ImGuiSelectableFlags.DontClosePopups))
+                        if (ImGui.Selectable("2-8", false, ImGuiSelectableFlags.DontClosePopups))
                         {
-                            for(int s = 2; s <= 8; s++)
+                            for (int s = 2; s <= 8; s++)
                             {
                                 el.refActorPlaceholder.Add($"<{s}>");
                             }
@@ -624,7 +676,7 @@ internal unsafe partial class CGui
             ImGuiUtils.SizedText("Tether info:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.Checkbox("##tether", ref el.refActorTether);
-            if(el.refActorTether)
+            if (el.refActorTether)
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
@@ -637,7 +689,7 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.Text("(in seconds)".Loc());
 
-                ImGuiUtils.SizedText("         "+"Params:".Loc(), WidthElement);
+                ImGuiUtils.SizedText("         " + "Params:".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGuiEx.InputInt(100f, "##param1", ref el.refActorTetherParam1);
                 ImGui.SameLine();
@@ -652,7 +704,7 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGui.Checkbox("Invert condition", ref el.refActorIsTetherInvert);
 
-                ImGuiUtils.SizedText("         "+"Connected with:".Loc(), WidthElement);
+                ImGuiUtils.SizedText("         " + "Connected with:".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(200f);
                 ImGuiEx.InputListString("##pholderConnectedWith", el.refActorTetherConnectedWithPlayer);

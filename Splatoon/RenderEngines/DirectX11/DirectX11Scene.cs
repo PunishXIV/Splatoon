@@ -205,42 +205,72 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawLine(DisplayObjectLine line, PctDrawList drawList)
     {
-        if (line.style.filled)
-            drawList.AddLineFilled(
-            line.start,
-            line.stop,
-            line.radius,
-            line.style.originFillColor,
-            line.style.endFillColor);
-        if (line.style.IsStrokeVisible())
-            drawList.AddLine(
-            line.start,
-            line.stop,
-            line.radius,
-            line.style.strokeColor,
-            thickness:line.style.strokeThickness);
-        if (line.style.castFraction > 0)
+        if (line.radius == 0)
         {
-            if (line.style.animation.kind is Serializables.CastAnimationKind.Pulse)
+            drawList.PathLineTo(line.start);
+            drawList.PathLineTo(line.stop);
+            drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
+
+            float arrowScale = MathF.Max(1, line.style.strokeThickness / 7f);
+            if (line.startStyle == LineEnd.Arrow)
             {
-                var length = line.style.animation.size + line.Length;
-                var pulsePosition = length * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % line.style.animation.frequency) / line.style.animation.frequency;
-                drawList.AddLineFilled(
-                    line.start + line.Direction * MathF.Max(0, pulsePosition - line.style.animation.size),
-                    line.start + line.Direction * MathF.Min(pulsePosition, line.Length),
-                    line.radius,
-                    line.style.animation.color & 0x00FFFFFF,
-                    line.style.animation.color);
+                var arrowStart = line.start + arrowScale * 0.4f * line.Direction;
+                var offset = arrowScale * 0.3f * line.Perpendicular;
+                drawList.PathLineTo(arrowStart + offset);
+                drawList.PathLineTo(line.start);
+                drawList.PathLineTo(arrowStart - offset);
+                drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
             }
-            else if (line.style.animation.kind is Serializables.CastAnimationKind.Fill)
+
+            if (line.endStyle == LineEnd.Arrow)
             {
-                var castLength = line.style.castFraction * line.Length;
+                var arrowStart = line.stop - arrowScale * 0.4f * line.Direction;
+                var offset = arrowScale * 0.3f * line.Perpendicular;
+                drawList.PathLineTo(arrowStart + offset);
+                drawList.PathLineTo(line.stop);
+                drawList.PathLineTo(arrowStart - offset);
+                drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
+            }
+        }
+        else
+        {
+            if (line.style.filled)
                 drawList.AddLineFilled(
-                    line.start,
-                    line.start + line.Direction * castLength,
-                    line.radius,
-                    line.style.animation.color,
-                    line.style.animation.color);
+                line.start,
+                line.stop,
+                line.radius,
+                line.style.originFillColor,
+                line.style.endFillColor);
+            if (line.style.IsStrokeVisible())
+                drawList.AddLine(
+                line.start,
+                line.stop,
+                line.radius,
+                line.style.strokeColor,
+                thickness: line.style.strokeThickness);
+            if (line.style.castFraction > 0)
+            {
+                if (line.style.animation.kind is Serializables.CastAnimationKind.Pulse)
+                {
+                    var length = line.style.animation.size + line.Length;
+                    var pulsePosition = length * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % line.style.animation.frequency) / line.style.animation.frequency;
+                    drawList.AddLineFilled(
+                        line.start + line.Direction * MathF.Max(0, pulsePosition - line.style.animation.size),
+                        line.start + line.Direction * MathF.Min(pulsePosition, line.Length),
+                        line.radius,
+                        line.style.animation.color & 0x00FFFFFF,
+                        line.style.animation.color);
+                }
+                else if (line.style.animation.kind is Serializables.CastAnimationKind.Fill)
+                {
+                    var castLength = line.style.castFraction * line.Length;
+                    drawList.AddLineFilled(
+                        line.start,
+                        line.start + line.Direction * castLength,
+                        line.radius,
+                        line.style.animation.color,
+                        line.style.animation.color);
+                }
             }
         }
     }

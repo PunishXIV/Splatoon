@@ -136,10 +136,19 @@ public class R4S_Electrope_Edge : SplatoonScript
             wickedThunder.CastActionId.EqualsAny(LeftSidewiseSparkCastActionId, RightSidewiseSparkCastActionId))
         {
             var isSafeRight = wickedThunder.CastActionId == LeftSidewiseSparkCastActionId;
-            var num = Hits.Count(s => s == Player.Object.EntityId) + (Longs.Contains(Player.Object.EntityId) ? 1 : 0);
+            var isLong = Longs.Contains(Player.Object.EntityId);
+            var hitCount = Hits.Count(s => s == Player.Object.EntityId);
+            var safeArea = (isLong, hitCount) switch
+            {
+                (false, 2) => GetSidewiseSparkSafeArea(C.SidewiseSpark2Short, isSafeRight),
+                (false, 3) => GetSidewiseSparkSafeArea(C.SidewiseSpark3Short, isSafeRight),
+                (true, 1) => GetSidewiseSparkSafeArea(C.SidewiseSpark1Long, isSafeRight),
+                (true, 2) => GetSidewiseSparkSafeArea(C.SidewiseSpark2Long, isSafeRight),
+                _ => null
+            };
+
             if (Controller.TryGetElementByName("Safe", out var e))
             {
-                var safeArea = GetSidewiseSparkSafeArea(num == 2 ? C.SidewiseSpark2 : C.SidewiseSpark3, isSafeRight);
                 if (safeArea == null) return;
                 e.Enabled = true;
                 e.radius = 1.5f;
@@ -188,28 +197,34 @@ public class R4S_Electrope_Edge : SplatoonScript
         if(C.ResolveBox)
         {
             new NuiBuilder().
-                Section("2 short / 1 long:")
+                Section("Lightning Cage - 2 short / 1 long:")
                 .Widget(() =>
                 {
-                    ImGui.Text("Lightning Cage");
                     ImGui.PushID("Pos2");
                     DrawBox(ref C.Position2);
                     ImGui.PopID();
-
-                    ImGui.Text("Sidewise Spark");
-                    ImGuiEx.EnumCombo("", ref C.SidewiseSpark2);
                 })
-                .Section("3 short / 2 long:")
+                .Section("Lightning Cage - 3 short / 2 long:")
                 .Widget(() =>
                 {
-                    ImGui.Text("Lightning Cage");
                     ImGui.PushID("Pos3");
                     DrawBox(ref C.Position3);
                     ImGui.PopID();
-
-                    ImGui.Text("Sidewise Spark");
-                    ImGuiEx.EnumCombo("", ref C.SidewiseSpark3);
-                }).Draw();
+                })
+                .Section("Sidewise Spark")
+                .Widget(() =>
+                    {
+                        ImGui.Text("2 short");
+                        ImGuiEx.EnumCombo("##SidewiseSpark2Short", ref C.SidewiseSpark2Short);
+                        ImGui.Text("3 short");
+                        ImGuiEx.EnumCombo("##SidewiseSpark3Short", ref C.SidewiseSpark3Short);
+                        ImGui.Text("1 long");
+                        ImGuiEx.EnumCombo("##SidewiseSpark1Long", ref C.SidewiseSpark1Long);
+                        ImGui.Text("2 long");
+                        ImGuiEx.EnumCombo("##SidewiseSpark2Long", ref C.SidewiseSpark2Long);
+                    }
+                )
+                .Draw();
         }
 
         if(ImGui.CollapsingHeader("Debug"))
@@ -315,7 +330,9 @@ public class R4S_Electrope_Edge : SplatoonScript
         public bool ResolveBox = false;
         public (int, int) Position2 = (1, 4);
         public (int, int) Position3 = (4, 4);
-        public SidewiseSparkPosition SidewiseSpark2 = SidewiseSparkPosition.None;
-        public SidewiseSparkPosition SidewiseSpark3 = SidewiseSparkPosition.None;
+        public SidewiseSparkPosition SidewiseSpark2Short = SidewiseSparkPosition.None;
+        public SidewiseSparkPosition SidewiseSpark1Long = SidewiseSparkPosition.None;
+        public SidewiseSparkPosition SidewiseSpark3Short = SidewiseSparkPosition.None;
+        public SidewiseSparkPosition SidewiseSpark2Long = SidewiseSparkPosition.None;
     }
 }

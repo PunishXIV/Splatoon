@@ -6,7 +6,6 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
 using ImGuiNET;
@@ -49,7 +48,7 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
     private int _wormholeChangedCount;
 
     public override HashSet<uint>? ValidTerritories => [887];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 

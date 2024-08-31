@@ -185,6 +185,15 @@ If you did all the steps correctly, you should now notice that your elements dra
 
 </details>
 
+## Creating a circle AOE element
+
+<details>
+  
+<summary>Walkthrough</summary></summary>
+
+</details>
+
+
 ## Creating an element using helpers.
 
 <details>
@@ -303,7 +312,25 @@ You now want to go back to the element you created earlier and click the same `C
 <details>
 
 <summary>Walkthrough</summary>
-  
+
+Sometimes, an NPC may cast a spell that renders the entire battle field dangerous except for one small section. Naturally, you would want to just paint the safe spot with a colour. However, to be in line with the contributions document and to make sure your preset is allowed to be uploaded, you need to ensure you are painting the UNSAFE portion of the AOE. To do this, we use something called a donut.
+
+![donut](/docs/images/walkthrough/unsafearena.png)
+
+As the screenshot above shows, there is a small circle that is free from any dangerous area. This would be the safe spot. For this particular mechanic, the position of the safe spot does not change. This means that, however many dungeon runs you do, this safe spot will always be the same. This allows us to be slightly lazy in our design and we can create a circle element at that spot which is `triggered` on the cast of this particular spell.
+
+Firstly, I created a circular element at my cursor position using the mouse button next to `reference position` which appears when I have selected `circle at fixed cordinates` as my element type.I changed the radius of the element so it filled the dangerous circle.
+
+![circlular](/docs/images/walkthrough/dangercircle.png)
+
+After that, next to the radius, is the option `Donut`. This inverts my dangerous radius outwards, covering the map rather than the circle inside. This type of draw would comply with the requirements of the contributions document, as it is drawing the unsafe area. I make the radius as large as the arena.
+
+![uncirclular](/docs/images/walkthrough/unsafecircle.png)
+
+Since `triggers` were covered in a previous area of the page, you should know that you are looking for the skill ID that the bird casts just as the dangerous area appears. Looking at `log`, I can see that the NPC casts `36284 - Windshot` just as the dangerous area appears. I can then go and tick `enable trigger` and type in the spell ID `36284`. However, to ensure that the element does not last forever, I am going to give it a duration of 5.5 seconds. I am then left with a draw as seen below.
+
+![donutexample](/docs/images/walkthrough/donutexample.gif)
+
 </details>
 
 ## Freezing a drawn element

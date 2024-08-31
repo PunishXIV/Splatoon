@@ -235,11 +235,16 @@ In some cases, the boss will use `hidden actors` to cast spells for them. This i
 
 </details>
 
-## Creating an element using a tether condition.
+## Creating an element using a VFX condition.
 
 <details>
 
 <summary>Walkthrough</summary>
+
+A VFX condition is useful in a few scenarios. The scenario described in this section refers to a boss who summons four NPCs, all of which have the same NPC ID and spell ID. Usually, a situation like this makes it difficult to draw elements for as if we just follow the steps in `Creating an element using helpers` and `Improving a line AOE element using triggers`, Splatoon will draw an element over all of the AOEs at the same time, which is not what we want. 
+
+![vftogether](/docs/images/walkthrough/vfxexample1.png)
+
   
 </details>
 
@@ -251,7 +256,7 @@ In some cases, the boss will use `hidden actors` to cast spells for them. This i
   
 </details>
 
-## Creating an donut element.
+## Creating a donut element.
 
 <details>
 

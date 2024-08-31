@@ -1,6 +1,6 @@
 # Walkthrough
 > [!caution]
->This walkthrough assumes you have read all of the documents located within the preset area and have a basic understanding of its content.
+>This walkthrough assumes you have read all of the information located in the `Reading Requirements` section below.
 
 <details>
 <summary>Reading Requirements</summary>
@@ -23,7 +23,7 @@
 </details>
 
 > [!important]
-> Each section of the walkthrough is split up into different parts so you can focus on which element you want to draw. You can access each part of the walkthrough by looking at the heading and pressing the arrow underneath.
+> Each section of the walkthrough is split up into different parts so you can focus on which element you want to draw. You can access each part of the walkthrough by looking at the heading and pressing the arrow underneath. Each part of the walkthrough uses different fights to give examples because not every fight will need each 
 
 ## Creating your preset
 
@@ -88,7 +88,7 @@ This section will teach you how to create a cone element. For this particular se
 
 ![lines](/docs/images/walkthrough/ifritlines.gif)
 
-[Bossmod](https://github.com/awgil/ffxiv_bossmod/blob/b86d8927452fb6481141f811e93270e4d0c3f714/BossMod/Modules/RealmReborn/Extreme/Ex4Ifrit/Ex4IfritEnums.cs) lists Crimson Cyclone as a skill with a 3.0s cast, range 44 with 6 radius. These values are useful to help us know how long and wide we need to make our element. The fact it has a cast time means we can enable the draw to show the second Ifrit begins casting the skill, giving us plenty of time to see the safe spots.
+
 <ul>
   <li>
     
@@ -104,15 +104,18 @@ Step2: Find the NPC ID
 <li>
   
 Step 3: While casting and Skill ID
- - We need to find the skill ID to enable us to create the element. In this case, we already know that the skill name is Crimson Cyclone, so we can look through our Trigevent log and see that Crimson Cyclone has a skill ID of 1532. For some fights, Splatoon already gives us the ID of the skill when we type it in. By ticking the box next to 'While casting', we are telling Splatoon that we want this element to draw when Ifrit is casting this skill.</li>
+ - Using the Splatoon `log` feature described previously, we can see that Ifrit readies the spell Crimson Cyclone and afterwards, a skill of 1532 is being cast by ifrit. We can assume that this skill ID 1532 relates to Crimson Cyclone.  For some fights, Splatoon already gives us the ID of the skill when we type it in. By ticking the box next to 'While casting', we are telling Splatoon that we want this element to draw when Ifrit is casting this skill.</li>
 ![whilecasting](/docs/images/walkthrough/whilecasting.png)
 
 <li>
 
 Step 4: Setting the width and length of the element
- - We know that the element has a range of 44 and a radius of 6. Sometimes we know that because of bossmod and other times, particularly in new fights, we have to do some trial and error testing. We want to make sure that we have accounted for rotation by ticking the "account for rotation" box, which can be found under the element type box.
+ - We know that Ifrit charges across the battle field so the radius of this must be the length of the map. If you play around with the Y axis co-ordinates, you will see that the end of the map is around the 44 mark. We can keep this at 44 so that the drawn is the entire length of the arena. We then need to set the radius of the skill. We know that the AOE line includes the body of Ifrit so we can assume that it is as wide as him. If you tick the `+targethitbox` option, you should notice that your element is now as wide as him. Sometimes this works and sometimes it is not based on the target hitbox and you will have to experiment on the radius yourself. In this case, the radius is approximately 6.
+ - We want to make sure that we have accounted for rotation by ticking the "account for rotation" box, which can be found under the element type box.
+
 ![account for rotation](/docs/images/walkthrough/accountrotate.png)
- - We then want to make Point A have Y:44 (the length) and change the radius to be 6.
+
+ - We then want to make Point A have Y:44 (the length) and , if not using the `+targethitbox` option, set the radius to 6.
 ![yandradius](/docs/images/walkthrough/yandradius.png)
 
 </li>
@@ -182,4 +185,76 @@ If you did all the steps correctly, you should now notice that your elements dra
 
 </details>
 
+## Creating an element using helpers.
 
+<details>
+
+<summary>Walkthrough</summary>
+
+In some cases, the boss will use `hidden actors` to cast spells for them. This is typical in fights where AOEs appear as if they are coming from outside of the boss. In some fights there can be dozens of `hidden actors` that are casting these skills. The `logger` is particularly useful here to determine which of the NPCs is casting the spell so you can retrieve the spell ID. Sometimes, the same NPC ID might be casting different spells as there could be more than one `hidden actor` active at that time. 
+
+<ul>
+  <li>
+    
+  Step 1: Press the layout name you made earlier and press the group menu at the top of the page.
+  
+  ![groupname](/docs/images/walkthrough/groupname.png)
+  
+  </li>
+  
+  <li>
+    
+  Step 2: Scroll down to the bottom and type the name you want your grop of elements to be called and press "add".
+  
+  ![creategroup](/docs/images/walkthrough/creategroup.png)
+  
+  </li>
+
+  <li>
+    
+  Step 3: The layout should now be under the group you created. From now on, when creating new layouts, you can assign them to this group so they appear under the heading. This is useful when creating more advanced elements, where some need triggers and some do not.
+  
+  ![grouped](/docs/images/walkthrough/grouped.png)
+  
+  </li>
+
+  <li>
+    
+  Step 4: Change the display condition to "on trigger only" and down the bottom of the page, tick the "Enable Trigger" button. Make sure you change the option to "Show at log message" and put the log message to 1532 - the skill ID for crimson Cyclone.
+  
+  ![grouped](/docs/images/walkthrough/enabletrigger.png)
+  
+  </li>
+
+   <li>
+    
+  Step 5: Now make sure you untick "While casting" and tick "Visible characters only" in the element options as we are now using a trigger rather than a cast to draw these elements.
+
+  </li>
+</ul>
+
+</details>
+
+## Creating an element using a tether condition.
+
+<details>
+
+<summary>Walkthrough</summary>
+  
+</details>
+
+## Creating an element using a status condition.
+
+<details>
+
+<summary>Walkthrough</summary>
+  
+</details>
+
+## Creating an donut element.
+
+<details>
+
+<summary>Walkthrough</summary>
+  
+</details>

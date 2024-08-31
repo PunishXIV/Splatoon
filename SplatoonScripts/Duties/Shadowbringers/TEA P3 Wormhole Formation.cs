@@ -6,6 +6,7 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
 using ImGuiNET;
@@ -17,9 +18,8 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
 
 public class TEA_P3_Wormhole_Formation : SplatoonScript
 {
-    private const uint WormholeDataId = 0x1EA1DF;
-
     private const uint ChakramCastId = 18517;
+    private static readonly uint[] WormholeDataIds = [2007519, 2007520, 2007521];
 
     private readonly Dictionary<int, Vector2[]> _baitPositions = new()
     {
@@ -91,7 +91,9 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
     public override void OnObjectEffect(uint target, ushort data1, ushort data2)
     {
         var targetObject = target.GetObject();
-        if (targetObject?.DataId != WormholeDataId) return;
+        // PluginLog.Warning($"Name:{targetObject.Name} DataID: {targetObject.DataId} Data1: {data1}, Data2: {data2}");
+        if (WormholeDataIds.All(x => x != targetObject?.DataId)) return;
+        if (data1 != 1 && data2 != 2) return;
         var wormholePosition = targetObject.Position.ToVector2();
         if (wormholePosition is { X: > 100, Y: < 100 } or { X: < 100, Y: > 100 }) _shouldInvert = true;
         _wormholeChangedCount++;

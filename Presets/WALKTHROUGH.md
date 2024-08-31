@@ -245,15 +245,57 @@ A VFX condition is useful in a few scenarios. The scenario described in this sec
 
 ![vftogether](/docs/images/walkthrough/vfxexample1.png)
 
-  
+To make element draws, it is important to know the mechanic you are trying to draw for. In this case, there are four AOE markers being painted onto the floor by four NPCs. A few seconds after this, the boss will cast a tether on two of the minions, encasing them in ice and delaying their AOE. This means that two untethered NPCs are the safe zone, atleast for a few seconds. 
+
+![tetherexample](/docs/images/walkthrough/tetherexample.png)
+
+Looking at the `log` feature, I can see that there was a tether created at the exact moment it appeared in the game. However, the tether is not linked to a spell. The only other log entry that appears is a sudden VFX, which occurs twice. I don't think its a coincidence that two VFX elements are created at the same time as two tethers being shown, do you?
+
+![tetherlog](/docs/images/walkthrough/tethercreate.png)
+
+So, instead of an `NPC ID` being used in the `single attribute` box, we are going to choose `VFX Path` and copy the useful part of the log into this box. That would be `vfx/channeling/eff/chn_m0320_ice_0c2.avfx`. You'll notice `age` and two boxes next to where you put `vfx/channeling/eff/chn_m0320_ice_0c2.avfx`. You want to include the total time the tether exists ingame, which is from 0 seconds (when it appears) to 11 seconds (when it vanishes). I also want to make sure that the NPC is casting the current spell, which is Ice Scream as shown in the `log`. This has an ID of 36270 so I make sure I tick `while casting` and put in the correct spell ID.
+
+I then make sure I tick `account for rotation` and that my drawn element is covering the side of the untethered minion, this is because it will be the first to explode. Remember, to be in line with the [Contribution](/Presets/CONTRIBUTING.md) document, you want to create an element that shows the UNSAFE area, not the SAFESPOT. In this mechanic, the tether causes the AOE in that area to become safe, so you want to draw an element that covers the unfrozen NPC. In this mechanic, a frozen and unfrozen NPC are always either N/S or W/E so the unsafe AOE can be drawn correctly without worrying about different patterns existing.
+
+![finalexample](/docs/images/walkthrough/finalvfxex.png)
+
 </details>
 
-## Creating an element using a status condition.
+## Creating an element using a status condition and overlay text.
 
 <details>
 
 <summary>Walkthrough</summary>
-  
+
+A status condition can be placed upon you in many of the fights in Final Fantasy. Sometimes, in specific fights, these status conditions can tell you how to resolve a mechanic. In other cases, they simply increase the damage you take. In this scenario, we are going to look at the debuff `Vulnerability Up` and how we can create an element which warns us when we have one of these debuffs.
+
+In this example, my character has been inflicted with one stack of `Vulnerability Up`. I know this because of the debuff icon that appears on my bar. 
+
+![vuln1](/docs/images/walkthrough/vuln1.png)
+
+After creating a new layout and adding a blank element, I change the element to `circle relative to object position` and change the target to `self` because I want the element to appear under my feet. I then tick the `Status Requirement` box and type in `Vulnerability Up` into the `Add all by name` box. It registers 21 elements for me which I can add to my list of status requirements.
+
+Since I just want text to appear, I change the value of my `Stroke Thickness` to 0 and in my `Overlay text` box I simply type `one stack`. I name the element one stack so I can keep track of it later.
+It appears like this when I have 1 stack of `Vulnerability Up`
+
+![1stack](/docs/images/walkthrough/1stack.png)
+
+However, what if I gain another stack and want the overlay text to change to show 2 stacks?
+
+![2stack](/docs/images/walkthrough/2vuln.png)
+
+To save me a job, I'm going to press the `copy to clipboard` button at the top of my 1 vuln stack element and then, instead of pressing `add element`, I'm going to press `Paste`. This pastes another identical element to the one you have already created. I'm going to name this '2 Vuln Stack'.
+
+Now, to make it register that you have two stacks of the debuff, you need to check the `Check for status param` box and then type in `2`. You want to change the overlay text to say `two stacks`.
+
+You now want to go back to the element you created earlier and click the same `Check for status param` box but include a `1` instead of a 2, so the elements are not overlapping.
+
+![2stack](/docs/images/walkthrough/2stack.png)
+
+
+>What do you think you would do if you have 3 vuln stacks? Why don't you try creating your own element to show on 3 stacks, following the steps above?
+
+
 </details>
 
 ## Creating a donut element.
@@ -262,4 +304,12 @@ A VFX condition is useful in a few scenarios. The scenario described in this sec
 
 <summary>Walkthrough</summary>
   
+</details>
+
+## Freezing a drawn element
+
+<details>
+
+<summary>Walkthrough</summary>
+
 </details>

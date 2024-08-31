@@ -2,45 +2,24 @@
 > [!caution]
 >This walkthrough assumes you have read all of the documents located within the preset area and have a basic understanding of its content.
 
-</details>
-
 <details>
 <summary>Reading Requirements</summary>
-<ul>
-  <li>
-    
-[Element Types](/Presets/ELEMENTTYPES.md) </li>
-  
-<li>
-    
-[Editing Elements](/Presets/EDITINGELEMENTS.md) </li>
 
-<li>
-    
-[Trigger Types](/Presets/TRIGGERTYPES.md) </li>
-</ul>  
+[Information](/Presets/INFORMATION.md)
+
 </details>
 
 <details>
 <summary>Programme Requirements</summary>
-<ul>
-  <li>
-    
-[Dalamud](https://github.com/goatcorp/Dalamud)</li>
   
-<li>
+[Dalamud](https://github.com/goatcorp/Dalamud)
 
-[Splatoon](https://github.com/PunishXIV/Splatoon)</li>
+[Splatoon](https://github.com/PunishXIV/Splatoon)
 
-<li>
-    
-[A Realm Recorded](https://github.com/UnknownX7/ARealmRecorded) with a recording of The Bowl Of Embers Extreme that shows up to crimson cyclone. </li>
+[A Realm Recorded](https://github.com/UnknownX7/ARealmRecorded) with a recording of different bosses or dungeons you want to use. 
+ 
+[ACT](https://advancedcombattracker.com/download.php) and [Trigevent](https://triggevent.io/) with a log of the recording from A Realm Recorded. 
 
-<li>
-    
-[ACT](https://advancedcombattracker.com/download.php) and [Trigevent](https://triggevent.io/) with a log of the recording from A Realm Recorded. </li>
-
-</ul>  
 </details>
 
 > [!important]
@@ -68,7 +47,37 @@
 </ul>
 
 </details>
+
+## Using Splatoon Logs
+
+<details>
   
+<summary>Walkthrough</summary>
+
+The `logger`, `explorer` and `log` functions of Splatoon will become your best friends when creating your own presets. They can be found under the `Tools` section of Splatoon's settings menu.
+
+![tools](/docs/images/walkthrough/toolex.png)
+
+## Logger
+
+![loggerfunction](/docs/images/walkthrough/loggerex.png)
+
+Logger shows you all of the NPCs, objects and data within your current instance. Ticking the `viewer mode` ensures that only current npcs,objects and data are shown. This particular option is important when dealing with invisible NPCs that cast spells. Pressing the `find` button next to the Object ID allows you to figure out what NPC/Object is doing an action and to draw the element you want from the correct NPC. You will be surprised to see many different npcs that have the same name as the boss but are actually invisible. This is because they are `helpers` and are typically responsible for any aoe you see that is not coming from the boss themselves. 
+
+## Explorer
+
+![explorerex](/docs/images/walkthrough/explorerex.png)
+
+Explorer enables you to pick any of the NPCs, Objects or Items viewable in the `viewer mode` of `logger` and get additional information on it. This typically includes information that is already available in the `logger` function but at a more indepth level and specifically for the object you select. This includes the `position` of an object, which could help you draw your elements on the map or `rotation` which might help you figure out what angle your elements need to be drawn. `Rotation` can specifically be useful when determining how much of an angle you need to give to your element when drawing AOEs that do not come directly out from the boss or the boss is constantly turning/moving.
+
+## Logs
+
+![logs](/docs/images/walkthrough/splatoonlogex.png)
+
+Logs provide you with all the information you need to create your draws. They list every single event that occurs during an instance and can provide invaluable information such as spell IDs, enemy position and the time between two events. For example, where a boss casts a spell with a length of 8 seconds but there are multiple events that happen within that time, the log can help you unpick what is happening and at what time. For bosses that use multiple `hidden helpers`, it can also help you determine which `hidden helper` is casting first and where they are on the map. It cannot be understated how useful the `log` feature in Splatoon is.
+
+</details>
+
 ## Creating a line AOE element
 
 <details>

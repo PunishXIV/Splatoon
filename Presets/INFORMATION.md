@@ -33,13 +33,13 @@ Line draws can start at one part of the map and end at another. These can be use
 
 Line draws can also be used so that they are relative to an object or NPC. Much like the circles, they move as the NPC moves and can also be configured to rotate so they are always at a fixed position relative to the NPC/Object you need.
 
-![Line Movement](https://github.com/user-attachments/assets/43593dd7-3919-4693-84c1-126c2c092eb3)
+![Line Movement](/docs/images/walkthrough/lmovement.gif)
 
 ## Cone relative to an object
 
 Cone draws can be extremely useful to show you how far an NPC attack reaches or how wide it is. These are particularly useful if the NPC attack is not usually telegraphed.
 
-<img width="500" alt="Cone Object Related" src="https://github.com/user-attachments/assets/c8d07a17-5db2-43b5-87cb-3b08341cb257">
+![conerelative](/docs/images/walkthrough/ccone.png)
 
 </details>
 

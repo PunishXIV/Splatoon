@@ -92,6 +92,12 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
         var targetObject = target.GetObject();
         // PluginLog.Warning($"Name:{targetObject.Name} DataID: {targetObject.DataId} Data1: {data1}, Data2: {data2}");
         if (WormholeDataIds.All(x => x != targetObject?.DataId)) return;
+        if (data1 == 4 && data2 == 8 && _wormholeChangedCount > 5)
+        {
+            _isStartWormholeFormation = false;
+            return;
+        }
+
         if (data1 != 1 && data2 != 2) return;
         var wormholePosition = targetObject.Position.ToVector2();
         if (wormholePosition is { X: > 100, Y: < 100 } or { X: < 100, Y: > 100 }) _shouldInvert = true;

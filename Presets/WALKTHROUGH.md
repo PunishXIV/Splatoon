@@ -84,7 +84,7 @@ Logs provide you with all the information you need to create your draws. They li
   
 <summary>Walkthrough</summary></summary>
 
-This section will teach you how to create a cone element. For this particular section, we will be using the skill 'Crimson Cyclone'. 
+This section will teach you how to create a line element. For this particular section, we will be using the skill 'Crimson Cyclone'. 
 
 ![lines](/docs/images/walkthrough/ifritlines.gif)
 

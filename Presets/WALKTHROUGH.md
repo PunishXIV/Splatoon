@@ -23,7 +23,7 @@
 </details>
 
 > [!important]
-> Each section of the walkthrough is split up into different parts so you can focus on which element you want to draw. You can access each part of the walkthrough by looking at the heading and pressing the arrow underneath. Each part of the walkthrough uses different fights to give examples because not every fight will need each 
+> Each section of the walkthrough is split up into different parts so you can focus on which element you want to draw. You can access each part of the walkthrough by looking at the heading and pressing the arrow underneath. Each part of the walkthrough uses different fights to give examples because not every fight will need each type of draw.
 
 ## Creating your preset
 

@@ -222,45 +222,28 @@ Your element settings should look identical to these ones and the circle will dr
 
 In some cases, the boss will use `hidden actors` to cast spells for them. This is typical in fights where AOEs appear as if they are coming from outside of the boss. In some fights there can be dozens of `hidden actors` that are casting these skills. The `logger` is particularly useful here to determine which of the NPCs is casting the spell so you can retrieve the spell ID. Sometimes, the same NPC ID might be casting different spells as there could be more than one `hidden actor` active at that time. 
 
-<ul>
-  <li>
-    
-  Step 1: Press the layout name you made earlier and press the group menu at the top of the page.
-  
-  ![groupname](/docs/images/walkthrough/groupname.png)
-  
-  </li>
-  
-  <li>
-    
-  Step 2: Scroll down to the bottom and type the name you want your grop of elements to be called and press "add".
-  
-  ![creategroup](/docs/images/walkthrough/creategroup.png)
-  
-  </li>
+![firepeaks](/docs/images/walkthrough/firepeaks.png)
 
-  <li>
-    
-  Step 3: The layout should now be under the group you created. From now on, when creating new layouts, you can assign them to this group so they appear under the heading. This is useful when creating more advanced elements, where some need triggers and some do not.
-  
-  ![grouped](/docs/images/walkthrough/grouped.png)
-  
-  </li>
+As you can see above, there are four AOEs that have been cast around an object. However, my log is telling me that the Boss NPC, `Gurfurlur`, has cast four different spells at the same time as the AOEs appearing.
 
-  <li>
-    
-  Step 4: Change the display condition to "on trigger only" and down the bottom of the page, tick the "Enable Trigger" button. Make sure you change the option to "Show at log message" and put the log message to 1532 - the skill ID for crimson Cyclone.
-  
-  ![grouped](/docs/images/walkthrough/enabletrigger.png)
-  
-  </li>
+![gurfurlurlog](/docs/images/walkthrough/gurgurlur36303.png)
 
-   <li>
-    
-  Step 5: Now make sure you untick "While casting" and tick "Visible characters only" in the element options as we are now using a trigger rather than a cast to draw these elements.
+In game, Gurfurlur did nothing but cast the initial spell, one time. Even more bizarre, my `logger` with `viewer mode` on is showing lots of different NPCs that have the same name.
 
-  </li>
-</ul>
+![gurfurnpc](/docs/images/walkthrough/gurfurlurlog.png)
+
+If you look closely, you can see all of them share the same Data ID `0x233c` except one, which has the Data ID `0x415F`. If you press the `Find` option next to the Object ID of the 0x415F, you can see that it points to the boss.
+
+![findgurfur](/docs/images/walkthrough/gurfurlurfind.png)
+
+If you press `Find` on one of the Data ID `0x233c` NPCs, you can see that it points right under the AOE marker. Data ID `0x233c` is what is known as an invisible actor, or `helper`. They are invisible for the whole fight but they have the same NPC Name. They are responsible for the majority of the AOEs you see in fights, particularly ones that do not come from the boss itself. In this case, we want to use the Data ID in the `single attribute` box for our element settings.
+
+You will also notice in the log picture above that the NPCs are each casting a different spell. That is because for this mechanic, they each cast a spell that looks identicle but last a certain amount of time each. This creates a safe spot after the first explosion that you need to get into. 
+After ticking `while casting` and putting in the spell IDs `36303, 36304, 36305` one at a time, I found that the first four NPCs all cast `36303`. This enables me to draw a unsafe element on those NPCs only and not the other NPCs who are casting the delayed mechanic.
+
+![firepeaks3](/docs/images/walkthrough/firepeaksdraw.png)
+
+![firepeaksgif](/docs/images/walkthrough/peaks.gif)
 
 </details>
 

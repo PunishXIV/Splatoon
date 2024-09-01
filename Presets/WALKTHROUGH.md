@@ -191,6 +191,26 @@ If you did all the steps correctly, you should now notice that your elements dra
   
 <summary>Walkthrough</summary></summary>
 
+Occasionally, a simple circle AOE element can be used to show the unsafe areas of a skill. A good example of this is in `The Strayborough Deadwalk` first boss, where heads spawn above you and drop down to deal damage and a status effect.
+
+![circlestray](/docs/images/walkthrough/circlestray.png)
+
+For this, we need to look in our `log` to see what happens when one of these heads appear.
+
+![circlestray2](/docs/images/walkthrough/circlelog.png)
+
+As shown, an NPC appears in our `log` called `The noble noggin`. We can guess this is the head because there are four players and each player receives one of these heads above them. 
+We can also guess that the skill that is responsible for the heads falling and causing the damage is `36532`, as this also occurs 4 times.
+
+In my `logger` under `Tools` within Splatoon, I can see that each `The noble noggin` has a DATA ID of `4205`. I can put this in my `single attribute` box and set it to show on `Visible characters only`.
+I can either set the radius to `+target hitbox` or a number value. Since its circular and the AOE effect may extend past the target, i'm going to tick `+target hitbox` and also add a radius of 1. 
+Your element settings should look identical to these ones and the circle will draw each time the heads appear. Since these heads only appear to deliver the AOE and not for any other mechanic, we do not need to set a trigger. We can simply show the AOE each time the DATA ID appears and goes away.
+
+![circlestray3](/docs/images/walkthrough/straysettings.png)
+
+
+
+
 </details>
 
 

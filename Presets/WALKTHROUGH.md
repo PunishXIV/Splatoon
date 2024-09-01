@@ -342,4 +342,17 @@ Since `triggers` were covered in a previous area of the page, you should know th
 
 <summary>Walkthrough</summary>
 
+During boss encounters, it is sometimes useful to keep an element drawn on the map for a certain period of time, even after the initial spell has ended its cast. This could be because it is part of a larger mechanic or that the cast gives a brief AOE draw and then vanishes, making you remember where the AOE is going to go. A way to keep a draw on the map is called `freeze` and is one of the more advanced ways of creating an element.
+
+
+
+
+
+  
+</details>
+
+<details>
+
+<summary>Walkthrough</summary>
+
 </details>

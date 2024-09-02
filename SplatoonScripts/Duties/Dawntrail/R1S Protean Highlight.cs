@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class R1S_Protean_Highlight : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1226];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     IBattleNpc? BlackCat => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.IsTargetable && x.NameId == 12686);
     int CrossingStage = 0;
@@ -42,6 +42,9 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
         Controller.RegisterElementFromCode("Avoid", "{\"Name\":\"\",\"type\":1,\"radius\":0.0,\"Filled\":false,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"overlayBGColor\":2868903936,\"overlayTextColor\":4278190335,\"overlayVOffset\":1.0,\"thicc\":0.0,\"overlayText\":\"! AVOID ! Stay far !\",\"refActorType\":1,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
         Controller.RegisterElementFromCode("Bait", "{\"Name\":\"\",\"type\":1,\"radius\":0.0,\"Filled\":false,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"overlayBGColor\":2868903936,\"overlayTextColor\":4280811264,\"overlayVOffset\":1.0,\"thicc\":0.0,\"overlayText\":\">> Bait protean <<\",\"refActorType\":1,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("Cross1", """{"Name":"","type":2,"refY":5.0,"offY":-5.0,"radius":0.0,"color":4294967040,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":12686,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"tether":true,"ExtraTetherLength":20.0,"AdditionalRotation":0.7853982,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}""");
+        Controller.RegisterElementFromCode("Cross2", """{"Name":"","type":2,"refY":5.0,"offY":-5.0,"radius":0.0,"color":4294967040,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":12686,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"tether":true,"ExtraTetherLength":20.0,"AdditionalRotation":2.3561945,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}""");
     }
 
     public override void OnUpdate()
@@ -105,7 +108,23 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
         var baits = C.IsBaitingFirst;
         if(inverted) baits = !baits;
 
-        foreach(var x in Controller.GetPartyMembers())
+        if (C.ShowCrossGuide) {
+            var cross1 = Controller.GetElementByName("Cross1")!;       
+            cross1.Enabled = true;
+            cross1.refX = EntityPos.X + 5;
+            cross1.refY = EntityPos.Z + 5;
+            cross1.offX = EntityPos.X - 5;        
+            cross1.offY = EntityPos.Z - 5;
+
+            var cross2 = Controller.GetElementByName("Cross2")!;
+            cross2.Enabled = true;
+            cross2.refX = EntityPos.X + 5;
+            cross2.refY = EntityPos.Z - 5;
+            cross2.offX = EntityPos.X - 5;
+            cross2.offY = EntityPos.Z + 5;
+        }
+
+        foreach (var x in Controller.GetPartyMembers())
         {
             if(AttachedInfo.TryGetSpecificVfxInfo(x, "vfx/lockon/eff/lockon8_t0w.avfx", out var info) && info.AgeF < 15)
             {
@@ -184,6 +203,9 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
     {
         CrossingStage = 0;
         EntityPos = Vector3.Zero;
+
+        Controller.GetElementByName("Cross1")!.Enabled = false;
+        Controller.GetElementByName("Cross2")!.Enabled = false;
     }
 
     int GetPlayerOrder(IPlayerCharacter c)
@@ -198,7 +220,9 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGuiEx.RadioButtonBool("Baiting first proteans", "Baiting second proteans", ref C.IsBaitingFirst);
-        if(ImGui.CollapsingHeader("Debug"))
+        ImGui.Separator();
+        ImGui.Checkbox("Show intercardinal guide", ref C.ShowCrossGuide);
+        if (ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"EntityPos: {EntityPos}");
         }
@@ -209,6 +233,7 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
     public class Config : IEzConfig
     {
         public bool IsBaitingFirst = true;
+        public bool ShowCrossGuide = false;
         public Vector4 RedColor = ImGuiEx.Vector4FromRGBA(0xFF0000C8);
         public Vector4 YellowColor = ImGuiEx.Vector4FromRGBA(0xFFFF00C8);
         public Vector4 GreenColor = ImGuiEx.Vector4FromRGBA(0x00FF00C8);

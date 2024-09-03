@@ -53,6 +53,22 @@ public class R4S_Electrope_Edge : SplatoonScript
         Controller.RegisterElementFromCode("Explode", "{\"Name\":\"\",\"refX\":84.21978,\"refY\":100.50559,\"refZ\":0.0010004044,\"radius\":2.0,\"color\":3356425984,\"Filled\":false,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"thicc\":5.0,\"overlayText\":\"Explode here\",\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         Controller.RegisterElementFromCode("Safe", "{\"Name\":\"\",\"refX\":84.07532,\"refY\":99.538475,\"refZ\":0.0010004044,\"radius\":2.0,\"color\":3372218624,\"Filled\":false,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"thicc\":5.0,\"overlayText\":\"Safe\",\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
     }
+    public override void OnScriptUpdated(uint previousVersion)
+{
+    if(previousVersion < 6)
+    {
+        new PopupWindow(() =>
+        {
+            ImGuiEx.Text($"""
+                Warning: Splatoon Script 
+                {this.InternalData.Name}
+                was updated. 
+                If you were using Sidewise Spark related functions,
+                you must reconfigure the script.
+                """);
+        });
+    }
+}
 
     public override void OnUpdate()
     {

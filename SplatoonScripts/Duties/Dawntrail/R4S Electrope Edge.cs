@@ -37,7 +37,7 @@ public class R4S_Electrope_Edge : SplatoonScript
 
 
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(6, "NightmareXIV");
+    public override Metadata? Metadata => new(7, "NightmareXIV");
     List<uint> Hits = [];
     List<uint> Longs = [];
     uint Debuff = 3999;
@@ -194,13 +194,13 @@ public class R4S_Electrope_Edge : SplatoonScript
     {
         ImGui.SetNextItemWidth(150f);
         ImGui.Checkbox("Add 1 to long debuff bearers", ref C.AddOne);
-        ImGuiEx.HelpMarker("If you have long debuff, visually will add 1 to it's count. Does not affects actual functions of the script.");
+        ImGuiEx.HelpMarker("If you have a long debuff, this will visually add 1 to its count. It does not affect the actual function of the script");
         ImGui.Checkbox("Show much/few.", ref C.showMuchFew);
-        ImGuiEx.HelpMarker("If selected, In addition to short and long, display much and few.");
+        ImGuiEx.HelpMarker("If selected, in addition to short and long, it will display \"much\" and \"few\". This indicator is used primarily in Japan, so don't set this if you don't recognize it");
         if(C.showMuchFew)
         {
             ImGui.Indent();
-            ImGui.TextWrapped("You can change the string to be displayed instead of much and few.");
+            ImGui.TextWrapped("Change the displayed text from \"much\" and \"few\":");
             ImGui.SetNextItemWidth(150f);
             ImGui.InputText("Much", ref C.stringMuch, 100);
             ImGui.SetNextItemWidth(150f);
@@ -209,7 +209,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
 
         ImGui.Checkbox("Resolve safe spots", ref C.ResolveBox);
-        ImGuiEx.HelpMarker("If selected, these safe spots will be highlighted when it's time for you to explode.");
+        ImGuiEx.HelpMarker("If selected, these safe spots will be highlighted when it's time for you to explode");
 
         if(C.ResolveBox)
         {

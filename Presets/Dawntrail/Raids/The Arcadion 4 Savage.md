@@ -45,7 +45,8 @@ Configuration:
 
 - **Add 1 to long debuff bearers:** Adds an extra count if you have a long debuff because the mechanic in between the two sets of explosions "adds 1." _It's recommended to check this because all of the known strategies add 1 count to long debuffs._
 - **Resolve safe spots:** Creates a tether to your configured safe spot when it's your turn to explode. Refer to [this RaidPlan](https://raidplan.io/plan/yMwb_GE5-EzMo6Ei) for suggested safe spots, but check which your party is using.
-- **Show much/few:** (not pictured) Adds additional text next to the number displayed on your character. **Much** shows when you are a 3 + short debuff or 2 + long debuff and **few** shows when you are a 2 + short debuff or 1 + long debuff. _It is recommended to leave this unchecked to avoid confusion._
+- **Show much/few:** Adds additional text next to the number displayed on your character. **Much** shows when you are a 3 + short debuff or 2 + long debuff and **few** shows when you are a 2 + short debuff or 1 + long debuff. _It is recommended to leave this unchecked to avoid confusion._
+- **Sidewise Spark:** Shows you a tether to the position you should be in when resolving Sidewise Spark, depending on how many times you were hit by Witchgleam. The possible positions are: **North**, **Inside**, **South**, and **Side**. If you're using [this RaidPlan](https://raidplan.io/plan/yMwb_GE5-EzMo6Ei) and are playing as a DPS, for instance, you should select **Inside** for _2 short / 1 long_ and **Side** for _3 short / 2 long_. Set the option to **None** to hide the tethers.
 
 ![R4S Electrope Edge Script Instructions](/docs/images/instructions/dawntrail/raids/R4S_2.png)
 

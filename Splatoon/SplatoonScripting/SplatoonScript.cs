@@ -180,6 +180,12 @@ public abstract class SplatoonScript
     public virtual void OnReset() { }
 
     /// <summary>
+    /// This method is invoked when script is updated. You may notify user about important changes.
+    /// </summary>
+    /// <param name="previousVersion">Is not necessarily higher than current; if user forces an update - it can be the same.</param>
+    public virtual void OnScriptUpdated(uint previousVersion) { }
+
+    /// <summary>
     /// If you override this method, settings section will be added to your script. You can call ImGui methods in this function to draw configuration UI. Keep it simple.
     /// </summary>
     public virtual void OnSettingsDraw() { }

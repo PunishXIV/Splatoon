@@ -5,12 +5,14 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ImGuiNET;
 using Lumina.Data.Parsing.Tex.Buffers;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 
@@ -56,7 +58,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             if (!Attachments.ContainsKey(target)) Attachments.Add(target, new());
-            //DuoLog.Information($"Attached {source} to {target}");
+            //DuoLog.Information($"Attached {source.GetObject()?.DataId} to {target.GetObject()?.DataId}");
             Attachments[target].Add(source);
         }
 

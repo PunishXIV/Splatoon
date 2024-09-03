@@ -272,9 +272,11 @@ internal static partial class ScriptingProcessor
                                                     instance.InternalData = new(result.path, instance);
                                                     instance.InternalData.Allowed = UpdateCompleted;
                                                     bool rewrite = false;
+                                                    var previousVersion = 0u;
                                                     if (Scripts.TryGetFirst(z => z.InternalData.FullName == instance.InternalData.FullName, out var loadedScript))
                                                     {
                                                         DuoLog.Information($"Script {instance.InternalData.FullName} already loaded, replacing.");
+                                                        previousVersion = loadedScript.Metadata?.Version ?? 0;
                                                         result.path = loadedScript.InternalData.Path;
                                                         loadedScript.Disable();
                                                         Scripts = Scripts.RemoveAll(x => ReferenceEquals(loadedScript, x));
@@ -302,6 +304,10 @@ internal static partial class ScriptingProcessor
                                                     }
                                                     instance.OnSetup();
                                                     instance.Controller.ApplyOverrides();
+                                                    if(previousVersion > 0)
+                                                    {
+                                                        instance.OnScriptUpdated(previousVersion);
+                                                    }
                                                     PluginLog.Debug($"Load success");
                                                     instance.UpdateState();
                                                 }

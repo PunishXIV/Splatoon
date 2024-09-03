@@ -6,6 +6,7 @@ SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://githu
 SplatoonScriptsOfficial.Generic@ShowTooltipOnKey,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowTooltipOnKey.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
+SplatoonScriptsOfficial.Tests@GenericTest6,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest6.cs
 SplatoonScriptsOfficial.Tests@DMParser,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P9S_Dualspell_InOut,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P9S Dualspell InOut.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Dancer_HC_Step,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P8S2 Dancer HC Step.cs
@@ -47,7 +48,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Multiscript,3,https://github.com/Pu
 SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S Protean Highlight.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@EX2_Projection_of_Triumph,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX2 Projection of Triumph.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Unsafe_Cannon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Unsafe Cannon.cs
-SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Electrope_Edge,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Electrope Edge.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Electrope_Edge,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Electrope Edge.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Witch_Hunt,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Witch Hunt.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Midnight_Sabbath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Midnight Sabbath.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Sunrise_Sabbath,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Sunrise Sabbath.cs

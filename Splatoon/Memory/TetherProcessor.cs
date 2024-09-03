@@ -48,6 +48,10 @@ internal unsafe class TetherProcessor
         var ret = ProcessTetherHook.Original(a1, a2, a3, targetOID, a5);
         try
         {
+            if(a1->OwnerObject == null)
+            {
+                PluginLog.Warning($"Tether owner object is null");
+            }
             if (a1 != null && a1->OwnerObject != null)
             {
                 if (targetOID == 0xE0000000)

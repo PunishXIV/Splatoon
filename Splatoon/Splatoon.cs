@@ -416,13 +416,13 @@ public unsafe class Splatoon : IDalamudPlugin
                 if (ChatMessageQueue.Count > 5 * dequeueConcurrency)
                 {
                     dequeueConcurrency++;
-                    PluginLog.Debug($"Too many queued messages ({ChatMessageQueue.Count}); concurrency increased to {dequeueConcurrency}");
+                    //InternalLog.Debug($"Too many queued messages ({ChatMessageQueue.Count}); concurrency increased to {dequeueConcurrency}");
                 }
                 for (var i = 0; i < dequeueConcurrency; i++)
                 {
                     if (ChatMessageQueue.TryDequeue(out var ccm))
                     {
-                        PluginLog.Verbose("Dequeued message: " + ccm);
+                        //InternalLog.Verbose("Dequeued message: " + ccm);
                         CurrentChatMessages.Add(ccm);
                         ScriptingProcessor.OnMessage(ccm);
                     }
@@ -431,7 +431,7 @@ public unsafe class Splatoon : IDalamudPlugin
                         break;
                     }
                 }
-                if (CurrentChatMessages.Count > 0) PluginLog.Verbose($"Messages dequeued: {CurrentChatMessages.Count}");
+                //if (CurrentChatMessages.Count > 0) PluginLog.Verbose($"Messages dequeued: {CurrentChatMessages.Count}");
                 var pl = Svc.ClientState.LocalPlayer;
                 if (Svc.ClientState.LocalPlayer.Address == nint.Zero)
                 {

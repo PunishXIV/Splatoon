@@ -58,17 +58,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             if (!Attachments.ContainsKey(target)) Attachments.Add(target, new());
-            DuoLog.Information($"Attached {source} to {target}");
+            //DuoLog.Information($"Attached {source.GetObject()?.DataId} to {target.GetObject()?.DataId}");
             Attachments[target].Add(source);
         }
 
         public override void OnUpdate()
         {
-            Process.Start(new ProcessStartInfo()
-            {
-                FileName = "https://...",
-                UseShellExecute = true,
-            })
             var list = FindNextMechanic().ToList();
             list.RemoveAll(x => x.dist < 0.1f);
             if(list.Count > 0)

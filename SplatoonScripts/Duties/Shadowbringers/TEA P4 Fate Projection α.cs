@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -16,21 +15,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
 
 public class TEA_P4_Fate_Projection_α : SplatoonScript
 {
-    public enum FutureActionType : byte
-    {
-        None,
-        FirstMotion,
-        FirstStillness,
-        SecondMotion,
-        SecondStillness,
-        Defamation,
-        SharedSentence,
-        Aggravated,
-        Nothing,
-        UnKnown
-    }
-
-    private readonly List<uint> _futurePlayers = new();
+    private readonly List<uint> _futurePlayers = [];
 
     private FutureActionType[] _futureActionTypes =
     [
@@ -39,51 +24,17 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         FutureActionType.None
     ];
 
+    private bool _isOpenSafeSpot;
+
     private bool _isStartFateProjectionCasting;
     private uint? _myFuturePlayer;
 
     private IBattleChara? SafeAlexander => Svc.Objects.OfType<IBattleNpc>()
         .FirstOrDefault(x => x is { NameId: 0x2352, IsCasting: true, CastActionId: 18858 });
 
-    public override HashSet<uint>? ValidTerritories => new() { 887 };
+    public override HashSet<uint>? ValidTerritories => [887];
     public override Metadata? Metadata => new(1, "Garume");
 
-
-    private FutureActionType GetFutureAction(uint actionId)
-    {
-        switch (actionId)
-        {
-            case 19213:
-                return FutureActionType.FirstMotion;
-            case 19214:
-                return FutureActionType.FirstStillness;
-            case 18585:
-                return FutureActionType.SecondMotion;
-            case 18586:
-                return FutureActionType.SecondStillness;
-        }
-
-        var reversed = _futurePlayers.ToArray().Reverse().ToArray();
-        for (var i = 0; i < reversed.Length; i++)
-            if (_myFuturePlayer == reversed[i])
-                switch (i)
-                {
-                    case 0:
-                        return FutureActionType.SharedSentence;
-                    case 1:
-                        return FutureActionType.Defamation;
-                    case 2:
-                    case 3:
-                    case 4:
-                        return FutureActionType.Aggravated;
-                    case 5:
-                    case 6:
-                    case 7:
-                        return FutureActionType.Nothing;
-                }
-
-        return FutureActionType.UnKnown;
-    }
 
     private string GetFutureActionText(FutureActionType type)
     {
@@ -97,8 +48,8 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
             FutureActionType.SharedSentence => "集団罰: 左下へ",
             FutureActionType.Aggravated => "加重罰: 右下へ",
             FutureActionType.Nothing => "無職: 左下へ",
-            FutureActionType.UnKnown => "UnKnown",
-            _ => "None"
+            FutureActionType.UnKnown => "UnKnown: 左下へ？",
+            _ => "None: 左下へ？"
         };
     }
 
@@ -141,6 +92,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         ];
         _futurePlayers.Clear();
         _myFuturePlayer = null;
+        _isOpenSafeSpot = false;
     }
 
     public override void OnSetup()
@@ -179,11 +131,11 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         Controller.RegisterElement("ThirdText", thirdTextElement, true);
 
         Controller.RegisterElementFromCode("NorthBait",
-            "{\"Name\":\"北側サークル\",\"type\":1,\"offY\":7.0,\"radius\":3.0,\"color\":3372169472,\"fillIntensity\":0.0,\"thicc\":5.0,\"refActorNPCNameID\":9042,\"refActorRequireCast\":true,\"refActorCastId\":[18858],\"refActorCastTimeMax\":30.0,\"refActorUseOvercast\":true,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            "{\"Name\":\"北側サークル\",\"type\":1,\"offY\":7.0,\"radius\":3.0,\"color\":3372169472,\"fillIntensity\":0.0,\"thicc\":5.0,\"refActorNPCNameID\":9042,\"refActorRequireCast\":true,\"refActorCastId\":[18858],\"refActorUseCastTime\":true,\"refActorCastTimeMax\":30.0,\"refActorUseOvercast\":true,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("SouthEastBait",
-            "{\"Name\":\"南側サークル2\",\"type\":1,\"offX\":2.5,\"offY\":41.5,\"radius\":1.0,\"color\":3372169472,\"fillIntensity\":0.0,\"thicc\":5.0,\"refActorNPCNameID\":9042,\"refActorRequireCast\":true,\"refActorCastId\":[18858],\"refActorUseOvercast\":true,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            "{\"Name\":\"南側サークル1\",\"type\":1,\"offX\":-2.5,\"offY\":41.5,\"radius\":1.0,\"color\":3372169472,\"fillIntensity\":0.0,\"thicc\":5.0,\"refActorNPCNameID\":9042,\"refActorRequireCast\":true,\"refActorCastId\":[18858],\"refActorUseCastTime\":true,\"refActorCastTimeMax\":30.0,\"refActorUseOvercast\":true,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("SouthWestBait",
-            "{\"Name\":\"南側サークル1\",\"type\":1,\"offX\":-2.5,\"offY\":41.5,\"radius\":1.0,\"color\":3372169472,\"fillIntensity\":0.0,\"thicc\":5.0,\"refActorNPCNameID\":9042,\"refActorRequireCast\":true,\"refActorCastId\":[18858],\"refActorUseOvercast\":true,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            "{\"Name\":\"南側サークル2\",\"type\":1,\"offX\":2.5,\"offY\":41.5,\"radius\":1.0,\"color\":3372169472,\"fillIntensity\":0.0,\"thicc\":5.0,\"refActorNPCNameID\":9042,\"refActorRequireCast\":true,\"refActorCastId\":[18858],\"refActorUseCastTime\":true,\"refActorCastTimeMax\":30.0,\"refActorUseOvercast\":true,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     public override void OnUpdate()
@@ -194,72 +146,23 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
             return;
         }
 
-        if (_futureActionTypes[0] != FutureActionType.None)
-        {
-            var text = GetFutureActionText(_futureActionTypes[0]);
-            if (Controller.TryGetElementByName("FirstText", out var element))
-            {
-                element.overlayText = text;
-                element.Enabled = true;
-            }
-        }
-
-        if (_futureActionTypes[1] != FutureActionType.None)
-        {
-            var text = GetFutureActionText(_futureActionTypes[1]);
-            if (Controller.TryGetElementByName("SecondText", out var element))
-            {
-                element.overlayText = text;
-                element.Enabled = true;
-            }
-        }
-
-        if (_futureActionTypes[2] != FutureActionType.None)
-        {
-            var text = GetFutureActionText(_futureActionTypes[2]);
-            if (Controller.TryGetElementByName("ThirdText", out var element))
-            {
-                element.overlayText = text;
-                element.Enabled = true;
-            }
-        }
+        ApplyTextFromFutureAction("FirstText", _futureActionTypes[0]);
+        ApplyTextFromFutureAction("SecondText", _futureActionTypes[1]);
+        ApplyTextFromFutureAction("ThirdText", _futureActionTypes[2]);
 
         var safeAlexander = SafeAlexander;
-        if (safeAlexander == null) return;
-        if (_futureActionTypes[1] == FutureActionType.None) return;
+        if (safeAlexander == null || _isOpenSafeSpot) return;
+        _isOpenSafeSpot = true;
         switch (_futureActionTypes[1])
         {
             case FutureActionType.Defamation:
-                if (Controller.TryGetElementByName("NorthBait", out var northElement))
-                {
-                    northElement.Enabled = true;
-                    northElement.tether = true;
-                    northElement.color = GradientColor.Get(0xFFFF00FF.ToVector4(), 0xFFFFFF00.ToVector4()).ToUint();
-                    northElement.thicc = 10f;
-                }
-
+                ApplyBaitStyle("NorthBait");
+                break;
+            case FutureActionType.Aggravated:
+                ApplyBaitStyle("SouthEastBait");
                 break;
             case FutureActionType.SharedSentence:
             case FutureActionType.Nothing:
-                if (Controller.TryGetElementByName("SouthWestBait", out var southWestElement))
-                {
-                    southWestElement.Enabled = true;
-                    southWestElement.tether = true;
-                    southWestElement.color = GradientColor.Get(0xFFFF00FF.ToVector4(), 0xFFFFFF00.ToVector4()).ToUint();
-                    southWestElement.thicc = 10f;
-                }
-
-                break;
-            case FutureActionType.Aggravated:
-                if (Controller.TryGetElementByName("SouthEastBait", out var southEastElement))
-                {
-                    southEastElement.Enabled = true;
-                    southEastElement.tether = true;
-                    southEastElement.color = GradientColor.Get(0xFFFF00FF.ToVector4(), 0xFFFFFF00.ToVector4()).ToUint();
-                    southEastElement.thicc = 10f;
-                }
-
-                break;
             case FutureActionType.None:
             case FutureActionType.FirstMotion:
             case FutureActionType.FirstStillness:
@@ -267,8 +170,27 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
             case FutureActionType.SecondStillness:
             case FutureActionType.UnKnown:
             default:
-                throw new ArgumentOutOfRangeException();
+                ApplyBaitStyle("SouthWestBait");
+                break;
         }
+    }
+
+    private void ApplyTextFromFutureAction(string elementName, FutureActionType type)
+    {
+        if (type == FutureActionType.None) return;
+        if (!Controller.TryGetElementByName(elementName, out var element)) return;
+        var text = GetFutureActionText(type);
+        element.overlayText = text;
+        element.Enabled = true;
+    }
+
+    private void ApplyBaitStyle(string elementName)
+    {
+        if (!Controller.TryGetElementByName(elementName, out var element)) return;
+        element.Enabled = true;
+        element.tether = true;
+        element.color = GradientColor.Get(0xFFFF00FF.ToVector4(), 0xFFFFFF00.ToVector4()).ToUint();
+        element.thicc = 10f;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
@@ -278,18 +200,67 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         if (source == Player.Object.EntityId)
         {
             _myFuturePlayer = target;
-            Controller.Schedule(() => _futureActionTypes[1] = GetFutureAction(0), 1000);
+            Controller.Schedule(() =>
+            {
+                var reversed = _futurePlayers.ToArray().Reverse().ToArray();
+                for (var i = 0; i < reversed.Length; i++)
+                    if (_myFuturePlayer == reversed[i])
+                        switch (i)
+                        {
+                            case 0:
+                                _futureActionTypes[1] = FutureActionType.SharedSentence;
+                                break;
+                            case 1:
+                                _futureActionTypes[1] = FutureActionType.Defamation;
+                                break;
+                            case 2:
+                            case 3:
+                            case 4:
+                                _futureActionTypes[1] = FutureActionType.Aggravated;
+                                break;
+                            case 5:
+                            case 6:
+                            case 7:
+                                _futureActionTypes[1] = FutureActionType.Nothing;
+                                break;
+                        }
+            }, 1000);
         }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (!_isStartFateProjectionCasting) return; 
+        if (!_isStartFateProjectionCasting) return;
         if (set is { Action: not null, Source: not null, Target: not null } && set.Target.EntityId == _myFuturePlayer)
         {
-            var futureAction = GetFutureAction(set.Action.RowId);
+            PluginLog.Warning("ActionId: " + set.Action.RowId);
+
+            var futureAction = set.Action.RowId switch
+            {
+                19213 => FutureActionType.FirstMotion,
+                19214 => FutureActionType.FirstStillness,
+                18585 => FutureActionType.SecondMotion,
+                18586 => FutureActionType.SecondStillness,
+                18597 => FutureActionType.SecondStillness,
+                _ => FutureActionType.None
+            };
+            if (futureAction == FutureActionType.None) return;
             if (_futureActionTypes[0] == FutureActionType.None) _futureActionTypes[0] = futureAction;
             else _futureActionTypes[2] = futureAction;
         }
+    }
+
+    private enum FutureActionType : byte
+    {
+        None,
+        FirstMotion,
+        FirstStillness,
+        SecondMotion,
+        SecondStillness,
+        Defamation,
+        SharedSentence,
+        Aggravated,
+        Nothing,
+        UnKnown
     }
 }

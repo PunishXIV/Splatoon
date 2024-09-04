@@ -35,7 +35,7 @@ public class Party_Synergy :SplatoonScript
 {
     // public
     public override HashSet<uint> ValidTerritories => new() { 1122 };
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
 
     public enum State
     {

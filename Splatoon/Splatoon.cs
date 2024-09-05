@@ -422,7 +422,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 {
                     if (ChatMessageQueue.TryDequeue(out var ccm))
                     {
-                        //InternalLog.Verbose("Dequeued message: " + ccm);
+                        InternalLog.Verbose("Message: " + ccm);
                         CurrentChatMessages.Add(ccm);
                         ScriptingProcessor.OnMessage(ccm);
                     }

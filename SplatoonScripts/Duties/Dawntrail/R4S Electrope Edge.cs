@@ -37,7 +37,7 @@ public class R4S_Electrope_Edge : SplatoonScript
 
 
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(7, "NightmareXIV");
+    public override Metadata? Metadata => new(8, "NightmareXIV");
     List<uint> Hits = [];
     List<uint> Longs = [];
     uint Debuff = 3999;
@@ -190,6 +190,14 @@ public class R4S_Electrope_Edge : SplatoonScript
                            (3,0),(3,2),(3,4),
                            (4,1),(4,2),(4,3),
     ];
+
+    Dictionary<SidewiseSparkPosition, string> AltRemaps = new()
+    {
+        [SidewiseSparkPosition.North] = "1 (North all the way)",
+        [SidewiseSparkPosition.South] = "2 (North and side)",
+        [SidewiseSparkPosition.Side] = "4 (South all the way)",
+        [SidewiseSparkPosition.Inside] = "3 (South and side)",
+    };
     public override void OnSettingsDraw()
     {
         ImGui.SetNextItemWidth(150f);
@@ -231,14 +239,16 @@ public class R4S_Electrope_Edge : SplatoonScript
                 .Section("Sidewise Spark")
                 .Widget(() =>
                     {
+                        ImGuiEx.RadioButtonBool("Half-circle north to south strat", "Half-plus strat", ref C.SidewiseSparkAlt);
+                        var names = C.SidewiseSparkAlt ? AltRemaps : null;
                         ImGui.Text("2 short");
-                        ImGuiEx.EnumCombo("##SidewiseSpark2Short", ref C.SidewiseSpark2Short);
+                        ImGuiEx.EnumCombo("##SidewiseSpark2Short", ref C.SidewiseSpark2Short, names);
                         ImGui.Text("3 short");
-                        ImGuiEx.EnumCombo("##SidewiseSpark3Short", ref C.SidewiseSpark3Short);
+                        ImGuiEx.EnumCombo("##SidewiseSpark3Short", ref C.SidewiseSpark3Short, names);
                         ImGui.Text("1 long");
-                        ImGuiEx.EnumCombo("##SidewiseSpark1Long", ref C.SidewiseSpark1Long);
+                        ImGuiEx.EnumCombo("##SidewiseSpark1Long", ref C.SidewiseSpark1Long, names);
                         ImGui.Text("2 long");
-                        ImGuiEx.EnumCombo("##SidewiseSpark2Long", ref C.SidewiseSpark2Long);
+                        ImGuiEx.EnumCombo("##SidewiseSpark2Long", ref C.SidewiseSpark2Long, names);
                     }
                 )
                 .Draw();
@@ -327,15 +337,27 @@ public class R4S_Electrope_Edge : SplatoonScript
     public Vector2? GetSidewiseSparkSafeArea(SidewiseSparkPosition pos, bool isSafeRight = false)
     {
         var center = new Vector2(100, 100);
-        var offsetX = isSafeRight ? 1.5f : -1.5f;
-        return pos switch
+        if(C.SidewiseSparkAlt)
         {
-            SidewiseSparkPosition.North => center + new Vector2(offsetX, -10),
-            SidewiseSparkPosition.Inside => center + new Vector2(offsetX, 0),
-            SidewiseSparkPosition.South => center + new Vector2(offsetX, 10),
-            SidewiseSparkPosition.Side => center + new Vector2(offsetX * 7f, 0),
-            _ => null
-        };
+            var mod = isSafeRight ? new Vector2(-1f,1f) : new Vector2(1f);
+            if(pos == SidewiseSparkPosition.North) return center + new Vector2(-1, -8) * mod;
+            if(pos == SidewiseSparkPosition.Inside) return center + new Vector2(-7, 4) * mod;
+            if(pos == SidewiseSparkPosition.South) return center + new Vector2(-7, -4) * mod;
+            if(pos == SidewiseSparkPosition.Side) return center + new Vector2(-1, 8) * mod;
+            return null;
+        }
+        else
+        {
+            var offsetX = isSafeRight ? 1.5f : -1.5f;
+            return pos switch
+            {
+                SidewiseSparkPosition.North => center + new Vector2(offsetX, -10),
+                SidewiseSparkPosition.Inside => center + new Vector2(offsetX, 0),
+                SidewiseSparkPosition.South => center + new Vector2(offsetX, 10),
+                SidewiseSparkPosition.Side => center + new Vector2(offsetX * 7f, 0),
+                _ => null
+            };
+        }
     }
 
     public class Config : IEzConfig
@@ -351,5 +373,6 @@ public class R4S_Electrope_Edge : SplatoonScript
         public SidewiseSparkPosition SidewiseSpark1Long = SidewiseSparkPosition.None;
         public SidewiseSparkPosition SidewiseSpark3Short = SidewiseSparkPosition.None;
         public SidewiseSparkPosition SidewiseSpark2Long = SidewiseSparkPosition.None;
+        public bool SidewiseSparkAlt = false;
     }
 }

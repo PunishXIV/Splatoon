@@ -37,7 +37,7 @@ public class R4S_Electrope_Edge : SplatoonScript
 
 
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(8, "NightmareXIV");
+    public override Metadata? Metadata => new(9, "NightmareXIV");
     List<uint> Hits = [];
     List<uint> Longs = [];
     uint Debuff = 3999;
@@ -203,7 +203,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGui.Checkbox("Add 1 to long debuff bearers", ref C.AddOne);
         ImGuiEx.HelpMarker("If you have a long debuff, this will visually add 1 to its count. It does not affect the actual function of the script");
-        ImGui.Checkbox("Show much/few.", ref C.showMuchFew);
+        ImGui.Checkbox("Show much/few", ref C.showMuchFew);
         ImGuiEx.HelpMarker("If selected, in addition to short and long, it will display \"much\" and \"few\". This indicator is used primarily in Japan, so don't set this if you don't recognize it");
         if(C.showMuchFew)
         {
@@ -239,15 +239,23 @@ public class R4S_Electrope_Edge : SplatoonScript
                 .Section("Sidewise Spark")
                 .Widget(() =>
                     {
-                        ImGuiEx.RadioButtonBool("Half-circle north to south strat", "Half-plus strat", ref C.SidewiseSparkAlt);
+                        ImGui.Text("Stack Position Shapes");
+                        ImGuiEx.HelpMarker("By default (when following popular RaidPlans and guides, i.e. Hector or OQ5), the shape of stacks for this mechanic is a cross, or half of a \"+\" sign with a pair of DPS standing underneath the boss's hitbox; some more obscure guides (i.e. Rainesama) use a semicircle, similar to the shape of \"(\"");
+                        ImGuiEx.RadioButtonBool("Semicircle", "Cross", ref C.SidewiseSparkAlt);
                         var names = C.SidewiseSparkAlt ? AltRemaps : null;
+                        ImGui.Separator();
+                        ImGui.Text("Stack Positions");
                         ImGui.Text("2 short");
+                        ImGui.SameLine();
                         ImGuiEx.EnumCombo("##SidewiseSpark2Short", ref C.SidewiseSpark2Short, names);
                         ImGui.Text("3 short");
+                        ImGui.SameLine();
                         ImGuiEx.EnumCombo("##SidewiseSpark3Short", ref C.SidewiseSpark3Short, names);
                         ImGui.Text("1 long");
+                        ImGui.SameLine();
                         ImGuiEx.EnumCombo("##SidewiseSpark1Long", ref C.SidewiseSpark1Long, names);
                         ImGui.Text("2 long");
+                        ImGui.SameLine();
                         ImGuiEx.EnumCombo("##SidewiseSpark2Long", ref C.SidewiseSpark2Long, names);
                     }
                 )

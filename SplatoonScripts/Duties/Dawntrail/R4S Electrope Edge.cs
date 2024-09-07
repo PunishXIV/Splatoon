@@ -239,7 +239,7 @@ public class R4S_Electrope_Edge : SplatoonScript
                 .Section("Sidewise Spark")
                 .Widget(() =>
                     {
-                        ImGui.Text("Stack Position Shapes");
+                        ImGui.Text("Stack Position Shape");
                         ImGuiEx.HelpMarker("By default (when following popular RaidPlans and guides, i.e. Hector or OQ5), the shape of stacks for this mechanic is a cross, or half of a \"+\" sign with a pair of DPS standing underneath the boss's hitbox; some more obscure guides (i.e. Rainesama) use a semicircle, similar to the shape of \"(\"");
                         ImGuiEx.RadioButtonBool("Semicircle", "Cross", ref C.SidewiseSparkAlt);
                         var names = C.SidewiseSparkAlt ? AltRemaps : null;

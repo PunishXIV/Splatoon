@@ -54,10 +54,7 @@ public class UCOB_Twisters : SplatoonScript
         {
             //DuoLog.Debug($"Twistin' time. src {source}");
             active = true;
-            Task.Delay(2300).ContinueWith(_ =>
-            {
-                Off();
-            });
+            this.Controller.ScheduleReset(2300);
             for (int i = 0; i < players.Count; ++i)
             {
                 var p = players[i];
@@ -66,6 +63,11 @@ public class UCOB_Twisters : SplatoonScript
                 elem.Enabled = true;
             }
         }
+    }
+
+    public override void OnReset()
+    {
+        Off();
     }
 
     public override void OnUpdate()

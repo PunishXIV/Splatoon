@@ -138,7 +138,7 @@ internal unsafe class Hello_World_MoveGuide :SplatoonScript
         }
         if (castId == CastIDs.CriticalError)
         {
-            HideAll();
+            this.OnReset();
             state = State.None;
         }
     }

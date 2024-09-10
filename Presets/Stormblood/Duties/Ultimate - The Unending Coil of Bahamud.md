@@ -8,6 +8,15 @@
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20Tethers.cs
 ```
+# Twintania phase
+[International] Twisters: Show their location as soon as they appear
+```
+~Lv2~{"Name":"Twintania Twisters","Group":"UCOB","ZoneLockH":[733],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.9,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":1482,"refActorComparisonAnd":true,"refActorComparisonType":6,"DistanceSourceX":0.21287155,"DistanceSourceY":9.486858,"DistanceMax":24.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"Match":"Twintania readies Twister.","MatchDelay":2.0}]}
+```
+[International] Twisters: Draws yellow markers around party members before they lock in
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20Twisters.cs
+```
 
 # Nael phase
 [International] [Script] Dragon baits (5 dragons charging towards marked players)

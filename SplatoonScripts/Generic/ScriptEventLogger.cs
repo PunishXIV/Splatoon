@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using ECommons;
@@ -23,7 +24,7 @@ namespace SplatoonScriptsOfficial.Generic;
 internal class ScriptEventLogger :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
 
     private Config Conf => Controller.GetConfig<Config>();
 
@@ -139,20 +140,28 @@ internal class ScriptEventLogger :SplatoonScript
             return;
 
         var targetObj = target.GetObject();
-        if (targetObj is IPlayerCharacter)
+
+        if (target.GetObject() is IBattleNpc npc && (npc.BattleNpcKind == BattleNpcSubKind.Pet || npc.BattleNpcKind == BattleNpcSubKind.None || npc.BattleNpcKind == BattleNpcSubKind.Chocobo))
+            return;
+
+        if (Conf.FilterOnVFXSpawnSubFilterPlayers && targetObj is IPlayerCharacter)
+            return;
+
+        if (Conf.FilterOnVFXSpawnSubFilterEnemies && targetObj is IBattleNpc)
             return;
 
         if (targetObj == null)
             PluginLog.Information($"OnVFXSpawn: {vfxPath}");
         else
-        {
             PluginLog.Information($"OnVFXSpawn: {vfxPath} - {targetObj.Name}{targetObj.Position}(GID: {targetObj.GameObjectId} DID: {targetObj.DataId})");
-        }
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
         if (!Conf.FilterOnStartingCast)
+            return;
+
+        if (source.GetObject() is not IBattleNpc npc || npc.BattleNpcKind == BattleNpcSubKind.Pet || npc.BattleNpcKind == BattleNpcSubKind.None || npc.BattleNpcKind == BattleNpcSubKind.Chocobo)
             return;
 
         var sourceObj = source.GetObject();
@@ -203,6 +212,9 @@ internal class ScriptEventLogger :SplatoonScript
         if (set.Action == null || set.Source == null || set.Source.DataId == 0)
             return;
 
+        if (set.Source is not IBattleNpc npc || npc.BattleNpcKind == BattleNpcSubKind.Pet || npc.BattleNpcKind == BattleNpcSubKind.None || npc.BattleNpcKind == BattleNpcSubKind.Chocobo)
+            return;
+
         if (set.Target == null)
             PluginLog.Information($"OnActionEffectEvent: {set.Action.Name}({set.Action.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId})");
         else
@@ -234,6 +246,10 @@ internal class ScriptEventLogger :SplatoonScript
         ImGui.Checkbox("OnTetherCreate()", ref Conf.FilterOnTetherCreate);
         ImGui.Checkbox("OnTetherRemoval()", ref Conf.FilterOnTetherRemoval);
         ImGui.Checkbox("OnVFXSpawn()", ref Conf.FilterOnVFXSpawn);
+        ImGui.Indent();
+        ImGui.Checkbox("Filter Players", ref Conf.FilterOnVFXSpawnSubFilterPlayers);
+        ImGui.Checkbox("Filter Enemies", ref Conf.FilterOnVFXSpawnSubFilterEnemies);
+        ImGui.Unindent();
         ImGui.Checkbox("OnStartingCast()", ref Conf.FilterOnStartingCast);
         ImGui.Checkbox("OnMessage()", ref Conf.FilterOnMessage);
         ImGui.Checkbox("OnDirectorUpdate()", ref Conf.FilterOnDirectorUpdate);
@@ -256,6 +272,8 @@ internal class ScriptEventLogger :SplatoonScript
         public bool FilterOnTetherCreate = true;
         public bool FilterOnTetherRemoval = true;
         public bool FilterOnVFXSpawn = true;
+        public bool FilterOnVFXSpawnSubFilterPlayers = false;
+        public bool FilterOnVFXSpawnSubFilterEnemies = false;
         public bool FilterOnStartingCast = true;
         public bool FilterOnMessage = false;
         public bool FilterOnDirectorUpdate = false;
@@ -277,6 +295,8 @@ internal class ScriptEventLogger :SplatoonScript
             FilterOnTetherCreate = true;
             FilterOnTetherRemoval = true;
             FilterOnVFXSpawn = true;
+            FilterOnVFXSpawnSubFilterPlayers = false;
+            FilterOnVFXSpawnSubFilterEnemies = false;
             FilterOnStartingCast = true;
             FilterOnMessage = false;
             FilterOnDirectorUpdate = false;

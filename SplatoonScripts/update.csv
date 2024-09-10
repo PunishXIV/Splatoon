@@ -20,6 +20,7 @@ SplatoonScriptsOfficial.Duties.Endwalker@P9S_JP_LC_Strat,1,https://github.com/Pu
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Caloric_Theory,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Caloric Theory.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Dominion,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P8S2 Dominion.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Classical_Concepts,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Classical Concepts.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@BSOD_Adjuster,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/BSOD Adjuster.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@MF_Target_Enforcer,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/MF Target Enforcer.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Party_Synergy,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Party Synergy.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Limitless_Synergy,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Limitless Synergy.cs
@@ -50,7 +51,7 @@ SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Twisters,1,https://github.com/Pun
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Tethers,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Tethers.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Heavensfall_Trio_Towers,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Heavensfall Trio Towers.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_dragon_baits,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB dragon baits.cs
-SplatoonScriptsOfficial.Generic@ScriptEventLogger,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
+SplatoonScriptsOfficial.Generic@ScriptEventLogger,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@ShowTooltipOnKey,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowTooltipOnKey.cs
 SplatoonScriptsOfficial.Generic@ShowEmote,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs
 SplatoonScriptsOfficial.Generic@AutoFateSync,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoFateSync.cs

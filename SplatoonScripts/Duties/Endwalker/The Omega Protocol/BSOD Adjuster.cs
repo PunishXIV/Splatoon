@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -23,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class BSOD_Adjuster :SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new() { 1122 };
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
 
     public class CastID
     {
@@ -37,6 +38,7 @@ internal class BSOD_Adjuster :SplatoonScript
 
     public class Config :IEzConfig
     {
+        public bool DebugPrint = false;
         public List<string[]> LeftRightPriorities = new();
     }
 
@@ -80,21 +82,18 @@ internal class BSOD_Adjuster :SplatoonScript
 
         if (ImGui.CollapsingHeader("Debug"))
         {
-            if (ImGui.Button("test"))
-            {
-                new TimedMiddleOverlayWindow("swaponYOU", 5000, () =>
-                {
-                    ImGui.SetWindowFontScale(2f);
-                    ImGuiEx.Text(ImGuiColors.DalamudRed, $"Stack swap position!\n\n  Player 1 \n  Player 2");
-                }, 150);
-            }
+            ImGui.Checkbox("DebugPrint", ref Conf.DebugPrint);
+            ImGui.Text($"_mechanicActive : {_mechanicActive}");
+            ImGui.Text($"_stackedList : {_stackedList.Print()}");
+            ImGui.Text($"_sortedList : {_sortedList.Print()}");
+            ImGui.Text($"Svc.ClientState.LocalPlayer.Name: {Svc.ClientState.LocalPlayer.Name}");
         }
     }
 
     public override void OnSetup()
     {
-        Controller.RegisterElementFromCode("StackLeft", "{\"Name\":\"\",\"refX\":94.5,\"refY\":111.5,\"refZ\":-5.4569678E-12,\"radius\":0.3,\"color\":3355508546,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":5.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
-        Controller.RegisterElementFromCode("StackRight", "{\"Name\":\"\",\"refX\":104.0,\"refY\":111.5,\"refZ\":-5.4569678E-12,\"radius\":0.3,\"color\":3355508546,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":5.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("StackLeft", "{\"Name\":\"\",\"refX\":95.74,\"refY\":112.62,\"refZ\":-5.4569678E-12,\"radius\":0.3,\"color\":3355508546,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":5.0,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("StackRight", "{\"Name\":\"\",\"Enabled\":false,\"refX\":103.92,\"refY\":112.46,\"refZ\":-5.4569678E-12,\"radius\":0.3,\"color\":3355508546,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":5.0,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -121,79 +120,91 @@ internal class BSOD_Adjuster :SplatoonScript
 
         if (set.Action.RowId == CastID.StackMarker)
         {
-            if (set.Target is not IPlayerCharacter pcObj)
-                return;
-
-            _stackedList.Add(pcObj);
-            if (_stackedList.Count == 2)
+            try
             {
-                if (_sortedList.Exists(x => x.Name == Svc.ClientState.LocalPlayer.Name))
+                DebugLog($"StackMarker: {set.Target.Name}");
+                if (set.Target is not IPlayerCharacter pcObj)
+                    return;
+
+                _stackedList.Add(pcObj);
+                DebugLog($"_stackedList: {_stackedList.Print()}");
+                if (_stackedList.Count == 2)
                 {
-                    // stacker show element
-                    IPlayerCharacter myStacker = _stackedList.Where(x => x.Address == Svc.ClientState.LocalPlayer.Address).First();
-                    IPlayerCharacter otherStacker = _stackedList.Where(x => x.Address != Svc.ClientState.LocalPlayer.Address).First();
-                    int myIndex = _sortedList.IndexOf(myStacker);
-                    int otherIndex = _sortedList.IndexOf(otherStacker);
-                    if (myIndex == -1 || otherIndex == -1)
+                    if (_stackedList.Exists(x => x.Address == Svc.ClientState.LocalPlayer.Address))
                     {
-                        DuoLog.Warning($"Could not find player in priority list");
-                        _mechanicActive = false;
-                        this.OnReset();
-                        return;
+                        DebugLog("Stacker");
+                        // stacker show element
+                        IPlayerCharacter myStacker = _stackedList.Where(x => x.Address == Svc.ClientState.LocalPlayer.Address).First();
+                        IPlayerCharacter otherStacker = _stackedList.Where(x => x.Address != Svc.ClientState.LocalPlayer.Address).First();
+                        DebugLog($"myStacker: {myStacker.Name}, otherStacker: {otherStacker.Name}");
+                        int myIndex = _sortedList.IndexOf(myStacker);
+                        int otherIndex = _sortedList.IndexOf(otherStacker);
+                        if (myIndex == -1 || otherIndex == -1)
+                        {
+                            DuoLog.Warning($"Could not find player in priority list");
+                            _mechanicActive = false;
+                            this.OnReset();
+                            return;
+                        }
+                        string myPos = myIndex < otherIndex ? "Left" : "Right";
+                        string otherPos = myIndex < otherIndex ? "Right" : "Left";
+
+                        Controller.GetElementByName($"Stack{myPos}").Enabled = true;
+                        Controller.GetElementByName($"Stack{myPos}").tether = true;
+
+                        DebugLog($"myStacker: {myStacker.Name} {myPos}, otherStacker: {otherStacker.Name} {otherPos}");
+                        List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
+                        foreach (var x in noneStackers)
+                        {
+                            var dpos = noneStackers.IndexOf(x) < 3 ? "Left" : "Right";
+                            DebugLog($"noneStacker: {x.Name} {dpos}");
+                        }
                     }
-                    string myPos = myIndex < otherIndex ? "Left" : "Right";
-                    string otherPos = myIndex < otherIndex ? "Right" : "Left";
-
-                    Controller.GetElementByName($"Stack{myPos}").Enabled = true;
-                    Controller.GetElementByName($"Stack{myPos}").tether = true;
-
-                    DebugLog($"myStacker: {myStacker.Name} {myPos}, otherStacker: {otherStacker.Name} {otherPos}");
-                    List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
-                    foreach (var x in noneStackers)
+                    else
                     {
-                        var dpos = noneStackers.IndexOf(x) < 3 ? "Left" : "Right";
-                        DebugLog($"noneStacker: {x.Name} {dpos}");
+                        DebugLog("Non stacker");
+                        // non stacker show element
+                        List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
+                        int myIndex = noneStackers.IndexOf(Svc.ClientState.LocalPlayer);
+                        if (myIndex == -1)
+                        {
+                            DuoLog.Warning($"Could not find player in priority list");
+                            _mechanicActive = false;
+                            this.OnReset();
+                            return;
+                        }
+                        string myPos = myIndex < 3 ? "Left" : "Right";
+
+                        Controller.GetElementByName($"Stack{myPos}").Enabled = true;
+                        Controller.GetElementByName($"Stack{myPos}").tether = true;
+
+                        //Debug
+                        IPlayerCharacter myStacker = _stackedList.First();
+                        IPlayerCharacter otherStacker = _stackedList.Last();
+                        myIndex = _sortedList.IndexOf(myStacker);
+                        int otherIndex = _sortedList.IndexOf(otherStacker);
+                        if (myIndex == -1 || otherIndex == -1)
+                        {
+                            DuoLog.Warning($"Could not find player in priority list");
+                            _mechanicActive = false;
+                            this.OnReset();
+                            return;
+                        }
+                        myPos = myIndex < otherIndex ? "Left" : "Right";
+                        string otherPos = myIndex < otherIndex ? "Right" : "Left";
+                        DebugLog($"FirstStacker: {myStacker.Name} {myPos}, LastStacker: {otherStacker.Name} {otherPos}");
+
+                        foreach (var x in noneStackers)
+                        {
+                            var dpos = noneStackers.IndexOf(x) < 3 ? "Left" : "Right";
+                            DebugLog($"noneStacker: {x.Name} {dpos}");
+                        }
                     }
                 }
-                else
-                {
-                    // non stacker show element
-                    List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
-                    int myIndex = noneStackers.IndexOf(Svc.ClientState.LocalPlayer);
-                    if (myIndex == -1)
-                    {
-                        DuoLog.Warning($"Could not find player in priority list");
-                        _mechanicActive = false;
-                        this.OnReset();
-                        return;
-                    }
-                    string myPos = myIndex < 3 ? "Left" : "Right";
-
-                    Controller.GetElementByName($"Stack{myPos}").Enabled = true;
-                    Controller.GetElementByName($"Stack{myPos}").tether = true;
-
-                    //Debug
-                    IPlayerCharacter myStacker = _stackedList.First();
-                    IPlayerCharacter otherStacker = _stackedList.Last();
-                    myIndex = _sortedList.IndexOf(myStacker);
-                    int otherIndex = _sortedList.IndexOf(otherStacker);
-                    if (myIndex == -1 || otherIndex == -1)
-                    {
-                        DuoLog.Warning($"Could not find player in priority list");
-                        _mechanicActive = false;
-                        this.OnReset();
-                        return;
-                    }
-                    myPos = myIndex < otherIndex ? "Left" : "Right";
-                    string otherPos = myIndex < otherIndex ? "Right" : "Left";
-                    DebugLog($"FirstStacker: {myStacker.Name} {myPos}, LastStacker: {otherStacker.Name} {otherPos}");
-
-                    foreach (var x in noneStackers)
-                    {
-                        var dpos = noneStackers.IndexOf(x) < 3 ? "Left" : "Right";
-                        DebugLog($"noneStacker: {x.Name} {dpos}");
-                    }
-                }
+            }
+            catch (Exception e)
+            {
+                DuoLog.Error(e.Message);
             }
             return;
         }
@@ -273,9 +284,9 @@ internal class BSOD_Adjuster :SplatoonScript
         return false;
     }
 
-    private void DebugLog(string log)
+    private void DebugLog(string log, [CallerLineNumber] int lineNum = 0)
     {
-        if (_debug)
-            DuoLog.Information(log);
+        if (Conf.DebugPrint)
+            DuoLog.Information(log + $" : L({lineNum})");
     }
 }

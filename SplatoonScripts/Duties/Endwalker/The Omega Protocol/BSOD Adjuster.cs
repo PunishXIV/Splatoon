@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class BSOD_Adjuster :SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new() { 1122 };
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
 
     public class CastID
     {

@@ -17,6 +17,16 @@ Cruise Chaser Conal Cleaves: Shows CC's conal cleaves on odd marked players so y
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA_P2_Transition.cs
 ```
 
+[International] [Beta] [Script] P2 Transition 1211 script.
+- show exaflares
+- mark bait locations for 1211 strat
+
+> [!NOTE]
+> The displayed text is in Japanese, so please change it accordingly in the config.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA%20P2%201211%20Transition.cs
+```
+
 # P2: BJ/CC
 P2/P3 Chakram Line AOEs: Works for Wormhole as well
 ```
@@ -39,6 +49,19 @@ Water/Lightning Text Reminder: Adds Water/Lightning text at your feet if you hav
 ```
 ~Lv2~{"Name":"P2 BPOG Positions","Group":"TEA","ZoneLockH":[887],"Scenes":[2],"DCond":5,"ElementsL":[{"Name":"α","refX":89.82,"refY":100.0,"color":3372172800,"thicc":5.0,"overlayText":"α"},{"Name":"γ","refX":92.80687,"refY":100.0,"color":3372155119,"thicc":5.0,"overlayText":"γ"},{"Name":"β","refX":96.385,"refY":100.0,"refZ":-1.9073486E-06,"color":3355478271,"thicc":5.0,"overlayText":"β"},{"Name":"δ","refX":99.91906,"refY":100.0,"refZ":1.9073486E-06,"color":3357277952,"thicc":5.0,"overlayText":"δ"}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":19.0,"MatchIntl":{"En":"Initiating new combat protocol... Commence final judgment!"},"MatchDelay":33.0}]}
 ```
+
+[Jp] [Beta] [Script] Nisi
+
+Show where to receive your nai-sai from the second time.
+
+It works in another language, but the displayed text is Japanese.
+
+No configuration required.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA%20P2%20Nisi.cs
+```
+
 # P3: Alexander Prime
 Alexander Intermission Debuffs; Text reminder of what debuff you have, only supports English.
 
@@ -64,6 +87,34 @@ Wormhole Soak Order (untested) for strat https://ff14.toolboxgaming.space/?id=23
 ~Lv2~{"Name":"TEA Wormhole soak 8","Group":"TEA","ZoneLockH":[887],"Scenes":[7],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":6.0,"overlayPlaceholders":true,"thicc":5.0,"overlayText":"2nd","refActorDataID":2007520,"refActorComparisonType":3,"tether":true,"LimitDistance":true,"DistanceSourceX":112.0,"DistanceSourceY":100.0,"DistanceSourceZ":1.9073486E-06,"DistanceMax":10.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"vfx/lockon/eff/m0361trg_a8t.avfx spawned on me","MatchDelay":13.0}]}
 ```
 
+[Jp] [Beta] [Script] Temporal Stasis
+
+Show your bait position.
+
+strat https://ff14.toolboxgaming.space/?id=860745463802461&preview=1
+
+Configuration:
+
+- Select where you stand during each debuff.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA%20P2%20Temporal%20Stasis.cs
+```
+
+[Jp] [Beta] [Script] Wormhole Formation
+
+Show your bait position.
+
+strat https://www.youtube.com/watch?v=utfUGDM1Y9w&t=0s (JP)
+
+It is called `34固定`.
+
+No configuration required.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA%20P3%20Wormhole%20Formation.cs
+```
+
 # P4: Perfect Alexander
 Trines Dodges: Need to import first two, third is optional. Indicates where the first dodge is (where to start/3rd Trine) and where the safe spot is (1st Trine). Has an optional marker for 2nd Trines. Supports English.
 ```
@@ -74,4 +125,20 @@ Trines Dodges: Need to import first two, third is optional. Indicates where the 
 ```
 ```
 ~Lv2~{"Enabled":false,"Name":"P4 Trines 2","Group":"TEA","ZoneLockH":[887],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"color":65352,"thicc":10.2,"overlayText":"!!AVOID!!","refActorDataID":9020,"refActorRequireCast":true,"refActorCastId":[18574,18575,18576],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":3}],"UseTriggers":true,"Triggers":[{"Type":2,"MatchIntl":{"En":"Perfect Alexander readies Almighty Judgment."},"MatchDelay":7.0}],"Freezing":true,"FreezeFor":15.0,"IntervalBetweenFreezes":15.0}
+```
+
+[Jp] [Beta] [Script] Fate Projection α
+
+No configuration required.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA%20P4%20Fate%20Projection%20α.cs
+```
+
+[JP] [Beta] [Script] Fate Projection β
+
+No configuration required.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA%20P4%20Fate%20Projection%20β.cs
 ```

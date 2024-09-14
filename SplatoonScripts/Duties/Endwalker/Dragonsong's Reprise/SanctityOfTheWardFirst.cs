@@ -5,6 +5,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
@@ -39,8 +40,23 @@ public class SanctityOfTheWardFirst : SplatoonScript
         NorthWest
     }
 
+    private readonly Dictionary<uint, Vector2> _eyesPositions = new()
+    {
+        { 0, new Vector2(100.00f, 60.00f) },
+        { 1, new Vector2(128.28f, 71.72f) },
+        { 2, new Vector2(140.00f, 100.00f) },
+        { 3, new Vector2(128.28f, 128.28f) },
+        { 4, new Vector2(100.00f, 140.00f) },
+        { 5, new Vector2(71.72f, 128.28f) },
+        { 6, new Vector2(60.00f, 100.00f) },
+        { 7, new Vector2(71.72f, 71.72f) }
+    };
+
     private readonly Vector2 Center = new(100, 100);
     private ClockwiseDirection _clockwiseDirection;
+
+    private Vector2 _eyesPosition;
+
     private IGameObject? _sword1;
     private IGameObject? _sword2;
 
@@ -49,9 +65,23 @@ public class SanctityOfTheWardFirst : SplatoonScript
     public override Metadata? Metadata => new(1, "Garume");
     private bool IsStart => _sword1 != null && _sword2 != null;
     private Config C => Controller.GetConfig<Config>();
-    private IBattleChara? Zephirin => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE31);
-    private IBattleChara? Adelphel => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE32);
+    private IBattleChara? Zephiran => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE31);
 
+    private IBattleChara? Adelphel => Svc.Objects.OfType<IBattleChara>()
+        .FirstOrDefault(x => x.NameId == 0xE32 && x.IsCharacterVisible());
+
+    public override void OnMapEffect(uint position, ushort data1, ushort data2)
+    {
+        if (!IsStart) return;
+
+        PluginLog.Log($"MapEffect: {position}, {data1}, {data2}");
+
+        if (data1 == 1)
+            if (_eyesPositions.TryGetValue(position, out var eyesPosition))
+                _eyesPosition = eyesPosition;
+        if (data1 == 32)
+            _eyesPosition = Vector2.Zero;
+    }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
@@ -65,15 +95,11 @@ public class SanctityOfTheWardFirst : SplatoonScript
 
         if (IsStart)
         {
-            var zephirin = Zephirin;
+            var zephiran = Zephiran;
             var adelphel = Adelphel;
 
-            PluginLog.Log("Zephirin: " + zephirin);
-            PluginLog.Log("Adelphel: " + adelphel);
-
-            if (zephirin == null || adelphel == null) return;
-
-            _zephirinDirection = GetZephirinDirection(zephirin);
+            if (zephiran == null || adelphel == null) return;
+            _zephirinDirection = GetZephiranDirection(zephiran);
             _clockwiseDirection = adelphel.Position.X > Center.X
                 ? ClockwiseDirection.Clockwise
                 : ClockwiseDirection.CounterClockwise;
@@ -100,9 +126,9 @@ public class SanctityOfTheWardFirst : SplatoonScript
         Controller.RegisterElementFromCode("G1CW",
             "{\"Name\":\"G1 CW\",\"type\":1,\"offX\":-3.24,\"offY\":-5.0,\"radius\":0.5,\"color\":3372158208,\"Filled\":false,\"thicc\":5.0,\"refActorNPCNameID\":3633,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("G2CCW",
-            "{\"Name\":\"G2 CCW\",\"type\":1,\"offX\":3.24,\"offY\":35.0,\"radius\":0.5,\"color\":3372158208,\"Filled\":false,\"thicc\":5.0,\"refActorNPCNameID\":3633,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            "{\"Name\":\"G2 CCW\",\"type\":1,\"offX\":-3.44,\"offY\":35.0,\"radius\":0.5,\"color\":3372158208,\"Filled\":false,\"thicc\":5.0,\"refActorNPCNameID\":3633,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("G2CW",
-            "{\"Name\":\"G2 CW\",\"type\":1,\"offX\":-3.44,\"offY\":35.0,\"radius\":0.5,\"color\":3372158208,\"Filled\":false,\"thicc\":5.0,\"refActorNPCNameID\":3633,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            "{\"Name\":\"G2 CW\",\"type\":1,\"offX\":3.24,\"offY\":35.0,\"radius\":0.5,\"color\":3372158208,\"Filled\":false,\"thicc\":5.0,\"refActorNPCNameID\":3633,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyVisible\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
         var clockwiseTextElement = new Element(0)
         {
@@ -124,6 +150,15 @@ public class SanctityOfTheWardFirst : SplatoonScript
         };
 
         Controller.TryRegisterElement("counterClockwise", counterClockwiseTextElement, true);
+
+        var eyesElement = new Element(0)
+        {
+            radius = 2f,
+            color = 0xFFFF00FF,
+            thicc = 5f
+        };
+
+        Controller.TryRegisterElement("eyes", eyesElement, true);
     }
 
     public override void OnUpdate()
@@ -159,6 +194,14 @@ public class SanctityOfTheWardFirst : SplatoonScript
             var elementName = _clockwiseDirection == ClockwiseDirection.Clockwise ? "clockwise" : "counterClockwise";
             if (Controller.TryGetElementByName(elementName, out var element)) element.Enabled = true;
         }
+
+        if (_eyesPosition != Vector2.Zero)
+            if (Controller.TryGetElementByName("eyes", out var element))
+            {
+                element.Enabled = true;
+                element.offX = _eyesPosition.X;
+                element.offY = _eyesPosition.Y;
+            }
     }
 
     public override void OnReset()
@@ -168,11 +211,8 @@ public class SanctityOfTheWardFirst : SplatoonScript
     }
 
 
-    public Element? ResolveElement(ResolvePosition resolvePosition, ClockwiseDirection clockwiseDirection)
+    private Element? ResolveElement(ResolvePosition resolvePosition, ClockwiseDirection clockwiseDirection)
     {
-        PluginLog.Log("Clockwise Direction: " + clockwiseDirection);
-        PluginLog.Log("Resolve Position: " + resolvePosition);
-
         var elementName = (resolvePosition, clockwiseDirection) switch
         {
             (ResolvePosition.ZephiranFaceToFace, ClockwiseDirection.Clockwise) => "G2CW",
@@ -185,12 +225,12 @@ public class SanctityOfTheWardFirst : SplatoonScript
         return Controller.GetElementByName(elementName);
     }
 
-    public ZephirinDirection GetZephirinDirection(IBattleChara target)
+    private ZephirinDirection GetZephiranDirection(IBattleChara target)
     {
         if (target.NameId == 0xE31)
         {
             var isEast = target.Position.X > Center.X;
-            var isNorth = target.Position.Y > Center.Y;
+            var isNorth = target.Position.Z < Center.Y;
             return (isEast, isNorth) switch
             {
                 (true, true) => ZephirinDirection.NorthEast,
@@ -211,7 +251,7 @@ public class SanctityOfTheWardFirst : SplatoonScript
         ImGuiEx.EnumCombo("Resolve Position", ref C.ResolvePosition);
     }
 
-    public class Config : IEzConfig
+    private class Config : IEzConfig
     {
         public string PairCharacterName = "";
         public ResolvePosition ResolvePosition = ResolvePosition.ZephiranFaceToFace;

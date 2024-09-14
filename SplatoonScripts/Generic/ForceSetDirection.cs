@@ -16,7 +16,7 @@ public unsafe class ForceSetDirection : SplatoonScript
 {
     private static ActionManager* ActionManager => FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
     public override HashSet<uint>? ValidTerritories => [];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -35,10 +35,13 @@ public unsafe class ForceSetDirection : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (!C.Enabled) return;
+        if (!C.Enabled)
+            return;
         var direction = C.Mode switch
         {
-            Mode.Angle => new Vector2(MathF.Cos(C.Angle * MathF.PI / 180), MathF.Sin(C.Angle * MathF.PI / 180)),
+            Mode.Angle => new Vector2(
+                MathF.Cos((C.Angle + 270f <= 360f ? C.Angle + 270f : C.Angle + 270f - 360f) * MathF.PI / 180f),
+                MathF.Sin((C.Angle + 270f <= 360f ? C.Angle + 270f : C.Angle + 270f - 360f) * MathF.PI / 180f)),
             Mode.Direction => C.Direction,
             Mode.ToTarget => C.Target - Player.Position.ToVector2(),
             Mode.Camera => new Vector2(-MathF.Sin(Camera.GetRadianX()), -MathF.Cos(Camera.GetRadianX())),

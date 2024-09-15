@@ -148,8 +148,6 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         if (Conf.LockFace)
         {
             ImGui.Indent();
-            ImGui.Text("WARN!! The same function is available in MMOminion. Please make sure to turn it OFF as it conflicts with other functions.");
-            ImGui.Dummy(new Vector2(0f, 10f));
             ImGui.Text("Monitor rotation Settings Set this if you want to use a tactic other than the default. Set the direction you want the monitor to face.\nFor example, if the monitor appears to your right and faces north, set it to \"right\".");
             int i = 0;
             foreach (var x in Conf.EastMoniterRotation)

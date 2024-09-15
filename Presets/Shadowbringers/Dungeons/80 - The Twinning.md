@@ -1,0 +1,33 @@
+### The Twinning
+
+Presets contributed by `EnjoyingTofu`.
+
+## Mithridates
+
+Draws Levinballs.
+
+```
+~Lv2~{"Name":"Mithridates","Group":"80 - The Twinning","ZoneLockH":[840],"ElementsL":[{"Name":"Levinballs","type":1,"radius":7.07,"refActorDataID":10244,"refActorPlaceholder":[],"refActorComparisonAnd":true,"refActorComparisonType":7,"refActorVFXPath":"vfx/common/eff/mon_pop1t.avfx","refActorVFXMax":8000,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+
+## The Tycoon
+
+Draws Magitek Crossways.
+
+```
+~Lv2~{"Name":"The Tycoon Magitek Crossway 1","Group":"80 - The Twinning","ZoneLockH":[840],"DCond":5,"ElementsL":[{"Name":"Laser East","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":20.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Laser North","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":20.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Laser South","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":20.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":4.712389,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Laser West","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":20.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":15.0,"Match":"15864","FireOnce":true},{"Type":3,"Match":"Temporal stasis deactivated","FireOnce":true}],"Freezing":true,"FreezeFor":15.0,"IntervalBetweenFreezes":15.0}
+~Lv2~{"Name":"The Tycoon Magitek Crossway 2","Group":"80 - The Twinning","ZoneLockH":[840],"DCond":5,"ElementsL":[{"Name":"Laser East","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":22.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Laser North","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":22.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Laser South","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":22.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":4.712389,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Laser West","type":3,"refX":36.52,"offX":5.96,"radius":4.0,"refActorNPCNameID":8167,"refActorRequireCast":true,"refActorCastId":[15864,23991],"refActorUseCastTime":true,"refActorCastTimeMax":22.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Match":"15868","MatchDelay":7.0}],"Freezing":true,"FreezeFor":22.0,"IntervalBetweenFreezes":22.0}
+```
+
+Draws Defensive Arrays.
+
+```
+~Lv2~{"Name":"The Tycoon Defensive Array","Group":"80 - The Twinning","ZoneLockH":[840],"DCond":5,"ElementsL":[{"Name":"Defensive Array AOE 1","type":3,"refX":40.38,"radius":4.0,"refActorDataID":9020,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":4.708898,"LimitDistance":true,"DistanceSourceX":17.131357,"DistanceSourceY":-319.0541,"DistanceSourceZ":-848.0,"DistanceMax":2.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Defensive Array AOE 2","type":3,"refX":40.38,"radius":4.0,"refActorDataID":9020,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":4.708898,"LimitDistance":true,"DistanceSourceX":-17.010906,"DistanceSourceY":-319.44943,"DistanceSourceZ":-848.0,"DistanceMax":1.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Defensive Array AOE 3","type":3,"refX":40.38,"radius":4.0,"refActorDataID":9020,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":4.708898,"LimitDistance":true,"DistanceSourceX":-9.697797,"DistanceSourceY":-345.3557,"DistanceSourceZ":-848.0,"DistanceMax":2.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Defensive Array AOE 4","type":3,"refX":40.38,"radius":4.0,"refActorDataID":9020,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":4.708898,"LimitDistance":true,"DistanceSourceX":-9.188233,"DistanceSourceY":-311.886,"DistanceSourceZ":-848.0,"DistanceMax":1.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Defensive Array AOE 5","type":3,"refX":40.38,"radius":4.0,"refActorDataID":9020,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":4.708898,"LimitDistance":true,"DistanceSourceX":-0.2049938,"DistanceSourceY":-309.83447,"DistanceSourceZ":-848.0,"DistanceMax":2.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Defensive Array AOE 6","type":3,"refX":40.38,"radius":4.0,"refActorDataID":9020,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":4.708898,"LimitDistance":true,"DistanceSourceX":9.8612,"DistanceSourceY":-345.03497,"DistanceSourceZ":-848.0,"DistanceMax":2.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":999.0,"Match":"15858"},{"Type":3,"Match":"Temporal stasis deactivated","MatchDelay":1.0}]}
+```
+
+Draws Puddles.
+
+```
+~Lv2~{"Name":"The Tycoon Puddles","Group":"80 - The Twinning","ZoneLockH":[840],"ElementsL":[{"Name":"Puddles","type":1,"radius":7.97,"refActorNPCID":8167,"refActorRequireCast":true,"refActorCastId":[15866],"refActorComparisonType":4,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+

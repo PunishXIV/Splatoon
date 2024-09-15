@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -21,10 +22,10 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 
-public unsafe class Oversampled_Wave_Cannon :SplatoonScript
+public unsafe class Oversampled_Wave_Cannon : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories { get; } = new() { 1122 };
-    public override Metadata? Metadata => new(6, "NightmareXIV");
+    public override HashSet<uint>? ValidTerritories { get; } = [1122];
+    public override Metadata? Metadata => new(7, "NightmareXIV");
 
     private readonly string[] strings = { "front", "right", "back", "left" };
     private readonly string[] monitorRlString = { "right", "left" };
@@ -44,15 +45,16 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
     }
 
     private static ActionManager* ActionManager => FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-    Config Conf => Controller.GetConfig<Config>();
+
+    private Config Conf => Controller.GetConfig<Config>();
     private float LockFaceRotation = 0f;
-    private List<Direction> directions = new List<Direction>()
-        {
+    private List<Direction> directions =
+        [
             new ("front", 270f, 90f),
             new ("right", 0f, 180f),
             new ("back", 90f, 270f),
             new ("left", 180, 0f)
-        };
+        ];
 
 
     public override void OnSetup()
@@ -89,22 +91,22 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
     public override void OnUpdate()
     {
         OffAll();
-        if (IsMechanicRunning(out var direction))
+        if(IsMechanicRunning(out var direction))
         {
             var prio = ObtainMyPriority();
-            if (prio.Priority != 0)
+            if(prio.Priority != 0)
             {
                 var d = direction == CardinalDirection.West ? "West" : "East";
-                if (prio.IsMonitor)
+                if(prio.IsMonitor)
                 {
                     Controller.GetElementByName($"{d}M{prio.Priority}").Enabled = true;
                     Controller.GetElementByName($"{d}M{prio.Priority}Point").Enabled = true;
 
-                    if (Conf.LockFace)
+                    if(Conf.LockFace)
                     {
-                        if (direction == CardinalDirection.West)
+                        if(direction == CardinalDirection.West)
                         {
-                            if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3453)))
+                            if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3453)))
                             {
                                 LockFaceRotation = directions.First(x => x.Name == Conf.WestMoniterRotation[prio.Priority - 1]).AngleWhenMonitorLeft;
                             }
@@ -115,7 +117,7 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
                         }
                         else
                         {
-                            if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3453)))
+                            if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3453)))
                             {
                                 LockFaceRotation = directions.First(x => x.Name == Conf.EastMoniterRotation[prio.Priority - 1]).AngleWhenMonitorLeft;
                             }
@@ -135,31 +137,31 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         }
     }
 
-    void OffAll()
+    private void OffAll()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
     public override void OnSettingsDraw()
     {
-        ImGui.Checkbox("Lock face !! DONT USE WHEN STREAMING !!", ref Conf.LockFace);
+        ImGui.Checkbox("Lock face", ref Conf.LockFace);
         ImGui.SameLine();
-        ImGuiEx.HelpMarker("This will lock your face to the monitor, use with caution");
-        if (Conf.LockFace)
+        ImGuiEx.HelpMarker("This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
+        if(Conf.LockFace)
         {
             ImGui.Indent();
             ImGui.Text("Monitor rotation Settings Set this if you want to use a tactic other than the default. Set the direction you want the monitor to face.\nFor example, if the monitor appears to your right and faces north, set it to \"right\".");
-            int i = 0;
-            foreach (var x in Conf.EastMoniterRotation)
+            var i = 0;
+            foreach(var x in Conf.EastMoniterRotation)
             {
                 ImGui.Text($"East boss monitor {i + 1}");
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(200);
-                if (ImGui.BeginCombo($"##eastmon{i}", x))
+                if(ImGui.BeginCombo($"##eastmon{i}", x))
                 {
-                    foreach (var y in strings)
+                    foreach(var y in strings)
                     {
-                        if (ImGui.Selectable(y))
+                        if(ImGui.Selectable(y))
                         {
                             Conf.EastMoniterRotation[i] = y;
                         }
@@ -171,16 +173,16 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
 
             i = 0;
 
-            foreach (var x in Conf.WestMoniterRotation)
+            foreach(var x in Conf.WestMoniterRotation)
             {
                 ImGui.Text($"West boss monitor {i + 1}");
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(200);
-                if (ImGui.BeginCombo($"##westmon{i}", x))
+                if(ImGui.BeginCombo($"##westmon{i}", x))
                 {
-                    foreach (var y in strings)
+                    foreach(var y in strings)
                     {
-                        if (ImGui.Selectable(y))
+                        if(ImGui.Selectable(y))
                         {
                             Conf.WestMoniterRotation[i] = y;
                         }
@@ -195,9 +197,9 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         ImGui.Dummy(new Vector2(0f, 10f));
         ImGuiEx.Text($"Priority list:");
         ImGui.SameLine();
-        if (ImGui.SmallButton("Test"))
+        if(ImGui.SmallButton("Test"))
         {
-            if (TryGetPriorityList(out var list))
+            if(TryGetPriorityList(out var list))
             {
                 DuoLog.Information($"Success: priority list {list.Print()}");
             }
@@ -207,24 +209,24 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             }
         }
         var toRem = -1;
-        for (int i = 0; i < Conf.Priorities.Count; i++)
+        for(var i = 0; i < Conf.Priorities.Count; i++)
         {
-            if (DrawPrioList(i))
+            if(DrawPrioList(i))
             {
                 toRem = i;
             }
         }
-        if (toRem != -1)
+        if(toRem != -1)
         {
             Conf.Priorities.RemoveAt(toRem);
         }
-        if (ImGui.Button("Create new priority list"))
+        if(ImGui.Button("Create new priority list"))
         {
             Conf.Priorities.Add(new string[] { "", "", "", "", "", "", "", "" });
         }
-        if (ImGui.Button("Get from initial conga setup"))
+        if(ImGui.Button("Get from initial conga setup"))
         {
-            if (FakeParty.Get().Count() == 8)
+            if(FakeParty.Get().Count() == 8)
             {
                 Conf.Priorities.Add(FakeParty.Get().OrderBy(x => x.Position.X).Select(x => x.Name.ToString()).ToArray());
             }
@@ -234,21 +236,21 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             }
         }
         ImGui.Checkbox("PrintDebug", ref Conf.IsDebug);
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             var pr = ObtainMyPriority();
             ImGuiEx.Text($"My priority: {pr.Priority}, IsMonitor = {pr.IsMonitor}");
-            if (IsMechanicRunning(out var dir))
+            if(IsMechanicRunning(out var dir))
             {
                 ImGuiEx.Text($"Mechanic is running, direction {dir}");
             }
         }
     }
 
-    bool IsMechanicRunning(out CardinalDirection mechanicStep)
+    private bool IsMechanicRunning(out CardinalDirection mechanicStep)
     {
         var caster = Svc.Objects.FirstOrDefault(x => x is IBattleChara b && b.CastActionId.EqualsAny<uint>(31595, 31596)) as IBattleChara;
-        if (caster != null)
+        if(caster != null)
         {
             mechanicStep = caster.CastActionId == 31595 ? CardinalDirection.East : CardinalDirection.West;
             return true;
@@ -257,17 +259,17 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         return false;
     }
 
-    (int Priority, bool IsMonitor) ObtainMyPriority()
+    private (int Priority, bool IsMonitor) ObtainMyPriority()
     {
-        if (TryGetPriorityList(out var list))
+        if(TryGetPriorityList(out var list))
         {
             var isMonitor = Svc.ClientState.LocalPlayer.HasMonitor();
-            if (isMonitor)
+            if(isMonitor)
             {
                 var prio = 1;
-                foreach (var x in list.Where(z => GetPlayer(z)?.HasMonitor() == true))
+                foreach(var x in list.Where(z => GetPlayer(z)?.HasMonitor() == true))
                 {
-                    if (x == Svc.ClientState.LocalPlayer.Name.ToString())
+                    if(x == Svc.ClientState.LocalPlayer.Name.ToString())
                     {
                         return (prio, true);
                     }
@@ -280,9 +282,9 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             else
             {
                 var prio = 1;
-                foreach (var x in list.Where(z => GetPlayer(z)?.HasMonitor() == false))
+                foreach(var x in list.Where(z => GetPlayer(z)?.HasMonitor() == false))
                 {
-                    if (x == Svc.ClientState.LocalPlayer.Name.ToString())
+                    if(x == Svc.ClientState.LocalPlayer.Name.ToString())
                     {
                         return (prio, false);
                     }
@@ -296,28 +298,28 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         return (0, false);
     }
 
-    IPlayerCharacter? GetPlayer(string name)
+    private IPlayerCharacter? GetPlayer(string name)
     {
         return FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == name);
     }
 
-    bool DrawPrioList(int num)
+    private bool DrawPrioList(int num)
     {
         var prio = Conf.Priorities[num];
         ImGuiEx.Text($"Priority list {num + 1}");
         ImGui.PushID($"prio{num}");
-        for (int i = 0; i < prio.Length; i++)
+        for(var i = 0; i < prio.Length; i++)
         {
             ImGui.PushID($"prio{num}element{i}");
             ImGui.SetNextItemWidth(200);
             ImGui.InputText($"Player {i + 1}", ref prio[i], 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
+            if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get())
+                foreach(var x in FakeParty.Get())
                 {
-                    if (ImGui.Selectable(x.Name.ToString()))
+                    if(ImGui.Selectable(x.Name.ToString()))
                     {
                         prio[i] = x.Name.ToString();
                     }
@@ -326,7 +328,7 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             }
             ImGui.PopID();
         }
-        if (ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
+        if(ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
         {
             return true;
         }
@@ -334,21 +336,21 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         return false;
     }
 
-    bool TryGetPriorityList([NotNullWhen(true)] out string[]? values)
+    private bool TryGetPriorityList([NotNullWhen(true)] out string[]? values)
     {
-        foreach (var p in Conf.Priorities)
+        foreach(var p in Conf.Priorities)
         {
             var valid = true;
             var l = FakeParty.Get().Select(x => x.Name.ToString()).ToHashSet();
-            foreach (var x in p)
+            foreach(var x in p)
             {
-                if (!l.Remove(x))
+                if(!l.Remove(x))
                 {
                     valid = false;
                     break;
                 }
             }
-            if (valid)
+            if(valid)
             {
                 values = p;
                 return true;
@@ -360,14 +362,14 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
 
     private void FaceTarget(float rotation, ulong unkObjId = 0xE0000000)
     {
-        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback] && Conf.IsDebug && EzThrottler.Throttle("FaceTarget", 10000))
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback] && Conf.IsDebug && EzThrottler.Throttle("FaceTarget", 10000))
         {
             DuoLog.Information($"FaceTarget {rotation}");
             EzThrottler.Throttle("FaceTarget", 1000, true);
         }
 
-        float adjustedRotation = (rotation + 270) % 360;
-        Vector2 direction = new Vector2(
+        var adjustedRotation = (rotation + 270) % 360;
+        var direction = new Vector2(
             MathF.Cos(adjustedRotation * MathF.PI / 180),
             MathF.Sin(adjustedRotation * MathF.PI / 180)
         );
@@ -375,20 +377,20 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         var player = Player.Object;
         var normalized = Vector2.Normalize(direction);
 
-        if (player == null)
+        if(player == null)
         {
             PluginLog.LogError("Player is null");
             return;
         }
 
-        Vector3 position = player.Position + normalized.ToVector3();
+        var position = player.Position + normalized.ToVector3();
 
         ActionManager->AutoFaceTargetPosition(&position, unkObjId);
     }
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
-        public List<string[]> Priorities = new();
+        public List<string[]> Priorities = [];
         public bool LockFace = false;
         public string[] EastMoniterRotation = { "left", "front", "back" };
         public string[] WestMoniterRotation = { "right", "front", "back" };

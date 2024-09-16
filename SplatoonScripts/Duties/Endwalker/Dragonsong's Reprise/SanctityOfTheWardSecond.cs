@@ -232,6 +232,9 @@ public class SanctityOfTheWardSecond : SplatoonScript
 
         if (set.Action.RowId == 29564)
             if (!_shouldPrioritizeOuterTower)
+            {
+                var innerOffset = 3f;
+                var outerOffset = 14f;
                 switch (_fixedSpreadDirection)
                 {
                     case SpreadDirection.East:
@@ -239,14 +242,14 @@ public class SanctityOfTheWardSecond : SplatoonScript
                         {
                             eastElement1.Enabled = true;
                             eastElement1.tether = true;
-                            eastElement1.SetOffPosition(new Vector3(104, 0f, 104f));
+                            eastElement1.SetOffPosition(new Vector3(100 + innerOffset, 0f, 100f + innerOffset));
                         }
 
                         if (Controller.TryGetElementByName("bait2", out var eastElement2))
                         {
                             eastElement2.Enabled = true;
                             eastElement2.tether = true;
-                            eastElement2.SetOffPosition(new Vector3(115, 0f, 115f));
+                            eastElement2.SetOffPosition(new Vector3(100 + outerOffset, 0f, 100f + outerOffset));
                         }
 
                         break;
@@ -256,14 +259,14 @@ public class SanctityOfTheWardSecond : SplatoonScript
                         {
                             southElement1.Enabled = true;
                             southElement1.tether = true;
-                            southElement1.SetOffPosition(new Vector3(96f, 0f, 104f));
+                            southElement1.SetOffPosition(new Vector3(100f - innerOffset, 0f, 100f + innerOffset));
                         }
 
                         if (Controller.TryGetElementByName("bait2", out var element2))
                         {
                             element2.Enabled = true;
                             element2.tether = true;
-                            element2.SetOffPosition(new Vector3(85, 0f, 115f));
+                            element2.SetOffPosition(new Vector3(100f - outerOffset, 0f, 100f + outerOffset));
                         }
 
                         break;
@@ -273,14 +276,14 @@ public class SanctityOfTheWardSecond : SplatoonScript
                         {
                             westElement1.Enabled = true;
                             westElement1.tether = true;
-                            westElement1.SetOffPosition(new Vector3(96f, 0f, 96f));
+                            westElement1.SetOffPosition(new Vector3(100f - innerOffset, 0f, 100f - innerOffset));
                         }
 
                         if (Controller.TryGetElementByName("bait2", out var westElement2))
                         {
                             westElement2.Enabled = true;
                             westElement2.tether = true;
-                            westElement2.SetOffPosition(new Vector3(85, 0f, 85f));
+                            westElement2.SetOffPosition(new Vector3(100 - outerOffset, 0f, 100f - outerOffset));
                         }
 
                         break;
@@ -290,18 +293,69 @@ public class SanctityOfTheWardSecond : SplatoonScript
                         {
                             northElement1.Enabled = true;
                             northElement1.tether = true;
-                            northElement1.SetOffPosition(new Vector3(104f, 0f, 96f));
+                            northElement1.SetOffPosition(new Vector3(100f + innerOffset, 0f, 100f - innerOffset));
                         }
 
                         if (Controller.TryGetElementByName("bait2", out var northElement2))
                         {
                             northElement2.Enabled = true;
                             northElement2.tether = true;
-                            northElement2.SetOffPosition(new Vector3(115, 0f, 85f));
+                            northElement2.SetOffPosition(new Vector3(100f + outerOffset, 0f, 100f - outerOffset));
                         }
 
                         break;
                 }
+            }
+            else
+            {
+                if (MyTowers.Count > 1)
+
+                {
+                    if (Controller.TryGetElementByName("bait2", out var element2))
+                        element2.Enabled = false;
+
+                    switch (_fixedSpreadDirection)
+                    {
+                        case SpreadDirection.East:
+
+                            if (Controller.TryGetElementByName("bait1", out var eastElement2))
+                            {
+                                eastElement2.Enabled = true;
+                                eastElement2.tether = true;
+                                eastElement2.SetOffPosition(new Vector3(119f, 0f, 100f));
+                            }
+
+                            break;
+                        case SpreadDirection.North:
+                            if (Controller.TryGetElementByName("bait1", out var northElement2))
+                            {
+                                northElement2.Enabled = true;
+                                northElement2.tether = true;
+                                northElement2.SetOffPosition(new Vector3(100f, 0f, 81f));
+                            }
+
+                            break;
+                        case SpreadDirection.South:
+                            if (Controller.TryGetElementByName("bait1", out var southElement2))
+                            {
+                                southElement2.Enabled = true;
+                                southElement2.tether = true;
+                                southElement2.SetOffPosition(new Vector3(100f, 0f, 119f));
+                            }
+
+                            break;
+                        case SpreadDirection.West:
+                            if (Controller.TryGetElementByName("bait1", out var westElement2))
+                            {
+                                westElement2.Enabled = true;
+                                westElement2.tether = true;
+                                westElement2.SetOffPosition(new Vector3(81f, 0f, 100f));
+                            }
+
+                            break;
+                    }
+                }
+            }
     }
 
     public override void OnSettingsDraw()

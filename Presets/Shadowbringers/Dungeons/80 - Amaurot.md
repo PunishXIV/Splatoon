@@ -7,7 +7,7 @@ Presets contributed by `EnjoyingTofu`.
 Draws a danger AOE around Meteors with a radius to get behind.
 
 ```
-{"Name":"Random Meteor Danger Zone","type":1,"radius":3.64,"Donut":43.92,"fillIntensity":0.104,"refActorModelID":629,"refActorComparisonType":1,"onlyVisible":true,"DistanceSourceX":-81.14479,"DistanceSourceY":90.11276,"DistanceSourceZ":748.2328,"DistanceMax":14.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}
+~Lv2~{"Name":"The First Beast","Group":"80 - Amaurot","ZoneLockH":[838],"ElementsL":[{"Name":"Random Meteor Danger Zone","type":1,"radius":3.64,"Donut":43.92,"fillIntensity":0.104,"refActorModelID":629,"refActorComparisonType":1,"onlyVisible":true,"DistanceSourceX":-81.14479,"DistanceSourceY":90.11276,"DistanceSourceZ":748.2328,"DistanceMax":14.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
 ## Therion

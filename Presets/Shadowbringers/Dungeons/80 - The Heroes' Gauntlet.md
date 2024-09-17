@@ -12,12 +12,6 @@ Draws Necrobursts and Poison Puddles.
 
 ## Spectral Berserker
 
-Draws Berserker Rock Tether. 
-
-```
-~Lv2~{"Name":"Spectral Berserker Rock Tether","Group":"80 - The Heroes' Gaunlet","ZoneLockH":[916],"ElementsL":[{"Name":"Rock Tether","type":1,"radius":2.49,"color":3355508632,"fillIntensity":0.5,"thicc":5.0,"refActorModelID":1268,"refActorObjectLife":true,"refActorLifetimeMin":0.0,"refActorLifetimeMax":15.0,"refActorComparisonType":1,"includeRotation":true,"tether":true,"LineEndA":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"MaxDistance":5.0,"UseDistanceLimit":true,"DistanceLimitType":1}
-```
-
 Draws Raging Slice.
 
 ```

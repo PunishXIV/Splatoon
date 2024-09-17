@@ -7,7 +7,7 @@ Presets contributed by `EnjoyingTofu`.
 Draws Levinballs.
 
 ```
-~Lv2~{"Name":"Mithridates","Group":"80 - The Twinning","ZoneLockH":[840],"ElementsL":[{"Name":"Levinballs","type":1,"radius":7.07,"refActorDataID":10244,"refActorPlaceholder":[],"refActorComparisonAnd":true,"refActorComparisonType":7,"refActorVFXPath":"vfx/common/eff/mon_pop1t.avfx","refActorVFXMax":8000,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+~Lv2~{"Name":"Mithridates Twinning","Group":"80 - The Twinning","ZoneLockH":[840],"ElementsL":[{"Name":"Levinballs","type":1,"radius":7.07,"refActorDataID":10244,"refActorPlaceholder":[],"refActorComparisonAnd":true,"refActorComparisonType":7,"refActorVFXPath":"vfx/common/eff/mon_pop1t.avfx","refActorVFXMax":8000,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
 ## The Tycoon

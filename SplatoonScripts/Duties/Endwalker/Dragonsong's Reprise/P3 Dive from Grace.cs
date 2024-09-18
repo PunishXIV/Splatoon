@@ -1,0 +1,429 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using ECommons;
+using ECommons.GameHelpers;
+using ECommons.Hooks.ActionEffectTypes;
+using ECommons.ImGuiMethods;
+using ECommons.Logging;
+using ECommons.MathHelpers;
+using ImGuiNET;
+using Splatoon;
+using Splatoon.SplatoonScripting;
+
+namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
+
+public class P3_Dive_from_Grace : SplatoonScript
+{
+    public enum DebuffType : uint
+    {
+        HighJump = 2755u,
+        Spine = 2756u,
+        Illusive = 2757u,
+        None = 0u
+    }
+
+    private static readonly Vector2 EastTowerPosition = new(93f, 100f);
+    private static readonly Vector2 NorthSafePosition = new(100f, 93f);
+    private static readonly Vector2 SouthTowerPosition = new(100f, 107f);
+    private static readonly Vector2 WestTowerPosition = new(107f, 100f);
+    private static readonly Vector2 NorthEastSafePosition = new(106.5f, 86f);
+    private static readonly Vector2 NorthWestSafePosition = new(93.5f, 86f);
+
+    private readonly Dictionary<string, Dictionary<int, Dictionary<DebuffType, List<Vector2>>>> _baitPositions = new()
+    {
+        ["First"] = new Dictionary<int, Dictionary<DebuffType, List<Vector2>>>
+        {
+            [1] =
+                new()
+                {
+                    [DebuffType.HighJump] =
+                    [
+                        EastTowerPosition,
+                        SouthTowerPosition,
+                        WestTowerPosition
+                    ],
+                    [DebuffType.Spine] =
+                    [
+                        WestTowerPosition,
+                        EastTowerPosition
+                    ],
+                    [DebuffType.Illusive] =
+                    [
+                        WestTowerPosition,
+                        SouthTowerPosition
+                    ]
+                },
+            [2] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthSafePosition
+                ]
+            },
+            [3] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthSafePosition
+                ]
+            }
+        },
+        ["Second"] = new Dictionary<int, Dictionary<DebuffType, List<Vector2>>>
+        {
+            [1] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthSafePosition
+                ]
+            },
+            [2] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthWestSafePosition,
+                    NorthEastSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthWestSafePosition,
+                    NorthEastSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthWestSafePosition,
+                    NorthEastSafePosition
+                ]
+            },
+            [3] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    EastTowerPosition,
+                    SouthTowerPosition,
+                    WestTowerPosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    WestTowerPosition,
+                    EastTowerPosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    WestTowerPosition,
+                    SouthTowerPosition
+                ]
+            }
+        },
+        ["Third"] = new Dictionary<int, Dictionary<DebuffType, List<Vector2>>>
+        {
+            [1] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition,
+                    NorthEastSafePosition,
+                    NorthWestSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthEastSafePosition,
+                    NorthWestSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthEastSafePosition,
+                    NorthWestSafePosition
+                ]
+            },
+            [2] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthSafePosition
+                ]
+            },
+            [3] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    EastTowerPosition,
+                    SouthTowerPosition,
+                    WestTowerPosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    EastTowerPosition,
+                    WestTowerPosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    EastTowerPosition,
+                    SouthTowerPosition
+                ]
+            }
+        },
+        ["Fourth"] = new Dictionary<int, Dictionary<DebuffType, List<Vector2>>>
+        {
+            [1] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthSafePosition
+                ]
+            },
+            [2] = new(),
+            [3] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    EastTowerPosition,
+                    SouthTowerPosition,
+                    WestTowerPosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    EastTowerPosition,
+                    WestTowerPosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    EastTowerPosition,
+                    SouthTowerPosition
+                ]
+            }
+        },
+        ["Fifth"] = new Dictionary<int, Dictionary<DebuffType, List<Vector2>>>
+        {
+            [1] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthSafePosition
+                ]
+            },
+            [2] = new(),
+            [3] = new()
+            {
+                [DebuffType.HighJump] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Spine] =
+                [
+                    NorthSafePosition
+                ],
+                [DebuffType.Illusive] =
+                [
+                    NorthSafePosition
+                ]
+            }
+        }
+    };
+
+    private int _darkCount;
+
+    private DebuffType[] _debuffs = [DebuffType.HighJump, DebuffType.Spine, DebuffType.Illusive];
+
+    private DebuffType _myDebuff = DebuffType.None;
+    private int _myNumber = -1;
+
+    private int _pheseCount;
+
+    public override HashSet<uint>? ValidTerritories => [968];
+
+    public override void OnVFXSpawn(uint target, string vfxPath)
+    {
+        if (target != Player.Object.EntityId) return;
+
+        if (vfxPath == "vfx/lockon/eff/r1fz_lockon_num03_s5x.avfx")
+            _myNumber = 3;
+        else if (vfxPath == "vfx/lockon/eff/r1fz_lockon_num02_s5x.avfx")
+            _myNumber = 2;
+        else if (vfxPath == "vfx/lockon/eff/r1fz_lockon_num01_s5x.avfx") _myNumber = 1;
+    }
+
+
+    public override void OnReset()
+    {
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        _myDebuff = DebuffType.None;
+        _myNumber = -1;
+        _pheseCount = 0;
+        _darkCount = 0;
+    }
+
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
+
+        PluginLog.Warning("Action: " + set);
+
+        if (set.Action.RowId is 26382 or 26383 or 26384)
+        {
+            _darkCount++;
+            if (_darkCount is 3 or 5 or 8)
+            {
+                _pheseCount++;
+                var positions = GetBaitPositions(_pheseCount, _myNumber, _myDebuff);
+                SetOffPositionBaitElements(positions);
+            }
+        }
+    }
+
+
+    public override void OnStartingCast(uint source, uint castId)
+    {
+        if (castId is 26386 or 26387)
+        {
+            _pheseCount++;
+            if (_pheseCount == 1)
+            {
+                var statuses = Player.Status;
+
+                DuoLog.Information("Statuses: " + string.Join(", ", statuses.Select(x => x.StatusId)));
+
+                if (statuses.Any(x => x.StatusId == (uint)DebuffType.HighJump))
+                    _myDebuff = DebuffType.HighJump;
+                else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Spine))
+                    _myDebuff = DebuffType.Spine;
+                else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Illusive)) _myDebuff = DebuffType.Illusive;
+            }
+
+            if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
+            var positions = GetBaitPositions(_pheseCount, _myNumber, _myDebuff);
+            SetOffPositionBaitElements(positions);
+        }
+
+        if (castId == 26380)
+        {
+            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            _myNumber = -1;
+            _myDebuff = DebuffType.None;
+        }
+    }
+
+    public List<Vector2>? GetBaitPositions(int phase, int number, DebuffType debuff)
+    {
+        string key;
+        switch (phase)
+        {
+            case 1:
+                key = "First";
+                break;
+            case 2:
+                key = "Second";
+                break;
+            case 3:
+                key = "Third";
+                break;
+            case 4:
+                key = "Fourth";
+                break;
+            case 5:
+                key = "Fifth";
+                break;
+            default:
+                return null;
+        }
+
+        if (_baitPositions.TryGetValue(key, out var phaseDict))
+            if (phaseDict.TryGetValue(number, out var numberDict))
+                if (numberDict.TryGetValue(debuff, out var positions))
+                    return positions;
+        return null;
+    }
+
+    public void SetOffPositionBaitElements(List<Vector2>? positions)
+    {
+        if (positions == null) return;
+
+        for (var i = 0; i < 3; i++)
+        {
+            var elementName = $"Bait{i}";
+            if (Controller.TryGetElementByName(elementName, out var element)) element.Enabled = false;
+        }
+
+        for (var i = 0; i < positions.Count; i++)
+        {
+            var elementName = $"Bait{i}";
+            if (Controller.TryGetElementByName(elementName, out var element))
+            {
+                element.Enabled = true;
+                element.SetOffPosition(positions[i].ToVector3());
+            }
+        }
+    }
+
+    public override void OnSettingsDraw()
+    {
+        ImGui.Text("Debuff: " + _myDebuff);
+        ImGui.Text("Number: " + _myNumber);
+        ImGui.Text("Phase: " + _pheseCount);
+        ImGui.Text("Dark Count: " + _darkCount);
+    }
+
+    public override void OnSetup()
+    {
+        for (var i = 0; i < 3; i++)
+        {
+            var elementName = $"Bait{i}";
+            var element = new Element(0)
+            {
+                radius = 3f,
+                color = EColor.Blue.ToUint(),
+                tether = true
+            };
+            Controller.RegisterElement(elementName, element);
+        }
+    }
+}

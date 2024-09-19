@@ -17,21 +17,21 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public class SanctityOfTheWardFirst : SplatoonScript
 {
-    public enum ClockwiseDirection
+    private enum ClockwiseDirection
     {
         None,
         Clockwise,
         CounterClockwise
     }
 
-    public enum ResolvePosition
+    private enum ResolvePosition
     {
         ZephiranFaceToFace,
         ZephiranBack
     }
 
 
-    public enum ZephirinDirection
+    private enum ZephiranDirection
     {
         None,
         NorthEast,
@@ -52,7 +52,7 @@ public class SanctityOfTheWardFirst : SplatoonScript
         { 7, new Vector2(71.72f, 71.72f) }
     };
 
-    private readonly Vector2 Center = new(100, 100);
+    private readonly Vector2 _center = new(100, 100);
     private ClockwiseDirection _clockwiseDirection;
 
     private Vector2 _eyesPosition;
@@ -60,9 +60,9 @@ public class SanctityOfTheWardFirst : SplatoonScript
     private IGameObject? _sword1;
     private IGameObject? _sword2;
 
-    private ZephirinDirection _zephirinDirection;
+    private ZephiranDirection _zephiranDirection;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
     private bool IsStart => _sword1 != null && _sword2 != null;
     private Config C => Controller.GetConfig<Config>();
     private IBattleChara? Zephiran => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE31);
@@ -76,11 +76,18 @@ public class SanctityOfTheWardFirst : SplatoonScript
 
         PluginLog.Log($"MapEffect: {position}, {data1}, {data2}");
 
-        if (data1 == 1)
-            if (_eyesPositions.TryGetValue(position, out var eyesPosition))
-                _eyesPosition = eyesPosition;
-        if (data1 == 32)
-            _eyesPosition = Vector2.Zero;
+        switch (data1)
+        {
+            case 1:
+            {
+                if (_eyesPositions.TryGetValue(position, out var eyesPosition))
+                    _eyesPosition = eyesPosition;
+                break;
+            }
+            case 32:
+                _eyesPosition = Vector2.Zero;
+                break;
+        }
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
@@ -99,8 +106,8 @@ public class SanctityOfTheWardFirst : SplatoonScript
             var adelphel = Adelphel;
 
             if (zephiran == null || adelphel == null) return;
-            _zephirinDirection = GetZephiranDirection(zephiran);
-            _clockwiseDirection = adelphel.Position.X > Center.X
+            _zephiranDirection = GetZephiranDirection(zephiran);
+            _clockwiseDirection = adelphel.Position.X > _center.X
                 ? ClockwiseDirection.Clockwise
                 : ClockwiseDirection.CounterClockwise;
 
@@ -167,7 +174,7 @@ public class SanctityOfTheWardFirst : SplatoonScript
 
         if (!IsStart) return;
 
-        if (_zephirinDirection != ZephirinDirection.None)
+        if (_zephiranDirection != ZephiranDirection.None)
         {
             var resolvePosition = C.ResolvePosition;
 
@@ -225,22 +232,22 @@ public class SanctityOfTheWardFirst : SplatoonScript
         return Controller.GetElementByName(elementName);
     }
 
-    private ZephirinDirection GetZephiranDirection(IBattleChara target)
+    private ZephiranDirection GetZephiranDirection(IBattleChara target)
     {
         if (target.NameId == 0xE31)
         {
-            var isEast = target.Position.X > Center.X;
-            var isNorth = target.Position.Z < Center.Y;
+            var isEast = target.Position.X > _center.X;
+            var isNorth = target.Position.Z < _center.Y;
             return (isEast, isNorth) switch
             {
-                (true, true) => ZephirinDirection.NorthEast,
-                (true, false) => ZephirinDirection.SouthEast,
-                (false, false) => ZephirinDirection.SouthWest,
-                (false, true) => ZephirinDirection.NorthWest
+                (true, true) => ZephiranDirection.NorthEast,
+                (true, false) => ZephiranDirection.SouthEast,
+                (false, false) => ZephiranDirection.SouthWest,
+                (false, true) => ZephiranDirection.NorthWest
             };
         }
 
-        return ZephirinDirection.None;
+        return ZephiranDirection.None;
     }
 
 

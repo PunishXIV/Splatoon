@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public class SanctityOfTheWardSecond : SplatoonScript
 {
-    public enum SpreadDirection
+    private enum SpreadDirection
     {
         North,
         East,
@@ -61,9 +61,9 @@ public class SanctityOfTheWardSecond : SplatoonScript
     public List<IGameObject> MyTowers = new();
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
-    public Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -401,7 +401,7 @@ public class SanctityOfTheWardSecond : SplatoonScript
         }
     }
 
-    public class Config : IEzConfig
+    private class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

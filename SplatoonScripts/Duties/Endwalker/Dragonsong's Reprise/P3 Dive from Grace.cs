@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -9,7 +8,6 @@ using ECommons.Configuration;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
@@ -21,25 +19,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public unsafe class P3_Dive_from_Grace : SplatoonScript
 {
-    public enum DebuffType : uint
-    {
-        HighJump = 2755u,
-        Spine = 2756u,
-        Illusive = 2757u,
-        None = 0u
-    }
-
-    public enum GeneralSafe
-    {
-        In,
-        Out,
-        None
-    }
-
-    private readonly Dictionary<string, Dictionary<int, Dictionary<DebuffType, List<Func<float, Vector2>>>>>
+    private readonly Dictionary<string, Dictionary<int, Dictionary<DebuffType, List<PositionDelegate>>>>
         _baitPositions = new()
         {
-            ["First"] = new Dictionary<int, Dictionary<DebuffType, List<Func<float, Vector2>>>>
+            ["First"] = new Dictionary<int, Dictionary<DebuffType, List<PositionDelegate>>>
             {
                 [1] =
                     new()
@@ -52,13 +35,11 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                         ],
                         [DebuffType.Spine] =
                         [
-                            WestTowerPosition,
                             EastTowerPosition
                         ],
                         [DebuffType.Illusive] =
                         [
-                            WestTowerPosition,
-                            SouthTowerPosition
+                            WestTowerPosition
                         ]
                     },
                 [2] = new()
@@ -92,7 +73,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ]
                 }
             },
-            ["Second"] = new Dictionary<int, Dictionary<DebuffType, List<Func<float, Vector2>>>>
+            ["Second"] = new Dictionary<int, Dictionary<DebuffType, List<PositionDelegate>>>
             {
                 [1] = new()
                 {
@@ -118,13 +99,11 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ],
                     [DebuffType.Spine] =
                     [
-                        NorthWestSafePosition,
                         NorthEastSafePosition
                     ],
                     [DebuffType.Illusive] =
                     [
-                        NorthWestSafePosition,
-                        NorthEastSafePosition
+                        NorthWestSafePosition
                     ]
                 },
                 [3] = new()
@@ -137,17 +116,15 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ],
                     [DebuffType.Spine] =
                     [
-                        WestTowerPosition,
                         EastTowerPosition
                     ],
                     [DebuffType.Illusive] =
                     [
-                        WestTowerPosition,
-                        SouthTowerPosition
+                        WestTowerPosition
                     ]
                 }
             },
-            ["Third"] = new Dictionary<int, Dictionary<DebuffType, List<Func<float, Vector2>>>>
+            ["Third"] = new Dictionary<int, Dictionary<DebuffType, List<PositionDelegate>>>
             {
                 [1] = new()
                 {
@@ -159,12 +136,10 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ],
                     [DebuffType.Spine] =
                     [
-                        NorthEastSafePosition,
-                        NorthWestSafePosition
+                        NorthEastSafePosition
                     ],
                     [DebuffType.Illusive] =
                     [
-                        NorthEastSafePosition,
                         NorthWestSafePosition
                     ]
                 },
@@ -193,17 +168,15 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ],
                     [DebuffType.Spine] =
                     [
-                        EastTowerPosition,
-                        WestTowerPosition
+                        EastTowerPosition
                     ],
                     [DebuffType.Illusive] =
                     [
-                        EastTowerPosition,
-                        SouthTowerPosition
+                        WestTowerPosition
                     ]
                 }
             },
-            ["Fourth"] = new Dictionary<int, Dictionary<DebuffType, List<Func<float, Vector2>>>>
+            ["Fourth"] = new Dictionary<int, Dictionary<DebuffType, List<PositionDelegate>>>
             {
                 [1] = new()
                 {
@@ -215,12 +188,10 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ],
                     [DebuffType.Spine] =
                     [
-                        NorthEastSafePosition,
-                        NorthWestSafePosition
+                        NorthEastSafePosition
                     ],
                     [DebuffType.Illusive] =
                     [
-                        NorthEastSafePosition,
                         NorthWestSafePosition
                     ]
                 },
@@ -249,17 +220,15 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ],
                     [DebuffType.Spine] =
                     [
-                        EastTowerPosition,
-                        WestTowerPosition
+                        EastTowerPosition
                     ],
                     [DebuffType.Illusive] =
                     [
-                        EastTowerPosition,
-                        SouthTowerPosition
+                        WestTowerPosition
                     ]
                 }
             },
-            ["Fifth"] = new Dictionary<int, Dictionary<DebuffType, List<Func<float, Vector2>>>>
+            ["Fifth"] = new Dictionary<int, Dictionary<DebuffType, List<PositionDelegate>>>
             {
                 [1] = new()
                 {
@@ -286,12 +255,10 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                     ],
                     [DebuffType.Spine] =
                     [
-                        EastTowerPosition,
-                        WestTowerPosition
+                        EastTowerPosition
                     ],
                     [DebuffType.Illusive] =
                     [
-                        EastTowerPosition,
                         WestTowerPosition
                     ]
                 },
@@ -315,8 +282,6 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     private int _darkCount;
 
-    private DebuffType[] _debuffs = [DebuffType.HighJump, DebuffType.Spine, DebuffType.Illusive];
-
     private GeneralSafe _generalSafe = GeneralSafe.None;
 
     private Vector3 _lastPosition;
@@ -324,11 +289,11 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
     private DebuffType _myDebuff = DebuffType.None;
     private int _myNumber = -1;
 
-    private int _pheseCount;
+    private int _phaseCount;
 
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
     private static Vector2 EastTowerPosition(float offset)
     {
@@ -364,11 +329,13 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
     {
         if (target != Player.Object.EntityId) return;
 
-        if (vfxPath == "vfx/lockon/eff/r1fz_lockon_num03_s5x.avfx")
-            _myNumber = 3;
-        else if (vfxPath == "vfx/lockon/eff/r1fz_lockon_num02_s5x.avfx")
-            _myNumber = 2;
-        else if (vfxPath == "vfx/lockon/eff/r1fz_lockon_num01_s5x.avfx") _myNumber = 1;
+        _myNumber = vfxPath switch
+        {
+            "vfx/lockon/eff/r1fz_lockon_num03_s5x.avfx" => 3,
+            "vfx/lockon/eff/r1fz_lockon_num02_s5x.avfx" => 2,
+            "vfx/lockon/eff/r1fz_lockon_num01_s5x.avfx" => 1,
+            _ => _myNumber
+        };
     }
 
 
@@ -377,7 +344,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         _myDebuff = DebuffType.None;
         _myNumber = -1;
-        _pheseCount = 0;
+        _phaseCount = 0;
         _darkCount = 0;
     }
 
@@ -385,15 +352,13 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
     {
         if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
 
-        PluginLog.Warning("Action: " + set);
-
-        if (set.Action.RowId is 26382 or 26383 or 26384)
+        if (set.Action?.RowId is 26382 or 26383 or 26384)
         {
             _darkCount++;
             if (_darkCount is 3 or 5 or 8)
             {
-                _pheseCount++;
-                var positions = GetBaitPositions(_pheseCount, _myNumber, _myDebuff);
+                _phaseCount++;
+                var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
                 SetOffPositionBaitElements(positions);
             }
         }
@@ -402,51 +367,46 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId is 26386 or 26387)
+        switch (castId)
         {
-            _generalSafe = castId == 26386 ? GeneralSafe.Out : GeneralSafe.In;
-            Controller.Schedule(() =>
+            case 26386 or 26387:
             {
-                _generalSafe = _generalSafe == GeneralSafe.In ? GeneralSafe.Out : GeneralSafe.In;
-                var positions = GetBaitPositions(_pheseCount, _myNumber, _myDebuff);
+                _generalSafe = castId == 26386 ? GeneralSafe.Out : GeneralSafe.In;
+                Controller.Schedule(() =>
+                {
+                    _generalSafe = _generalSafe == GeneralSafe.In ? GeneralSafe.Out : GeneralSafe.In;
+                    var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
+                    SetOffPositionBaitElements(positions);
+                }, 1000 * 12);
+
+                _phaseCount++;
+                if (_phaseCount == 1)
+                {
+                    var statuses = Player.Status;
+                    if (statuses.Any(x => x.StatusId == (uint)DebuffType.HighJump))
+                        _myDebuff = DebuffType.HighJump;
+                    else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Spine))
+                        _myDebuff = DebuffType.Spine;
+                    else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Illusive))
+                        _myDebuff = DebuffType.Illusive;
+                }
+
+                if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
+                var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
                 SetOffPositionBaitElements(positions);
-            }, 1000 * 12);
-
-            _pheseCount++;
-            if (_pheseCount == 1)
-            {
-                var statuses = Player.Status;
-
-                DuoLog.Information("Statuses: " + string.Join(", ", statuses.Select(x => x.StatusId)));
-
-                if (statuses.Any(x => x.StatusId == (uint)DebuffType.HighJump))
-                    _myDebuff = DebuffType.HighJump;
-                else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Spine))
-                    _myDebuff = DebuffType.Spine;
-                else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Illusive)) _myDebuff = DebuffType.Illusive;
+                break;
             }
-
-            if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
-            var positions = GetBaitPositions(_pheseCount, _myNumber, _myDebuff);
-            SetOffPositionBaitElements(positions);
-        }
-
-        if (castId == 26380)
-        {
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-            _myNumber = -1;
-            _myDebuff = DebuffType.None;
+            case 26380:
+                Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+                _myNumber = -1;
+                _myDebuff = DebuffType.None;
+                break;
         }
     }
 
 
     private void ApplyLockFace()
     {
-        void FaceTarget(Vector3 position, ulong unkObjId = 0xE0000000)
-        {
-            ActionManager.Instance()->AutoFaceTargetPosition(&position, unkObjId);
-        }
-
         if (Player.Position != _lastPosition && C.LockFaceEnableWhenNotMoving) return;
 
         var isEast = Player.Position.X > 100f;
@@ -461,9 +421,15 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         if (targetPosition == Vector3.Zero) return;
 
         FaceTarget(targetPosition);
+        return;
+
+        void FaceTarget(Vector3 position, ulong unkObjId = 0xE0000000)
+        {
+            ActionManager.Instance()->AutoFaceTargetPosition(&position, unkObjId);
+        }
     }
 
-    public List<Vector2>? GetBaitPositions(int phase, int number, DebuffType debuff)
+    private List<Vector2>? GetBaitPositions(int phase, int number, DebuffType debuff)
     {
         string key;
         switch (phase)
@@ -500,7 +466,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         return null;
     }
 
-    public void SetOffPositionBaitElements(List<Vector2>? positions)
+    private void SetOffPositionBaitElements(List<Vector2>? positions)
     {
         if (positions == null) return;
 
@@ -554,7 +520,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         {
             ImGui.Text("Debuff: " + _myDebuff);
             ImGui.Text("Number: " + _myNumber);
-            ImGui.Text("Phase: " + _pheseCount);
+            ImGui.Text("Phase: " + _phaseCount);
             ImGui.Text("Dark Count: " + _darkCount);
         }
     }
@@ -567,11 +533,11 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
         if (C.LookFace)
         {
-            if (_myNumber == 1 && _pheseCount == 1) ApplyLockFace();
+            if (_myNumber == 1 && _phaseCount == 1) ApplyLockFace();
 
-            if (_myNumber == 2 && _pheseCount == 3) ApplyLockFace();
+            if (_myNumber == 2 && _phaseCount == 3) ApplyLockFace();
 
-            if (_myNumber == 3 && _pheseCount == 4) ApplyLockFace();
+            if (_myNumber == 3 && _phaseCount == 4) ApplyLockFace();
 
             _lastPosition = Player.Position;
         }
@@ -593,7 +559,26 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         }
     }
 
-    public class Config : IEzConfig
+    private delegate Vector2 PositionDelegate(float offset);
+
+    private enum DebuffType : uint
+    {
+        HighJump = 2755u,
+        Spine = 2756u,
+        Illusive = 2757u,
+        None = 0u
+    }
+
+    private enum GeneralSafe
+    {
+        In,
+        Out,
+        None
+    }
+
+    public override Metadata? Metadata => new Metadata(2, "Garume");
+
+    private class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

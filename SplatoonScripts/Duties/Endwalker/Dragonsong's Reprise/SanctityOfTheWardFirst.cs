@@ -1,44 +1,26 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
+using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
-public class SanctityOfTheWardFirst : SplatoonScript
+public unsafe class SanctityOfTheWardFirst : SplatoonScript
 {
-    private enum ClockwiseDirection
-    {
-        None,
-        Clockwise,
-        CounterClockwise
-    }
-
-    private enum ResolvePosition
-    {
-        ZephiranFaceToFace,
-        ZephiranBack
-    }
-
-
-    private enum ZephiranDirection
-    {
-        None,
-        NorthEast,
-        SouthEast,
-        SouthWest,
-        NorthWest
-    }
+    private readonly Vector2 _center = new(100, 100);
 
     private readonly Dictionary<uint, Vector2> _eyesPositions = new()
     {
@@ -52,17 +34,18 @@ public class SanctityOfTheWardFirst : SplatoonScript
         { 7, new Vector2(71.72f, 71.72f) }
     };
 
-    private readonly Vector2 _center = new(100, 100);
     private ClockwiseDirection _clockwiseDirection;
 
     private Vector2 _eyesPosition;
+
+    private Vector3 _lastPlayerPosition = Vector3.Zero;
 
     private IGameObject? _sword1;
     private IGameObject? _sword2;
 
     private ZephiranDirection _zephiranDirection;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
     private bool IsStart => _sword1 != null && _sword2 != null;
     private Config C => Controller.GetConfig<Config>();
     private IBattleChara? Zephiran => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE31);
@@ -70,12 +53,12 @@ public class SanctityOfTheWardFirst : SplatoonScript
     private IBattleChara? Adelphel => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE32 && x.IsCharacterVisible());
 
+    private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
+        .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
+
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
         if (!IsStart) return;
-
-        PluginLog.Log($"MapEffect: {position}, {data1}, {data2}");
-
         switch (data1)
         {
             case 1:
@@ -94,11 +77,17 @@ public class SanctityOfTheWardFirst : SplatoonScript
     {
         if (IsStart) return;
 
-        // 1 sword
-        if (vfxPath == "vfx/lockon/eff/m0244trg_a1t.avfx") _sword1 = target.GetObject();
-
-        // 2 sword
-        if (vfxPath == "vfx/lockon/eff/m0244trg_a2t.avfx") _sword2 = target.GetObject();
+        switch (vfxPath)
+        {
+            // 1 sword
+            case "vfx/lockon/eff/m0244trg_a1t.avfx":
+                _sword1 = target.GetObject();
+                break;
+            // 2 sword
+            case "vfx/lockon/eff/m0244trg_a2t.avfx":
+                _sword2 = target.GetObject();
+                break;
+        }
 
         if (IsStart)
         {
@@ -194,6 +183,14 @@ public class SanctityOfTheWardFirst : SplatoonScript
                 element.tether = true;
                 element.color = GradientColor.Get(0xFFFF00FF.ToVector4(), 0xFFFFFF00.ToVector4()).ToUint();
             }
+
+            var thordan = Thordan;
+            if (thordan != null && _eyesPosition != Vector2.Zero && C.LockFace)
+            {
+                if (Player.Position != _lastPlayerPosition && C.LockFaceEnableWhenNotMoving) return;
+                var resolveFacePosition = CalculateExtendedBisectorPoint(thordan.Position.ToVector2(), _eyesPosition);
+                FaceTarget(resolveFacePosition.ToVector3(0f));
+            }
         }
 
         if (_clockwiseDirection != ClockwiseDirection.None)
@@ -209,7 +206,40 @@ public class SanctityOfTheWardFirst : SplatoonScript
                 element.offX = _eyesPosition.X;
                 element.offY = _eyesPosition.Y;
             }
+
+        _lastPlayerPosition = Player.Position;
+        return;
+
+        void FaceTarget(Vector3 position, ulong unkObjId = 0xE0000000)
+        {
+            ActionManager.Instance()->AutoFaceTargetPosition(&position, unkObjId);
+        }
     }
+
+    private static Vector2 CalculateExtendedBisectorPoint(Vector2 point1, Vector2 point2, Vector2? center = null,
+        float? radius = null)
+    {
+        center ??= new Vector2(100f, 100f);
+        radius ??= 20f;
+
+        var dir1 = point1 - center.Value;
+        var dir2 = point2 - center.Value;
+
+        var angle1 = MathF.Atan2(dir1.Y, dir1.X);
+        var angle2 = MathF.Atan2(dir2.Y, dir2.X);
+
+        var bisectorAngle = (angle1 + angle2) / 2f;
+
+        var bisectorDir = new Vector2(MathF.Cos(bisectorAngle), MathF.Sin(bisectorAngle));
+
+        var intersectionPoint1 = center.Value + bisectorDir * radius.Value;
+        var intersectionPoint2 = center.Value - bisectorDir * radius.Value;
+
+        return Vector2.Distance(intersectionPoint1, point1) > Vector2.Distance(intersectionPoint2, point1)
+            ? intersectionPoint1
+            : intersectionPoint2;
+    }
+
 
     public override void OnReset()
     {
@@ -234,20 +264,16 @@ public class SanctityOfTheWardFirst : SplatoonScript
 
     private ZephiranDirection GetZephiranDirection(IBattleChara target)
     {
-        if (target.NameId == 0xE31)
+        if (target.NameId != 0xE31) return ZephiranDirection.None;
+        var isEast = target.Position.X > _center.X;
+        var isNorth = target.Position.Z < _center.Y;
+        return (isEast, isNorth) switch
         {
-            var isEast = target.Position.X > _center.X;
-            var isNorth = target.Position.Z < _center.Y;
-            return (isEast, isNorth) switch
-            {
-                (true, true) => ZephiranDirection.NorthEast,
-                (true, false) => ZephiranDirection.SouthEast,
-                (false, false) => ZephiranDirection.SouthWest,
-                (false, true) => ZephiranDirection.NorthWest
-            };
-        }
-
-        return ZephiranDirection.None;
+            (true, true) => ZephiranDirection.NorthEast,
+            (true, false) => ZephiranDirection.SouthEast,
+            (false, false) => ZephiranDirection.SouthWest,
+            (false, true) => ZephiranDirection.NorthWest
+        };
     }
 
 
@@ -256,10 +282,52 @@ public class SanctityOfTheWardFirst : SplatoonScript
         ImGui.Text("Pair Character Name");
         ImGui.InputText("##PairCharacterName", ref C.PairCharacterName, 32);
         ImGuiEx.EnumCombo("Resolve Position", ref C.ResolvePosition);
+
+        ImGui.Checkbox("Look Face", ref C.LockFace);
+        ImGui.SameLine();
+        ImGuiEx.HelpMarker(
+            "This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.\n\n自動で視線を調整します。ストリーミング中は使用しないでください。他のソフトウェアが同様の機能を実装していないことを確認してください。",
+            EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
+
+        if (C.LockFace)
+        {
+            ImGui.Indent();
+            ImGui.Checkbox("Lock Face Enable When Not Moving", ref C.LockFaceEnableWhenNotMoving);
+            ImGui.SameLine();
+            ImGuiEx.HelpMarker(
+                "This will enable lock face when you are not moving. Be sure to enable it..\n\n動いていないときに視線をロックします。必ず有効にしてください。",
+                EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
+            ImGui.Unindent();
+        }
+    }
+
+    private enum ClockwiseDirection
+    {
+        None,
+        Clockwise,
+        CounterClockwise
+    }
+
+    private enum ResolvePosition
+    {
+        ZephiranFaceToFace,
+        ZephiranBack
+    }
+
+
+    private enum ZephiranDirection
+    {
+        None,
+        NorthEast,
+        SouthEast,
+        SouthWest,
+        NorthWest
     }
 
     private class Config : IEzConfig
     {
+        public bool LockFace = true;
+        public bool LockFaceEnableWhenNotMoving = true;
         public string PairCharacterName = "";
         public ResolvePosition ResolvePosition = ResolvePosition.ZephiranFaceToFace;
     }

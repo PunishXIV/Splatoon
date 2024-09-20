@@ -17,12 +17,10 @@ internal class Compiler
         PluginLog.Debug($"Beginning assembly load");
         if(DalamudReflector.TryGetLocalPlugin(out var instance, out var context, out var type))
         {
-            var loader = type.GetField("loader", ReflectionHelper.AllFlags).GetValue(instance);
-            var acontext = loader.GetFoP<AssemblyLoadContext>("context");
             using var stream = new MemoryStream(assembly);
             try
             {
-                var a = acontext.LoadFromStream(stream);
+                var a = context.LoadFromStream(stream);
                 return a;
             }
             catch(Exception e)

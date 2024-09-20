@@ -15,10 +15,8 @@ internal class Compiler
     internal static Assembly Load(byte[] assembly)
     {
         PluginLog.Debug($"Beginning assembly load");
-        if(DalamudReflector.TryGetLocalPlugin(out var instance, out var type))
+        if(DalamudReflector.TryGetLocalPlugin(out var instance, out var context, out var type))
         {
-            var loader = type.GetField("loader", ReflectionHelper.AllFlags).GetValue(instance);
-            var context = loader.GetFoP<AssemblyLoadContext>("context");
             using var stream = new MemoryStream(assembly);
             try
             {

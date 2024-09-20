@@ -295,9 +295,11 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     private Config C => Controller.GetConfig<Config>();
 
+    public override Metadata? Metadata => new(2, "Garume");
+
     private static Vector2 EastTowerPosition(float offset)
     {
-        return new Vector2(93f - offset, 100f);
+        return new Vector2(107f + offset, 100f);
     }
 
     private static Vector2 NorthSafePosition(float offset)
@@ -312,7 +314,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     private static Vector2 WestTowerPosition(float offset)
     {
-        return new Vector2(107f + offset, 100f);
+        return new Vector2(93f - offset, 100f);
     }
 
     private static Vector2 NorthEastSafePosition(float offset)
@@ -459,6 +461,18 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
             GeneralSafe.Out => 2.5f,
             _ => 0f
         };
+
+        if (number == 2 && phase == 2 && _generalSafe == GeneralSafe.In)
+        {
+            Controller.Schedule(() =>
+            {
+                _generalSafe = GeneralSafe.None;
+                var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
+                SetOffPositionBaitElements(positions);
+            }, 1000 * 3);
+            return new List<Vector2> { NorthSafePosition(offset) };
+        }
+
         if (_baitPositions.TryGetValue(key, out var phaseDict))
             if (phaseDict.TryGetValue(number, out var numberDict))
                 if (numberDict.TryGetValue(debuff, out var positions))
@@ -535,7 +549,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         {
             if (_myNumber == 1 && _phaseCount == 1) ApplyLockFace();
 
-            if (_myNumber == 2 && _phaseCount == 3) ApplyLockFace();
+            if (_myNumber == 2 && _phaseCount == 2) ApplyLockFace();
 
             if (_myNumber == 3 && _phaseCount == 4) ApplyLockFace();
 
@@ -575,8 +589,6 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         Out,
         None
     }
-
-    public override Metadata? Metadata => new Metadata(2, "Garume");
 
     private class Config : IEzConfig
     {

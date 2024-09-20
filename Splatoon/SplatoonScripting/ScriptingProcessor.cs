@@ -300,6 +300,7 @@ internal static partial class ScriptingProcessor
                                                         //DeleteFileToRecycleBin(result.path);
                                                         File.WriteAllText(result.path, result.code, Encoding.UTF8);
                                                         instance.InternalData.Path = result.path;
+                                                        instance.InternalData.ReloadOverrides();
                                                         DuoLog.Debug($"Script overwritten at {instance.InternalData.Path}");
                                                     }
                                                     instance.OnSetup();

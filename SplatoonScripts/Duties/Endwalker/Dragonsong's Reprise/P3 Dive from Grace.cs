@@ -295,7 +295,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     private Config C => Controller.GetConfig<Config>();
 
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private static Vector2 EastTowerPosition(float offset)
     {

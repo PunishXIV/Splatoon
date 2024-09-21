@@ -1,13 +1,9 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Game.ClientState.Statuses;
-using ECommons.DalamudServices;
-using ECommons.Logging;
-using ImGuiNET;
+﻿using Dalamud.Game.ClientState.Statuses;
+using ECommons.Hooks;
 using Splatoon.SplatoonScripting;
-using System.Collections.Generic;
 
-namespace SplatoonScriptsOfficial.Tests;
-internal class StatusListMonitoring :SplatoonScript
+namespace Splatoon.Memory;
+internal class BuffEffectProcessor
 {
     #region types
     private enum StatusChangeType
@@ -27,7 +23,7 @@ internal class StatusListMonitoring :SplatoonScript
     {
         public uint ObjectID;
         public uint[] StatusIds;
-        public int NoUpdateCount;  // intに変更し、10周期更新がなければ削除
+        public int NoUpdateCount;
     }
 
     private struct CharactorStatusDiffResult
@@ -37,19 +33,28 @@ internal class StatusListMonitoring :SplatoonScript
     }
     #endregion
 
-    public override HashSet<uint>? ValidTerritories => null;
-
+    #region privateDefine
     private Dictionary<uint, CharactorStatusInfo> _charactorStatusInfos = new Dictionary<uint, CharactorStatusInfo>();
+    private static bool _isClearRequest = false;
+    #endregion
 
     #region public
-    public override void OnUpdate()
+    public void ActorEffectUpdate()
     {
+        if(_isClearRequest)
+        {
+            _charactorStatusInfos.Clear();
+            _isClearRequest = false;
+        }
+
         // すべてのオブジェクトのNoUpdateCountをインクリメント
         IncrementNoUpdateCount();
 
         // Svc.Objects 内のすべてのオブジェクトをループ
         foreach(var gameObject in Svc.Objects)
         {
+            if(gameObject == null)
+                continue;
             // IBattleChara にキャストできるか確認
             if(gameObject is IBattleChara battleChara)
             {
@@ -68,7 +73,7 @@ internal class StatusListMonitoring :SplatoonScript
                 CompareStatusList(objectID, statuses, out var changeStatuses);
 
                 // gameObject.Name を含めてログに表示
-                LogChanges(gameObject, changeStatuses);
+                LogChanges(battleChara, changeStatuses);
 
                 // 現在のステータスリストを保存
                 CopyStatusList(objectID, statuses);
@@ -79,9 +84,13 @@ internal class StatusListMonitoring :SplatoonScript
         RemoveInactiveObjects();
     }
 
-    public override void OnSettingsDraw()
+    public static void DirectorCheck(DirectorUpdateCategory category)
     {
-        ImGui.Text($"Active objects: {_charactorStatusInfos.Count}");
+        if(category == DirectorUpdateCategory.Commence ||
+            category == DirectorUpdateCategory.Wipe)
+        {
+            _isClearRequest = true;
+        }
     }
     #endregion
 
@@ -215,7 +224,7 @@ internal class StatusListMonitoring :SplatoonScript
     }
 
     // LogChanges メソッドを更新
-    private void LogChanges(IGameObject gameObject, List<CharactorStatusDiffResult> changeStatuses)
+    private void LogChanges(IBattleChara battleChara, List<CharactorStatusDiffResult> changeStatuses)
     {
         List<uint> gainStatusIds = new List<uint>();
         List<uint> removeStatusIds = new List<uint>();
@@ -235,12 +244,46 @@ internal class StatusListMonitoring :SplatoonScript
 
         if(gainStatusIds.Count > 0)
         {
-            PluginLog.Information($"[{gameObject.Name}({gameObject.EntityId})] Gained statuses: {string.Join(", ", gainStatusIds)}");
+            string text;
+            if(P.Config.LogPosition)
+            {
+                foreach(var statusId in gainStatusIds)
+                {
+                    text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId} ({battleChara.NameId}:+{statusId})";
+                    P.ChatMessageQueue.Enqueue(text);
+                }
+            }
+            else
+            {
+                foreach(var statusId in gainStatusIds)
+                {
+                    text = $"{battleChara.Name} gains the effect of {statusId} ({battleChara.NameId}:+{statusId})";
+                    P.ChatMessageQueue.Enqueue(text);
+                }
+            }
+            ScriptingProcessor.OnGainBuffEffect(battleChara.EntityId, gainStatusIds);
         }
 
         if(removeStatusIds.Count > 0)
         {
-            PluginLog.Information($"[{gameObject.Name}({gameObject.EntityId})] Removed statuses: {string.Join(", ", removeStatusIds)}");
+            string text;
+            if(P.Config.LogPosition)
+            {
+                foreach(var statusId in removeStatusIds)
+                {
+                    text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId} ({battleChara.NameId}:-{statusId})";
+                    P.ChatMessageQueue.Enqueue(text);
+                }
+            }
+            else
+            {
+                foreach(var statusId in removeStatusIds)
+                {
+                    text = $"{battleChara.Name} loses the effect of {statusId} ({battleChara.NameId}:-{statusId})";
+                    P.ChatMessageQueue.Enqueue(text);
+                }
+            }
+            ScriptingProcessor.OnRemoveBuffEffect(battleChara.EntityId, removeStatusIds);
         }
     }
     #endregion

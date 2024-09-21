@@ -123,7 +123,6 @@ internal class BuffEffectProcessor
         foreach(var objectID in toRemove)
         {
             _charactorStatusInfos.Remove(objectID);
-            PluginLog.Information($"Removed object with ID: {objectID} (inactive for 10 cycles)");
         }
     }
 

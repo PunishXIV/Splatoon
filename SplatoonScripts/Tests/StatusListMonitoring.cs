@@ -27,7 +27,7 @@ internal class StatusListMonitoring :SplatoonScript
     {
         public uint ObjectID;
         public uint[] StatusIds;
-        public int NoUpdateCount;  // intに変更し、10周期更新がなければ削除
+        public int NoUpdateCount;  // Changed to int, and object will be removed after 10 cycles without updates
     }
 
     private struct CharactorStatusDiffResult
@@ -44,38 +44,38 @@ internal class StatusListMonitoring :SplatoonScript
     #region public
     public override void OnUpdate()
     {
-        // すべてのオブジェクトのNoUpdateCountをインクリメント
+        // Increment NoUpdateCount for all objects
         IncrementNoUpdateCount();
 
-        // Svc.Objects 内のすべてのオブジェクトをループ
+        // Loop through all objects in Svc.Objects
         foreach(var gameObject in Svc.Objects)
         {
-            // IBattleChara にキャストできるか確認
+            // Check if the object can be cast to IBattleChara
             if(gameObject is IBattleChara battleChara)
             {
                 var objectID = battleChara.EntityId;
 
-                // オブジェクトが存在するのでカウンタをリセット
+                // Reset the counter if the object exists
                 if(_charactorStatusInfos.TryGetValue(objectID, out var statusInfo))
                 {
-                    statusInfo.NoUpdateCount = 0; // 存在が確認されたのでカウンタをリセット
+                    statusInfo.NoUpdateCount = 0; // Reset the counter as the object is confirmed to exist
                     _charactorStatusInfos[objectID] = statusInfo;
                 }
 
                 var statuses = battleChara.StatusList;
 
-                // 状態リストの比較
+                // Compare the current and previous status lists
                 CompareStatusList(objectID, statuses, out var changeStatuses);
 
-                // gameObject.Name を含めてログに表示
+                // Log changes, including gameObject.Name
                 LogChanges(gameObject, changeStatuses);
 
-                // 現在のステータスリストを保存
+                // Save the current status list
                 CopyStatusList(objectID, statuses);
             }
         }
 
-        // 10周期以上更新がないオブジェクトを削除
+        // Remove objects that have not been updated for 10 cycles
         RemoveInactiveObjects();
     }
 
@@ -88,7 +88,7 @@ internal class StatusListMonitoring :SplatoonScript
     #region private
     private void IncrementNoUpdateCount()
     {
-        // すべてのオブジェクトのNoUpdateCountをインクリメント
+        // Increment NoUpdateCount for all objects
         foreach(var key in _charactorStatusInfos.Keys)
         {
             var statusInfo = _charactorStatusInfos[key];
@@ -99,7 +99,7 @@ internal class StatusListMonitoring :SplatoonScript
 
     private void RemoveInactiveObjects()
     {
-        // NoUpdateCountが10以上のオブジェクトをリストに格納して後で削除
+        // Add objects with NoUpdateCount >= 10 to the removal list
         List<uint> toRemove = new List<uint>();
         foreach(var kvp in _charactorStatusInfos)
         {
@@ -109,7 +109,7 @@ internal class StatusListMonitoring :SplatoonScript
             }
         }
 
-        // 実際に削除する
+        // Actually remove the objects
         foreach(var objectID in toRemove)
         {
             _charactorStatusInfos.Remove(objectID);
@@ -129,7 +129,7 @@ internal class StatusListMonitoring :SplatoonScript
                 {
                     ObjectID = objectID,
                     StatusIds = newStatusIds,
-                    NoUpdateCount = 0 // 更新されたのでカウンタをリセット
+                    NoUpdateCount = 0 // Reset the counter as it has been updated
                 };
             }
         }
@@ -139,7 +139,7 @@ internal class StatusListMonitoring :SplatoonScript
             {
                 ObjectID = objectID,
                 StatusIds = newStatusIds,
-                NoUpdateCount = 0 // 新規に追加する際にカウンタをリセット
+                NoUpdateCount = 0 // Set the counter to 0 when adding a new object
             });
         }
     }
@@ -214,7 +214,7 @@ internal class StatusListMonitoring :SplatoonScript
         return true;
     }
 
-    // LogChanges メソッドを更新
+    // Updated LogChanges method
     private void LogChanges(IGameObject gameObject, List<CharactorStatusDiffResult> changeStatuses)
     {
         List<uint> gainStatusIds = new List<uint>();

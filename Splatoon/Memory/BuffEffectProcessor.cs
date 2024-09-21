@@ -47,40 +47,41 @@ internal class BuffEffectProcessor
             _isClearRequest = false;
         }
 
-        // すべてのオブジェクトのNoUpdateCountをインクリメント
+        // Increment the NoUpdateCount for all objects
         IncrementNoUpdateCount();
 
-        // Svc.Objects 内のすべてのオブジェクトをループ
+        // Loop through all objects in Svc.Objects
         foreach(var gameObject in Svc.Objects)
         {
             if(gameObject == null)
                 continue;
-            // IBattleChara にキャストできるか確認
+
+            // Check if it can be cast to IBattleChara
             if(gameObject is IBattleChara battleChara)
             {
                 var objectID = battleChara.EntityId;
 
-                // オブジェクトが存在するのでカウンタをリセット
+                // If the object exists, reset the counter
                 if(_charactorStatusInfos.TryGetValue(objectID, out var statusInfo))
                 {
-                    statusInfo.NoUpdateCount = 0; // 存在が確認されたのでカウンタをリセット
+                    statusInfo.NoUpdateCount = 0; // Reset the counter as the object is confirmed to exist
                     _charactorStatusInfos[objectID] = statusInfo;
                 }
 
                 var statuses = battleChara.StatusList;
 
-                // 状態リストの比較
+                // Compare the current and previous status lists
                 CompareStatusList(objectID, statuses, out var changeStatuses);
 
-                // gameObject.Name を含めてログに表示
+                // Log the changes, including gameObject.Name
                 LogChanges(battleChara, changeStatuses);
 
-                // 現在のステータスリストを保存
+                // Save the current status list
                 CopyStatusList(objectID, statuses);
             }
         }
 
-        // 10周期以上更新がないオブジェクトを削除
+        // Remove objects that have not been updated for 10 cycles
         RemoveInactiveObjects();
     }
 
@@ -97,7 +98,7 @@ internal class BuffEffectProcessor
     #region private
     private void IncrementNoUpdateCount()
     {
-        // すべてのオブジェクトのNoUpdateCountをインクリメント
+        // Increment the NoUpdateCount for all objects
         foreach(var key in _charactorStatusInfos.Keys)
         {
             var statusInfo = _charactorStatusInfos[key];
@@ -108,7 +109,7 @@ internal class BuffEffectProcessor
 
     private void RemoveInactiveObjects()
     {
-        // NoUpdateCountが10以上のオブジェクトをリストに格納して後で削除
+        // Add objects with NoUpdateCount >= 10 to the removal list
         List<uint> toRemove = new List<uint>();
         foreach(var kvp in _charactorStatusInfos)
         {
@@ -118,7 +119,7 @@ internal class BuffEffectProcessor
             }
         }
 
-        // 実際に削除する
+        // Actually remove the objects
         foreach(var objectID in toRemove)
         {
             _charactorStatusInfos.Remove(objectID);
@@ -138,7 +139,7 @@ internal class BuffEffectProcessor
                 {
                     ObjectID = objectID,
                     StatusIds = newStatusIds,
-                    NoUpdateCount = 0 // 更新されたのでカウンタをリセット
+                    NoUpdateCount = 0 // Reset the counter as it has been updated
                 };
             }
         }
@@ -148,7 +149,7 @@ internal class BuffEffectProcessor
             {
                 ObjectID = objectID,
                 StatusIds = newStatusIds,
-                NoUpdateCount = 0 // 新規に追加する際にカウンタをリセット
+                NoUpdateCount = 0 // Set the counter to 0 when adding a new object
             });
         }
     }
@@ -223,7 +224,7 @@ internal class BuffEffectProcessor
         return true;
     }
 
-    // LogChanges メソッドを更新
+    // Updated LogChanges method
     private void LogChanges(IBattleChara battleChara, List<CharactorStatusDiffResult> changeStatuses)
     {
         List<uint> gainStatusIds = new List<uint>();

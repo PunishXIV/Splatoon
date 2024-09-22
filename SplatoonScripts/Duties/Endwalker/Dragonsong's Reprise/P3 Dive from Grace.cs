@@ -8,6 +8,7 @@ using ECommons.Configuration;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
@@ -281,20 +282,13 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         };
 
     private int _darkCount;
-
     private GeneralSafe _generalSafe = GeneralSafe.None;
-
     private Vector3 _lastPosition;
-
     private DebuffType _myDebuff = DebuffType.None;
     private int _myNumber = -1;
-
     private int _phaseCount;
-
     public override HashSet<uint>? ValidTerritories => [968];
-
     private Config C => Controller.GetConfig<Config>();
-
     public override Metadata? Metadata => new(4, "Garume");
 
     private static Vector2 EastTowerPosition(float offset)
@@ -340,7 +334,6 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         };
     }
 
-
     public override void OnReset()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
@@ -360,10 +353,21 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
             if (_darkCount is 3 or 5 or 8)
             {
                 _phaseCount++;
-                var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
-                SetOffPositionBaitElements(positions);
+                UpdateNavigations();
             }
         }
+    }
+
+    private void UpdateNavigations()
+    {
+        if (_myNumber == -1 || _myDebuff == DebuffType.None)
+        {
+            PluginLog.Warning("P3_Dive_from_Grace: UpdateNavigations: _myNumber or _myDebuff is not set.");
+            return;
+        }
+
+        var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
+        SetOffPositionBaitElements(positions);
     }
 
 
@@ -377,8 +381,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                 Controller.Schedule(() =>
                 {
                     _generalSafe = _generalSafe == GeneralSafe.In ? GeneralSafe.Out : GeneralSafe.In;
-                    var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
-                    SetOffPositionBaitElements(positions);
+                    UpdateNavigations();
                 }, 1000 * 12);
 
                 _phaseCount++;
@@ -394,8 +397,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                 }
 
                 if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
-                var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
-                SetOffPositionBaitElements(positions);
+                UpdateNavigations();
                 break;
             }
             case 26380:
@@ -405,12 +407,14 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                 break;
         }
     }
+    
+    private readonly Vector2 Center = new(100f, 100f);
 
     private void ApplyLockFace()
     {
         if (Player.Position != _lastPosition && C.LockFaceEnableWhenNotMoving) return;
 
-        var isEast = Player.Position.X > 100f;
+        var isEast = Player.Position.X > Center.X;
         var targetPosition = (_myDebuff, isEast) switch
         {
             (DebuffType.Spine, _) => new Vector3(100f, 0f, Player.Position.Z),
@@ -468,8 +472,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
             Controller.Schedule(() =>
             {
                 _generalSafe = GeneralSafe.None;
-                var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
-                SetOffPositionBaitElements(positions);
+                UpdateNavigations();
             }, 1000 * 3);
             return new List<Vector2> { NorthSafePosition(offset) };
         }
@@ -481,25 +484,20 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         return null;
     }
 
-    private void SetOffPositionBaitElements(List<Vector2>? positions)
+    private void SetOffPositionBaitElements(IReadOnlyList<Vector2>? positions)
     {
         if (positions == null) return;
 
         for (var i = 0; i < 3; i++)
-        {
-            var elementName = $"Bait{i}";
-            if (Controller.TryGetElementByName(elementName, out var element)) element.Enabled = false;
-        }
+            if (Controller.TryGetElementByName($"Bait{i}", out var element))
+                element.Enabled = false;
 
         for (var i = 0; i < positions.Count; i++)
-        {
-            var elementName = $"Bait{i}";
-            if (Controller.TryGetElementByName(elementName, out var element))
+            if (Controller.TryGetElementByName($"Bait{i}", out var element))
             {
                 element.Enabled = true;
                 element.SetOffPosition(positions[i].ToVector3());
             }
-        }
     }
 
     public override void OnSettingsDraw()
@@ -556,11 +554,8 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         if (C.LookFace)
         {
             if (_myNumber == 1 && _phaseCount == 1) ApplyLockFace();
-
             if (_myNumber == 2 && _phaseCount == 2) ApplyLockFace();
-
             if (_myNumber == 3 && _phaseCount == 4) ApplyLockFace();
-
             _lastPosition = Player.Position;
         }
     }
@@ -569,7 +564,6 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
     {
         for (var i = 0; i < 3; i++)
         {
-            var elementName = $"Bait{i}";
             var element = new Element(0)
             {
                 radius = 1f,
@@ -577,7 +571,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                 thicc = 2f,
                 LineEndA = LineEnd.Arrow
             };
-            Controller.RegisterElement(elementName, element);
+            Controller.RegisterElement($"Bait{i}", element);
         }
     }
 

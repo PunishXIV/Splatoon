@@ -83,6 +83,7 @@ public unsafe class Splatoon : IDalamudPlugin
     public NotificationMasterApi NotificationMasterApi;
     public Archive Archive;
     private ActorControlProcessor ActorControlProcessor;
+    internal BuffEffectProcessor BuffEffectProcessor;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -187,6 +188,7 @@ public unsafe class Splatoon : IDalamudPlugin
         SingletonServiceManager.Initialize(typeof(S));
         Archive = EzConfig.LoadConfiguration<Archive>("Archive.json");
         ActorControlProcessor = new ActorControlProcessor();
+        BuffEffectProcessor = new();
         Init = true;
         SplatoonIPC.Init();
     }
@@ -557,6 +559,7 @@ public unsafe class Splatoon : IDalamudPlugin
             }
             prevCombatState = Svc.Condition[ConditionFlag.InCombat];
             CurrentChatMessages.Clear();
+            BuffEffectProcessor.ActorEffectUpdate();
             ScriptingProcessor.OnUpdate();
         }
         catch (Exception e)

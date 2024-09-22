@@ -631,6 +631,36 @@ internal static partial class ScriptingProcessor
         }
     }
 
+    internal static void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnGainBuffEffect(sourceId, gainBuffIds);
+                }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnGainBuffEffect)); }
+            }
+        }
+    }
+
+    internal static void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds)
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnRemoveBuffEffect(sourceId, removeBuffIds);
+                }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnRemoveBuffEffect)); }
+            }
+        }
+    }
+
     internal static void TerritoryChanged()
     {
         for (var i = 0; i < Scripts.Count; i++)

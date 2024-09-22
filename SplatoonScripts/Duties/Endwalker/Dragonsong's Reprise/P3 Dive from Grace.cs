@@ -295,7 +295,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     private Config C => Controller.GetConfig<Config>();
 
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     private static Vector2 EastTowerPosition(float offset)
     {
@@ -406,7 +406,6 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         }
     }
 
-
     private void ApplyLockFace()
     {
         if (Player.Position != _lastPosition && C.LockFaceEnableWhenNotMoving) return;
@@ -455,12 +454,14 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                 return null;
         }
 
-        var offset = _generalSafe switch
-        {
-            GeneralSafe.In => -1.5f,
-            GeneralSafe.Out => 2.5f,
-            _ => 0f
-        };
+        var offset = 0f;
+        if (C.ShouldConsiderCircleDonut)
+            offset = _generalSafe switch
+            {
+                GeneralSafe.In => -1.5f,
+                GeneralSafe.Out => 2.5f,
+                _ => 0f
+            };
 
         if (number == 2 && phase == 2 && _generalSafe == GeneralSafe.In)
         {
@@ -503,13 +504,20 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Text("Bait Color:");
+        ImGui.Text("Navigation Settings");
+        ImGui.Indent();
+
+        ImGui.Text("Bait Color");
         ImGuiComponents.HelpMarker(
             "Change the color of the bait and the text that will be displayed on your bait.\nSetting different values makes it rainbow.");
         ImGui.Indent();
         ImGui.ColorEdit4("Color 1", ref C.BaitColor1, ImGuiColorEditFlags.NoInputs);
         ImGui.SameLine();
         ImGui.ColorEdit4("Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
+        ImGui.Unindent();
+
+        ImGui.Checkbox("Consider Circle Donut", ref C.ShouldConsiderCircleDonut);
+
         ImGui.Unindent();
 
         ImGui.Checkbox("Look Face", ref C.LookFace);
@@ -596,5 +604,6 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public bool LockFaceEnableWhenNotMoving = true;
         public bool LookFace = true;
+        public bool ShouldConsiderCircleDonut;
     }
 }

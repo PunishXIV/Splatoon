@@ -295,26 +295,26 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     private Config C => Controller.GetConfig<Config>();
 
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume");
 
     private static Vector2 EastTowerPosition(float offset)
     {
-        return new Vector2(107f + offset, 100f);
+        return new Vector2(108f + offset, 100f);
     }
 
     private static Vector2 NorthSafePosition(float offset)
     {
-        return new Vector2(100f, 93f - offset);
+        return new Vector2(100f, 92f - offset);
     }
 
     private static Vector2 SouthTowerPosition(float offset)
     {
-        return new Vector2(100f, 107f + offset);
+        return new Vector2(100f, 108f + offset);
     }
 
     private static Vector2 WestTowerPosition(float offset)
     {
-        return new Vector2(93f - offset, 100f);
+        return new Vector2(92f - offset, 100f);
     }
 
     private static Vector2 NorthEastSafePosition(float offset)
@@ -459,7 +459,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
             offset = _generalSafe switch
             {
                 GeneralSafe.In => -1.5f,
-                GeneralSafe.Out => 2.5f,
+                GeneralSafe.Out => 1.5f,
                 _ => 0f
             };
 

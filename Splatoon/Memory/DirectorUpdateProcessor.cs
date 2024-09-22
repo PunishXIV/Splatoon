@@ -23,6 +23,7 @@ namespace Splatoon.Memory
                 Logger.Log(text);
                 PluginLog.Verbose(text);
             }
+            BuffEffectProcessor.DirectorCheck(a3);
             ScriptingProcessor.OnDirectorUpdate(a3);
         }
     }

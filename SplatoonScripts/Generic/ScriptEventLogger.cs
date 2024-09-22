@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Generic;
 internal class ScriptEventLogger :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
-    public override Metadata? Metadata => new(2, "Redmoon");
+    public override Metadata? Metadata => new(3, "Redmoon");
 
     private Config Conf => Controller.GetConfig<Config>();
 
@@ -221,6 +221,22 @@ internal class ScriptEventLogger :SplatoonScript
             PluginLog.Information($"OnActionEffectEvent: {set.Action.Name}({set.Action.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId}) - Target: {set.Target.Name}{set.Target.Position}(GID: {set.Target.GameObjectId} DID: {set.Target.DataId})");
     }
 
+    public override void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    {
+        if (!Conf.FilterOnGainBuffEffect)
+            return;
+        var gameObject = sourceId.GetObject();
+        PluginLog.Information($"OnGainBuffEffect: [{gameObject.Name}({sourceId})] {string.Join(", ", gainBuffIds)}");
+    }
+
+    public override void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds)
+    {
+        if (!Conf.FilterOnRemoveBuffEffect)
+            return;
+        var gameObject = sourceId.GetObject();
+        PluginLog.Information($"OnRemoveBuffEffect: [{gameObject.Name}({sourceId})] {string.Join(", ", removeBuffIds)}");
+    }
+
     public override void OnReset()
     {
         if (!Conf.FilterOnReset)
@@ -256,6 +272,8 @@ internal class ScriptEventLogger :SplatoonScript
         ImGui.Checkbox("OnObjectCreation()", ref Conf.FilterOnObjectCreation);
         ImGui.Checkbox("OnActorControl()", ref Conf.FilterOnActorControl);
         ImGui.Checkbox("OnActionEffectEvent()", ref Conf.FilterOnActionEffectEvent);
+        ImGui.Checkbox("OnGainBuffEffect()", ref Conf.FilterOnGainBuffEffect);
+        ImGui.Checkbox("OnRemoveBuffEffect()", ref Conf.FilterOnRemoveBuffEffect);
         ImGui.Checkbox("OnReset()", ref Conf.FilterOnReset);
     }
 
@@ -280,6 +298,8 @@ internal class ScriptEventLogger :SplatoonScript
         public bool FilterOnObjectCreation = false;
         public bool FilterOnActorControl = false;
         public bool FilterOnActionEffectEvent = true;
+        public bool FilterOnGainBuffEffect = false;
+        public bool FilterOnRemoveBuffEffect = false;
         public bool FilterOnReset = false;
 
         public void Reset()
@@ -303,6 +323,8 @@ internal class ScriptEventLogger :SplatoonScript
             FilterOnObjectCreation = false;
             FilterOnActorControl = false;
             FilterOnActionEffectEvent = true;
+            FilterOnGainBuffEffect = false;
+            FilterOnRemoveBuffEffect = false;
             FilterOnReset = false;
         }
     }

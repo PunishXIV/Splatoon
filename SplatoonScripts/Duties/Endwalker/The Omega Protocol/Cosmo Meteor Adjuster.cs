@@ -182,6 +182,9 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
+        if (set.Action == null)
+            return;
+
         if (set.Action.RowId == CastID.CosmoMeteorFlare)
         {
             this.OnReset();

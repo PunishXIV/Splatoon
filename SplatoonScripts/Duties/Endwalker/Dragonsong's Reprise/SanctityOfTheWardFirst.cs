@@ -281,7 +281,18 @@ public unsafe class SanctityOfTheWardFirst : SplatoonScript
     {
         ImGui.Text("Pair Character Name");
         ImGui.InputText("##PairCharacterName", ref C.PairCharacterName, 32);
-        ImGuiEx.EnumCombo("Resolve Position", ref C.ResolvePosition);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(150);
+        if (ImGui.BeginCombo("##partysel", "Select from party"))
+        {
+            foreach (var x in FakeParty.Get())
+                if (ImGui.Selectable(x.Name.ToString()))
+                    C.PairCharacterName = x.Name.ToString();
+            ImGui.EndCombo();
+        }
+
+        ImGui.Text("Resolve Position");
+        ImGuiEx.EnumCombo("##Resolve Position", ref C.ResolvePosition);
 
         ImGui.Checkbox("Look Face", ref C.LockFace);
         ImGui.SameLine();

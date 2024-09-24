@@ -31,6 +31,13 @@ Configuration:
 - **Your turn to bait (far first):** Check the box if you use a different bait order for when the boss hits further players first. If you are using [this RaidPlan](https://raidplan.io/plan/qqJH_fbu8IAMwfoK) as an example, healers would select 1, tanks would select 2, ranged DPS would select 3, and melee DPS would select 4. _It is suggested to use this because PF strats swap baits depending on close first or far first._
 - **Show standby zone:** Suggests where to stand _in blue_ when not baiting during Narrowing and Widening Witch Hunt.
 
+Colors:
+
+- **Red:** Boss mechanic zone - Narrowing or Widening Witch Hunt AOE, so never stand in red
+- **Yellow (if enabled):** Bait zone - where current baiters (not you) will be standing, so don't stand in it
+- **Green:** Bait zone - where you need to stand _to bait_
+- **Blue (if enabled):** Standby zone - where you need to stand _while not baiting_
+
 ![R4S Witch Hunt Script Instructions](/docs/images/instructions/dawntrail/raids/R4S_1.png)
 
 ```

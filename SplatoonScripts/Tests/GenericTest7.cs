@@ -14,6 +14,8 @@ public class GenericTest7 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; }
 
+    public override Metadata? Metadata => new(2);
+
     public override void OnSettingsDraw()
     {
         if(ImGui.Button("Try add"))

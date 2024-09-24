@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Hooks;
@@ -202,6 +203,28 @@ public abstract class SplatoonScript
     /// <param name="sourceId">Source object ID of buff removal.</param>
     /// <param name="removeBuffIds">Array of removed buff IDs.</param>
     public virtual void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds) { }
+
+    /// <summary>
+    /// Returns appropriate string depending on current game language. If not defined for current language, will return first defined string.
+    /// </summary>
+    /// <param name="en"></param>
+    /// <param name="jp"></param>
+    /// <param name="de"></param>
+    /// <param name="fr"></param>
+    /// <param name="cn"></param>
+    /// <returns></returns>
+    public string Loc(string? en = null, string? jp = null, string? de = null, string? fr = null, string? cn = null)
+    {
+        return Svc.Data.Language switch
+        {
+            ClientLanguage.English => en,
+            ClientLanguage.Japanese => jp,
+            ClientLanguage.German => de,
+            ClientLanguage.French => fr,
+            (ClientLanguage)4 => cn,
+            _ => null,
+        } ?? en ?? jp ?? de ?? fr ?? cn ?? "<null>";
+    }
 
     internal void DrawRegisteredElements()
     {

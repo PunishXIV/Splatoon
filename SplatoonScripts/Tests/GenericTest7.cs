@@ -14,7 +14,7 @@ public class GenericTest7 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; }
 
-    public override Metadata? Metadata => new(4);
+    public override Metadata? Metadata => new(5);
 
     public override void OnSettingsDraw()
     {

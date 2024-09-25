@@ -17,7 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SplatoonScriptsOfficial.Duties.Shadowbringers
+namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander
 {
     public class TEA_P2_Transition : SplatoonScript
     {

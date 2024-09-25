@@ -64,7 +64,7 @@ public class TEA_P2_1211_Transition : SplatoonScript
     private int _myNumber;
 
     public override HashSet<uint> ValidTerritories => [887];
-    public override Metadata Metadata => new(3, "Garume");
+    public override Metadata Metadata => new(4, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -118,6 +118,9 @@ public class TEA_P2_1211_Transition : SplatoonScript
             Filled = true
         };
         Controller.RegisterElement("Flare_m", fm, true);
+
+        C.BaitMessageIS.En = "Turn to face the outside here.";
+        C.BaitMessageIS.Jp = "ここで外を向け！";
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
@@ -166,7 +169,7 @@ public class TEA_P2_1211_Transition : SplatoonScript
             RotatedElement(ref bait, _baitPositions[i + 1], _firstBlastDirection);
             if (i + 1 == _myNumber)
             {
-                bait.overlayText = C.BaitMessage;
+                bait.overlayText = C.BaitMessageIS.Get();
                 bait.overlayFScale = 2f;
             }
             else
@@ -358,10 +361,11 @@ public class TEA_P2_1211_Transition : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.Text("Bait Message");
-        ImGuiEx.HelpMarker("The message that will be displayed on your bait.\nあなたの番号の立ち位置に表示されるメッセージ。");
-        ImGui.InputText("", ref C.BaitMessage, 10);
+        ImGuiEx.HelpMarker(Loc(en:"The message that will be displayed on your bait.", jp:"あなたの番号の立ち位置に表示されるメッセージ。"));
+        var showString = C.BaitMessageIS.Get();
+        C.BaitMessageIS.ImGuiEdit(ref showString, "The message that will be displayed on your bait.");
         ImGui.Text("Display Flares");
-        ImGuiEx.HelpMarker("Display flares on the ground to indicate the next safe spot.\n次の安全地帯を示すために地面にフレアを表示します。");
+        ImGuiEx.HelpMarker(Loc(en:"Display flares on the ground to indicate the next safe spot.", jp:"次の安全地帯を示すために地面にフレアを表示します。"));
         ImGui.Checkbox("", ref C.ShoulDisplayFlares);
     }
 
@@ -376,7 +380,8 @@ public class TEA_P2_1211_Transition : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public string BaitMessage = "ここで外を向け！";
+        //public string BaitMessage = "Turn to face the outside here.";
+        public InternationalString BaitMessageIS = new();
         public bool ShoulDisplayFlares = true;
     }
 }

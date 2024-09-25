@@ -6,6 +6,7 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -343,7 +344,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
         }
     }
 
-    public override void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds)
     {
         if (gainBuffIds.Contains(BuffID.MagicNumber) && _currentGimmick == Gimmick.MagicNumber)
         {
@@ -448,21 +449,6 @@ internal unsafe class P6_MultiScript :SplatoonScript
             return;
         }
 
-        if (gimmick == Gimmick.WaveCannonSpread1 && _currentGimmick == Gimmick.LimiterCut)
-        {
-            _showElement = false;
-            _limiterCutCount = 0;
-            _prevGimmick = _currentGimmick;
-            _currentGimmick = gimmick;
-            EzThrottler.Reset("WaveCannonSpread");
-            EzThrottler.Reset("LimiterCutWaveCannon");
-            EzThrottler.Reset("SpreadShowDelay");
-            _ = new TickScheduler(() =>
-            {
-                Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-
-            }, 2500);
-        }
         if (gimmick == Gimmick.CosmoDive && _currentGimmick == Gimmick.LimiterCut)
         {
             _showElement = false;
@@ -556,6 +542,23 @@ internal unsafe class P6_MultiScript :SplatoonScript
         if (!_showElement)
         {
             Controller.GetElementByName("CountReminder").Enabled = true;
+        }
+        if(_limiterCutCount >= 6 && !_isSecondHalf)
+        {
+            // Show Spread Position
+            if(!_isSecondHalf && (_prevSpreadMarker != C.spreadMarker || !_showElement))
+            {
+                if(_prevSpreadMarker != SpreadMarker.NotUse)
+                {
+                    Controller.GetElementByName(_prevSpreadMarker.ToString()).tether = false;
+                    Controller.GetElementByName(_prevSpreadMarker.ToString()).Enabled = false;
+                }
+
+                Controller.GetElementByName(C.spreadMarker.ToString()).tether = true;
+                Controller.GetElementByName(C.spreadMarker.ToString()).Enabled = true;
+
+                _prevSpreadMarker = C.spreadMarker; // for Debug
+            }
         }
         _showElement = true;
     }

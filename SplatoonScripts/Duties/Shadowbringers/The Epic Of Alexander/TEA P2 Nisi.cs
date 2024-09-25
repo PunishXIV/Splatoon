@@ -9,7 +9,7 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
-namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
+namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P2_Nisi : SplatoonScript
 {
@@ -38,7 +38,7 @@ public class TEA_P2_Nisi : SplatoonScript
     private static IEnumerable<uint> NisiIds2 => new[] { AlphaNisiId2, BetaNisiId2, GammaNisiId2, DeltaNisiId2 };
 
     public override HashSet<uint> ValidTerritories => [887];
-    public override Metadata Metadata => new(2, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
 
     private IBattleNpc? Justice =>
         Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == JusticeId && x.IsTargetable);
@@ -51,7 +51,7 @@ public class TEA_P2_Nisi : SplatoonScript
 
         var nisiPassElement = new Element(0)
         {
-            overlayText = "交換対象",
+            overlayText = Loc(en: "Pass it.", jp: "交換対象"),
             tether = true
         };
         Controller.RegisterElement("NisiPass", nisiPassElement);

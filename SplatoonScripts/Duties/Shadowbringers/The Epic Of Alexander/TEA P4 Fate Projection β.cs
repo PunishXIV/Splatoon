@@ -9,7 +9,7 @@ using ECommons.Logging;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
-namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
+namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P4_Fate_Projection_β : SplatoonScript
 {
@@ -34,7 +34,7 @@ public class TEA_P4_Fate_Projection_β : SplatoonScript
     private bool _myDefuffIsYellow;
     private uint? _myFuturePlayer;
 
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
     public override HashSet<uint>? ValidTerritories => [887];
 
     public override void OnStartingCast(uint source, uint castId)
@@ -99,7 +99,7 @@ public class TEA_P4_Fate_Projection_β : SplatoonScript
         {
             radius = 1f,
             color = EColor.Blue.ToUint(),
-            overlayText = "足元へ！",
+            overlayText = Loc(en: "Move beneath the enemy", jp: "足元へ！"),
             overlayFScale = 2f,
             overlayVOffset = 2f,
             thicc = 5f
@@ -137,16 +137,16 @@ public class TEA_P4_Fate_Projection_β : SplatoonScript
 
     private string GetFutureActionText(FutureActionType type)
     {
-        var stackDirection = _myDefuffIsYellow ? "北に" : "南に";
+        var stackDirection = _myDefuffIsYellow ? Loc(en: "Go North", jp: "北に") : Loc(en: "Go South", jp: "南に");
         return type switch
         {
-            FutureActionType.EastCenter => "終了後、外周に行け",
-            FutureActionType.EastCenterLeft => "終了後、外周に行け",
-            FutureActionType.EastLowerLeft => "終了後、外周に行け",
-            FutureActionType.EastUpperLeft => "終了後、外周に行け",
-            FutureActionType.Spread => "散開",
-            FutureActionType.Stack => $"頭割り {stackDirection}",
-            _ => ""
+            FutureActionType.EastCenter => Loc(en: "Afterwards, move to the outer edge", jp: "終了後、外周に行け"),
+            FutureActionType.EastCenterLeft => Loc(en: "Afterwards, move to the outer edge", jp: "終了後、外周に行け"),
+            FutureActionType.EastLowerLeft => Loc(en: "Afterwards, move to the outer edge", jp: "終了後、外周に行け"),
+            FutureActionType.EastUpperLeft => Loc(en: "Afterwards, move to the outer edge", jp: "終了後、外周に行け"),
+            FutureActionType.Spread => Loc(en: "Spread out", jp: "散開"),
+            FutureActionType.Stack => Loc(en: $"Stack {stackDirection}", jp: $"頭割り {stackDirection}"),
+            _ => Loc(en: "", jp: "")
         };
     }
 

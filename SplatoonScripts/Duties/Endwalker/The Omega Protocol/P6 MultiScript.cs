@@ -6,7 +6,6 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -449,16 +448,28 @@ internal unsafe class P6_MultiScript :SplatoonScript
             return;
         }
 
+        if (gimmick == Gimmick.WaveCannonSpread1 && _currentGimmick == Gimmick.LimiterCut)
+        {
+            _showElement = false;
+            _limiterCutCount = 0;
+            _prevGimmick = _currentGimmick;
+            _currentGimmick = gimmick;
+            EzThrottler.Reset("WaveCannonSpread");
+            EzThrottler.Reset("LimiterCutWaveCannon");
+            EzThrottler.Reset("SpreadShowDelay");
+            _ = new TickScheduler(() =>
+            {
+                Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+
+            }, 2500);
+        }
         if (gimmick == Gimmick.CosmoDive && _currentGimmick == Gimmick.LimiterCut)
         {
             _showElement = false;
-            DuoLog.Information("CosmoDive + LimiterCut");
             _ = new TickScheduler(() =>
             {
-                DuoLog.Information("CosmoDive + LimiterCut - Reset");
                 Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
                 _limiterCutCount = 0;
-
                 _prevGimmick = _currentGimmick;
                 _currentGimmick = gimmick;
                 EzThrottler.Reset("WaveCannonSpread");
@@ -471,7 +482,6 @@ internal unsafe class P6_MultiScript :SplatoonScript
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             _showElement = false;
             _limiterCutCount = 0;
-
             _prevGimmick = _currentGimmick;
             _currentGimmick = gimmick;
             EzThrottler.Reset("WaveCannonSpread");

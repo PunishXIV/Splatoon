@@ -195,14 +195,14 @@ public abstract class SplatoonScript
     /// </summary>
     /// <param name="sourceId">Source object ID of buff gain.</param>
     /// <param name="gainBuffIds">Array of gained buff IDs.</param>
-    public virtual void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds) { }
+    public virtual void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds) { }
 
     /// <summary>
     /// Will be called when a buff is removed from a game object. This method will only be called if a script is enabled.
     /// </summary>
     /// <param name="sourceId">Source object ID of buff removal.</param>
     /// <param name="removeBuffIds">Array of removed buff IDs.</param>
-    public virtual void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds) { }
+    public virtual void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<uint> removeBuffIds) { }
 
     /// <summary>
     /// Returns appropriate string depending on current game language. If not defined for current language, will return first defined string.

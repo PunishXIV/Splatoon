@@ -14,7 +14,7 @@ using Splatoon;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 
-namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
+namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P2_1211_Transition : SplatoonScript
 {

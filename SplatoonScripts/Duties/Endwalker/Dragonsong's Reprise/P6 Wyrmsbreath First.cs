@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
@@ -27,6 +27,13 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         UpperRight
     }
 
+    public enum EnchantmentType
+    {
+        None,
+        Ice,
+        Fire
+    }
+
     private readonly Vector2 _centerPosition = new(100f, 100f);
 
     private readonly Dictionary<string, EnchantmentType> _enchantments = new();
@@ -41,7 +48,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
     private BaitPosition _myBaitPosition = BaitPosition.None;
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
 
     private Config C => Controller.GetConfig<Config>();
@@ -58,15 +65,20 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
     public BaitPosition GetBaitPosition(string characterName)
     {
+        DuoLog.Information(characterName);
+
         var index = Array.IndexOf(C.CharacterNames, characterName);
         return C.BaitPositions[index];
     }
 
     public string GetPairCharacterName(string characterName)
     {
+        DuoLog.Information($"GetPairCharacterName {characterName}");
         var index = Array.IndexOf(C.CharacterNames, characterName);
         var baitPosition = C.BaitPositions[index];
         var indexs = C.BaitPositions.Select((x, i) => (x, i)).Where(x => x.x == baitPosition).Select(x => x.i).ToList();
+        DuoLog.Information($"Indexs: {string.Join(", ", indexs)}");
+
         indexs.Remove(index);
         return C.CharacterNames[indexs[0]];
     }
@@ -78,16 +90,31 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             _state = State.End;
     }
 
+    public EnchantmentType GetEnchantment(string characterName)
+    {
+        var enchantment = _enchantments[characterName];
+        if (enchantment == EnchantmentType.None)
+        {
+            if (_enchantments.Values.Count(x => x == EnchantmentType.Ice) == 2)
+                return EnchantmentType.Ice;
+            if (_enchantments.Values.Count(x => x == EnchantmentType.Fire) == 2)
+                return EnchantmentType.Fire;
+        }
+
+        return enchantment;
+    }
+
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (_state == State.End) return;
-        if (target.GetObject() is not ICharacter character) return;
-        _enchantments[character.Name.ToString()] = vfxPath switch
+        if (!vfxPath.StartsWith("vfx/channeling/eff/chn")) return;
+        if (_state != State.None) return;
+        _enchantments[target.GetObject().Name.ToString()] = vfxPath switch
         {
             "vfx/channeling/eff/chn_ice_mouth01x.avfx" => EnchantmentType.Ice,
             "vfx/channeling/eff/chn_fire_mouth01x.avfx" => EnchantmentType.Fire,
             _ => EnchantmentType.None
         };
+
 
         if (_enchantments.Count == 6)
         {
@@ -96,9 +123,12 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             var party = _enchantments.Keys.ToList();
             if (C.SwapIfNeeded)
             {
-                var myEnchantment = _enchantments[Player.Name];
+                var myEnchantment = GetEnchantment(Player.Name);
                 var pairCharacterName = GetPairCharacterName(Player.Name);
-                var pairEnchantment = _enchantments[pairCharacterName];
+                var pairEnchantment = GetEnchantment(pairCharacterName);
+
+                DuoLog.Information($"Pair: {pairCharacterName} {pairEnchantment}");
+
                 if (myEnchantment == pairEnchantment)
                 {
                     party.Remove(Player.Object.Name.ToString());
@@ -106,9 +136,15 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
                     // other 1
                     var otherPartyMember1 = party[0];
-                    var otherPartyMember1Enchantment = _enchantments[otherPartyMember1];
+                    var otherPartyMember1Enchantment = GetEnchantment(otherPartyMember1);
                     var otherPartyMember1Pair = GetPairCharacterName(otherPartyMember1);
-                    var otherPartyMember1PairEnchantment = _enchantments[otherPartyMember1Pair];
+
+                    DuoLog.Information($"{otherPartyMember1} {otherPartyMember1Pair}");
+
+                    var otherPartyMember1PairEnchantment = GetEnchantment(otherPartyMember1Pair);
+
+                    DuoLog.Information($"{otherPartyMember1Enchantment} {otherPartyMember1PairEnchantment}");
+
                     if (otherPartyMember1Enchantment != otherPartyMember1PairEnchantment)
                     {
                         party.Remove(otherPartyMember1);
@@ -226,13 +262,6 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         ImGui.Checkbox("Swap if needed", ref C.SwapIfNeeded);
         ImGui.ColorEdit4("Bait Color 1", ref C.BaitColor1, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Bait Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
-    }
-
-    private enum EnchantmentType
-    {
-        None,
-        Ice,
-        Fire
     }
 
 

@@ -631,7 +631,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    internal static void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds)
     {
         for(var i = 0; i < Scripts.Count; i++)
         {
@@ -646,7 +646,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds)
+    internal static void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<uint> removeBuffIds)
     {
         for(var i = 0; i < Scripts.Count; i++)
         {

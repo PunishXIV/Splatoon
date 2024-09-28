@@ -344,7 +344,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
         }
     }
 
-    public override void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds)
     {
         if (gainBuffIds.Contains(BuffID.MagicNumber) && _currentGimmick == Gimmick.MagicNumber)
         {
@@ -452,13 +452,10 @@ internal unsafe class P6_MultiScript :SplatoonScript
         if (gimmick == Gimmick.CosmoDive && _currentGimmick == Gimmick.LimiterCut)
         {
             _showElement = false;
-            DuoLog.Information("CosmoDive + LimiterCut");
             _ = new TickScheduler(() =>
             {
-                DuoLog.Information("CosmoDive + LimiterCut - Reset");
                 Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
                 _limiterCutCount = 0;
-
                 _prevGimmick = _currentGimmick;
                 _currentGimmick = gimmick;
                 EzThrottler.Reset("WaveCannonSpread");
@@ -471,7 +468,6 @@ internal unsafe class P6_MultiScript :SplatoonScript
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             _showElement = false;
             _limiterCutCount = 0;
-
             _prevGimmick = _currentGimmick;
             _currentGimmick = gimmick;
             EzThrottler.Reset("WaveCannonSpread");
@@ -546,6 +542,23 @@ internal unsafe class P6_MultiScript :SplatoonScript
         if (!_showElement)
         {
             Controller.GetElementByName("CountReminder").Enabled = true;
+        }
+        if(_limiterCutCount >= 6 && !_isSecondHalf)
+        {
+            // Show Spread Position
+            if(!_isSecondHalf && (_prevSpreadMarker != C.spreadMarker || !_showElement))
+            {
+                if(_prevSpreadMarker != SpreadMarker.NotUse)
+                {
+                    Controller.GetElementByName(_prevSpreadMarker.ToString()).tether = false;
+                    Controller.GetElementByName(_prevSpreadMarker.ToString()).Enabled = false;
+                }
+
+                Controller.GetElementByName(C.spreadMarker.ToString()).tether = true;
+                Controller.GetElementByName(C.spreadMarker.ToString()).Enabled = true;
+
+                _prevSpreadMarker = C.spreadMarker; // for Debug
+            }
         }
         _showElement = true;
     }

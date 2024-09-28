@@ -45,11 +45,11 @@ SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Limitless_Synergy,3,
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Party_Synergy,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Party Synergy.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Pantokrator_invincible_Reminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Pantokrator invincible Reminder.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Delta,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Delta.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_Transition,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA_P2_Transition.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P3_Wormhole_Formation,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P3 Wormhole Formation.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_Nisi,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P2 Nisi.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_1211_Transition,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P2 1211 Transition.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_Temporal_Stasis,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P2 Temporal Stasis.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Transition,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA_P2_Transition.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P3_Wormhole_Formation,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P3 Wormhole Formation.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Nisi,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Nisi.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_1211_Transition,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 1211 Transition.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Temporal_Stasis,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Temporal Stasis.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Twisters,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Twisters.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Heavensfall_Trio_Towers,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Heavensfall Trio Towers.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Tethers,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Tethers.cs
@@ -65,6 +65,6 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,2,https://github.
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Unsafe_Cannon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Unsafe Cannon.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Electrope_Edge,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Electrope Edge.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Sunrise_Sabbath,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Sunrise Sabbath.cs
-SplatoonScriptsOfficial.Tests@GenericTest7,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs
+SplatoonScriptsOfficial.Tests@GenericTest7,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs
 SplatoonScriptsOfficial.Tests@DMParser,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Tests@GenericTest6,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest6.cs

@@ -94,19 +94,12 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     private State _currentState = State.None;
     private Vector2 _eyesPosition;
-
     private Vector3 _lastPlayerPosition = Vector3.Zero;
-
-
     private BaitType _myBait = BaitType.None;
-
     private PlaystationMarker _myMarker = PlaystationMarker.Circle;
     public override HashSet<uint>? ValidTerritories => [968];
-
-
     private Config C => Controller.GetConfig<Config>();
-
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
@@ -121,8 +114,10 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         for (var i = 0; i < C.Priority.Length; i++)
         {
             ImGui.PushID($"prioelement{i}");
+            ImGui.Text($"Character {i + 1}");
+            ImGui.SameLine();
             ImGui.SetNextItemWidth(200);
-            ImGui.InputText($"Player {i + 1}", ref C.Priority[i], 50);
+            ImGui.InputText($"##Character{i}", ref C.Priority[i], 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
             if (ImGui.BeginCombo("##partysel", "Select from party"))
@@ -170,6 +165,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
         if (ImGui.CollapsingHeader("Debug"))
         {
+            ImGui.Checkbox("Show Debug Message", ref C.ShowDebug);
             ImGui.Text($"Current State: {_currentState}");
             ImGui.Text($"My Bait: {_myBait}");
             ImGui.Text($"My Marker: {_myMarker}");
@@ -339,7 +335,8 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
         if (targetPosition == Vector3.Zero) return;
 
-        DuoLog.Warning($"Facing target at {targetPosition}");
+        if (C.ShowDebug)
+            DuoLog.Warning($"Facing target at {targetPosition}");
 
         FaceTarget(targetPosition);
         return;
@@ -474,6 +471,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;
         public string[] Priority = ["", "", "", "", "", "", "", ""];
+        public bool ShowDebug;
     }
 }
 

@@ -155,8 +155,8 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
         Controller.RegisterElement("FinalCloseLeft", new Element(1) { refActorComparisonType = 2, offY = 19f, thicc = 5f, includeRotation = true, AdditionalRotation = 300f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
         Controller.RegisterElement("FinalFarLeft", new Element(1) { refActorComparisonType = 2, offY = 34f, thicc = 5f, includeRotation = true, AdditionalRotation = 330f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
-        Controller.RegisterElement("FinalNoSampledBashLeft", new Element(1) { refActorComparisonType = 2, offY = 5.5f, thicc = 5f, includeRotation = true, AdditionalRotation = 330f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
-        Controller.RegisterElement("FinalSampledBashLeft", new Element(1) { refActorComparisonType = 2, offY = 9f, thicc = 5f, includeRotation = true, AdditionalRotation = 300f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
+        Controller.RegisterElement("FinalNoSampledBashLeft", new Element(1) { refActorComparisonType = 2, offY = 4f, thicc = 5f, includeRotation = true, AdditionalRotation = 345f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
+        Controller.RegisterElement("FinalSampledBashLeft", new Element(1) { refActorComparisonType = 2, offY = 8f, thicc = 5f, includeRotation = true, AdditionalRotation = 329f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
         Controller.RegisterElement("FinalNoSampledStackLeft", new Element(1) { refActorComparisonType = 2, offY = 20f, thicc = 5f, includeRotation = true, AdditionalRotation = 358f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
         Controller.RegisterElement("FinalSampledStackLeft", new Element(1) { refActorComparisonType = 2, offY = 21f, thicc = 5f, includeRotation = true, AdditionalRotation = 347f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
 
@@ -178,8 +178,9 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == CastID.RunMiDelta)
+        switch (castId)
         {
+            case CastID.RunMiDelta:
             // Set Party Data
             var party = FakeParty.Get();
             List<PartyData> unsortedList = new List<PartyData>();
@@ -201,26 +202,22 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
             _partyData = unsortedList.OrderBy(x => x.index).ToList();
             _gimmickPhase = GimmickPhase.DeltaFirstHalfStart;
+            break;
 
-            return;
-        }
-        else if (castId == CastID.SwivelCannonLeft)
-        {
+            case CastID.SwivelCannonLeft:
             _isSwivelCannonLeftCasted = true;
             _gimmickPhase = GimmickPhase.DeltaSecondHalf;
-        }
-        else if (castId == CastID.SwivelCannonRight)
-        {
+            break;
+            case CastID.SwivelCannonRight:
             _isSwivelCannonRightCasted = true;
             _gimmickPhase = GimmickPhase.DeltaSecondHalf;
-        }
-        else if (castId == CastID.OverSampledCannonLeft)
-        {
+            break;
+            case CastID.OverSampledCannonLeft:
             _isOverSampledLeftCasted = true;
-        }
-        else if (castId == CastID.OverSampledCannonRight)
-        {
+            break;
+            case CastID.OverSampledCannonRight:
             _isOverSampledRightCasted = true;
+            break;
         }
     }
 
@@ -228,42 +225,42 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
     {
         if (set.Action == null || _gimmickPhase == GimmickPhase.None) return;
 
-        if (set.Action.RowId == CastID.ShieldCombo)
+        switch (set.Action.RowId)
         {
+            case CastID.ShieldCombo:
             _gimmickPhase = GimmickPhase.DeltaFirstHalfStackTiming;
-        }
-        else if (set.Action.RowId == CastID.SwivelCannonLeft || set.Action.RowId == CastID.SwivelCannonRight)
-        {
-            this.OnReset();
+            break;
+            case CastID.SwivelCannonLeft:
+            case CastID.SwivelCannonRight:
             _gimmickPhase = GimmickPhase.None;
+            break;
         }
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_gimmickPhase == GimmickPhase.DeltaFirstHalfStart && _partyData.Count == 8)
+        if (!(_gimmickPhase == GimmickPhase.DeltaFirstHalfStart && _partyData.Count == 8)) return;
+
+        PartyData? sourcePlayer = _partyData.FirstOrDefault(x => x.player.EntityId == source);
+        PartyData? targetPlayer = _partyData.FirstOrDefault(x => x.player.EntityId == target);
+        if (sourcePlayer == null || targetPlayer == null) return;
+
+        // Near
+        if (data3 == 200 && data5 == 15)
         {
-            PartyData? sourcePlayer = _partyData.FirstOrDefault(x => x.player.EntityId == source);
-            PartyData? targetPlayer = _partyData.FirstOrDefault(x => x.player.EntityId == target);
-            if (sourcePlayer == null || targetPlayer == null) return;
+            sourcePlayer.pair = targetPlayer.player;
+            sourcePlayer.isFar = false;
+            targetPlayer.pair = sourcePlayer.player;
+            targetPlayer.isFar = false;
+        }
 
-            // Near
-            if (data3 == 200 && data5 == 15)
-            {
-                sourcePlayer.pair = targetPlayer.player;
-                sourcePlayer.isFar = false;
-                targetPlayer.pair = sourcePlayer.player;
-                targetPlayer.isFar = false;
-            }
-
-            // Far
-            if (data3 == 201 && data5 == 15)
-            {
-                sourcePlayer.pair = targetPlayer.player;
-                sourcePlayer.isFar = true;
-                targetPlayer.pair = sourcePlayer.player;
-                targetPlayer.isFar = true;
-            }
+        // Far
+        if (data3 == 201 && data5 == 15)
+        {
+            sourcePlayer.pair = targetPlayer.player;
+            sourcePlayer.isFar = true;
+            targetPlayer.pair = sourcePlayer.player;
+            targetPlayer.isFar = true;
         }
     }
 
@@ -508,44 +505,29 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             // Sampled + Bash
             if (player.isSampled && player.isBashed)
             {
-                Controller.GetElementByName("FinalSampledBashLeft").AdditionalRotation = InvertRotationCheck(Controller.GetElementByName("FinalSampledBashLeft"), player);
-                Controller.GetElementByName("FinalSampledBashLeft").refActorObjectID = _final.EntityId;
-                Controller.GetElementByName("FinalSampledBashLeft").tether = true;
-                Controller.GetElementByName("FinalSampledBashLeft").Enabled = true;
+                ShowStackElement("FinalSampledBashLeft", player);
             }
             // Bash
             else if (player.isBashed && !player.isSampled)
             {
-                Controller.GetElementByName("FinalNoSampledBashLeft").AdditionalRotation = InvertRotationCheck(Controller.GetElementByName("FinalNoSampledBashLeft"), player);
-                Controller.GetElementByName("FinalNoSampledBashLeft").refActorObjectID = _final.EntityId;
-                Controller.GetElementByName("FinalNoSampledBashLeft").tether = true;
-                Controller.GetElementByName("FinalNoSampledBashLeft").Enabled = true;
+                ShowStackElement("FinalNoSampledBashLeft", player);
             }
             // Sampled
             else if (player.isSampled && !player.isBashed)
             {
-                Controller.GetElementByName("FinalSampledStackLeft").AdditionalRotation = InvertRotationCheck(Controller.GetElementByName("FinalSampledStackLeft"), player);
-                Controller.GetElementByName("FinalSampledStackLeft").refActorObjectID = _final.EntityId;
-                Controller.GetElementByName("FinalSampledStackLeft").tether = true;
-                Controller.GetElementByName("FinalSampledStackLeft").Enabled = true;
+                ShowStackElement("FinalSampledStackLeft", player);
             }
             else
             {
                 // Bash + Sampled
                 if (_partyData.Any(x => x.isSampled && x.isBashed))
                 {
-                    Controller.GetElementByName("FinalNoSampledStackLeft").AdditionalRotation = InvertRotationCheck(Controller.GetElementByName("FinalNoSampledStackLeft"), player);
-                    Controller.GetElementByName("FinalNoSampledStackLeft").refActorObjectID = _final.EntityId;
-                    Controller.GetElementByName("FinalNoSampledStackLeft").tether = true;
-                    Controller.GetElementByName("FinalNoSampledStackLeft").Enabled = true;
+                    ShowStackElement("FinalNoSampledStackLeft", player);
                 }
                 // Bash
                 else if (_partyData.Any(x => x.isBashed && !x.isSampled))
                 {
-                    Controller.GetElementByName("FinalSampledStackLeft").AdditionalRotation = InvertRotationCheck(Controller.GetElementByName("FinalSampledStackLeft"), player);
-                    Controller.GetElementByName("FinalSampledStackLeft").refActorObjectID = _final.EntityId;
-                    Controller.GetElementByName("FinalSampledStackLeft").tether = true;
-                    Controller.GetElementByName("FinalSampledStackLeft").Enabled = true;
+                    ShowStackElement("FinalSampledStackLeft", player);
                 }
             }
         }
@@ -554,37 +536,21 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             // Near
             if (player.isClosePosition)
             {
-                if (player.isLeft)
-                {
-                    Controller.GetElementByName("FinalFarLeft").AdditionalRotation = InvertRotationCheck(Controller.GetElementByName("FinalFarLeft"), player);
-                    Controller.GetElementByName("FinalFarLeft").refActorObjectID = _final.EntityId;
-                    Controller.GetElementByName("FinalFarLeft").tether = true;
-                    Controller.GetElementByName("FinalFarLeft").Enabled = true;
-                }
-                else
-                {
-                    Controller.GetElementByName("FinalFarLeft").refActorObjectID = _final.EntityId;
-                    Controller.GetElementByName("FinalFarLeft").tether = true;
-                    Controller.GetElementByName("FinalFarLeft").Enabled = true;
-                }
+                ShowStackElement("FinalFarLeft", player);
             }
             else
             {
-                if (player.isLeft)
-                {
-                    Controller.GetElementByName("FinalCloseLeft").AdditionalRotation = InvertRotationCheck(Controller.GetElementByName("FinalCloseLeft"), player);
-                    Controller.GetElementByName("FinalCloseLeft").refActorObjectID = _final.EntityId;
-                    Controller.GetElementByName("FinalCloseLeft").tether = true;
-                    Controller.GetElementByName("FinalCloseLeft").Enabled = true;
-                }
-                else
-                {
-                    Controller.GetElementByName("FinalCloseLeft").refActorObjectID = _final.EntityId;
-                    Controller.GetElementByName("FinalCloseLeft").tether = true;
-                    Controller.GetElementByName("FinalCloseLeft").Enabled = true;
-                }
+                ShowStackElement("FinalCloseLeft", player);
             }
         }
+    }
+
+    private void ShowStackElement(string elementName, PartyData player)
+    {
+        Controller.GetElementByName(elementName).AdditionalRotation = InvertRotationCheck(Controller.GetElementByName(elementName), player);
+        Controller.GetElementByName(elementName).tether = true;
+        Controller.GetElementByName(elementName).refActorObjectID = _final.EntityId;
+        Controller.GetElementByName(elementName).Enabled = true;
     }
 
     private void ShowDeltaHelloPosition(uint ObjectId)
@@ -605,8 +571,8 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
     {
         Controller.GetElementByName("FinalCloseLeft").AdditionalRotation = 300f.DegreesToRadians();
         Controller.GetElementByName("FinalFarLeft").AdditionalRotation = 330f.DegreesToRadians();
-        Controller.GetElementByName("FinalNoSampledBashLeft").AdditionalRotation = 330f.DegreesToRadians();
-        Controller.GetElementByName("FinalSampledBashLeft").AdditionalRotation = 300f.DegreesToRadians();
+        Controller.GetElementByName("FinalNoSampledBashLeft").AdditionalRotation = 345f.DegreesToRadians();
+        Controller.GetElementByName("FinalSampledBashLeft").AdditionalRotation = 329f.DegreesToRadians();
         Controller.GetElementByName("FinalNoSampledStackLeft").AdditionalRotation = 358f.DegreesToRadians();
         Controller.GetElementByName("FinalSampledStackLeft").AdditionalRotation = 347f.DegreesToRadians();
 
@@ -634,6 +600,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
     private float InvertRotationCheck(Element element, PartyData pd)
     {
         if (!element.includeRotation) return 0;
+
         if (_gimmickPhase == GimmickPhase.DeltaFirstHalfStackTiming)
         {
             if (pd.isFar)

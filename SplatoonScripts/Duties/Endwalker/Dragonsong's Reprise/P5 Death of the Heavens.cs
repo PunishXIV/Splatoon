@@ -22,64 +22,6 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 {
-    private readonly Dictionary<BaitType, List<Vector2>> _baitPositions = new()
-    {
-        [BaitType.None] =
-        [
-            Vector2.Zero,
-            Vector2.Zero,
-            Vector2.Zero
-        ],
-        [BaitType.Red1] =
-        [
-            new Vector2(12.49f, 8.5f),
-            new Vector2(8f, 9f),
-            new Vector2(2f, 9f)
-        ],
-        [BaitType.Red2] =
-        [
-            new Vector2(12.49f, 24.76f),
-            new Vector2(1.4f, 7.6f),
-            new Vector2(1.4f, 7.6f)
-        ],
-        [BaitType.Red3] =
-        [
-            new Vector2(-12.49f, 24.76f),
-            new Vector2(-1.4f, 7.6f),
-            new Vector2(-1.4f, 7.6f)
-        ],
-        [BaitType.Red4] =
-        [
-            new Vector2(-12.49f, 8.5f),
-            new Vector2(-9f, 9f),
-            new Vector2(-2f, 9f)
-        ],
-        [BaitType.Blue1] =
-        [
-            new Vector2(20.5f, 8.5f),
-            new Vector2(0f, 9f),
-            Vector2.Zero
-        ],
-        [BaitType.Blue2] =
-        [
-            new Vector2(12.49f, -7.76f),
-            new Vector2(0f, 11.5f),
-            Vector2.Zero
-        ],
-        [BaitType.Blue3] =
-        [
-            new Vector2(-12.49f, -7.76f),
-            new Vector2(0f, 14f),
-            Vector2.Zero
-        ],
-        [BaitType.Blue4] =
-        [
-            new Vector2(-20.5f, 8.5f),
-            new Vector2(0f, 16.5f),
-            Vector2.Zero
-        ]
-    };
-
     private readonly Dictionary<uint, Vector2> _eyesPositions = new()
     {
         { 0, new Vector2(100.00f, 60.00f) },
@@ -103,6 +45,83 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
+
+    private Vector2 GetBaitPosition(State state, BaitType bait)
+    {
+        switch (state, bait)
+        {
+            case (State.FirstSplit, BaitType.Red1):
+                return new Vector2(12.49f, 8.5f);
+            case (State.FirstSplit, BaitType.Red2):
+                return new Vector2(12.49f, 24.76f);
+            case (State.FirstSplit, BaitType.Red3):
+                return new Vector2(-12.49f, 24.76f);
+            case (State.FirstSplit, BaitType.Red4):
+                return new Vector2(-12.49f, 8.5f);
+            case (State.FirstSplit, BaitType.Blue1):
+                return new Vector2(20.5f, 8.5f);
+            case (State.FirstSplit, BaitType.Blue2):
+                return new Vector2(12.49f, -7.76f);
+            case (State.FirstSplit, BaitType.Blue3):
+                return new Vector2(-12.49f, -7.76f);
+            case (State.FirstSplit, BaitType.Blue4):
+                return new Vector2(-20.5f, 8.5f);
+            case (State.SecondSplit, BaitType.Red1):
+                return new Vector2(8f, 9f);
+            case (State.SecondSplit, BaitType.Red2):
+                return new Vector2(1.4f, 7.6f);
+            case (State.SecondSplit, BaitType.Red3):
+                return new Vector2(-1.4f, 7.6f);
+            case (State.SecondSplit, BaitType.Red4):
+                return new Vector2(-9f, 9f);
+            case (State.SecondSplit, BaitType.Blue1):
+                return C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(6f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 9f),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            case (State.SecondSplit, BaitType.Blue2):
+                return C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(2f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 11.5f),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            case (State.SecondSplit, BaitType.Blue3):
+                return C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(-2f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 14f),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            case (State.SecondSplit, BaitType.Blue4):
+                return C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(-6f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 16.5f),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            case (State.PlayStationSplit, BaitType.Red1):
+                return new Vector2(2f, 9f);
+            case (State.PlayStationSplit, BaitType.Red2):
+                return new Vector2(1.4f, 7.6f);
+            case (State.PlayStationSplit, BaitType.Red3):
+                return new Vector2(-1.4f, 7.6f);
+            case (State.PlayStationSplit, BaitType.Red4):
+                return new Vector2(-2f, 9f);
+            case (State.PlayStationSplit, BaitType.Blue1):
+                return Vector2.Zero;
+            case (State.PlayStationSplit, BaitType.Blue2):
+                return Vector2.Zero;
+            case (State.PlayStationSplit, BaitType.Blue3):
+                return Vector2.Zero;
+            case (State.PlayStationSplit, BaitType.Blue4):
+                return Vector2.Zero;
+        }
+
+        return default;
+    }
 
     private bool DrawPriorityList()
     {
@@ -144,14 +163,21 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        ImGui.Text("General");
+        ImGui.Indent();
         DrawPriorityList();
-
+        ImGui.Text("Pre Playstation Split");
+        ImGuiEx.EnumCombo("##Pre Playstation Split", ref C.PrePlaystationSplit);
+        ImGui.Unindent();
+        
+        ImGui.Text("Other");
+        ImGui.Indent();
         ImGui.Checkbox("Look Face", ref C.LockFace);
         ImGui.SameLine();
         ImGuiEx.HelpMarker(
             "This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.\n\n自動で視線を調整します。ストリーミング中は使用しないでください。他のソフトウェアが同様の機能を実装していないことを確認してください。",
             EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
-
+    
         if (C.LockFace)
         {
             ImGui.Indent();
@@ -162,6 +188,8 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
                 EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
             ImGui.Unindent();
         }
+        
+        ImGui.Unindent();
 
         if (ImGui.CollapsingHeader("Debug"))
         {
@@ -237,7 +265,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
                 return;
             case State.FirstSplit:
             {
-                var pos = _baitPositions[_myBait][0];
+                var pos = GetBaitPosition(_currentState, _myBait);
                 if (pos == Vector2.Zero) return;
                 if (Controller.TryGetElementByName("Bait1", out var bait))
                 {
@@ -250,7 +278,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             }
             case State.SecondSplit:
             {
-                var pos = _baitPositions[_myBait][1];
+                var pos = GetBaitPosition(_currentState, _myBait);
                 if (Controller.TryGetElementByName("Bait1", out var bait))
                 {
                     bait.Enabled = true;
@@ -262,7 +290,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             }
             case State.PlayStationSplit:
             {
-                var pos = _baitPositions[_myBait][2];
+                var pos = GetBaitPosition(_currentState, _myBait);
                 if (pos != Vector2.Zero)
                 {
                     if (Controller.TryGetElementByName("Bait1", out var bait))
@@ -432,6 +460,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         }
     }
 
+
     private enum BaitType
     {
         Red1,
@@ -464,12 +493,19 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         None
     }
 
+    private enum PrePlaystationSplit
+    {
+        Horizontal,
+        Vertical
+    }
+
     private class Config : IEzConfig
     {
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;
+        public PrePlaystationSplit PrePlaystationSplit = PrePlaystationSplit.Horizontal;
         public string[] Priority = ["", "", "", "", "", "", "", ""];
         public bool ShowDebug;
     }

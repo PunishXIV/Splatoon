@@ -2,6 +2,7 @@
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using Splatoon.Gui.Scripting;
+using Splatoon.Structures;
 using System.Collections.Immutable;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -631,7 +632,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds)
+    internal static void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainBuffIds)
     {
         for(var i = 0; i < Scripts.Count; i++)
         {
@@ -646,7 +647,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<uint> removeBuffIds)
+    internal static void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> removeBuffIds)
     {
         for(var i = 0; i < Scripts.Count; i++)
         {

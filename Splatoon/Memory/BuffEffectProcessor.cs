@@ -1,4 +1,7 @@
-﻿using Dalamud.Game.ClientState.Statuses;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Statuses;
+using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using ECommons.Hooks;
 using Splatoon.SplatoonScripting;
 
@@ -41,7 +44,7 @@ internal class BuffEffectProcessor
     #region public
     public void ActorEffectUpdate()
     {
-        if(_isClearRequest)
+        if (_isClearRequest)
         {
             _charactorStatusInfos.Clear();
             _isClearRequest = false;
@@ -51,18 +54,18 @@ internal class BuffEffectProcessor
         IncrementNoUpdateCount();
 
         // Loop through all objects in Svc.Objects
-        foreach(var gameObject in Svc.Objects)
+        foreach (var gameObject in Svc.Objects)
         {
-            if(gameObject == null)
+            if (gameObject == null)
                 continue;
 
             // Check if it can be cast to IBattleChara
-            if(gameObject is IBattleChara battleChara)
+            if (gameObject is IBattleChara battleChara)
             {
                 var objectID = battleChara.EntityId;
 
                 // If the object exists, reset the counter
-                if(_charactorStatusInfos.TryGetValue(objectID, out var statusInfo))
+                if (_charactorStatusInfos.TryGetValue(objectID, out var statusInfo))
                 {
                     statusInfo.NoUpdateCount = 0; // Reset the counter as the object is confirmed to exist
                     _charactorStatusInfos[objectID] = statusInfo;
@@ -87,7 +90,7 @@ internal class BuffEffectProcessor
 
     public static void DirectorCheck(DirectorUpdateCategory category)
     {
-        if(category == DirectorUpdateCategory.Commence ||
+        if (category == DirectorUpdateCategory.Commence ||
             category == DirectorUpdateCategory.Wipe)
         {
             _isClearRequest = true;
@@ -99,7 +102,7 @@ internal class BuffEffectProcessor
     private void IncrementNoUpdateCount()
     {
         // Increment the NoUpdateCount for all objects
-        foreach(var key in _charactorStatusInfos.Keys)
+        foreach (var key in _charactorStatusInfos.Keys)
         {
             var statusInfo = _charactorStatusInfos[key];
             statusInfo.NoUpdateCount++;
@@ -111,16 +114,16 @@ internal class BuffEffectProcessor
     {
         // Add objects with NoUpdateCount >= 10 to the removal list
         List<uint> toRemove = new List<uint>();
-        foreach(var kvp in _charactorStatusInfos)
+        foreach (var kvp in _charactorStatusInfos)
         {
-            if(kvp.Value.NoUpdateCount >= 10)
+            if (kvp.Value.NoUpdateCount >= 10)
             {
                 toRemove.Add(kvp.Key);
             }
         }
 
         // Actually remove the objects
-        foreach(var objectID in toRemove)
+        foreach (var objectID in toRemove)
         {
             _charactorStatusInfos.Remove(objectID);
         }
@@ -130,9 +133,9 @@ internal class BuffEffectProcessor
     {
         var newStatusIds = GetStatusIds(statuses);
 
-        if(_charactorStatusInfos.TryGetValue(objectID, out var existingInfo))
+        if (_charactorStatusInfos.TryGetValue(objectID, out var existingInfo))
         {
-            if(!ArraysEqual(existingInfo.StatusIds, newStatusIds))
+            if (!ArraysEqual(existingInfo.StatusIds, newStatusIds))
             {
                 _charactorStatusInfos[objectID] = new CharactorStatusInfo
                 {
@@ -157,7 +160,7 @@ internal class BuffEffectProcessor
     {
         changeStatuses = new List<CharactorStatusDiffResult>();
 
-        if(!_charactorStatusInfos.TryGetValue(objectID, out var existingInfo))
+        if (!_charactorStatusInfos.TryGetValue(objectID, out var existingInfo))
         {
             return StatusChangeResult.NoChange;
         }
@@ -173,7 +176,7 @@ internal class BuffEffectProcessor
     private uint[] GetStatusIds(StatusList statuses)
     {
         var statusIds = new uint[statuses.Length];
-        for(int i = 0; i < statuses.Length; i++)
+        for (int i = 0; i < statuses.Length; i++)
         {
             statusIds[i] = statuses[i]?.StatusId ?? 0;
         }
@@ -182,9 +185,9 @@ internal class BuffEffectProcessor
 
     private void CheckGains(uint[] currentStatusIds, uint[] oldStatusIds, List<CharactorStatusDiffResult> changeStatuses)
     {
-        for(int i = 0; i < currentStatusIds.Length; i++)
+        for (int i = 0; i < currentStatusIds.Length; i++)
         {
-            if(System.Array.IndexOf(oldStatusIds, currentStatusIds[i]) < 0)
+            if (System.Array.IndexOf(oldStatusIds, currentStatusIds[i]) < 0)
             {
                 changeStatuses.Add(new CharactorStatusDiffResult
                 {
@@ -197,9 +200,9 @@ internal class BuffEffectProcessor
 
     private void CheckRemovals(uint[] currentStatusIds, uint[] oldStatusIds, List<CharactorStatusDiffResult> changeStatuses)
     {
-        for(int i = 0; i < oldStatusIds.Length; i++)
+        for (int i = 0; i < oldStatusIds.Length; i++)
         {
-            if(System.Array.IndexOf(currentStatusIds, oldStatusIds[i]) < 0)
+            if (System.Array.IndexOf(currentStatusIds, oldStatusIds[i]) < 0)
             {
                 changeStatuses.Add(new CharactorStatusDiffResult
                 {
@@ -212,12 +215,12 @@ internal class BuffEffectProcessor
 
     private bool ArraysEqual(uint[] array1, uint[] array2)
     {
-        if(array1.Length != array2.Length)
+        if (array1.Length != array2.Length)
             return false;
 
-        for(int i = 0; i < array1.Length; i++)
+        for (int i = 0; i < array1.Length; i++)
         {
-            if(array1[i] != array2[i])
+            if (array1[i] != array2[i])
                 return false;
         }
         return true;
@@ -228,10 +231,12 @@ internal class BuffEffectProcessor
     {
         List<uint> gainStatusIds = new List<uint>();
         List<uint> removeStatusIds = new List<uint>();
+        bool isPlayer = battleChara is IPlayerCharacter;
+        var pc = battleChara as IPlayerCharacter;
 
-        foreach(var changeStatus in changeStatuses)
+        foreach (var changeStatus in changeStatuses)
         {
-            switch(changeStatus.ChangeType)
+            switch (changeStatus.ChangeType)
             {
                 case StatusChangeType.Gain:
                 gainStatusIds.Add(changeStatus.StatusId);
@@ -242,44 +247,97 @@ internal class BuffEffectProcessor
             }
         }
 
-        if(gainStatusIds.Count > 0)
+        if (gainStatusIds.Count > 0)
         {
             string text;
-            if(P.Config.LogPosition)
+
+            if (P.Config.LogPosition)
             {
-                foreach(var statusId in gainStatusIds)
+                foreach (var statusId in gainStatusIds)
                 {
-                    text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId} ({battleChara.NameId}:+{statusId})";
+                    if (isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
+                    {
+                        text = $"You ({battleChara.Position.ToString()}) gain the effect of {statusId} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
+                        P.ChatMessageQueue.Enqueue(text);
+                    }
+
+                    if (isPlayer)
+                    {
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                    }
+                    else
+                    {
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId} ([buff+]{battleChara.NameId}:{statusId})";
+                    }
                     P.ChatMessageQueue.Enqueue(text);
                 }
             }
             else
             {
-                foreach(var statusId in gainStatusIds)
+                foreach (var statusId in gainStatusIds)
                 {
-                    text = $"{battleChara.Name} gains the effect of {statusId} ({battleChara.NameId}:+{statusId})";
+                    if (isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
+                    {
+                        text = $"You gain the effect of {statusId} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
+                        P.ChatMessageQueue.Enqueue(text);
+                    }
+
+                    if (isPlayer)
+                    {
+                        text = $"{battleChara.Name} gains the effect of {statusId} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                    }
+                    else
+                    {
+                        text = $"{battleChara.Name} gains the effect of {statusId} ([buff+]{battleChara.NameId}:{statusId})";
+                    }
                     P.ChatMessageQueue.Enqueue(text);
                 }
             }
             ScriptingProcessor.OnGainBuffEffect(battleChara.EntityId, gainStatusIds);
         }
 
-        if(removeStatusIds.Count > 0)
+        if (removeStatusIds.Count > 0)
         {
             string text;
-            if(P.Config.LogPosition)
+            if (P.Config.LogPosition)
             {
-                foreach(var statusId in removeStatusIds)
+                foreach (var statusId in removeStatusIds)
                 {
-                    text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId} ({battleChara.NameId}:-{statusId})";
+                    if (isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
+                    {
+                        text = $"You ({battleChara.Position.ToString()}) loses the effect of {statusId} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
+                        P.ChatMessageQueue.Enqueue(text);
+                    }
+
+                    if (isPlayer)
+                    {
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                    }
+                    else
+                    {
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId} ([buff-]{battleChara.NameId}:{statusId})";
+                    }
                     P.ChatMessageQueue.Enqueue(text);
                 }
             }
             else
             {
-                foreach(var statusId in removeStatusIds)
+                foreach (var statusId in removeStatusIds)
                 {
-                    text = $"{battleChara.Name} loses the effect of {statusId} ({battleChara.NameId}:-{statusId})";
+                    if (isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
+                    {
+                        text = $"You lose the effect of {statusId} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
+                        P.ChatMessageQueue.Enqueue(text);
+                    }
+
+                    if (isPlayer)
+                    {
+                        text = $"{battleChara.Name} loses the effect of {statusId} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                    }
+                    else
+                    {
+                        text = $"{battleChara.Name} loses the effect of {statusId} ([buff-]{battleChara.NameId}:{statusId})";
+                    }
                     P.ChatMessageQueue.Enqueue(text);
                 }
             }

@@ -1,24 +1,13 @@
 ﻿using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface.Colors;
-using ECommons;
 using ECommons.Configuration;
-using ECommons.DalamudServices;
-using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
-using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Generic;
 internal class ScriptEventLogger :SplatoonScript
@@ -221,7 +210,7 @@ internal class ScriptEventLogger :SplatoonScript
             PluginLog.Information($"OnActionEffectEvent: {set.Action.Name}({set.Action.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId}) - Target: {set.Target.Name}{set.Target.Position}(GID: {set.Target.GameObjectId} DID: {set.Target.DataId})");
     }
 
-    public override void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds)
     {
         if (!Conf.FilterOnGainBuffEffect)
             return;
@@ -229,7 +218,7 @@ internal class ScriptEventLogger :SplatoonScript
         PluginLog.Information($"OnGainBuffEffect: [{gameObject.Name}({sourceId})] {string.Join(", ", gainBuffIds)}");
     }
 
-    public override void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds)
+    public override void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<uint> removeBuffIds)
     {
         if (!Conf.FilterOnRemoveBuffEffect)
             return;

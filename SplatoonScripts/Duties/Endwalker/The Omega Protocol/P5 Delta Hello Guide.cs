@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = new HashSet<uint> { 1122 };
-    public override Metadata? Metadata => new Metadata(1, "Redmoon");
+    public override Metadata? Metadata => new Metadata(2, "Redmoon");
 
     #region Types
     private class PartyData
@@ -122,13 +122,13 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
     IReadOnlyList<ElementPos> Delta = new List<ElementPos>()
     {
-        new ElementPos { ElementName = "GreenNearOmega", Position = new Vector3(0, 1.78f, 0), Color = 3355508503, OverlayBGColor = 2617245696, OverlayTextColor = 4278255360, includeRotation = true, AdditionalRotation = 5.396558f },
-        new ElementPos { ElementName = "GreenFarFromOmega", Position = new Vector3(0, 37.1f, 0), Color = 3355508503, OverlayBGColor = 2617245696, OverlayTextColor = 4278255360, includeRotation = true, AdditionalRotation = 5.98997f },
-        new ElementPos { ElementName = "NearSource", Position = new Vector3(0, 20.8f, 0), Color = 4278225677, OverlayBGColor = 4278220288, OverlayTextColor = 4294967295, includeRotation = true, AdditionalRotation = 5.993461f },
-        new ElementPos { ElementName = "NearTakerInner", Position = new Vector3(0, 24.8f, 0), Color = 4278237622, OverlayBGColor = 4278236333, OverlayTextColor = 4278190080, includeRotation = true, AdditionalRotation = 5.640904f },
-        new ElementPos { ElementName = "NearTakerOuter", Position = new Vector3(0, 30.44f, 0), Color = 4278237622, OverlayBGColor = 4278236333, OverlayTextColor = 4278190080, includeRotation = true, AdditionalRotation = 5.609488f },
-        new ElementPos { ElementName = "BrokenTetherChillSpot", Position = new Vector3(0, 34.54f, 0), Color = 4294967295, OverlayBGColor = 4294967295, OverlayTextColor = 4278190080, includeRotation = true, AdditionalRotation = 5.801474f },
-        new ElementPos { ElementName = "FarSource", Position = new Vector3(0, 14.38f, 0), Color = 4288326400, OverlayBGColor = 4285363712, OverlayTextColor = 4294967295, includeRotation = true, AdditionalRotation = 5.1696653f }
+        new ElementPos { ElementName = "GreenNearOmega", Position = new Vector3(0, 1.78f, 0), Color = 3355508503, OverlayBGColor = 2617245696, OverlayTextColor = 4278255360, includeRotation = true, AdditionalRotation = 309.2f.DegreesToRadians() },
+        new ElementPos { ElementName = "GreenFarFromOmega", Position = new Vector3(0, 37.1f, 0), Color = 3355508503, OverlayBGColor = 2617245696, OverlayTextColor = 4278255360, includeRotation = true, AdditionalRotation = 343.2f.DegreesToRadians() },
+        new ElementPos { ElementName = "NearSource", Position = new Vector3(0, 20.8f, 0), Color = 4278225677, OverlayBGColor = 4278220288, OverlayTextColor = 4294967295, includeRotation = true, AdditionalRotation = 340.9f.DegreesToRadians() },
+        new ElementPos { ElementName = "NearTakerInner", Position = new Vector3(0, 24.48f, 0), Color = 4278237622, OverlayBGColor = 4278236333, OverlayTextColor = 4278190080, includeRotation = true, AdditionalRotation = 321.9f.DegreesToRadians() },
+        new ElementPos { ElementName = "NearTakerOuter", Position = new Vector3(0, 30.84f, 0), Color = 4278237622, OverlayBGColor = 4278236333, OverlayTextColor = 4278190080, includeRotation = true, AdditionalRotation = 321.6f.DegreesToRadians() },
+        new ElementPos { ElementName = "BrokenTetherChillSpot", Position = new Vector3(0, 34.54f, 0), Color = 4294967295, OverlayBGColor = 4294967295, OverlayTextColor = 4278190080, includeRotation = true, AdditionalRotation = 332.4f.DegreesToRadians() },
+        new ElementPos { ElementName = "FarSource", Position = new Vector3(0, 14.36f, 0), Color = 4288326400, OverlayBGColor = 4285363712, OverlayTextColor = 4294967295, includeRotation = true, AdditionalRotation = 293.2f.DegreesToRadians() }
     };
     #endregion
 
@@ -270,118 +270,117 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
         _ = new TickScheduler(delegate
         {
-            if (Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr)?.DataId == 0x3D5D ||
-               Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr)?.DataId == 0x3D5E)
-            {
-                ++_handCount;
-                if (_handCount < 8)
-                {
-                    return;
-                }
+            if (Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr)?.DataId != 0x3D5D &&
+               Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr)?.DataId != 0x3D5E) return;
 
-                // Find beetle and final
+            ++_handCount;
+            if (_handCount < 8)
+            {
+                return;
+            }
+
+            // Find beetle and final
+            if (_beetle == null || _final == null)
+            {
+                _beetle = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == beetleModelId) as IBattleNpc;
+                _final = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == finalModelId) as IBattleNpc;
+
                 if (_beetle == null || _final == null)
                 {
-                    _beetle = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == beetleModelId) as IBattleNpc;
-                    _final = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == finalModelId) as IBattleNpc;
-
-                    if (_beetle == null || _final == null)
-                    {
-                        _gimmickPhase = GimmickPhase.None;
-                        return;
-                    }
-                }
-
-                // Find Closest 2 Players
-                // Far Players
-                var farPlayers = _partyData.Where(x => x.isFar).ToList();
-                var closest = farPlayers.OrderBy(x => Vector3.Distance(new Vector3(100, 0, 100), x.player.Position)).FirstOrDefault();
-                PartyData pm = farPlayers.FirstOrDefault(x => x.player.EntityId == closest.player.EntityId);
-                PartyData pmPartner = farPlayers.FirstOrDefault(x => x.player.EntityId == closest.pair?.EntityId);
-                if (pm != null && pmPartner != null)
-                {
-                    pm.isClosePosition = true;
-                    pmPartner.isClosePosition = true;
-                    // Left or Right
-                    (pm.isLeft, pmPartner.isLeft) = IsLeft(new Vector3(100, 0, 100), _beetle.Position, pm.pair.Position, pmPartner.pair.Position);
-                }
-
-                // Near Players
-                var nearPlayers = _partyData.Where(x => !x.isFar).ToList();
-                var closestNear = nearPlayers.OrderBy(x => Vector3.Distance(new Vector3(100, 0, 100), x.player.Position)).FirstOrDefault();
-                PartyData pmNear = nearPlayers.FirstOrDefault(x => x.player.EntityId == closestNear.player.EntityId);
-                PartyData pmPartnerNear = nearPlayers.FirstOrDefault(x => x.player.EntityId == closestNear.pair?.EntityId);
-                if (pmNear != null && pmPartnerNear != null)
-                {
-                    pmNear.isClosePosition = true;
-                    pmPartnerNear.isClosePosition = true;
-                    // Left or Right
-                    (pmNear.isLeft, pmPartnerNear.isLeft) = IsLeft(new Vector3(100, 0, 100), _final.Position, pmNear.pair.Position, pmPartnerNear.pair.Position);
-                }
-
-                var Outers = _partyData.Where(x => x.isClosePosition == false).ToList();
-                // Left or Right
-                (Outers[0].isLeft, Outers[1].isLeft) = IsLeft(new Vector3(100, 0, 100), _final.Position, Outers[0].pair.Position, Outers[1].pair.Position);
-                (Outers[2].isLeft, Outers[3].isLeft) = IsLeft(new Vector3(100, 0, 100), _final.Position, Outers[2].pair.Position, Outers[3].pair.Position);
-
-                // Check Party Data
-                if (!_partyData.All(x => x.pair != null) ||
-                    _partyData.Where(x => x.isFar == true).Count() != 4 ||
-                    _partyData.Where(x => x.isLeft == true).Count() != 4)
-                {
-                    DuoLog.Error("Party Data Error");
                     _gimmickPhase = GimmickPhase.None;
                     return;
                 }
-                else
-                {
-                    _gimmickPhase = GimmickPhase.DeltaFirstHalfHandSpawn;
-                }
+            }
 
-                // Set Delta Position
-                bool innerUsed = false;
-                foreach (var player in _partyData)
+            // Find Closest 2 Players
+            // Far Players
+            var farPlayers = _partyData.Where(x => x.isFar).ToList();
+            var closest = farPlayers.OrderBy(x => Vector3.Distance(new Vector3(100, 0, 100), x.player.Position)).FirstOrDefault();
+            PartyData pm = farPlayers.FirstOrDefault(x => x.player.EntityId == closest.player.EntityId);
+            PartyData pmPartner = farPlayers.FirstOrDefault(x => x.player.EntityId == closest.pair?.EntityId);
+            if (pm != null && pmPartner != null)
+            {
+                pm.isClosePosition = true;
+                pmPartner.isClosePosition = true;
+                // Left or Right
+                (pm.isLeft, pmPartner.isLeft) = IsLeft(new Vector3(100, 0, 100), _beetle.Position, pm.pair.Position, pmPartner.pair.Position);
+            }
+
+            // Near Players
+            var nearPlayers = _partyData.Where(x => !x.isFar).ToList();
+            var closestNear = nearPlayers.OrderBy(x => Vector3.Distance(new Vector3(100, 0, 100), x.player.Position)).FirstOrDefault();
+            PartyData pmNear = nearPlayers.FirstOrDefault(x => x.player.EntityId == closestNear.player.EntityId);
+            PartyData pmPartnerNear = nearPlayers.FirstOrDefault(x => x.player.EntityId == closestNear.pair?.EntityId);
+            if (pmNear != null && pmPartnerNear != null)
+            {
+                pmNear.isClosePosition = true;
+                pmPartnerNear.isClosePosition = true;
+                // Left or Right
+                (pmNear.isLeft, pmPartnerNear.isLeft) = IsLeft(new Vector3(100, 0, 100), _final.Position, pmNear.pair.Position, pmPartnerNear.pair.Position);
+            }
+
+            var Outers = _partyData.Where(x => x.isClosePosition == false).ToList();
+            // Left or Right
+            (Outers[0].isLeft, Outers[1].isLeft) = IsLeft(new Vector3(100, 0, 100), _final.Position, Outers[0].pair.Position, Outers[1].pair.Position);
+            (Outers[2].isLeft, Outers[3].isLeft) = IsLeft(new Vector3(100, 0, 100), _final.Position, Outers[2].pair.Position, Outers[3].pair.Position);
+
+            // Check Party Data
+            if (!_partyData.All(x => x.pair != null) ||
+                _partyData.Where(x => x.isFar == true).Count() != 4 ||
+                _partyData.Where(x => x.isLeft == true).Count() != 4)
+            {
+                DuoLog.Error("Party Data Error");
+                _gimmickPhase = GimmickPhase.None;
+                return;
+            }
+            else
+            {
+                _gimmickPhase = GimmickPhase.DeltaFirstHalfHandSpawn;
+            }
+
+            // Set Delta Position
+            bool innerUsed = false;
+            foreach (var player in _partyData)
+            {
+                if (player.isFar)
                 {
-                    if (player.isFar)
+                    if (player.player.StatusList.Any(x => x.StatusId == BuffID.HelloNear))
                     {
-                        if (player.player.StatusList.Any(x => x.StatusId == BuffID.HelloNear))
+                        player.position = "NearSource";
+                    }
+                    else if (player.player.StatusList.Any(x => x.StatusId == BuffID.HelloFar))
+                    {
+                        player.position = "FarSource";
+                    }
+                    else
+                    {
+                        if (!innerUsed)
                         {
-                            player.position = "NearSource";
-                        }
-                        else if (player.player.StatusList.Any(x => x.StatusId == BuffID.HelloFar))
-                        {
-                            player.position = "FarSource";
+                            player.position = "NearTakerInner";
+                            innerUsed = true;
                         }
                         else
                         {
-                            if (!innerUsed)
-                            {
-                                player.position = "NearTakerInner";
-                                innerUsed = true;
-                            }
-                            else
-                            {
-                                player.position = "NearTakerOuter";
-                            }
+                            player.position = "NearTakerOuter";
+                        }
+                    }
+                }
+                else
+                {
+                    if (player.isClosePosition)
+                    {
+                        if (player.isLeft)
+                        {
+                            player.position = "GreenFarFromOmega";
+                        }
+                        else
+                        {
+                            player.position = "GreenNearOmega";
                         }
                     }
                     else
                     {
-                        if (player.isClosePosition)
-                        {
-                            if (player.isLeft)
-                            {
-                                player.position = "GreenFarFromOmega";
-                            }
-                            else
-                            {
-                                player.position = "GreenNearOmega";
-                            }
-                        }
-                        else
-                        {
-                            player.position = "BrokenTetherChillSpot";
-                        }
+                        player.position = "BrokenTetherChillSpot";
                     }
                 }
             }
@@ -436,7 +435,6 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         _isSwivelCannonRightCasted = false;
         _isSwivelCannonLeftCasted = false;
         ElementOff();
-        ElementRotationReset();
     }
 
     public override void OnSettingsDraw()
@@ -565,21 +563,6 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         Controller.GetElementByName(player.position).refActorObjectID = _beetle.EntityId;
         Controller.GetElementByName(player.position).tether = true;
         Controller.GetElementByName(player.position).Enabled = true;
-    }
-
-    private void ElementRotationReset()
-    {
-        Controller.GetElementByName("FinalCloseLeft").AdditionalRotation = 300f.DegreesToRadians();
-        Controller.GetElementByName("FinalFarLeft").AdditionalRotation = 330f.DegreesToRadians();
-        Controller.GetElementByName("FinalNoSampledBashLeft").AdditionalRotation = 345f.DegreesToRadians();
-        Controller.GetElementByName("FinalSampledBashLeft").AdditionalRotation = 329f.DegreesToRadians();
-        Controller.GetElementByName("FinalNoSampledStackLeft").AdditionalRotation = 358f.DegreesToRadians();
-        Controller.GetElementByName("FinalSampledStackLeft").AdditionalRotation = 347f.DegreesToRadians();
-
-        foreach (var element in Delta)
-        {
-            Controller.GetElementByName(element.ElementName).AdditionalRotation = element.AdditionalRotation;
-        }
     }
 
     private static (bool isTargetLeft, bool isPairLeft) IsLeft(Vector3 center, Vector3 reference, Vector3 target, Vector3 pair)

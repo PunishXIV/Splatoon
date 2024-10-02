@@ -20,6 +20,6 @@ public readonly record struct RecordedStatus
 
     public string ToStringWithName()
     {
-        return $"{StatusName}({StatusId}),{StackCount},{Param}";
+        return $"{StatusName}({StatusId}),{Param}";
     }
 }

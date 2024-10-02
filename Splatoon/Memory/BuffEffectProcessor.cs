@@ -260,17 +260,17 @@ internal class BuffEffectProcessor
                 {
                     if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
                     {
-                        text = $"You ({battleChara.Position.ToString()}) gain the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"You ({battleChara.Position.ToString()}) gain the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
                         P.ChatMessageQueue.Enqueue(text);
                     }
 
                     if(isPlayer)
                     {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
                     }
                     else
                     {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{battleChara.NameId}:{statusId})";
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff+]{battleChara.NameId}:{statusId})";
                     }
                     P.ChatMessageQueue.Enqueue(text);
                 }
@@ -281,17 +281,17 @@ internal class BuffEffectProcessor
                 {
                     if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
                     {
-                        text = $"You gain the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"You gain the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
                         P.ChatMessageQueue.Enqueue(text);
                     }
 
                     if(isPlayer)
                     {
-                        text = $"{battleChara.Name} gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"{battleChara.Name} gains the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
                     }
                     else
                     {
-                        text = $"{battleChara.Name} gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{battleChara.NameId}:{statusId})";
+                        text = $"{battleChara.Name} gains the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff+]{battleChara.NameId}:{statusId})";
                     }
                     P.ChatMessageQueue.Enqueue(text);
                 }
@@ -308,17 +308,17 @@ internal class BuffEffectProcessor
                 {
                     if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
                     {
-                        text = $"You ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"You ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
                         P.ChatMessageQueue.Enqueue(text);
                     }
 
                     if(isPlayer)
                     {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
                     }
                     else
                     {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{battleChara.NameId}:{statusId})";
+                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff-]{battleChara.NameId}:{statusId})";
                     }
                     P.ChatMessageQueue.Enqueue(text);
                 }
@@ -329,17 +329,17 @@ internal class BuffEffectProcessor
                 {
                     if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
                     {
-                        text = $"You lose the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"You lose the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
                         P.ChatMessageQueue.Enqueue(text);
                     }
 
                     if(isPlayer)
                     {
-                        text = $"{battleChara.Name} loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
+                        text = $"{battleChara.Name} loses the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
                     }
                     else
                     {
-                        text = $"{battleChara.Name} loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{battleChara.NameId}:{statusId})";
+                        text = $"{battleChara.Name} loses the effect of {statusId.StatusName}({statusId.StatusId}) Param: {statusId.Param} ([buff-]{battleChara.NameId}:{statusId})";
                     }
                     P.ChatMessageQueue.Enqueue(text);
                 }

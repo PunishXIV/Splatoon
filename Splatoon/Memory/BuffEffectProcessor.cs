@@ -181,7 +181,7 @@ internal class BuffEffectProcessor
         for(var i = 0; i < statuses.Length; i++)
         {
             var status = statuses[i];
-            statusIds[i] = status == null?default:new RecordedStatus(status.StatusId, status.StackCount, status.Param);
+            statusIds[i] = status == null?default:new RecordedStatus(status.StatusId, status.StackCount);
         }
         return statusIds;
     }

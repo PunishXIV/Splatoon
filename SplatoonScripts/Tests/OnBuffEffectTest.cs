@@ -1,25 +1,22 @@
 ﻿using ECommons.Logging;
 using Splatoon.SplatoonScripting;
-using System;
+using Splatoon.Structures;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Tests;
-internal class OnBuffEffectTest : SplatoonScript
+internal class OnBuffEffectTest :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => null;
 
-    public override void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
     {
         var gameObject = sourceId.GetObject();
-        PluginLog.Information($"OnGainBuffEffect: [{gameObject.Name}({sourceId})] {string.Join(", ", gainBuffIds)}");
+        PluginLog.Information($"OnGainBuffEffect: [{gameObject.Name}({sourceId})] {string.Join(", ", gainStatusInfos)}");
     }
 
-    public override void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds)
+    public override void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> removeStatusInfos)
     {
         var gameObject = sourceId.GetObject();
-        PluginLog.Information($"OnRemoveBuffEffect: [{gameObject.Name}({sourceId})] {string.Join(", ", removeBuffIds)}");
+        PluginLog.Information($"OnRemoveBuffEffect: [{gameObject.Name}({sourceId})] {string.Join(", ", removeStatusInfos)}");
     }
 }

@@ -12,6 +12,7 @@ using ECommons.Schedulers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using Splatoon.Structures;
 using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = new HashSet<uint> { 1122 };
-    public override Metadata? Metadata => new Metadata(2, "Redmoon");
+    public override Metadata? Metadata => new Metadata(3, "Redmoon");
 
     #region Types
     private class PartyData
@@ -387,11 +388,11 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         });
     }
 
-    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds)
+    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
     {
         if (!(_gimmickPhase == GimmickPhase.DeltaFirstHalfHandSpawn || _gimmickPhase == GimmickPhase.DeltaFirstHalfStackTiming)) return;
 
-        if (gainBuffIds.Contains(BuffID.BashDebuff))
+        if (gainStatusInfos.Any(x => x.StatusId == BuffID.BashDebuff))
         {
             var player = _partyData.FirstOrDefault(x => x.player.EntityId == sourceId);
             if (player != null)
@@ -399,14 +400,14 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
                 player.isBashed = true;
             }
         }
-        else if (gainBuffIds.Contains(BuffID.SampledBuffLeft) ||
-                 gainBuffIds.Contains(BuffID.SampledBuffRight))
+        else if (gainStatusInfos.Any(x => x.StatusId == BuffID.SampledBuffLeft) ||
+                 gainStatusInfos.Any(x => x.StatusId == BuffID.SampledBuffRight))
         {
             var player = _partyData.FirstOrDefault(x => x.player.EntityId == sourceId);
             if (player != null)
             {
                 player.isSampled = true;
-                player.SampledLeftRight = gainBuffIds.Contains(BuffID.SampledBuffLeft) ? "Left" : "Right";
+                player.SampledLeftRight = gainStatusInfos.Any(x => x.StatusId == BuffID.SampledBuffLeft) ? "Left" : "Right";
             }
         }
     }

@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Splatoon.Structures;
+﻿namespace Splatoon.Structures;
 
 public readonly record struct RecordedStatus
 {
+    public readonly string StatusName;
     public readonly uint StatusId;
     public readonly byte StackCount;
     public readonly ushort Param;
 
-    public RecordedStatus(uint statusId, byte stackCount, ushort param)
+    public RecordedStatus(string statusName, uint statusId, byte stackCount, ushort param)
     {
+        StatusName = statusName;
         StatusId = statusId;
         StackCount = stackCount;
         Param = param;
@@ -22,5 +18,10 @@ public readonly record struct RecordedStatus
     public override string ToString()
     {
         return $"{StatusId},{StackCount},{Param}";
+    }
+
+    public string ToStringWithName()
+    {
+        return $"{StatusName}({StatusId}),{StackCount},{Param}";
     }
 }

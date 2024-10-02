@@ -6,13 +6,13 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using Splatoon.Structures;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -132,7 +132,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     #endregion
 
     #region publicDefine
-    public override Metadata Metadata => new(1, "Redmoon");
+    public override Metadata Metadata => new(2, "Redmoon");
     public override HashSet<uint>? ValidTerritories => new() { 1122 };
     #endregion
 
@@ -344,9 +344,9 @@ internal unsafe class P6_MultiScript :SplatoonScript
         }
     }
 
-    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<uint> gainBuffIds)
+    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
     {
-        if (gainBuffIds.Contains(BuffID.MagicNumber) && _currentGimmick == Gimmick.MagicNumber)
+        if (gainStatusInfos.Any(x => x.StatusId == BuffID.MagicNumber) && _currentGimmick == Gimmick.MagicNumber)
         {
             ++_deBuffCount;
         }
@@ -543,12 +543,12 @@ internal unsafe class P6_MultiScript :SplatoonScript
         {
             Controller.GetElementByName("CountReminder").Enabled = true;
         }
-        if(_limiterCutCount >= 6 && !_isSecondHalf)
+        if (_limiterCutCount >= 6 && !_isSecondHalf)
         {
             // Show Spread Position
-            if(!_isSecondHalf && (_prevSpreadMarker != C.spreadMarker || !_showElement))
+            if (!_isSecondHalf && (_prevSpreadMarker != C.spreadMarker || !_showElement))
             {
-                if(_prevSpreadMarker != SpreadMarker.NotUse)
+                if (_prevSpreadMarker != SpreadMarker.NotUse)
                 {
                     Controller.GetElementByName(_prevSpreadMarker.ToString()).tether = false;
                     Controller.GetElementByName(_prevSpreadMarker.ToString()).Enabled = false;

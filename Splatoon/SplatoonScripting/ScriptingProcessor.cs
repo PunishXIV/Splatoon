@@ -306,7 +306,7 @@ internal static partial class ScriptingProcessor
                                                     }
                                                     instance.OnSetup();
                                                     instance.Controller.ApplyOverrides();
-                                                    if(previousVersion > 0)
+                                                    if (previousVersion > 0)
                                                     {
                                                         instance.OnScriptUpdated(previousVersion);
                                                     }
@@ -378,7 +378,7 @@ internal static partial class ScriptingProcessor
                     script.OnUpdate();
                 }
                 catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnUpdate)); }
-                if(tickCount > script.Controller.AutoResetAt)
+                if (tickCount > script.Controller.AutoResetAt)
                 {
                     PluginLog.Debug($"Resetting script {script.InternalData.Name} because of timer");
                     OnReset(script);
@@ -398,7 +398,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnCombatStart();
                 }
-                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnCombatStart)); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnCombatStart)); }
             }
         }
     }
@@ -430,7 +430,7 @@ internal static partial class ScriptingProcessor
             script.OnReset();
             script.Controller.AutoResetAt = long.MaxValue;
         }
-        catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
+        catch (Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
     }
 
     internal static void OnMapEffect(uint Position, ushort Param1, ushort Param2)
@@ -544,7 +544,7 @@ internal static partial class ScriptingProcessor
         {
             if (Scripts[i].IsEnabled)
             {
-                if(category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence || category == DirectorUpdateCategory.Wipe)
+                if (category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence || category == DirectorUpdateCategory.Wipe)
                 {
                     OnReset(i);
                 }
@@ -604,15 +604,15 @@ internal static partial class ScriptingProcessor
 
     internal static void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
     {
-        for(var i = 0; i < Scripts.Count; i++)
+        for (var i = 0; i < Scripts.Count; i++)
         {
-            if(Scripts[i].IsEnabled)
+            if (Scripts[i].IsEnabled)
             {
                 try
                 {
                     Scripts[i].OnActorControl(sourceId, command, p1, p2, p3, p4, p5, p6, targetId, replaying);
                 }
-                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActorControl)); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActorControl)); }
             }
         }
     }
@@ -632,32 +632,32 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainBuffIds)
+    internal static void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
     {
-        for(var i = 0; i < Scripts.Count; i++)
+        for (var i = 0; i < Scripts.Count; i++)
         {
-            if(Scripts[i].IsEnabled)
+            if (Scripts[i].IsEnabled)
             {
                 try
                 {
-                    Scripts[i].OnGainBuffEffect(sourceId, gainBuffIds);
+                    Scripts[i].OnGainBuffEffect(sourceId, gainStatusInfos);
                 }
-                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnGainBuffEffect)); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnGainBuffEffect)); }
             }
         }
     }
 
-    internal static void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> removeBuffIds)
+    internal static void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> removeStatusInfos)
     {
-        for(var i = 0; i < Scripts.Count; i++)
+        for (var i = 0; i < Scripts.Count; i++)
         {
-            if(Scripts[i].IsEnabled)
+            if (Scripts[i].IsEnabled)
             {
                 try
                 {
-                    Scripts[i].OnRemoveBuffEffect(sourceId, removeBuffIds);
+                    Scripts[i].OnRemoveBuffEffect(sourceId, removeStatusInfos);
                 }
-                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnRemoveBuffEffect)); }
+                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnRemoveBuffEffect)); }
             }
         }
     }

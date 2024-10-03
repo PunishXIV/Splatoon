@@ -12,6 +12,7 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using Splatoon.Structures;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -83,10 +84,10 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         return C.CharacterNames[indexs[0]];
     }
 
-    public override void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds)
+    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
     {
         if (_state != State.Start) return;
-        if (gainBuffIds.Contains(2902) || gainBuffIds.Contains(2903))
+        if (gainStatusInfos.Any(x => x.StatusId is 2902 or 2903))
             _state = State.End;
     }
 

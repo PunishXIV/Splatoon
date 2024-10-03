@@ -1,4 +1,4 @@
-SplatoonScriptsOfficial.Generic@ScriptEventLogger,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
+SplatoonScriptsOfficial.Generic@ScriptEventLogger,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@AutoFateSync,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoFateSync.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
@@ -16,7 +16,7 @@ SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Dominion,8,https://github.com/Puni
 SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Limitless_Desolation,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P8S2 Limitless Desolation.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P9S_Dualspell_InOut,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P9S Dualspell InOut.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Tethers,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Tethers.cs
-SplatoonScriptsOfficial.Duties.Endwalker@Aloalo_Bombs,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Aloalo Bombs.cs
+SplatoonScriptsOfficial.Duties.Endwalker@Aloalo_Bombs,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Aloalo Bombs.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Pangenesis,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Pangenesis.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_Towers,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Towers.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_Wrath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Wrath.cs
@@ -38,24 +38,27 @@ SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@SanctityOfTheWardS
 SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@SanctityOfTheWardFirst,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/SanctityOfTheWardFirst.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_Near_Far_World,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello Near Far World.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@MF_Target_Enforcer,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/MF Target Enforcer.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@P5_Delta_Hello_Guide,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/P5 Delta Hello Guide.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Program_Loop,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Program Loop.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@BSOD_Adjuster,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/BSOD Adjuster.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Exasquares,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Exasquares.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Pantokrator,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Pantokrator.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@P6_MultiScript,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/P6 MultiScript.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Cosmo_Meteor_Adjuster,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Cosmo Meteor Adjuster.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_World,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello World.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Sigma,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Sigma.cs
-SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Beyond_Defense,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Beyond Defense.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Beyond_Defense,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Beyond Defense.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_World_MoveGuide,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello World MoveGuide.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Oversampled_Wave_Cannon,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Oversampled Wave Cannon.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Limitless_Synergy,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Limitless Synergy.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Party_Synergy,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Party Synergy.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Pantokrator_invincible_Reminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Pantokrator invincible Reminder.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Delta,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Delta.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_Transition,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA_P2_Transition.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P3_Wormhole_Formation,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P3 Wormhole Formation.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_Nisi,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P2 Nisi.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_1211_Transition,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P2 1211 Transition.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers@TEA_P2_Temporal_Stasis,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/TEA P2 Temporal Stasis.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Transition,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA_P2_Transition.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P3_Wormhole_Formation,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P3 Wormhole Formation.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Nisi,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Nisi.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_1211_Transition,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 1211 Transition.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Temporal_Stasis,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Temporal Stasis.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Twisters,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Twisters.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Heavensfall_Trio_Towers,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Heavensfall Trio Towers.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Tethers,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Tethers.cs
@@ -71,5 +74,6 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,2,https://github.
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Unsafe_Cannon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Unsafe Cannon.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Electrope_Edge,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Electrope Edge.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Sunrise_Sabbath,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Sunrise Sabbath.cs
+SplatoonScriptsOfficial.Tests@GenericTest7,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs
 SplatoonScriptsOfficial.Tests@DMParser,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Tests@GenericTest6,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest6.cs

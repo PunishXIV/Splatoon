@@ -1,10 +1,12 @@
 ﻿#nullable enable
+using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
+using Splatoon.Structures;
 
 namespace Splatoon.SplatoonScripting;
 
@@ -193,15 +195,37 @@ public abstract class SplatoonScript
     /// Will be called when a buff is gained by a game object. This method will only be called if a script is enabled.
     /// </summary>
     /// <param name="sourceId">Source object ID of buff gain.</param>
-    /// <param name="gainBuffIds">Array of gained buff IDs.</param>
-    public virtual void OnGainBuffEffect(uint sourceId, List<uint> gainBuffIds) { }
+    /// <param name="gainStatusInfos">Array of gained buff Infos.</param>
+    public virtual void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos) { }
 
     /// <summary>
     /// Will be called when a buff is removed from a game object. This method will only be called if a script is enabled.
     /// </summary>
     /// <param name="sourceId">Source object ID of buff removal.</param>
-    /// <param name="removeBuffIds">Array of removed buff IDs.</param>
-    public virtual void OnRemoveBuffEffect(uint sourceId, List<uint> removeBuffIds) { }
+    /// <param name="removeStatusInfos">Array of removed buff Infos.</param>
+    public virtual void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> removeStatusInfos) { }
+
+    /// <summary>
+    /// Returns appropriate string depending on current game language. If not defined for current language, will return first defined string.
+    /// </summary>
+    /// <param name="en"></param>
+    /// <param name="jp"></param>
+    /// <param name="de"></param>
+    /// <param name="fr"></param>
+    /// <param name="cn"></param>
+    /// <returns></returns>
+    public string Loc(string? en = null, string? jp = null, string? de = null, string? fr = null, string? cn = null)
+    {
+        return Svc.Data.Language switch
+        {
+            ClientLanguage.English => en,
+            ClientLanguage.Japanese => jp,
+            ClientLanguage.German => de,
+            ClientLanguage.French => fr,
+            (ClientLanguage)4 => cn,
+            _ => null,
+        } ?? en ?? jp ?? de ?? fr ?? cn ?? "<null>";
+    }
 
     internal void DrawRegisteredElements()
     {

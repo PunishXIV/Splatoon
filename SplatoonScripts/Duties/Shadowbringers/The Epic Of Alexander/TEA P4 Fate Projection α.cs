@@ -7,11 +7,13 @@ using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
+using ECommons.Throttlers;
+using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Vector3 = System.Numerics.Vector3;
 
-namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
+namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P4_Fate_Projection_α : SplatoonScript
 {
@@ -33,23 +35,23 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         .FirstOrDefault(x => x is { NameId: 0x2352, IsCasting: true, CastActionId: 18858 });
 
     public override HashSet<uint>? ValidTerritories => [887];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
 
     private string GetFutureActionText(FutureActionType type)
     {
         return type switch
         {
-            FutureActionType.FirstMotion => "最初は動け！",
-            FutureActionType.FirstStillness => "最初は動くな",
-            FutureActionType.SecondMotion => "最後は動け！",
-            FutureActionType.SecondStillness => "最後は動くな！",
-            FutureActionType.Defamation => "名誉罰: 上へ",
-            FutureActionType.SharedSentence => "集団罰: 左下へ",
-            FutureActionType.Aggravated => "加重罰: 右下へ",
-            FutureActionType.Nothing => "無職: 左下へ",
-            FutureActionType.UnKnown => "UnKnown: 左下へ？",
-            _ => "None: 左下へ？"
+            FutureActionType.FirstMotion => Loc(en: "Move in the first half!", jp: "最初は動け！"),
+            FutureActionType.FirstStillness => Loc(en: "Don't move in the first half.", jp: "最初は動くな"),
+            FutureActionType.SecondMotion => Loc(en: "Move in the second half!", jp: "最後は動け！"),
+            FutureActionType.SecondStillness => Loc(en: "Don't move in the second half.", jp: "最後は動くな！"),
+            FutureActionType.Defamation => Loc(en: "Defamation: Go up", jp: "名誉罰: 上へ"),
+            FutureActionType.SharedSentence => Loc(en: "Shared Sentence: Go to the bottom left", jp: "集団罰: 左下へ"),
+            FutureActionType.Aggravated => Loc(en: "Aggravated Sentence: Go to the bottom right", jp: "加重罰: 右下へ"),
+            FutureActionType.Nothing => Loc(en: "Nothing: Go to the bottom left", jp: "無職: 左下へ"),
+            FutureActionType.UnKnown => Loc(en: "Unknown: Go to the bottom left?", jp: "UnKnown: 左下へ？"),
+            _ => Loc(en: "None: Go to the bottom left?", jp: "None: 左下へ？")
         };
     }
 
@@ -93,6 +95,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         _futurePlayers.Clear();
         _myFuturePlayer = null;
         _isOpenSafeSpot = false;
+        EzThrottler.Reset("FateProjectionAlphaActionEffectDelay");
     }
 
     public override void OnSetup()
@@ -175,6 +178,16 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         }
     }
 
+    public override void OnSettingsDraw()
+    {
+        if (ImGuiEx.CollapsingHeader("Debug"))
+        {
+            ImGui.Text($"_futureActionTypes[0]: {_futureActionTypes[0]}");
+            ImGui.Text($"_futureActionTypes[1]: {_futureActionTypes[1]}");
+            ImGui.Text($"_futureActionTypes[2]: {_futureActionTypes[2]}");
+        }
+    }
+
     private void ApplyTextFromFutureAction(string elementName, FutureActionType type)
     {
         if (type == FutureActionType.None) return;
@@ -231,7 +244,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (!_isStartFateProjectionCasting) return;
-        if (set is { Action: not null, Source: not null, Target: not null } && set.Target.EntityId == _myFuturePlayer)
+        if (set is { Action: not null, Source: not null, Target: not null })
         {
             PluginLog.Warning("ActionId: " + set.Action.RowId);
 
@@ -245,6 +258,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
                 _ => FutureActionType.None
             };
             if (futureAction == FutureActionType.None) return;
+            if(!EzThrottler.Throttle("FateProjectionAlphaActionEffectDelay", 1500)) return;
             if (_futureActionTypes[0] == FutureActionType.None) _futureActionTypes[0] = futureAction;
             else _futureActionTypes[2] = futureAction;
         }

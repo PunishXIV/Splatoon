@@ -13,11 +13,12 @@ using Splatoon;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 
-namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
+namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P3_Wormhole_Formation : SplatoonScript
 {
     private const uint ChakramCastId = 18517;
+    private const uint WormholeFormationCastId = 18542;
     private static readonly uint[] WormholeDataIds = [2007519, 2007520, 2007521];
 
     private readonly Dictionary<int, Vector2[]> _baitPositions = new()
@@ -48,7 +49,7 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
     private int _wormholeChangedCount;
 
     public override HashSet<uint>? ValidTerritories => [887];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -67,13 +68,9 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
         }
     }
 
-    public override void OnMessage(string message)
-    {
-        if (message.Contains("アレキサンダー・プライムの「次元断絶のマーチ」")) _isStartWormholeFormation = true;
-    }
-
     public override void OnStartingCast(uint source, uint castId)
     {
+        if (castId == WormholeFormationCastId) _isStartWormholeFormation = true;
         if (!_isStartWormholeFormation) return;
         if (castId == ChakramCastId) _chakramScheduler ??= new TickScheduler(() => _currentPhase = 1, 5700);
     }

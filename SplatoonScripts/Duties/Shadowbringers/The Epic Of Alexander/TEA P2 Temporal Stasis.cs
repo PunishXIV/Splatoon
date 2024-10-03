@@ -11,7 +11,7 @@ using ECommons.ImGuiMethods;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
-namespace SplatoonScriptsOfficial.Duties.Shadowbringers;
+namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P2_Temporal_Stasis : SplatoonScript
 {
@@ -38,7 +38,7 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
     private bool _isStartTemporalStasis;
     private bool _shouldDisplayElement;
     public override HashSet<uint>? ValidTerritories => [887];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
     private IBattleNpc? CruiseChaser => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.DataId == 0x2C4E);
 
     private Config C => Controller.GetConfig<Config>();
@@ -60,7 +60,7 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
 
     public override void OnMessage(string message)
     {
-        if (message.Contains("我はアレキサンダー……機械仕掛けの神なり……。")) _isStartTemporalStasis = true;
+        if (message.Contains(Loc(en: "I am Alexander...the Creator. You...who would prove yourself worthy of your utopia...will be judged.", jp: "我はアレキサンダー……機械仕掛けの神なり……。"))) _isStartTemporalStasis = true;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)

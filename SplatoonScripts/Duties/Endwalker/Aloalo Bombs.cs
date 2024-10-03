@@ -14,6 +14,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Dalamud.Game.ClientState.Objects.Types;
 using FFXIVClientStructs.FFXIV.Client.System.Scheduler;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
@@ -21,12 +22,12 @@ public unsafe class Aloalo_Bombs : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new() { 1179, 1180 };
 
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     const uint BombNameID = 0x30E8;
 
     delegate nint ActionTimelineManager_unk(nint a1, uint a2, int a3, nint a4);
-    [Signature("48 89 5C 24 ?? 57 48 83 EC 20 8B FA 48 03 F9", DetourName =nameof(ActionTimelineManager_unkDetour))]
+    [Signature("48 89 5C 24 ?? 57 48 83 EC 20 8B FA 4C 8B D1", DetourName =nameof(ActionTimelineManager_unkDetour))]
     Hook<ActionTimelineManager_unk> ActionTimelineManager_unkHook;
 
     List<HashSet<uint>> BombSets = new();
@@ -126,12 +127,12 @@ public unsafe class Aloalo_Bombs : SplatoonScript
     {
         try
         {
-            /*var x = (ActionTimelineManager*)a1;
-            if(x->Parent != null && x->Parent->NameID == BombNameID && a3 == 1)
+            var x = (TimelineContainer*)a1;
+            if(x->OwnerObject != null && x->OwnerObject->NameId == BombNameID && a3 == 1)
             {
-                Unsafe = x->Parent->IGameObject.EntityId;
+                Unsafe = x->OwnerObject->GameObject.EntityId;
             }
-            PluginLog.Information($"{x->Parent->IGameObject.EntityId:X} {a1:X16} - {a2}: {a3}, {a4}");*/
+            PluginLog.Information($"{x->OwnerObject->GameObject.EntityId:X} {a1:X16} - {a2}: {a3}, {a4}");
         }
         catch(Exception e)
         {

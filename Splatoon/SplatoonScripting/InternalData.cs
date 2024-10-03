@@ -38,5 +38,10 @@ public class InternalData
         PluginLog.Information($"Script {FullName} ready.");
     }
 
+    public void ReloadOverrides()
+    {
+        Overrides = EzConfig.LoadConfiguration<OverrideData>($"{OverridesPath}", false);
+    }
+
     public bool SettingsPresent => Script.GetType().GetMethod("OnSettingsDraw")!.DeclaringType != typeof(SplatoonScript);
 }

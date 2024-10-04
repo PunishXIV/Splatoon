@@ -1,351 +1,227 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.ClientState.Statuses;
-using ECommons.GameFunctions;
-using ECommons.GameHelpers;
-using ECommons.Hooks;
+﻿using ECommons.GameHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Splatoon.SplatoonScripting;
-using Splatoon.Structures;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Splatoon.Memory;
-internal class BuffEffectProcessor
+internal unsafe class BuffEffectProcessor :IDisposable
 {
     #region types
-    private enum StatusChangeType
+    private enum StatusChangeType :byte
     {
         NoChange,
         Remove,
         Gain
     }
 
-    private enum StatusChangeResult
+    private enum StatusChangeResult :byte
     {
         NoChange,
         Change
     }
 
+    [StructLayout(LayoutKind.Explicit)]
     private struct CharacterStatusInfo
     {
+        [FieldOffset(0)]
         public uint ObjectID;
-        public RecordedStatus[] Statuses;
-        public int NoUpdateCount;
-    }
 
-    private record struct CharactorStatusDiffResult
-    {
-        public RecordedStatus StatusInfo;
-        public StatusChangeType ChangeType;
+        [FieldOffset(8)]
+        public Status* StatusPtr;
     }
 
     #endregion
 
     #region privateDefine
-    private Dictionary<uint, CharacterStatusInfo> _charactorStatusInfos = [];
-    private static bool _isClearRequest = false;
+    private const int MAX_STATUS_NUM = 60;
+    // There are 629 object slots in total, but only 299 objects up to EventObject are needed.
+    private const int MAX_OBJECT_NUM = 299;
+    private const uint INVALID_OBJECTID = 0xE0000000;
+
+    private static CharacterStatusInfo* _CharacterStatusInfoPtr = null;
+    private static bool _IsRunning = false;
+    #endregion
+
+    #region DllLoad
+    [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
+    private static extern void memset(void* dest, int c, int count);
+    [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
+    private static extern void memcpy(void* dest, void* src, int count);
     #endregion
 
     #region public
-    public void ActorEffectUpdate()
+    public BuffEffectProcessor()
     {
-        if(_isClearRequest)
+        try
         {
-            _charactorStatusInfos.Clear();
-            _isClearRequest = false;
-        }
-
-        // Increment the NoUpdateCount for all objects
-        IncrementNoUpdateCount();
-
-        // Loop through all objects in Svc.Objects
-        foreach(var gameObject in Svc.Objects)
-        {
-            if(gameObject == null)
-                continue;
-
-            // Check if it can be cast to IBattleChara
-            if(gameObject is IBattleChara battleChara)
+            _CharacterStatusInfoPtr = (CharacterStatusInfo*)Marshal.AllocHGlobal(sizeof(CharacterStatusInfo) * MAX_OBJECT_NUM);
+            memset(_CharacterStatusInfoPtr, 0, sizeof(CharacterStatusInfo) * MAX_OBJECT_NUM);
+            for(int i = 0; i < MAX_OBJECT_NUM; ++i)
             {
-                var objectID = battleChara.EntityId;
-
-                // If the object exists, reset the counter
-                if(_charactorStatusInfos.TryGetValue(objectID, out var statusInfo))
-                {
-                    statusInfo.NoUpdateCount = 0; // Reset the counter as the object is confirmed to exist
-                    _charactorStatusInfos[objectID] = statusInfo;
-                }
-
-                var statuses = battleChara.StatusList;
-
-                // Compare the current and previous status lists
-                CompareStatusList(objectID, statuses, out var changeStatuses);
-
-                // Log the changes, including gameObject.Name
-                LogChanges(battleChara, changeStatuses);
-
-                // Save the current status list
-                CopyStatusList(objectID, statuses);
+                _CharacterStatusInfoPtr[i].StatusPtr = (FFXIVClientStructs.FFXIV.Client.Game.Status*)Marshal.AllocHGlobal(sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * MAX_STATUS_NUM);
             }
-        }
 
-        // Remove objects that have not been updated for 10 cycles
-        RemoveInactiveObjects();
+            _IsRunning = true;
+        }
+        catch(Exception ex)
+        {
+            DuoLog.Error($"[Splatoon]: {ex.Message}");
+            _IsRunning = false;
+        }
     }
 
-    public static void DirectorCheck(DirectorUpdateCategory category)
+    ~BuffEffectProcessor()
     {
-        if(category == DirectorUpdateCategory.Commence ||
-            category == DirectorUpdateCategory.Wipe)
+        Dispose(false);
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        for(int i = 0; i < MAX_OBJECT_NUM; ++i)
         {
-            _isClearRequest = true;
+            if(_CharacterStatusInfoPtr[i].StatusPtr != null)
+            {
+                Marshal.FreeHGlobal((IntPtr)_CharacterStatusInfoPtr[i].StatusPtr);
+                _CharacterStatusInfoPtr[i].StatusPtr = null;
+            }
+        }
+        if(_CharacterStatusInfoPtr != null)
+        {
+            Marshal.FreeHGlobal((IntPtr)_CharacterStatusInfoPtr);
+            _CharacterStatusInfoPtr = null;
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveOptimization)]
+    public void ActorEffectUpdate()
+    {
+        if(!_IsRunning) return;
+        try
+        {
+            Update();
+        }
+        catch(Exception ex)
+        {
+            DuoLog.Error($"[Splatoon]: {ex.Message}");
+            this.Dispose();
+            _IsRunning = false;
         }
     }
     #endregion
+    private void Update()
+    {
+        GameObjectManager* gameObjectManagerPtr = GameObjectManager.Instance();
+
+        for(int i = 0; i < MAX_OBJECT_NUM; ++i)
+        {
+            GameObject* gameObject = gameObjectManagerPtr->Objects.IndexSorted[i].Value;
+            if(gameObject == null) continue;
+            if(!gameObject->IsCharacter()) continue;
+            if(gameObject->EntityId == INVALID_OBJECTID) continue;
+            Character* character = (Character*)gameObject;
+            StatusManager* sm = (StatusManager*)character->GetStatusManager();
+            Status* statusArray = (Status*)((byte*)sm + 0x08);
+            if(sm == null) continue;
+            if(statusArray == null) continue;
+
+            // New object
+            if(_CharacterStatusInfoPtr[i].ObjectID != gameObject->EntityId)
+            {
+                memset(_CharacterStatusInfoPtr[i].StatusPtr, 0, sizeof(CharacterStatusInfo));
+                _CharacterStatusInfoPtr[i].ObjectID = character->EntityId;
+                memcpy(&_CharacterStatusInfoPtr[i].StatusPtr[0], &statusArray[0], sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * sm->NumValidStatuses);
+                continue;
+            }
+
+            // Existing object
+            // Check status change
+            Status status;
+            bool isChange = false;
+            for(int j = 0; j < sm->NumValidStatuses; ++j)
+            {
+                if(_CharacterStatusInfoPtr[i].StatusPtr[j].StatusId != statusArray[j].StatusId)
+                {
+                    if(_CharacterStatusInfoPtr[i].StatusPtr[j].StatusId == 0)
+                    {
+                        // Gain
+                        status = statusArray[j];
+                        AddStatusLog(&statusArray[j], character);
+                        ScriptingProcessor.OnGainBuffEffect(character->EntityId, status);
+                        isChange = true;
+                    }
+                    else
+                    {
+                        // Remove
+                        status = _CharacterStatusInfoPtr[i].StatusPtr[j];
+                        RemoveStatusLog(&_CharacterStatusInfoPtr[i].StatusPtr[j], character);
+                        ScriptingProcessor.OnRemoveBuffEffect(character->EntityId, status);
+
+                        if(statusArray[j].StatusId != 0)
+                        {
+                            // Gain
+                            status = statusArray[j];
+                            AddStatusLog(&statusArray[j], character);
+                            ScriptingProcessor.OnGainBuffEffect(character->EntityId, status);
+                        }
+                        isChange = true;
+                    }
+                }
+
+                if(_CharacterStatusInfoPtr[i].StatusPtr[j].StackCount != statusArray[j].StackCount && !isChange)
+                {
+                    // Update
+                    status = statusArray[j];
+                    UpdateStatusLog(&statusArray[j], character);
+                    ScriptingProcessor.OnUpdateBuffEffect(character->EntityId, status);
+                }
+            }
+
+            // Update status
+            memcpy(&_CharacterStatusInfoPtr[i].StatusPtr[0], &statusArray[0], sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * sm->NumValidStatuses);
+        }
+    }
+
 
     #region private
-    private void IncrementNoUpdateCount()
+    void AddStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff+", data, gameObjectCharactor);
+    void RemoveStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff-", data, gameObjectCharactor);
+    void UpdateStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff*", data, gameObjectCharactor);
+
+    // Updated LogChanges method
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    void StatusLog(string prefix, Status* data, Character* gameObjectCharactor)
     {
-        // Increment the NoUpdateCount for all objects
-        foreach(var key in _charactorStatusInfos.Keys)
+        string text = "";
+        string PositionString = P.Config.LogPosition == true ? $"({gameObjectCharactor->Position.ToString()})" : "";
+        string ElementTrigger = "";
+        if(gameObjectCharactor->ObjectKind == ObjectKind.Pc)
         {
-            var statusInfo = _charactorStatusInfos[key];
-            statusInfo.NoUpdateCount++;
-            _charactorStatusInfos[key] = statusInfo;
-        }
-    }
-
-    private void RemoveInactiveObjects()
-    {
-        // Add objects with NoUpdateCount >= 10 to the removal list
-        List<uint> toRemove = [];
-        foreach(var kvp in _charactorStatusInfos)
-        {
-            if(kvp.Value.NoUpdateCount >= 10)
-            {
-                toRemove.Add(kvp.Key);
-            }
-        }
-
-        // Actually remove the objects
-        foreach(var objectID in toRemove)
-        {
-            _charactorStatusInfos.Remove(objectID);
-        }
-    }
-
-    private void CopyStatusList(uint objectID, StatusList statuses)
-    {
-        var newStatusIds = GetStatusIds(statuses);
-
-        if(_charactorStatusInfos.TryGetValue(objectID, out var existingInfo))
-        {
-            if(!ArraysEqual(existingInfo.Statuses, newStatusIds))
-            {
-                _charactorStatusInfos[objectID] = new CharacterStatusInfo
-                {
-                    ObjectID = objectID,
-                    Statuses = newStatusIds,
-                    NoUpdateCount = 0 // Reset the counter as it has been updated
-                };
-            }
+            ElementTrigger = $"[{prefix}]PC:{data->StatusId}:{gameObjectCharactor->ClassJob.ToString()}";
         }
         else
         {
-            _charactorStatusInfos.Add(objectID, new CharacterStatusInfo
-            {
-                ObjectID = objectID,
-                Statuses = newStatusIds,
-                NoUpdateCount = 0 // Set the counter to 0 when adding a new object
-            });
+            ElementTrigger = $"[{prefix}]{gameObjectCharactor->NameId}:{data->StatusId}";
         }
-    }
 
-    private StatusChangeResult CompareStatusList(uint objectID, StatusList statuses, out List<CharactorStatusDiffResult> changeStatuses)
-    {
-        changeStatuses = [];
-
-        if(!_charactorStatusInfos.TryGetValue(objectID, out var existingInfo))
+        if(gameObjectCharactor->EntityId == Svc.ClientState.LocalPlayer?.EntityId)
         {
-            return StatusChangeResult.NoChange;
+            text = $"You gains the effect of {data->StatusId} Param: {data->StackCount} ([{prefix}]You:{data->StatusId}:{Svc.ClientState.LocalPlayer.GetJob().ToString()})";
+            P.ChatMessageQueue.Enqueue(text);
         }
 
-        var currentStatusIds = GetStatusIds(statuses);
+        text = $"{gameObjectCharactor->NameString} ({PositionString}) gains the effect of {data->StatusId} Param: {data->StackCount} ({ElementTrigger})";
 
-        CheckGains(currentStatusIds, existingInfo.Statuses, changeStatuses);
-        CheckRemovals(currentStatusIds, existingInfo.Statuses, changeStatuses);
-
-        return changeStatuses.Count > 0 ? StatusChangeResult.Change : StatusChangeResult.NoChange;
-    }
-
-    private RecordedStatus[] GetStatusIds(StatusList statuses)
-    {
-        var statusIds = new RecordedStatus[statuses.Length];
-        for(var i = 0; i < statuses.Length; i++)
-        {
-            var status = statuses[i];
-            statusIds[i] = status == null ? default : new RecordedStatus(status.GameData.Name.ToString(), status.StatusId, status.StackCount, status.Param);
-        }
-        return statusIds;
-    }
-
-    private void CheckGains(RecordedStatus[] currentStatusIds, RecordedStatus[] oldStatusIds, List<CharactorStatusDiffResult> changeStatuses)
-    {
-        for(var i = 0; i < currentStatusIds.Length; i++)
-        {
-            if(System.Array.IndexOf(oldStatusIds, currentStatusIds[i]) < 0)
-            {
-                changeStatuses.Add(new CharactorStatusDiffResult
-                {
-                    StatusInfo = currentStatusIds[i],
-                    ChangeType = StatusChangeType.Gain
-                });
-            }
-        }
-    }
-
-    private void CheckRemovals(RecordedStatus[] currentStatusIds, RecordedStatus[] oldStatusIds, List<CharactorStatusDiffResult> changeStatuses)
-    {
-        for(var i = 0; i < oldStatusIds.Length; i++)
-        {
-            if(System.Array.IndexOf(currentStatusIds, oldStatusIds[i]) < 0)
-            {
-                changeStatuses.Add(new CharactorStatusDiffResult
-                {
-                    StatusInfo = oldStatusIds[i],
-                    ChangeType = StatusChangeType.Remove
-                });
-            }
-        }
-    }
-
-    private bool ArraysEqual(RecordedStatus[] array1, RecordedStatus[] array2)
-    {
-        if(array1.Length != array2.Length)
-            return false;
-
-        for(var i = 0; i < array1.Length; i++)
-        {
-            if(array1[i] != array2[i])
-                return false;
-        }
-        return true;
-    }
-
-    // Updated LogChanges method
-    private void LogChanges(IBattleChara battleChara, List<CharactorStatusDiffResult> changeStatuses)
-    {
-        List<RecordedStatus> gainStatusInfos = [];
-        List<RecordedStatus> removeRecordedStatusInfos = [];
-        var isPlayer = battleChara is IPlayerCharacter;
-        var pc = battleChara as IPlayerCharacter;
-
-        foreach(var changeStatus in changeStatuses)
-        {
-            switch(changeStatus.ChangeType)
-            {
-                case StatusChangeType.Gain:
-                gainStatusInfos.Add(changeStatus.StatusInfo);
-                break;
-                case StatusChangeType.Remove:
-                removeRecordedStatusInfos.Add(changeStatus.StatusInfo);
-                break;
-            }
-        }
-
-        if(gainStatusInfos.Count > 0)
-        {
-            string text;
-
-            if(P.Config.LogPosition)
-            {
-                foreach(var statusId in gainStatusInfos)
-                {
-                    if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
-                    {
-                        text = $"You ({battleChara.Position.ToString()}) gain the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
-                        P.ChatMessageQueue.Enqueue(text);
-                    }
-
-                    if(isPlayer)
-                    {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
-                    }
-                    else
-                    {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{battleChara.NameId}:{statusId})";
-                    }
-                    P.ChatMessageQueue.Enqueue(text);
-                }
-            }
-            else
-            {
-                foreach(var statusId in gainStatusInfos)
-                {
-                    if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
-                    {
-                        text = $"You gain the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]You:{statusId}:{pc.GetJob().ToString()})";
-                        P.ChatMessageQueue.Enqueue(text);
-                    }
-
-                    if(isPlayer)
-                    {
-                        text = $"{battleChara.Name} gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
-                    }
-                    else
-                    {
-                        text = $"{battleChara.Name} gains the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff+]{battleChara.NameId}:{statusId})";
-                    }
-                    P.ChatMessageQueue.Enqueue(text);
-                }
-            }
-            ScriptingProcessor.OnGainBuffEffect(battleChara.EntityId, gainStatusInfos);
-        }
-
-        if(removeRecordedStatusInfos.Count > 0)
-        {
-            string text;
-            if(P.Config.LogPosition)
-            {
-                foreach(var statusId in removeRecordedStatusInfos)
-                {
-                    if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
-                    {
-                        text = $"You ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
-                        P.ChatMessageQueue.Enqueue(text);
-                    }
-
-                    if(isPlayer)
-                    {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
-                    }
-                    else
-                    {
-                        text = $"{battleChara.Name} ({battleChara.Position.ToString()}) loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{battleChara.NameId}:{statusId})";
-                    }
-                    P.ChatMessageQueue.Enqueue(text);
-                }
-            }
-            else
-            {
-                foreach(var statusId in removeRecordedStatusInfos)
-                {
-                    if(isPlayer && Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.Address == pc.Address)
-                    {
-                        text = $"You lose the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]You:{statusId}:{pc.GetJob().ToString()})";
-                        P.ChatMessageQueue.Enqueue(text);
-                    }
-
-                    if(isPlayer)
-                    {
-                        text = $"{battleChara.Name} loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{ObjectFunctions.GetNameplateKind(pc).ToString()}:{statusId}:{pc.GetJob().ToString()})";
-                    }
-                    else
-                    {
-                        text = $"{battleChara.Name} loses the effect of {statusId.StatusName}({statusId.StatusId}) Stacks: {statusId.StackCount} ([buff-]{battleChara.NameId}:{statusId})";
-                    }
-                    P.ChatMessageQueue.Enqueue(text);
-                }
-            }
-            ScriptingProcessor.OnRemoveBuffEffect(battleChara.EntityId, removeRecordedStatusInfos);
-        }
+        P.ChatMessageQueue.Enqueue(text);
     }
     #endregion
 }
+

@@ -16,6 +16,7 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
+using Splatoon;
 using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
@@ -41,10 +42,13 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     private PlaystationMarker _myMarker = PlaystationMarker.Circle;
     public override HashSet<uint>? ValidTerritories => [968];
     private Config C => Controller.GetConfig<Config>();
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
+
+    private IEnumerable<IGameObject> DeathSentence => Svc.Objects
+        .Where(x => x.DataId == 0x1EB685);
 
     private Vector2 GetBaitPosition(State state, BaitType bait)
     {
@@ -111,11 +115,8 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             case (State.PlayStationSplit, BaitType.Red4):
                 return new Vector2(-2f, 9f);
             case (State.PlayStationSplit, BaitType.Blue1):
-                return Vector2.Zero;
             case (State.PlayStationSplit, BaitType.Blue2):
-                return Vector2.Zero;
             case (State.PlayStationSplit, BaitType.Blue3):
-                return Vector2.Zero;
             case (State.PlayStationSplit, BaitType.Blue4):
                 return Vector2.Zero;
         }
@@ -169,7 +170,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         ImGui.Text("Pre Playstation Split");
         ImGuiEx.EnumCombo("##Pre Playstation Split", ref C.PrePlaystationSplit);
         ImGui.Unindent();
-        
+
         ImGui.Text("Other");
         ImGui.Indent();
         ImGui.Checkbox("Look Face", ref C.LockFace);
@@ -177,7 +178,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         ImGuiEx.HelpMarker(
             "This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.\n\n自動で視線を調整します。ストリーミング中は使用しないでください。他のソフトウェアが同様の機能を実装していないことを確認してください。",
             EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
-    
+
         if (C.LockFace)
         {
             ImGui.Indent();
@@ -188,7 +189,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
                 EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
             ImGui.Unindent();
         }
-        
+
         ImGui.Unindent();
 
         if (ImGui.CollapsingHeader("Debug"))
@@ -223,11 +224,6 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         }
     }
 
-    public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
-    {
-        if (_currentState == State.PlayStationSplit)
-            _currentState = State.End;
-    }
 
     public override void OnSetup()
     {
@@ -237,6 +233,11 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         Controller.RegisterElementFromCode("Bait2",
             "{\"Name\":\"Bait2\",\"type\":1,\"offX\":12.49,\"offY\":8.5,\"radius\":0.5,\"color\":4278190335,\"Filled\":false,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"overlayFScale\":1.7,\"thicc\":6.0,\"refActorNPCNameID\":3641,\"refActorComparisonType\":6,\"includeRotation\":true,\"onlyUnTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}",
             true);
+        var element = new Element(0)
+        {
+            thicc = 6f
+        };
+        Controller.RegisterElement("DeathSentence", element);
     }
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
@@ -252,30 +253,17 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             }
             case 32:
                 _eyesPosition = Vector2.Zero;
+                _currentState = State.PostPlaystationSplit;
                 break;
         }
     }
 
     public override void OnUpdate()
     {
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         switch (_currentState)
         {
-            case State.None or State.End:
-                Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-                return;
             case State.FirstSplit:
-            {
-                var pos = GetBaitPosition(_currentState, _myBait);
-                if (pos == Vector2.Zero) return;
-                if (Controller.TryGetElementByName("Bait1", out var bait))
-                {
-                    bait.Enabled = true;
-                    bait.tether = true;
-                    bait.SetOffPosition(pos.ToVector3(0));
-                }
-
-                break;
-            }
             case State.SecondSplit:
             {
                 var pos = GetBaitPosition(_currentState, _myBait);
@@ -304,7 +292,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
                 else
                 {
                     var baits = PlaystationMarkerBaitPositions(_myMarker);
-                    for (var i = 0; i < baits.Count(); i++)
+                    for (var i = 0; i < baits.Length; i++)
                         if (Controller.TryGetElementByName($"Bait{i + 1}", out var bait))
                         {
                             bait.Enabled = true;
@@ -321,6 +309,31 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
                 break;
             }
+
+            case State.PostPlaystationSplit:
+            {
+                if (Player.Status.All(x => x.StatusId != 2976))
+                {
+                    _currentState = State.End;
+                    return;
+                }
+
+                var deathSentence = DeathSentence.MinBy(x => Vector3.Distance(x.Position, Player.Position));
+                if (deathSentence != null)
+                    if (Controller.TryGetElementByName("DeathSentence", out var bait))
+                    {
+                        bait.Enabled = true;
+                        bait.tether = true;
+                        bait.SetRefPosition(deathSentence.Position);
+                    }
+
+                break;
+            }
+            case State.Start:
+            case State.End:
+            case State.None:
+            default:
+                break;
         }
 
 
@@ -406,57 +419,60 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     {
         if (_currentState != State.Start)
             return;
+        if (set.Action is null)
+            return;
 
-        if (set.Action.RowId == 27540)
+        switch (set.Action.RowId)
         {
-            _currentState = State.FirstSplit;
-            Controller.Schedule(() =>
-            {
-                var players = FakeParty.Get().ToArray();
-                if (players.Length == 0)
-                    return;
-
-                var red = 0;
-                var blue = 0;
-                foreach (var player in C.Priority)
+            case 27540:
+                Controller.Schedule(() =>
                 {
-                    var p = players.FirstOrDefault(x => x.Name.ToString() == player);
-                    if (p == null)
-                    {
-                        DuoLog.Error($"Player {player} not found in party.");
+                    var players = FakeParty.Get().ToArray();
+                    if (players.Length == 0)
                         return;
-                    }
 
-                    if (p.HasDoom())
-                        red++;
-                    else
-                        blue++;
-
-                    if (p.Name.ToString() == Player.Object.Name.ToString())
+                    var red = 0;
+                    var blue = 0;
+                    foreach (var player in C.Priority)
                     {
-                        if (p.HasDoom())
-                            _myBait = red switch
-                            {
-                                1 => BaitType.Red1,
-                                2 => BaitType.Red2,
-                                3 => BaitType.Red3,
-                                4 => BaitType.Red4,
-                                _ => _myBait
-                            };
-                        else
-                            _myBait = blue switch
-                            {
-                                1 => BaitType.Blue1,
-                                2 => BaitType.Blue2,
-                                3 => BaitType.Blue3,
-                                4 => BaitType.Blue4,
-                                _ => _myBait
-                            };
-                    }
-                }
+                        var p = players.FirstOrDefault(x => x.Name.ToString() == player);
+                        if (p == null)
+                        {
+                            DuoLog.Error($"Player {player} not found in party.");
+                            return;
+                        }
 
-                Controller.Schedule(() => _currentState = State.SecondSplit, 1000 * 8);
-            }, 1000 * 2);
+                        if (p.HasDoom())
+                            red++;
+                        else
+                            blue++;
+
+                        if (p.Name.ToString() == Player.Object.Name.ToString())
+                        {
+                            if (p.HasDoom())
+                                _myBait = red switch
+                                {
+                                    1 => BaitType.Red1,
+                                    2 => BaitType.Red2,
+                                    3 => BaitType.Red3,
+                                    4 => BaitType.Red4,
+                                    _ => _myBait
+                                };
+                            else
+                                _myBait = blue switch
+                                {
+                                    1 => BaitType.Blue1,
+                                    2 => BaitType.Blue2,
+                                    3 => BaitType.Blue3,
+                                    4 => BaitType.Blue4,
+                                    _ => _myBait
+                                };
+                        }
+                    }
+                    _currentState = State.FirstSplit;
+                    Controller.Schedule(() => _currentState = State.SecondSplit, 1000 * 8);
+                }, 1000 * 2);
+                break;
         }
     }
 
@@ -489,6 +505,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         FirstSplit,
         SecondSplit,
         PlayStationSplit,
+        PostPlaystationSplit,
         End,
         None
     }

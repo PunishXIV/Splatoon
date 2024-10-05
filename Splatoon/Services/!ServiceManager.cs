@@ -9,4 +9,5 @@ namespace Splatoon.Services;
 public static class S
 {
     internal static RenderManager RenderManager { get; private set; }
+    //internal static StatusEffectManager StatusEffectManager { get; private set; }
 }

@@ -2,11 +2,15 @@
 using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
+using static Dalamud.Interface.Utility.Raii.ImRaii;
+
 
 namespace Splatoon.SplatoonScripting;
 
@@ -234,22 +238,193 @@ public abstract class SplatoonScript
         } ?? en ?? jp ?? de ?? fr ?? cn ?? "<null>";
     }
 
+    internal void DrawConfigurations()
+    {
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Save, "Save current configuration"))
+        {
+            var name = $"Configuration {this.InternalData.ScriptConfigurationsList.Configurations.Count + 1}";
+            InternalData.ScriptConfigurationsList.Configurations.Add(new() { 
+                Name = name,
+                ForScript = this.InternalData.FullName,
+                Configuration = this.Controller.Configuration == null ? null : JsonConvert.SerializeObject(this.Controller.Configuration),
+                ElementOverrides = this.InternalData.Overrides.Elements.Count == 0?null : JsonConvert.SerializeObject(this.InternalData.Overrides)
+            });
+        }
+        ImGui.SameLine();
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste from clipboard"))
+        {
+            try
+            {
+                var newConf = JsonConvert.DeserializeObject<ScriptConfiguration>(Paste()!);
+                if(newConf == null || newConf.Name == null) throw new NullReferenceException();
+                if(newConf.ForScript != this.InternalData.FullName)
+                {
+                    throw new InvalidOperationException($"Configuration in clipboard is for script {newConf.ForScript}, you're currently editing configurations for {this.InternalData.FullName}");
+                }
+                if(newConf.Name == "")
+                {
+                    newConf.Name = $"Imported configuration {this.InternalData.ScriptConfigurationsList.Configurations.Count + 1}";
+                }
+                this.InternalData.ScriptConfigurationsList.Configurations.Add(newConf);
+                this.Controller.SaveConfigurations();
+            }
+            catch(Exception e)
+            {
+                DuoLog.Error(e.Message);
+            }
+        }
+        var mod = false;
+        if(ImGui.BeginTable("ConfTable", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
+        {
+            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("##flags");
+            ImGui.TableSetupColumn("##control");
+            ImGui.TableHeadersRow();
+
+            for(int i = 0; i < this.InternalData.ScriptConfigurationsList.Configurations.Count; i++)
+            {
+                var conf = this.InternalData.ScriptConfigurationsList.Configurations[i];
+                ImGui.PushID($"##conf{i}");
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+
+                if(ImGui.Selectable(conf.Name))
+                {
+                    try
+                    {
+                        var configType = (this.Controller.Configuration?.GetType() ?? this.GetType().GetNestedTypes().FirstOrDefault(x => x.GetInterfaces().Any(s => s == typeof(IEzConfig)))) ?? throw new Exception($"Could not find configuration for script {this.InternalData.FullName}. To support configuration loading, script must have nested class that implements IEzConfig and supports serialization.");
+                        if(this.Controller.Configuration != null)
+                        {
+                            this.Controller.Configuration = conf.Configuration == null ? null : (IEzConfig)JsonConvert.DeserializeObject(conf.Configuration, configType)!;
+                        }
+                        this.Controller.SaveConfig();
+
+                        var hasElementOverrides = this.InternalData.Overrides!.Elements.Count > 0;
+                        if(conf.ElementOverrides != null) 
+                        {
+                            var ovr = JsonConvert.DeserializeObject<OverrideData>(conf.ElementOverrides)!;
+                            if(ovr.Elements.Count > 0)
+                            {
+                                this.InternalData.Overrides = ovr;
+                                this.Controller.SaveOverrides();
+                                this.Controller.ApplyOverrides();
+                            }
+                            else
+                            {
+                                //no overrides
+                                this.InternalData.Overrides = new();
+                                this.Controller.SaveOverrides();
+                            }
+                        }
+                        else
+                        {
+                            //no overrides
+                            this.InternalData.Overrides = new();
+                            this.Controller.SaveOverrides();
+                        }
+                        if(hasElementOverrides)
+                        {
+                            ScriptingProcessor.ReloadScript(this);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        e.Log();
+                    }
+                }
+
+                ImGui.TableNextColumn();
+                if(!conf.Configuration.IsNullOrEmpty())
+                {
+                    ImGui.SameLine();
+                    ImGui.PushFont(UiBuilder.IconFont);
+                    ImGuiEx.Text(FontAwesomeIcon.Cog.ToIconString());
+                    ImGui.PopFont();
+                    ImGuiEx.Tooltip($"This configuration contains script settings");
+                }
+                if(!conf.ElementOverrides.IsNullOrEmpty())
+                {
+                    ImGui.SameLine();
+                    ImGui.PushFont(UiBuilder.IconFont);
+                    ImGuiEx.Text(FontAwesomeIcon.Cog.ToIconString());
+                    ImGui.PopFont();
+                    ImGuiEx.Tooltip($"This configuration contains element overrides");
+                }
+
+                ImGui.TableNextColumn();
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Edit))
+                {
+                    ImGui.OpenPopup("renameConf");
+                }
+                ImGuiEx.Tooltip("Rename");
+                if(ImGui.BeginPopup("renameConf"))
+                {
+                    ImGuiEx.Text("Give different script's configurations same names \nto switch them all in one click!");
+                    ImGui.SetNextItemWidth(500f);
+                    mod |= ImGui.InputTextWithHint("##name", "Name your configuration", ref conf.Name, 100);
+                    ImGui.EndPopup();
+                }
+                ImGui.SameLine(0,1);
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
+                {
+                    Copy(JsonConvert.SerializeObject(conf));
+                }
+                ImGuiEx.Tooltip("Copy");
+                ImGui.SameLine(0, 1);
+                if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowUp, enabled: i > 0))
+                {
+                    (InternalData.ScriptConfigurationsList.Configurations[i], InternalData.ScriptConfigurationsList.Configurations[i - 1]) = (InternalData.ScriptConfigurationsList.Configurations[i - 1], InternalData.ScriptConfigurationsList.Configurations[i]);
+                }
+                ImGui.SameLine(0, 1);
+                if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowDown, enabled: i < InternalData.ScriptConfigurationsList.Configurations.Count - 1))
+                {
+                    (InternalData.ScriptConfigurationsList.Configurations[i], InternalData.ScriptConfigurationsList.Configurations[i + 1]) = (InternalData.ScriptConfigurationsList.Configurations[i + 1], InternalData.ScriptConfigurationsList.Configurations[i]);
+                }
+                ImGui.SameLine(0, 1);
+                if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowsDownToLine, enabled: ImGuiEx.Ctrl))
+                {
+                    conf.Configuration = this.Controller.Configuration == null?null:JsonConvert.SerializeObject(this.Controller.Configuration);
+                    conf.ElementOverrides = this.InternalData.Overrides == null ? null : JsonConvert.SerializeObject(this.InternalData.Overrides);
+                    mod = true;
+                }
+                ImGuiEx.Tooltip("Override this configuration with current. Hold CTRL and click.");
+                ImGui.SameLine(0, 1);
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled:ImGuiEx.Ctrl))
+                {
+                    new TickScheduler(() => {
+                        InternalData.ScriptConfigurationsList.Configurations.Remove(conf);
+                        this.Controller.SaveConfigurations();
+                        });
+                }
+                ImGuiEx.Tooltip("Delete. Hold CTRL and click.");
+
+                ImGui.PopID();
+            }
+
+            ImGui.EndTable();
+        }
+        if(mod)
+        {
+            this.Controller.SaveConfigurations();
+        }
+    }
+
     internal void DrawRegisteredElements()
     {
         ImGuiEx.TextWrapped(ImGuiColors.DalamudRed, $"Non-restricted editing access. Any incorrectly performed changes may cause script to stop working completely. Use reset function if it happens. \n- In general, only edit color, thickness, text, size. \n- If script has it's own color settings, they will be prioritized.\n- Not all script will take whatever you edit here into account.".Loc());
-        if(ImGui.Button("Export customized settings to clipboard".Loc()))
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Export customized settings to clipboard".Loc()))
         {
             GenericHelpers.Copy(JsonConvert.SerializeObject(InternalData.Overrides, new JsonSerializerSettings() { DefaultValueHandling = DefaultValueHandling.Populate }));
             //Notify.Success("Copied to clipboard".Loc());
         }
         ImGui.SameLine();
-        if(ImGui.Button("Import customized settings from clipboard (hold CTRL+click)".Loc()))
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Import customized settings from clipboard (hold CTRL+click)".Loc()))
         {
             if(ImGui.GetIO().KeyCtrl)
             {
                 try
                 {
-                    var x = JsonConvert.DeserializeObject<OverrideData>(GenericHelpers.Paste());
+                    var x = JsonConvert.DeserializeObject<OverrideData>(GenericHelpers.Paste()!);
                     if(x != null)
                     {
                         if(ImGui.GetIO().KeyShift || x.Elements.All(z => Controller.GetRegisteredElements().ContainsKey(z.Key)))
@@ -289,15 +464,15 @@ public abstract class SplatoonScript
             ImGui.PushID(x.Value.GUID);
             if(InternalData.UnconditionalDraw)
             {
-                ImGuiEx.HashSetCheckbox($"Preview draw".Loc(), x.Key, InternalData.UnconditionalDrawElements);
+                ImGuiEx.CollectionCheckbox($"Preview draw".Loc(), x.Key, InternalData.UnconditionalDrawElements);
                 ImGui.SameLine();
             }
-            if(ImGui.Button("Copy to clipboard".Loc()))
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy to clipboard".Loc()))
             {
                 GenericHelpers.Copy(JsonConvert.SerializeObject(x.Value, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
             }
             ImGui.SameLine();
-            if(ImGui.Button("Edit".Loc()))
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Edit, "Edit".Loc()))
             {
                 if(!InternalData.Overrides.Elements.ContainsKey(x.Key))
                 {
@@ -309,7 +484,7 @@ public abstract class SplatoonScript
             ImGui.SameLine();
             if(InternalData.Overrides.Elements.ContainsKey(x.Key))
             {
-                ImGuiEx.HashSetCheckbox("Reset".Loc(), x.Key, InternalData.ElementsResets);
+                ImGuiEx.CollectionCheckbox("Reset".Loc(), x.Key, InternalData.ElementsResets);
             }
             ImGui.SameLine();
             ImGuiEx.Text($"[{x.Key}] {x.Value.Name}");
@@ -317,7 +492,7 @@ public abstract class SplatoonScript
         }
         if(InternalData.ElementsResets.Count > 0)
         {
-            if(ImGui.Button("Reset selected elements and reload script".Loc()))
+            if(ImGuiEx.IconButtonWithText((FontAwesomeIcon)'\uf0e2', "Reset selected elements and reload script".Loc()))
             {
                 foreach(var x in InternalData.ElementsResets)
                 {

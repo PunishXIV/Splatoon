@@ -21,7 +21,10 @@ public class InternalData
 
     internal OverrideData Overrides;
 
+    internal ScriptConfigurationsList ScriptConfigurationsList;
+
     internal string OverridesPath => $"{Path}.overrides.json";
+    internal string ConfigurationsPath => $"{Path}.conf.json";
 
     internal bool UnconditionalDraw = false;
     internal HashSet<string> UnconditionalDrawElements = new();
@@ -35,6 +38,7 @@ public class InternalData
         Name = instance.GetType().Name;
         FullName = $"{Namespace}@{Name}";
         Overrides = EzConfig.LoadConfiguration<OverrideData>($"{OverridesPath}", false);
+        ScriptConfigurationsList = EzConfig.LoadConfiguration<ScriptConfigurationsList>($"{ConfigurationsPath}", false);
         PluginLog.Information($"Script {FullName} ready.");
     }
 

@@ -6,7 +6,7 @@ public readonly record struct RecordedStatus
     public readonly uint StatusId;
     public readonly ushort Param;
 
-    public RecordedStatus(string statusName, uint statusId, ushort param)
+    public RecordedStatus(string statusName, uint statusId, byte stackCount, ushort param)
     {
         StatusName = statusName;
         StatusId = statusId;

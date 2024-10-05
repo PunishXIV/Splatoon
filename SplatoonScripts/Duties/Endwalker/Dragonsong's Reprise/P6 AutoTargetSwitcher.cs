@@ -17,16 +17,6 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public class P6_AutoTargetSwitcher : SplatoonScript
 {
-    private enum Timings
-    {
-        Start,
-        FirstWyrmsbreathEnd,
-        FirstAkhAfahEnd,
-        WrothFlames,
-        SecondAkhAfahEnd,
-        SecondWyrmsbreathEnd
-    }
-
     private readonly List<float> _percentages = [];
     private readonly Random _random = new();
     private readonly List<IBattleChara> _targets = [];
@@ -89,9 +79,9 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             DrawReorderbleList(C.EnableTimings);
             ImGui.Unindent();
             ImGui.PopID();
-            
+
             ImGui.Spacing();
-            
+
             ImGui.PushID("DisableTimings");
             ImGui.Text("Disable Timings");
             ImGui.Indent();
@@ -219,13 +209,23 @@ public class P6_AutoTargetSwitcher : SplatoonScript
         _akhAfahCount = 0;
     }
 
+    private enum Timings
+    {
+        Start,
+        FirstWyrmsbreathEnd,
+        FirstAkhAfahEnd,
+        WrothFlames,
+        SecondAkhAfahEnd,
+        SecondWyrmsbreathEnd
+    }
+
     private class Config : IEzConfig
     {
-        public readonly List<Timings> DisableTimings = [];
-        public readonly List<Timings> EnableTimings = [];
+        public readonly List<Timings> DisableTimings;
+        public readonly List<Timings> EnableTimings;
         public float AcceptablePercentage = 3f;
-        public bool DebugMode = false;
+        public bool DebugMode;
         public int Interval = 300;
-        public bool TimingMode = false;
+        public bool TimingMode;
     }
 }

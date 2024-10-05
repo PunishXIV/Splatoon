@@ -39,7 +39,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
                              (C.EnableTimings.Contains(_currentTiming) && !C.DisableTimings.Contains(_currentTiming));
 
 
-    private static void DrawReorderbleList<T>(IList<T> list) where T : struct, Enum
+    private static void DrawReorderableList<T>(IList<T> list) where T : struct, Enum
     {
         var toRemoveIndex = -1;
         for (var i = 0; i < list.Count; i++)
@@ -76,7 +76,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             ImGui.PushID("EnableTimings");
             ImGui.Text("Enable Timings");
             ImGui.Indent();
-            DrawReorderbleList(C.EnableTimings);
+            DrawReorderableList(C.EnableTimings);
             ImGui.Unindent();
             ImGui.PopID();
 
@@ -85,7 +85,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             ImGui.PushID("DisableTimings");
             ImGui.Text("Disable Timings");
             ImGui.Indent();
-            DrawReorderbleList(C.DisableTimings);
+            DrawReorderableList(C.DisableTimings);
             ImGui.Unindent();
             ImGui.PopID();
             ImGui.Unindent();
@@ -221,8 +221,8 @@ public class P6_AutoTargetSwitcher : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public readonly List<Timings> DisableTimings;
-        public readonly List<Timings> EnableTimings;
+        public List<Timings> DisableTimings = [];
+        public List<Timings> EnableTimings = [];
         public float AcceptablePercentage = 3f;
         public bool DebugMode;
         public int Interval = 300;

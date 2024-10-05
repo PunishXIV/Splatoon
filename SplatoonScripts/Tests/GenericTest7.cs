@@ -1,15 +1,18 @@
-﻿using Dalamud.IoC;
-using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
+﻿using Dalamud.Memory;
 using ECommons;
-using ECommons.DalamudServices;
+using ECommons.Automation;
+using ECommons.EzHookManager;
 using ECommons.ImGuiMethods;
-using FFXIVClientStructs.FFXIV.Client.Game;
-using Newtonsoft.Json;
+using ECommons.Logging;
+using ECommons.Throttlers;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+using FFXIVClientStructs.FFXIV.Client.UI.Misc;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using Splatoon.SplatoonScripting;
-using SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
+using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SplatoonScriptsOfficial.Tests;
 public unsafe class GenericTest7 : SplatoonScript
@@ -20,13 +23,25 @@ public unsafe class GenericTest7 : SplatoonScript
 
     
 
+    public override void OnEnable()
+    {
+        EzSignatureHelper.Initialize(this);
+    }
+
+    public override void OnUpdate()
+    {
+        var trade = AgentModule.Instance()->GetAgentByInternalId(AgentId.Trade);
+        if(trade->IsAgentActive() && GenericHelpers.TryGetAddonByName<AtkUnitBase>("Trade", out var addon))
+        {
+            if(FrameThrottler.Throttle("AntiTrade", 2))
+            {
+                Callback.Fire(addon, true, -1);
+                DuoLog.Information("Prevent trade");
+            }
+        }
+    }
+
     public override void OnSettingsDraw()
     {
-        var rm = RetainerManager.Instance();
-        for(int i = 0; i < rm->Retainers.Length; i++)
-        {
-            ImGuiEx.Text($"Retainer {rm->Retainers[i].NameString} order {rm->DisplayOrder[i]}");
-        }
-        ImGuiEx.Text($"Ret:\n{rm->Retainers.ToArray().Select(x => x.NameString).Print("\n")}\n\nOrd:\n{rm->DisplayOrder.ToArray().Print("\n")}");
     }
 }

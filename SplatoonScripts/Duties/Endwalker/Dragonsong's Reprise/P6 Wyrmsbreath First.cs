@@ -9,6 +9,7 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -84,10 +85,10 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         return C.CharacterNames[indexs[0]];
     }
 
-    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
+    public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
         if (_state != State.Start) return;
-        if (gainStatusInfos.Any(x => x.StatusId is 2902 or 2903))
+        if (Status.StatusId is 2902 or 2903)
             _state = State.End;
     }
 

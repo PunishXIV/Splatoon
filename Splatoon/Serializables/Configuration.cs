@@ -107,6 +107,7 @@ internal class Configuration : IEzConfig
             //PluginLog.Debug($"Saving configuration for {x.InternalData.FullName}");
             Safe(x.Controller.SaveConfig);
             Safe(x.Controller.SaveOverrides);
+            Safe(x.Controller.SaveConfigurations);
         }
     }
 

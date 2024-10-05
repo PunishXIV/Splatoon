@@ -262,7 +262,8 @@ internal static class TabScripting
                         ex.Log();
                     }
                 }, null, false),
-                (openConfig.Controller.GetRegisteredElements().Count>0?"Registered elements":null, openConfig.DrawRegisteredElements, null, false)
+                (openConfig.Controller.GetRegisteredElements().Count>0?"Registered elements":null, openConfig.DrawRegisteredElements, null, false)//,
+                //("Saved Configurations", openConfig.DrawConfigurations, null, false)
                 );
             
             ImGuiEx.LineCentered("ScriptConfig", delegate

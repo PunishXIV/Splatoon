@@ -291,10 +291,26 @@ public unsafe class Controller
         }
         else
         {
-            if (File.Exists(Script.InternalData.OverridesPath))
+            if(File.Exists(Script.InternalData.OverridesPath))
             {
                 PluginLog.Debug($"No overrides for {Script.InternalData.FullName}, deleting {Script.InternalData.OverridesPath}");
                 File.Delete(Script.InternalData.OverridesPath);
+            }
+        }
+    }
+
+    internal void SaveConfigurations()
+    {
+        if(Script.InternalData.ScriptConfigurationsList.Configurations.Count > 0)
+        {
+            EzConfig.SaveConfiguration(Script.InternalData.ScriptConfigurationsList, Script.InternalData.ConfigurationsPath, true, false);
+        }
+        else
+        {
+            if(File.Exists(Script.InternalData.ConfigurationsPath))
+            {
+                PluginLog.Debug($"No configurations for {Script.InternalData.FullName}, deleting {Script.InternalData.ConfigurationsPath}");
+                File.Delete(Script.InternalData.ConfigurationsPath);
             }
         }
     }

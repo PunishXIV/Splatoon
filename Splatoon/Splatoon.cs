@@ -30,7 +30,7 @@ using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
 
 namespace Splatoon;
-public unsafe class Splatoon : IDalamudPlugin
+public unsafe class Splatoon :IDalamudPlugin
 {
     public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
     public string Name => "Splatoon";
@@ -87,7 +87,7 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
-        if (Loaded)
+        if(Loaded)
         {
             PluginLog.Fatal("Splatoon is already loaded, could not load again...");
             return;
@@ -119,12 +119,12 @@ public unsafe class Splatoon : IDalamudPlugin
         Svc.ClientState.TerritoryChanged += TerritoryChangedEvent;
         Svc.PluginInterface.UiBuilder.DisableUserUiHide = Config.ShowOnUiHide;
         LimitGaugeResets = Svc.Data.GetExcelSheet<LogMessage>().GetRow(2844).Text.ToString();
-        foreach (var x in Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.English)
+        foreach(var x in Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.English)
             .Union(Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.French))
             .Union(Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.Japanese))
             .Union(Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.German)))
         {
-            if (x.Singular != "")
+            if(x.Singular != "")
             {
                 var n = x.Singular.ToString().ToLower();
                 NameNpcIDsAll[n] = x.RowId;
@@ -132,13 +132,13 @@ public unsafe class Splatoon : IDalamudPlugin
             }
         }
         var bNames = new HashSet<string>();
-        foreach (var lang in Enum.GetValues<ClientLanguage>())
+        foreach(var lang in Enum.GetValues<ClientLanguage>())
         {
             bNames.Clear();
-            foreach (var x in Svc.Data.GetExcelSheet<BNpcName>(lang))
+            foreach(var x in Svc.Data.GetExcelSheet<BNpcName>(lang))
             {
                 var n = x.Singular.ToString().ToLower();
-                if (bNames.Contains(n))
+                if(bNames.Contains(n))
                 {
                     NameNpcIDs[n] = 0;
                     PluginLog.Verbose($"Name npc id {n} is ambiguous");
@@ -201,7 +201,7 @@ public unsafe class Splatoon : IDalamudPlugin
             Svc.Commands.RemoveHandler("/loadsplatoon");
             Svc.PluginInterface.UiBuilder.Draw -= loader.Draw;
         });
-        if (!Loaded)
+        if(!Loaded)
         {
             P = null;
             return;
@@ -226,6 +226,7 @@ public unsafe class Splatoon : IDalamudPlugin
         Safe(ObjectEffectProcessor.Dispose);
         Safe(AttachedInfo.Dispose);
         Safe(ScriptingProcessor.Dispose);
+        Safe(BuffEffectProcessor.Dispose);
         ECommonsMain.Dispose();
         P = null;
         //Svc.Chat.Print("Disposing");
@@ -270,19 +271,19 @@ public unsafe class Splatoon : IDalamudPlugin
     internal void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         var inttype = (int)type;
-        if (inttype == 2105 && LimitGaugeResets.Equals(message.ToString()))
+        if(inttype == 2105 && LimitGaugeResets.Equals(message.ToString()))
         {
             Phase++;
             CombatStarted = Environment.TickCount64;
             Svc.PluginInterface.UiBuilder.AddNotification($"Phase transition to Phase ??".Loc(Phase), this.Name, NotificationType.Info, 10000);
         }
-        if (!type.EqualsAny(ECommons.Constants.NormalChatTypes))
+        if(!type.EqualsAny(ECommons.Constants.NormalChatTypes))
         {
             var m = message.Payloads.Where(p => p is ITextProvider)
                     .Cast<ITextProvider>()
                     .Aggregate(new StringBuilder(), (sb, tp) => sb.Append(tp.Text.RemoveSymbols(InvalidSymbols).Replace("\n", " ")), sb => sb.ToString());
             ChatMessageQueue.Enqueue(m);
-            if (P.Config.Logging && !((uint)type).EqualsAny(Utils.BlacklistedMessages))
+            if(P.Config.Logging && !((uint)type).EqualsAny(Utils.BlacklistedMessages))
             {
                 Logger.Log($"[{type}] {m}");
             }
@@ -291,15 +292,15 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void SetupShutdownHttp(bool enable)
     {
-        if (enable)
+        if(enable)
         {
-            if (HttpServer == null)
+            if(HttpServer == null)
             {
                 try
                 {
                     HttpServer = new HTTPServer(this);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     Log("Critical error occurred while starting HTTP server.".Loc(), true);
                     Log(e.Message, true);
@@ -310,7 +311,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         else
         {
-            if (HttpServer != null)
+            if(HttpServer != null)
             {
                 HttpServer.Dispose();
                 HttpServer = null;
@@ -321,27 +322,27 @@ public unsafe class Splatoon : IDalamudPlugin
     internal void TerritoryChangedEvent(ushort e)
     {
         Phase = 1;
-        if (SFind.Count > 0 && !P.Config.NoFindReset)
+        if(SFind.Count > 0 && !P.Config.NoFindReset)
         {
             SFind.Clear();
             Notify.Info("Search stopped".Loc());
         }
-        for (var i = dynamicElements.Count - 1; i >= 0; i--)
+        for(var i = dynamicElements.Count - 1; i >= 0; i--)
         {
             var de = dynamicElements[i];
-            foreach (var l in de.Layouts)
+            foreach(var l in de.Layouts)
             {
                 ResetLayout(l);
             }
-            foreach (var dt in de.DestroyTime)
+            foreach(var dt in de.DestroyTime)
             {
-                if (dt == (long)DestroyCondition.TERRITORY_CHANGE)
+                if(dt == (long)DestroyCondition.TERRITORY_CHANGE)
                 {
                     dynamicElements.RemoveAt(i);
                 }
             }
         }
-        foreach (var l in Config.LayoutsL)
+        foreach(var l in Config.LayoutsL)
         {
             ResetLayout(l);
         }
@@ -353,11 +354,11 @@ public unsafe class Splatoon : IDalamudPlugin
 
     static void ResetLayout(Layout l)
     {
-        if (l.UseTriggers)
+        if(l.UseTriggers)
         {
-            foreach (var t in l.Triggers)
+            foreach(var t in l.Triggers)
             {
-                if (t.ResetOnTChange)
+                if(t.ResetOnTChange)
                 {
                     t.FiredState = 0;
                     l.TriggerCondition = 0;
@@ -367,7 +368,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
         }
-        if (l.Freezing && l.FreezeResetTerr)
+        if(l.Freezing && l.FreezeResetTerr)
         {
             l.FreezeInfo = new();
         }
@@ -381,48 +382,48 @@ public unsafe class Splatoon : IDalamudPlugin
             PlaceholderCache.Clear();
             LayoutAmount = 0;
             ElementAmount = 0;
-            if (LogObjects && Svc.ClientState.LocalPlayer != null)
+            if(LogObjects && Svc.ClientState.LocalPlayer != null)
             {
-                foreach (var t in Svc.Objects)
+                foreach(var t in Svc.Objects)
                 {
                     var ischar = t is ICharacter;
                     var obj = (t.Name.ToString(), t.EntityId, (ulong)t.Struct()->GetGameObjectId(), t.DataId, ischar ? ((ICharacter)t).Struct()->CharacterData.ModelCharaId : 0, t.Struct()->GetNameId(), ischar ? ((ICharacter)t).NameId : 0, t.ObjectKind);
                     loggedObjectList.TryAdd(obj, new ObjectInfo());
                     loggedObjectList[obj].ExistenceTicks++;
                     loggedObjectList[obj].IsChar = ischar;
-                    if (ischar)
+                    if(ischar)
                     {
                         loggedObjectList[obj].Targetable = t.Struct()->GetIsTargetable();
                         loggedObjectList[obj].Visible = ((ICharacter)t).IsCharacterVisible();
-                        if (loggedObjectList[obj].Targetable) loggedObjectList[obj].TargetableTicks++;
-                        if (loggedObjectList[obj].Visible) loggedObjectList[obj].VisibleTicks++;
+                        if(loggedObjectList[obj].Targetable) loggedObjectList[obj].TargetableTicks++;
+                        if(loggedObjectList[obj].Visible) loggedObjectList[obj].VisibleTicks++;
                     }
                     else
                     {
                         loggedObjectList[obj].Targetable = t.Struct()->GetIsTargetable();
-                        if (loggedObjectList[obj].Targetable) loggedObjectList[obj].TargetableTicks++;
+                        if(loggedObjectList[obj].Targetable) loggedObjectList[obj].TargetableTicks++;
                     }
                     loggedObjectList[obj].Distance = Vector3.Distance(Svc.ClientState.LocalPlayer.Position, t.Position);
                     loggedObjectList[obj].HitboxRadius = t.HitboxRadius;
                     loggedObjectList[obj].Life = t.GetLifeTimeSeconds();
                 }
             }
-            while (tickScheduler.TryDequeue(out var action))
+            while(tickScheduler.TryDequeue(out var action))
             {
                 action.Invoke();
             }
             PlayerPosCache = null;
             S.RenderManager.ClearDisplayObjects();
-            if (Svc.ClientState.LocalPlayer != null)
+            if(Svc.ClientState.LocalPlayer != null)
             {
-                if (ChatMessageQueue.Count > 5 * dequeueConcurrency)
+                if(ChatMessageQueue.Count > 5 * dequeueConcurrency)
                 {
                     dequeueConcurrency++;
                     //InternalLog.Debug($"Too many queued messages ({ChatMessageQueue.Count}); concurrency increased to {dequeueConcurrency}");
                 }
-                for (var i = 0; i < dequeueConcurrency; i++)
+                for(var i = 0; i < dequeueConcurrency; i++)
                 {
-                    if (ChatMessageQueue.TryDequeue(out var ccm))
+                    if(ChatMessageQueue.TryDequeue(out var ccm))
                     {
                         InternalLog.Verbose("Message: " + ccm);
                         CurrentChatMessages.Add(ccm);
@@ -435,15 +436,15 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
                 //if (CurrentChatMessages.Count > 0) PluginLog.Verbose($"Messages dequeued: {CurrentChatMessages.Count}");
                 var pl = Svc.ClientState.LocalPlayer;
-                if (Svc.ClientState.LocalPlayer.Address == nint.Zero)
+                if(Svc.ClientState.LocalPlayer.Address == nint.Zero)
                 {
                     Log("Pointer to LocalPlayer.Address is zero");
                     return;
                 }
 
-                if (Svc.Condition[ConditionFlag.InCombat])
+                if(Svc.Condition[ConditionFlag.InCombat])
                 {
-                    if (CombatStarted == 0)
+                    if(CombatStarted == 0)
                     {
                         CombatStarted = Environment.TickCount64;
                         Log("Combat started event");
@@ -452,19 +453,19 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
                 else
                 {
-                    if (CombatStarted != 0)
+                    if(CombatStarted != 0)
                     {
                         CombatStarted = 0;
                         Log("Combat ended event");
                         ScriptingProcessor.OnCombatEnd();
                         AttachedInfo.VFXInfos.Clear();
-                        foreach (var l in Config.LayoutsL)
+                        foreach(var l in Config.LayoutsL)
                         {
                             ResetLayout(l);
                         }
-                        foreach (var de in dynamicElements)
+                        foreach(var de in dynamicElements)
                         {
-                            foreach (var l in de.Layouts)
+                            foreach(var l in de.Layouts)
                             {
                                 ResetLayout(l);
                             }
@@ -475,14 +476,14 @@ public unsafe class Splatoon : IDalamudPlugin
 
                 //if (CamAngleY > Config.maxcamY) return;
 
-                if (PinnedElementEditWindow.Script != null && PinnedElementEditWindow.EditingElement != null && !PinnedElementEditWindow.Script.InternalData.UnconditionalDraw)
+                if(PinnedElementEditWindow.Script != null && PinnedElementEditWindow.EditingElement != null && !PinnedElementEditWindow.Script.InternalData.UnconditionalDraw)
                 {
                     S.RenderManager.GetRenderer(PinnedElementEditWindow.EditingElement).ProcessElement(PinnedElementEditWindow.EditingElement, null, true);
                 }
 
-                if (SFind.Count > 0)
+                if(SFind.Count > 0)
                 {
-                    foreach (var obj in SFind)
+                    foreach(var obj in SFind)
                     {
                         var col = GradientColor.Get(Colors.Red.ToVector4(), Colors.Yellow.ToVector4(), 750);
                         var findEl = new Element(1)
@@ -507,48 +508,48 @@ public unsafe class Splatoon : IDalamudPlugin
 
                 ProcessS2W();
 
-                foreach (var i in Config.LayoutsL)
+                foreach(var i in Config.LayoutsL)
                 {
                     ProcessLayout(i);
                 }
 
-                ScriptingProcessor.Scripts.ForEach(x => { if (x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
-                ScriptingProcessor.Scripts.ForEach(x => { if (x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
-                foreach (var e in InjectedElements)
+                ScriptingProcessor.Scripts.ForEach(x => { if(x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
+                ScriptingProcessor.Scripts.ForEach(x => { if(x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
+                foreach(var e in InjectedElements)
                 {
                     S.RenderManager.GetRenderer(e).ProcessElement(e);
                     //PluginLog.Information("Processing type " + e.type + JsonConvert.SerializeObject(e, Formatting.Indented));
                 }
                 InjectedElements.Clear();
 
-                for (var i = dynamicElements.Count - 1; i >= 0; i--)
+                for(var i = dynamicElements.Count - 1; i >= 0; i--)
                 {
                     var de = dynamicElements[i];
 
-                    foreach (var dt in de.DestroyTime)
+                    foreach(var dt in de.DestroyTime)
                     {
-                        if (dt == (long)DestroyCondition.COMBAT_EXIT)
+                        if(dt == (long)DestroyCondition.COMBAT_EXIT)
                         {
-                            if (!Svc.Condition[ConditionFlag.InCombat] && prevCombatState)
+                            if(!Svc.Condition[ConditionFlag.InCombat] && prevCombatState)
                             {
                                 dynamicElements.RemoveAt(i);
                                 continue;
                             }
                         }
-                        else if (dt > 0)
+                        else if(dt > 0)
                         {
-                            if (Environment.TickCount64 > dt)
+                            if(Environment.TickCount64 > dt)
                             {
                                 dynamicElements.RemoveAt(i);
                                 continue;
                             }
                         }
                     }
-                    foreach (var l in de.Layouts)
+                    foreach(var l in de.Layouts)
                     {
                         ProcessLayout(l);
                     }
-                    foreach (var e in de.Elements)
+                    foreach(var e in de.Elements)
                     {
                         S.RenderManager.GetRenderer(e).ProcessElement(e);
                     }
@@ -562,7 +563,7 @@ public unsafe class Splatoon : IDalamudPlugin
             BuffEffectProcessor.ActorEffectUpdate();
             ScriptingProcessor.OnUpdate();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             Log("Caught exception: " + e.Message);
             Log(e.StackTrace);
@@ -571,21 +572,21 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void ProcessLayout(Layout l)
     {
-        if (LayoutUtils.IsLayoutVisible(l))
+        if(LayoutUtils.IsLayoutVisible(l))
         {
             LayoutAmount++;
-            if (l.Freezing)
+            if(l.Freezing)
             {
-                if (l.FreezeInfo.CanDisplay())
+                if(l.FreezeInfo.CanDisplay())
                 {
                     S.RenderManager.StoreDisplayObjects();
-                    for (var i = 0; i < l.ElementsL.Count; i++)
+                    for(var i = 0; i < l.ElementsL.Count; i++)
                     {
                         var element = l.ElementsL[i];
                         S.RenderManager.GetRenderer(element).ProcessElement(element, l);
                     }
                     var union = S.RenderManager.GetUnifiedDisplayObjects();
-                    if (union.Count > 0)
+                    if(union.Count > 0)
                     {
                         l.FreezeInfo.States.Add(new()
                         {
@@ -600,23 +601,23 @@ public unsafe class Splatoon : IDalamudPlugin
             }
             else
             {
-                for (var i = 0; i < l.ElementsL.Count; i++)
+                for(var i = 0; i < l.ElementsL.Count; i++)
                 {
                     var element = l.ElementsL[i];
                     S.RenderManager.GetRenderer(element).ProcessElement(element, l);
                 }
             }
         }
-        for (var i = l.FreezeInfo.States.Count - 1; i >= 0; i--)
+        for(var i = l.FreezeInfo.States.Count - 1; i >= 0; i--)
         {
             var x = l.FreezeInfo.States[i];
-            if (x.IsActive())
+            if(x.IsActive())
             {
                 S.RenderManager.InjectDisplayObjects(x.Objects);
             }
             else
             {
-                if (x.IsExpired())
+                if(x.IsExpired())
                 {
                     l.FreezeInfo.States.RemoveAt(i);
                 }
@@ -633,20 +634,20 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void ProcessS2W()
     {
-        if (s2wInfo != null)
+        if(s2wInfo != null)
         {
             var lmbdown = Bitmask.IsBitSet(User32.GetKeyState(0x01), 15);
             var mousePos = ImGui.GetIO().MousePos;
-            if (Svc.GameGui.ScreenToWorld(new Vector2(mousePos.X, mousePos.Y), out var worldPos, Config.maxdistance * 5))
+            if(Svc.GameGui.ScreenToWorld(new Vector2(mousePos.X, mousePos.Y), out var worldPos, Config.maxdistance * 5))
             {
                 s2wInfo.Apply(worldPos.X, worldPos.Z, worldPos.Y);
             }
-            if (!lmbdown && prevMouseState)
+            if(!lmbdown && prevMouseState)
             {
                 s2wInfo = null;
             }
             prevMouseState = lmbdown;
-            if (Environment.TickCount64 % 500 < 250 && s2wInfo != null)
+            if(Environment.TickCount64 % 500 < 250 && s2wInfo != null)
             {
                 var coords = s2wInfo.GetValues();
                 var x = coords.x;
@@ -665,7 +666,7 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void Log(string s, bool tochat = false, ushort? chatColor = null)
     {
-        if (tochat)
+        if(tochat)
         {
             Svc.Chat.Print(s, messageTag: "Splatoon", tagColor: chatColor);
         }

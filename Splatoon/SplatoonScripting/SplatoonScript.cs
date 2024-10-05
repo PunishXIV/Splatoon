@@ -5,8 +5,8 @@ using ECommons;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Newtonsoft.Json;
-using Splatoon.Structures;
 
 namespace Splatoon.SplatoonScripting;
 
@@ -195,15 +195,22 @@ public abstract class SplatoonScript
     /// Will be called when a buff is gained by a game object. This method will only be called if a script is enabled.
     /// </summary>
     /// <param name="sourceId">Source object ID of buff gain.</param>
-    /// <param name="gainStatusInfos">Array of gained buff Infos.</param>
-    public virtual void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos) { }
+    /// <param name="Status">Gained buff Info.</param>
+    public virtual void OnGainBuffEffect(uint sourceId, Status Status) { }
 
     /// <summary>
     /// Will be called when a buff is removed from a game object. This method will only be called if a script is enabled.
     /// </summary>
     /// <param name="sourceId">Source object ID of buff removal.</param>
-    /// <param name="removeStatusInfos">Array of removed buff Infos.</param>
-    public virtual void OnRemoveBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> removeStatusInfos) { }
+    /// <param name="Status">Removed buff Infos.</param>
+    public virtual void OnRemoveBuffEffect(uint sourceId, Status Status) { }
+
+    /// <summary>
+    /// Will be called when a buff is updated on a game object. This method will only be called if a script is enabled.
+    /// </summary>
+    /// <param name="sourceId">Source object ID of buff update.</param>
+    /// <param name="status">Updated status.</param>
+    public virtual void OnUpdateBuffEffect(uint sourceId, Status status) { }
 
     /// <summary>
     /// Returns appropriate string depending on current game language. If not defined for current language, will return first defined string.

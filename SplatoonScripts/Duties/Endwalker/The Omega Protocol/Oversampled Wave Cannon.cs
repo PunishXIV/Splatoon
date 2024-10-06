@@ -22,10 +22,10 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 
-public unsafe class Oversampled_Wave_Cannon : SplatoonScript
+public unsafe class Oversampled_Wave_Cannon :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1122];
-    public override Metadata? Metadata => new(7, "NightmareXIV");
+    public override Metadata? Metadata => new(8, "NightmareXIV");
 
     private readonly string[] strings = { "front", "right", "back", "left" };
     private readonly string[] monitorRlString = { "right", "left" };
@@ -86,6 +86,8 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
         Controller.RegisterElementFromCode("WestM1Point", "{\"Name\":\"WestM1Point\",\"type\":5,\"Enabled\":false,\"refX\":89.933,\"refY\":90.989174,\"refZ\":-5.456968E-12,\"radius\":4.0,\"coneAngleMin\":90,\"coneAngleMax\":270,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":1.0,\"overlayText\":\"Inner edge\",\"includeRotation\":true,\"tether\":true,\"Filled\":true}");
         Controller.RegisterElementFromCode("WestM2Point", "{\"Name\":\"WestM2Point\",\"type\":5,\"Enabled\":false,\"refX\":89.937,\"refY\":108.96221,\"refZ\":-5.456968E-12,\"radius\":4.0,\"coneAngleMin\":-90,\"coneAngleMax\":90,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":1.0,\"overlayText\":\"Inner edge\",\"includeRotation\":true,\"tether\":true,\"Filled\":true}");
         Controller.RegisterElementFromCode("WestM3Point", "{\"Name\":\"WestM3Point\",\"type\":5,\"Enabled\":false,\"refX\":110.04,\"refY\":109.85926,\"refZ\":-9.536798E-07,\"radius\":4.0,\"coneAngleMin\":-180,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":1.0,\"overlayText\":\"IN MARKER\",\"includeRotation\":true,\"tether\":true,\"Filled\":true}");
+
+        Conf.LockFace = false;
     }
 
     public override void OnUpdate()
@@ -144,57 +146,60 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Checkbox("Lock face", ref Conf.LockFace);
-        ImGui.SameLine();
-        ImGuiEx.HelpMarker("This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
-        if(Conf.LockFace)
+        if(false) // this function is unstable
         {
-            ImGui.Indent();
-            ImGui.Text("Monitor rotation Settings Set this if you want to use a tactic other than the default. Set the direction you want the monitor to face.\nFor example, if the monitor appears to your right and faces north, set it to \"right\".");
-            var i = 0;
-            foreach(var x in Conf.EastMoniterRotation)
-            {
-                ImGui.Text($"East boss monitor {i + 1}");
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(200);
-                if(ImGui.BeginCombo($"##eastmon{i}", x))
-                {
-                    foreach(var y in strings)
-                    {
-                        if(ImGui.Selectable(y))
-                        {
-                            Conf.EastMoniterRotation[i] = y;
-                        }
-                    }
-                    ImGui.EndCombo();
-                }
-                i++;
-            }
+            ImGui.Checkbox("Lock face", ref Conf.LockFace);
+            ImGui.SameLine();
+            ImGuiEx.HelpMarker("This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
 
-            i = 0;
-
-            foreach(var x in Conf.WestMoniterRotation)
+            if(Conf.LockFace)
             {
-                ImGui.Text($"West boss monitor {i + 1}");
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(200);
-                if(ImGui.BeginCombo($"##westmon{i}", x))
+                ImGui.Indent();
+                ImGui.Text("Monitor rotation Settings Set this if you want to use a tactic other than the default. Set the direction you want the monitor to face.\nFor example, if the monitor appears to your right and faces north, set it to \"right\".");
+                var i = 0;
+                foreach(var x in Conf.EastMoniterRotation)
                 {
-                    foreach(var y in strings)
+                    ImGui.Text($"East boss monitor {i + 1}");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(200);
+                    if(ImGui.BeginCombo($"##eastmon{i}", x))
                     {
-                        if(ImGui.Selectable(y))
+                        foreach(var y in strings)
                         {
-                            Conf.WestMoniterRotation[i] = y;
+                            if(ImGui.Selectable(y))
+                            {
+                                Conf.EastMoniterRotation[i] = y;
+                            }
                         }
+                        ImGui.EndCombo();
                     }
-                    ImGui.EndCombo();
+                    i++;
                 }
-                i++;
+
+                i = 0;
+
+                foreach(var x in Conf.WestMoniterRotation)
+                {
+                    ImGui.Text($"West boss monitor {i + 1}");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(200);
+                    if(ImGui.BeginCombo($"##westmon{i}", x))
+                    {
+                        foreach(var y in strings)
+                        {
+                            if(ImGui.Selectable(y))
+                            {
+                                Conf.WestMoniterRotation[i] = y;
+                            }
+                        }
+                        ImGui.EndCombo();
+                    }
+                    i++;
+                }
+                ImGui.Unindent();
             }
-            ImGui.Unindent();
+            ImGui.Dummy(new Vector2(0f, 10f));
         }
-
-        ImGui.Dummy(new Vector2(0f, 10f));
         ImGuiEx.Text($"Priority list:");
         ImGui.SameLine();
         if(ImGui.SmallButton("Test"))
@@ -388,7 +393,7 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
         ActionManager->AutoFaceTargetPosition(&position, unkObjId);
     }
 
-    public class Config : IEzConfig
+    public class Config :IEzConfig
     {
         public List<string[]> Priorities = [];
         public bool LockFace = false;

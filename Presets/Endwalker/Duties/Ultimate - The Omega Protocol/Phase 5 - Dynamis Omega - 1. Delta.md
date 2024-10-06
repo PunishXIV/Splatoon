@@ -4,6 +4,13 @@
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Dynamis%20Delta.cs
 ```
 
+[International] [Script] This script makes up for the shortcomings of the above script.
+The last standing position will be displayed as Japanese strat.
+Please check the setting to make it perfectly synchronized with the above script.
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/P5%20Delta%20Hello%20Guide.cs
+```
+
 # Layouts
 [International] Optical unit finder - early beam
 ```
@@ -85,7 +92,7 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/
 ~Lv2~{"Name":"P5 D1 Omega - final pos new Dylan right","Group":"TOP","ZoneLockH":[1122],"DCond":5,"ElementsL":[{"Name":"LASOR","type":3,"refX":15.0,"refY":10.0,"offX":15.0,"offY":-43.0,"radius":15.0,"color":1342242815,"overlayBGColor":4294967295,"overlayTextColor":4278190080,"thicc":5.0,"overlayText":"Broken green","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":3.403392},{"Name":"green near omega","type":1,"offY":1.78,"radius":1.0,"color":3355508503,"overlayBGColor":2617245696,"overlayTextColor":4278255360,"thicc":3.0,"overlayText":"Green","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":0.8953539},{"Name":"green far from omega","type":1,"offY":37.1,"radius":1.0,"color":3355508503,"overlayBGColor":2617245696,"overlayTextColor":4278255360,"thicc":3.0,"overlayText":"Green","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":0.2932153},{"Name":"near taker inner","type":1,"offY":10.56,"radius":1.0,"color":4278237622,"overlayBGColor":4278236333,"overlayTextColor":4278190080,"thicc":5.0,"overlayText":"Near taker (blue)","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":0.3700098},{"Name":"near taker outer","type":1,"offY":12.4,"radius":1.0,"color":4278237622,"overlayBGColor":4278236333,"overlayTextColor":4278190080,"thicc":5.0,"overlayText":"Near taker (blue)","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":0.8813913},{"Name":"broken tether chill spot","type":1,"offY":34.54,"radius":1.0,"color":4294967295,"overlayBGColor":4294967295,"overlayTextColor":4278190080,"thicc":5.0,"overlayText":"Broken green (chill)","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":0.48171088},{"Name":"near source","type":1,"offY":20.86,"radius":1.0,"color":4278225677,"overlayBGColor":4278220288,"overlayTextColor":4294967295,"thicc":5.0,"overlayText":"Near debuff","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":0.31415927},{"Name":"far source","type":1,"offY":27.42,"radius":1.0,"color":4288326400,"overlayBGColor":4285363712,"overlayTextColor":4294967295,"thicc":5.0,"overlayText":"Far debuff","refActorModelID":3771,"refActorComparisonType":1,"includeRotation":true,"AdditionalRotation":0.7679449}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"Match":" (7695>31637)"}]}
 ```
 
-### [International] [Untested] Japanese strat
+### [International] Japanese strat
 ![image](https://github.com/NightmareXIV/Splatoon/assets/5073202/23f098ff-4f2b-4aef-8e39-1fcf73c61480)
 
 

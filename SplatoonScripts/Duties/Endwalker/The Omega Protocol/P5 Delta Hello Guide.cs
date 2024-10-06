@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -12,7 +13,6 @@ using ECommons.Schedulers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.Structures;
 using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = new HashSet<uint> { 1122 };
-    public override Metadata? Metadata => new Metadata(3, "Redmoon");
+    public override Metadata? Metadata => new Metadata(4, "Redmoon");
 
     #region Types
     private class PartyData
@@ -144,12 +144,13 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
     private bool _isSwivelCannonLeftCasted = false;
     private int _handCount = 0;
     private Job _debugJob = Job.WAR;
+    private Config C => Controller.GetConfig<Config>();
     #endregion
 
     #region public
     public override void OnSetup()
     {
-        for (int i = 0; i < 4; i++)
+        for(int i = 0; i < 4; i++)
         {
             Controller.RegisterElement($"SampledCannonRange{i}", new Element(1) { refActorComparisonType = 2, radius = 7f, Filled = true, color = 3372166400 });
         }
@@ -161,7 +162,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         Controller.RegisterElement("FinalNoSampledStackLeft", new Element(1) { refActorComparisonType = 2, offY = 20f, thicc = 5f, includeRotation = true, AdditionalRotation = 358f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
         Controller.RegisterElement("FinalSampledStackLeft", new Element(1) { refActorComparisonType = 2, offY = 21f, thicc = 5f, includeRotation = true, AdditionalRotation = 347f.DegreesToRadians(), color = 3355508503, overlayBGColor = 2617245696, overlayTextColor = 4278255360, });
 
-        foreach (var element in Delta)
+        foreach(var element in Delta)
         {
             Controller.RegisterElement(element.ElementName, new Element(1)
             {
@@ -179,21 +180,21 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        switch (castId)
+        switch(castId)
         {
             case CastID.RunMiDelta:
             // Set Party Data
             var party = FakeParty.Get();
             List<PartyData> unsortedList = new List<PartyData>();
-            foreach (var player in party)
+            foreach(var player in party)
             {
                 unsortedList.Add(new PartyData(player, player.GetJob()));
             }
 
-            foreach (var item in unsortedList)
+            foreach(var item in unsortedList)
             {
                 var index = PriorityJobList.IndexOf(item.job);
-                if (index == -1)
+                if(index == -1)
                 {
                     DuoLog.Error($"Job {item.job} not found in PriorityJobList\nPlease Report Discord Server");
                     return;
@@ -224,9 +225,9 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action == null || _gimmickPhase == GimmickPhase.None) return;
+        if(set.Action == null || _gimmickPhase == GimmickPhase.None) return;
 
-        switch (set.Action.RowId)
+        switch(set.Action.RowId)
         {
             case CastID.ShieldCombo:
             _gimmickPhase = GimmickPhase.DeltaFirstHalfStackTiming;
@@ -240,14 +241,14 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (!(_gimmickPhase == GimmickPhase.DeltaFirstHalfStart && _partyData.Count == 8)) return;
+        if(!(_gimmickPhase == GimmickPhase.DeltaFirstHalfStart && _partyData.Count == 8)) return;
 
         PartyData? sourcePlayer = _partyData.FirstOrDefault(x => x.player.EntityId == source);
         PartyData? targetPlayer = _partyData.FirstOrDefault(x => x.player.EntityId == target);
-        if (sourcePlayer == null || targetPlayer == null) return;
+        if(sourcePlayer == null || targetPlayer == null) return;
 
         // Near
-        if (data3 == 200 && data5 == 15)
+        if(data3 == 200 && data5 == 15)
         {
             sourcePlayer.pair = targetPlayer.player;
             sourcePlayer.isFar = false;
@@ -256,7 +257,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         }
 
         // Far
-        if (data3 == 201 && data5 == 15)
+        if(data3 == 201 && data5 == 15)
         {
             sourcePlayer.pair = targetPlayer.player;
             sourcePlayer.isFar = true;
@@ -267,26 +268,26 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
     public override void OnObjectCreation(nint newObjectPtr)
     {
-        if (_gimmickPhase == GimmickPhase.None || _partyData.Count != 8) return;
+        if(_gimmickPhase == GimmickPhase.None || _partyData.Count != 8) return;
 
         _ = new TickScheduler(delegate
         {
-            if (Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr)?.DataId != 0x3D5D &&
+            if(Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr)?.DataId != 0x3D5D &&
                Svc.Objects.FirstOrDefault(x => x.Address == newObjectPtr)?.DataId != 0x3D5E) return;
 
             ++_handCount;
-            if (_handCount < 8)
+            if(_handCount < 8)
             {
                 return;
             }
 
             // Find beetle and final
-            if (_beetle == null || _final == null)
+            if(_beetle == null || _final == null)
             {
                 _beetle = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == beetleModelId) as IBattleNpc;
                 _final = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == finalModelId) as IBattleNpc;
 
-                if (_beetle == null || _final == null)
+                if(_beetle == null || _final == null)
                 {
                     _gimmickPhase = GimmickPhase.None;
                     return;
@@ -299,7 +300,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             var closest = farPlayers.OrderBy(x => Vector3.Distance(new Vector3(100, 0, 100), x.player.Position)).FirstOrDefault();
             PartyData pm = farPlayers.FirstOrDefault(x => x.player.EntityId == closest.player.EntityId);
             PartyData pmPartner = farPlayers.FirstOrDefault(x => x.player.EntityId == closest.pair?.EntityId);
-            if (pm != null && pmPartner != null)
+            if(pm != null && pmPartner != null)
             {
                 pm.isClosePosition = true;
                 pmPartner.isClosePosition = true;
@@ -312,7 +313,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             var closestNear = nearPlayers.OrderBy(x => Vector3.Distance(new Vector3(100, 0, 100), x.player.Position)).FirstOrDefault();
             PartyData pmNear = nearPlayers.FirstOrDefault(x => x.player.EntityId == closestNear.player.EntityId);
             PartyData pmPartnerNear = nearPlayers.FirstOrDefault(x => x.player.EntityId == closestNear.pair?.EntityId);
-            if (pmNear != null && pmPartnerNear != null)
+            if(pmNear != null && pmPartnerNear != null)
             {
                 pmNear.isClosePosition = true;
                 pmPartnerNear.isClosePosition = true;
@@ -326,7 +327,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             (Outers[2].isLeft, Outers[3].isLeft) = IsLeft(new Vector3(100, 0, 100), _final.Position, Outers[2].pair.Position, Outers[3].pair.Position);
 
             // Check Party Data
-            if (!_partyData.All(x => x.pair != null) ||
+            if(!_partyData.All(x => x.pair != null) ||
                 _partyData.Where(x => x.isFar == true).Count() != 4 ||
                 _partyData.Where(x => x.isLeft == true).Count() != 4)
             {
@@ -341,21 +342,21 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
             // Set Delta Position
             bool innerUsed = false;
-            foreach (var player in _partyData)
+            foreach(var player in _partyData)
             {
-                if (player.isFar)
+                if(player.isFar)
                 {
-                    if (player.player.StatusList.Any(x => x.StatusId == BuffID.HelloNear))
+                    if(player.player.StatusList.Any(x => x.StatusId == BuffID.HelloNear))
                     {
                         player.position = "NearSource";
                     }
-                    else if (player.player.StatusList.Any(x => x.StatusId == BuffID.HelloFar))
+                    else if(player.player.StatusList.Any(x => x.StatusId == BuffID.HelloFar))
                     {
                         player.position = "FarSource";
                     }
                     else
                     {
-                        if (!innerUsed)
+                        if(!innerUsed)
                         {
                             player.position = "NearTakerInner";
                             innerUsed = true;
@@ -368,9 +369,10 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
                 }
                 else
                 {
-                    if (player.isClosePosition)
+                    if((player.isClosePosition && !C.invertInOutPosition) ||
+                       (!player.isClosePosition && C.invertInOutPosition))
                     {
-                        if (player.isLeft)
+                        if(player.isLeft)
                         {
                             player.position = "GreenFarFromOmega";
                         }
@@ -388,37 +390,15 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         });
     }
 
-    public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
-    {
-        if (!(_gimmickPhase == GimmickPhase.DeltaFirstHalfHandSpawn || _gimmickPhase == GimmickPhase.DeltaFirstHalfStackTiming)) return;
-
-        if (gainStatusInfos.Any(x => x.StatusId == BuffID.BashDebuff))
-        {
-            var player = _partyData.FirstOrDefault(x => x.player.EntityId == sourceId);
-            if (player != null)
-            {
-                player.isBashed = true;
-            }
-        }
-        else if (gainStatusInfos.Any(x => x.StatusId == BuffID.SampledBuffLeft) ||
-                 gainStatusInfos.Any(x => x.StatusId == BuffID.SampledBuffRight))
-        {
-            var player = _partyData.FirstOrDefault(x => x.player.EntityId == sourceId);
-            if (player != null)
-            {
-                player.isSampled = true;
-                player.SampledLeftRight = gainStatusInfos.Any(x => x.StatusId == BuffID.SampledBuffLeft) ? "Left" : "Right";
-            }
-        }
-    }
-
     public override void OnUpdate()
     {
-        if (_gimmickPhase == GimmickPhase.DeltaFirstHalfStackTiming)
+        ActorEffectCheck();
+
+        if(_gimmickPhase == GimmickPhase.DeltaFirstHalfStackTiming)
         {
             ShowDeltaStackPoint(Svc.ClientState.LocalPlayer.EntityId);
         }
-        else if (_gimmickPhase == GimmickPhase.DeltaSecondHalf)
+        else if(_gimmickPhase == GimmickPhase.DeltaSecondHalf)
         {
             ShowDeltaHelloPosition(Svc.ClientState.LocalPlayer.EntityId);
         }
@@ -438,9 +418,16 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         ElementOff();
     }
 
+    public class Config :IEzConfig
+    {
+        public bool invertInOutPosition = false;
+    }
+
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        ImGui.Text("Hello Near The default setting for buff cutting order is to give priority to the outside. If you want to prioritize the inside, please set the following.");
+        ImGui.Checkbox("Invert In/Out Position", ref C.invertInOutPosition);
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"GimmickPhase: {_gimmickPhase}");
             ImGui.Text($"OverSampledRightCasted: {_isOverSampledRightCasted}");
@@ -452,9 +439,9 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             ImGui.Text($"Final: {_final?.EntityId ?? 0}");
             ImGui.Text($"PartyData: ");
             List<ImGuiEx.EzTableEntry> ezTableEntry = new List<ImGuiEx.EzTableEntry>();
-            if (_partyData.Count > 0)
+            if(_partyData.Count > 0)
             {
-                foreach (var player in _partyData)
+                foreach(var player in _partyData)
                 {
                     ezTableEntry.Add(new ImGuiEx.EzTableEntry("Name", () => ImGui.Text(player.player.Name.ToString())));
                     ezTableEntry.Add(new ImGuiEx.EzTableEntry("Job", () => ImGui.Text(player.job.ToString())));
@@ -477,11 +464,36 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
     #endregion
 
     #region private
+    private void ActorEffectCheck()
+    {
+        if(_gimmickPhase == GimmickPhase.None) return;
+
+        if(_partyData.All(x => x.isBashed == false))
+        {
+            var p = _partyData.FirstOrDefault(x => x.player.StatusList.Any(y => y.StatusId == BuffID.BashDebuff));
+            if(p != null)
+            {
+                p.isBashed = true;
+            }
+        }
+
+        if(_partyData.All(x => x.isSampled == false))
+        {
+            var p = _partyData.FirstOrDefault(x => x.player.StatusList
+                        .Any(y => y.StatusId == BuffID.SampledBuffLeft) || x.player.StatusList.Any(y => y.StatusId == BuffID.SampledBuffRight));
+            if(p != null)
+            {
+                p.isSampled = true;
+                p.SampledLeftRight = p.player.StatusList.Any(y => y.StatusId == BuffID.SampledBuffLeft) ? "Left" : "Right";
+            }
+        }
+    }
+
     private void ShowDeltaStackPoint(uint ObjectId)
     {
         ElementOff();
 
-        if ((_isOverSampledLeftCasted && _isOverSampledRightCasted) || (!_isOverSampledLeftCasted && !_isOverSampledRightCasted))
+        if((_isOverSampledLeftCasted && _isOverSampledRightCasted) || (!_isOverSampledLeftCasted && !_isOverSampledRightCasted))
         {
             _gimmickPhase = GimmickPhase.None;
             return;
@@ -489,7 +501,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
         List<PartyData> helloNears = _partyData.Where(x => x.isFar == false).ToList();
         int i = 0;
-        foreach (PartyData nears in helloNears)
+        foreach(PartyData nears in helloNears)
         {
             Controller.GetElementByName($"SampledCannonRange{i}").refActorObjectID = nears.player.EntityId;
             Controller.GetElementByName($"SampledCannonRange{i}").Enabled = true;
@@ -498,33 +510,33 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
         PartyData? player = _partyData.FirstOrDefault(x => x.player.EntityId == ObjectId);
 
-        if (player.isFar)
+        if(player.isFar)
         {
             // Far
             // Sampled + Bash
-            if (player.isSampled && player.isBashed)
+            if(player.isSampled && player.isBashed)
             {
                 ShowStackElement("FinalSampledBashLeft", player);
             }
             // Bash
-            else if (player.isBashed && !player.isSampled)
+            else if(player.isBashed && !player.isSampled)
             {
                 ShowStackElement("FinalNoSampledBashLeft", player);
             }
             // Sampled
-            else if (player.isSampled && !player.isBashed)
+            else if(player.isSampled && !player.isBashed)
             {
                 ShowStackElement("FinalSampledStackLeft", player);
             }
             else
             {
                 // Bash + Sampled
-                if (_partyData.Any(x => x.isSampled && x.isBashed))
+                if(_partyData.Any(x => x.isSampled && x.isBashed))
                 {
                     ShowStackElement("FinalNoSampledStackLeft", player);
                 }
                 // Bash
-                else if (_partyData.Any(x => x.isBashed && !x.isSampled))
+                else if(_partyData.Any(x => x.isBashed && !x.isSampled))
                 {
                     ShowStackElement("FinalSampledStackLeft", player);
                 }
@@ -533,7 +545,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         else
         {
             // Near
-            if (player.isClosePosition)
+            if(player.isClosePosition)
             {
                 ShowStackElement("FinalFarLeft", player);
             }
@@ -557,10 +569,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
         PartyData? player = _partyData.FirstOrDefault(x => x.player.EntityId == ObjectId);
         ElementOff();
 
-        if (_isSwivelCannonLeftCasted)
-        {
-            Controller.GetElementByName(player.position).AdditionalRotation = InvertRotationCheck(Controller.GetElementByName(player.position), player);
-        }
+        Controller.GetElementByName(player.position).AdditionalRotation = InvertRotationCheck(Controller.GetElementByName(player.position), player);
         Controller.GetElementByName(player.position).refActorObjectID = _beetle.EntityId;
         Controller.GetElementByName(player.position).tether = true;
         Controller.GetElementByName(player.position).Enabled = true;
@@ -583,25 +592,25 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 
     private float InvertRotationCheck(Element element, PartyData pd)
     {
-        if (!element.includeRotation) return 0;
+        if(!element.includeRotation) return 0;
 
-        if (_gimmickPhase == GimmickPhase.DeltaFirstHalfStackTiming)
+        if(_gimmickPhase == GimmickPhase.DeltaFirstHalfStackTiming)
         {
-            if (pd.isFar)
+            if(pd.isFar)
             {
-                if (element.AdditionalRotation > 200f.DegreesToRadians() && _isOverSampledRightCasted) return element.AdditionalRotation;
-                if (element.AdditionalRotation <= 200f.DegreesToRadians() && _isOverSampledLeftCasted) return element.AdditionalRotation;
+                if(element.AdditionalRotation > 200f.DegreesToRadians() && _isOverSampledRightCasted) return element.AdditionalRotation;
+                if(element.AdditionalRotation <= 200f.DegreesToRadians() && _isOverSampledLeftCasted) return element.AdditionalRotation;
             }
             else
             {
-                if (element.AdditionalRotation > 200f.DegreesToRadians() && !pd.isLeft) return element.AdditionalRotation;
-                if (element.AdditionalRotation <= 200f.DegreesToRadians() && pd.isLeft) return element.AdditionalRotation;
+                if(element.AdditionalRotation > 200f.DegreesToRadians() && !pd.isLeft) return element.AdditionalRotation;
+                if(element.AdditionalRotation <= 200f.DegreesToRadians() && pd.isLeft) return element.AdditionalRotation;
             }
         }
         else
         {
-            if (element.AdditionalRotation >= 200f.DegreesToRadians() && _isSwivelCannonRightCasted) return element.AdditionalRotation;
-            if (element.AdditionalRotation < 200f.DegreesToRadians() && _isSwivelCannonLeftCasted) return element.AdditionalRotation;
+            if(element.AdditionalRotation >= 200f.DegreesToRadians() && _isSwivelCannonRightCasted) return element.AdditionalRotation;
+            if(element.AdditionalRotation < 200f.DegreesToRadians() && _isSwivelCannonLeftCasted) return element.AdditionalRotation;
         }
 
         DuoLog.Information($"Invert Rotation: {element.AdditionalRotation}");

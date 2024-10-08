@@ -10,8 +10,10 @@ internal static class TabScripting
 {
     internal static volatile bool ForceUpdate = false;
     internal static string Search = "";
+    internal static string RequestOpen = null;
     internal static void Draw()
     {
+        if(ImGui.IsWindowAppearing()) RequestOpen = null;
         if (ScriptingProcessor.ThreadIsRunning)
         {
             ImGuiEx.LineCentered("ThreadCompilerRunning", delegate
@@ -56,10 +58,20 @@ internal static class TabScripting
 
         if(openConfig != null)
         {
+            RequestOpen = null;
             DrawScriptGroup([openConfig]);
         }
         else
         {
+            if(RequestOpen != null)
+            {
+                var candidate = ScriptingProcessor.Scripts.FirstOrDefault(x => x.InternalData?.FullName == RequestOpen);
+                if(candidate != null)
+                {
+                    candidate.InternalData.ConfigOpen = true;
+                    RequestOpen = null;
+                }
+            }
             if(Search != "")
             {
                 DrawScriptGroup(ScriptingProcessor.Scripts);
@@ -262,8 +274,8 @@ internal static class TabScripting
                         ex.Log();
                     }
                 }, null, false),
-                (openConfig.Controller.GetRegisteredElements().Count>0?"Registered elements":null, openConfig.DrawRegisteredElements, null, false)//,
-                //("Saved Configurations", openConfig.DrawConfigurations, null, false)
+                (openConfig.Controller.GetRegisteredElements().Count>0?"Registered elements":null, openConfig.DrawRegisteredElements, null, false),
+                ("Saved Configurations", openConfig.DrawConfigurations, null, false)
                 );
             
             ImGuiEx.LineCentered("ScriptConfig", delegate

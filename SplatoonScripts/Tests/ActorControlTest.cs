@@ -11,39 +11,17 @@ using System.Threading.Tasks;
 using ECommons.GameFunctions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons.DalamudServices.Legacy;
+using ECommons.Commands;
 
 namespace SplatoonScriptsOfficial.Tests
 {
     public class ActorControlTest : SplatoonScript
     {
-        delegate void ProcessActorControlPacket(uint a1, uint a2, uint a3, uint a4, uint a5, uint a6, int a7, uint a8, long a9, byte a10);
-        [Signature("40 55 53 56 41 54 41 56 48 8D AC 24 ?? ?? ?? ?? B8", DetourName =nameof(ProcessActorControlPacketDetour))]
-        Hook<ProcessActorControlPacket> ProcessActorControlPacketHook;
+        public override HashSet<uint>? ValidTerritories => null;
 
-
-        public override HashSet<uint> ValidTerritories => null;
-
-        public override void OnEnable()
+        public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
         {
-            SignatureHelper.Initialise(this);
-            ProcessActorControlPacketHook.Enable();
-            Svc.Chat.Print($"ProcessActorControlPacketHook.Address: {ProcessActorControlPacketHook.Address:X16}");
-        }
-
-        public override void OnDisable()
-        {
-            ProcessActorControlPacketHook.Disable();
-            ProcessActorControlPacketHook.Dispose();
-        }
-
-        void ProcessActorControlPacketDetour(uint a1, uint a2, uint a3, uint a4, uint a5, uint a6, int a7, uint a8, long a9, byte a10)
-        {
-            try
-            {
-                PluginLog.Information($"ActorControlPacket: {a1:X8}, {a2:X8}, {a3:X8}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}, {a8:X8}, {a9:X16}, {a10:X2}");
-            }
-            catch(Exception e) { }
-            ProcessActorControlPacketHook.Original(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+            PluginLog.Information($"Source: {sourceId.GetObject()}\ncmd: {command}\n{p1},{p2},{p3},{p4},{p5},{p6},{((uint)targetId).GetObject()},{replaying}");
         }
     }
 }

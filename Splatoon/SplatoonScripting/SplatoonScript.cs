@@ -9,6 +9,8 @@ using ECommons.LanguageHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
+using Reloaded.Hooks.Definitions.Structs;
+using Splatoon.Gui.Scripting;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 
@@ -238,174 +240,95 @@ public abstract class SplatoonScript
         } ?? en ?? jp ?? de ?? fr ?? cn ?? "<null>";
     }
 
-    internal void DrawConfigurations()
+    internal unsafe void DrawConfigurations()
     {
-        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Save, "Save current configuration"))
+        ImGuiEx.LineCentered(() =>
         {
-            var name = $"Configuration {this.InternalData.ScriptConfigurationsList.Configurations.Count + 1}";
-            InternalData.ScriptConfigurationsList.Configurations.Add(new() { 
-                Name = name,
-                ForScript = this.InternalData.FullName,
-                Configuration = this.Controller.Configuration == null ? null : JsonConvert.SerializeObject(this.Controller.Configuration),
-                ElementOverrides = this.InternalData.Overrides.Elements.Count == 0?null : JsonConvert.SerializeObject(this.InternalData.Overrides)
-            });
-        }
-        ImGui.SameLine();
-        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste from clipboard"))
-        {
-            try
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new configuration"))
             {
-                var newConf = JsonConvert.DeserializeObject<ScriptConfiguration>(Paste()!);
-                if(newConf == null || newConf.Name == null) throw new NullReferenceException();
-                if(newConf.ForScript != this.InternalData.FullName)
-                {
-                    throw new InvalidOperationException($"Configuration in clipboard is for script {newConf.ForScript}, you're currently editing configurations for {this.InternalData.FullName}");
-                }
-                if(newConf.Name == "")
-                {
-                    newConf.Name = $"Imported configuration {this.InternalData.ScriptConfigurationsList.Configurations.Count + 1}";
-                }
-                this.InternalData.ScriptConfigurationsList.Configurations.Add(newConf);
-                this.Controller.SaveConfigurations();
+                var newKey = InternalData.GetFreeConfigurationKey();
+                P.Config.ScriptConfigurationNames.GetOrCreate(this.InternalData.FullName)[newKey] = "New configuration";
             }
-            catch(Exception e)
-            {
-                DuoLog.Error(e.Message);
-            }
-        }
-        var mod = false;
-        if(ImGui.BeginTable("ConfTable", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
+        });
+        if(P.Config.ScriptConfigurationNames.TryGetValue(this.InternalData.FullName, out var confList))
         {
-            ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
-            ImGui.TableSetupColumn("##flags");
-            ImGui.TableSetupColumn("##control");
-            ImGui.TableHeadersRow();
+            var current = this.InternalData.CurrentConfigurationKey;
+            if(ImGui.BeginTable("ConfTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
+            {
+                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("##control");
+                ImGui.TableHeadersRow();
 
-            for(int i = 0; i < this.InternalData.ScriptConfigurationsList.Configurations.Count; i++)
-            {
-                var conf = this.InternalData.ScriptConfigurationsList.Configurations[i];
-                ImGui.PushID($"##conf{i}");
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-
-                if(ImGui.Selectable(conf.Name))
+                ImGuiEx.TextV(current == ""?ImGuiColors.ParsedGreen:null, $"Default configuration");
+                if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it."))
                 {
-                    try
+                    P.Config.ActiveScriptConfigurations.Remove(this.InternalData.FullName);
+                    TabScripting.RequestOpen = this.InternalData.FullName;
+                    if(this.InternalData.CurrentConfigurationKey != "") ScriptingProcessor.ReloadScript(this);
+                }
+
+                foreach(var confKey in confList.Keys.ToArray())
+                {
+                    var confValue = confList[confKey];
+                    ImGui.PushID(confKey);
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGuiEx.TextV(current == confKey ? ImGuiColors.ParsedGreen : null, confValue);
+                    if(ImGuiEx.HoveredAndClicked("Click to apply this configuration and reload the script."))
                     {
-                        var configType = (this.Controller.Configuration?.GetType() ?? this.GetType().GetNestedTypes().FirstOrDefault(x => x.GetInterfaces().Any(s => s == typeof(IEzConfig)))) ?? throw new Exception($"Could not find configuration for script {this.InternalData.FullName}. To support configuration loading, script must have nested class that implements IEzConfig and supports serialization.");
-                        if(this.Controller.Configuration != null)
-                        {
-                            this.Controller.Configuration = conf.Configuration == null ? null : (IEzConfig)JsonConvert.DeserializeObject(conf.Configuration, configType)!;
-                        }
-                        this.Controller.SaveConfig();
-
-                        var hasElementOverrides = this.InternalData.Overrides!.Elements.Count > 0;
-                        if(conf.ElementOverrides != null) 
-                        {
-                            var ovr = JsonConvert.DeserializeObject<OverrideData>(conf.ElementOverrides)!;
-                            if(ovr.Elements.Count > 0)
-                            {
-                                this.InternalData.Overrides = ovr;
-                                this.Controller.SaveOverrides();
-                                this.Controller.ApplyOverrides();
-                            }
-                            else
-                            {
-                                //no overrides
-                                this.InternalData.Overrides = new();
-                                this.Controller.SaveOverrides();
-                            }
-                        }
-                        else
-                        {
-                            //no overrides
-                            this.InternalData.Overrides = new();
-                            this.Controller.SaveOverrides();
-                        }
-                        if(hasElementOverrides)
-                        {
-                            ScriptingProcessor.ReloadScript(this);
-                        }
+                        P.Config.ActiveScriptConfigurations[InternalData.FullName] = confKey;
+                        TabScripting.RequestOpen = this.InternalData.FullName;
+                        if(this.InternalData.CurrentConfigurationKey != confKey) ScriptingProcessor.ReloadScript(this);
                     }
-                    catch(Exception e)
+                    ImGui.TableNextColumn();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Edit))
                     {
-                        e.Log();
+                        ImGui.OpenPopup($"EditConf");
                     }
-                }
-
-                ImGui.TableNextColumn();
-                if(!conf.Configuration.IsNullOrEmpty())
-                {
-                    ImGui.SameLine();
-                    ImGui.PushFont(UiBuilder.IconFont);
-                    ImGuiEx.Text(FontAwesomeIcon.Cog.ToIconString());
-                    ImGui.PopFont();
-                    ImGuiEx.Tooltip($"This configuration contains script settings");
-                }
-                if(!conf.ElementOverrides.IsNullOrEmpty())
-                {
-                    ImGui.SameLine();
-                    ImGui.PushFont(UiBuilder.IconFont);
-                    ImGuiEx.Text(FontAwesomeIcon.Cog.ToIconString());
-                    ImGui.PopFont();
-                    ImGuiEx.Tooltip($"This configuration contains element overrides");
-                }
-
-                ImGui.TableNextColumn();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Edit))
-                {
-                    ImGui.OpenPopup("renameConf");
-                }
-                ImGuiEx.Tooltip("Rename");
-                if(ImGui.BeginPopup("renameConf"))
-                {
-                    ImGuiEx.Text("Give different script's configurations same names \nto switch them all in one click!");
-                    ImGui.SetNextItemWidth(500f);
-                    mod |= ImGui.InputTextWithHint("##name", "Name your configuration", ref conf.Name, 100);
-                    ImGui.EndPopup();
-                }
-                ImGui.SameLine(0,1);
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
-                {
-                    Copy(JsonConvert.SerializeObject(conf));
-                }
-                ImGuiEx.Tooltip("Copy");
-                ImGui.SameLine(0, 1);
-                if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowUp, enabled: i > 0))
-                {
-                    (InternalData.ScriptConfigurationsList.Configurations[i], InternalData.ScriptConfigurationsList.Configurations[i - 1]) = (InternalData.ScriptConfigurationsList.Configurations[i - 1], InternalData.ScriptConfigurationsList.Configurations[i]);
-                }
-                ImGui.SameLine(0, 1);
-                if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowDown, enabled: i < InternalData.ScriptConfigurationsList.Configurations.Count - 1))
-                {
-                    (InternalData.ScriptConfigurationsList.Configurations[i], InternalData.ScriptConfigurationsList.Configurations[i + 1]) = (InternalData.ScriptConfigurationsList.Configurations[i + 1], InternalData.ScriptConfigurationsList.Configurations[i]);
-                }
-                ImGui.SameLine(0, 1);
-                if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowsDownToLine, enabled: ImGuiEx.Ctrl))
-                {
-                    conf.Configuration = this.Controller.Configuration == null?null:JsonConvert.SerializeObject(this.Controller.Configuration);
-                    conf.ElementOverrides = this.InternalData.Overrides == null ? null : JsonConvert.SerializeObject(this.InternalData.Overrides);
-                    mod = true;
-                }
-                ImGuiEx.Tooltip("Override this configuration with current. Hold CTRL and click.");
-                ImGui.SameLine(0, 1);
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled:ImGuiEx.Ctrl))
-                {
-                    new TickScheduler(() => {
-                        InternalData.ScriptConfigurationsList.Configurations.Remove(conf);
-                        this.Controller.SaveConfigurations();
+                    if(ImGui.BeginPopup($"EditConf"))
+                    {
+                        ImGuiEx.Text($"Please name your configuration");
+                        ImGui.SetNextItemWidth(250f);
+                        var name = confValue;
+                        if(ImGui.InputText("##editval", ref name, 100))
+                        {
+                            confList[confKey] = name;
+                        }
+                        ImGui.EndPopup();
+                    }
+                    ImGui.SameLine(0, 1);
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled: ImGuiEx.Ctrl))
+                    {
+                        new TickScheduler(() =>
+                        {
+                            confList.Remove(confKey);
+                            try
+                            {
+                                DeleteFileToRecycleBin(this.InternalData.GetConfigPathForConfigurationKey(confKey));
+                            }
+                            catch(Exception e) { e.Log(); }
+                            try
+                            {
+                                DeleteFileToRecycleBin(this.InternalData.GetOverridesPathForConfigurationKey(confKey));
+                            }
+                            catch(Exception e) { e.Log(); }
+                            if(InternalData.CurrentConfigurationKey == confKey)
+                            {
+                                ScriptingProcessor.ReloadScript(this);
+                            }
                         });
+                    }
+                    ImGui.PopID();
                 }
-                ImGuiEx.Tooltip("Delete. Hold CTRL and click.");
 
-                ImGui.PopID();
+                ImGui.EndTable();
             }
-
-            ImGui.EndTable();
         }
-        if(mod)
+        else
         {
-            this.Controller.SaveConfigurations();
+            ImGuiEx.Text($"You have no optional configurations for this script.");
         }
     }
 

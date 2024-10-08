@@ -12,6 +12,18 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static string GetScriptConfigurationName(string scriptFullName, string configKey)
+    {
+        if(P.Config.ScriptConfigurationNames.TryGetValue(scriptFullName, out var d))
+        {
+            if(d.TryGetValue(configKey, out var name))
+            {
+                return name;
+            }
+        }
+        return null;
+    }
+
     public static uint[] BlacklistedMessages = new uint[] { 4777, 4139, 4398, 2091, 2218, 2350, 4397, 2224, 4270, 4269, 2729, 4400, 10537, 10409, 10543, 2222, 4401, 2874, 4905, 12585, 4783, 4140 };
 
     public static string[] BlacklistedVFX = new string[]

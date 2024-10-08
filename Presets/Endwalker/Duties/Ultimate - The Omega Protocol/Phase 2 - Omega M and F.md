@@ -56,7 +56,12 @@
 ~Lv2~{"Name":"P2 Optical unit finder - early beam","Group":"TOP","ZoneLockH":[1122],"DCond":5,"ElementsL":[{"Name":"","type":3,"refY":25.0,"refZ":20.0,"offY":25.0,"radius":2.0,"color":3372220160,"overlayBGColor":0,"overlayTextColor":4278190080,"overlayFScale":7.0,"thicc":5.0,"overlayText":"EYE","refActorNPCNameID":7640,"refActorComparisonType":6,"includeRotation":true,"Filled":true},{"Name":"","type":3,"refX":-25.0,"refZ":20.0,"offX":-25.0,"radius":2.0,"color":3372220160,"overlayBGColor":0,"overlayTextColor":4278190080,"overlayFScale":7.0,"thicc":5.0,"overlayText":"EYE","refActorNPCNameID":7640,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":20.0,"Match":"(7635>31550)","MatchDelay":5.0}]}
 ```
 
-[International] [Script] [Configuration required] Stack swap informer. Will inform you about need to swap with a player on stacks, and optionally - write in chat (for you only, not sending to server) - for any swap. Can be configured: furthest or closest player to adjust. 
+[International] [Script] [Configuration required] Party Synergy MultiScript
+* Stack swap informer. Will inform you about need to swap with a player on stacks, and optionally - write in chat (for you only, not sending to server) - for any swap. Can be configured: furthest or closest player to adjust. 
+* Full Tether Guide. Will display tether a my player. [Configuration required]
+Full Tether Guide is need priority List setting. The priority is adjusted from right to left from top to bottom of the list.
+The default display and guide is New toolbox strat Left Swap. For other strats, please modify the position in the element editor. (Do not modify anything other than the position)
+
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Party%20Synergy.cs
 ```

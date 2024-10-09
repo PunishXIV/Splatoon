@@ -29,7 +29,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
     private float _lastMinPercentage;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
     private Config C => Controller.GetConfig<Config>();
 
     private IBattleChara? Nidhogg => Svc.Objects.FirstOrDefault(o => o.DataId == 0x3144) as IBattleChara;

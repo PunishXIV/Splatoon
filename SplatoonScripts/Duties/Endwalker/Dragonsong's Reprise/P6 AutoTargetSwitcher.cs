@@ -97,9 +97,17 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             ImGui.Checkbox("DebugMode", ref C.DebugMode);
             ImGui.Text($"Timings: {C.TimingMode}");
             ImGui.Text($"IsActive: {IsActive}");
+            ImGui.Text($"Current Target: {_currentTarget?.Name}");
             
             ImGui.Separator();
-            ImGui.Text();
+            var nifhogg = Nidhogg;
+            var hraesvelgr = Hraesvelgr;
+            if (nifhogg == null || hraesvelgr == null) return;
+            var nidhoggHpPercent = (float)nifhogg.CurrentHp / nifhogg.MaxHp * 100f;
+            var hraesvelgrHpPercent = (float)hraesvelgr.CurrentHp / hraesvelgr.MaxHp * 100f;
+            ImGui.Text($"Nidhogg Hp Percent: {nidhoggHpPercent}");
+            ImGui.Text($"Hraesvelgr Hp Percent: {hraesvelgrHpPercent}");
+            ImGui.Text($"Difference: {Math.Abs(nidhoggHpPercent - hraesvelgrHpPercent)}");
         }
     }
 

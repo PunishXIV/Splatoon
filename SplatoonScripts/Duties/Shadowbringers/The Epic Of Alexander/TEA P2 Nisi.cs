@@ -51,7 +51,7 @@ public class TEA_P2_Nisi : SplatoonScript
 
         var nisiPassElement = new Element(0)
         {
-            overlayText = Loc(en: "Pass it.", jp: "交換対象"),
+            overlayText = Loc(en: "Pass it.", jp: "交換対象", de: "Nisi Pass"),
             tether = true
         };
         Controller.RegisterElement("NisiPass", nisiPassElement);

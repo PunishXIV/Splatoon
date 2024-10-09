@@ -110,7 +110,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander
 
         public override void OnMessage(string Message)
         {
-            if (Message == "Designation: Blassty. Intruders to central calculation system detected. Initiating extermination protocol!")
+            if (Message.Contains(Loc(en: "Designation: Blassty. Intruders to central calculation system detected. Initiating extermination protocol!", null, de: "Codename Blassty - Differenzraum gefährdet ... Zugriff wird abgewehrt!")))
             {
                 MechanicActive = true;
             }

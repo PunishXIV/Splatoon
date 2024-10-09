@@ -97,6 +97,9 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             ImGui.Checkbox("DebugMode", ref C.DebugMode);
             ImGui.Text($"Timings: {C.TimingMode}");
             ImGui.Text($"IsActive: {IsActive}");
+            
+            ImGui.Separator();
+            ImGui.Text();
         }
     }
 
@@ -202,6 +205,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
     public override void OnReset()
     {
         _currentTarget = null;
+        _currentTiming = Timings.Start;
         _lastMinPercentage = 0f;
         _targets.Clear();
         _percentages.Clear();

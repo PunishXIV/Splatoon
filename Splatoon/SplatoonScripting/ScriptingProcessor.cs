@@ -336,7 +336,7 @@ internal static partial class ScriptingProcessor
                         {
                             //PluginLog.Verbose($"Script loading thread is idling, count {idleCount}");
                             idleCount++;
-                            Thread.Sleep(250);
+                            Thread.Sleep(100);
                         }
                     }
                 }

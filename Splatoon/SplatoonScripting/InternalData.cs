@@ -1,10 +1,13 @@
 ﻿#nullable enable
 using ECommons.Configuration;
+using Splatoon.Services;
 
 namespace Splatoon.SplatoonScripting;
 
 public class InternalData
 {
+    internal static char[] IdentifierLetters = ['q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','1','2','3','4','5','6','7','8','9','0'];
+
     public string Path { get; internal set; }
     public string Namespace { get; internal set; }
     public string Name { get; internal set; }
@@ -21,10 +24,10 @@ public class InternalData
 
     internal OverrideData Overrides;
 
-    internal ScriptConfigurationsList ScriptConfigurationsList;
+    internal string CurrentConfigurationKey = "";
 
-    internal string OverridesPath => $"{Path}.overrides.json";
-    internal string ConfigurationsPath => $"{Path}.conf.json";
+    internal string OverridesPath => GetOverridesPathForConfigurationKey(CurrentConfigurationKey);
+    internal string ConfigurationPath => GetConfigPathForConfigurationKey(CurrentConfigurationKey);
 
     internal bool UnconditionalDraw = false;
     internal HashSet<string> UnconditionalDrawElements = new();
@@ -37,9 +40,71 @@ public class InternalData
         Namespace = instance.GetType().Namespace ?? "Default";
         Name = instance.GetType().Name;
         FullName = $"{Namespace}@{Name}";
+        InitializeConfiguration();
         Overrides = EzConfig.LoadConfiguration<OverrideData>($"{OverridesPath}", false);
-        ScriptConfigurationsList = EzConfig.LoadConfiguration<ScriptConfigurationsList>($"{ConfigurationsPath}", false);
         PluginLog.Information($"Script {FullName} ready.");
+    }
+
+    public string GetOverridesPathForConfigurationKey(string key)
+    {
+        return $"{Path}.overrides{(key == "" ? "" : $".{key}")}.json";
+    }
+
+    public string GetConfigPathForConfigurationKey(string key)
+    {
+        return $"{Path}{(key == "" ? "" : $".{key}")}.json";
+    }
+
+    internal string GetFreeConfigurationKey()
+    {
+        for(int i = 0; i < 1000000; i++)
+        {
+            var id = new StringBuilder();
+            for(int x = 0; x < 8; x++)
+            {
+                id.Append(IdentifierLetters.GetRandom());
+            }
+            var idstr = id.ToString();
+            if(!File.Exists($"{Path}{idstr}.json") && !File.Exists($"{Path}.overrides{idstr}.json"))
+            {
+                return idstr;
+            }
+        }
+        throw new InvalidOperationException($"Could not find free configuration identifier for {Path}. You may have to manually clean up old configurations.");
+    }
+
+    internal void InitializeConfiguration()
+    {
+        if(P.Config.ActiveScriptConfigurations.TryGetValue(this.FullName, out var config))
+        {
+            this.CurrentConfigurationKey = config;
+            PluginLog.Information($"For script {FullName}, switched configuration to {config} / {Utils.GetScriptConfigurationName(FullName, config)}");
+        }
+    }
+
+    internal List<string> GetConfigurationIdentifiersFromFilesystem()
+    {
+        var ret = new List<string>();
+        var dir = new DirectoryInfo(System.IO.Path.GetDirectoryName(Path)!);
+        foreach(var file in dir.GetFiles())
+        {
+            try
+            {
+                if(file.Name.StartsWith(Name))
+                {
+                    var identifier = file.Name[Name.Length..].Split(".")[^2];
+                    if(identifier.Length == 8 && identifier.All(x => IdentifierLetters.Contains(x)))
+                    {
+                        ret.Add(identifier);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                e.Log();
+            }
+        }
+        return ret;
     }
 
     public void ReloadOverrides()

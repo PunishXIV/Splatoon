@@ -29,11 +29,15 @@ public class P6_AutoTargetSwitcher : SplatoonScript
     private float _lastMinPercentage;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
     private Config C => Controller.GetConfig<Config>();
 
-    private IBattleChara? Nidhogg => Svc.Objects.FirstOrDefault(o => o.DataId == 0x3144) as IBattleChara;
-    private IBattleChara? Hraesvelgr => Svc.Objects.FirstOrDefault(o => o.DataId == 0x3145) as IBattleChara;
+    private IBattleChara? Nidhogg => Svc.Objects.Where(o => o.IsTargetable)
+        .FirstOrDefault(o => o.DataId == 0x3144) as IBattleChara;
+
+    private IBattleChara? Hraesvelgr => Svc.Objects
+        .Where(o => o.IsTargetable)
+        .FirstOrDefault(o => o.DataId == 0x3145) as IBattleChara;
 
     private bool IsActive => !C.TimingMode ||
                              (C.EnableTimings.Contains(_currentTiming) && !C.DisableTimings.Contains(_currentTiming));
@@ -98,7 +102,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             ImGui.Text($"Timings: {C.TimingMode}");
             ImGui.Text($"IsActive: {IsActive}");
             ImGui.Text($"Current Target: {_currentTarget?.Name}");
-            
+
             ImGui.Separator();
             var nifhogg = Nidhogg;
             var hraesvelgr = Hraesvelgr;
@@ -168,11 +172,30 @@ public class P6_AutoTargetSwitcher : SplatoonScript
         {
             var nidhogg = Nidhogg;
             var hraesvelgr = Hraesvelgr;
-            if (nidhogg == null || hraesvelgr == null) return;
+
+            if (nidhogg == null && hraesvelgr == null)
+            {
+                Alert("No targets found");
+                return;
+            }
+
+            if (nidhogg == null && hraesvelgr != null)
+            {
+                Svc.Targets.SetTarget(hraesvelgr);
+                _currentTarget = hraesvelgr;
+                return;
+            }
+
+            if (nidhogg != null && hraesvelgr == null)
+            {
+                Svc.Targets.SetTarget(nidhogg);
+                _currentTarget = nidhogg;
+                return;
+            }
 
             _targets.Clear();
-            _targets.Add(nidhogg);
-            _targets.Add(hraesvelgr);
+            if (nidhogg != null) _targets.Add(nidhogg);
+            if (hraesvelgr != null) _targets.Add(hraesvelgr);
 
             _percentages.Clear();
             foreach (var percentage in _targets.Select(target => (float)target.CurrentHp / target.MaxHp * 100f))
@@ -233,11 +256,22 @@ public class P6_AutoTargetSwitcher : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public List<Timings> DisableTimings = [];
-        public List<Timings> EnableTimings = [];
         public float AcceptablePercentage = 3f;
         public bool DebugMode;
+
+        public List<Timings> DisableTimings =
+        [
+            Timings.FirstAkhAfahEnd,
+            Timings.SecondAkhAfahEnd
+        ];
+
+        public List<Timings> EnableTimings =
+        [
+            Timings.FirstWyrmsbreathEnd,
+            Timings.WrothFlames
+        ];
+
         public int Interval = 300;
-        public bool TimingMode;
+        public bool TimingMode = true;
     }
 }

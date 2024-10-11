@@ -13,6 +13,7 @@ using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
+using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
@@ -49,7 +50,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
     private BaitPosition _myBaitPosition = BaitPosition.None;
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
 
     private Config C => Controller.GetConfig<Config>();
@@ -199,6 +200,9 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         var element = new Element(0)
         {
             radius = 1f,
+            thicc = 6f,
+            Donut = 0.35f,
+            LineEndA = LineEnd.Arrow,
             tether = true
         };
         Controller.TryRegisterElement("Bait", element);

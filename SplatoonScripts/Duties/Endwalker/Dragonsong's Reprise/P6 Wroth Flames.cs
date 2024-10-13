@@ -35,6 +35,7 @@ public class P6_Wroth_Flames : SplatoonScript
         };
 
     private readonly uint[] _heatTailCastIds = [27949, 27950];
+    private readonly uint[] _heatWingCastIds = [27947, 27948];
     private int _redSphereCount;
 
     private SafeSpreadDirection _safeSpreadDirection = SafeSpreadDirection.None;
@@ -44,9 +45,13 @@ public class P6_Wroth_Flames : SplatoonScript
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
+
+    private IBattleChara? Hraesvelgr => Svc.Objects
+        .Where(o => o.IsTargetable)
+        .FirstOrDefault(o => o.DataId == 0x3145) as IBattleChara;
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
@@ -58,7 +63,7 @@ public class P6_Wroth_Flames : SplatoonScript
     public override void OnStartingCast(uint source, uint castId)
     {
         if (_state != State.Stack) return;
-        if (_heatTailCastIds.Contains(castId))
+        if (_heatTailCastIds.Contains(castId) || _heatWingCastIds.Contains(castId))
         {
             if (source.GetObject() is not IBattleChara sourceChara) return;
             _state = State.Split;
@@ -81,10 +86,6 @@ public class P6_Wroth_Flames : SplatoonScript
         }
     }
 
-    private IBattleChara? Hraesvelgr => Svc.Objects
-        .Where(o => o.IsTargetable)
-        .FirstOrDefault(o => o.DataId == 0x3145) as IBattleChara;
-    
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
         if (_state != State.DebuffGained) return;
@@ -96,22 +97,31 @@ public class P6_Wroth_Flames : SplatoonScript
             _state = State.Stack;
             var isNorth = redSphere.Position.Z < 100f;
             var isEast = redSphere.Position.X > 100f;
-            
+
             StackSafeDirection[] redSphereSafeDirection = (isNorth, isEast) switch
             {
-                (true, true) => [StackSafeDirection.SouthWest, StackSafeDirection.SouthEast],
-                (true, false) => [StackSafeDirection.SouthEast, StackSafeDirection.SouthWest],
-                (false, true) => [StackSafeDirection.NorthWest, StackSafeDirection.NorthEast],
-                (false, false) => [StackSafeDirection.NorthEast, StackSafeDirection.NorthWest]
+                (true, true) => [StackSafeDirection.SouthEast, StackSafeDirection.SouthWest],
+                (true, false) => [StackSafeDirection.SouthWest, StackSafeDirection.SouthEast],
+                (false, true) => [StackSafeDirection.NorthEast, StackSafeDirection.NorthWest],
+                (false, false) => [StackSafeDirection.NorthWest, StackSafeDirection.NorthEast]
             };
-            
+
+            if (C.PrioritizeSecondRedBallDiagonal) redSphereSafeDirection = redSphereSafeDirection.Reverse().ToArray();
+            if (C.PrioritizeWest)
+                if (redSphereSafeDirection[1].ToString().Contains("West"))
+                    redSphereSafeDirection = redSphereSafeDirection.Reverse().ToArray();
+
             var hraesvelgrPositionX = Hraesvelgr?.Position.X ?? 100f;
             StackSafeDirection[] hraesvelgrSafeDirection = Math.Abs(hraesvelgrPositionX - 100f) < 0.1f
-                ? [StackSafeDirection.NorthEast, StackSafeDirection.NorthWest, StackSafeDirection.SouthEast,StackSafeDirection.SouthWest]
+                ?
+                [
+                    StackSafeDirection.NorthEast, StackSafeDirection.NorthWest,
+                    StackSafeDirection.SouthEast, StackSafeDirection.SouthWest
+                ]
                 : hraesvelgrPositionX > 105f
                     ? [StackSafeDirection.NorthWest, StackSafeDirection.SouthWest]
                     : [StackSafeDirection.NorthEast, StackSafeDirection.SouthEast];
-            
+
             _stackSafeDirection = redSphereSafeDirection.Intersect(hraesvelgrSafeDirection).First();
 
             var stackPosition = GetStackPosition(_stackSafeDirection);
@@ -270,10 +280,27 @@ public class P6_Wroth_Flames : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        DrawPriorityList();
+        ImGui.Text("General Settings");
+        ImGui.Indent();
         ImGui.ColorEdit4("Bait Color 1", ref C.BaitColor1, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Bait Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
+        ImGui.Unindent();
 
+        ImGui.Text("Stack Settings");
+        ImGui.Indent();
+        ImGui.Checkbox("Prioritize Second Red Ball Diagonal", ref C.PrioritizeSecondRedBallDiagonal);
+        if (C.PrioritizeSecondRedBallDiagonal)
+            C.PrioritizeWest = false;
+        ImGui.Checkbox("Prioritize West", ref C.PrioritizeWest);
+        if (C.PrioritizeWest)
+            C.PrioritizeSecondRedBallDiagonal = false;
+        ImGui.Unindent();
+        
+        ImGui.Text("Spread Settings");
+        ImGui.Indent();
+        DrawPriorityList();
+        ImGui.Unindent();
+        
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
@@ -338,6 +365,8 @@ public class P6_Wroth_Flames : SplatoonScript
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public bool PrioritizeSecondRedBallDiagonal;
+        public bool PrioritizeWest;
         public string[] Priority = ["", "", "", "", "", "", "", ""];
     }
 }

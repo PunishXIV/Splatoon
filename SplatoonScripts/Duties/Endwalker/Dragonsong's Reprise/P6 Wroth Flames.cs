@@ -5,6 +5,7 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
@@ -20,25 +21,6 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public class P6_Wroth_Flames : SplatoonScript
 {
-    public enum StackSafeDirection
-    {
-        None,
-        NorthEast,
-        NorthWest,
-        SouthEast,
-        SouthWest
-    }
-
-    private enum State
-    {
-        None,
-        Start,
-        DebuffGained,
-        Stack,
-        Split,
-        End
-    }
-
     private const uint WrothFlamesCastId = 27973;
     private const ushort SpreadDebuffId = 2758;
     private const ushort StackDebuffId = 2759;
@@ -55,14 +37,14 @@ public class P6_Wroth_Flames : SplatoonScript
     private readonly uint[] _heatTailCastIds = [27949, 27950];
     private int _redSphereCount;
 
-    private SafeDirection _safeDirection = SafeDirection.None;
+    private SafeSpreadDirection _safeSpreadDirection = SafeSpreadDirection.None;
 
     private StackSafeDirection _stackSafeDirection = StackSafeDirection.None;
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -80,17 +62,17 @@ public class P6_Wroth_Flames : SplatoonScript
         {
             if (source.GetObject() is not IBattleChara sourceChara) return;
             _state = State.Split;
-            _safeDirection = Math.Abs(sourceChara.Position.Z - 100f) > 0.1f
-                ? SafeDirection.Center
+            _safeSpreadDirection = Math.Abs(sourceChara.Position.Z - 100f) > 0.1f
+                ? SafeSpreadDirection.Center
                 : _stackSafeDirection switch
                 {
-                    StackSafeDirection.NorthEast => SafeDirection.North,
-                    StackSafeDirection.NorthWest => SafeDirection.North,
-                    StackSafeDirection.SouthEast => SafeDirection.South,
-                    StackSafeDirection.SouthWest => SafeDirection.South,
-                    _ => SafeDirection.None
+                    StackSafeDirection.NorthEast => SafeSpreadDirection.North,
+                    StackSafeDirection.NorthWest => SafeSpreadDirection.North,
+                    StackSafeDirection.SouthEast => SafeSpreadDirection.South,
+                    StackSafeDirection.SouthWest => SafeSpreadDirection.South,
+                    _ => SafeSpreadDirection.None
                 };
-            var baitPosition = GetBaitPosition(Player.Object.EntityId, _safeDirection);
+            var baitPosition = GetBaitPosition(Player.Object.EntityId, _safeSpreadDirection);
             if (Controller.TryGetElementByName("Bait", out var element))
             {
                 element.Enabled = true;
@@ -99,6 +81,10 @@ public class P6_Wroth_Flames : SplatoonScript
         }
     }
 
+    private IBattleChara? Hraesvelgr => Svc.Objects
+        .Where(o => o.IsTargetable)
+        .FirstOrDefault(o => o.DataId == 0x3145) as IBattleChara;
+    
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
         if (_state != State.DebuffGained) return;
@@ -110,13 +96,23 @@ public class P6_Wroth_Flames : SplatoonScript
             _state = State.Stack;
             var isNorth = redSphere.Position.Z < 100f;
             var isEast = redSphere.Position.X > 100f;
-            _stackSafeDirection = (isNorth, isEast) switch
+            
+            StackSafeDirection[] redSphereSafeDirection = (isNorth, isEast) switch
             {
-                (true, true) => StackSafeDirection.SouthWest,
-                (true, false) => StackSafeDirection.SouthEast,
-                (false, true) => StackSafeDirection.NorthWest,
-                (false, false) => StackSafeDirection.NorthEast
+                (true, true) => [StackSafeDirection.SouthWest, StackSafeDirection.SouthEast],
+                (true, false) => [StackSafeDirection.SouthEast, StackSafeDirection.SouthWest],
+                (false, true) => [StackSafeDirection.NorthWest, StackSafeDirection.NorthEast],
+                (false, false) => [StackSafeDirection.NorthEast, StackSafeDirection.NorthWest]
             };
+            
+            var hraesvelgrPositionX = Hraesvelgr?.Position.X ?? 100f;
+            StackSafeDirection[] hraesvelgrSafeDirection = Math.Abs(hraesvelgrPositionX - 100f) < 0.1f
+                ? [StackSafeDirection.NorthEast, StackSafeDirection.NorthWest, StackSafeDirection.SouthEast,StackSafeDirection.SouthWest]
+                : hraesvelgrPositionX > 105f
+                    ? [StackSafeDirection.NorthWest, StackSafeDirection.SouthWest]
+                    : [StackSafeDirection.NorthEast, StackSafeDirection.SouthEast];
+            
+            _stackSafeDirection = redSphereSafeDirection.Intersect(hraesvelgrSafeDirection).First();
 
             var stackPosition = GetStackPosition(_stackSafeDirection);
             if (Controller.TryGetElementByName("Bait", out var element))
@@ -196,7 +192,7 @@ public class P6_Wroth_Flames : SplatoonScript
         Controller.TryRegisterElement("Bait", element);
     }
 
-    private Vector2 GetBaitPosition(uint characterEntityId, SafeDirection safeDirection)
+    private Vector2 GetBaitPosition(uint characterEntityId, SafeSpreadDirection safeSpreadDirection)
     {
         var myDebuff = _debuffs.Where(x => x.Value.Contains(characterEntityId)).Select(x => (Debuff)x.Key)
             .FirstOrDefault();
@@ -205,11 +201,11 @@ public class P6_Wroth_Flames : SplatoonScript
         var myDebuffPriorityList = C.Priority.Where(x => myDebuffCharacterNames.Contains(x)).ToList();
         var myDebuffPriority = myDebuffPriorityList.IndexOf(characterName);
         var x = GetDebuffPositionX(myDebuff, myDebuffPriority);
-        var y = safeDirection switch
+        var y = safeSpreadDirection switch
         {
-            SafeDirection.North => 115f,
-            SafeDirection.Center => 100f,
-            SafeDirection.South => 85f,
+            SafeSpreadDirection.North => 115f,
+            SafeSpreadDirection.Center => 100f,
+            SafeSpreadDirection.South => 85f,
             _ => 100f
         };
 
@@ -298,10 +294,28 @@ public class P6_Wroth_Flames : SplatoonScript
 
             ImGui.Unindent();
 
-            ImGui.Text($"My Bait Position: {GetBaitPosition(Player.Object.EntityId, SafeDirection.North)}");
-            ImGui.Text($"Safe Direction: {_safeDirection}");
+            ImGui.Text($"Safe Spread Direction: {_safeSpreadDirection}");
             ImGui.Text($"Stack Safe Direction: {_stackSafeDirection}");
         }
+    }
+
+    private enum StackSafeDirection
+    {
+        None,
+        NorthEast,
+        NorthWest,
+        SouthEast,
+        SouthWest
+    }
+
+    private enum State
+    {
+        None,
+        Start,
+        DebuffGained,
+        Stack,
+        Split,
+        End
     }
 
     private enum Debuff : ushort
@@ -311,7 +325,8 @@ public class P6_Wroth_Flames : SplatoonScript
         None = ushort.MaxValue
     }
 
-    private enum SafeDirection
+
+    private enum SafeSpreadDirection
     {
         North,
         Center,

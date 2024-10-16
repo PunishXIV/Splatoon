@@ -60,7 +60,7 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
 
     public override void OnMessage(string message)
     {
-        if (message.Contains(Loc(en: "I am Alexander...the Creator. You...who would prove yourself worthy of your utopia...will be judged.", jp: "我はアレキサンダー……機械仕掛けの神なり……。"))) _isStartTemporalStasis = true;
+        if (message.Contains(Loc(en: "I am Alexander...the Creator. You...who would prove yourself worthy of your utopia...will be judged.", jp: "我はアレキサンダー……機械仕掛けの神なり……。", de: "Ich bin Alexander ... der Schöpfer. Nehmt mein letztes Urteil an, auf dass ihr ins Paradies geführt werdet ..."))) _isStartTemporalStasis = true;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)

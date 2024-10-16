@@ -63,18 +63,19 @@ public class P6_Wroth_Flames : SplatoonScript
     public override void OnStartingCast(uint source, uint castId)
     {
         if (_state != State.Stack) return;
-        if (_heatTailCastIds.Contains(castId) || _heatWingCastIds.Contains(castId))
+        var isHeatTail = _heatTailCastIds.Contains(castId);
+        var isHeatWing = _heatWingCastIds.Contains(castId);
+        if (isHeatTail || isHeatWing)
         {
-            if (source.GetObject() is not IBattleChara sourceChara) return;
             _state = State.Split;
-            _safeSpreadDirection = Math.Abs(sourceChara.Position.Z - 100f) > 0.1f
+            _safeSpreadDirection = isHeatWing
                 ? SafeSpreadDirection.Center
                 : _stackSafeDirection switch
                 {
-                    StackSafeDirection.NorthEast => SafeSpreadDirection.North,
-                    StackSafeDirection.NorthWest => SafeSpreadDirection.North,
-                    StackSafeDirection.SouthEast => SafeSpreadDirection.South,
-                    StackSafeDirection.SouthWest => SafeSpreadDirection.South,
+                    StackSafeDirection.NorthEast => SafeSpreadDirection.South,
+                    StackSafeDirection.NorthWest => SafeSpreadDirection.South,
+                    StackSafeDirection.SouthEast => SafeSpreadDirection.North,
+                    StackSafeDirection.SouthWest => SafeSpreadDirection.North,
                     _ => SafeSpreadDirection.None
                 };
             var baitPosition = GetBaitPosition(Player.Object.EntityId, _safeSpreadDirection);
@@ -213,9 +214,9 @@ public class P6_Wroth_Flames : SplatoonScript
         var x = GetDebuffPositionX(myDebuff, myDebuffPriority);
         var y = safeSpreadDirection switch
         {
-            SafeSpreadDirection.North => 115f,
+            SafeSpreadDirection.North => 85f,
             SafeSpreadDirection.Center => 100f,
-            SafeSpreadDirection.South => 85f,
+            SafeSpreadDirection.South => 115f,
             _ => 100f
         };
 

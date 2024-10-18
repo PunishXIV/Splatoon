@@ -79,6 +79,8 @@ internal class Configuration : IEzConfig
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = new();
     public Dictionary<string, Dictionary<string, string>> ScriptConfigurationNames = [];
     public Dictionary<string, string> ActiveScriptConfigurations = [];
+    public string ExtraTrustedRepos = "";
+    public string ExtraUpdateLinks = "";
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

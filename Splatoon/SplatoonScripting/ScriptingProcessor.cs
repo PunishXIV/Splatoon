@@ -206,6 +206,21 @@ internal static partial class ScriptingProcessor
         CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
     }
 
+    internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts)
+    {
+        if(ThreadIsRunning)
+        {
+            DuoLog.Error("Can not reload yet, please wait");
+            return;
+        }
+        foreach(var s in scripts)
+        {
+            s.Disable();
+            Scripts = Scripts.Remove(s);
+            CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
+        }
+    }
+
     internal static void CompileAndLoad(string sourceCode, string fpath)
     {
         PluginLog.Debug($"Requested script loading");
@@ -336,9 +351,10 @@ internal static partial class ScriptingProcessor
                         {
                             //PluginLog.Verbose($"Script loading thread is idling, count {idleCount}");
                             idleCount++;
-                            Thread.Sleep(100);
+                            Thread.Sleep(10);
                         }
                     }
+                    ThreadIsRunning = false;
                 }
                 catch(Exception e)
                 {

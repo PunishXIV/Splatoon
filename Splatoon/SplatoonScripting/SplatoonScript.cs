@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using Reloaded.Hooks.Definitions.Structs;
 using Splatoon.Gui.Scripting;
+using System.Diagnostics.CodeAnalysis;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 
@@ -244,30 +245,53 @@ public abstract class SplatoonScript
     {
         ImGuiEx.LineCentered(() =>
         {
-            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new configuration"))
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new configuration".Loc()))
             {
                 var newKey = InternalData.GetFreeConfigurationKey();
-                P.Config.ScriptConfigurationNames.GetOrCreate(this.InternalData.FullName)[newKey] = "New configuration";
+                P.Config.ScriptConfigurationNames.GetOrCreate(this.InternalData.FullName)[newKey] = "New configuration".Loc();
+            }
+            ImGui.SameLine();
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste from clipboard".Loc()))
+            {
+                try
+                {
+                    var m = JsonConvert.DeserializeObject<ExportedScriptConfiguration>(Paste()!) ?? throw new NullReferenceException();
+                    if(!ApplyExportedConfiguration(m, out var error))
+                    {
+                        Notify.Error(error);
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.Log();
+                    Notify.Error(e.Message);
+                }
             }
         });
-        if(P.Config.ScriptConfigurationNames.TryGetValue(this.InternalData.FullName, out var confList))
+        if(TryGetAvailableConfigurations(out var confList))
         {
             var current = this.InternalData.CurrentConfigurationKey;
             if(ImGui.BeginTable("ConfTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
             {
-                ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.WidthStretch);
                 ImGui.TableSetupColumn("##control");
                 ImGui.TableHeadersRow();
 
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGuiEx.TextV(current == ""?ImGuiColors.ParsedGreen:null, $"Default configuration");
-                if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it."))
+                ImGuiEx.TextV(current == ""?ImGuiColors.ParsedGreen:null, $"Default configuration".Loc());
+                if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it.".Loc()))
                 {
-                    P.Config.ActiveScriptConfigurations.Remove(this.InternalData.FullName);
-                    TabScripting.RequestOpen = this.InternalData.FullName;
-                    if(this.InternalData.CurrentConfigurationKey != "") ScriptingProcessor.ReloadScript(this);
+                    ApplyDefaultConfiguration();
                 }
+                ImGui.TableNextColumn();
+
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
+                {
+                    CopyConfigurationToClipboard("");
+                }
+                ImGuiEx.Tooltip("Copy this configuration to clipboard".Loc());
+                ImGui.SameLine();
 
                 foreach(var confKey in confList.Keys.ToArray())
                 {
@@ -276,20 +300,25 @@ public abstract class SplatoonScript
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGuiEx.TextV(current == confKey ? ImGuiColors.ParsedGreen : null, confValue);
-                    if(ImGuiEx.HoveredAndClicked("Click to apply this configuration and reload the script."))
+                    if(ImGuiEx.HoveredAndClicked("Click to apply this configuration and reload the script.".Loc()))
                     {
-                        P.Config.ActiveScriptConfigurations[InternalData.FullName] = confKey;
-                        TabScripting.RequestOpen = this.InternalData.FullName;
-                        if(this.InternalData.CurrentConfigurationKey != confKey) ScriptingProcessor.ReloadScript(this);
+                        ApplyConfiguration(confKey);
                     }
                     ImGui.TableNextColumn();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
+                    {
+                        CopyConfigurationToClipboard(confKey);
+                    }
+                    ImGuiEx.Tooltip("Copy this configuration to clipboard".Loc());
+                    ImGui.SameLine(0,1);
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Edit))
                     {
                         ImGui.OpenPopup($"EditConf");
                     }
+                    ImGuiEx.Tooltip("Rename".Loc());
                     if(ImGui.BeginPopup($"EditConf"))
                     {
-                        ImGuiEx.Text($"Please name your configuration");
+                        ImGuiEx.Text($"Please name your configuration".Loc());
                         ImGui.SetNextItemWidth(250f);
                         var name = confValue;
                         if(ImGui.InputText("##editval", ref name, 100))
@@ -316,7 +345,7 @@ public abstract class SplatoonScript
                             catch(Exception e) { e.Log(); }
                             if(InternalData.CurrentConfigurationKey == confKey)
                             {
-                                ScriptingProcessor.ReloadScript(this);
+                                this.ApplyDefaultConfiguration();
                             }
                         });
                     }
@@ -328,7 +357,141 @@ public abstract class SplatoonScript
         }
         else
         {
-            ImGuiEx.Text($"You have no optional configurations for this script.");
+            ImGuiEx.Text($"You have no optional configurations for this script.".Loc());
+        }
+    }
+
+    internal void CopyConfigurationToClipboard(string confKey)
+    {
+        try
+        {
+            var conf = this.GetExportedConfiguration(confKey);
+            if(conf != null)
+            {
+                Copy(JsonConvert.SerializeObject(conf));
+            }
+            else
+            {
+                DuoLog.Error("Failed to copy configuration".Loc());
+            }
+        }
+        catch(Exception e)
+        {
+            e.LogDuo();
+        }
+    }
+
+    internal ExportedScriptConfiguration? GetExportedConfiguration(string? key)
+    {
+        key ??= this.InternalData.CurrentConfigurationKey;
+        this.Controller.SaveConfig();
+        this.Controller.SaveOverrides();
+        try
+        {
+            var ec = new ExportedScriptConfiguration()
+            {
+                TargetScriptName = this.InternalData.FullName,
+                ConfigurationName = Utils.GetScriptConfigurationName(this.InternalData.FullName, key).NullWhenEmpty() ?? "Imported configuration",
+            };
+            if(File.Exists(this.InternalData.GetConfigPathForConfigurationKey(key)))
+            {
+                ec.Configuration = Utils.BrotliCompress(File.ReadAllBytes(this.InternalData.GetConfigPathForConfigurationKey(key)));
+            }
+            if(File.Exists(this.InternalData.GetOverridesPathForConfigurationKey(key)))
+            {
+                ec.Overrides = Utils.BrotliCompress(File.ReadAllBytes(this.InternalData.GetOverridesPathForConfigurationKey(key)));
+            }
+            return ec;
+        }
+        catch(Exception e)
+        {
+            e.Log();
+            return null;
+        }
+    }
+
+    internal bool ApplyExportedConfiguration(ExportedScriptConfiguration configuration, [NotNullWhen(false)]out string? error)
+    {
+        if(configuration.TargetScriptName != this.InternalData.FullName)
+        {
+            error = "You are attempting to import configuration for another script. \nCurrent script: ??\nYour configuration is for: ??".Loc(this.InternalData.FullName, configuration.TargetScriptName);
+            return false;
+        }
+        if(configuration.ConfigurationName.IsNullOrEmpty()) configuration.ConfigurationName = "Imported configuration".Loc();
+        var newKey = InternalData.GetFreeConfigurationKey();
+        if(configuration.Configuration != null)
+        {
+            try
+            {
+                File.WriteAllBytes(this.InternalData.GetConfigPathForConfigurationKey(newKey), Utils.BrotliDecompress(configuration.Configuration));
+            }
+            catch(Exception e)
+            {
+                error = e.Message;
+                e.Log();
+                return false;
+            }
+        }
+        if(configuration.Overrides != null)
+        {
+            try
+            {
+                File.WriteAllBytes(this.InternalData.GetOverridesPathForConfigurationKey(newKey), Utils.BrotliDecompress(configuration.Overrides));
+            }
+            catch(Exception e)
+            {
+                error = e.Message;
+                e.Log();
+                return false;
+            }
+        }
+        P.Config.ScriptConfigurationNames.GetOrCreate(this.InternalData.FullName)[newKey] = configuration.ConfigurationName;
+        error = null;
+        return true;
+    }
+
+    internal bool TryGetAvailableConfigurations([NotNullWhen(true)]out Dictionary<string, string>? confList)
+    {
+        return P.Config.ScriptConfigurationNames.TryGetValue(this.InternalData.FullName, out confList);
+    }
+
+    internal void ApplyDefaultConfiguration()
+    {
+        ApplyDefaultConfiguration(out var act);
+        act?.Invoke();
+    }
+
+    internal void ApplyDefaultConfiguration(out Action? reloadAction)
+    {
+        P.Config.ActiveScriptConfigurations.Remove(this.InternalData.FullName);
+        if(this.InternalData.ConfigOpen) TabScripting.RequestOpen = this.InternalData.FullName;
+        if(this.InternalData.CurrentConfigurationKey != "")
+        {
+            reloadAction = () => ScriptingProcessor.ReloadScript(this);
+        }
+        else
+        {
+            reloadAction = null;
+        }
+    }
+
+    internal void ApplyConfiguration(string confKey)
+    {
+        ApplyConfiguration(confKey, out var act);
+        act?.Invoke();
+    }
+
+    internal void ApplyConfiguration(string confKey, out Action? reloadAction)
+    {
+        P.Config.ActiveScriptConfigurations[InternalData.FullName] = confKey;
+        if(this.InternalData.ConfigOpen) TabScripting.RequestOpen = this.InternalData.FullName;
+        if(this.InternalData.CurrentConfigurationKey != confKey)
+        {
+            reloadAction = () => ScriptingProcessor.ReloadScript(this);
+        }
+        else
+        {
+            reloadAction = null;
         }
     }
 

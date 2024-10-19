@@ -10,16 +10,21 @@ internal static class TabScripting
 {
     internal static volatile bool ForceUpdate = false;
     internal static string Search = "";
+    internal static string RequestOpen = null;
     internal static void Draw()
     {
-        if (ScriptingProcessor.ThreadIsRunning)
+        if(ImGui.IsWindowAppearing()) RequestOpen = null;
+        if(ScriptingProcessor.ThreadIsRunning)
         {
             ImGuiEx.LineCentered("ThreadCompilerRunning", delegate
             {
                 ImGuiEx.Text(GradientColor.Get(ImGuiColors.DalamudWhite, ImGuiColors.ParsedPink), "Scripts are being installed, please wait...".Loc());
             });
         }
-        ImGuiEx.TextWrapped(ImGuiColors.DalamudOrange, "Please note that scripts have direct and unrestricted access to your PC and game. Ensure that you know what you're installing.".Loc());
+        else
+        {
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudOrange, "Please note that scripts have direct and unrestricted access to your PC and game. Ensure that you know what you're installing.".Loc());
+        }
         var force = ForceUpdate;
         if(ImGui.Checkbox($"Force Update".Loc(), ref force)) ForceUpdate = force;
         ImGui.SameLine();
@@ -49,17 +54,87 @@ internal static class TabScripting
                 ScriptingProcessor.CompileAndLoad(text, null);
             }
         }
-        ImGui.SetNextItemWidth(250f);
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2.05f);
         ImGui.InputTextWithHint("##search", "Search...", ref Search, 50);
-        
+        ImGui.SameLine();
+        ImGuiEx.SetNextItemFullWidth();
+        if(ImGui.BeginCombo("##switch", "Switch scripts to configuration profile"))
+        {
+            var confs = new HashSet<string>();
+            var toReload = new HashSet<SplatoonScript>();
+            foreach(var s in ScriptingProcessor.Scripts)
+            {
+                if(s.IsDisabledByUser) continue;
+                if(s.TryGetAvailableConfigurations(out var confList))
+                {
+                    foreach(var c in confList)
+                    {
+                        confs.Add(c.Value);
+                    }
+                }
+            }
+            if(ImGui.Selectable("Default"))
+            {
+                foreach(var s in ScriptingProcessor.Scripts)
+                {
+                    if(s.InternalData.CurrentConfigurationKey != "")
+                    {
+                        s.ApplyDefaultConfiguration(out var act);
+                        if(act != null) toReload.Add(s);
+                    }
+                }
+            }
+            int i = 0;
+            foreach(var confName in confs.Order())
+            {
+                var doReload = false;
+                if(ImGui.Selectable($"{confName}"))
+                {
+                    doReload = true;
+                }
+                var sb = new StringBuilder("The following scripts will be switched:\n");
+                foreach(var s in ScriptingProcessor.Scripts)
+                {
+                    if(s.IsDisabledByUser) continue;
+                    if(s.InternalData.CurrentConfigurationKey != confName && s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey))
+                    {
+                        if(doReload)
+                        {
+                            s.ApplyConfiguration(confKey, out var act);
+                            if(act != null) toReload.Add(s);
+                        }
+                        sb.Append(s.InternalData.FullName.Replace(".", " - "));
+                        sb.Append('\n');
+                    }
+                }
+                ImGuiEx.Tooltip(sb.ToString());
+            }
+            if(toReload.Count > 0)
+            {
+                ScriptingProcessor.ReloadScripts(toReload);
+            }
+            ImGui.EndCombo();
+        }
+        ImGuiEx.Tooltip("Disabled scripts won't be switched.");
+
         var openConfig = ScriptingProcessor.Scripts.FirstOrDefault(x => x.InternalData.ConfigOpen);
 
         if(openConfig != null)
         {
+            RequestOpen = null;
             DrawScriptGroup([openConfig]);
         }
         else
         {
+            if(RequestOpen != null)
+            {
+                var candidate = ScriptingProcessor.Scripts.FirstOrDefault(x => x.InternalData?.FullName == RequestOpen);
+                if(candidate != null)
+                {
+                    candidate.InternalData.ConfigOpen = true;
+                    RequestOpen = null;
+                }
+            }
             if(Search != "")
             {
                 DrawScriptGroup(ScriptingProcessor.Scripts);
@@ -78,9 +153,10 @@ internal static class TabScripting
 
         void DrawScriptGroup(IEnumerable<SplatoonScript> scripts)
         {
-            if(ImGui.BeginTable("##scriptsTable", 6, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
+            if(ImGui.BeginTable("##scriptsTable", 7, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
             {
                 ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("Configuration", ImGuiTableColumnFlags.WidthFixed, 120);
                 ImGui.TableSetupColumn("State");
                 ImGui.TableSetupColumn("##c1");
                 ImGui.TableSetupColumn("##c2");
@@ -121,6 +197,31 @@ internal static class TabScripting
 
                     ImGui.TableNextColumn();
 
+                    if(script.TryGetAvailableConfigurations(out var configurations))
+                    {
+                        var activeConf = script.InternalData.CurrentConfigurationKey;
+                        var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? "Default";
+                        ImGuiEx.SetNextItemFullWidth();
+                        if(ImGui.BeginCombo("##confs", $"{activeConfName}", ImGuiComboFlags.HeightLarge))
+                        {
+                            if(ImGui.Selectable("Default", activeConf.IsNullOrEmpty()))
+                            {
+                                script.ApplyDefaultConfiguration();
+                            }
+                            int i = 0;
+                            foreach(var c in configurations)
+                            {
+                                if(ImGui.Selectable($"{c.Value}##{i++}", c.Key == activeConf))
+                                {
+                                    script.ApplyConfiguration(c.Key);
+                                }
+                            }
+                            ImGui.EndCombo();
+                        }
+                    }
+
+                    ImGui.TableNextColumn();
+                    
                     if(script.InternalData.Blacklisted)
                     {
                         ImGuiEx.TextV(ImGuiColors.DalamudGrey3, "Blacklisted".Loc());
@@ -262,8 +363,8 @@ internal static class TabScripting
                         ex.Log();
                     }
                 }, null, false),
-                (openConfig.Controller.GetRegisteredElements().Count>0?"Registered elements":null, openConfig.DrawRegisteredElements, null, false)//,
-                //("Saved Configurations", openConfig.DrawConfigurations, null, false)
+                (openConfig.Controller.GetRegisteredElements().Count>0?"Registered elements":null, openConfig.DrawRegisteredElements, null, false),
+                ("Saved Configurations", openConfig.DrawConfigurations, null, false)
                 );
             
             ImGuiEx.LineCentered("ScriptConfig", delegate

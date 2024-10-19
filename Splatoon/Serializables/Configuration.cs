@@ -4,6 +4,7 @@ using Pictomancy;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using System.Collections.Specialized;
 using System.Threading;
 
 namespace Splatoon;
@@ -76,6 +77,10 @@ internal class Configuration : IEzConfig
     public int MaxAlpha = 0xFF;
     [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = new();
+    public Dictionary<string, Dictionary<string, string>> ScriptConfigurationNames = [];
+    public Dictionary<string, string> ActiveScriptConfigurations = [];
+    public string ExtraTrustedRepos = "";
+    public string ExtraUpdateLinks = "";
 
     public uint ClampFillColorAlpha(uint fillColor)
     {
@@ -107,7 +112,6 @@ internal class Configuration : IEzConfig
             //PluginLog.Debug($"Saving configuration for {x.InternalData.FullName}");
             Safe(x.Controller.SaveConfig);
             Safe(x.Controller.SaveOverrides);
-            Safe(x.Controller.SaveConfigurations);
         }
     }
 

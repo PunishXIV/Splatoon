@@ -27,11 +27,6 @@ internal unsafe class P6_MultiScript :SplatoonScript
         public IPlayerCharacter Player { get; set; }
     }
 
-    private class VfxPath
-    {
-        public const string Flare = "vfx/lockon/eff/all_at8s_0v.avfx";
-    }
-
     private class BuffID
     {
         public const uint MagicNumber = 3532;
@@ -53,6 +48,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
         public const uint CosmoMeteor = 31664;
         public const uint MagicNumber = 31670;
         public const uint FlashWind = 32223;
+        public const uint CosmoMeteorSpread = 32699;
     }
 
     private enum Gimmick
@@ -85,7 +81,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     #endregion
 
     #region publicDefine
-    public override Metadata Metadata => new(3, "Redmoon");
+    public override Metadata Metadata => new(4, "Redmoon");
     public override HashSet<uint>? ValidTerritories => new() { 1122 };
     #endregion
 
@@ -99,6 +95,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     private IBattleNpc? _targetableNpc = null;
     private bool _isSecondHalf = false;
     private bool _showElement = false;
+    private int _cosmoMeteorCount = 0;
     private int _limiterCutCount = 0;
     private int _deBuffCount = 0;
     private SpreadMarker _prevSpreadMarker = SpreadMarker.NotUse;
@@ -226,8 +223,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if(set.Action == null)
-            return;
+        if(set.Action == null) return;
 
         if(set.Action.RowId == CastID.CosmoDive || set.Action.RowId == CastID.WaveCannonStack)
         {
@@ -252,15 +248,23 @@ internal unsafe class P6_MultiScript :SplatoonScript
         {
             _isP6Started = true;
         }
-    }
-
-    public override void OnVFXSpawn(uint target, string vfxPath)
-    {
-        if(target.GetObject() is IPlayerCharacter character &&
-            vfxPath == VfxPath.Flare &&
-            _currentGimmick == Gimmick.CosmoMeteor)
+        else if(set.Action.RowId == CastID.CosmoMeteorSpread)
         {
-            ChangeGimmick(Gimmick.None);
+            ++_cosmoMeteorCount;
+            if(_cosmoMeteorCount >= 8)
+            {
+                if(healer.Contains(Svc.ClientState.LocalPlayer.GetJob()))
+                {
+                    _ = new TickScheduler(delegate
+                    {
+                        ChangeGimmick(Gimmick.None);
+                    }, 10000);
+                }
+                else
+                {
+                    ChangeGimmick(Gimmick.None);
+                }
+            }
         }
     }
 
@@ -312,6 +316,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
         _showElement = false;
         _limiterCutCount = 0;
         _deBuffCount = 0;
+        _cosmoMeteorCount = 0;
         _prevSpreadMarker = SpreadMarker.NotUse;
         _prevCosmoSpreadMarker = SpreadMarker.NotUse;
         EzThrottler.Reset("WaveCannonSpread");
@@ -396,6 +401,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
             ImGui.Text("Limiter Cut Count: " + _limiterCutCount);
             ImGui.Text("DeBuff Count: " + _deBuffCount);
             ImGui.Text("_showElement: " + _showElement);
+            ImGui.Text("Cosmo Meteor Count: " + _cosmoMeteorCount);
         }
     }
     #endregion

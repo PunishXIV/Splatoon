@@ -1,7 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface.Colors;
-using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -9,7 +7,6 @@ using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using System;
@@ -17,8 +14,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class BSOD_Adjuster :SplatoonScript
@@ -52,9 +47,9 @@ internal class BSOD_Adjuster :SplatoonScript
     {
         ImGui.Text("# How to determine left/right priority : ");
         ImGui.SameLine();
-        if (ImGui.SmallButton("Test"))
+        if(ImGui.SmallButton("Test"))
         {
-            if (TryGetPriorityList(out var list))
+            if(TryGetPriorityList(out var list))
             {
                 DuoLog.Information($"Success: priority list {list.Print()}");
             }
@@ -64,23 +59,23 @@ internal class BSOD_Adjuster :SplatoonScript
             }
         }
         var toRem = -1;
-        for (int i = 0; i < Conf.LeftRightPriorities.Count; i++)
+        for(int i = 0; i < Conf.LeftRightPriorities.Count; i++)
         {
-            if (DrawPrioList(i))
+            if(DrawPrioList(i))
             {
                 toRem = i;
             }
         }
-        if (toRem != -1)
+        if(toRem != -1)
         {
             Conf.LeftRightPriorities.RemoveAt(toRem);
         }
-        if (ImGui.Button("Create new priority list"))
+        if(ImGui.Button("Create new priority list"))
         {
             Conf.LeftRightPriorities.Add(new string[] { "", "", "", "", "", "", "", "" });
         }
 
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("DebugPrint", ref Conf.DebugPrint);
             ImGui.Text($"_mechanicActive : {_mechanicActive}");
@@ -98,15 +93,15 @@ internal class BSOD_Adjuster :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (source.GetObject() is IBattleNpc npc)
+        if(source.GetObject() is IBattleNpc npc)
         {
-            if (castId == CastID.Ion)
+            if(castId == CastID.Ion)
             {
-                if (!TryGetPriorityList(out _sortedList))
+                if(!TryGetPriorityList(out _sortedList))
                     return;
                 _mechanicActive = true;
             }
-            else if (castId == CastID.BSOD)
+            else if(castId == CastID.BSOD)
             {
                 this.OnReset();
             }
@@ -115,22 +110,22 @@ internal class BSOD_Adjuster :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (!_mechanicActive || set.Action == null)
+        if(!_mechanicActive || set.Action == null)
             return;
 
-        if (set.Action.RowId == CastID.StackMarker)
+        if(set.Action.RowId == CastID.StackMarker)
         {
             try
             {
                 DebugLog($"StackMarker: {set.Target.Name}");
-                if (set.Target is not IPlayerCharacter pcObj)
+                if(set.Target is not IPlayerCharacter pcObj)
                     return;
 
                 _stackedList.Add(pcObj);
                 DebugLog($"_stackedList: {_stackedList.Print()}");
-                if (_stackedList.Count == 2)
+                if(_stackedList.Count == 2)
                 {
-                    if (_stackedList.Exists(x => x.Address == Svc.ClientState.LocalPlayer.Address))
+                    if(_stackedList.Exists(x => x.Address == Svc.ClientState.LocalPlayer.Address))
                     {
                         DebugLog("Stacker");
                         // stacker show element
@@ -139,7 +134,7 @@ internal class BSOD_Adjuster :SplatoonScript
                         DebugLog($"myStacker: {myStacker.Name}, otherStacker: {otherStacker.Name}");
                         int myIndex = _sortedList.IndexOf(myStacker);
                         int otherIndex = _sortedList.IndexOf(otherStacker);
-                        if (myIndex == -1 || otherIndex == -1)
+                        if(myIndex == -1 || otherIndex == -1)
                         {
                             DuoLog.Warning($"Could not find player in priority list");
                             _mechanicActive = false;
@@ -154,7 +149,7 @@ internal class BSOD_Adjuster :SplatoonScript
 
                         DebugLog($"myStacker: {myStacker.Name} {myPos}, otherStacker: {otherStacker.Name} {otherPos}");
                         List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
-                        foreach (var x in noneStackers)
+                        foreach(var x in noneStackers)
                         {
                             var dpos = noneStackers.IndexOf(x) < 3 ? "Left" : "Right";
                             DebugLog($"noneStacker: {x.Name} {dpos}");
@@ -166,7 +161,7 @@ internal class BSOD_Adjuster :SplatoonScript
                         // non stacker show element
                         List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
                         int myIndex = noneStackers.IndexOf(Svc.ClientState.LocalPlayer);
-                        if (myIndex == -1)
+                        if(myIndex == -1)
                         {
                             DuoLog.Warning($"Could not find player in priority list");
                             _mechanicActive = false;
@@ -183,7 +178,7 @@ internal class BSOD_Adjuster :SplatoonScript
                         IPlayerCharacter otherStacker = _stackedList.Last();
                         myIndex = _sortedList.IndexOf(myStacker);
                         int otherIndex = _sortedList.IndexOf(otherStacker);
-                        if (myIndex == -1 || otherIndex == -1)
+                        if(myIndex == -1 || otherIndex == -1)
                         {
                             DuoLog.Warning($"Could not find player in priority list");
                             _mechanicActive = false;
@@ -194,7 +189,7 @@ internal class BSOD_Adjuster :SplatoonScript
                         string otherPos = myIndex < otherIndex ? "Right" : "Left";
                         DebugLog($"FirstStacker: {myStacker.Name} {myPos}, LastStacker: {otherStacker.Name} {otherPos}");
 
-                        foreach (var x in noneStackers)
+                        foreach(var x in noneStackers)
                         {
                             var dpos = noneStackers.IndexOf(x) < 3 ? "Left" : "Right";
                             DebugLog($"noneStacker: {x.Name} {dpos}");
@@ -202,14 +197,14 @@ internal class BSOD_Adjuster :SplatoonScript
                     }
                 }
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 DuoLog.Error(e.Message);
             }
             return;
         }
 
-        if (set.Action.RowId == CastID.StackCannon)
+        if(set.Action.RowId == CastID.StackCannon)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             _stackedList.Clear();
@@ -227,19 +222,19 @@ internal class BSOD_Adjuster :SplatoonScript
 
     private bool TryGetPriorityList([NotNullWhen(true)] out List<IPlayerCharacter> values)
     {
-        foreach (var p in Conf.LeftRightPriorities)
+        foreach(var p in Conf.LeftRightPriorities)
         {
             var valid = true;
             var l = FakeParty.Get().Select(x => x.Name.ToString()).ToHashSet();
-            foreach (var x in p)
+            foreach(var x in p)
             {
-                if (!l.Remove(x))
+                if(!l.Remove(x))
                 {
                     valid = false;
                     break;
                 }
             }
-            if (valid)
+            if(valid)
             {
                 values = FakeParty.Get().ToList().OrderBy(x => Array.IndexOf(p, x.Name.ToString())).ToList();
                 return true;
@@ -254,19 +249,19 @@ internal class BSOD_Adjuster :SplatoonScript
         var prio = Conf.LeftRightPriorities[num];
         ImGuiEx.Text($"# Priority list {num + 1}");
         ImGui.PushID($"prio{num}");
-        ImGuiEx.Text($"    Omega Female");
-        for (int i = 0; i < prio.Length; i++)
+        ImGuiEx.Text($"    NorthWest");
+        for(int i = 0; i < prio.Length; i++)
         {
             ImGui.PushID($"prio{num}element{i}");
             ImGui.SetNextItemWidth(200);
             ImGui.InputText($"Player {i + 1}", ref prio[i], 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
+            if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get())
+                foreach(var x in FakeParty.Get())
                 {
-                    if (ImGui.Selectable(x.Name.ToString()))
+                    if(ImGui.Selectable(x.Name.ToString()))
                     {
                         prio[i] = x.Name.ToString();
                     }
@@ -275,8 +270,8 @@ internal class BSOD_Adjuster :SplatoonScript
             }
             ImGui.PopID();
         }
-        ImGuiEx.Text($"    Omega Male");
-        if (ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
+        ImGuiEx.Text($"    NorthEast");
+        if(ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
         {
             return true;
         }
@@ -286,7 +281,7 @@ internal class BSOD_Adjuster :SplatoonScript
 
     private void DebugLog(string log, [CallerLineNumber] int lineNum = 0)
     {
-        if (Conf.DebugPrint)
+        if(Conf.DebugPrint)
             DuoLog.Information(log + $" : L({lineNum})");
     }
 }

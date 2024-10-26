@@ -3,12 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using ECommons;
+using ECommons.ChatMethods;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -45,7 +50,7 @@ public unsafe class SanctityOfTheWardFirst : SplatoonScript
 
     private ZephiranDirection _zephiranDirection;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
     private bool IsStart => _sword1 != null && _sword2 != null;
     private Config C => Controller.GetConfig<Config>();
     private IBattleChara? Zephiran => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE31);
@@ -279,7 +284,13 @@ public unsafe class SanctityOfTheWardFirst : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        ImGui.Text("General Settings");
+        ImGui.Indent();
         ImGui.Text("Pair Character Name");
+        ImGui.SameLine();
+        ImGuiEx.Spacing();
+        if (ImGui.Button("Perform test")) SelfTest();
+
         ImGui.InputText("##PairCharacterName", ref C.PairCharacterName, 32);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(150);
@@ -293,7 +304,10 @@ public unsafe class SanctityOfTheWardFirst : SplatoonScript
 
         ImGui.Text("Resolve Position");
         ImGuiEx.EnumCombo("##Resolve Position", ref C.ResolvePosition);
+        ImGui.Unindent();
 
+        ImGui.Text("Other Settings");
+        ImGui.Indent();
         ImGui.Checkbox("Look Face", ref C.LockFace);
         ImGui.SameLine();
         ImGuiEx.HelpMarker(
@@ -310,6 +324,40 @@ public unsafe class SanctityOfTheWardFirst : SplatoonScript
                 EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
             ImGui.Unindent();
         }
+
+        ImGui.Checkbox("Check on Start", ref C.ShouldCheckOnStart);
+
+        ImGui.Unindent();
+    }
+
+    public override void OnDirectorUpdate(DirectorUpdateCategory category)
+    {
+        if (!C.ShouldCheckOnStart)
+            return;
+        if (category == DirectorUpdateCategory.Commence ||
+            (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
+            SelfTest();
+    }
+
+    private void SelfTest()
+    {
+        Svc.Chat.PrintChat(new XivChatEntry
+        {
+            Message = new SeStringBuilder()
+                .AddUiForeground("= P2 Sancity of The Ward First self-test =", (ushort)UIColor.LightBlue).Build()
+        });
+        var party = FakeParty.Get();
+        var hasPairCharacter = party.Any(x => x.Name.ToString() == C.PairCharacterName);
+        if (hasPairCharacter)
+            Svc.Chat.PrintChat(new XivChatEntry
+                { Message = new SeStringBuilder().AddUiForeground("Test Success!", (ushort)UIColor.Green).Build() });
+        else
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground($"Could not find player {C.PairCharacterName}\n", (ushort)UIColor.Red)
+                    .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
+            });
     }
 
     private enum ClockwiseDirection
@@ -341,5 +389,6 @@ public unsafe class SanctityOfTheWardFirst : SplatoonScript
         public bool LockFaceEnableWhenNotMoving = true;
         public string PairCharacterName = "";
         public ResolvePosition ResolvePosition = ResolvePosition.ZephiranFaceToFace;
+        public bool ShouldCheckOnStart = true;
     }
 }

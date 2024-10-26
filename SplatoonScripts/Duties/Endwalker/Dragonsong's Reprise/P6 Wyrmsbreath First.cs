@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using ECommons;
+using ECommons.ChatMethods;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
@@ -50,7 +56,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
     private BaitPosition _myBaitPosition = BaitPosition.None;
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
 
     private Config C => Controller.GetConfig<Config>();
@@ -230,6 +236,10 @@ public class P6_Wyrmsbreath_First : SplatoonScript
     {
         ImGui.Text("Character List");
 
+        ImGui.SameLine();
+        ImGuiEx.Spacing();
+        if (ImGui.Button("Perform test")) SelfTest();
+        
         if (C.CharacterNames.Length != 8)
         {
             C.CharacterNames = ["", "", "", "", "", "", "", ""];
@@ -262,6 +272,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         ImGui.Checkbox("Swap if needed", ref C.SwapIfNeeded);
         ImGui.ColorEdit4("Bait Color 1", ref C.BaitColor1, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Bait Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
+        ImGui.Checkbox("Check on Start", ref C.ShouldCheckOnStart);
 
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
@@ -272,6 +283,71 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             foreach (var enchantment in _enchantments)
                 ImGui.Text($"{enchantment.Key}: {enchantment.Value}");
         }
+    }
+    
+    private void SelfTest()
+    {
+        Svc.Chat.PrintChat(new XivChatEntry
+        {
+            Message = new SeStringBuilder()
+                .AddUiForeground("= P5 Death of the Heavens self-test =", (ushort)UIColor.LightBlue).Build()
+        });
+        var party = FakeParty.Get().ToArray();
+        var isCorrect = C.CharacterNames.All(x => !string.IsNullOrEmpty(x));
+
+        if (!isCorrect)
+        {
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("Priority list is not filled correctly.", (ushort)UIColor.Red).Build()
+            });
+            return;
+        }
+
+        if (party.Length != 8)
+        {
+            isCorrect = false;
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("Can only be tested in content.", (ushort)UIColor.Red).Build()
+            });
+        }
+
+        foreach (var player in party)
+            if (C.CharacterNames.All(x => x != player.Name.ToString()))
+            {
+                isCorrect = false;
+                Svc.Chat.PrintChat(new XivChatEntry
+                {
+                    Message = new SeStringBuilder()
+                        .AddUiForeground($"Player {player.Name} is not in the priority list.", (ushort)UIColor.Red)
+                        .Build()
+                });
+            }
+
+        if (isCorrect)
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("Test Success!", (ushort)UIColor.Green).Build()
+            });
+        else
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
+            });
+    }
+    
+    public override void OnDirectorUpdate(DirectorUpdateCategory category)
+    {
+        if (!C.ShouldCheckOnStart)
+            return;
+        if (category == DirectorUpdateCategory.Commence ||
+            (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
+            SelfTest();
     }
 
     private enum State
@@ -289,5 +365,6 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         public string[] CharacterNames = ["", "", "", "", "", "", "", ""];
         public bool SwapIfNeeded;
         public bool ShouldShowDebugMessage;
+        public bool ShouldCheckOnStart = true;
     }
 }

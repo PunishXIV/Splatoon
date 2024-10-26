@@ -4,12 +4,17 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
 using ECommons;
+using ECommons.ChatMethods;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
@@ -42,7 +47,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     private PlaystationMarker _myMarker = PlaystationMarker.Circle;
     public override HashSet<uint>? ValidTerritories => [968];
     private Config C => Controller.GetConfig<Config>();
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
@@ -130,6 +135,10 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             C.Priority = ["", "", "", "", "", "", "", ""];
 
         ImGuiEx.Text("Priority list");
+        ImGui.SameLine();
+        ImGuiEx.Spacing();
+        if (ImGui.Button("Perform test")) SelfTest();
+
         ImGui.PushID("prio");
         for (var i = 0; i < C.Priority.Length; i++)
         {
@@ -190,6 +199,8 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             ImGui.Unindent();
         }
 
+        ImGui.Checkbox("Check on Start", ref C.ShouldCheckOnStart);
+
         ImGui.Unindent();
 
         if (ImGui.CollapsingHeader("Debug"))
@@ -199,6 +210,62 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             ImGui.Text($"My Bait: {_myBait}");
             ImGui.Text($"My Marker: {_myMarker}");
         }
+    }
+
+    private void SelfTest()
+    {
+        Svc.Chat.PrintChat(new XivChatEntry
+        {
+            Message = new SeStringBuilder()
+                .AddUiForeground("= P5 Death of the Heavens self-test =", (ushort)UIColor.LightBlue).Build()
+        });
+        var party = FakeParty.Get().ToArray();
+        var isCorrect = C.Priority.All(x => !string.IsNullOrEmpty(x));
+
+        if (!isCorrect)
+        {
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("Priority list is not filled correctly.", (ushort)UIColor.Red).Build()
+            });
+            return;
+        }
+
+        if (party.Length != 8)
+        {
+            isCorrect = false;
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("Can only be tested in content.", (ushort)UIColor.Red).Build()
+            });
+        }
+
+        foreach (var player in party)
+            if (C.Priority.All(x => x != player.Name.ToString()))
+            {
+                isCorrect = false;
+                Svc.Chat.PrintChat(new XivChatEntry
+                {
+                    Message = new SeStringBuilder()
+                        .AddUiForeground($"Player {player.Name} is not in the priority list.", (ushort)UIColor.Red)
+                        .Build()
+                });
+            }
+
+        if (isCorrect)
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("Test Success!", (ushort)UIColor.Green).Build()
+            });
+        else
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
+            });
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -469,6 +536,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
                                 };
                         }
                     }
+
                     _currentState = State.FirstSplit;
                     Controller.Schedule(() => _currentState = State.SecondSplit, 1000 * 8);
                 }, 1000 * 2);
@@ -476,6 +544,14 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         }
     }
 
+    public override void OnDirectorUpdate(DirectorUpdateCategory category)
+    {
+        if (!C.ShouldCheckOnStart)
+            return;
+        if (category == DirectorUpdateCategory.Commence ||
+            (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
+            SelfTest();
+    }
 
     private enum BaitType
     {
@@ -524,6 +600,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         public bool LockFaceEnableWhenNotMoving = true;
         public PrePlaystationSplit PrePlaystationSplit = PrePlaystationSplit.Horizontal;
         public string[] Priority = ["", "", "", "", "", "", "", ""];
+        public bool ShouldCheckOnStart = true;
         public bool ShowDebug;
     }
 }

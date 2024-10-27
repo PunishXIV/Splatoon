@@ -23,7 +23,7 @@ using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
-public unsafe class SanctityOfTheWardFirst : SplatoonScript
+public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
 {
     private readonly Vector2 _center = new(100, 100);
 

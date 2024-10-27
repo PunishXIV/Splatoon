@@ -45,20 +45,13 @@ internal unsafe class BuffEffectProcessor :IDisposable
     private static bool _IsRunning = false;
     #endregion
 
-    #region DllLoad
-    [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
-    private static extern void memset(void* dest, int c, int count);
-    [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl, SetLastError = false)]
-    private static extern void memcpy(void* dest, void* src, int count);
-    #endregion
-
     #region public
     public BuffEffectProcessor()
     {
         try
         {
             _CharacterStatusInfoPtr = (CharacterStatusInfo*)Marshal.AllocHGlobal(sizeof(CharacterStatusInfo) * MAX_OBJECT_NUM);
-            memset(_CharacterStatusInfoPtr, 0, sizeof(CharacterStatusInfo) * MAX_OBJECT_NUM);
+            Unsafe.InitBlock(_CharacterStatusInfoPtr, 0, (uint)sizeof(CharacterStatusInfo) * MAX_OBJECT_NUM);
             for(int i = 0; i < MAX_OBJECT_NUM; ++i)
             {
                 _CharacterStatusInfoPtr[i].StatusPtr = (FFXIVClientStructs.FFXIV.Client.Game.Status*)Marshal.AllocHGlobal(sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * MAX_STATUS_NUM);
@@ -136,9 +129,9 @@ internal unsafe class BuffEffectProcessor :IDisposable
             // New object
             if(_CharacterStatusInfoPtr[i].ObjectID != gameObject->EntityId)
             {
-                memset(_CharacterStatusInfoPtr[i].StatusPtr, 0, sizeof(CharacterStatusInfo));
+                Unsafe.InitBlock(_CharacterStatusInfoPtr[i].StatusPtr, 0, (uint)sizeof(CharacterStatusInfo));
                 _CharacterStatusInfoPtr[i].ObjectID = character->EntityId;
-                memcpy(&_CharacterStatusInfoPtr[i].StatusPtr[0], &statusArray[0], sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * sm->NumValidStatuses);
+                Unsafe.CopyBlock(&_CharacterStatusInfoPtr[i].StatusPtr[0], &statusArray[0], (uint)sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * sm->NumValidStatuses);
                 continue;
             }
 
@@ -186,7 +179,7 @@ internal unsafe class BuffEffectProcessor :IDisposable
             }
 
             // Update status
-            memcpy(&_CharacterStatusInfoPtr[i].StatusPtr[0], &statusArray[0], sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * sm->NumValidStatuses);
+            Unsafe.CopyBlock(&_CharacterStatusInfoPtr[i].StatusPtr[0], &statusArray[0], (uint)sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * sm->NumValidStatuses);
         }
     }
 

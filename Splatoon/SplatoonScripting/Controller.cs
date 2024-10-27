@@ -57,7 +57,7 @@ public unsafe class Controller
     /// <returns>Loaded configuration</returns>
     public T GetConfig<T>() where T : IEzConfig, new()
     {
-        Configuration ??= EzConfig.LoadConfiguration<T>($"{Script.InternalData.Path}.json", false);
+        Configuration ??= EzConfig.LoadConfiguration<T>(Script.InternalData.ConfigurationPath, false);
         return (T)Configuration;
     }
 
@@ -68,7 +68,8 @@ public unsafe class Controller
     {
         if (Configuration != null)
         {
-            EzConfig.SaveConfiguration(Configuration, $"{Script.InternalData.Path}.json", true, false);
+            PluginLog.Information($"Saving to {Script.InternalData.ConfigurationPath}");
+            EzConfig.SaveConfiguration(Configuration, Script.InternalData.ConfigurationPath, true, false);
         }
     }
 
@@ -291,7 +292,7 @@ public unsafe class Controller
         }
         else
         {
-            if (File.Exists(Script.InternalData.OverridesPath))
+            if(File.Exists(Script.InternalData.OverridesPath))
             {
                 PluginLog.Debug($"No overrides for {Script.InternalData.FullName}, deleting {Script.InternalData.OverridesPath}");
                 File.Delete(Script.InternalData.OverridesPath);

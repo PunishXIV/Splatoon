@@ -3,6 +3,18 @@
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Exasquares.cs
 ```
 
+[International] [Script] MultiScript.
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/P6%20MultiScript.cs
+```
+
+[International] [Script] CosmoMeteorAdjuster.
+Set them clockwise from North.
+Then set the person in the Range Role as the first person in the list.
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Cosmo%20Meteor%20Adjuster.cs
+```
+
 [International] Exaflare predictions. Import all presets.
 ```
 ~Lv2~{"Name":"P6 Exaflares 1","Group":"TOP","ZoneLockH":[1122],"ElementsL":[{"Name":"","type":1,"radius":8.0,"color":1174405375,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[31661],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"Filled":true}],"Freezing":true,"FreezeFor":12.5,"IntervalBetweenFreezes":0.75}

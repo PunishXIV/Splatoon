@@ -7,7 +7,6 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
-using Splatoon.Structures;
 using System.Collections.Generic;
 
 namespace SplatoonScriptsOfficial.Generic;
@@ -211,6 +210,7 @@ internal class ScriptEventLogger :SplatoonScript
             PluginLog.Information($"OnActionEffectEvent: {set.Action.Name}({set.Action.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId}) - Target: {set.Target.Name}{set.Target.Position}(GID: {set.Target.GameObjectId} DID: {set.Target.DataId})");
     }
 
+#if false
     public override void OnGainBuffEffect(uint sourceId, IReadOnlyList<RecordedStatus> gainStatusInfos)
     {
         if(!Conf.FilterOnGainBuffEffect)
@@ -232,6 +232,7 @@ internal class ScriptEventLogger :SplatoonScript
             PluginLog.Information($"OnRemoveBuffEffect: [{gameObject.Name}({sourceId})] {status.ToStringWithName()}");
         }
     }
+#endif
 
     public override void OnReset()
     {

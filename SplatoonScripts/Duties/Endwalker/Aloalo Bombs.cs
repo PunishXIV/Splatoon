@@ -1,20 +1,14 @@
-﻿using Dalamud.Hooking;
-using ECommons.Logging;
-using Dalamud.Utility.Signatures;
-using ECommons;
-using ECommons.DalamudServices.Legacy;
+﻿using ECommons;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.Xml;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using ECommons.ImGuiMethods;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using Dalamud.Game.ClientState.Objects.Types;
-using FFXIVClientStructs.FFXIV.Client.System.Scheduler;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using ECommons.DalamudServices;
+using ECommons.GameFunctions;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
@@ -22,16 +16,24 @@ public unsafe class Aloalo_Bombs : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new() { 1179, 1180 };
 
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
 
     const uint BombNameID = 0x30E8;
 
-    delegate nint ActionTimelineManager_unk(nint a1, uint a2, int a3, nint a4);
-    [Signature("48 89 5C 24 ?? 57 48 83 EC 20 8B FA 4C 8B D1", DetourName =nameof(ActionTimelineManager_unkDetour))]
-    Hook<ActionTimelineManager_unk> ActionTimelineManager_unkHook;
-
-    List<HashSet<uint>> BombSets = new();
-    uint Unsafe = 0;
+    uint Unsafe
+    {
+        get
+        {
+            foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(s => s.NameId == BombNameID))
+            {
+                if(x.Struct()->Timeline.TimelineSequencer.TimelineIds.Contains((ushort)145))
+                {
+                    return x.EntityId;
+                }
+            }
+            return 0;
+        }
+    }
 
     public override void OnSetup()
     {
@@ -43,20 +45,18 @@ public unsafe class Aloalo_Bombs : SplatoonScript
 
     public override void OnEnable()
     {
-        SignatureHelper.Initialise(this);
-        ActionTimelineManager_unkHook?.Enable();
+        //SignatureHelper.Initialise(this);
     }
 
     public override void OnDisable()
     {
-        ActionTimelineManager_unkHook?.Dispose();
     }
 
     public override void OnUpdate()
     {
         if (Unsafe != 0)
         {
-            var unsafeArray = BombSets.FirstOrDefault(z => z.Contains(Unsafe))?.ToArray();
+            var unsafeArray = GetBombSets().FirstOrDefault(z => z.Any(e => e.EntityId == Unsafe))?.ToArray();
             if (unsafeArray != null)
             {
                 for (int i = 0; i < unsafeArray.Length; i++)
@@ -64,25 +64,9 @@ public unsafe class Aloalo_Bombs : SplatoonScript
                     if (Controller.TryGetElementByName($"Bomb{i}", out var e))
                     {
                         e.Enabled = true;
-                        e.refActorObjectID = unsafeArray[i];
+                        e.refActorObjectID = unsafeArray[i].EntityId;
                     }
                 }
-            }
-        }
-    }
-
-    public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
-    {
-        if(source.GetObject() is ICharacter c && c.NameId == BombNameID)
-        {
-            if(BombSets.TryGetFirst(x => x.Contains(source) || x.Contains(target), out var set))
-            {
-                set.Add(source);
-                set.Add(target);
-            }
-            else
-            {
-                BombSets.Add(new() { source, target });
             }
         }
     }
@@ -97,8 +81,6 @@ public unsafe class Aloalo_Bombs : SplatoonScript
 
     void Reset()
     {
-        BombSets.Clear();
-        Unsafe = 0;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
@@ -117,28 +99,43 @@ public unsafe class Aloalo_Bombs : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        foreach(var x in BombSets)
+        foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(s => s.NameId == BombNameID))
         {
-            ImGuiEx.Text($"{x.Select(z => $"{z:X8}").Print()}");
+            ImGuiEx.Text($"{x} - {x.Struct()->Vfx.Tethers.ToArray().Select(s => $"{s.Id}/{s.TargetId.ObjectId.GetObject()}/{s.Progress}").Print()} \n   {x.Struct()->Timeline.TimelineSequencer.TimelineIds.ToArray().Print("\n")}");
         }
+        ImGuiEx.Text($"Bomb sets:\n{GetBombSets().Select(x => x.Select(s => s.ToString()).Print()).Print("\n")}");
     }
 
-    nint ActionTimelineManager_unkDetour(nint a1, uint a2, int a3, nint a4)
+    List<List<IBattleNpc>> GetBombSets()
     {
-        try
+        var ret = new List<List<IBattleNpc>>();
+        foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(s => s.NameId == BombNameID))
         {
-            var x = (TimelineContainer*)a1;
-            if(x->OwnerObject != null && x->OwnerObject->NameId == BombNameID && a3 == 1)
+            var set = GetBombSetFor(x);
+            if(set.Count == 3)
             {
-                Unsafe = x->OwnerObject->GameObject.EntityId;
+                if(!ret.Any(s => s.Select(a => a.EntityId).SequenceEqual(set.Select(a => a.EntityId)))) ret.Add(set);
             }
-            PluginLog.Information($"{x->OwnerObject->GameObject.EntityId:X} {a1:X16} - {a2}: {a3}, {a4}");
         }
-        catch(Exception e)
-        {
-            e.Log();
-        }
-        var ret = ActionTimelineManager_unkHook.Original(a1, a2, a3, a4);
         return ret;
+    }
+
+    List<IBattleNpc> GetBombSetFor(IBattleNpc? bnpc)
+    {
+        var ret = new List<IBattleNpc>() { bnpc! };
+        for(int i = 0; i < 100; i++)
+        {
+            var newBnpc = bnpc!.Struct()->Vfx.Tethers.ToArray().SafeSelect(0).TargetId.ObjectId.GetObject() as IBattleNpc;
+            if(newBnpc == null || newBnpc.AddressEquals(ret[0]))
+            {
+                break;
+            }
+            else
+            {
+                ret.Add(newBnpc);
+                bnpc = newBnpc;
+            }
+        }
+        return [.. ret.OrderBy(x => x.EntityId)];
     }
 }

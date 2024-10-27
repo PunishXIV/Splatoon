@@ -109,6 +109,27 @@ internal static partial class ScriptingProcessor
                 PluginLog.Debug($"Update list downloaded");
                 var updateList = result.Content.ReadAsStringAsync().Result;
 
+                var extra = P.Config.ExtraUpdateLinks.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                foreach(var x in extra)
+                {
+                    if(x.Length > 0)
+                    {
+                        try
+                        {
+                            PluginLog.Fatal($"!!! WARNING !!! Processing script update list {x}. THIS IS UNSAFE. IF YOU DID NOT ADDED THIS URL, IMMEDIATELY TERMINATE THE GAME AND CONTACT SPLATOON PLUGIN SUPPORT ASAP.");
+                            PluginLog.Debug($"Starting downloading custom update list...");
+                            var extraResult = P.HttpClient.GetAsync(x).Result;
+                            extraResult.EnsureSuccessStatusCode();
+                            PluginLog.Debug($"Custom update list downloaded");
+                            updateList += "\n" + extraResult.Content.ReadAsStringAsync().Result;
+                        }
+                        catch(Exception e)
+                        {
+                            e.Log();
+                        }
+                    }
+                }
+
                 List<string> Updates = new();
                 foreach(var line in updateList.Replace("\r", "").Split("\n"))
                 {
@@ -147,6 +168,11 @@ internal static partial class ScriptingProcessor
 
     internal static bool IsUrlTrusted(string url)
     {
+        var extra = P.Config.ExtraTrustedRepos.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        foreach(var x in extra)
+        {
+            if(x.Length > 0 && url.StartsWith(x)) return true;
+        }
         return url.StartsWithAny(TrustedURLs, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -204,6 +230,21 @@ internal static partial class ScriptingProcessor
         s.Disable();
         Scripts = Scripts.Remove(s);
         CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
+    }
+
+    internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts)
+    {
+        if(ThreadIsRunning)
+        {
+            DuoLog.Error("Can not reload yet, please wait");
+            return;
+        }
+        foreach(var s in scripts)
+        {
+            s.Disable();
+            Scripts = Scripts.Remove(s);
+            CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
+        }
     }
 
     internal static void CompileAndLoad(string sourceCode, string fpath)
@@ -336,9 +377,10 @@ internal static partial class ScriptingProcessor
                         {
                             //PluginLog.Verbose($"Script loading thread is idling, count {idleCount}");
                             idleCount++;
-                            Thread.Sleep(100);
+                            Thread.Sleep(10);
                         }
                     }
+                    ThreadIsRunning = false;
                 }
                 catch(Exception e)
                 {

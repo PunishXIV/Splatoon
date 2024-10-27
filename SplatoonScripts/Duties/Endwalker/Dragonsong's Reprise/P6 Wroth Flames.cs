@@ -106,7 +106,7 @@ public class P6_Wroth_Flames : SplatoonScript
         Svc.Chat.PrintChat(new XivChatEntry
         {
             Message = new SeStringBuilder()
-                .AddUiForeground("= P5 Death of the Heavens self-test =", (ushort)UIColor.LightBlue).Build()
+                .AddUiForeground("= P6 Wroth Flames self-test =", (ushort)UIColor.LightBlue).Build()
         });
         var party = FakeParty.Get().ToArray();
         var isCorrect = C.Priority.All(x => !string.IsNullOrEmpty(x));

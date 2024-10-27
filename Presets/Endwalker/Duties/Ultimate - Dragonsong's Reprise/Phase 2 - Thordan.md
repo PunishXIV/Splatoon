@@ -81,6 +81,39 @@ DSR P2 Strength Positions~{"ZoneLockH":[968],"DCond":5,"Elements":{"1":{"type":1
 ~Lv2~{"Name":"DSR P2 Meteor 2nd Tower","Group":"DSR","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"N1","refX":100.0,"refY":82.0,"refZ":-3.8146973E-06,"radius":3.0,"color":4278255413,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"N2","refX":100.0,"refY":82.0,"refZ":-3.8146973E-06,"radius":3.0,"color":1677786933,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"Filled":true,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"S1","refX":100.0,"refY":118.0,"refZ":-3.8146973E-06,"radius":3.0,"color":4278255413,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"S2","refX":100.0,"refY":118.0,"refZ":-3.8146973E-06,"radius":3.0,"color":1677786933,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"Filled":true,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"MatchIntl":{"En":"You suffer the effect of Prey"},"MatchDelay":17.0}],"MaxDistance":20.0,"UseDistanceLimit":true,"DistanceLimitType":1}
 ```
 
+### Scripts
+
+[International][Beta][Untested] DSR P2 Sanctity First
+- Settings are required.
+- Displays the spread positions, clockwise and counterclockwise.
+- Please set the name of the pair you should focus on and the usual spread position. For example,
+
+Pair to focus on: Hoge Hogee
+
+Spread position: Opposite Zephiran
+
+In this case, input:
+```
+Hoge Hogee
+ZephiranFaceToFace
+```
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P2%20Sanctity%20Of%20The%20Ward%20First.cs
+```
+
+[International][Beta][Untested] DSR P2 Sanctity Second
+- Settings are not required.
+- Displays the next tower to step on according to your spread position.
+- Locks the face when gaze guidance is needed.
+
+> [!CAUTION]
+> The gaze-locking feature is unstable. If you can manage it yourself, it is recommended to turn it off.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P2%20Sanctity%20Of%20The%20Ward%20Second.cs
+```
+
 ## Final phase
 [International] [Untested] Ultimate End pizza slices
 ```

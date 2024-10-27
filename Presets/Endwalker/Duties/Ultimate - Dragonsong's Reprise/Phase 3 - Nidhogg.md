@@ -44,6 +44,24 @@ DSR P3 Lash Marker~{"ZoneLockH":[968],"DCond":5,"Elements":{"1":{"refX":100.0,"r
 ~Lv2~{"Name":"DSR P3 2nd Dive Spots","Group":"DSR","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"NW1","refX":93.0,"refY":91.0,"radius":0.5,"color":4278255413,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"NW2","refX":93.0,"refY":91.0,"refZ":-3.8146973E-06,"radius":0.5,"color":1677786933,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"Filled":true,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"NE1","refX":107.0,"refY":91.0,"refZ":-3.8146973E-06,"radius":0.5,"color":4278255413,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"NE2","refX":107.0,"refY":91.0,"refZ":-3.8146973E-06,"radius":0.5,"color":1677786933,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"Filled":true,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"SW1","Enabled":false,"refX":93.0,"refY":109.0,"refZ":-3.8146973E-06,"radius":0.5,"color":4278255413,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"SW2","Enabled":false,"refX":93.0,"refY":109.0,"refZ":-3.8146973E-06,"radius":0.5,"color":1677786933,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"Filled":true,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"SE1","Enabled":false,"refX":107.0,"refY":109.0,"refZ":-3.8146973E-06,"radius":0.5,"color":4278255413,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06},{"Name":"SE2","Enabled":false,"refX":107.0,"refY":109.0,"refZ":-3.8146973E-06,"radius":0.5,"color":1677786933,"thicc":5.0,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":3640,"refActorComparisonAnd":true,"refActorComparisonType":6,"Filled":true,"LimitDistance":true,"DistanceSourceX":97.154175,"DistanceSourceY":117.32654,"DistanceSourceZ":-3.8146973E-06}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"MatchIntl":{"En":"You suffer the effect of Second in Line"},"MatchDelay":19.0}]}
 ```
 
+### Scripts
+[International][Beta][Untested] Dive from Grace
+
+- Settings are not required.
+- Displays your spread position.
+- Locks the face when gaze guidance is needed.
+
+> [!CAUTION]
+> It is based on the north orientation.
+> I will make changes upon request.
+
+> [!CAUTION]
+> The gaze-locking feature is unstable. If you can manage it yourself, it is recommended to turn it off.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P3%20Dive%20from%20Grace.cs
+```
+
 ## Final phase
 
 [International] Geirskogul Line AoEs: Displays a red line whenever a Geirskogul is cast, showing the AoE.

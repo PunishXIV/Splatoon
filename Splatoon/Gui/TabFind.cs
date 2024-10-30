@@ -17,9 +17,9 @@ internal static class TabFind
             var e = P.SFind[i];
             ImGui.PushID($"sfind{i}");
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X * 0.4f);
-            ImGui.InputText($"##edit", ref e.name, 50);
+            ImGui.InputText($"##edit", ref e.Name, 50);
             ImGui.SameLine();
-            ImGui.Checkbox($"Include untargetable", ref e.includeUntargetable);
+            ImGui.Checkbox($"Include untargetable", ref e.IncludeUntargetable);
             ImGui.SameLine();
             if (ImGui.Button("Remove"))
             {

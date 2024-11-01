@@ -390,11 +390,11 @@ public class TEA_P2_1211_Transition : SplatoonScript
         
         ImGui.Text("West-East");
         ImGui.SameLine();
-        var w_e_dir = C.E_W_PriorizeDirection == HawkBlastDirection.East ? 0 : 1;
+        var w_e_dir = C.E_W_PriorizeDirection == HawkBlastDirection.West ? 0 : 1;
         ImGui.RadioButton("West##west_dir", ref w_e_dir, 0);
         ImGui.SameLine();
         ImGui.RadioButton("East##east_dir", ref w_e_dir, 1);
-        C.E_W_PriorizeDirection = w_e_dir == 0 ? HawkBlastDirection.East : HawkBlastDirection.West;
+        C.E_W_PriorizeDirection = w_e_dir == 0 ? HawkBlastDirection.West : HawkBlastDirection.East;
         
         ImGui.Text("Northwest-Southeast");
         ImGui.SameLine();

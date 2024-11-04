@@ -82,8 +82,8 @@ internal partial class CGui
                 p.SFind.Clear();
                 p.SFind.Add(new()
                 {
-                    includeUntargetable = true,
-                    oid = x.Key.EntityId,
+                    IncludeUntargetable = true,
+                    ObjectID = x.Key.EntityId,
                     SearchAttribute = 2
                 });
             }

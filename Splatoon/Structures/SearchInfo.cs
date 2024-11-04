@@ -2,8 +2,9 @@
 
 public class SearchInfo
 {
-    public string name = "";
-    public uint oid;
+    public string Name = "";
+    public uint ObjectID;
     public int SearchAttribute = 0;
-    public bool includeUntargetable = false;
+    public bool IncludeUntargetable = false;
+    public Vector3? Coords = null;
 }

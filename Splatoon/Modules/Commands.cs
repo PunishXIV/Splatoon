@@ -7,23 +7,23 @@ namespace Splatoon.Modules;
 class Commands : IDisposable
 {
     Splatoon p;
-    internal unsafe Commands(Splatoon p)
+    internal unsafe Commands(Splatoon P)
     {
-        this.p = p;
+        this.p = P;
         Svc.Commands.AddHandler("/splatoon", new CommandInfo(delegate (string command, string arguments)
         {
             if (arguments == "")
             {
-                p.ConfigGui.Open = !p.ConfigGui.Open;
+                P.ConfigGui.Open = !P.ConfigGui.Open;
             }
             else if(arguments == "r" || arguments == "reset")
             {
-                var phase = P.Phase;
-                P.TerritoryChangedEvent(0);
+                var phase = Splatoon.P.Phase;
+                Splatoon.P.TerritoryChangedEvent(0);
                 Notify.Success("Reset");
-                if (P.Phase != phase)
+                if (Splatoon.P.Phase != phase)
                 {
-                    P.Phase = phase;
+                    Splatoon.P.Phase = phase;
                     Notify.Info($"Returned to phase {phase}");
                 }
             }
@@ -36,7 +36,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    p.Log(e.Message);
+                    P.Log(e.Message);
                 }
             }
             else if (arguments.StartsWith("disable "))
@@ -48,7 +48,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    p.Log(e.Message);
+                    P.Log(e.Message);
                 }
             }
             else if (arguments.StartsWith("toggle "))
@@ -60,7 +60,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    p.Log(e.Message);
+                    P.Log(e.Message);
                 }
             }
             else if (arguments.StartsWith("settarget "))
@@ -74,7 +74,7 @@ class Commands : IDisposable
                     else
                     {
                         var name = arguments.Substring(arguments.IndexOf("settarget ") + 10).Split('~');
-                        var el = p.Config.LayoutsL.First(x => x.Name == name[0]).ElementsL.First(x => x.Name == name[1]);
+                        var el = P.Config.LayoutsL.First(x => x.Name == name[0]).ElementsL.First(x => x.Name == name[1]);
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;
                         el.refActorObjectID = Svc.Targets.Target.EntityId;
@@ -84,7 +84,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    p.Log(e.Message);
+                    P.Log(e.Message);
                 }
             }
             else if (arguments.StartsWith("floodchat "))
@@ -109,10 +109,10 @@ class Commands : IDisposable
         {
             if (args == "")
             {
-                if (p.SFind.Count > 0)
+                if (P.SFind.Count > 0)
                 {
                     Notify.Info("Search stopped");
-                    p.SFind.Clear();
+                    P.SFind.Clear();
                 }
                 else
                 {
@@ -121,28 +121,44 @@ class Commands : IDisposable
             }
             else
             {
-                if (args.StartsWith("+"))
+                if(args.StartsWith("("))
                 {
-                    args = args[1..];
+                    var split = args.Replace("(", "").Replace(")", "").Split(",", StringSplitOptions.TrimEntries);
+                    if(split.Length == 3 && float.TryParse(split[0], out var x) && float.TryParse(split[1], out var y) && float.TryParse(split[2], out var z))
+                    {
+                        P.SFind.Clear();
+                        var e = new SearchInfo()
+                        {
+                            Coords = new(x, y, z)
+                        };
+                        P.SFind.Add(e);
+                    }
                 }
                 else
                 {
-                    p.SFind.Clear();
-                }
-                var list = args.Split(",");
-                foreach (var arguments in list)
-                {
-                    var e = new SearchInfo()
+                    if(args.StartsWith("+"))
                     {
-                        name = arguments.Trim(),
-                        includeUntargetable = arguments.StartsWith("!!")
-                    };
-                    p.SFind.Add(e);
-                    if (e.includeUntargetable)
-                    {
-                        e.name = arguments[2..];
+                        args = args[1..];
                     }
-                    Notify.Success("Searching for: " + e.name + (e.includeUntargetable ? " (+untargetable)" : ""));
+                    else
+                    {
+                        P.SFind.Clear();
+                    }
+                    var list = args.Split(",");
+                    foreach(var arguments in list)
+                    {
+                        var e = new SearchInfo()
+                        {
+                            Name = arguments.Trim(),
+                            IncludeUntargetable = arguments.StartsWith("!!")
+                        };
+                        P.SFind.Add(e);
+                        if(e.IncludeUntargetable)
+                        {
+                            e.Name = arguments[2..];
+                        }
+                        Notify.Success("Searching for: " + e.Name + (e.IncludeUntargetable ? " (+untargetable)" : ""));
+                    }
                 }
             }
         })

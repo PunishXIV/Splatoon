@@ -64,7 +64,7 @@ public class TEA_P2_1211_Transition : SplatoonScript
     private int _myNumber;
 
     public override HashSet<uint> ValidTerritories => [887];
-    public override Metadata Metadata => new(4, "Garume");
+    public override Metadata Metadata => new(5, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -145,13 +145,13 @@ public class TEA_P2_1211_Transition : SplatoonScript
         if (_firstBlastDirection == HawkBlastDirection.None)
         {
             if (Vector2.Distance(set.Position.ToVector2(), new Vector2(100f, 85f)) < 5f)
-                _firstBlastDirection = HawkBlastDirection.North;
+                _firstBlastDirection = C.N_S_PriorizeDirection;
             else if (Vector2.Distance(set.Position.ToVector2(), new Vector2(110f, 90f)) < 5f)
-                _firstBlastDirection = HawkBlastDirection.Northeast;
+                _firstBlastDirection = C.NE_SW_PriorizeDirection;
             else if (Vector2.Distance(set.Position.ToVector2(), new Vector2(115f, 100f)) < 5f)
-                _firstBlastDirection = HawkBlastDirection.East;
+                _firstBlastDirection = C.E_W_PriorizeDirection;
             else if (Vector2.Distance(set.Position.ToVector2(), new Vector2(110f, 110f)) < 5f)
-                _firstBlastDirection = HawkBlastDirection.Southeast;
+                _firstBlastDirection = C.SE_NW_PriorizeDirection;
             else
                 return;
 
@@ -317,6 +317,10 @@ public class TEA_P2_1211_Transition : SplatoonScript
             HawkBlastDirection.Northeast => 0,
             HawkBlastDirection.East => 45,
             HawkBlastDirection.Southeast => -90,
+            HawkBlastDirection.South => 135,
+            HawkBlastDirection.Southwest => 180,
+            HawkBlastDirection.West => 225,
+            HawkBlastDirection.Northwest => 270,
             _ => 0
         };
 
@@ -357,16 +361,55 @@ public class TEA_P2_1211_Transition : SplatoonScript
             element.offY = nextFlare.Y;
         }
     }
-
+    
     public override void OnSettingsDraw()
     {
         ImGui.Text("Bait Message");
         ImGuiEx.HelpMarker(Loc(en:"The message that will be displayed on your bait.", jp:"あなたの番号の立ち位置に表示されるメッセージ。"));
         var showString = C.BaitMessageIS.Get();
         C.BaitMessageIS.ImGuiEdit(ref showString, "The message that will be displayed on your bait.");
+        
+        ImGui.Text("Start Direction");
+        ImGui.Indent();
+
+        ImGui.Text("North-South");
+        ImGui.SameLine();
+        var n_s_dir = C.N_S_PriorizeDirection == HawkBlastDirection.North ? 0 : 1;
+        ImGui.RadioButton("North##north_dir", ref n_s_dir, 0);
+        ImGui.SameLine();
+        ImGui.RadioButton("South##south_dir", ref n_s_dir, 1);
+        C.N_S_PriorizeDirection = n_s_dir == 0 ? HawkBlastDirection.North : HawkBlastDirection.South;
+        
+        ImGui.Text("Northeast-Southwest");
+        ImGui.SameLine();
+        var ne_sw_dir = C.NE_SW_PriorizeDirection == HawkBlastDirection.Northeast ? 0 : 1;
+        ImGui.RadioButton("Northeast##ne_dir", ref ne_sw_dir, 0);
+        ImGui.SameLine();
+        ImGui.RadioButton("Southwest##sw_dir", ref ne_sw_dir, 1);
+        C.NE_SW_PriorizeDirection = ne_sw_dir == 0 ? HawkBlastDirection.Northeast : HawkBlastDirection.Southwest;
+        
+        ImGui.Text("West-East");
+        ImGui.SameLine();
+        var w_e_dir = C.E_W_PriorizeDirection == HawkBlastDirection.West ? 0 : 1;
+        ImGui.RadioButton("West##west_dir", ref w_e_dir, 0);
+        ImGui.SameLine();
+        ImGui.RadioButton("East##east_dir", ref w_e_dir, 1);
+        C.E_W_PriorizeDirection = w_e_dir == 0 ? HawkBlastDirection.West : HawkBlastDirection.East;
+        
+        ImGui.Text("Northwest-Southeast");
+        ImGui.SameLine();
+        var nw_se_dir = C.SE_NW_PriorizeDirection == HawkBlastDirection.Southeast ? 0 : 1;
+        ImGui.RadioButton("Northwest##nw_dir", ref nw_se_dir, 0);
+        ImGui.SameLine();
+        ImGui.RadioButton("Southeast##se_dir", ref nw_se_dir, 1);
+        C.SE_NW_PriorizeDirection = nw_se_dir == 0 ? HawkBlastDirection.Southeast : HawkBlastDirection.Northwest;
+        
+        ImGui.Unindent();
+        
+        
         ImGui.Text("Display Flares");
         ImGuiEx.HelpMarker(Loc(en:"Display flares on the ground to indicate the next safe spot.", jp:"次の安全地帯を示すために地面にフレアを表示します。"));
-        ImGui.Checkbox("", ref C.ShoulDisplayFlares);
+        ImGui.Checkbox("##displayFlares", ref C.ShoulDisplayFlares);
     }
 
     private enum HawkBlastDirection : byte
@@ -375,7 +418,11 @@ public class TEA_P2_1211_Transition : SplatoonScript
         North,
         Northeast,
         East,
-        Southeast
+        Southeast,
+        South,
+        Southwest,
+        West,
+        Northwest
     }
 
     private class Config : IEzConfig
@@ -383,5 +430,9 @@ public class TEA_P2_1211_Transition : SplatoonScript
         //public string BaitMessage = "Turn to face the outside here.";
         public InternationalString BaitMessageIS = new();
         public bool ShoulDisplayFlares = true;
+        public HawkBlastDirection N_S_PriorizeDirection = HawkBlastDirection.North;
+        public HawkBlastDirection NE_SW_PriorizeDirection = HawkBlastDirection.Northeast;
+        public HawkBlastDirection E_W_PriorizeDirection = HawkBlastDirection.East;
+        public HawkBlastDirection SE_NW_PriorizeDirection = HawkBlastDirection.Southeast;
     }
 }

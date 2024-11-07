@@ -19,6 +19,13 @@
 ~Lv2~{"Name":"DSR p5 thordan cleave","Group":"DSR","ZoneLockH":[968],"ElementsL":[{"Name":"Thordan cleave","type":4,"radius":20.0,"coneAngleMin":-15,"coneAngleMax":15,"color":2885746175,"refActorNPCNameID":3632,"refActorRequireCast":true,"refActorCastId":[25546,25547],"FillStep":1.0,"refActorComparisonType":6,"includeRotation":true,"Filled":true,"FaceMe":true}],"Phase":2}
 ```
 
+[International][Beta][Untested] Wrath of the heavens
+- Settings are not required.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P5%20Wrath%20of%20the%20Heavens.cs
+```
+
 ## Death of the Heavens
 [EN, JP] Relative north marker during Death of the Heavens
 ```
@@ -67,4 +74,35 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/
 [EN, JP] [Untested] Knockback positions based on guide: https://www.youtube.com/watch?v=3-moQ2GiABg
 ```
 ~Lv2~{"Name":"◆絶竜詩【P5】死刻/こまぞう改","Group":"◆絶竜詩【P5】","DCond":5,"ElementsL":[{"Name":"宣01","type":1,"offX":12.49,"offY":8.5,"radius":0.5,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"1","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true},{"Name":"宣04","type":1,"offX":-12.49,"offY":8.5,"radius":0.5,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"4","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true},{"Name":"無03","type":1,"offX":-12.49,"offY":-7.76,"radius":0.5,"color":3372154884,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"3","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true},{"Name":"無01","type":1,"offX":20.5,"offY":8.5,"radius":0.5,"color":3372154884,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"1","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true},{"Name":"宣02","type":1,"offX":12.49,"offY":24.76,"radius":0.5,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"2","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true},{"Name":"宣03","type":1,"offX":-12.49,"offY":24.76,"radius":0.5,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"3","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true},{"Name":"無04","type":1,"offX":-20.5,"offY":8.5,"radius":0.5,"color":3372154884,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"4","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true},{"Name":"無02","type":1,"offX":12.49,"offY":-7.76,"radius":0.5,"color":3372154884,"overlayBGColor":0,"overlayFScale":1.7,"thicc":6.0,"overlayText":"2","refActorNPCNameID":3641,"refActorComparisonType":6,"includeRotation":true,"onlyUnTargetable":true,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"MatchIntl":{"En":"King Thordan readies Death of the Heavens","Jp":"騎神トールダンは「至天の陣：死刻」の構え。"},"MatchDelay":13.0}]}
+```
+
+[International][Beta][Untested] Death of the Heavens
+- It is based on the north orientation.
+- Based on guide: https://www.youtube.com/watch?v=3-moQ2GiABg
+- Settings are required.
+  - Please set the priority list.
+  - The first corresponds to the person positioned farthest left, and the eighth corresponds to the person positioned farthest right.
+  - You can set the pre-positioning before "Playstation" as either vertical or horizontal.
+- Locks the face when gaze guidance is needed.
+
+> [!CAUTION]
+> The gaze-locking feature is unstable. If you can manage it yourself, it is recommended to turn it off.
+
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P5%20Wrath%20of%20the%20Heavens.cs
+```
+
+[International][Beta][Untested] Caster Limit Break
+- Automatically uses LB2 to destroy 4 comets.
+- When activating, type /limitBreak in the chat.
+- Settings are required
+  -  If you want to destroy the four comets in the north, please select NorthNorthWest.
+
+> [!CAUTION]
+> It may not activate in a single execution. It is recommended to create a macro that can execute it multiple times.
+Additionally, it will not activate if LB2 is not fully charged.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P5%20Caster%20Limit%20Break.cs
 ```

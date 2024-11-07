@@ -47,7 +47,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     private PlaystationMarker _myMarker = PlaystationMarker.Circle;
     public override HashSet<uint>? ValidTerritories => [968];
     private Config C => Controller.GetConfig<Config>();
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume");
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
@@ -57,76 +57,59 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     private Vector2 GetBaitPosition(State state, BaitType bait)
     {
-        switch (state, bait)
+        var position = (state, bait) switch
         {
-            case (State.FirstSplit, BaitType.Red1):
-                return new Vector2(12.49f, 8.5f);
-            case (State.FirstSplit, BaitType.Red2):
-                return new Vector2(12.49f, 24.76f);
-            case (State.FirstSplit, BaitType.Red3):
-                return new Vector2(-12.49f, 24.76f);
-            case (State.FirstSplit, BaitType.Red4):
-                return new Vector2(-12.49f, 8.5f);
-            case (State.FirstSplit, BaitType.Blue1):
-                return new Vector2(20.5f, 8.5f);
-            case (State.FirstSplit, BaitType.Blue2):
-                return new Vector2(12.49f, -7.76f);
-            case (State.FirstSplit, BaitType.Blue3):
-                return new Vector2(-12.49f, -7.76f);
-            case (State.FirstSplit, BaitType.Blue4):
-                return new Vector2(-20.5f, 8.5f);
-            case (State.SecondSplit, BaitType.Red1):
-                return new Vector2(8f, 9f);
-            case (State.SecondSplit, BaitType.Red2):
-                return new Vector2(1.4f, 7.6f);
-            case (State.SecondSplit, BaitType.Red3):
-                return new Vector2(-1.4f, 7.6f);
-            case (State.SecondSplit, BaitType.Red4):
-                return new Vector2(-9f, 9f);
-            case (State.SecondSplit, BaitType.Blue1):
-                return C.PrePlaystationSplit switch
-                {
-                    PrePlaystationSplit.Horizontal => new Vector2(6f, 13.5f),
-                    PrePlaystationSplit.Vertical => new Vector2(0f, 9f),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            case (State.SecondSplit, BaitType.Blue2):
-                return C.PrePlaystationSplit switch
-                {
-                    PrePlaystationSplit.Horizontal => new Vector2(2f, 13.5f),
-                    PrePlaystationSplit.Vertical => new Vector2(0f, 11.5f),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            case (State.SecondSplit, BaitType.Blue3):
-                return C.PrePlaystationSplit switch
-                {
-                    PrePlaystationSplit.Horizontal => new Vector2(-2f, 13.5f),
-                    PrePlaystationSplit.Vertical => new Vector2(0f, 14f),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            case (State.SecondSplit, BaitType.Blue4):
-                return C.PrePlaystationSplit switch
-                {
-                    PrePlaystationSplit.Horizontal => new Vector2(-6f, 13.5f),
-                    PrePlaystationSplit.Vertical => new Vector2(0f, 16.5f),
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            case (State.PlayStationSplit, BaitType.Red1):
-                return new Vector2(2f, 9f);
-            case (State.PlayStationSplit, BaitType.Red2):
-                return new Vector2(1.4f, 7.6f);
-            case (State.PlayStationSplit, BaitType.Red3):
-                return new Vector2(-1.4f, 7.6f);
-            case (State.PlayStationSplit, BaitType.Red4):
-                return new Vector2(-2f, 9f);
-            case (State.PlayStationSplit, BaitType.Blue1):
-            case (State.PlayStationSplit, BaitType.Blue2):
-            case (State.PlayStationSplit, BaitType.Blue3):
-            case (State.PlayStationSplit, BaitType.Blue4):
-                return Vector2.Zero;
-        }
+            (State.FirstSplit, BaitType.Red1) => new Vector2(12.49f, 8.5f),
+            (State.FirstSplit, BaitType.Red2) => new Vector2(12.49f, 24.76f),
+            (State.FirstSplit, BaitType.Red3) => new Vector2(-12.49f, 24.76f),
+            (State.FirstSplit, BaitType.Red4) => new Vector2(-12.49f, 8.5f),
+            (State.FirstSplit, BaitType.Blue1) => new Vector2(20.5f, 8.5f),
+            (State.FirstSplit, BaitType.Blue2) => new Vector2(12.49f, -7.76f),
+            (State.FirstSplit, BaitType.Blue3) => new Vector2(-12.49f, -7.76f),
+            (State.FirstSplit, BaitType.Blue4) => new Vector2(-20.5f, 8.5f),
+            (State.SecondSplit, BaitType.Red1) => new Vector2(8f, 9f),
+            (State.SecondSplit, BaitType.Red2) => new Vector2(1.4f, 7.6f),
+            (State.SecondSplit, BaitType.Red3) => new Vector2(-1.4f, 7.6f),
+            (State.SecondSplit, BaitType.Red4) => new Vector2(-9f, 9f),
+            (State.SecondSplit, BaitType.Blue1) => C.PrePlaystationSplit switch
+            {
+                PrePlaystationSplit.Horizontal => new Vector2(6f, 13.5f),
+                PrePlaystationSplit.Vertical => new Vector2(0f, 9f),
+                _ => throw new ArgumentOutOfRangeException()
+            },
+            (State.SecondSplit, BaitType.Blue2) => C.PrePlaystationSplit switch
+            {
+                PrePlaystationSplit.Horizontal => new Vector2(2f, 13.5f),
+                PrePlaystationSplit.Vertical => new Vector2(0f, 11.5f),
+                _ => throw new ArgumentOutOfRangeException()
+            },
+            (State.SecondSplit, BaitType.Blue3) => C.PrePlaystationSplit switch
+            {
+                PrePlaystationSplit.Horizontal => new Vector2(-2f, 13.5f),
+                PrePlaystationSplit.Vertical => new Vector2(0f, 14f),
+                _ => throw new ArgumentOutOfRangeException()
+            },
+            (State.SecondSplit, BaitType.Blue4) => C.PrePlaystationSplit switch
+            {
+                PrePlaystationSplit.Horizontal => new Vector2(-6f, 13.5f),
+                PrePlaystationSplit.Vertical => new Vector2(0f, 16.5f),
+                _ => throw new ArgumentOutOfRangeException()
+            },
+            (State.PlayStationSplit, BaitType.Red1) => new Vector2(2f, 9f),
+            (State.PlayStationSplit, BaitType.Red2) => new Vector2(1.4f, 7.6f),
+            (State.PlayStationSplit, BaitType.Red3) => new Vector2(-1.4f, 7.6f),
+            (State.PlayStationSplit, BaitType.Red4) => new Vector2(-2f, 9f),
+            (State.PlayStationSplit, BaitType.Blue1) => Vector2.Zero,
+            (State.PlayStationSplit, BaitType.Blue2) => Vector2.Zero,
+            (State.PlayStationSplit, BaitType.Blue3) => Vector2.Zero,
+            (State.PlayStationSplit, BaitType.Blue4) => Vector2.Zero,
+            _ => default
+        };
 
-        return default;
+        if (C.OrientationBase == Direction.South)
+            position = new Vector2(position.X, -position.Y);
+
+        return position;
     }
 
     private bool DrawPriorityList()
@@ -178,6 +161,8 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         DrawPriorityList();
         ImGui.Text("Pre Playstation Split");
         ImGuiEx.EnumCombo("##Pre Playstation Split", ref C.PrePlaystationSplit);
+        ImGui.Text("Orientation Base");
+        ImGuiEx.EnumRadio(ref C.OrientationBase, true);
         ImGui.Unindent();
 
         ImGui.Text("Other");
@@ -214,58 +199,43 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     private void SelfTest()
     {
-        Svc.Chat.PrintChat(new XivChatEntry
-        {
-            Message = new SeStringBuilder()
-                .AddUiForeground("= P5 Death of the Heavens self-test =", (ushort)UIColor.LightBlue).Build()
-        });
+        Print("= P5 Death of the Heavens self-test =", UIColor.LightBlue);
         var party = FakeParty.Get().ToArray();
         var isCorrect = C.Priority.All(x => !string.IsNullOrEmpty(x));
 
         if (!isCorrect)
         {
-            Svc.Chat.PrintChat(new XivChatEntry
-            {
-                Message = new SeStringBuilder()
-                    .AddUiForeground("Priority list is not filled correctly.", (ushort)UIColor.Red).Build()
-            });
+            Print("Priority list is not filled correctly.", UIColor.Red);
             return;
         }
 
         if (party.Length != 8)
         {
             isCorrect = false;
-            Svc.Chat.PrintChat(new XivChatEntry
-            {
-                Message = new SeStringBuilder()
-                    .AddUiForeground("Can only be tested in content.", (ushort)UIColor.Red).Build()
-            });
+            Print("Can only be tested in content.", UIColor.Red);
         }
 
         foreach (var player in party)
             if (C.Priority.All(x => x != player.Name.ToString()))
             {
                 isCorrect = false;
-                Svc.Chat.PrintChat(new XivChatEntry
-                {
-                    Message = new SeStringBuilder()
-                        .AddUiForeground($"Player {player.Name} is not in the priority list.", (ushort)UIColor.Red)
-                        .Build()
-                });
+                Print($"Player {player.Name} is not in the priority list.", UIColor.Red);
             }
 
         if (isCorrect)
-            Svc.Chat.PrintChat(new XivChatEntry
-            {
-                Message = new SeStringBuilder()
-                    .AddUiForeground("Test Success!", (ushort)UIColor.Green).Build()
-            });
+            Print("Test Success!", UIColor.Green);
         else
+            Print("!!! Test failed !!!", UIColor.Red);
+        return;
+
+        void Print(string message, UIColor color)
+        {
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
-                    .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
+                    .AddUiForeground(message, (ushort)color).Build()
             });
+        }
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -459,25 +429,25 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     {
         return marker switch
         {
-            PlaystationMarker.Circle => new[]
-            {
+            PlaystationMarker.Circle =>
+            [
                 Vector2.Zero
-            },
-            PlaystationMarker.Triangle => new[]
-            {
+            ],
+            PlaystationMarker.Triangle =>
+            [
                 new Vector2(1.4f, 10.4f),
                 new Vector2(-1.4f, 10.4f)
-            },
-            PlaystationMarker.Square => new[]
-            {
+            ],
+            PlaystationMarker.Square =>
+            [
                 new Vector2(1.4f, 10.4f),
                 new Vector2(-1.4f, 10.4f)
-            },
-            PlaystationMarker.Cross => new[]
-            {
+            ],
+            PlaystationMarker.Cross =>
+            [
                 new Vector2(0f, 7f),
                 new Vector2(0f, 11f)
-            },
+            ],
             _ => Array.Empty<Vector2>()
         };
     }
@@ -592,12 +562,19 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         Vertical
     }
 
+    private enum Direction
+    {
+        North,
+        South
+    }
+
     private class Config : IEzConfig
     {
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;
+        public Direction OrientationBase = Direction.North;
         public PrePlaystationSplit PrePlaystationSplit = PrePlaystationSplit.Horizontal;
         public string[] Priority = ["", "", "", "", "", "", "", ""];
         public bool ShouldCheckOnStart = true;

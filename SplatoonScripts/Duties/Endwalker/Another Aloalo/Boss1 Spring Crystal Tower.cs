@@ -21,7 +21,7 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1179, 1180];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -37,16 +37,20 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
             var isNorth = hasBubbleCrystals.Any(x => x.Position.Z < -10);
 
             var xOffset = isEast ? 1f : -1f;
-            var yOffset = isNorth ? 1f : -1f;
+            var yOffset = isNorth ? -1f : 1f;
             var diagonalOffset = C.Direction == Direction.East ? 1f : -1f;
             var position = C.PrioritizeCenter
                 ? new Vector2(14f, 0f) * diagonalOffset
-                : new Vector2(10f * xOffset, 14f * yOffset) * diagonalOffset;
+                : new Vector2(-10f * xOffset, 14f * yOffset) * diagonalOffset;
+
+            var shouldGoBubble = isEast == (C.Direction == Direction.East);
 
             if (Controller.TryGetElementByName("Bait", out var element))
             {
                 element.SetRefPosition(position.ToVector3());
                 element.Enabled = true;
+
+                if (shouldGoBubble) element.overlayText = C.GoingToBubbleMessage.Get();
             }
 
             _state = State.Start;
@@ -97,7 +101,9 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
     {
         if (ImGuiEx.CollapsingHeader("General"))
         {
-            ImGuiEx.EnumCombo("Direction", ref C.Direction);
+            ImGui.Indent();
+            ImGui.Text("Direction");
+            ImGuiEx.EnumCombo("##Direction", ref C.Direction);
             ImGui.Checkbox("Prioritize Center", ref C.PrioritizeCenter);
             ImGui.Text("Bait Color:");
             ImGuiComponents.HelpMarker(
@@ -107,12 +113,31 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
             ImGui.SameLine();
             ImGui.ColorEdit4("Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
             ImGui.Unindent();
+            ImGui.Text("Going to Bubble Message");
+            ImGuiEx.HelpMarker(
+                "Change the message that will be displayed when you should go to the bubble.");
+            var message = C.GoingToBubbleMessage.Get();
+            ImGui.Indent();
+            C.GoingToBubbleMessage.ImGuiEdit(ref message,
+                "The message will be displayed when you should go to the bubble.");
+            ImGui.Unindent();
+            ImGui.Unindent();
         }
 
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
+            ImGui.Indent();
             if (ImGui.Button("Reset")) Reset();
             ImGui.Text($"State: {_state}");
+
+            var crystals = Svc.Objects.Where(x => x.DataId == 0x409D).ToArray();
+            var hasBubbleCrystals = crystals.Where(x => float.Abs(x.Position.X) < 11f);
+            var isEast = crystals.All(x => x.Position.X > 0);
+            var isNorth = hasBubbleCrystals.Any(x => x.Position.Z < -10);
+
+            ImGui.Text($"East: {isEast}");
+            ImGui.Text($"North: {isNorth}");
+            ImGui.Unindent();
         }
     }
 
@@ -134,6 +159,13 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public Direction Direction = Direction.West;
+
+        public readonly InternationalString GoingToBubbleMessage = new()
+        {
+            En = "Going to Bubble",
+            Jp = "バブルに入る"
+        };
+
         public bool PrioritizeCenter;
     }
 }

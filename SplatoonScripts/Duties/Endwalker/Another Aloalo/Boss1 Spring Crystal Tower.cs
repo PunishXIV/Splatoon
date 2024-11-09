@@ -31,32 +31,34 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
         {
             _crustalCastingCount++;
             if (_crustalCastingCount != 3) return;
-            var crystals = Svc.Objects.Where(x => x.DataId == 0x409D).ToArray();
+            var crystals = Svc.Objects.Where(x => x.DataId is 0x409D or 0x40A4).ToArray();
             var hasBubbleCrystals = crystals.Where(x => float.Abs(x.Position.X) < 11f);
+
             var isEast = crystals.All(x => x.Position.X > 0);
             var isNorth = hasBubbleCrystals.Any(x => x.Position.Z < -10);
+            var bubbleDirection = isEast ? Direction.East : Direction.West;
+            var isDiagonal = bubbleDirection != C.Direction;
 
             var xOffset = isEast ? 1f : -1f;
-            var yOffset = isNorth ? -1f : 1f;
-            var diagonalOffset = C.Direction == Direction.East ? 1f : -1f;
+            var yOffset = isNorth ? 1f : -1f;
+            var diagonalOffset = isDiagonal ? -1f : 1f;
             var position = C.PrioritizeCenter
                 ? new Vector2(14f, 0f) * diagonalOffset
-                : new Vector2(-10f * xOffset, 14f * yOffset) * diagonalOffset;
-
-            var shouldGoBubble = isEast == (C.Direction == Direction.East);
+                : new Vector2(10f * xOffset, 14f * yOffset) * diagonalOffset;
 
             if (Controller.TryGetElementByName("Bait", out var element))
             {
                 element.SetRefPosition(position.ToVector3());
                 element.Enabled = true;
 
-                if (shouldGoBubble) element.overlayText = C.GoingToBubbleMessage.Get();
+                element.overlayText = isDiagonal ? string.Empty : C.GoingToBubbleMessage.Get();
             }
 
             _state = State.Start;
         }
 
-        if (set.Action is { RowId: 35499 } && _state is State.Start) _state = State.End;
+        if (set.Action is { RowId : 35499 } or { RowId: 35547 } && _state is State.Start)
+            _state = State.End;
     }
 
     public override void OnUpdate()
@@ -130,7 +132,7 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
             if (ImGui.Button("Reset")) Reset();
             ImGui.Text($"State: {_state}");
 
-            var crystals = Svc.Objects.Where(x => x.DataId == 0x409D).ToArray();
+            var crystals = Svc.Objects.Where(x => x.DataId is 0x409D or 0x40A4).ToArray();
             var hasBubbleCrystals = crystals.Where(x => float.Abs(x.Position.X) < 11f);
             var isEast = crystals.All(x => x.Position.X > 0);
             var isNorth = hasBubbleCrystals.Any(x => x.Position.Z < -10);
@@ -156,15 +158,15 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
-        public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
-        public Direction Direction = Direction.West;
-
         public readonly InternationalString GoingToBubbleMessage = new()
         {
             En = "Going to Bubble",
             Jp = "バブルに入る"
         };
+
+        public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
+        public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public Direction Direction = Direction.West;
 
         public bool PrioritizeCenter;
     }

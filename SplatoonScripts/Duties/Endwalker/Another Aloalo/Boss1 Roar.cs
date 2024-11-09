@@ -145,8 +145,9 @@ public class Boss1_Roar : SplatoonScript
                 break;
             default:
             {
-                if (sourceId.GetObject() is IBattleChara { DataId: 0x40A1 } enemy)
+                if (sourceId.GetObject() is IBattleChara { DataId: 0x40A1 } or { DataId: 0x40A8 })
                 {
+                    var enemy = (IBattleChara)sourceId.GetObject()!;
                     if (enemy.Position.X < -5)
                         _enemyDebuffs[Direction.West] = Debuff.Bubble;
                     else if (enemy.Position.X > 5)

@@ -70,3 +70,33 @@ Helps with keeping melee uptime when Nidhogg dives one half of the arena in addi
 ```
 ~Lv2~{"Name":"DSR P6 spread/stack debuff aoe markers","Group":"DSR","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"Spread","type":1,"radius":5.0,"color":838861055,"refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[2758],"Filled":true},{"Name":"Stack","type":1,"radius":5.0,"color":841481984,"refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[2759],"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"MatchIntl":{"En":"Nidhogg readies Wroth Flames","Jp":"ニーズヘッグは「邪念の炎」の構え。"},"MatchDelay":19.5}],"Phase":2}
 ```
+
+
+### Scripts
+[International][Beta][Untested] P6 Wyrmsbreath First
+- This strategy is triangle in the south.
+- Settings are required.
+  - Please enter the names and select positions for each:
+    - Two players each for TriangleLowerLeft, TriangleLowerRight, and TriangleUpper.
+    - One player each for UpperRight and UpperLeft.
+  - If adjustments are needed, turn on "Swap if needed."
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P6%20Wyrmsbreath%20First.cs
+```
+
+[International][Beta][Untested] P6 Wroth Flames
+- Settings are required.
+  - Please set the priority list.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P6%20Wroth%20Flames.cs
+```
+
+[International][Beta][Untested] P6 Auto Target Switcher
+- Automatically switches between two targets.
+- Settings are required depending on the job.
+  - Lower the "Acceptable Percentage" and "Interval."
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P6%20AutoTargetSwitcher.cs
+```

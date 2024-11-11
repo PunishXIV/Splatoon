@@ -2,7 +2,7 @@ SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Twisters,1,https://github.com/Pun
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Tethers,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Tethers.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_dragon_baits,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB dragon baits.cs
 SplatoonScriptsOfficial.Duties.Stormblood@UCOB_Heavensfall_Trio_Towers,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB Heavensfall Trio Towers.cs
-SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_1211_Transition,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 1211 Transition.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_1211_Transition,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 1211 Transition.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Nisi,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Nisi.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Temporal_Stasis,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Temporal Stasis.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Transition,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA_P2_Transition.cs
@@ -27,6 +27,15 @@ SplatoonScriptsOfficial.Duties.Endwalker@P12S_Tethers,2,https://github.com/Punis
 SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Limitless_Desolation,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P8S2 Limitless Desolation.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P9S_Dualspell_InOut,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P9S Dualspell InOut.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_Wrath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Wrath.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P5_Wrath_of_the_Heavens,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P5 Wrath of the Heavens.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P6_AutoTargetSwitcher,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P6 AutoTargetSwitcher.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P2_Sanctity_Of_The_Ward_First,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P2 Sanctity Of The Ward First.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P5_Caster_Limit_Break,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P5 Caster Limit Break.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P6_Wroth_Flames,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P6 Wroth Flames.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P2_Sanctity_Of_The_Ward_Second,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P2 Sanctity Of The Ward Second.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P5_Death_of_the_Heavens,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P5 Death of the Heavens.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P3_Dive_from_Grace,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P3 Dive from Grace.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P6_Wyrmsbreath_First,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P6 Wyrmsbreath First.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Sigma,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Sigma.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_Near_Far_World,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello Near Far World.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Cosmo_Meteor_Adjuster,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Cosmo Meteor Adjuster.cs
@@ -61,6 +70,7 @@ SplatoonScriptsOfficial.Generic@AutoFateSync,1,https://github.com/PunishXIV/Spla
 SplatoonScriptsOfficial.Generic@ScriptEventLogger,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@ShowEmote,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
+SplatoonScriptsOfficial.Generic@AutoTargetSwitcher,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoTargetSwitcher.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
 SplatoonScriptsOfficial.Generic@ZoneNameToast,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ZoneNameToast.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs

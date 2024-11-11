@@ -486,22 +486,24 @@ public unsafe class Splatoon :IDalamudPlugin
                     foreach(var obj in SFind)
                     {
                         var col = GradientColor.Get(Colors.Red.ToVector4(), Colors.Yellow.ToVector4(), 750);
-                        var findEl = new Element(1)
+                        var findEl = new Element(obj.Coords == null? 1:0)
                         {
+                            Filled = false,
                             thicc = 3f,
                             radius = 0f,
-                            refActorName = obj.name,
-                            refActorObjectID = obj.oid,
+                            refActorName = obj.Name,
+                            refActorObjectID = obj.ObjectID,
                             refActorComparisonType = obj.SearchAttribute,
-                            overlayText = "$NAME",
+                            overlayText = obj.Coords == null?"$NAME":"",
                             overlayVOffset = 1.7f,
                             overlayPlaceholders = true,
                             overlayTextColor = col.ToUint(),
                             color = col.ToUint(),
                             includeHitbox = true,
-                            onlyTargetable = !obj.includeUntargetable,
+                            onlyTargetable = !obj.IncludeUntargetable,
                             tether = Config.TetherOnFind,
                         };
+                        if(obj.Coords != null) findEl.SetRefPosition(obj.Coords.Value);
                         S.RenderManager.GetRenderer(findEl).ProcessElement(findEl);
                     }
                 }

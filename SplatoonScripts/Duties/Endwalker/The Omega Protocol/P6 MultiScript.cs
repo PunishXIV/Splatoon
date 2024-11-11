@@ -251,19 +251,9 @@ internal unsafe class P6_MultiScript :SplatoonScript
         else if(set.Action.RowId == CastID.CosmoMeteorSpread)
         {
             ++_cosmoMeteorCount;
-            if(_cosmoMeteorCount >= 8)
+            if(_cosmoMeteorCount >= 16)
             {
-                if(healer.Contains(Svc.ClientState.LocalPlayer.GetJob()))
-                {
-                    _ = new TickScheduler(delegate
-                    {
-                        ChangeGimmick(Gimmick.None);
-                    }, 10000);
-                }
-                else
-                {
-                    ChangeGimmick(Gimmick.None);
-                }
+                ChangeGimmick(Gimmick.None);
             }
         }
     }

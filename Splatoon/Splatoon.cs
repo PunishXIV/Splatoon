@@ -15,7 +15,7 @@ using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
 using PInvoke;
 using Splatoon.Gui;
@@ -246,7 +246,7 @@ public unsafe class Splatoon :IDalamudPlugin
         loader = new Loader(this);
     }
 
-    internal static void OnLogout()
+    internal static void OnLogout(int a, int b)
     {
         ScriptingProcessor.TerritoryChanged();
     }

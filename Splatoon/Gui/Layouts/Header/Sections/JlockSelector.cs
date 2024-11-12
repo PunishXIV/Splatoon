@@ -26,7 +26,7 @@ internal static class JlockSelector
         }
         var colorJLock = Svc.ClientState?.LocalPlayer?.ClassJob != null
             && layout.JobLock != 0
-            && !Bitmask.IsBitSet(layout.JobLock, (int)Svc.ClientState.LocalPlayer.ClassJob.Id)
+            && !Bitmask.IsBitSet(layout.JobLock, (int)Svc.ClientState.LocalPlayer.ClassJob.RowId)
             && Environment.TickCount64 % 1000 < 500;
         if (colorJLock) ImGui.PushStyleColor(ImGuiCol.Text, Colors.Red);
         ImGuiEx.SetNextItemFullWidth();

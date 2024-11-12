@@ -128,7 +128,7 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"Status list:".Loc());
             foreach(var x in b.StatusList)
             {
-                ImGuiEx.TextCopy($"  {x.GameData.Name} ({x.StatusId.Format()}), {"Remains".Loc()} = {x.RemainingTime:F1}, Param = {x.Param}, {"Count".Loc()} = {x.StackCount}");
+                ImGuiEx.TextCopy($"  {x.GameData.ValueNullable?.Name} ({x.StatusId.Format()}), {"Remains".Loc()} = {x.RemainingTime:F1}, Param = {x.Param}, {"Count".Loc()} = {x.StackCount}");
             }
         }
     }

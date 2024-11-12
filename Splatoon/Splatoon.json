@@ -1,20 +1,21 @@
 {
-	"Author": "NightmareXIV",
-	"Name": "Splatoon",
-	"Punchline": "Redefining FFXIV navigation with unlimited, precise waymarks.",
-	"Description": "Splatoon is a powerful accessibility tool. It revolutionizes gameplay with its custom waymark system, offering the ability to create unlimited grouped waymarks, labels, and actor indicators with exacting pixel precision. This feature empowers players by making crucial objects and events more visually discernible, thereby facilitating quicker reactions. However, it's important to note that the plugin does not come pre-loaded with presets. Players have the freedom to craft their own or import existing ones, offering a personalized touch to their gaming experience.",
-	"Tags": [
-		"Utility",
-		"Accessibility"
-	],
-	"InternalName": "Splatoon",
-	"RepoUrl": "https://github.com/PunishXIV/Splatoon",
-	"ApplicableVersion": "any",
-	"LastUpdate": 1684437468,
-	"DownloadLinkInstall": "https://love.puni.sh/plugins/Splatoon/latest.zip",
-	"DownloadLinkUpdate": "https://love.puni.sh/plugins/Splatoon/latest.zip",
-	"DownloadLinkTesting": "https://love.puni.sh/plugins/Splatoon/latest.zip",
-	"AcceptsFeedback": true,
-	"IconUrl": "https://love.puni.sh/resources/splatoon.png"
+		"Author": "NightmareXIV",
+		"Name": "Splatoon",
+		"Punchline": "Redefining FFXIV navigation with unlimited, precise waymarks.",
+		"Description": "Splatoon is a powerful accessibility tool. It revolutionizes gameplay with its custom waymark system, offering the ability to create unlimited grouped waymarks, labels, and actor indicators with exacting pixel precision. This feature empowers players by making crucial objects and events more visually discernible, thereby facilitating quicker reactions. However, it's important to note that the plugin does not come pre-loaded with presets. Players have the freedom to craft their own or import existing ones, offering a personalized touch to their gaming experience.",
+		"Tags": [
+				"Utility",
+				"Accessibility"
+		],
+		"InternalName": "Splatoon",
+		"RepoUrl": "https://github.com/PunishXIV/Splatoon",
+		"ApplicableVersion": "any",
+		"LastUpdate": 1684437468,
+		"DownloadLinkInstall": "https://love.puni.sh/plugins/Splatoon/latest.zip",
+		"DownloadLinkUpdate": "https://love.puni.sh/plugins/Splatoon/latest.zip",
+		"DownloadLinkTesting": "https://love.puni.sh/plugins/Splatoon/latest.zip",
+		"AcceptsFeedback": true,
+		"IconUrl": "https://love.puni.sh/resources/splatoon.png",
+		"DalamudApiLevel": 11
 }
 

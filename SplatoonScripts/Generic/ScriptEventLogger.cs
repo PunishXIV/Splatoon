@@ -13,7 +13,7 @@ namespace SplatoonScriptsOfficial.Generic;
 internal class ScriptEventLogger :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
-    public override Metadata? Metadata => new(4, "Redmoon");
+    public override Metadata? Metadata => new(5, "Redmoon");
 
     private Config Conf => Controller.GetConfig<Config>();
 

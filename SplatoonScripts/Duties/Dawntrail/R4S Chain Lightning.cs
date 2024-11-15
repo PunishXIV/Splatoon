@@ -93,7 +93,7 @@ public class R4S_Chain_Lightning : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        //PluginLog.Information($"Cast: {set.Action.RowId}");
+        //PluginLog.Information($"Cast: {set.Action.Value.RowId}");
         if(set.Action?.RowId.EqualsAny(38426u, 38427u) == true)
         {
             PluginLog.Information($"Cast detected");

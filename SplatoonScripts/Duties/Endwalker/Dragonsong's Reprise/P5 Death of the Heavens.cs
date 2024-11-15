@@ -489,7 +489,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         if (set.Action is null)
             return;
 
-        switch (set.Action.RowId)
+        switch (set.Action.Value.RowId)
         {
             case 27540:
                 Controller.Schedule(() =>

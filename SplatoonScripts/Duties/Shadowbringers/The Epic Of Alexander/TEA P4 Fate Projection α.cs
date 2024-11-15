@@ -246,9 +246,9 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         if (!_isStartFateProjectionCasting) return;
         if (set is { Action: not null, Source: not null, Target: not null })
         {
-            PluginLog.Warning("ActionId: " + set.Action.RowId);
+            PluginLog.Warning("ActionId: " + set.Action.Value.RowId);
 
-            var futureAction = set.Action.RowId switch
+            var futureAction = set.Action.Value.RowId switch
             {
                 19213 => FutureActionType.FirstMotion,
                 19214 => FutureActionType.FirstStillness,

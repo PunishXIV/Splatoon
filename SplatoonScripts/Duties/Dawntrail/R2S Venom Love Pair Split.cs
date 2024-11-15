@@ -67,12 +67,12 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
         if (set.Action == null || (set.Source == null)) return;
         if (set.Source.DataId == 0) return;
 
-        if ((set.Action.RowId == 37256) && (set.Source.DataId == 16945))
+        if ((set.Action.Value.RowId == 37256) && (set.Source.DataId == 16945))
         {
             HideElement();
         }
 
-        if ((set.Action.RowId == 39691) && (set.Source.DataId == 16943))
+        if ((set.Action.Value.RowId == 39691) && (set.Source.DataId == 16943))
         {
             HideElement();
         }

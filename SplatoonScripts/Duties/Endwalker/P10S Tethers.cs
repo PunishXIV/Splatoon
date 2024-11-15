@@ -49,7 +49,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void ActionEffect_ActionEffectEvent(ECommons.Hooks.ActionEffectTypes.ActionEffectSet set)
         {
-            if(set.Action.RowId == 33432)
+            if(set.Action.Value.RowId == 33432)
             {
                 Off();
             }

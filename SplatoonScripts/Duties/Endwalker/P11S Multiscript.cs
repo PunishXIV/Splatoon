@@ -158,8 +158,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             if(set.Source != null && set.Source is IBattleNpc b)
             {
-                //DuoLog.Information($"{set.Action.RowId} - {set.Action.Name} ({b.Name})");
-                if(C.EnableProteanLinger && set.Action.RowId.EqualsAny<uint>(33257, 33256)) //protean
+                //DuoLog.Information($"{set.Action.Value.RowId} - {set.Action.Name} ({b.Name})");
+                if(C.EnableProteanLinger && set.Action.Value.RowId.EqualsAny<uint>(33257, 33256)) //protean
                 {
                     new TickScheduler(() =>
                     {

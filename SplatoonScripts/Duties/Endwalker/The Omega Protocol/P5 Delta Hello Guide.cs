@@ -227,7 +227,7 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
     {
         if(set.Action == null || _gimmickPhase == GimmickPhase.None) return;
 
-        switch(set.Action.RowId)
+        switch(set.Action.Value.RowId)
         {
             case CastID.ShieldCombo:
             _gimmickPhase = GimmickPhase.DeltaFirstHalfStackTiming;
@@ -284,8 +284,8 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             // Find beetle and final
             if(_beetle == null || _final == null)
             {
-                _beetle = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == beetleModelId) as IBattleNpc;
-                _final = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.CharacterData.ModelCharaId == finalModelId) as IBattleNpc;
+                _beetle = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.ModelCharaId == beetleModelId) as IBattleNpc;
+                _final = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.ModelCharaId == finalModelId) as IBattleNpc;
 
                 if(_beetle == null || _final == null)
                 {

@@ -177,7 +177,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander
             if (!MechanicActive)
                 return;
 
-            if (set.Action.RowId == HawkBlast)
+            if (set.Action.Value.RowId == HawkBlast)
             {
                 BlastCount++;
 

@@ -147,17 +147,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             if (!mechanicActive) return;
             if(set.Source?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
             {
-                if(set.Action.RowId == Puddle)
+                if(set.Action.Value.RowId == Puddle)
                 {
                     //DuoLog.Information($"Puddle on {set.Target?.Name}");
                     puddleNum++;
                 }
-                if(set.Action.RowId == Laser)
+                if(set.Action.Value.RowId == Laser)
                 {
                     //DuoLog.Information($"Laser");
                     laserNum++;
                 }
-                //DuoLog.Information($"Cast: {set.Action.RowId} {set.Action.Name} on {set.Target}");
+                //DuoLog.Information($"Cast: {set.Action.Value.RowId} {set.Action.Name} on {set.Target}");
             }
         }
     }

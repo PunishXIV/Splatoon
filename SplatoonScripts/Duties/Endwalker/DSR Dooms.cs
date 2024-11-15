@@ -231,7 +231,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             /*
             if (set.Action == null) return;
-            if (set.Action.RowId == 25544)
+            if (set.Action.Value.RowId == 25544)
             {
                 //DuoLog.Information($"Position locked!");
                 positionDynamic = false;

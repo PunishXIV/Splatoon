@@ -62,7 +62,7 @@ public class P6_Wroth_Flames : SplatoonScript
     {
         if (_state != State.None) return;
         if (set.Action is null) return;
-        if (set.Action.RowId == WrothFlamesCastId) _state = State.Start;
+        if (set.Action.Value.RowId == WrothFlamesCastId) _state = State.Start;
     }
 
     public override void OnStartingCast(uint source, uint castId)

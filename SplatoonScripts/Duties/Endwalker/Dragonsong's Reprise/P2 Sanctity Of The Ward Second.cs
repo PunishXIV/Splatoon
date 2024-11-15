@@ -261,7 +261,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
         if (set.Action == null) return;
 
-        if (set.Action.RowId == 25575)
+        if (set.Action.Value.RowId == 25575)
         {
             _isFirstTowerPhase = true;
             var position = Player.Position.ToVector2();
@@ -271,7 +271,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             for (var i = 0; i < MyTowers.Count; i++) SetOffPosition($"bait{i + 1}", MyTowers[i].Position);
         }
 
-        if (set.Action.RowId == 29564)
+        if (set.Action.Value.RowId == 29564)
         {
             _isFirstTowerPhase = false;
             _isSecondTowerPhase = true;

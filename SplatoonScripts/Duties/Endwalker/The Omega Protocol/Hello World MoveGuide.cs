@@ -148,19 +148,19 @@ internal unsafe class Hello_World_MoveGuide :SplatoonScript
         if (set.Action == null)
             return;
 
-        if (set.Action.RowId == CastIDs.HelloWorld)
+        if (set.Action.Value.RowId == CastIDs.HelloWorld)
         {
             HideAll();
             state = State.HelloWorldCasted;
             LocalUpdate();
         }
-        if (state == State.LatentDefectCasting && set.Action.RowId == CastIDs.LatentDefect)
+        if (state == State.LatentDefectCasting && set.Action.Value.RowId == CastIDs.LatentDefect)
         {
             HideAll();
             state = State.BreakPatchNear;
             LocalUpdate();
         }
-        if (state == State.WaitingRot && set.Action.RowId == CastIDs.CriticalRedRot)
+        if (state == State.WaitingRot && set.Action.Value.RowId == CastIDs.CriticalRedRot)
         {
             HideAll();
             state = State.Waiting;

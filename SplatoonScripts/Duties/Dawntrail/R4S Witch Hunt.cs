@@ -202,7 +202,7 @@ public class R4S_Witch_Hunt : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if(IsUnsafeMiddle == null || set.Action == null) return;
-        if(set.Action.RowId.EqualsAny(this.CastSwitcher))
+        if(set.Action.Value.RowId.EqualsAny(this.CastSwitcher))
         {
             IsUnsafeMiddle = !IsUnsafeMiddle.Value;
             NumSwitches++;

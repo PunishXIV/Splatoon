@@ -126,7 +126,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
     {
         if (set.Action is null) return;
 
-        switch (set.Action.RowId)
+        switch (set.Action.Value.RowId)
         {
             case 27954 or 27955 or 27956 or 27957:
                 _breathCount++;

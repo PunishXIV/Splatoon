@@ -48,7 +48,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
             if (set.Action == null) return;
-            if (Casts.Contains(set.Action.RowId))
+            if (Casts.Contains(set.Action.Value.RowId))
             {
                 ////DuoLog.Information($"Cast");
                 GenericHelpers.Safe(() =>

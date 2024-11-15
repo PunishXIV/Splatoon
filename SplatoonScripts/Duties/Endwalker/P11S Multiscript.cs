@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P11S_Multiscript : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1152 };
-        public override Metadata? Metadata => new(4, "NightmareXIV");
+        public override Metadata? Metadata => new(5, "NightmareXIV");
 
         const string DarkVFX = "vfx/common/eff/m0830_dark_castloopc0k1.avfx";
         const string LightVFX = "vfx/common/eff/m0830_light_castloopc0k1.avfx";

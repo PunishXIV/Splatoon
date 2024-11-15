@@ -1,5 +1,5 @@
 ﻿using ECommons;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace Splatoon.Modules;
 
@@ -28,7 +28,7 @@ internal static class Logger
         EndLogging();
         if (P.Config.Logging)
         {
-            var name = Svc.Data.GetExcelSheet<TerritoryType>().GetRow(Svc.ClientState.TerritoryType)?.ContentFinderCondition?.Value?.Name?.ToString();
+            var name = Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(Svc.ClientState.TerritoryType)?.ContentFinderCondition.ValueNullable?.Name.ToString();
             if (name != String.Empty && name != null)
             {
                 BeginLogging();

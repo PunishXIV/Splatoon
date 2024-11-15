@@ -19,7 +19,24 @@
     <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
     <PathMap>$(AppOutputBase)=Splatoon\</PathMap>
     <Deterministic>true</Deterministic>
+      <CustomCS>true</CustomCS>
 	</PropertyGroup>
+    
+    <ItemGroup Condition="'$(CustomCS)' != 'true'">
+        <Reference Include="FFXIVClientStructs">
+            <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+
+    <PropertyGroup Condition="'$(CustomCS)'=='true'">
+        <DefineConstants>CUSTOMCS</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup Condition="'$(CustomCS)'=='true'">
+        <ProjectReference Include="..\FFXIVClientStructs\FFXIVClientStructs\FFXIVClientStructs.csproj" />
+        <ProjectReference Include="..\FFXIVClientStructs\InteropGenerator.Runtime\InteropGenerator.Runtime.csproj" />
+        <ProjectReference Include="..\FFXIVClientStructs\InteropGenerator\InteropGenerator.csproj" />
+    </ItemGroup>
 
 	<PropertyGroup Label="Documentation">
 		<DocumentationFile></DocumentationFile>
@@ -69,10 +86,6 @@
 		</Reference>
 		<Reference Include="Lumina.Excel">
 			<HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
-		<Reference Include="FFXIVClientStructs">
-			<HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
 		<Reference Include="Reloaded.Hooks.Definitions">

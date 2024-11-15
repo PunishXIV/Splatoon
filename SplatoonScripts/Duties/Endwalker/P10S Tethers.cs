@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P10S_Tethers : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1150 };
-        public override Metadata? Metadata => new(4, "NightmareXIV");
+        public override Metadata? Metadata => new(5, "NightmareXIV");
         List<TetherData> Tethers = new();
 
         public class TetherData

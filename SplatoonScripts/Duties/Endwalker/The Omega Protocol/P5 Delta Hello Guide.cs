@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = new HashSet<uint> { 1122 };
-    public override Metadata? Metadata => new Metadata(4, "Redmoon");
+    public override Metadata? Metadata => new Metadata(5, "Redmoon");
 
     #region Types
     private class PartyData

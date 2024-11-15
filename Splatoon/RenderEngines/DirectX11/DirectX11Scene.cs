@@ -277,7 +277,7 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawTextWorld(DisplayObjectText e)
     {
-        if (Svc.GameGui.WorldToScreen(
+        if (Utils.WorldToScreen(
                         new Vector3(e.x, e.z, e.y),
                         out var pos))
         {
@@ -309,7 +309,7 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.y, e.z), out var pos))
+        if (Utils.WorldToScreen(new Vector3(e.x, e.y, e.z), out var pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,

@@ -223,7 +223,7 @@ unsafe partial class CGui:IDisposable
 
     private void SetCursorTo(float refX, float refZ, float refY)
     {
-        if (Svc.GameGui.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos))
+        if (Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos))
         {
             var point = new POINT() { x = (int)screenPos.X, y = (int)screenPos.Y };
             //Chat.Print(point.X + "/" + point.Y);

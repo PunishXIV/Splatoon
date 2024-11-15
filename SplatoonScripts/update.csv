@@ -14,7 +14,7 @@ SplatoonScriptsOfficial.Duties.Endwalker@DSR_Dooms,6,https://github.com/PunishXI
 SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Dominion,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P8S2 Dominion.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_P6_Cauterize_Unsafe,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR_P6_Cauterize_Unsafe.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Wing_Cleaves,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Wing Cleaves.cs
-SplatoonScriptsOfficial.Duties.Endwalker@DSR_Towers,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Towers.cs
+SplatoonScriptsOfficial.Duties.Endwalker@DSR_Towers,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Towers.cs
 SplatoonScriptsOfficial.Duties.Endwalker@Aloalo_Bombs,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Aloalo Bombs.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Limit_Cut,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Limit Cut.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P11S_Multiscript,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P11S Multiscript.cs
@@ -66,18 +66,27 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Witch_Hunt,5,https://github.com/Pun
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Midnight_Sabbath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Midnight Sabbath.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Unsafe_Cannon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Unsafe Cannon.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Chain_Lightning,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Chain Lightning.cs
-SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S Protean Highlight.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S Protean Highlight.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
 SplatoonScriptsOfficial.Generic@AutoFateSync,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoFateSync.cs
 SplatoonScriptsOfficial.Generic@ScriptEventLogger,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
-SplatoonScriptsOfficial.Generic@ShowEmote,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs
+SplatoonScriptsOfficial.Generic@ShowEmote,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs
+SplatoonScriptsOfficial.Generic@AetherSight,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AetherSight.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
+SplatoonScriptsOfficial.Generic@WorldWaiter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/WorldWaiter.cs
+SplatoonScriptsOfficial.Generic@Makeplace2List,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Makeplace2List.cs
+SplatoonScriptsOfficial.Generic@CheckEmote,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CheckEmote.cs
 SplatoonScriptsOfficial.Generic@AutoTargetSwitcher,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoTargetSwitcher.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
-SplatoonScriptsOfficial.Generic@ZoneNameToast,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ZoneNameToast.cs
+SplatoonScriptsOfficial.Generic@ZoneNameToast,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ZoneNameToast.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
 SplatoonScriptsOfficial.Generic@ShowTooltipOnKey,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowTooltipOnKey.cs
 SplatoonScriptsOfficial.Generic@ForceSetDirection,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ForceSetDirection.cs
-SplatoonScriptsOfficial.Tests@DMParser,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
+SplatoonScriptsOfficial.Generic@NoSproutIcon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/NoSproutIcon.cs
+SplatoonScriptsOfficial.Generic@ArtisanCraftCommand,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ArtisanCraftCommand.cs
+SplatoonScriptsOfficial.Tests@IPCExample,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/IPCExample.cs
+SplatoonScriptsOfficial.Tests@DMParser,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Tests@GenericTest7,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs
+SplatoonScriptsOfficial.Tests@SendSpawnedObjects,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/SendSpawnedObjects.cs
+SplatoonScriptsOfficial.Tests@GenericTest4,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest4.cs
 SplatoonScriptsOfficial.Tests@GenericTest6,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest6.cs

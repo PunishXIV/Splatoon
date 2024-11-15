@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Wrath : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(2, "Enthusiastus");
+        public override Metadata? Metadata => new(3, "Enthusiastus");
 
         Element? SkydiveTargetElement;
         Element? NoSkydiveTargetElement;

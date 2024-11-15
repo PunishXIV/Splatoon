@@ -81,7 +81,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     #endregion
 
     #region publicDefine
-    public override Metadata Metadata => new(4, "Redmoon");
+    public override Metadata Metadata => new(5, "Redmoon");
     public override HashSet<uint>? ValidTerritories => new() { 1122 };
     #endregion
 

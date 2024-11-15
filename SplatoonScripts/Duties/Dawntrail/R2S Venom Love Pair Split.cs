@@ -23,7 +23,7 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
     }
     public override HashSet<uint>? ValidTerritories { get; } = [1228];
 
-    public override Metadata? Metadata => new(2, "Redmoon");
+    public override Metadata? Metadata => new(3, "Redmoon");
 
     const uint PoisonResistanceDownDebuffID = 3935;
     bool IsShow = false;

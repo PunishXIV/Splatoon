@@ -33,7 +33,7 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class Hello_World_MoveGuide :SplatoonScript
 {
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
     public override HashSet<uint> ValidTerritories => new() { 1122 };
 
     private enum State

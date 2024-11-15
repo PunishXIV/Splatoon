@@ -19,7 +19,7 @@
     <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
     <PathMap>$(AppOutputBase)=Splatoon\</PathMap>
     <Deterministic>true</Deterministic>
-      <CustomCS>true</CustomCS>
+      <CustomCS>false</CustomCS>
 	</PropertyGroup>
     
     <ItemGroup Condition="'$(CustomCS)' != 'true'">

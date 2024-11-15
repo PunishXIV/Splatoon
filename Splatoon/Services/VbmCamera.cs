@@ -11,8 +11,6 @@ namespace Splatoon.Services;
 
 internal unsafe class VbmCamera
 {
-    public static VbmCamera? Instance;
-
     public Vector3 Origin;
     public Matrix4x4 View;
     public Matrix4x4 Proj;
@@ -85,36 +83,5 @@ internal unsafe class VbmCamera
                  screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + height;
 
         return inFront && inView;
-    }
-
-    /*public bool ScreenToWorld(Vector3 start, out Vector2 screenPos)
-    {
-        var windowPos = ImGuiHelpers.MainViewport.Pos;
-        var p1p = Vector4.Transform(start, ViewProj);
-        var p1c = XY(p1p) * (1 / p1p.W);
-        var p1screen = new Vector2(0.5f * ViewportSize.X * (1 + p1c.X), 0.5f * ViewportSize.Y * (1 - p1c.Y)) + windowPos;
-
-        var inFront = p1p.W > 0.0f;
-        var inView = false;
-        if(Math.Abs(p1p.W) < float.Epsilon)
-        {
-            screenPos = Vector2.Zero;
-            inView = false;
-        }
-
-        screenPos = p1screen;
-        inView = inFront &&
-                 screenPos.X > windowPos.X && screenPos.X < windowPos.X + this.ViewportSize.X &&
-                 screenPos.Y > windowPos.Y && screenPos.Y < windowPos.Y + this.ViewportSize.Y;
-        return inView && IsOnScreen(start);
-    }*/
-    static Vector2 XY(Vector4 v) => new(v.X, v.Y);
-    
-    private bool IsOnScreen(Vector3 a)
-    {
-        var an = Vector4.Dot(new(a, 1), NearPlane);
-        if(an >= 0)
-            return false;
-        return true;
     }
 }

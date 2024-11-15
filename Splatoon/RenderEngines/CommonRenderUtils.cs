@@ -22,7 +22,7 @@ public unsafe static class CommonRenderUtils
         .Replace("$NAME", go.Name.ToString())
         .Replace("$OBJECTID", $"{go.EntityId.Format()}")
         .Replace("$DATAID", $"{go.DataId.Format()}")
-        .Replace("$MODELID", $"{(go is ICharacter chr ? chr.Struct()->CharacterData.ModelCharaId : 0).Format()}")
+        .Replace("$MODELID", $"{(go is ICharacter chr ? chr.Struct()->ModelCharaId : 0).Format()}")
         .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
         .Replace("$KIND", $"{go.ObjectKind}")
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")

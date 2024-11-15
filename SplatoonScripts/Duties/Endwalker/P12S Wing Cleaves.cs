@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Wing_Cleaves : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1153, 1154 };
-        public override Metadata? Metadata => new(6, "NightmareXIV");
+        public override Metadata? Metadata => new(7, "NightmareXIV");
         Queue<string> Cleaves = new();
         bool isSpin = false;
         Vector3 firstPos;

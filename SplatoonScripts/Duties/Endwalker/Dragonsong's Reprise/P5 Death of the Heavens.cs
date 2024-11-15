@@ -47,7 +47,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     private PlaystationMarker _myMarker = PlaystationMarker.Circle;
     public override HashSet<uint>? ValidTerritories => [968];
     private Config C => Controller.GetConfig<Config>();
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume");
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());

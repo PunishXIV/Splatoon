@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P11S_Multiscript : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1152 };
-        public override Metadata? Metadata => new(4, "NightmareXIV");
+        public override Metadata? Metadata => new(6, "NightmareXIV");
 
         const string DarkVFX = "vfx/common/eff/m0830_dark_castloopc0k1.avfx";
         const string LightVFX = "vfx/common/eff/m0830_light_castloopc0k1.avfx";
@@ -158,8 +158,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             if(set.Source != null && set.Source is IBattleNpc b)
             {
-                //DuoLog.Information($"{set.Action.RowId} - {set.Action.Name} ({b.Name})");
-                if(C.EnableProteanLinger && set.Action.RowId.EqualsAny<uint>(33257, 33256)) //protean
+                //DuoLog.Information($"{set.Action.Value.RowId} - {set.Action.Name} ({b.Name})");
+                if(C.EnableProteanLinger && set.Action.Value.RowId.EqualsAny<uint>(33257, 33256)) //protean
                 {
                     new TickScheduler(() =>
                     {

@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P10S_Tethers : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1150 };
-        public override Metadata? Metadata => new(3, "NightmareXIV");
+        public override Metadata? Metadata => new(5, "NightmareXIV");
         List<TetherData> Tethers = new();
 
         public class TetherData
@@ -49,7 +49,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void ActionEffect_ActionEffectEvent(ECommons.Hooks.ActionEffectTypes.ActionEffectSet set)
         {
-            if(set.Action.RowId == 33432)
+            if(set.Action.Value.RowId == 33432)
             {
                 Off();
             }

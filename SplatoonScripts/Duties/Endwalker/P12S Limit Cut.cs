@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Limit_Cut : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1154 };
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
         const uint Puddle = 33527;
         const uint Laser = 33520;
         bool mechanicActive = false;
@@ -147,17 +147,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             if (!mechanicActive) return;
             if(set.Source?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
             {
-                if(set.Action.RowId == Puddle)
+                if(set.Action.Value.RowId == Puddle)
                 {
                     //DuoLog.Information($"Puddle on {set.Target?.Name}");
                     puddleNum++;
                 }
-                if(set.Action.RowId == Laser)
+                if(set.Action.Value.RowId == Laser)
                 {
                     //DuoLog.Information($"Laser");
                     laserNum++;
                 }
-                //DuoLog.Information($"Cast: {set.Action.RowId} {set.Action.Name} on {set.Target}");
+                //DuoLog.Information($"Cast: {set.Action.Value.RowId} {set.Action.Name} on {set.Target}");
             }
         }
     }

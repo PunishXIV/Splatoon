@@ -12,6 +12,7 @@ namespace Splatoon.Memory
         internal static byte* ActiveScene = null;
         internal static void Init()
         {
+            PluginLog.Debug($"Init Scene");
             var n = (nint)EnvManager.Instance();
             if (n == nint.Zero)
             {

@@ -3,7 +3,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
@@ -366,7 +366,7 @@ internal unsafe partial class CGui
                         el.refActorObjectID = Svc.Targets.Target.EntityId;
                         if (Svc.Targets.Target is ICharacter c)
                         {
-                            el.refActorModelID = (uint)c.Struct()->CharacterData.ModelCharaId;
+                            el.refActorModelID = (uint)c.Struct()->ModelCharaId;
                             el.refActorNPCNameID = c.NameId;
                         }
                         el.refActorNPCID = Svc.Targets.Target.Struct()->GetNameId();
@@ -426,7 +426,7 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 if (ImGui.Button("Add".Loc() + "##byactionname" + i + k))
                 {
-                    foreach (var x in Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Union(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>(ClientLanguage.English)))
+                    foreach (var x in Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>().Union(Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>(ClientLanguage.English)))
                     {
                         if (x.Name.ToString().Equals(ActionName, StringComparison.OrdinalIgnoreCase))
                         {

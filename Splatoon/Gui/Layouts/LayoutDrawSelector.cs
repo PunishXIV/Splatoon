@@ -9,20 +9,20 @@ internal static class LayoutDrawSelector
 {
     internal static Layout CurrentLayout = null;
     internal static Element CurrentElement = null;
-    internal static void DrawSelector(this Layout x, string group, int index)
+    internal static void DrawSelector(this Layout layout, string group, int index)
     {
-        if (CGui.layoutFilter != "" && !x.GetName().Contains(CGui.layoutFilter, StringComparison.OrdinalIgnoreCase))
+        if (CGui.layoutFilter != "" && !layout.GetName().Contains(CGui.layoutFilter, StringComparison.OrdinalIgnoreCase))
         {
-            if(CGui.ScrollTo == x)
+            if(CGui.ScrollTo == layout)
             {
                 CGui.ScrollTo = null;
             }
             return;
         }
-        ImGui.PushID(x.GUID);
+        ImGui.PushID(layout.GUID);
         {
             var col = false;
-            if (!x.Enabled)
+            if (!layout.Enabled)
             {
                 col = true;
                 ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey3);
@@ -30,25 +30,25 @@ internal static class LayoutDrawSelector
             ImGui.SetCursorPosX(group == null ? 0 : 10);
             var curpos = ImGui.GetCursorScreenPos();
             var contRegion = ImGui.GetContentRegionAvail().X;
-            if (CGui.ScrollTo == x)
+            if (CGui.ScrollTo == layout)
             {
                 ImGui.SetScrollHereY();
                 CGui.ScrollTo = null;
             }
-            if (ImGui.Selectable($"{x.GetName()}", CurrentLayout == x))
+            if (ImGui.Selectable($"{layout.GetName()}", CurrentLayout == layout))
             {
-                if (CurrentLayout == x && CurrentElement == null)
+                if (CurrentLayout == layout && CurrentElement == null)
                 {
                     CurrentLayout = null;
                     if (P.Config.FocusMode)
                     {
-                        CGui.ScrollTo = x;
+                        CGui.ScrollTo = layout;
                     }
                 }
                 else
                 {
                     CGui.OpenedGroup.Add(group);
-                    CurrentLayout = x;
+                    CurrentLayout = layout;
                     CurrentElement = null;
                 }
             }
@@ -58,7 +58,7 @@ internal static class LayoutDrawSelector
             }
             if (ImGui.IsItemClicked(ImGuiMouseButton.Middle))
             {
-                x.Enabled = !x.Enabled;
+                layout.Enabled = !layout.Enabled;
             }
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
@@ -69,7 +69,7 @@ internal static class LayoutDrawSelector
                 if (ImGui.BeginDragDropSource())
                 {
                     ImGuiDragDrop.SetDragDropPayload("MoveLayout", index);
-                    ImGuiEx.Text($"Moving layout\n??".Loc(x.GetName()));
+                    ImGuiEx.Text($"Moving layout\n??".Loc(layout.GetName()));
                     ImGui.EndDragDropSource();
                 }
                 if (ImGui.BeginDragDropTarget())
@@ -92,22 +92,22 @@ internal static class LayoutDrawSelector
             });
             if (ImGui.BeginPopup("LayoutContext"))
             {
-                ImGuiEx.Text($"Layout ??".Loc(x.GetName()));
+                ImGuiEx.Text($"Layout ??".Loc(layout.GetName()));
                 if (ImGui.Selectable("Archive layout".Loc()))
                 {
-                    P.Archive.LayoutsL.Add(x.JSONClone());
+                    P.Archive.LayoutsL.Add(layout.JSONClone());
                     P.SaveArchive();
-                    x.Delete = true;
+                    layout.Delete = true;
                 }
                 ImGui.Separator();
                 if (ImGui.Selectable("Delete layout".Loc()))
                 {
-                    x.Delete = true;
+                    layout.Delete = true;
                 }
                 ImGui.EndPopup();
             }
         }
-        if (CurrentLayout == x)
+        if (CurrentLayout == layout)
         {
             for (var i = 0;i<CurrentLayout.ElementsL.Count;i++)
             {
@@ -120,7 +120,7 @@ internal static class LayoutDrawSelector
                     col = true;
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey3);
                 }
-                else if (!x.Enabled)
+                else if (!layout.Enabled)
                 {
                     col = true;
                     ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
@@ -154,7 +154,7 @@ internal static class LayoutDrawSelector
                 if (ImGui.BeginDragDropSource())
                 {
                     ImGuiDragDrop.SetDragDropPayload($"MoveElement{index}", i);
-                    ImGuiEx.Text($"Moving element\n??".Loc(x.GetName()));
+                    ImGuiEx.Text($"Moving element\n??".Loc(layout.GetName()));
                     ImGui.EndDragDropSource();
                 }
                 if (ImGui.BeginDragDropTarget())
@@ -175,7 +175,7 @@ internal static class LayoutDrawSelector
                 }
                 if (ImGui.BeginPopup("ElementContext"))
                 {
-                    ImGuiEx.Text($"{"Layout".Loc()} {x.GetName()}\n{"Element".Loc()} {e.GetName()}");
+                    ImGuiEx.Text($"{"Layout".Loc()} {layout.GetName()}\n{"Element".Loc()} {e.GetName()}");
                     if (ImGui.Selectable("Delete element".Loc()))
                     {
                         e.Delete = true;
@@ -188,14 +188,14 @@ internal static class LayoutDrawSelector
             {
                 if(ImGui.SmallButton("Add element".Loc()))
                 {
-                    x.ElementsL.Add(new(0));
+                    layout.ElementsL.Add(new(0));
                 }
                 ImGui.SameLine(); 
                 if (ImGui.SmallButton("Paste".Loc()))
                 {
                     try
                     {
-                        x.ElementsL.Add(JsonConvert.DeserializeObject<Element>(ImGui.GetClipboardText()));
+                        layout.ElementsL.Add(JsonConvert.DeserializeObject<Element>(ImGui.GetClipboardText()));
                     }
                     catch(Exception e)
                     {

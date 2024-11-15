@@ -33,7 +33,7 @@ internal static class ZlockSelector
                 {
                     ImGuiUtils.ColorButton(Colors.Red);
                 }
-                string zcfc = P.Zones[Svc.ClientState.TerritoryType].ContentFinderCondition?.Value.Name?.ToString();
+                string zcfc = P.Zones[Svc.ClientState.TerritoryType].ContentFinderCondition.ValueNullable?.Name.ToString();
                 if (P.Zones.ContainsKey(Svc.ClientState.TerritoryType) && ImGui.SmallButton($"Current zone: ??".Loc(GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType))))
                 {
                     layout.ZoneLockH.Toggle(Svc.ClientState.TerritoryType);
@@ -41,7 +41,7 @@ internal static class ZlockSelector
                 ImGuiUtils.UncolorButton();
                 ImGui.PopStyleColor();
             }
-            foreach (var z in P.Zones.Where(x => x.Value?.PlaceName?.Value?.Name?.ToString().IsNullOrEmpty() == false))
+            foreach (var z in P.Zones.Where(x => x.Value.PlaceName.ValueNullable?.Name.ToString().IsNullOrEmpty() == false))
             {
                 var s = GenericHelpers.GetTerritoryName(z.Key);
                 if (!s.ToLower().Contains(zlockf)) continue;

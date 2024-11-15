@@ -78,7 +78,7 @@ class Commands : IDisposable
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;
                         el.refActorObjectID = Svc.Targets.Target.EntityId;
-                        if (Svc.Targets.Target is ICharacter c) el.refActorModelID = (uint)c.Struct()->CharacterData.ModelCharaId;
+                        if (Svc.Targets.Target is ICharacter c) el.refActorModelID = (uint)c.Struct()->ModelCharaId;
                         Notify.Success("Successfully set target");
                     }
                 }

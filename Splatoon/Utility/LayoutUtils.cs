@@ -14,7 +14,7 @@ public static unsafe class LayoutUtils
         if (e.refActorComparisonAnd)
         {
             return (e.refActorNameIntl.Get(e.refActorName) == String.Empty || IsNameMatches(e, o)) &&
-             (e.refActorModelID == 0 || (o is ICharacter c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID)) &&
+             (e.refActorModelID == 0 || (o is ICharacter c && c.Struct()->ModelCharaId == e.refActorModelID)) &&
              (e.refActorObjectID == 0 || o.EntityId == e.refActorObjectID) &&
              (e.refActorDataID == 0 || o.DataId == e.refActorDataID) &&
              (e.refActorNPCID == 0 || o.Struct()->GetNameId() == e.refActorNPCID) &&
@@ -27,7 +27,7 @@ public static unsafe class LayoutUtils
         else
         {
             if (e.refActorComparisonType == 0 && IsNameMatches(e, o)) return true;
-            if (e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->CharacterData.ModelCharaId == e.refActorModelID) return true;
+            if (e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->ModelCharaId == e.refActorModelID) return true;
             if (e.refActorComparisonType == 2 && o.EntityId == e.refActorObjectID) return true;
             if (e.refActorComparisonType == 3 && o.DataId == e.refActorDataID) return true;
             if (e.refActorComparisonType == 4 && o.Struct()->GetNameId() == e.refActorNPCID) return true;
@@ -268,7 +268,7 @@ public static unsafe class LayoutUtils
         if ((i.ZoneLockH.Count > 0 && !i.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(i.IsZoneBlacklist)) return false;
         if (i.Scenes.Count > 0 && !i.Scenes.Contains(*Scene.ActiveScene)) return false;
         if (i.Phase != 0 && i.Phase != P.Phase) return false;
-        if (i.JobLock != 0 && !Bitmask.IsBitSet(i.JobLock, (int)Svc.ClientState.LocalPlayer.ClassJob.Id)) return false;
+        if (i.JobLock != 0 && !Bitmask.IsBitSet(i.JobLock, (int)Svc.ClientState.LocalPlayer.ClassJob.RowId)) return false;
         if ((i.DCond == 1 || i.DCond == 3) && !Svc.Condition[ConditionFlag.InCombat]) return false;
         if ((i.DCond == 2 || i.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
         if (i.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]

@@ -78,7 +78,7 @@ public unsafe static class AttachedInfo
             {
                 if (obj is ICharacter c)
                 {
-                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNameId()}, model id={c.Struct()->CharacterData.ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
+                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNameId()}, model id={c.Struct()->ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
                     P.ChatMessageQueue.Enqueue(text);
                     if (P.Config.Logging) Logger.Log(text);
                 }

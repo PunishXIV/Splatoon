@@ -1,7 +1,7 @@
 ﻿using ECommons;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace SplatoonScriptsOfficial.Generic
 {
     public class ZoneNameToast : SplatoonScript
     {
-        public override Metadata? Metadata => new(2, "NightmareXIV");
+        public override Metadata? Metadata => new(3, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => new();
         public override void OnEnable()
         {
@@ -31,11 +31,11 @@ namespace SplatoonScriptsOfficial.Generic
             {
                 return;
             }*/
-            var t = Svc.Data.GetExcelSheet<TerritoryType>()?.GetRow(e);
+            var t = Svc.Data.GetExcelSheet<TerritoryType>()?.GetRowOrDefault(e);
             if(t != null)
             {
-                var name = t.PlaceName.Value?.Name.ToString();
-                var cfc = t.ContentFinderCondition.Value?.Name.ToString();
+                var name = t.Value.PlaceName.ValueNullable?.Name.ToString();
+                var cfc = t.Value.ContentFinderCondition.ValueNullable?.Name.ToString();
                 if (!name.IsNullOrEmpty())
                 {
                     if(!cfc.IsNullOrEmpty() && name != cfc)

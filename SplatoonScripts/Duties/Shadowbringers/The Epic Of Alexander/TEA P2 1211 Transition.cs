@@ -64,7 +64,7 @@ public class TEA_P2_1211_Transition :SplatoonScript
     private int _myNumber;
 
     public override HashSet<uint> ValidTerritories => [887];
-    public override Metadata Metadata => new(5, "Garume");
+    public override Metadata Metadata => new(6, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 

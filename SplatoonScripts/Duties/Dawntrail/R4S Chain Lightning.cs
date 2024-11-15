@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Chain_Lightning : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
     uint TowerID = 13061;
     List<List<uint>> Towers = [];
     Layout VoidZone = null!;

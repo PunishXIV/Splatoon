@@ -61,7 +61,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     public List<IGameObject> MyTowers = new();
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 

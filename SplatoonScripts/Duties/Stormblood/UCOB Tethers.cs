@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
     {
         public override HashSet<uint> ValidTerritories => new() { Raids.the_Unending_Coil_of_Bahamut_Ultimate };
         HashSet<uint> TetheredPlayers = new();
-        public override Metadata? Metadata => new(3, "NightmareXIV");
+        public override Metadata? Metadata => new(4, "NightmareXIV");
 
         public override void OnSetup()
         {

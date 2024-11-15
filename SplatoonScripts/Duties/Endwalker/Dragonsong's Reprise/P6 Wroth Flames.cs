@@ -50,7 +50,7 @@ public class P6_Wroth_Flames : SplatoonScript
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -62,7 +62,7 @@ public class P6_Wroth_Flames : SplatoonScript
     {
         if (_state != State.None) return;
         if (set.Action is null) return;
-        if (set.Action.RowId == WrothFlamesCastId) _state = State.Start;
+        if (set.Action.Value.RowId == WrothFlamesCastId) _state = State.Start;
     }
 
     public override void OnStartingCast(uint source, uint castId)

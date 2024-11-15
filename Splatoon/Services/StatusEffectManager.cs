@@ -1,12 +1,12 @@
 ﻿using ECommons.EzHookManager;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Status = Lumina.Excel.GeneratedSheets.Status;
+using Status = Lumina.Excel.Sheets.Status;
 
 namespace Splatoon.Services;
 public unsafe class StatusEffectManager
@@ -44,7 +44,7 @@ public unsafe class StatusEffectManager
             var name = "unk";
             if(thisPtr->Owner != null) name = $"{thisPtr->Owner->NameString}/{thisPtr->Owner->NameId}";
             var status = thisPtr->Status[statusIndex];
-            PluginLog.Debug($"RemoveStatusDetour on: {name}, status={status.StatusId}/{status.Param} {Svc.Data.GetExcelSheet<Status>().GetRow(status.StatusId)?.Name}");
+            PluginLog.Debug($"RemoveStatusDetour on: {name}, status={status.StatusId}/{status.Param} {Svc.Data.GetExcelSheet<Status>().GetRowOrDefault(status.StatusId)?.Name}");
         }
         catch(Exception e)
         {
@@ -59,7 +59,7 @@ public unsafe class StatusEffectManager
         {
             var name = "unk";
             if(thisPtr->Owner != null) name = $"{thisPtr->Owner->NameString}/{thisPtr->Owner->NameId}";
-            PluginLog.Debug($"AddStatusDetour on: {name}, status={statusId}/{param} {Svc.Data.GetExcelSheet<Status>().GetRow(statusId)?.Name}");
+            PluginLog.Debug($"AddStatusDetour on: {name}, status={statusId}/{param} {Svc.Data.GetExcelSheet<Status>().GetRowOrDefault(statusId)?.Name}");
         }
         catch(Exception e)
         {

@@ -11,7 +11,7 @@ public class Marking
 
     public unsafe static bool HaveMark(ICharacter obj, uint index)
     {
-        if (obj.Struct()->CharacterData.ModelCharaId != 0)
+        if (obj.Struct()->ModelCharaId != 0)
         {
             if (Svc.ClientState.LocalPlayer.EntityId == GetMarker(index))
             {

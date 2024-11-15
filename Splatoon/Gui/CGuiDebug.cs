@@ -3,7 +3,7 @@ using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Splatoon.Memory;
 using Splatoon.Utility;
 using System.Globalization;
@@ -58,7 +58,7 @@ unsafe partial class CGui
             {
                 foreach(var x in Svc.Data.GetExcelSheet<TerritoryType>())
                 {
-                    var n = x.ContentFinderCondition.Value?.Name?.ToString();
+                    var n = x.ContentFinderCondition.ValueNullable?.Name.ToString();
                     if (!n.IsNullOrEmpty())
                     {
                         ImGuiEx.Text($"{n}");
@@ -173,7 +173,7 @@ unsafe partial class CGui
                     ImGuiEx.Text($"{((a is ICharacter chr) ? chr.IsCharacterVisible() : "Not a char")}");
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(600f);
-                    ImGuiEx.Text(a is ICharacter chr2 ? $"{chr2.Struct()->CharacterData.ModelCharaId.Format()}" : "Not a char");
+                    ImGuiEx.Text(a is ICharacter chr2 ? $"{chr2.Struct()->ModelCharaId.Format()}" : "Not a char");
                 });
             }
         }

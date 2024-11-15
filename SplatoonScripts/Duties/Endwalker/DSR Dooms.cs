@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Dooms : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(5, "Enthusiastus");
+        public override Metadata? Metadata => new(6, "Enthusiastus");
 
         List<Element> DoomElements = new();
         List<Element> NoDoomElements = new();

@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class BSOD_Adjuster :SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => new() { 1122 };
-    public override Metadata? Metadata => new(2, "Redmoon");
+    public override Metadata? Metadata => new(3, "Redmoon");
 
     public class CastID
     {
@@ -113,7 +113,7 @@ internal class BSOD_Adjuster :SplatoonScript
         if(!_mechanicActive || set.Action == null)
             return;
 
-        if(set.Action.RowId == CastID.StackMarker)
+        if(set.Action.Value.RowId == CastID.StackMarker)
         {
             try
             {
@@ -204,7 +204,7 @@ internal class BSOD_Adjuster :SplatoonScript
             return;
         }
 
-        if(set.Action.RowId == CastID.StackCannon)
+        if(set.Action.Value.RowId == CastID.StackCannon)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             _stackedList.Clear();

@@ -13,9 +13,10 @@ using ECommons.Hooks;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
+using ECommons.Reflection;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
 using PInvoke;
 using Splatoon.Gui;
@@ -119,37 +120,42 @@ public unsafe class Splatoon :IDalamudPlugin
         Svc.ClientState.TerritoryChanged += TerritoryChangedEvent;
         Svc.PluginInterface.UiBuilder.DisableUserUiHide = Config.ShowOnUiHide;
         LimitGaugeResets = Svc.Data.GetExcelSheet<LogMessage>().GetRow(2844).Text.ToString();
-        foreach(var x in Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.English)
-            .Union(Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.French))
-            .Union(Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.Japanese))
-            .Union(Svc.Data.GetExcelSheet<BNpcName>(ClientLanguage.German)))
+        Task.Run(() =>
         {
-            if(x.Singular != "")
+            var dict = new Dictionary<string, uint>();
+            var dictAll = new Dictionary<string, uint>();
+            foreach(var lang in Enum.GetValues<ClientLanguage>())
             {
-                var n = x.Singular.ToString().ToLower();
-                NameNpcIDsAll[n] = x.RowId;
-                NameNpcIDs[n] = x.RowId;
-            }
-        }
-        var bNames = new HashSet<string>();
-        foreach(var lang in Enum.GetValues<ClientLanguage>())
-        {
-            bNames.Clear();
-            foreach(var x in Svc.Data.GetExcelSheet<BNpcName>(lang))
-            {
-                var n = x.Singular.ToString().ToLower();
-                if(bNames.Contains(n))
+                foreach(var x in Svc.Data.GetExcelSheet<BNpcName>(lang))
                 {
-                    NameNpcIDs[n] = 0;
-                    PluginLog.Verbose($"Name npc id {n} is ambiguous");
-                }
-                else
-                {
-                    bNames.Add(n);
+                    if(x.Singular != "")
+                    {
+                        var n = x.Singular.ToString().ToLower();
+                        dictAll[n] = x.RowId;
+                        dict[n] = x.RowId;
+                    }
                 }
             }
-        }
-        NameNpcIDs = NameNpcIDs.Where(x => x.Value != 0).ToDictionary(x => x.Key, x => x.Value);
+            var bNames = new HashSet<string>();
+            foreach(var lang in Enum.GetValues<ClientLanguage>())
+            {
+                bNames.Clear();
+                foreach(var x in Svc.Data.GetExcelSheet<BNpcName>(lang))
+                {
+                    var n = x.Singular.ToString().ToLower();
+                    if(bNames.Contains(n))
+                    {
+                        dict[n] = 0;
+                    }
+                    else
+                    {
+                        bNames.Add(n);
+                    }
+                }
+            }
+            NameNpcIDs = dict.Where(x => x.Value != 0).ToDictionary(x => x.Key, x => x.Value);
+            NameNpcIDsAll = dictAll;
+        });
         StreamDetector.Start();
         AttachedInfo.Init();
         Logger.OnTerritoryChanged();
@@ -241,12 +247,19 @@ public unsafe class Splatoon :IDalamudPlugin
     {
         P = this;
         Svc.Init(pluginInterface);
+#if CUSTOMCS
+        PluginLog.Warning($"Using custom FFXIVClientStructs");
+        var gameVersion = DalamudReflector.TryGetDalamudStartInfo(out var ver) ? ver.GameVersion.ToString() : "unknown";
+        InteropGenerator.Runtime.Resolver.GetInstance.Setup(Svc.SigScanner.SearchBase, gameVersion, new(Svc.PluginInterface.ConfigDirectory.FullName + "/cs.json"));
+        FFXIVClientStructs.Interop.Generated.Addresses.Register();
+        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
+#endif
         var cfg = EzConfig.LoadConfiguration<Configuration>(EzConfig.DefaultConfigurationFileName);
         Localization.Init(cfg.PluginLanguage);
         loader = new Loader(this);
     }
 
-    internal static void OnLogout()
+    internal static void OnLogout(int a, int b)
     {
         ScriptingProcessor.TerritoryChanged();
     }
@@ -387,7 +400,7 @@ public unsafe class Splatoon :IDalamudPlugin
                 foreach(var t in Svc.Objects)
                 {
                     var ischar = t is ICharacter;
-                    var obj = (t.Name.ToString(), t.EntityId, (ulong)t.Struct()->GetGameObjectId(), t.DataId, ischar ? ((ICharacter)t).Struct()->CharacterData.ModelCharaId : 0, t.Struct()->GetNameId(), ischar ? ((ICharacter)t).NameId : 0, t.ObjectKind);
+                    var obj = (t.Name.ToString(), t.EntityId, (ulong)t.Struct()->GetGameObjectId(), t.DataId, ischar ? ((ICharacter)t).Struct()->ModelCharaId : 0, t.Struct()->GetNameId(), ischar ? ((ICharacter)t).NameId : 0, t.ObjectKind);
                     loggedObjectList.TryAdd(obj, new ObjectInfo());
                     loggedObjectList[obj].ExistenceTicks++;
                     loggedObjectList[obj].IsChar = ischar;

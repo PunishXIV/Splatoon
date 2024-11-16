@@ -1,5 +1,4 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
-using ECommons.Configuration;
 using static Splatoon.RenderEngines.ImGuiLegacy.ImGuiLegacyDisplayObjects;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;
@@ -136,7 +135,7 @@ internal class ImGuiLegacyScene : IDisposable
     internal Vector3 TranslateToScreen(double x, double y, double z)
     {
         Vector2 temp;
-        Svc.GameGui.WorldToScreen(
+        Utils.WorldToScreen(
             new Vector3((float)x, (float)y, (float)z),
             out temp
         );
@@ -193,7 +192,7 @@ internal class ImGuiLegacyScene : IDisposable
 
     private (Vector2? posA, Vector2? posB) GetAdjustedLine(Vector3 pointA, Vector3 pointB)
     {
-        var resultA = Svc.GameGui.WorldToScreen(new Vector3(pointA.X, pointA.Z, pointA.Y), out var posA);
+        var resultA = Utils.WorldToScreen(new Vector3(pointA.X, pointA.Z, pointA.Y), out var posA);
         if (!resultA && !P.DisableLineFix)
         {
             var posA2 = GetLineClosestToVisiblePoint(pointA,
@@ -207,7 +206,7 @@ internal class ImGuiLegacyScene : IDisposable
                 posA = posA2.Value;
             }
         }
-        var resultB = Svc.GameGui.WorldToScreen(new Vector3(pointB.X, pointB.Z, pointB.Y), out var posB);
+        var resultB = Utils.WorldToScreen(new Vector3(pointB.X, pointB.Z, pointB.Y), out var posB);
         if (!resultB && !P.DisableLineFix)
         {
             var posB2 = GetLineClosestToVisiblePoint(pointB,
@@ -250,12 +249,12 @@ internal class ImGuiLegacyScene : IDisposable
 
     private Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 targetPos, float eps)
     {
-        if (!Svc.GameGui.WorldToScreen(targetPos, out var res)) return null;
+        if (!Utils.WorldToScreen(targetPos, out var res)) return null;
 
         while (true)
         {
             var mid = (currentPos + targetPos) / 2;
-            if (Svc.GameGui.WorldToScreen(mid, out var pos))
+            if (Utils.WorldToScreen(mid, out var pos))
             {
                 if ((res - pos).Length() < eps) return res;
                 targetPos = mid;
@@ -269,7 +268,7 @@ internal class ImGuiLegacyScene : IDisposable
     {
         if (curSegment > numSegments) return null;
         var nextPos = currentPos + delta;
-        if (Svc.GameGui.WorldToScreen(new Vector3(nextPos.X, nextPos.Z, nextPos.Y), out var pos))
+        if (Utils.WorldToScreen(new Vector3(nextPos.X, nextPos.Z, nextPos.Y), out var pos))
         {
             var preciseVector = GetLineClosestToVisiblePoint(currentPos, (nextPos - currentPos) / P.Config.lineSegments, 0, P.Config.lineSegments);
             return preciseVector.HasValue ? preciseVector.Value : pos;
@@ -282,7 +281,7 @@ internal class ImGuiLegacyScene : IDisposable
 
     public void DrawTextWorld(DisplayObjectText e)
     {
-        if (Svc.GameGui.WorldToScreen(
+        if (Utils.WorldToScreen(
                         new Vector3(e.x, e.z, e.y),
                         out var pos))
         {
@@ -315,7 +314,7 @@ internal class ImGuiLegacyScene : IDisposable
     public void DrawRingWorld(DisplayObjectCircle e)
     {
         var seg = P.Config.segments / 2;
-        Svc.GameGui.WorldToScreen(new Vector3(
+        Utils.WorldToScreen(new Vector3(
             e.x + e.radius * (float)Math.Sin(CamAngleX),
             e.z,
             e.y + e.radius * (float)Math.Cos(CamAngleX)
@@ -324,7 +323,7 @@ internal class ImGuiLegacyScene : IDisposable
         var elements = new Vector2?[P.Config.segments];
         for (var i = 0; i < P.Config.segments; i++)
         {
-            visible = Svc.GameGui.WorldToScreen(
+            visible = Utils.WorldToScreen(
                 new Vector3(e.x + e.radius * (float)Math.Sin(Math.PI / seg * i),
                 e.z,
                 e.y + e.radius * (float)Math.Cos(Math.PI / seg * i)
@@ -358,10 +357,10 @@ internal class ImGuiLegacyScene : IDisposable
         (e.y, e.z) = (e.z, e.y);
 
         Vector2 v;
-        Svc.GameGui.WorldToScreen(new Vector3(e.x, e.y, e.z), out v);
+        Utils.WorldToScreen(new Vector3(e.x, e.y, e.z), out v);
         drawList.PathLineTo(v);
 
-        Svc.GameGui.WorldToScreen(new Vector3(e.x + e.radius * MathF.Cos(e.startRad), e.y, e.z + e.radius * MathF.Sin(e.startRad)), out v);
+        Utils.WorldToScreen(new Vector3(e.x + e.radius * MathF.Cos(e.startRad), e.y, e.z + e.radius * MathF.Sin(e.startRad)), out v);
         drawList.PathLineTo(v);
 
         for (var i = e.startRad; i < e.endRad; i += MathF.PI / 2)
@@ -380,9 +379,9 @@ internal class ImGuiLegacyScene : IDisposable
             var endPoint = new Vector3(
                 e.x + e.radius * MathF.Cos(i + theta), e.y, e.z + e.radius * MathF.Sin(i + theta));
 
-            Svc.GameGui.WorldToScreen(arcMid1, out var v1);
-            Svc.GameGui.WorldToScreen(arcMid2, out var v2);
-            Svc.GameGui.WorldToScreen(endPoint, out v);
+            Utils.WorldToScreen(arcMid1, out var v1);
+            Utils.WorldToScreen(arcMid2, out var v2);
+            Utils.WorldToScreen(endPoint, out v);
             drawList.PathBezierCubicCurveTo(v1, v2, v);
         }
 
@@ -398,7 +397,7 @@ internal class ImGuiLegacyScene : IDisposable
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Svc.GameGui.WorldToScreen(new Vector3(e.x, e.z, e.y), out var pos))
+        if (Utils.WorldToScreen(new Vector3(e.x, e.z, e.y), out var pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,

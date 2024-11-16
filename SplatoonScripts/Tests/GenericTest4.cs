@@ -10,7 +10,7 @@ using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -20,8 +20,8 @@ namespace SplatoonScriptsOfficial.Tests;
 public unsafe class GenericTest4 : SplatoonScript
 {
 		public override HashSet<uint>? ValidTerritories => new();
-
-		int a1;
+    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
+    int a1;
 		string Filter = "";
 
 		public override void OnSettingsDraw()
@@ -32,7 +32,7 @@ public unsafe class GenericTest4 : SplatoonScript
 						return;
 				}
 				ImGui.InputInt("Duty ID", ref a1);
-				if(ImGui.BeginCombo("Duty", Svc.Data.GetExcelSheet<ContentFinderCondition>().GetRow((uint)a1)?.Name?.ExtractText()))
+				if(ImGui.BeginCombo("Duty", Svc.Data.GetExcelSheet<ContentFinderCondition>().GetRowOrDefault((uint)a1)?.Name.ExtractText()))
 				{
 						ImGui.InputText($"Filter", ref Filter, 50);
 						foreach(var x in Svc.Data.GetExcelSheet<ContentFinderCondition>())
@@ -40,7 +40,7 @@ public unsafe class GenericTest4 : SplatoonScript
 								var name = x.Name.ExtractText();
 								if (Filter != "" && !name.Contains(Filter, StringComparison.OrdinalIgnoreCase)) continue;
 								if (name == "") continue;
-								if (x.TerritoryType.Value.TerritoryIntendedUse == (uint)TerritoryIntendedUseEnum.Quest_Battle || x.TerritoryType.Value.TerritoryIntendedUse == (uint)TerritoryIntendedUseEnum.Quest_Battle_2) continue;
+								if (x.TerritoryType.Value.TerritoryIntendedUse.RowId == (uint)TerritoryIntendedUseEnum.Quest_Battle || x.TerritoryType.Value.TerritoryIntendedUse.RowId == (uint)TerritoryIntendedUseEnum.Quest_Battle_2) continue;
 								if (ImGui.Selectable(x.Name.ExtractText()))
 								{
 										a1 = (int)x.RowId;
@@ -128,8 +128,8 @@ public unsafe class GenericTest4 : SplatoonScript
 		{
 				if (GenericHelpers.TryGetAddonByName<AddonContentsFinder>("ContentsFinder", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
 				{
-						var cfcData = Svc.Data.GetExcelSheet<ContentFinderCondition>().GetRow(cfc);
-						if (cfcData == null || cfcData.Name.ExtractText() == "") throw new ArgumentOutOfRangeException(nameof(cfc));
+						var cfcData = Svc.Data.GetExcelSheet<ContentFinderCondition>().GetRowOrDefault(cfc);
+						if (cfcData == null || cfcData.Value.Name.ExtractText() == "") throw new ArgumentOutOfRangeException(nameof(cfc));
 						var list = addon->AtkUnitBase.GetNodeById(52)->GetAsAtkComponentList();
 						var length = addon->NumEntries;
 						var reader = new ReaderAddonContentsFinder(&addon->AtkUnitBase);
@@ -140,7 +140,7 @@ public unsafe class GenericTest4 : SplatoonScript
 								if (Regex.IsMatch(duty.DutyLevel, @"^Lv\. ([0-9]{1,3})$"))
 								{
 										cnt++;
-										if (duty.DutyName == cfcData.Name.ExtractText())
+										if (duty.DutyName == cfcData.Value.Name.ExtractText())
 										{
 												Callback.Fire(&addon->AtkUnitBase, true, 3, cnt);
 												return true;

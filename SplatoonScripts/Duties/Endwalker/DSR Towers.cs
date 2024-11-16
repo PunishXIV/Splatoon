@@ -10,7 +10,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets2;
+using Lumina.Excel.Sheets;
 using Microsoft.VisualBasic.ApplicationServices;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Towers : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(2, "Enthusiastus");
+        public override Metadata? Metadata => new(3, "Enthusiastus");
 
         Element? SolutionElement;
 

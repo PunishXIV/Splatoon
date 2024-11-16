@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander
     public class TEA_P2_Transition : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 887 };
-        public override Metadata? Metadata => new(2, "Madou Shoujo");
+        public override Metadata? Metadata => new(4, "Madou Shoujo");
         private string ElementNamePrefix = "TEA_P2_Transition_Bait_Position";
         // ActionEffectId of the exaflare.
         private uint HawkBlast = 18480;
@@ -177,7 +177,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander
             if (!MechanicActive)
                 return;
 
-            if (set.Action.RowId == HawkBlast)
+            if (set.Action.Value.RowId == HawkBlast)
             {
                 BlastCount++;
 

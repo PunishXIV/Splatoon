@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Generic;
 public class WorldWaiter : SplatoonScript
 {
+    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
     int World = 0;
@@ -20,7 +21,7 @@ public class WorldWaiter : SplatoonScript
     {
         if(World > 0)
         {
-            if(Player.Interactable && GenericHelpers.IsScreenReady() && Svc.ClientState.LocalPlayer?.CurrentWorld.Id == World)
+            if(Player.Interactable && GenericHelpers.IsScreenReady() && Svc.ClientState.LocalPlayer?.CurrentWorld.RowId == World)
             {
                 Environment.Exit(0);
             }

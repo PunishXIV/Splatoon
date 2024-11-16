@@ -83,14 +83,11 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"{"HP".Loc()}: {c.CurrentHp} / {c.MaxHp}");
             ImGuiEx.TextCopy($"{"Name NPC ID".Loc()}: {c.NameId}");
             ImGuiEx.TextWrappedCopy($"Customize: {c.Customize.Select(x => $"{x:X2}").Join(" ")}");
-            ImGuiEx.TextCopy($"ModelCharaId: {c.Struct()->CharacterData.ModelCharaId}");
-            ImGuiEx.TextCopy($"ModelCharaId_2: {c.Struct()->CharacterData.ModelCharaId_2}");
+            ImGuiEx.TextCopy($"ModelCharaId: {c.Struct()->ModelCharaId}");
             ImGuiEx.TextCopy($"{"Visible".Loc()}: {c.IsCharacterVisible()}");
             ImGuiEx.TextCopy($"VfxData: {(nint)c.Struct()->Vfx.VfxData:X16}");
             ImGuiEx.TextCopy($"VfxData2: {(nint)c.Struct()->Vfx.VfxData2:X16}");
             ImGuiEx.TextCopy($"Omen: {(nint)c.Struct()->Vfx.Omen:X16}");
-            ImGuiEx.TextCopy($"ModelSkeletonId: {(nint)c.Struct()->CharacterData.ModelSkeletonId:X16}");
-            ImGuiEx.TextCopy($"ModelSkeletonId2: {(nint)c.Struct()->CharacterData.ModelSkeletonId_2:X16}");
             ImGuiEx.TextCopy($"TargetObject: {c.TargetObject}");
             ImGuiEx.TextCopy($"TargetObjectID: {c.TargetObjectId}");
             ImGuiEx.TextCopy($"EventState:  {c.Struct()->EventState}");
@@ -128,7 +125,7 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"Status list:".Loc());
             foreach(var x in b.StatusList)
             {
-                ImGuiEx.TextCopy($"  {x.GameData.Name} ({x.StatusId.Format()}), {"Remains".Loc()} = {x.RemainingTime:F1}, Param = {x.Param}, {"Count".Loc()} = {x.StackCount}");
+                ImGuiEx.TextCopy($"  {x.GameData.ValueNullable?.Name} ({x.StatusId.Format()}), {"Remains".Loc()} = {x.RemainingTime:F1}, Param = {x.Param}, {"Count".Loc()} = {x.StackCount}");
             }
         }
     }

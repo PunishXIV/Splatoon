@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class P12S_Wing_Cleaves : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 1153, 1154 };
-        public override Metadata? Metadata => new(6, "NightmareXIV");
+        public override Metadata? Metadata => new(7, "NightmareXIV");
         Queue<string> Cleaves = new();
         bool isSpin = false;
         Vector3 firstPos;
@@ -48,7 +48,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
             if (set.Action == null) return;
-            if (Casts.Contains(set.Action.RowId))
+            if (Casts.Contains(set.Action.Value.RowId))
             {
                 ////DuoLog.Information($"Cast");
                 GenericHelpers.Safe(() =>

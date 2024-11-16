@@ -21,7 +21,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 {
     #region PublicDef
     public override HashSet<uint> ValidTerritories => new() { 1122 };
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
     #endregion
 
     #region PrivateDef
@@ -138,7 +138,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
         if(set.Action == null)
             return;
 
-        if(set.Action.RowId == CastID.CosmoMeteorFlare)
+        if(set.Action.Value.RowId == CastID.CosmoMeteorFlare)
         {
             this.OnReset();
         }

@@ -81,7 +81,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     #endregion
 
     #region publicDefine
-    public override Metadata Metadata => new(4, "Redmoon");
+    public override Metadata Metadata => new(5, "Redmoon");
     public override HashSet<uint>? ValidTerritories => new() { 1122 };
     #endregion
 
@@ -225,11 +225,11 @@ internal unsafe class P6_MultiScript :SplatoonScript
     {
         if(set.Action == null) return;
 
-        if(set.Action.RowId == CastID.CosmoDive || set.Action.RowId == CastID.WaveCannonStack)
+        if(set.Action.Value.RowId == CastID.CosmoDive || set.Action.Value.RowId == CastID.WaveCannonStack)
         {
             ChangeGimmick(Gimmick.FlashWind);
         }
-        else if(set.Action.RowId == CastID.WaveCannonSpread)
+        else if(set.Action.Value.RowId == CastID.WaveCannonSpread)
         {
             if(EzThrottler.Throttle("WaveCannonSpread", 500))
             {
@@ -244,11 +244,11 @@ internal unsafe class P6_MultiScript :SplatoonScript
                 EzThrottler.Throttle("WaveCannonSpread", 500, true);
             }
         }
-        else if(set.Action.RowId == CastID.BlindFaith)
+        else if(set.Action.Value.RowId == CastID.BlindFaith)
         {
             _isP6Started = true;
         }
-        else if(set.Action.RowId == CastID.CosmoMeteorSpread)
+        else if(set.Action.Value.RowId == CastID.CosmoMeteorSpread)
         {
             ++_cosmoMeteorCount;
             if(_cosmoMeteorCount >= 8)

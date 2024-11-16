@@ -33,7 +33,7 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class Hello_World_MoveGuide :SplatoonScript
 {
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
     public override HashSet<uint> ValidTerritories => new() { 1122 };
 
     private enum State
@@ -148,19 +148,19 @@ internal unsafe class Hello_World_MoveGuide :SplatoonScript
         if (set.Action == null)
             return;
 
-        if (set.Action.RowId == CastIDs.HelloWorld)
+        if (set.Action.Value.RowId == CastIDs.HelloWorld)
         {
             HideAll();
             state = State.HelloWorldCasted;
             LocalUpdate();
         }
-        if (state == State.LatentDefectCasting && set.Action.RowId == CastIDs.LatentDefect)
+        if (state == State.LatentDefectCasting && set.Action.Value.RowId == CastIDs.LatentDefect)
         {
             HideAll();
             state = State.BreakPatchNear;
             LocalUpdate();
         }
-        if (state == State.WaitingRot && set.Action.RowId == CastIDs.CriticalRedRot)
+        if (state == State.WaitingRot && set.Action.Value.RowId == CastIDs.CriticalRedRot)
         {
             HideAll();
             state = State.Waiting;

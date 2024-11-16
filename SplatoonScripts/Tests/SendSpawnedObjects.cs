@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Tests
     {
         public override HashSet<uint> ValidTerritories => new();
         HttpClient Client;
-
+        public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
         public override void OnEnable()
         {
             Client = new()
@@ -39,7 +39,7 @@ namespace SplatoonScriptsOfficial.Tests
             var str = new StringBuilder("effect|")
                 .Append(ActionID)
                 .Append('|')
-                .Append(Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.GetRow(ActionID)?.Name ?? "")
+                .Append(Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>()?.GetRowOrDefault(ActionID)?.Name ?? "")
                 .Append('|')
                 .Append(sourceID.GetObject()?.Name.ToString())
                 .Append('|')
@@ -109,7 +109,7 @@ namespace SplatoonScriptsOfficial.Tests
                         $"{obj.EntityId}",
                         $"{obj.DataId}",
                         $"{obj.Struct()->GetNameId()}",
-                        chr == null?"":$"{chr.Struct()->CharacterData.ModelCharaId}",
+                        chr == null?"":$"{chr.Struct()->ModelCharaId}",
                         chr == null?"":$"{chr.GetTransformationID()}",
                         $"{obj.Position.X}",
                         $"{obj.Position.Y}",

@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Chain_Lightning : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
     uint TowerID = 13061;
     List<List<uint>> Towers = [];
     Layout VoidZone = null!;
@@ -93,7 +93,7 @@ public class R4S_Chain_Lightning : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        //PluginLog.Information($"Cast: {set.Action.RowId}");
+        //PluginLog.Information($"Cast: {set.Action.Value.RowId}");
         if(set.Action?.RowId.EqualsAny(38426u, 38427u) == true)
         {
             PluginLog.Information($"Cast detected");

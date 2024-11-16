@@ -35,7 +35,7 @@ public class Party_Synergy :SplatoonScript
 {
     // public
     public override HashSet<uint> ValidTerritories => new() { 1122 };
-    public override Metadata? Metadata => new(4, "NightmareXIV");
+    public override Metadata? Metadata => new(5, "NightmareXIV");
 
     public enum State
     {
@@ -175,15 +175,15 @@ public class Party_Synergy :SplatoonScript
             return;
 
         // Party Synergy
-        if (set.Action.RowId == CastID.PartySynergy)
+        if (set.Action.Value.RowId == CastID.PartySynergy)
         {
             state = State.PartySynergyCasted;
         }
-        else if (set.Action.RowId == CastID.OpticalLaser)
+        else if (set.Action.Value.RowId == CastID.OpticalLaser)
         {
             state = State.OpticalLaserCasted;
         }
-        else if (set.Action.RowId == CastID.DisCharge)
+        else if (set.Action.Value.RowId == CastID.DisCharge)
         {
             state = State.None;
             HideAll();

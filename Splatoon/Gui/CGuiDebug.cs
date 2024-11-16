@@ -112,7 +112,7 @@ unsafe partial class CGui
         {
             Safe(delegate
             {
-                s2wb = Svc.GameGui.WorldToScreen(new Vector3(s2wx, s2wz, s2wy), out Vector2 pos);
+                s2wb = Utils.WorldToScreen(new Vector3(s2wx, s2wz, s2wy), out Vector2 pos);
                 s2wrx = pos.X;
                 s2wry = pos.Y;
             });
@@ -123,11 +123,11 @@ unsafe partial class CGui
         {
             ImGuiEx.Text($"Player+1 distance: {Vector3.Distance(Svc.ClientState.LocalPlayer.Position, Svc.ClientState.LocalPlayer.Position + new Vector3(1, 0, 0))}");
             ImGuiEx.Text($"Player+1+1 distance: {Vector3.Distance(Svc.ClientState.LocalPlayer.Position + new Vector3(1, 0, 0), Svc.ClientState.LocalPlayer.Position + new Vector3(2, 0, 0))}");
-            Svc.GameGui.WorldToScreen(Svc.ClientState.LocalPlayer.Position, out var v1);
-            Svc.GameGui.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(1, 0, 0), out var v2);
-            Svc.GameGui.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(2, 0, 0), out var v3);
-            Svc.GameGui.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(3, 0, 0), out var v4);
-            Svc.GameGui.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(4, 0, 0), out var v5);
+            Utils.WorldToScreen(Svc.ClientState.LocalPlayer.Position, out var v1);
+            Utils.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(1, 0, 0), out var v2);
+            Utils.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(2, 0, 0), out var v3);
+            Utils.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(3, 0, 0), out var v4);
+            Utils.WorldToScreen(Svc.ClientState.LocalPlayer.Position + new Vector3(4, 0, 0), out var v5);
             ImGuiEx.Text($"Screen distance: {Vector2.Distance(v1, v2)}, {Vector2.Distance(v2, v3)}, {Vector2.Distance(v3, v4)}, {Vector2.Distance(v4, v5)}");
             ImGui.Separator();
         }

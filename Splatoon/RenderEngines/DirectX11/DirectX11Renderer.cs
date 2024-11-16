@@ -21,7 +21,6 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         try
         {
-            //throw new NotImplementedException();
             DirectX11Scene = new(this);
         }
         catch (Exception e)

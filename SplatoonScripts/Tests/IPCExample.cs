@@ -4,7 +4,7 @@ using ECommons.ExcelServices;
 using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
 using ImGuiNET;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -14,8 +14,8 @@ namespace SplatoonScriptsOfficial.Tests;
 public class IPCExample : SplatoonScript
 {
     [EzIPC] Action<Moodle> AddOrUpdateMoodle = null!;
-    public override HashSet<uint>? ValidTerritories { get; } = []; 
-
+    public override HashSet<uint>? ValidTerritories { get; } = [];
+    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override void OnSetup()
     {
         EzIPC.Init(this, "Moodles");

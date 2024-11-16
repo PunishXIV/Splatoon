@@ -3,20 +3,21 @@ using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.Logging;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Action = Lumina.Excel.GeneratedSheets.Action;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace SplatoonScriptsOfficial.Generic;
 public class AetherSight : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
+    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override void OnUpdate()
     {
         this.Controller.ClearRegisteredElements();
@@ -26,26 +27,26 @@ public class AetherSight : SplatoonScript
             i++;
             if(x.IsCasting)
             {
-                var data = Svc.Data.GetExcelSheet<Action>()!.GetRow(x.CastActionId);
-                if(data != null && (data.EffectRange < 30 || !data.CastType.EqualsAny<byte>(2, 5)))
+                var data = Svc.Data.GetExcelSheet<Action>()!.GetRowOrDefault(x.CastActionId);
+                if(data != null && (data.Value.EffectRange < 30 || !data.Value.CastType.EqualsAny<byte>(2, 5)))
                 {
-                    if(data.CastType == 2) //circle
+                    if(data.Value.CastType == 2) //circle
                     {
                         this.Controller.RegisterElement($"Circle{i}", new(1)
                         {
                             refActorComparisonType = 2,
                             refActorObjectID = x.EntityId,
-                            radius = data.EffectRange,
+                            radius = data.Value.EffectRange,
                         });
                     }
-                    else if(data.CastType == 3)//cone
+                    else if(data.Value.CastType == 3)//cone
                     {
-                        var angle = DetermineConeAngle(data);
+                        var angle = DetermineConeAngle(data.Value);
                         this.Controller.RegisterElement($"Cone{i}", new(4)
                         {
                             refActorComparisonType = 2,
                             refActorObjectID = x.EntityId,
-                            radius = data.EffectRange + x.HitboxRadius,
+                            radius = data.Value.EffectRange + x.HitboxRadius,
                             coneAngleMin = -angle / 2,
                             coneAngleMax = angle / 2,
                         });
@@ -55,25 +56,25 @@ public class AetherSight : SplatoonScript
         }
     }
 
-    private int DetermineConeAngle(Lumina.Excel.GeneratedSheets.Action data)
+    private int DetermineConeAngle(Lumina.Excel.Sheets.Action data)
     {
-        var omen = data.Omen.Value;
+        var omen = data.Omen.ValueNullable;
         if(omen == null)
         {
             PluginLog.Log($"[AutoHints] No omen data for {data.RowId} '{data.Name}'...");
             return 180;
         }
-        var path = omen.Path.ToString();
+        var path = omen.Value.Path.ToString();
         var pos = path.IndexOf("fan", StringComparison.Ordinal);
         if(pos < 0 || pos + 6 > path.Length)
         {
-            PluginLog.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+            PluginLog.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.Value.PathAlly}) for {data.RowId} '{data.Name}'...");
             return 180;
         }
 
         if(!int.TryParse(path.AsSpan(pos + 3, 3), out var angle))
         {
-            PluginLog.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.PathAlly}) for {data.RowId} '{data.Name}'...");
+            PluginLog.Log($"[AutoHints] Can't determine angle from omen ({path}/{omen.Value.PathAlly}) for {data.RowId} '{data.Name}'...");
             return 180;
         }
 

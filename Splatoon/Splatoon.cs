@@ -13,6 +13,7 @@ using ECommons.Hooks;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
+using ECommons.Reflection;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
 using Lumina.Excel.Sheets;
@@ -246,6 +247,13 @@ public unsafe class Splatoon :IDalamudPlugin
     {
         P = this;
         Svc.Init(pluginInterface);
+#if CUSTOMCS
+        PluginLog.Warning($"Using custom FFXIVClientStructs");
+        var gameVersion = DalamudReflector.TryGetDalamudStartInfo(out var ver) ? ver.GameVersion.ToString() : "unknown";
+        InteropGenerator.Runtime.Resolver.GetInstance.Setup(Svc.SigScanner.SearchBase, gameVersion, new(Svc.PluginInterface.ConfigDirectory.FullName + "/cs.json"));
+        FFXIVClientStructs.Interop.Generated.Addresses.Register();
+        InteropGenerator.Runtime.Resolver.GetInstance.Resolve();
+#endif
         var cfg = EzConfig.LoadConfiguration<Configuration>(EzConfig.DefaultConfigurationFileName);
         Localization.Init(cfg.PluginLanguage);
         loader = new Loader(this);

@@ -13,7 +13,7 @@ namespace SplatoonScriptsOfficial.Generic;
 internal class ScriptEventLogger :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
-    public override Metadata? Metadata => new(4, "Redmoon");
+    public override Metadata? Metadata => new(5, "Redmoon");
 
     private Config Conf => Controller.GetConfig<Config>();
 
@@ -205,9 +205,9 @@ internal class ScriptEventLogger :SplatoonScript
             return;
 
         if(set.Target == null)
-            PluginLog.Information($"OnActionEffectEvent: {set.Action.Name}({set.Action.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId})");
+            PluginLog.Information($"OnActionEffectEvent: {set.Action.Value.Name}({set.Action.Value.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId})");
         else
-            PluginLog.Information($"OnActionEffectEvent: {set.Action.Name}({set.Action.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId}) - Target: {set.Target.Name}{set.Target.Position}(GID: {set.Target.GameObjectId} DID: {set.Target.DataId})");
+            PluginLog.Information($"OnActionEffectEvent: {set.Action.Value.Name}({set.Action.Value.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId}) - Target: {set.Target.Name}{set.Target.Position}(GID: {set.Target.GameObjectId} DID: {set.Target.DataId})");
     }
 
 #if false

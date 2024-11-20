@@ -13,6 +13,7 @@ using System.Linq;
 namespace SplatoonScriptsOfficial.Generic;
 public class NoSproutIcon : SplatoonScript
 {
+    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
     public Config C => this.Controller.GetConfig<Config>();
@@ -34,7 +35,7 @@ public class NoSproutIcon : SplatoonScript
 
     public override void OnUpdate()
     {
-        if(Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.OnlineStatus.Id == 32 && C.EnabledCIDs.Contains(Svc.ClientState.LocalContentId))
+        if(Svc.ClientState.LocalPlayer != null && Svc.ClientState.LocalPlayer.OnlineStatus.RowId == 32 && C.EnabledCIDs.Contains(Svc.ClientState.LocalContentId))
         {
             if(GenericHelpers.IsScreenReady() && Player.Interactable && EzThrottler.Throttle("NaStatusOff", 10000))
             {

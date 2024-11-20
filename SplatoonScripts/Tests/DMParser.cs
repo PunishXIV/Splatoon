@@ -13,7 +13,7 @@ public class DMParser : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = new();
 
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     public override void OnEnable()
     {
@@ -32,7 +32,7 @@ public class DMParser : SplatoonScript
             var player = sender.Payloads.OfType<PlayerPayload>().FirstOrDefault();
             if (player != null)
             {
-                PluginLog.Information($"Detected {type}. Detected player name={player.PlayerName} and home world={player.World.RowId} ({player.World.Name})");
+                PluginLog.Information($"Detected {type}. Detected player name={player.PlayerName} and home world={player.World.RowId} ({player.World.Value.Name})");
             }
             else
             {

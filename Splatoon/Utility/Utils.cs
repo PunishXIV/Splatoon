@@ -2,6 +2,7 @@
 using Dalamud.Game.ClientState.Statuses;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
 using Splatoon.Structures;
@@ -12,6 +13,25 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
+    {
+        return S.VbmCamera.WorldToScreen(worldPos, out screenPos);
+        /*worldPos = default;
+        screenPos = default;
+        var cam = CameraManager.Instance();
+        if(cam != null)
+        {
+            var current = cam->CurrentCamera;
+            if(current != null)
+            {
+                var result = current->WorldToScreen(worldPos, out var screenPosCs);
+                screenPos = screenPosCs;
+                return result;
+            }
+        }
+        return false;*/
+    }
+
     public static byte[] BrotliCompress(byte[] bytes)
     {
         using(var memoryStream = new MemoryStream())

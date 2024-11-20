@@ -140,7 +140,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
         if(set.Action == null)
             return;
 
-        if(set.Action.RowId == CastID.CosmoMeteorFlare)
+        if(set.Action.Value.RowId == CastID.CosmoMeteorFlare)
         {
             this.OnReset();
         }

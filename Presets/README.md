@@ -1,6 +1,6 @@
 # Splatoon Presets
 
-This is a repository of layout and script presets for Splatoon. These presets have been developed and provided by numerous people from the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy). The scripts in this directory are vetted and verified to be trustworthy by the Spaltoon development team.
+This is a repository of layout and script presets for Splatoon. These presets have been developed and provided by numerous people from the [Puni.sh Discord server](https://discord.gg/Zzrcc8kmvy). The scripts in this directory are vetted and verified to be trustworthy by the Splatoon development team.
 
 Above is a directory of folders leading to different types of content presets exist for. Navigate through those to find other `.md` files containing text or URLs for you to import presets or scripts with.
 

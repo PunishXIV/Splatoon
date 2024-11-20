@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class R1S_Protean_Highlight : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1226];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     IBattleNpc? BlackCat => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.IsTargetable && x.NameId == 12686);
     int CrossingStage = 0;
@@ -169,7 +169,7 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if(!FakeParty.Get().Select(x => x.Address).Contains(set.Source?.Address ?? -1)) PluginLog.Information($"Cast: {ExcelActionHelper.GetActionName(set.Action!.RowId, true)}");
+        if(!FakeParty.Get().Select(x => x.Address).Contains(set.Source?.Address ?? -1)) PluginLog.Information($"Cast: {ExcelActionHelper.GetActionName(set.Action?.RowId ?? 0, true)}");
         if(set.Action?.RowId.EqualsAny(37948u, 37976u) == true)
         {
             Controller.Schedule(() =>

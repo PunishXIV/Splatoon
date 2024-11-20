@@ -10,13 +10,13 @@ using System.Text;
 using ECommons.Logging;
 using System.Numerics;
 using ECommons.DalamudServices;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 
 namespace SplatoonScriptsOfficial.Generic;
 public class Makeplace2List : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [uint.MaxValue];
-
+    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
 
     public override void OnSettingsDraw()
     {
@@ -51,8 +51,12 @@ public class Makeplace2List : SplatoonScript
                 var dyesStr = new StringBuilder();
                 foreach(var x in items)
                 {
-                    var item = ExcelItemHelper.Get(x.Key);
-                    (item.IsUntradable ? untradeable : (item.Lot && item.PriceLow > 0 ? vendor : tradeable)).AppendLine($"{item.Name} - x{x.Value}");
+                    var itemNullable = ExcelItemHelper.Get(x.Key);
+                    if(itemNullable != null)
+                    {
+                        var item = itemNullable.Value;
+                        (item.IsUntradable ? untradeable : (item.Lot && item.PriceLow > 0 ? vendor : tradeable)).AppendLine($"{item.Name} - x{x.Value}");
+                    }
                 }
                 foreach(var x in dyeItems)
                 {
@@ -76,7 +80,7 @@ public class Makeplace2List : SplatoonScript
             var cg = (int)(color.Y * 255);
             var cb = (int)(color.Z * 255);
             var ca = (int)(color.W * 255);
-            if(k == $"{cr:X2}{cg:X2}{cb:X2}{ca:X2}") return x.Name;
+            if(k == $"{cr:X2}{cg:X2}{cb:X2}{ca:X2}") return x.Name.ToString();
         }
         return null;
     }

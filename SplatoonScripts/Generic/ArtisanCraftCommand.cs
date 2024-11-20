@@ -2,7 +2,7 @@
 using ECommons.DalamudServices;
 using ECommons.EzIpcManager;
 using ECommons.Logging;
-using Lumina.Excel.GeneratedSheets;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,7 @@ using System.Linq;
 namespace SplatoonScriptsOfficial.Generic;
 public class ArtisanCraftCommand : SplatoonScript
 {
+    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = null;
 #nullable disable
     [EzIPC] Action<ushort, int> CraftItem;
@@ -35,11 +36,11 @@ public class ArtisanCraftCommand : SplatoonScript
         {
             amt = 1;
         }
-        var recipe = Svc.Data.GetExcelSheet<Recipe>().FirstOrDefault(x => arguments.EqualsIgnoreCase(x.ItemResult.Value.Name.ExtractText())) ?? Svc.Data.GetExcelSheet<Recipe>().FirstOrDefault(x => x.ItemResult.Value.Name.ExtractText().Contains(arguments, StringComparison.OrdinalIgnoreCase));
+        var recipe = Svc.Data.GetExcelSheet<Recipe>().FirstOrNull(x => arguments.EqualsIgnoreCase(x.ItemResult.Value.Name.ExtractText())) ?? Svc.Data.GetExcelSheet<Recipe>().FirstOrNull(x => x.ItemResult.Value.Name.ExtractText().Contains(arguments, StringComparison.OrdinalIgnoreCase));
         if(recipe != null)
         {
-            DuoLog.Information($"Crafting {recipe.ItemResult.Value.Name} x{amt}");
-            CraftItem((ushort)recipe.RowId, amt);
+            DuoLog.Information($"Crafting {recipe.Value.ItemResult.Value.Name} x{amt}");
+            CraftItem((ushort)recipe.Value.RowId, amt);
         }
         else
         {

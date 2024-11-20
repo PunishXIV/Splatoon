@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     public class DSR_Wrath : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => new() { 968 };
-        public override Metadata? Metadata => new(2, "Enthusiastus");
+        public override Metadata? Metadata => new(3, "Enthusiastus");
 
         Element? SkydiveTargetElement;
         Element? NoSkydiveTargetElement;
@@ -190,7 +190,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             /*
             if (set.Action == null) return;
-            if (set.Action.RowId == 25544)
+            if (set.Action.Value.RowId == 25544)
             {
                 //DuoLog.Information($"Position locked!");
                 positionDynamic = false;

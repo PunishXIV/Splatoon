@@ -63,6 +63,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
     private List<FlareContainer> _flarePos = new List<FlareContainer>();
     private bool _gimmickActive = false;
     private bool _isFlareMine = false;
+    private bool _isFindRange = false;
     private GameObjectManager* _gom = GameObjectManager.Instance();
     private (string, string)[] _flareData = new (string, string)[3];
     private Config C => Controller.GetConfig<Config>();
@@ -95,9 +96,10 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 
                 if(RangedDps.Contains(character.GetJob()))
                 {
+                    _isFindRange = true;
                     _stackPos = StackPos.South;
                 }
-                else if(_flarePos.Count >= 3)
+                else if(_flarePos.Count >= 3 && _isFindRange == false)
                 {
                     _stackPos = StackPos.North;
                 }
@@ -167,6 +169,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
         _isFlareMine = false;
         _gimmickActive = false;
         _flareData = new (string, string)[3];
+        _isFindRange = false;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 

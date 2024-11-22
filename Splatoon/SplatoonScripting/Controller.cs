@@ -68,7 +68,7 @@ public unsafe class Controller
     {
         if (Configuration != null)
         {
-            PluginLog.Information($"Saving to {Script.InternalData.ConfigurationPath}");
+            //PluginLog.Information($"Saving to {Script.InternalData.ConfigurationPath}");
             EzConfig.SaveConfiguration(Configuration, Script.InternalData.ConfigurationPath, true, false);
         }
     }

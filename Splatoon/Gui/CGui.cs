@@ -73,7 +73,7 @@ unsafe partial class CGui:IDisposable
             if(p.s2wInfo == null && Svc.PluginInterface.UiBuilder.FrameCount % 600 == 0)
             {
                 p.Config.Save();
-                p.Log("Configuration autosaved");
+                //p.Log("Configuration autosaved");
             }
         }
         WasOpen = true;

@@ -13,8 +13,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using ECommons.ExcelServices;
+using ECommons.GameHelpers;
 using ECommons.PartyFunctions;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class BSOD_Adjuster :SplatoonScript
@@ -36,6 +40,31 @@ internal class BSOD_Adjuster :SplatoonScript
     {
         public bool DebugPrint = false;
         public List<string[]> LeftRightPriorities = new();
+        
+        public List<Job> Jobs =
+        [
+            Job.PLD,
+            Job.WAR,
+            Job.DRK,
+            Job.GNB,
+            Job.WHM,
+            Job.SCH,
+            Job.AST,
+            Job.SGE,
+            Job.VPR,
+            Job.DRG,
+            Job.MNK,
+            Job.SAM,
+            Job.RPR,
+            Job.NIN,
+            Job.BRD,
+            Job.MCH,
+            Job.DNC,
+            Job.BLM,
+            Job.SMN,
+            Job.RDM,
+            Job.PCT
+        ];
     }
 
     private const bool _debug = false;
@@ -43,6 +72,8 @@ internal class BSOD_Adjuster :SplatoonScript
     private List<IPlayerCharacter> _sortedList = new();
     private List<IPlayerCharacter> _stackedList = new();
     private bool _mechanicActive = false;
+    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
+
 
     public override void OnSettingsDraw()
     {
@@ -74,6 +105,28 @@ internal class BSOD_Adjuster :SplatoonScript
         if(ImGui.Button("Create new priority list"))
         {
             Conf.LeftRightPriorities.Add(new string[] { "", "", "", "", "", "", "", "" });
+        }
+        
+        if (ImGuiEx.CollapsingHeader("Option"))
+        {
+            DragDrop.Begin();
+            foreach (var job in Conf.Jobs)
+            {
+                DragDrop.NextRow();
+                ImGui.Text(job.ToString());
+                ImGui.SameLine();
+
+                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                {
+                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.SameLine();
+                }
+
+                ImGui.SameLine();
+                DragDrop.DrawButtonDummy(job, Conf.Jobs, Conf.Jobs.IndexOf(job));
+            }
+
+            DragDrop.End();
         }
 
         if(ImGui.CollapsingHeader("Debug"))
@@ -245,7 +298,7 @@ internal class BSOD_Adjuster :SplatoonScript
         return false;
     }
 
-    private bool DrawPrioList(int num)
+    private unsafe bool DrawPrioList(int num)
     {
         var prio = Conf.LeftRightPriorities[num];
         ImGuiEx.Text($"# Priority list {num + 1}");
@@ -273,6 +326,37 @@ internal class BSOD_Adjuster :SplatoonScript
         {
             return true;
         }
+        
+        ImGui.SameLine();
+        if (ImGui.Button("Fill by job"))
+        {
+            HashSet<(string, Job)> party = [];
+            foreach (var x in FakeParty.Get())
+                party.Add((x.Name.ToString(), x.GetJob()));
+
+            var proxy = InfoProxyCrossRealm.Instance();
+            for (var i = 0; i < proxy->GroupCount; i++)
+            {
+                var group = proxy->CrossRealmGroups[i];
+                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                {
+                    var x = group.GroupMembers[c];
+                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
+                }
+            }
+
+            var index = 0;
+            foreach (var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            {
+                prio[index] = party.First(x => x.Item2 == job).Item1;
+                index++;
+            }
+
+            for (var i = index; i < prio.Length; i++)
+                prio[i] = "";
+        }
+        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
+
         ImGui.PopID();
         return false;
     }

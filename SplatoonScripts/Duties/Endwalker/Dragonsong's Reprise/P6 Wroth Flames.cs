@@ -10,6 +10,7 @@ using ECommons.ChatMethods;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks;
@@ -18,6 +19,7 @@ using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.Serializables;
@@ -42,6 +44,8 @@ public class P6_Wroth_Flames : SplatoonScript
 
     private readonly uint[] _heatTailCastIds = [27949, 27950];
     private readonly uint[] _heatWingCastIds = [27947, 27948];
+    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
+
     private int _redSphereCount;
 
     private SafeSpreadDirection _safeSpreadDirection = SafeSpreadDirection.None;
@@ -319,7 +323,7 @@ public class P6_Wroth_Flames : SplatoonScript
         if (Status.StatusId == StackDebuffId) _state = State.End;
     }
 
-    private bool DrawPriorityList()
+    private unsafe bool DrawPriorityList()
     {
         if (C.Priority.Length != 8)
             C.Priority = ["", "", "", "", "", "", "", ""];
@@ -328,7 +332,36 @@ public class P6_Wroth_Flames : SplatoonScript
         ImGui.SameLine();
         ImGuiEx.Spacing();
         if (ImGui.Button("Perform test")) SelfTest();
+        ImGui.SameLine();
+        if (ImGui.Button("Fill by job"))
+        {
+            HashSet<(string, Job)> party = [];
+            foreach (var x in FakeParty.Get())
+                party.Add((x.Name.ToString(), x.GetJob()));
 
+            var proxy = InfoProxyCrossRealm.Instance();
+            for (var i = 0; i < proxy->GroupCount; i++)
+            {
+                var group = proxy->CrossRealmGroups[i];
+                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                {
+                    var x = group.GroupMembers[c];
+                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
+                }
+            }
+
+            var index = 0;
+            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            {
+                C.Priority[index] = party.First(x => x.Item2 == job).Item1;
+                index++;
+            }
+
+            for (var i = index; i < C.Priority.Length; i++)
+                C.Priority[i] = "";
+        }
+        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
+        
         ImGui.PushID("prio");
         for (var i = 0; i < C.Priority.Length; i++)
         {
@@ -378,7 +411,27 @@ public class P6_Wroth_Flames : SplatoonScript
         ImGui.Indent();
         DrawPriorityList();
         ImGui.Unindent();
+        if (ImGuiEx.CollapsingHeader("Option"))
+        {
+            DragDrop.Begin();
+            foreach (var job in C.Jobs)
+            {
+                DragDrop.NextRow();
+                ImGui.Text(job.ToString());
+                ImGui.SameLine();
 
+                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                {
+                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.SameLine();
+                }
+
+                ImGui.SameLine();
+                DragDrop.DrawButtonDummy(job, C.Jobs, C.Jobs.IndexOf(job));
+            }
+
+            DragDrop.End();
+        }
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
@@ -447,5 +500,30 @@ public class P6_Wroth_Flames : SplatoonScript
         public bool PrioritizeWest;
         public string[] Priority = ["", "", "", "", "", "", "", ""];
         public bool ShouldCheckOnStart;
+        
+        public List<Job> Jobs =
+        [
+            Job.PLD,
+            Job.WAR,
+            Job.DRK,
+            Job.GNB,
+            Job.WHM,
+            Job.SCH,
+            Job.AST,
+            Job.SGE,
+            Job.VPR,
+            Job.DRG,
+            Job.MNK,
+            Job.SAM,
+            Job.RPR,
+            Job.NIN,
+            Job.BRD,
+            Job.MCH,
+            Job.DNC,
+            Job.BLM,
+            Job.SMN,
+            Job.RDM,
+            Job.PCT
+        ];
     }
 }

@@ -19,7 +19,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using ECommons.ExcelServices;
 using ECommons.PartyFunctions;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 
@@ -30,6 +32,8 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
 
     private readonly string[] strings = { "front", "right", "back", "left" };
     private readonly string[] monitorRlString = { "right", "left" };
+    
+    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
 
     private class Direction
     {
@@ -242,6 +246,29 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             }
         }
         ImGui.Checkbox("PrintDebug", ref Conf.IsDebug);
+        
+        if (ImGuiEx.CollapsingHeader("Option"))
+        {
+            DragDrop.Begin();
+            foreach (var job in Conf.Jobs)
+            {
+                DragDrop.NextRow();
+                ImGui.Text(job.ToString());
+                ImGui.SameLine();
+
+                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                {
+                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.SameLine();
+                }
+
+                ImGui.SameLine();
+                DragDrop.DrawButtonDummy(job, Conf.Jobs, Conf.Jobs.IndexOf(job));
+            }
+
+            DragDrop.End();
+        }
+        
         if(ImGui.CollapsingHeader("Debug"))
         {
             var pr = ObtainMyPriority();
@@ -335,6 +362,36 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         {
             return true;
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Fill by job"))
+        {
+            HashSet<(string, Job)> party = [];
+            foreach (var x in FakeParty.Get())
+                party.Add((x.Name.ToString(), x.GetJob()));
+
+            var proxy = InfoProxyCrossRealm.Instance();
+            for (var i = 0; i < proxy->GroupCount; i++)
+            {
+                var group = proxy->CrossRealmGroups[i];
+                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                {
+                    var x = group.GroupMembers[c];
+                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
+                }
+            }
+
+            var index = 0;
+            foreach (var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            {
+                prio[index] = party.First(x => x.Item2 == job).Item1;
+                index++;
+            }
+
+            for (var i = index; i < prio.Length; i++)
+                prio[i] = "";
+        }
+        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
+
         ImGui.PopID();
         return false;
     }
@@ -398,6 +455,31 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         public string[] EastMoniterRotation = { "left", "front", "back" };
         public string[] WestMoniterRotation = { "right", "front", "back" };
         public bool IsDebug = false;
+        
+        public List<Job> Jobs =
+        [
+            Job.PLD,
+            Job.WAR,
+            Job.DRK,
+            Job.GNB,
+            Job.WHM,
+            Job.SCH,
+            Job.AST,
+            Job.SGE,
+            Job.VPR,
+            Job.DRG,
+            Job.MNK,
+            Job.SAM,
+            Job.RPR,
+            Job.NIN,
+            Job.BRD,
+            Job.MCH,
+            Job.DNC,
+            Job.BLM,
+            Job.SMN,
+            Job.RDM,
+            Job.PCT
+        ];
     }
 }
 

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using ECommons.PartyFunctions;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class BSOD_Adjuster :SplatoonScript
@@ -259,13 +260,10 @@ internal class BSOD_Adjuster :SplatoonScript
             ImGui.SetNextItemWidth(150);
             if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach(var x in FakeParty.Get())
-                {
-                    if(ImGui.Selectable(x.Name.ToString()))
-                    {
-                        prio[i] = x.Name.ToString();
-                    }
-                }
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        prio[i] = x;
                 ImGui.EndCombo();
             }
             ImGui.PopID();

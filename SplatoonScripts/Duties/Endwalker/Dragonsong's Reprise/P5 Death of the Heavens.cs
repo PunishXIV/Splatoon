@@ -19,6 +19,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
@@ -134,9 +135,10 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             ImGui.SetNextItemWidth(150);
             if (ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get())
-                    if (ImGui.Selectable(x.Name.ToString()))
-                        C.Priority[i] = x.Name.ToString();
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        C.Priority[i] = x;
                 ImGui.EndCombo();
             }
 

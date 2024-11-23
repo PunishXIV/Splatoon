@@ -16,6 +16,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
+using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
@@ -91,7 +92,7 @@ public class P6_Wroth_Flames : SplatoonScript
             }
         }
     }
-    
+
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
         if (!C.ShouldCheckOnStart)
@@ -100,7 +101,7 @@ public class P6_Wroth_Flames : SplatoonScript
             (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
             SelfTest();
     }
-    
+
     private void SelfTest()
     {
         Svc.Chat.PrintChat(new XivChatEntry
@@ -327,7 +328,7 @@ public class P6_Wroth_Flames : SplatoonScript
         ImGui.SameLine();
         ImGuiEx.Spacing();
         if (ImGui.Button("Perform test")) SelfTest();
-        
+
         ImGui.PushID("prio");
         for (var i = 0; i < C.Priority.Length; i++)
         {
@@ -340,9 +341,10 @@ public class P6_Wroth_Flames : SplatoonScript
             ImGui.SetNextItemWidth(150);
             if (ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get())
-                    if (ImGui.Selectable(x.Name.ToString()))
-                        C.Priority[i] = x.Name.ToString();
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        C.Priority[i] = x;
                 ImGui.EndCombo();
             }
 
@@ -371,12 +373,12 @@ public class P6_Wroth_Flames : SplatoonScript
         if (C.PrioritizeWest)
             C.PrioritizeSecondRedBallDiagonal = false;
         ImGui.Unindent();
-        
+
         ImGui.Text("Spread Settings");
         ImGui.Indent();
         DrawPriorityList();
         ImGui.Unindent();
-        
+
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");

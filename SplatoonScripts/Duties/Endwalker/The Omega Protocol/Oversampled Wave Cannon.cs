@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using ECommons.PartyFunctions;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 
@@ -322,13 +323,10 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             ImGui.SetNextItemWidth(150);
             if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach(var x in FakeParty.Get())
-                {
-                    if(ImGui.Selectable(x.Name.ToString()))
-                    {
-                        prio[i] = x.Name.ToString();
-                    }
-                }
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        prio[i] = x;
                 ImGui.EndCombo();
             }
             ImGui.PopID();

@@ -16,6 +16,7 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
+using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
@@ -296,9 +297,10 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
         ImGui.SetNextItemWidth(150);
         if (ImGui.BeginCombo("##partysel", "Select from party"))
         {
-            foreach (var x in FakeParty.Get())
-                if (ImGui.Selectable(x.Name.ToString()))
-                    C.PairCharacterName = x.Name.ToString();
+            foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                         .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                if (ImGui.Selectable(x))
+                    C.PairCharacterName = x;
             ImGui.EndCombo();
         }
 

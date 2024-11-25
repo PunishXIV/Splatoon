@@ -12,6 +12,7 @@ using ECommons.ChatMethods;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks;
@@ -19,7 +20,9 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -45,6 +48,8 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     private Vector3 _lastPlayerPosition = Vector3.Zero;
     private BaitType _myBait = BaitType.None;
     private PlaystationMarker _myMarker = PlaystationMarker.Circle;
+    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
+
     public override HashSet<uint>? ValidTerritories => [968];
     private Config C => Controller.GetConfig<Config>();
     public override Metadata? Metadata => new(5, "Garume");
@@ -121,6 +126,35 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         ImGui.SameLine();
         ImGuiEx.Spacing();
         if (ImGui.Button("Perform test")) SelfTest();
+        ImGui.SameLine();
+        if (ImGui.Button("Fill by job"))
+        {
+            HashSet<(string, Job)> party = [];
+            foreach (var x in FakeParty.Get())
+                party.Add((x.Name.ToString(), x.GetJob()));
+
+            var proxy = InfoProxyCrossRealm.Instance();
+            for (var i = 0; i < proxy->GroupCount; i++)
+            {
+                var group = proxy->CrossRealmGroups[i];
+                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                {
+                    var x = group.GroupMembers[c];
+                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
+                }
+            }
+
+            var index = 0;
+            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            {
+                C.Priority[index] = party.First(x => x.Item2 == job).Item1;
+                index++;
+            }
+
+            for (var i = index; i < C.Priority.Length; i++)
+                C.Priority[i] = "";
+        }
+        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
 
         ImGui.PushID("prio");
         for (var i = 0; i < C.Priority.Length; i++)
@@ -134,9 +168,10 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             ImGui.SetNextItemWidth(150);
             if (ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get())
-                    if (ImGui.Selectable(x.Name.ToString()))
-                        C.Priority[i] = x.Name.ToString();
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        C.Priority[i] = x;
                 ImGui.EndCombo();
             }
 
@@ -188,6 +223,28 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
         ImGui.Unindent();
 
+        if (ImGuiEx.CollapsingHeader("Option"))
+        {
+            DragDrop.Begin();
+            foreach (var job in C.Jobs)
+            {
+                DragDrop.NextRow();
+                ImGui.Text(job.ToString());
+                ImGui.SameLine();
+
+                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                {
+                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.SameLine();
+                }
+
+                ImGui.SameLine();
+                DragDrop.DrawButtonDummy(job, C.Jobs, C.Jobs.IndexOf(job));
+            }
+
+            DragDrop.End();
+        }
+        
         if (ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("Show Debug Message", ref C.ShowDebug);
@@ -572,6 +629,32 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     {
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+
+        public readonly List<Job> Jobs =
+        [
+            Job.PLD,
+            Job.WAR,
+            Job.DRK,
+            Job.GNB,
+            Job.WHM,
+            Job.SCH,
+            Job.AST,
+            Job.SGE,
+            Job.VPR,
+            Job.DRG,
+            Job.MNK,
+            Job.SAM,
+            Job.RPR,
+            Job.NIN,
+            Job.BRD,
+            Job.MCH,
+            Job.DNC,
+            Job.BLM,
+            Job.SMN,
+            Job.RDM,
+            Job.PCT
+        ];
+
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;
         public Direction OrientationBase = Direction.North;

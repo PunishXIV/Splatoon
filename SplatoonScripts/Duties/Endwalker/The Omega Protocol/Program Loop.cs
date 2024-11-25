@@ -24,6 +24,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using ECommons.PartyFunctions;
 using PluginLog = ECommons.Logging.PluginLog;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
@@ -537,7 +538,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             ImGui.SetNextItemWidth(120f);
             if (ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                FakeParty.Get().Each((x) => { if (ImGui.Selectable(x.Name.ToString())) Conf.Swappers.Add(x.Name.ToString()); });
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        Conf.Swappers.Add(x);
                 ImGui.EndCombo();
             }
             ImGui.ColorEdit4("Primary tower color", ref Conf.TowerColor1, ImGuiColorEditFlags.NoInputs);

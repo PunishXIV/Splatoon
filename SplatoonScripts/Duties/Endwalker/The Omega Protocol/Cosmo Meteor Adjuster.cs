@@ -15,6 +15,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
+using ECommons.PartyFunctions;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
@@ -67,6 +70,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
     private GameObjectManager* _gom = GameObjectManager.Instance();
     private (string, string)[] _flareData = new (string, string)[3];
     private Config C => Controller.GetConfig<Config>();
+    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
     #endregion
 
     #region public
@@ -177,6 +181,31 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
     {
         public bool Debug = false;
         public List<string[]> clockWisePriorities = new();
+        
+        public List<Job> Jobs =
+        [
+            Job.PLD,
+            Job.WAR,
+            Job.DRK,
+            Job.GNB,
+            Job.WHM,
+            Job.SCH,
+            Job.AST,
+            Job.SGE,
+            Job.VPR,
+            Job.DRG,
+            Job.MNK,
+            Job.SAM,
+            Job.RPR,
+            Job.NIN,
+            Job.BRD,
+            Job.MCH,
+            Job.DNC,
+            Job.BLM,
+            Job.SMN,
+            Job.RDM,
+            Job.PCT
+        ];
     }
 
     public override void OnSettingsDraw()
@@ -209,6 +238,28 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
         if(ImGui.Button("Create new priority list"))
         {
             C.clockWisePriorities.Add(new string[] { "", "", "", "", "", "", "", "" });
+        }
+        
+        if (ImGuiEx.CollapsingHeader("Option"))
+        {
+            DragDrop.Begin();
+            foreach (var job in C.Jobs)
+            {
+                DragDrop.NextRow();
+                ImGui.Text(job.ToString());
+                ImGui.SameLine();
+
+                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                {
+                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.SameLine();
+                }
+
+                ImGui.SameLine();
+                DragDrop.DrawButtonDummy(job, C.Jobs, C.Jobs.IndexOf(job));
+            }
+
+            DragDrop.End();
         }
 
         if(ImGui.CollapsingHeader("Debug"))
@@ -278,13 +329,10 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
             ImGui.SetNextItemWidth(150);
             if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach(var x in FakeParty.Get())
-                {
-                    if(ImGui.Selectable(x.Name.ToString()))
-                    {
-                        prio[i] = x.Name.ToString();
-                    }
-                }
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        prio[i] = x;
                 ImGui.EndCombo();
             }
             ImGui.PopID();
@@ -294,6 +342,37 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
         {
             return true;
         }
+        
+        ImGui.SameLine();
+        if (ImGui.Button("Fill by job"))
+        {
+            HashSet<(string, Job)> party = [];
+            foreach (var x in FakeParty.Get())
+                party.Add((x.Name.ToString(), x.GetJob()));
+
+            var proxy = InfoProxyCrossRealm.Instance();
+            for (var i = 0; i < proxy->GroupCount; i++)
+            {
+                var group = proxy->CrossRealmGroups[i];
+                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                {
+                    var x = group.GroupMembers[c];
+                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
+                }
+            }
+
+            var index = 0;
+            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            {
+                prio[index] = party.First(x => x.Item2 == job).Item1;
+                index++;
+            }
+
+            for (var i = index; i < prio.Length; i++)
+                prio[i] = "";
+        }
+        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
+
         ImGui.PopID();
         return false;
     }

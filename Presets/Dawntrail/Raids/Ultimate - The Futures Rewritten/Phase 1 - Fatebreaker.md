@@ -1,3 +1,5 @@
+## Warning! These presets are WORK IN PROGRESS. They may change frequently, and they may not fully cover mechanic/cover mechanic correctly.
+
 ## Utopian Sky
 Attack highlight. Highlights where clones will attack. **Option: Open the preset and ebable 4 slices that are assigned to you to enable highlighting side where you have to go.**
 ```

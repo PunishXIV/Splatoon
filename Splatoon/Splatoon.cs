@@ -85,6 +85,7 @@ public unsafe class Splatoon :IDalamudPlugin
     public Archive Archive;
     private ActorControlProcessor ActorControlProcessor;
     internal BuffEffectProcessor BuffEffectProcessor;
+    internal LogWindow LogWindow;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -195,6 +196,8 @@ public unsafe class Splatoon :IDalamudPlugin
         Archive = EzConfig.LoadConfiguration<Archive>("Archive.json");
         ActorControlProcessor = new ActorControlProcessor();
         BuffEffectProcessor = new();
+        LogWindow = new();
+        EzConfigGui.WindowSystem.AddWindow(LogWindow);
         Init = true;
         SplatoonIPC.Init();
     }

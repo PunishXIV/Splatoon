@@ -7,3 +7,16 @@
 ```
 ~Lv2~{"Name":"FRU P2 Axe/Scythe kick","Group":"絶もう１つの未来","ZoneLockH":[1238],"ElementsL":[{"Name":"アクスキック","type":1,"radius":16.0,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40202],"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"サイスキック","type":1,"radius":4.0,"Donut":20.0,"fillIntensity":0.3,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40203],"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
+
+## Safe spot future knockback
+```
+~Lv2~{"Name":"P2 - first icicle impact","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":1,"radius":4.93,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":7.0,"refActorNPCNameID":12809,"refActorRequireCast":true,"refActorCastId":[40198],"refActorUseCastTime":true,"refActorCastTimeMax":1.0,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":1,"offY":32.0,"radius":4.93,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":7.0,"refActorNPCNameID":12809,"refActorRequireCast":true,"refActorCastId":[40198],"refActorUseCastTime":true,"refActorCastTimeMax":1.0,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"Freezing":true,"FreezeFor":15.0,"IntervalBetweenFreezes":20.0}
+```
+
+## Twin stillness / Twin silence
+```
+~Lv2~{"Name":"P2 - Twin stillness","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":4,"radius":40.0,"coneAngleMin":-145,"coneAngleMax":145,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40193],"refActorUseCastTime":true,"refActorCastTimeMax":3.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40193],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+```
+~Lv2~{"Name":"P2 - Twin silence","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":4,"radius":40.0,"coneAngleMin":-145,"coneAngleMax":145,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40194],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40194],"refActorUseCastTime":true,"refActorCastTimeMax":3.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```

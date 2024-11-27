@@ -13,3 +13,30 @@ Spreads and stacks:
 ```
 ~Lv2~{"Name":"P1 - Utopian sky stack","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"Self","type":1,"radius":5.0,"color":3355487743,"Filled":false,"fillIntensity":0.5,"overlayTextColor":3355481343,"overlayVOffset":2.0,"thicc":4.0,"overlayText":">>> STACK <<<","refActorPlaceholder":[],"refActorComparisonType":5,"refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":">40154)","MatchDelay":14.0}]}
 ```
+
+## Fall of Faith
+
+### scripts
+
+It highlights positions and tells whether it's fire or lightning, and which turn it is.
+
+Configuration:
+
+- You need to set priorities, for example: MT, ST, H1, H2, D1, D2, D3, D4.
+- You also need to configure where each person should go, depending on the turn they are targeted.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1%20Fall%20of%20Faith.cs
+```
+
+## Burn Strike (Tower)
+### scripts
+
+It highlights positions where towers you need to go to are.
+
+Configuration:
+- You need to set priorities, for example: H1, H2, D1, D2, D3, D4.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1%20Burn%20Strike%20Tower.cs
+```

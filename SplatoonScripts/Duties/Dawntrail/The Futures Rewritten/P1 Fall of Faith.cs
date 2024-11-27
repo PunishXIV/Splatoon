@@ -34,7 +34,7 @@ public class P1_Fall_of_Faith : SplatoonScript
 
     private int _tetherCount = 1;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
     private Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
@@ -47,6 +47,8 @@ public class P1_Fall_of_Faith : SplatoonScript
                 _partyDatas[hasDebuffPlayer.Name.ToString()] = new PlayerData(Debuff.Red, C.Tether1Direction, 1);
             else
                 _partyDatas[hasDebuffPlayer.Name.ToString()] = new PlayerData(Debuff.Blue, C.Tether1Direction, 1);
+            
+            ApplyElement();
         }
 
         if (_state == State.Split && castId == 40170) _state = State.End;
@@ -124,32 +126,37 @@ public class P1_Fall_of_Faith : SplatoonScript
             _partyDatas[noTether[1]] = new PlayerData(Debuff.None, C.NoTether12Direction, 0);
             _partyDatas[noTether[2]] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
             _partyDatas[noTether[3]] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
+        }
+        
+        ApplyElement();
+    }
 
-            if (Controller.TryGetElementByName("Bait", out var bait))
+    private void ApplyElement()
+    {
+        if (_partyDatas.TryGetValue(Player.Name, out var value) && Controller.TryGetElementByName("Bait", out var bait))
+        {
+            bait.Enabled = true;
+            bait.SetOffPosition(GetPosition(value.Direction).ToVector3());
+        }
+
+        var index = 0;
+        foreach (var data in _partyDatas.Where(x => x.Value.Debuff != Debuff.None))
+        {
+            var text = data.Value.Debuff switch
             {
-                bait.Enabled = true;
-                bait.SetOffPosition(GetPosition(_partyDatas[Player.Name].Direction).ToVector3());
+                Debuff.Red => C.RedTetherText.Get() + data.Value.Count,
+                Debuff.Blue => C.BlueTetherText.Get() + data.Value.Count,
+                _ => string.Empty
+            };
+
+            if (Controller.TryGetElementByName("Tether" + index, out var tether))
+            {
+                tether.Enabled = true;
+                tether.refActorName = data.Key;
+                tether.overlayText = text;
             }
 
-            var index = 0;
-            foreach (var data in _partyDatas.Where(x => x.Value.Debuff != Debuff.None))
-            {
-                var text = data.Value.Debuff switch
-                {
-                    Debuff.Red => C.RedTetherText.Get() + data.Value.Count,
-                    Debuff.Blue => C.BlueTetherText.Get() + data.Value.Count,
-                    _ => string.Empty
-                };
-
-                if (Controller.TryGetElementByName("Tether" + index, out var tether))
-                {
-                    tether.Enabled = true;
-                    tether.refActorName = data.Key;
-                    tether.overlayText = text;
-                }
-
-                index++;
-            }
+            index++;
         }
     }
 
@@ -227,7 +234,7 @@ public class P1_Fall_of_Faith : SplatoonScript
             case State.None or State.End:
                 Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
                 break;
-            case State.Split:
+            case State.Start or State.Split:
             {
                 if (Controller.TryGetElementByName("Bait", out var bait))
                     bait.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();

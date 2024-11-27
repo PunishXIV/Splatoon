@@ -10,13 +10,16 @@ using ECommons.ChatMethods;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.Serializables;
@@ -26,22 +29,6 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public class P6_Wyrmsbreath_First : SplatoonScript
 {
-    private enum BaitPosition
-    {
-        None,
-        TriangleLowerLeft,
-        TriangleLowerRight,
-        TriangleUpper,
-        UpperLeft,
-        UpperRight
-    }
-
-    private enum EnchantmentType
-    {
-        Ice,
-        Fire
-    }
-
     private readonly Vector2 _centerPosition = new(100f, 100f);
 
     private readonly Dictionary<string, EnchantmentType> _enchantments = new();
@@ -55,6 +42,8 @@ public class P6_Wyrmsbreath_First : SplatoonScript
     private bool _mayRightTankStack;
     private BaitPosition _myBaitPosition = BaitPosition.None;
     private State _state = State.None;
+    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
+
     public override HashSet<uint>? ValidTerritories => [968];
     public override Metadata? Metadata => new(4, "Garume");
 
@@ -97,7 +86,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         if (Status.StatusId is 2902 or 2903)
             _state = State.End;
     }
-    
+
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
         if (_state != State.None) return;
@@ -232,14 +221,43 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
     }
 
-    public override void OnSettingsDraw()
+    public override unsafe void OnSettingsDraw()
     {
         ImGui.Text("Character List");
 
         ImGui.SameLine();
         ImGuiEx.Spacing();
         if (ImGui.Button("Perform test")) SelfTest();
-        
+        ImGui.SameLine();
+        if (ImGui.Button("Fill by job"))
+        {
+            HashSet<(string, Job)> party = [];
+            foreach (var x in FakeParty.Get())
+                party.Add((x.Name.ToString(), x.GetJob()));
+
+            var proxy = InfoProxyCrossRealm.Instance();
+            for (var i = 0; i < proxy->GroupCount; i++)
+            {
+                var group = proxy->CrossRealmGroups[i];
+                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                {
+                    var x = group.GroupMembers[c];
+                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
+                }
+            }
+
+            var index = 0;
+            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            {
+                C.CharacterNames[index] = party.First(x => x.Item2 == job).Item1;
+                index++;
+            }
+
+            for (var i = index; i < C.CharacterNames.Length; i++)
+                C.CharacterNames[i] = "";
+        }
+        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
+
         if (C.CharacterNames.Length != 8)
         {
             C.CharacterNames = ["", "", "", "", "", "", "", ""];
@@ -260,9 +278,10 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             ImGui.SetNextItemWidth(150);
             if (ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get())
-                    if (ImGui.Selectable(x.Name.ToString()))
-                        C.CharacterNames[i] = x.Name.ToString();
+                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if (ImGui.Selectable(x))
+                        C.CharacterNames[i] = x;
                 ImGui.EndCombo();
             }
 
@@ -274,6 +293,28 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         ImGui.ColorEdit4("Bait Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
         ImGui.Checkbox("Check on Start", ref C.ShouldCheckOnStart);
 
+        if (ImGuiEx.CollapsingHeader("Option"))
+        {
+            DragDrop.Begin();
+            foreach (var job in C.Jobs)
+            {
+                DragDrop.NextRow();
+                ImGui.Text(job.ToString());
+                ImGui.SameLine();
+
+                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                {
+                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.SameLine();
+                }
+
+                ImGui.SameLine();
+                DragDrop.DrawButtonDummy(job, C.Jobs, C.Jobs.IndexOf(job));
+            }
+
+            DragDrop.End();
+        }
+        
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("Show Debug Message", ref C.ShouldShowDebugMessage);
@@ -284,7 +325,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
                 ImGui.Text($"{enchantment.Key}: {enchantment.Value}");
         }
     }
-    
+
     private void SelfTest()
     {
         Svc.Chat.PrintChat(new XivChatEntry
@@ -340,7 +381,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
                     .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
             });
     }
-    
+
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
         if (!C.ShouldCheckOnStart)
@@ -348,6 +389,22 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         if (category == DirectorUpdateCategory.Commence ||
             (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
             SelfTest();
+    }
+
+    private enum BaitPosition
+    {
+        None,
+        TriangleLowerLeft,
+        TriangleLowerRight,
+        TriangleUpper,
+        UpperLeft,
+        UpperRight
+    }
+
+    private enum EnchantmentType
+    {
+        Ice,
+        Fire
     }
 
     private enum State
@@ -363,8 +420,34 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public BaitPosition[] BaitPositions = new BaitPosition[8];
         public string[] CharacterNames = ["", "", "", "", "", "", "", ""];
-        public bool SwapIfNeeded;
-        public bool ShouldShowDebugMessage;
+
+        public readonly List<Job> Jobs =
+        [
+            Job.PLD,
+            Job.WAR,
+            Job.DRK,
+            Job.GNB,
+            Job.WHM,
+            Job.SCH,
+            Job.AST,
+            Job.SGE,
+            Job.VPR,
+            Job.DRG,
+            Job.MNK,
+            Job.SAM,
+            Job.RPR,
+            Job.NIN,
+            Job.BRD,
+            Job.MCH,
+            Job.DNC,
+            Job.BLM,
+            Job.SMN,
+            Job.RDM,
+            Job.PCT
+        ];
+
         public bool ShouldCheckOnStart = true;
+        public bool ShouldShowDebugMessage;
+        public bool SwapIfNeeded;
     }
 }

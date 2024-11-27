@@ -412,11 +412,6 @@ public static unsafe class Utils
         return (e.AdditionalRotation.RadiansToDegrees() + MathHelper.GetRelativeAngle(new Vector2(cx, cy), Svc.ClientState.LocalPlayer.Position.ToVector2())).DegreesToRadians();
     }
 
-    public static bool EqualsIgnoreCase(this string a, string b)
-    {
-        return a.Equals(b, StringComparison.OrdinalIgnoreCase);
-    }
-
     public static bool StartsWithIgnoreCase(this string a, string b)
     {
         return a.StartsWith(b, StringComparison.OrdinalIgnoreCase);

@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.Command;
+using ECommons;
 using ECommons.GameFunctions;
 using Splatoon.Structures;
 
@@ -15,6 +16,10 @@ class Commands : IDisposable
             if (arguments == "")
             {
                 P.ConfigGui.Open = !P.ConfigGui.Open;
+            }
+            else if(GenericHelpers.EqualsIgnoreCase(arguments, "log"))
+            {
+                P.LogWindow.IsOpen = true;
             }
             else if(arguments == "r" || arguments == "reset")
             {

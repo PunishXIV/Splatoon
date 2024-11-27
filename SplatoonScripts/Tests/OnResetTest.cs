@@ -1,4 +1,5 @@
-﻿using ECommons.Logging;
+﻿using ECommons.Hooks;
+using ECommons.Logging;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -13,5 +14,10 @@ public class OnResetTest : SplatoonScript
     public override void OnReset()
     {
         PluginLog.Information($"OnReset has been called");
+    }
+
+    public override void OnDirectorUpdate(DirectorUpdateCategory category)
+    {
+        PluginLog.Information($"Director update: {category}");
     }
 }

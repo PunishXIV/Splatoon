@@ -20,24 +20,17 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P1_Burn_Strike_Tower : SplatoonScript
 {
-    private enum State
-    {
-        None,
-        Start,
-        Split,
-        End
-    }
-
-    private IBattleNpc?[] _currentTowers = new IBattleNpc[3];
     private readonly ImGuiEx.RealtimeDragDrop<Job> _dragDrop = new("DragDropJob", x => x.ToString());
 
-    private readonly Dictionary<int, uint> TowerCastIds = new()
+    private readonly Dictionary<int, List<uint>> TowerCastIds = new()
     {
-        { 1, 0x9CC7 },
-        { 2, 0x9CBD },
-        { 3, 0x9CBE },
-        { 4, 0x9CBF }
+        { 1, [0x9CC7, 0x9CC3] },
+        { 2, [0x9CBD] },
+        { 3, [0x9CBE] },
+        { 4, [0x9CBF, 0x9CBC] }
     };
+
+    private IBattleNpc?[] _currentTowers = new IBattleNpc[3];
 
     private IBattleNpc? _myTower;
 
@@ -45,8 +38,6 @@ public class P1_Burn_Strike_Tower : SplatoonScript
     public override HashSet<uint>? ValidTerritories => [1238];
     public override Metadata? Metadata => new(2, "Garume");
 
-    public IEnumerable<IGameObject> Towers => Svc.Objects.Where(x =>
-        x is IBattleNpc { IsCasting: true } npc && TowerCastIds.ContainsValue(npc.CastActionId));
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -90,6 +81,12 @@ public class P1_Burn_Strike_Tower : SplatoonScript
 
         ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
 
+        ImGui.SameLine();
+
+        ImGui.Checkbox("Enabled Fixed Priority", ref C.FixEnabled);
+        ImGuiEx.Tooltip(
+            "If enabled, the priority will be fixed based on the order of the fixed priority list.\n1st -> North, 2nd -> Center, 3rd -> South");
+
         ImGui.PushID("prio");
         for (var i = 0; i < C.Priority.Length; i++)
         {
@@ -108,6 +105,13 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                         C.Priority[i] = x;
                 ImGui.EndCombo();
             }
+
+            if (C.FixEnabled)
+            {
+                ImGui.SameLine();
+                ImGui.Checkbox($"##FixedPriority{i}", ref C.FixedPriority[i]);
+            }
+
 
             ImGui.PopID();
         }
@@ -150,7 +154,7 @@ public class P1_Burn_Strike_Tower : SplatoonScript
             ImGui.Text("My Tower: " + _myTower);
             ImGui.Text("Towers: ");
             foreach (var tower in _currentTowers)
-                ImGui.Text(tower + " " + tower.Position);
+                ImGui.Text(tower + " " + tower?.Position);
         }
     }
 
@@ -187,15 +191,15 @@ public class P1_Burn_Strike_Tower : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (_state != State.Split) return;
-        if (TowerCastIds.ContainsValue(set.Action.Value.RowId))
+        if (TowerCastIds.Values.Any(x => x.Contains(set.Action.Value.RowId)))
             _state = State.End;
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId is 40135 or 40130) _state = State.Start;
+        if (castId is 40135 or 40129) _state = State.Start;
 
-        if (TowerCastIds.ContainsValue(castId))
+        if (TowerCastIds.Values.Any(x => x.Contains(castId)))
             if (source.GetObject() is IBattleNpc npc)
             {
                 switch (npc.Position.Z)
@@ -215,16 +219,50 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                 {
                     _state = State.Split;
 
-                    var index = 0;
-                    foreach (var tower in _currentTowers)
+                    if (C.FixEnabled)
                     {
-                        var towerCount = TowerCastIds.First(x => x.Value == tower.CastActionId).Key;
-                        var lastIndex = index;
-                        index += towerCount;
+                        var index = 0;
+                        for (var i = 0; i < C.FixedPriority.Length; i++)
+                            if (C.FixedPriority[i])
+                            {
+                                if (C.Priority[i] == Player.Name)
+                                    _myTower = _currentTowers[index];
+                                index++;
+                            }
 
-                        for (var i = lastIndex; i < index; i++)
-                            if (C.Priority[i] == Player.Name)
-                                _myTower = tower;
+                        var nonFixed = C.Priority.Where((x, i) => C.FixedPriority[i] == false).ToList();
+                        foreach (var tower in _currentTowers)
+                        {
+                            var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
+                            var remaining = towerCount - 1;
+
+                            if (remaining == 0)
+                            {
+                                index++;
+                                continue;
+                            }
+
+                            for (var i = 0; i < remaining; i++)
+                            {
+                                if (nonFixed.First() == Player.Name)
+                                    _myTower = tower;
+                                nonFixed.RemoveAt(0);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var index = 0;
+                        foreach (var tower in _currentTowers)
+                        {
+                            var towerCount = TowerCastIds.First(x =>  x.Value.Contains(tower.CastActionId)).Key;
+                            var lastIndex = index;
+                            index += towerCount;
+
+                            for (var i = lastIndex; i < index; i++)
+                                if (C.Priority[i] == Player.Name)
+                                    _myTower = tower;
+                        }
                     }
 
                     if (Controller.TryGetElementByName("Bait", out var bait))
@@ -234,6 +272,14 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                     }
                 }
             }
+    }
+
+    private enum State
+    {
+        None,
+        Start,
+        Split,
+        End
     }
 
     public class Config : IEzConfig
@@ -262,6 +308,9 @@ public class P1_Burn_Strike_Tower : SplatoonScript
             Job.PCT
         ];
 
+        public bool[] FixedPriority = [false, false, false, false, false, false];
+
+        public bool FixEnabled;
         public string[] Priority = ["", "", "", "", "", ""];
     }
 }

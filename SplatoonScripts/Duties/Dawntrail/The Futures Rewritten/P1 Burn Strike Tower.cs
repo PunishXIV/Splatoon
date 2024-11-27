@@ -4,7 +4,6 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
-using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -25,8 +24,8 @@ public class P1_Burn_Strike_Tower : SplatoonScript
     private readonly Dictionary<int, List<uint>> TowerCastIds = new()
     {
         { 1, [0x9CC7, 0x9CC3] },
-        { 2, [0x9CBD] },
-        { 3, [0x9CBE] },
+        { 2, [0x9CBD, 0x9CBA] },
+        { 3, [0x9CBE, 0x9CBB] },
         { 4, [0x9CBF, 0x9CBC] }
     };
 
@@ -87,6 +86,11 @@ public class P1_Burn_Strike_Tower : SplatoonScript
         ImGuiEx.Tooltip(
             "If enabled, the priority will be fixed based on the order of the fixed priority list.\n1st -> North, 2nd -> Center, 3rd -> South");
 
+        if (C.FixEnabled && C.FixedPriority.Count(x => x) !=3)
+        {
+            ImGuiEx.Text(EColor.RedBright,"Please select 3 fixed.");
+        }
+        
         ImGui.PushID("prio");
         for (var i = 0; i < C.Priority.Length; i++)
         {
@@ -197,6 +201,7 @@ public class P1_Burn_Strike_Tower : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
+        if (_state == State.Split) return;
         if (castId is 40135 or 40129) _state = State.Start;
 
         if (TowerCastIds.Values.Any(x => x.Contains(castId)))
@@ -255,7 +260,7 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                         var index = 0;
                         foreach (var tower in _currentTowers)
                         {
-                            var towerCount = TowerCastIds.First(x =>  x.Value.Contains(tower.CastActionId)).Key;
+                            var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
                             var lastIndex = index;
                             index += towerCount;
 
@@ -282,7 +287,7 @@ public class P1_Burn_Strike_Tower : SplatoonScript
         End
     }
 
-    public class Config : IEzConfig
+    private class Config : IEzConfig
     {
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

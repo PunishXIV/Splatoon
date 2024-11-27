@@ -6,6 +6,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
+using ECommons.CircularBuffers;
 using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.GameFunctions;
@@ -302,6 +303,10 @@ public unsafe class Splatoon :IDalamudPlugin
             if(P.Config.Logging && !((uint)type).EqualsAny(Utils.BlacklistedMessages))
             {
                 Logger.Log($"[{type}] {m}");
+            }
+            if(((uint)type).EqualsAny<uint>(10283, 12331, 68))
+            {
+                LogWindow.Log($"[{type}] {m}");
             }
         }
     }

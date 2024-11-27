@@ -1,4 +1,5 @@
 ﻿using ECommons.Hooks;
+using Lumina.Excel.Sheets;
 using Splatoon.Modules;
 using Splatoon.SplatoonScripting;
 
@@ -13,6 +14,7 @@ namespace Splatoon.Memory
                 var text = $"Director Update: {a3:X}, {a4:X8}, {a5:X8}, {a6:X8}, {a7:X8}";
                 Logger.Log(text);
                 PluginLog.Verbose(text);
+                P.LogWindow.Log(text);
             }
             ScriptingProcessor.OnDirectorUpdate(a3);
         }

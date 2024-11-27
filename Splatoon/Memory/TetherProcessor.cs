@@ -62,6 +62,7 @@ internal unsafe class TetherProcessor
                     var text = $"Tether removal: {a1->OwnerObject->EntityId}, {a2}, {a3}, {a5}";
                     PluginLog.Verbose(text);
                     Logger.Log(text);
+                    P.LogWindow.Log(text);
                     AttachedInfo.GetOrCreateTetherInfo(a1->OwnerObject).RemoveAll(x => x.ParamEqual(a2, a3, a5));
                 }
                 else
@@ -70,6 +71,7 @@ internal unsafe class TetherProcessor
                     var text = $"Tether create: {(nint)a1:X16} / {a1->OwnerObject->Name.Read()} / {a1->OwnerObject->EntityId}, {targetOID}/{(uint)targetOID}, {a2}, {a3}, {a5}";
                     PluginLog.Verbose(text);
                     Logger.Log(text);
+                    P.LogWindow.Log(text);
                     AttachedInfo.GetOrCreateTetherInfo(a1->OwnerObject).Add(new(a2, a3, a5, (uint)targetOID));
                 }
             }
@@ -92,6 +94,7 @@ internal unsafe class TetherProcessor
                 var text = $"Tether removal2: {a1->OwnerObject->EntityId}, {a2}, {a3}, {a5}";
                 PluginLog.Verbose(text);
                 Logger.Log(text);
+                P.LogWindow.Log(text);
                 AttachedInfo.GetOrCreateTetherInfo(a1->OwnerObject).RemoveAll(x => x.ParamEqual(a2, a3, a5));
             }
         }

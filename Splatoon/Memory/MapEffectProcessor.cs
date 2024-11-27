@@ -15,6 +15,7 @@ internal class MapEffectProcessor
             var text = $"MapEffect: {a2}, {a3}, {a4}";
             P.ChatMessageQueue.Enqueue(text);
             Logger.Log(text);
+            P.LogWindow.Log(text);
             ScriptingProcessor.OnMapEffect(a2, a3, a4);
         });
     }

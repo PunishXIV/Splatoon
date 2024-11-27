@@ -13,3 +13,54 @@ Spreads and stacks:
 ```
 ~Lv2~{"Name":"P1 - Utopian sky stack","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"Self","type":1,"radius":5.0,"color":3355487743,"Filled":false,"fillIntensity":0.5,"overlayTextColor":3355481343,"overlayVOffset":2.0,"thicc":4.0,"overlayText":">>> STACK <<<","refActorPlaceholder":[],"refActorComparisonType":5,"refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":">40154)","MatchDelay":14.0}]}
 ```
+
+## [WIP] Protean pairs/spreads
+```
+~Lv2~{"Name":"FRU P1 Cyclonic Break Flame","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"サークル","type":1,"radius":5.5,"color":4278190335,"Filled":false,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4278190335,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":5.0,"overlayText":">> Pair <<","refActorComparisonType":1,"refActorType":1,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"Match":"(9707>40144)"}]}
+```
+```
+~Lv2~{"Name":"FRU P1 Cyclonic Break Lightning","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"サークル","type":1,"radius":5.5,"color":4294967040,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":2.0,"overlayText":"<<< Spread >>>","refActorComparisonType":1,"refActorType":1,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"Match":"(9707>40148)"}]}
+```
+```
+~Lv2~{"Name":"FRU P1 Illusion_ Cyclonic Break Flame","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"サークル","type":1,"radius":5.5,"color":4278190335,"Filled":false,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":5.0,"overlayText":"PAirs","refActorComparisonType":1,"refActorType":1,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"Match":"(9708>40329)","MatchDelay":2.0}]}
+```
+```
+~Lv2~{"Name":"FRU P1_Phantom_Cyclic Break Lightning","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"サークル","type":1,"radius":5.5,"color":4278190335,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":2.0,"overlayText":"Spread","refActorComparisonType":1,"refActorType":1,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"Match":"(9707>40330)"}]}
+```
+
+## [WIP] Burnt strike/Circle explosions
+
+```
+~Lv2~{"Name":"FRU P1 Chain Explosion","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"サークル","type":1,"radius":10.0,"color":4278190335,"fillIntensity":0.3,"refActorRequireBuff":true,"refActorBuffId":[4166],"refActorUseBuffTime":true,"refActorBuffTimeMax":5.0,"refActorComparisonType":1,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+```
+~Lv2~{"Name":"FRU P1 Illusion - Burn Strike","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"雷","type":3,"refY":50.0,"radius":10.0,"color":4278190335,"fillIntensity":0.3,"refActorNPCNameID":9708,"refActorRequireCast":true,"refActorCastId":[40163],"refActorUseCastTime":true,"refActorCastTimeMax":10.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0},{"Name":"炎","type":3,"refY":50.0,"radius":5.0,"color":4278255611,"fillIntensity":0.3,"refActorNPCNameID":9708,"refActorRequireCast":true,"refActorCastId":[40161],"refActorUseCastTime":true,"refActorCastTimeMin":4.0,"refActorCastTimeMax":10.0,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"FillStep":2.0}]}
+```
+```
+~Lv2~{"Name":"FRU P1_Halo_flame","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"焔_小","type":1,"radius":5.5,"color":4278255605,"fillIntensity":0.3,"refActorNPCNameID":9710,"refActorRequireCast":true,"refActorCastId":[40152],"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"焔_大","type":1,"radius":10.0,"color":4278255103,"fillIntensity":0.3,"refActorNPCNameID":9710,"refActorRequireCast":true,"refActorCastId":[40153],"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"雷_小","type":1,"radius":5.5,"color":4278255599,"fillIntensity":0.3,"refActorNPCNameID":9711,"refActorRequireCast":true,"refActorCastId":[40152],"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"雷_大","type":1,"radius":10.0,"color":4278255611,"fillIntensity":0.3,"refActorNPCNameID":9711,"refActorRequireCast":true,"refActorCastId":[40153],"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+
+
+## [Script] Fall of Faith
+
+It highlights positions and tells whether it's fire or lightning, and which turn it is.
+
+Configuration:
+
+- You need to set priorities, for example: MT, ST, H1, H2, D1, D2, D3, D4.
+- You also need to configure where each person should go, depending on the turn they are targeted.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1%20Fall%20of%20Faith.cs
+```
+
+## [Script] Burn Strike (Tower)
+
+It highlights positions where towers you need to go to are.
+
+Configuration:
+- You need to set priorities, for example: H1, H2, D1, D2, D3, D4.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1%20Burn%20Strike%20Tower.cs
+```

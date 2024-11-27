@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.7.2.9</Version>
+		<Version>3.7.3.3</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -64,6 +64,10 @@
   </ItemGroup>
 
 	<ItemGroup>
+      <Reference Include="Serilog">
+          <HintPath>$(DalamudLibPath)Serilog.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>$(DalamudLibPath)Newtonsoft.Json.dll</HintPath>
 			<Private>False</Private>

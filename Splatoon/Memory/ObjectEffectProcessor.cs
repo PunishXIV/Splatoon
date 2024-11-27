@@ -21,6 +21,7 @@ internal unsafe class ObjectEffectProcessor
             {
                 var text = $"ObjectEffect: on {a1->Name.Read()} {a1->EntityId.Format()}/{a1->BaseId.Format()} data {a2}, {a3}";
                 Logger.Log(text);
+                if(a1->ObjectKind != FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Pc) P.LogWindow.Log(text);
             }
             var ptr = (nint)a1;
             if (!AttachedInfo.ObjectEffectInfos.ContainsKey(ptr))

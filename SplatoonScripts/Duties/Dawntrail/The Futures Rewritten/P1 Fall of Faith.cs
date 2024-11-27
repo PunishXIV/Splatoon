@@ -234,7 +234,7 @@ public class P1_Fall_of_Faith : SplatoonScript
             case State.None or State.End:
                 Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
                 break;
-            case State.Split:
+            case State.Start or State.Split:
             {
                 if (Controller.TryGetElementByName("Bait", out var bait))
                     bait.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();

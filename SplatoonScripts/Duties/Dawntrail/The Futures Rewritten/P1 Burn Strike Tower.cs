@@ -31,22 +31,26 @@ public class P1_Burn_Strike_Tower : SplatoonScript
     private IBattleNpc?[] _currentTowers = new IBattleNpc[3];
     private readonly ImGuiEx.RealtimeDragDrop<Job> _dragDrop = new("DragDropJob", x => x.ToString());
 
-    private readonly Dictionary<int, uint> TowerCastIds = new()
+    private readonly Dictionary<uint, int> TowerCastIds = new()
     {
-        { 1, 0x9CC7 },
-        { 2, 0x9CBD },
-        { 3, 0x9CBE },
-        { 4, 0x9CBF }
+        { 0x9CC7, 1 },
+        { 0x9CBD, 2 },
+        { 0x9CBE, 3 },
+        { 0x9CBF, 4 },
+        { 0x9CC3, 1 },
+        { 0x9CBA, 2 },
+        { 0x9CBB, 3 },
+        { 0x9CBC, 4 }
     };
 
     private IBattleNpc? _myTower;
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     public IEnumerable<IGameObject> Towers => Svc.Objects.Where(x =>
-        x is IBattleNpc { IsCasting: true } npc && TowerCastIds.ContainsValue(npc.CastActionId));
+        x is IBattleNpc { IsCasting: true } npc && TowerCastIds.ContainsKey(npc.CastActionId));
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -187,15 +191,15 @@ public class P1_Burn_Strike_Tower : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (_state != State.Split) return;
-        if (TowerCastIds.ContainsValue(set.Action.Value.RowId))
+        if (TowerCastIds.ContainsKey(set.Action.Value.RowId))
             _state = State.End;
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId is 40135 or 40130) _state = State.Start;
+        if (castId is 40135 or 40131) _state = State.Start;
 
-        if (TowerCastIds.ContainsValue(castId))
+        if (TowerCastIds.ContainsKey(castId))
             if (source.GetObject() is IBattleNpc npc)
             {
                 switch (npc.Position.Z)
@@ -218,7 +222,7 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                     var index = 0;
                     foreach (var tower in _currentTowers)
                     {
-                        var towerCount = TowerCastIds.First(x => x.Value == tower.CastActionId).Key;
+                        var towerCount = TowerCastIds.First(x => x.Key == tower.CastActionId).Value;
                         var lastIndex = index;
                         index += towerCount;
 

@@ -38,7 +38,7 @@ public class P2_Diamond_Dust : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -374,14 +374,20 @@ public class P2_Diamond_Dust : SplatoonScript
                 var isEast = icicleObject?.Position.X > 105;
                 var isWest = icicleObject?.Position.X < 95;
                 var isNorth = icicleObject?.Position.Z < 95;
+                var isSouth = icicleObject?.Position.Z > 105;
 
-                if (isNorth && isEast)
-                    _firstIcicleImpactDirection = IcicleImpactDirection.NorthEast;
-                else if (isNorth && isWest)
-                    _firstIcicleImpactDirection = IcicleImpactDirection.SouthEast;
-                else if (isEast)
-                    _firstIcicleImpactDirection = IcicleImpactDirection.East;
-                else if (isNorth) _firstIcicleImpactDirection = IcicleImpactDirection.North;
+                _firstIcicleImpactDirection = (isNorth, isEast, isWest, isSouth) switch
+                {
+                    (true, false, false, false) => IcicleImpactDirection.North,
+                    (true, true, false, false) => IcicleImpactDirection.NorthEast,
+                    (false, true, false, false) => IcicleImpactDirection.East,
+                    (false, true, true, false) => IcicleImpactDirection.SouthEast,
+                    (false, false, false, true) => IcicleImpactDirection.North,
+                    (false, false, true, true) => IcicleImpactDirection.NorthEast,
+                    (false, false, true, false) => IcicleImpactDirection.East,
+                    (true, false, true, false) => IcicleImpactDirection.SouthEast,
+                    _ => _firstIcicleImpactDirection
+                };
             }
 
         _aoeType = castId switch

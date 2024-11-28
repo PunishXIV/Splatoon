@@ -149,8 +149,9 @@ public unsafe static class AttachedInfo
         {
             if(x is IBattleChara b) {
                 bool isCasting;
-                try {
-                    isCasting = b.IsCasting;
+                try 
+                {
+                    isCasting = b.Struct()->GetCastInfo() != null && b.IsCasting;
                 }
                 catch {
                     // Ignore invalid BattleChara objects that exist during cutscenes

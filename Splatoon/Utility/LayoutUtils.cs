@@ -175,6 +175,7 @@ public static unsafe class LayoutUtils
 
     public static bool IsCastingMatches(Element e, IBattleChara chr)
     {
+        if(chr == null) return false;
         if (chr.IsCasting(e.refActorCastId))
         {
             if (e.refActorUseCastTime)

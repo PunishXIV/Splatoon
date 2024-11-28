@@ -374,7 +374,7 @@ public class P2_Diamond_Dust : SplatoonScript
                 var icicleObject = source.GetObject();
                 var isEast = icicleObject?.Position.X > 105;
                 var isWest = icicleObject?.Position.X < 95;
-                var isNorth = icicleObject?.Position.Y < 95;
+                var isNorth = icicleObject?.Position.Z < 95;
 
                 if (isNorth && isEast)
                     _firstIcicleImpactDirection = IcicleImpactDirection.NorthEast;

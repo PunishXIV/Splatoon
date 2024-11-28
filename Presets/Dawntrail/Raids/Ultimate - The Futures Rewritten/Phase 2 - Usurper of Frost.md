@@ -35,3 +35,19 @@ Don't look.
 ```
 ~Lv2~{"Name":"P2 - Don't look","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4293328640,"overlayFScale":3.0,"thicc":4.0,"overlayText":"!!! Don't LOOK !!!","refActorDataID":17824,"refActorComparisonType":3,"includeRotation":true,"tether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":4,"refY":10.0,"radius":20.0,"coneAngleMin":-46,"coneAngleMax":46,"color":3356425984,"fillIntensity":0.1,"overlayBGColor":4278190335,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayText":"Don't intersect red!","refActorType":1,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":1,"radius":0.0,"refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":3.2,"MatchIntl":{"En":"The Light shall usher in peace!"},"MatchDelay":2.0}]}
 ```
+
+## [WIP] [Script] Diamond Dust
+It highlights positions.
+Configuration:
+- Set all spread positions based on the 1st Icicle Impact locations.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Diamond%20Dust.cs
+```
+
+## [WIP] [Script] Mirror, Mirror
+It highlights your next mirror positions.
+Configuration:
+- Set your first blue mirror.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Mirror%20Mirror.cs
+```

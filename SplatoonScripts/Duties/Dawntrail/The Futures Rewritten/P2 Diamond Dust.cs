@@ -29,27 +29,9 @@ public class P2_Diamond_Dust : SplatoonScript
         NorthWest
     }
 
-    private enum IcicleImpactDirection
-    {
-        None,
-        North,
-        NorthEast,
-        East,
-        SouthEast
-    }
-
-    private enum State
-    {
-        None,
-        Start,
-        Split,
-        Knockback,
-        Move,
-        End
-    }
-
     private const uint DonutCastId = 40203;
     private const uint CircleCastId = 40202;
+    private AoeType _aoeType = AoeType.None;
 
     private IcicleImpactDirection _firstIcicleImpactDirection = IcicleImpactDirection.None;
     private bool _hasAoe;
@@ -70,24 +52,184 @@ public class P2_Diamond_Dust : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
+        if (_state == State.End) return;
         if (vfxPath == "vfx/lockon/eff/tag_ae5m_8s_0v.avfx")
+        {
             if (target.GetObject() is IPlayerCharacter player)
                 _hasAoe = (player.GetRole() == CombatRole.DPS && Player.Object.GetRole() == CombatRole.DPS) ||
                           ((player.GetRole() == CombatRole.Healer || player.GetRole() == CombatRole.Tank) &&
                            (Player.Object.GetRole() == CombatRole.Healer ||
                             Player.Object.GetRole() == CombatRole.Tank));
+
+            if (_aoeType == AoeType.Circle)
+            {
+                _state = State.Split;
+                var radius = 18f;
+                if (_hasAoe)
+                {
+                    switch (_firstIcicleImpactDirection)
+                    {
+                        case IcicleImpactDirection.North:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasAoe, radius);
+                            break;
+                        case IcicleImpactDirection.NorthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasAoe, radius);
+                            break;
+                        case IcicleImpactDirection.East:
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasAoe, radius);
+                            break;
+                        case IcicleImpactDirection.SouthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasAoe, radius);
+                            break;
+                    }
+                }
+
+                else
+                {
+                    switch (_firstIcicleImpactDirection)
+                    {
+                        case IcicleImpactDirection.North:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasNoAoe, radius);
+                            break;
+                        case IcicleImpactDirection.NorthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasNoAoe, radius);
+                            break;
+                        case IcicleImpactDirection.East:
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe, radius);
+                            break;
+                        case IcicleImpactDirection.SouthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasNoAoe, radius);
+                            break;
+                    }
+                }
+            }
+            else if (_aoeType == AoeType.Donut)
+            {
+                _state = State.Split;
+                if (_hasAoe)
+                {
+                    var radius = 3.5f;
+                    var elementRadius = 0.5f;
+                    switch (_firstIcicleImpactDirection)
+                    {
+                        case IcicleImpactDirection.North:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius, elementRadius);
+                            break;
+                        case IcicleImpactDirection.NorthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasAoe, radius,
+                                elementRadius);
+                            break;
+                        case IcicleImpactDirection.East:
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactDonutHasAoe, radius, elementRadius);
+                            break;
+                        case IcicleImpactDirection.SouthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactDonutHasAoe, radius,
+                                elementRadius);
+                            break;
+                    }
+
+                    if (C.ShowPredictBait)
+                    {
+                        radius = 8.5f;
+                        elementRadius = 0.5f;
+                        switch (_firstIcicleImpactDirection)
+                        {
+                            case IcicleImpactDirection.North:
+                                ApplyElement("Predict", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius,
+                                    elementRadius);
+                                break;
+                            case IcicleImpactDirection.NorthEast:
+                                ApplyElement("Predict", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasAoe, radius,
+                                    elementRadius);
+                                break;
+                            case IcicleImpactDirection.East:
+                                ApplyElement("Predict", C.MoveDirectionWhenEastIcicleImpactDonutHasAoe, radius,
+                                    elementRadius);
+                                break;
+                            case IcicleImpactDirection.SouthEast:
+                                ApplyElement("Predict", C.MoveDirectionWhenSouthEastIcicleImpactDonutHasAoe, radius,
+                                    elementRadius);
+                                break;
+                        }
+                    }
+                }
+
+                else
+                {
+                    var radius = 1f;
+                    var elementRadius = 0.5f;
+                    switch (_firstIcicleImpactDirection)
+                    {
+                        case IcicleImpactDirection.North:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasNoAoe, radius, elementRadius);
+                            break;
+                        case IcicleImpactDirection.NorthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasNoAoe, radius,
+                                elementRadius);
+                            break;
+                        case IcicleImpactDirection.East:
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactDonutHasNoAoe, radius, elementRadius);
+                            break;
+                        case IcicleImpactDirection.SouthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactDonutHasNoAoe, radius,
+                                elementRadius);
+                            break;
+                    }
+                }
+            }
+        }
+
+        else if (_state == State.BurnLockOnAoe && vfxPath == "vfx/common/eff/dk04ht_cur0h.avfx")
+        {
+            _state = State.Knockback;
+            if (Controller.TryGetElementByName("Predict", out var element)) element.Enabled = false;
+            if (_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
+            {
+                if (C.KnockbackDirections.Contains(Direction.SouthEast))
+                    ApplyElement("Bait", Direction.SouthEast, 5f, 1f);
+                else if (C.KnockbackDirections.Contains(Direction.NorthWest))
+                    ApplyElement("Bait", Direction.NorthWest, 5f, 1f);
+            }
+            else if (_firstIcicleImpactDirection == IcicleImpactDirection.North)
+            {
+                if (C.KnockbackDirections.Contains(Direction.North))
+                    ApplyElement("Bait", Direction.North, 5f, 1f);
+                else if (C.KnockbackDirections.Contains(Direction.South))
+                    ApplyElement("Bait", Direction.South, 5f, 1f);
+            }
+            else if (_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
+            {
+                if (C.KnockbackDirections.Contains(Direction.NorthEast))
+                    ApplyElement("Bait", Direction.NorthEast, 5f, 1f);
+                else if (C.KnockbackDirections.Contains(Direction.SouthWest))
+                    ApplyElement("Bait", Direction.SouthWest, 5f, 1f);
+            }
+            else if (_firstIcicleImpactDirection == IcicleImpactDirection.East)
+            {
+                if (C.KnockbackDirections.Contains(Direction.East))
+                    ApplyElement("Bait", Direction.East, 5f, 1f);
+                else if (C.KnockbackDirections.Contains(Direction.West))
+                    ApplyElement("Bait", Direction.West, 5f, 1f);
+            }
+        }
     }
 
     public override void OnSetup()
     {
-        var element = new Element(0)
+        Controller.RegisterElement("Bait", new Element(0)
         {
             tether = true,
             radius = 3f,
             thicc = 6f
-        };
+        });
 
-        Controller.RegisterElement("Bait", element);
+        Controller.RegisterElement("Predict", new Element(0)
+        {
+            tether = true,
+            color = C.PredictBaitColor.ToUint(),
+            radius = 3f,
+            thicc = 6f
+        });
     }
 
     public override void OnUpdate()
@@ -98,8 +240,8 @@ public class P2_Diamond_Dust : SplatoonScript
             return;
         }
 
-        Controller.GetRegisteredElements()
-            .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
+        if (Controller.TryGetElementByName("Bait", out var element))
+            element.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
     }
 
     public override void OnSettingsDraw()
@@ -110,7 +252,14 @@ public class P2_Diamond_Dust : SplatoonScript
             if (ImGuiEx.CollapsingHeader("Circle"))
             {
                 ImGui.Indent();
+                
+                ImGuiEx.Text("Circle Spread Settings");
+                ImGuiEx.HelpMarker(
+                    "Adjust the spread positions based on the initial Icicle Impact locations.\nFor example, if the first Icicle Impacts appear in the east and west, move to the north. You need to determine where to spread in every case.");
+
+                
                 ImGuiEx.Text("No AOE");
+                
                 ImGuiEx.EnumCombo($"East-West##{nameof(C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe)}",
                     ref C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe);
                 ImGuiEx.EnumCombo(
@@ -139,6 +288,10 @@ public class P2_Diamond_Dust : SplatoonScript
             if (ImGuiEx.CollapsingHeader("Donut"))
             {
                 ImGui.Indent();
+                ImGuiEx.Text("Donut Spread Settings");
+                ImGuiEx.HelpMarker(
+                    "Adjust the spread positions based on the initial Icicle Impact locations.\nFor example, if the first Icicle Impacts appear in the east and west, move to the north. You need to determine where to spread in every case.");
+
                 ImGuiEx.Text("No AOE");
                 ImGuiEx.EnumCombo($"East-West##{nameof(C.MoveDirectionWhenEastIcicleImpactDonutHasNoAoe)}",
                     ref C.MoveDirectionWhenEastIcicleImpactDonutHasNoAoe);
@@ -189,6 +342,12 @@ public class P2_Diamond_Dust : SplatoonScript
             ImGui.ColorEdit4("Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
             ImGui.Unindent();
 
+            ImGui.Text("Predict Bait:");
+            ImGui.Indent();
+            ImGui.Checkbox("Show Predict Bait", ref C.ShowPredictBait);
+            ImGui.ColorEdit4("Color", ref C.PredictBaitColor, ImGuiColorEditFlags.NoInputs);
+            ImGui.Unindent();
+
             ImGui.Unindent();
         }
 
@@ -197,6 +356,8 @@ public class P2_Diamond_Dust : SplatoonScript
             ImGui.Indent();
             ImGuiEx.Text($"First Icicle Impact Direction: {_firstIcicleImpactDirection}");
             ImGuiEx.Text($"Has AOE: {_hasAoe}");
+            ImGuiEx.Text($"State: {_state}");
+
             ImGui.Unindent();
         }
     }
@@ -224,69 +385,12 @@ public class P2_Diamond_Dust : SplatoonScript
                 else if (isNorth) _firstIcicleImpactDirection = IcicleImpactDirection.North;
             }
 
-        switch (castId)
+        _aoeType = castId switch
         {
-            case CircleCastId:
-            {
-                _state = State.Split;
-                var radius = 18f;
-                if (_hasAoe)
-                {
-                    if (_firstIcicleImpactDirection == IcicleImpactDirection.North)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.East)
-                        ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasAoe, radius);
-                }
-
-                else
-                {
-                    if (_firstIcicleImpactDirection == IcicleImpactDirection.North)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasNoAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasNoAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.East)
-                        ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasNoAoe, radius);
-                }
-
-                break;
-            }
-            case DonutCastId:
-            {
-                _state = State.Split;
-                var radius = 5f;
-                if (_hasAoe)
-                {
-                    if (_firstIcicleImpactDirection == IcicleImpactDirection.North)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.East)
-                        ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactDonutHasAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactDonutHasAoe, radius);
-                }
-
-                else
-                {
-                    if (_firstIcicleImpactDirection == IcicleImpactDirection.North)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasNoAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasNoAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.East)
-                        ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactDonutHasNoAoe, radius);
-                    else if (_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
-                        ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactDonutHasNoAoe, radius);
-                }
-
-                break;
-            }
-        }
+            CircleCastId => AoeType.Circle,
+            DonutCastId => AoeType.Donut,
+            _ => _aoeType
+        };
     }
 
     private void ApplyElement(string elementName, Direction direction, float radius, float elementRadius = 3f)
@@ -302,6 +406,8 @@ public class P2_Diamond_Dust : SplatoonScript
         }
     }
 
+    
+    
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
@@ -309,34 +415,95 @@ public class P2_Diamond_Dust : SplatoonScript
         if (!set.Action.HasValue) return;
         if (set.Action.Value.RowId is CircleCastId or DonutCastId)
         {
-            _state = State.Knockback;
-            if (_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
+            _state = State.BurnLockOnAoe;
+
+            if (_aoeType == AoeType.Donut)
             {
-                if (C.KnockbackDirections.Contains(Direction.SouthEast))
-                    ApplyElement("Bait", Direction.SouthEast, 5f, 1f);
-                else if (C.KnockbackDirections.Contains(Direction.NorthWest))
-                    ApplyElement("Bait", Direction.NorthWest, 5f, 1f);
+                if (_hasAoe)
+                {
+                    var radius = 8.5f;
+                    var elementRadius = 0.5f;
+                    switch (_firstIcicleImpactDirection)
+                    {
+                        case IcicleImpactDirection.North:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius, elementRadius);
+                            break;
+                        case IcicleImpactDirection.NorthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasAoe, radius,
+                                elementRadius);
+                            break;
+                        case IcicleImpactDirection.East:
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactDonutHasAoe, radius, elementRadius);
+                            break;
+                        case IcicleImpactDirection.SouthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactDonutHasAoe, radius,
+                                elementRadius);
+                            break;
+                    }
+                }
             }
-            else if (_firstIcicleImpactDirection == IcicleImpactDirection.North)
+            else if (_aoeType == AoeType.Circle)
             {
-                if (C.KnockbackDirections.Contains(Direction.North))
-                    ApplyElement("Bait", Direction.North, 5f, 1f);
-                else if (C.KnockbackDirections.Contains(Direction.South))
-                    ApplyElement("Bait", Direction.South, 5f, 1f);
+                if (!_hasAoe)
+                {
+                    var radius = 0.5f;
+                    var elementRadius = 2f;
+                    switch (_firstIcicleImpactDirection)
+                    {
+                        case IcicleImpactDirection.North:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasNoAoe, radius,
+                                elementRadius);
+                            break;
+                        case IcicleImpactDirection.NorthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasNoAoe, radius,
+                                elementRadius);
+                            break;
+                        case IcicleImpactDirection.East:
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe, radius,
+                                elementRadius);
+                            break;
+                        case IcicleImpactDirection.SouthEast:
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasNoAoe, radius,
+                                elementRadius);
+                            break;
+                    }
+                }
             }
-            else if (_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
+
+            if (C.ShowPredictBait)
             {
-                if (C.KnockbackDirections.Contains(Direction.NorthEast))
-                    ApplyElement("Bait", Direction.NorthEast, 5f, 1f);
-                else if (C.KnockbackDirections.Contains(Direction.SouthWest))
-                    ApplyElement("Bait", Direction.SouthWest, 5f, 1f);
+                if (_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
+                {
+                    if (C.KnockbackDirections.Contains(Direction.SouthEast))
+                        ApplyElement("Predict", Direction.SouthEast, 5f, 1f);
+                    else if (C.KnockbackDirections.Contains(Direction.NorthWest))
+                        ApplyElement("Predict", Direction.NorthWest, 5f, 1f);
+                }
+                else if (_firstIcicleImpactDirection == IcicleImpactDirection.North)
+                {
+                    if (C.KnockbackDirections.Contains(Direction.North))
+                        ApplyElement("Predict", Direction.North, 5f, 1f);
+                    else if (C.KnockbackDirections.Contains(Direction.South))
+                        ApplyElement("Predict", Direction.South, 5f, 1f);
+                }
+                else if (_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
+                {
+                    if (C.KnockbackDirections.Contains(Direction.NorthEast))
+                        ApplyElement("Predict", Direction.NorthEast, 5f, 1f);
+                    else if (C.KnockbackDirections.Contains(Direction.SouthWest))
+                        ApplyElement("Predict", Direction.SouthWest, 5f, 1f);
+                }
+                else if (_firstIcicleImpactDirection == IcicleImpactDirection.East)
+                {
+                    if (C.KnockbackDirections.Contains(Direction.East))
+                        ApplyElement("Predict", Direction.East, 5f, 1f);
+                    else if (C.KnockbackDirections.Contains(Direction.West))
+                        ApplyElement("Predict", Direction.West, 5f, 1f);
+                }
             }
-            else if (_firstIcicleImpactDirection == IcicleImpactDirection.East)
+            else
             {
-                if (C.KnockbackDirections.Contains(Direction.East))
-                    ApplyElement("Bait", Direction.East, 5f, 1f);
-                else if (C.KnockbackDirections.Contains(Direction.West))
-                    ApplyElement("Bait", Direction.West, 5f, 1f);
+                if (Controller.TryGetElementByName("Predict", out var element)) element.Enabled = false;
             }
         }
 
@@ -361,6 +528,33 @@ public class P2_Diamond_Dust : SplatoonScript
             Direction.NorthWest => 225,
             _ => 0
         };
+    }
+
+    private enum IcicleImpactDirection
+    {
+        None,
+        North,
+        NorthEast,
+        East,
+        SouthEast
+    }
+
+    private enum State
+    {
+        None,
+        Start,
+        Split,
+        BurnLockOnAoe,
+        Knockback,
+        Move,
+        End
+    }
+
+    private enum AoeType
+    {
+        None,
+        Circle,
+        Donut
     }
 
     public class Config : IEzConfig
@@ -394,5 +588,8 @@ public class P2_Diamond_Dust : SplatoonScript
         public Direction MoveDirectionWhenSouthEastIcicleImpactCircleHasNoAoe = Direction.North;
         public Direction MoveDirectionWhenSouthEastIcicleImpactDonutHasAoe = Direction.North;
         public Direction MoveDirectionWhenSouthEastIcicleImpactDonutHasNoAoe = Direction.North;
+        public Vector4 PredictBaitColor = 0xFF0000FF.ToVector4();
+
+        public bool ShowPredictBait = true;
     }
 }

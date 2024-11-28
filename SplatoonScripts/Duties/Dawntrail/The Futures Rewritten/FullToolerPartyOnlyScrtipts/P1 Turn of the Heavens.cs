@@ -20,7 +20,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
+namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
 internal class P1_Turn_of_the_Heavens :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];

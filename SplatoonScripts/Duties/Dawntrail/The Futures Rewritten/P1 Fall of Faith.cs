@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using ECommons;
+﻿using ECommons;
 using ECommons.Configuration;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -19,10 +16,8 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
-namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
-internal class P1_Fall_of_Faith :SplatoonScript
+public class P1_Fall_of_Faith :SplatoonScript
 {
-    #region Enums
     public enum Direction
     {
         North,
@@ -230,8 +225,8 @@ internal class P1_Fall_of_Faith :SplatoonScript
         switch (_state)
         {
             case State.None or State.End:
-                Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-                break;
+            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            break;
             case State.Split:
             {
                 if (Controller.TryGetElementByName("Bait", out var bait))
@@ -317,21 +312,8 @@ internal class P1_Fall_of_Faith :SplatoonScript
         End
     }
 
-    private enum LR
-    {
-        None,
-        Left,
-        Right
-    }
-    #endregion
+    private record PlayerData(Debuff Debuff, Direction Direction, int Count);
 
-    #region Structs
-    record class PlayerData
-    {
-        int tetherNum = 0;
-        LR lR = LR.None;
-    }
-    #endregion
 
     public class Config :IEzConfig
     {
@@ -377,34 +359,4 @@ internal class P1_Fall_of_Faith :SplatoonScript
         public Direction Tether3Direction = Direction.North;
         public Direction Tether4Direction = Direction.South;
     }
-
-
-    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
-
-    private Dictionary<string, PlayerData> _partyDatas = new();
-
-    private State _state = State.None;
-
-    private int _tetherCount = 1;
-    public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Redmoon");
-    private Config C => Controller.GetConfig<Config>();
-
-    public override void OnSettingsDraw()
-    {
-        if (ImGui.CollapsingHeader("Debug"))
-        {
-            ImGuiEx.Text($"""
-            List:
-            {C.Priority.GetPlayers(x => x.Name.Length <= n).Select(x => x.Name).Print("\n")}
-            
-            Your index: {C.Priority.GetOwnIndex(x => x.Name.Length <= n)}
-            Your index backwards: {C.Priority.GetOwnIndex(x => x.Name.Length <= n, true)}
-            """);
-        }
-    }
-
-
-
-
 }

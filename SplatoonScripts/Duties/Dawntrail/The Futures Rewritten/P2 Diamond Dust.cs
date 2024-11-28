@@ -66,7 +66,6 @@ public class P2_Diamond_Dust : SplatoonScript
                 _state = State.Split;
                 var radius = 18f;
                 if (_hasAoe)
-                {
                     switch (_firstIcicleImpactDirection)
                     {
                         case IcicleImpactDirection.North:
@@ -82,10 +81,8 @@ public class P2_Diamond_Dust : SplatoonScript
                             ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasAoe, radius);
                             break;
                     }
-                }
 
                 else
-                {
                     switch (_firstIcicleImpactDirection)
                     {
                         case IcicleImpactDirection.North:
@@ -101,7 +98,6 @@ public class P2_Diamond_Dust : SplatoonScript
                             ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasNoAoe, radius);
                             break;
                     }
-                }
             }
             else if (_aoeType == AoeType.Donut)
             {
@@ -113,7 +109,8 @@ public class P2_Diamond_Dust : SplatoonScript
                     switch (_firstIcicleImpactDirection)
                     {
                         case IcicleImpactDirection.North:
-                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius, elementRadius);
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius,
+                                elementRadius);
                             break;
                         case IcicleImpactDirection.NorthEast:
                             ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasAoe, radius,
@@ -156,19 +153,21 @@ public class P2_Diamond_Dust : SplatoonScript
 
                 else
                 {
-                    var radius = 1f;
+                    var radius = 2f;
                     var elementRadius = 0.5f;
                     switch (_firstIcicleImpactDirection)
                     {
                         case IcicleImpactDirection.North:
-                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasNoAoe, radius, elementRadius);
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasNoAoe, radius,
+                                elementRadius);
                             break;
                         case IcicleImpactDirection.NorthEast:
                             ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasNoAoe, radius,
                                 elementRadius);
                             break;
                         case IcicleImpactDirection.East:
-                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactDonutHasNoAoe, radius, elementRadius);
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactDonutHasNoAoe, radius,
+                                elementRadius);
                             break;
                         case IcicleImpactDirection.SouthEast:
                             ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactDonutHasNoAoe, radius,
@@ -252,14 +251,14 @@ public class P2_Diamond_Dust : SplatoonScript
             if (ImGuiEx.CollapsingHeader("Circle"))
             {
                 ImGui.Indent();
-                
+
                 ImGuiEx.Text("Circle Spread Settings");
                 ImGuiEx.HelpMarker(
                     "Adjust the spread positions based on the initial Icicle Impact locations.\nFor example, if the first Icicle Impacts appear in the east and west, move to the north. You need to determine where to spread in every case.");
 
-                
+
                 ImGuiEx.Text("No AOE");
-                
+
                 ImGuiEx.EnumCombo($"East-West##{nameof(C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe)}",
                     ref C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe);
                 ImGuiEx.EnumCombo(
@@ -406,8 +405,6 @@ public class P2_Diamond_Dust : SplatoonScript
         }
     }
 
-    
-    
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
@@ -426,7 +423,8 @@ public class P2_Diamond_Dust : SplatoonScript
                     switch (_firstIcicleImpactDirection)
                     {
                         case IcicleImpactDirection.North:
-                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius, elementRadius);
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactDonutHasAoe, radius,
+                                elementRadius);
                             break;
                         case IcicleImpactDirection.NorthEast:
                             ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactDonutHasAoe, radius,

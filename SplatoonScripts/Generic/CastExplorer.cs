@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class CastExplorer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
     uint HoveredID = 0;
     bool HideExpired = false;
 
@@ -31,22 +31,30 @@ public unsafe class CastExplorer : SplatoonScript
         var positions = new List<Vector3>();
         foreach(var x in Svc.Objects.OfType<IBattleNpc>())
         {
-            if(x.IsCasting || x.CastActionId != 0)
+            try
             {
-                if(HideExpired && !x.IsCasting && x.TotalCastTime == x.BaseCastTime) continue;
-                var offsetMod = positions.Count(p => Vector3.Distance(p, x.Position) < 0.5f);
-                positions.Add(x.Position);
-                var elementPos = x.Position + new Vector3(0, offsetMod * 1, 0);
-                var circle = CreateCircle(x);
-                if(HoveredID == x.EntityId)
+                if(x.Struct()->GetCastInfo() == null) continue;
+                if(x.IsCasting() || x.CastActionId != 0)
                 {
-                    circle.overlayBGColor = EColor.Red.ToUint();
+                    if(HideExpired && !x.IsCasting && x.TotalCastTime == x.BaseCastTime) continue;
+                    var offsetMod = positions.Count(p => Vector3.Distance(p, x.Position) < 0.5f);
+                    positions.Add(x.Position);
+                    var elementPos = x.Position + new Vector3(0, offsetMod * 1, 0);
+                    var circle = CreateCircle(x);
+                    if(HoveredID == x.EntityId)
+                    {
+                        circle.overlayBGColor = EColor.Red.ToUint();
+                    }
+                    circle.SetRefPosition(elementPos);
+                    var line = CreateLine(x);
+                    line.offZ = offsetMod * 1f;
+                    Controller.RegisterElement(Guid.NewGuid().ToString(), circle);
+                    Controller.RegisterElement(Guid.NewGuid().ToString(), line);
                 }
-                circle.SetRefPosition(elementPos);
-                var line = CreateLine(x);
-                line.offZ = offsetMod * 1f;
-                Controller.RegisterElement(Guid.NewGuid().ToString(), circle);
-                Controller.RegisterElement(Guid.NewGuid().ToString(), line);
+            }
+            catch(Exception e)
+            {
+                e.Log();
             }
         }
         HoveredID = 0;

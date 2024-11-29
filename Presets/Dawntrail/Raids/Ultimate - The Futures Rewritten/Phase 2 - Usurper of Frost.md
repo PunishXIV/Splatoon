@@ -41,7 +41,7 @@ Diagram to indicate valid positions for flowers and proteans. Does NOT resolves 
 ## Usurper or Frost finder
 Add that will cast twin stillness/silence
 ```
-~Lv2~{"Name":"P2 - Usurper of Frost finder","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":2.0,"color":3372154890,"fillIntensity":0.5,"thicc":4.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[40208],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":10.0,"refActorUseOvercast":true,"includeRotation":true,"tether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+~Lv2~{"Name":"P2 - Usurper of Frost finder","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":2.0,"color":3372154890,"fillIntensity":0.5,"thicc":4.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[40208],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":23.300001,"refActorUseOvercast":true,"includeRotation":true,"tether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
 ## Twin stillness / Twin silence

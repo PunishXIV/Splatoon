@@ -695,11 +695,23 @@ public class P3_Ultimate_Relativity : SplatoonScript
         {
             BaitHourglass(Direction.North);
             PlaceReturnToHourglass(Direction.NorthEast);
-            GoCenter(Direction.East);
+
+            var eastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
+            if (FakeParty.Get().Where(x => x.Name.ToString() == eastPlayer.Value.PlayerName)
+                .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
+                GoCenter(Direction.East);
+            else
+                PlaceReturnToHourglass(Direction.East);
             BaitHourglass(Direction.SouthEast);
             PlaceReturnToHourglass(Direction.South);
             BaitHourglass(Direction.SouthWest);
-            PlaceReturnToHourglass(Direction.West);
+
+            var westPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.West);
+            if (FakeParty.Get().Where(x => x.Name.ToString() == westPlayer.Value.PlayerName)
+                .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
+                GoCenter(Direction.West);
+            else
+                PlaceReturnToHourglass(Direction.West);
             PlaceReturnToHourglass(Direction.NorthWest);
         }
         else if (_state == State.SecondFire)

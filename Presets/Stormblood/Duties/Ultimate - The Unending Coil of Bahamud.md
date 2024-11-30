@@ -11,17 +11,28 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood
 # Twintania phase
 [International] Twisters: Show their location as soon as they appear
 ```
-~Lv2~{"Name":"Twintania Twisters","Group":"UCOB","ZoneLockH":[733],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.9,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":1482,"refActorComparisonAnd":true,"refActorComparisonType":6,"DistanceSourceX":0.21287155,"DistanceSourceY":9.486858,"DistanceMax":24.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"Match":"Twintania readies Twister.","MatchDelay":2.0}]}
+~Lv2~{"Name":"Twintania Twisters","Group":"UCOB","ZoneLockH":[733],"DCond":5,"ElementsL":[{"Name":"twister circles","type":1,"radius":0.9,"refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":1482,"refActorComparisonAnd":true,"refActorComparisonType":6,"DistanceSourceX":0.21287155,"DistanceSourceY":9.486858,"DistanceMax":24.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"Match":"(1482>9898)","MatchDelay":2.0}]}
+~Lv2~{"Name":"Twintania Twisters Dive","Group":"UCOB","ZoneLockH":[733],"DCond":5,"ElementsL":[{"Name":"twister circles","type":1,"radius":0.9,"overlayText":"dive!","refActorModelID":480,"refActorPlaceholder":[],"refActorNPCNameID":1482,"refActorComparisonAnd":true,"refActorComparisonType":6,"DistanceSourceX":0.21287155,"DistanceSourceY":9.486858,"DistanceMax":24.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"Match":"(1482>9906)","MatchDelay":5.0}]}
 ```
 [International] Twisters: Draws yellow markers around party members before they lock in
 ```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20Twisters.cs
+~Lv2~{"Name":"Twintania Twisters Pre","Group":"UCOB","ZoneLockH":[733],"DCond":5,"ElementsL":[{"Name":"player circles","type":1,"radius":0.9,"color":3355507967,"fillIntensity":0.5,"thicc":4.0,"refActorPlaceholder":["<h1>","<h2>","<t1>","<t2>","<d1>","<d2>","<d3>","<d4>"],"refActorComparisonType":5,"DistanceSourceX":0.21287155,"DistanceSourceY":9.486858,"DistanceMax":24.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":2.1,"Match":"(1482>9898)"}]}
+~Lv2~{"Name":"Twintania Twisters Dive Pre","Group":"UCOB","ZoneLockH":[733],"DCond":5,"ElementsL":[{"Name":"player circles","type":1,"radius":0.9,"color":3355507967,"fillIntensity":0.5,"thicc":4.0,"refActorPlaceholder":["<h1>","<h2>","<t1>","<t2>","<d1>","<d2>","<d3>","<d4>"],"refActorComparisonType":5,"DistanceSourceX":0.21287155,"DistanceSourceY":9.486858,"DistanceMax":24.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":2.1,"Match":"(1482>9906)","MatchDelay":3.0}]}
 ```
+[International] Draw green/yellow zone for fire buff and fire tether stacks
+```
+~Lv2~{"Name":"Fire stack","Group":"UCOB","ZoneLockH":[733],"ElementsL":[{"Name":"","type":1,"radius":3.5,"color":2516647680,"fillIntensity":0.5,"refActorComparisonType":7,"refActorVFXPath":"vfx/lockon/eff/bahamut_kakyu_target_t01i.avfx","refActorVFXMax":9000,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":1,"radius":4.0,"color":3355508735,"fillIntensity":0.5,"refActorPlaceholder":["<h1>","<h2>","<t1>","<t2>","<d1>","<d2>","<d3>","<d4>"],"refActorComparisonType":5,"refActorTether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":6.0,"refActorTetherParam1":0,"refActorTetherParam2":5,"refActorTetherParam3":15,"refActorIsTetherSource":false,"refActorTetherConnectedWithPlayer":[]}]}
+```
+
 
 # Nael phase
 [International] [Script] Dragon baits (5 dragons charging towards marked players)
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20dragon%20baits.cs
+```
+[International] Hypernova: Draw red circles on top of Hypernovas to make them visible through VFX
+```
+~Lv2~{"Name":"Hypernova","Group":"UCOB","ZoneLockH":[733],"ElementsL":[{"Name":"","type":1,"radius":5.0,"refActorDataID":2003393,"refActorComparisonType":3,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
 # Suffer (Bahamut Prime)

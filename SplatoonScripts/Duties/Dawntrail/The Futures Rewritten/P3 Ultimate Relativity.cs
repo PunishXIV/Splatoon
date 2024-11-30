@@ -804,7 +804,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     public record PlayerData
     {
         public string? PlayerName { init; get; }
-        public KindFire KindFire { init; get; }
+        public KindFire KindFire { set; get; }
         public int Number { init; get; }
         public Direction? Direction { init; get; }
 

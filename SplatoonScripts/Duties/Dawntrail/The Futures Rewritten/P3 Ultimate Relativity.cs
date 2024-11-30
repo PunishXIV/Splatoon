@@ -107,7 +107,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -206,11 +206,12 @@ public class P3_Ultimate_Relativity : SplatoonScript
                                 y is { StatusId: (uint)Debuff.Fire, RemainingTime: >= 25 })) ?? [])
                         .Select(x => (IPlayerCharacter)x.IGameObject);
 
-
+                    var directions = Enum.GetValues<Direction>().ToList();
                     var index = 0;
                     foreach (var player in earlyPriority)
                         if (player.GetRole() != CombatRole.DPS)
                         {
+                            directions.Remove(Direction.South);
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
@@ -224,6 +225,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             // West
                             if (index == 0)
                             {
+                                directions.Remove(Direction.NorthWest);
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
@@ -236,6 +238,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             // East
                             else
                             {
+                                directions.Remove(Direction.NorthEast);
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
@@ -248,6 +251,8 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
                     foreach (var player in middlePriority)
                         if (player.GetRole() != CombatRole.DPS)
+                        {
+                            directions.Remove(Direction.West);
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
@@ -255,7 +260,10 @@ public class P3_Ultimate_Relativity : SplatoonScript
                                 Number = 1,
                                 Direction = Direction.West
                             };
+                        }
                         else
+                        {
+                            directions.Remove(Direction.East);
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
@@ -263,6 +271,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                                 Number = 2,
                                 Direction = Direction.East
                             };
+                        }
 
                     index = 0;
                     foreach (var player in latePriority)
@@ -271,6 +280,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             // West
                             if (index == 0)
                             {
+                                directions.Remove(Direction.SouthWest);
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
@@ -283,6 +293,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             // East
                             else
                             {
+                                directions.Remove(Direction.SouthEast);
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
@@ -294,6 +305,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                         }
                         else
                         {
+                            directions.Remove(Direction.South);
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
@@ -303,6 +315,21 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             };
                         }
 
+                    var direction = directions.First();
+                    var blizzardPlayer = FakeParty
+                        .Get()
+                        .FirstOrDefault(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Blizzard));
+                    if (blizzardPlayer != null)
+                    {
+                        _playerDatas[blizzardPlayer.GameObjectId] = new PlayerData
+                        {
+                            PlayerName = blizzardPlayer.Name.ToString(),
+                            KindFire = KindFire.Blizzard,
+                            Number = 3,
+                            Direction = direction
+                        };
+                    }
+                    
                     if (_playerDatas.Count != 8) DuoLog.Warning("Error: Not all players are assigned");
                 }
             }

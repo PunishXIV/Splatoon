@@ -163,6 +163,24 @@ public class P3_Ultimate_Relativity : SplatoonScript
         throw new InvalidOperationException();
     }
 
+    private Direction SwapAsOrientation(Direction direction)
+    {
+        if (!C.BaseOrientationIsNorth)
+            return direction switch
+            {
+                Direction.North => Direction.North,
+                Direction.NorthEast => Direction.NorthWest,
+                Direction.East => Direction.West,
+                Direction.SouthEast => Direction.SouthWest,
+                Direction.South => Direction.East,
+                Direction.SouthWest => Direction.SouthEast,
+                Direction.West => Direction.East,
+                Direction.NorthWest => Direction.NorthEast,
+                _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+            };
+        return direction;
+    }
+
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
         if (_state == State.Start)
@@ -211,13 +229,13 @@ public class P3_Ultimate_Relativity : SplatoonScript
                     foreach (var player in earlyPriority)
                         if (player.GetRole() != CombatRole.DPS)
                         {
-                            directions.Remove(Direction.South);
+                            directions.Remove(SwapAsOrientation(Direction.South));
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
                                 KindFire = KindFire.Early,
                                 Number = 3,
-                                Direction = Direction.South
+                                Direction = SwapAsOrientation(Direction.South)
                             };
                         }
                         else
@@ -225,26 +243,26 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             // West
                             if (index == 0)
                             {
-                                directions.Remove(Direction.NorthWest);
+                                directions.Remove(SwapAsOrientation(Direction.NorthWest));
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
                                     KindFire = KindFire.Early,
                                     Number = 1,
-                                    Direction = Direction.NorthWest
+                                    Direction = SwapAsOrientation(Direction.NorthWest)
                                 };
                                 index++;
                             }
                             // East
                             else
                             {
-                                directions.Remove(Direction.NorthEast);
+                                directions.Remove(SwapAsOrientation(Direction.NorthEast));
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
                                     KindFire = KindFire.Early,
                                     Number = 2,
-                                    Direction = Direction.NorthEast
+                                    Direction = SwapAsOrientation(Direction.NorthEast)
                                 };
                             }
                         }
@@ -252,24 +270,24 @@ public class P3_Ultimate_Relativity : SplatoonScript
                     foreach (var player in middlePriority)
                         if (player.GetRole() != CombatRole.DPS)
                         {
-                            directions.Remove(Direction.West);
+                            directions.Remove(SwapAsOrientation(Direction.West));
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
                                 KindFire = KindFire.Middle,
                                 Number = 1,
-                                Direction = Direction.West
+                                Direction = SwapAsOrientation(Direction.West)
                             };
                         }
                         else
                         {
-                            directions.Remove(Direction.East);
+                            directions.Remove(SwapAsOrientation(Direction.East));
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
                                 KindFire = KindFire.Middle,
                                 Number = 2,
-                                Direction = Direction.East
+                                Direction = SwapAsOrientation(Direction.East)
                             };
                         }
 
@@ -280,38 +298,38 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             // West
                             if (index == 0)
                             {
-                                directions.Remove(Direction.SouthWest);
+                                directions.Remove(SwapAsOrientation(Direction.SouthWest));
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
                                     KindFire = KindFire.Late,
                                     Number = 1,
-                                    Direction = Direction.SouthWest
+                                    Direction = SwapAsOrientation(Direction.SouthWest)
                                 };
                                 index++;
                             }
                             // East
                             else
                             {
-                                directions.Remove(Direction.SouthEast);
+                                directions.Remove(SwapAsOrientation(Direction.SouthEast));
                                 _playerDatas[player.GameObjectId] = new PlayerData
                                 {
                                     PlayerName = player.Name.ToString(),
                                     KindFire = KindFire.Late,
                                     Number = 2,
-                                    Direction = Direction.SouthEast
+                                    Direction = SwapAsOrientation(Direction.SouthEast)
                                 };
                             }
                         }
                         else
                         {
-                            directions.Remove(Direction.South);
+                            directions.Remove(SwapAsOrientation(Direction.South));
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
                                 KindFire = KindFire.Late,
                                 Number = 3,
-                                Direction = Direction.South
+                                Direction = SwapAsOrientation(Direction.South)
                             };
                         }
 
@@ -320,7 +338,6 @@ public class P3_Ultimate_Relativity : SplatoonScript
                         .Get()
                         .FirstOrDefault(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Blizzard));
                     if (blizzardPlayer != null)
-                    {
                         _playerDatas[blizzardPlayer.GameObjectId] = new PlayerData
                         {
                             PlayerName = blizzardPlayer.Name.ToString(),
@@ -328,8 +345,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             Number = 3,
                             Direction = direction
                         };
-                    }
-                    
+
                     if (_playerDatas.Count != 8) DuoLog.Warning("Error: Not all players are assigned");
                 }
             }
@@ -355,7 +371,6 @@ public class P3_Ultimate_Relativity : SplatoonScript
             };
         }
     }
-
 
     public override void OnRemoveBuffEffect(uint sourceId, Status Status)
     {
@@ -464,13 +479,26 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        ImGuiEx.Text(EColor.RedBright, """
+                                       This script has not been thoroughly tested.
+                                       It may not work properly.
+                                       If you encounter any bugs, please let us know.
+                                       """);
+
         if (ImGuiEx.CollapsingHeader("General"))
         {
             ImGui.Indent();
             ImGuiEx.EnumCombo("Mode", ref C.Mode);
+            ImGuiEx.HelpMarker(
+                "Marker: Use the marker to determine the direction of the player.\nPriority: Use the priority list to determine the direction of the player.");
             ImGui.Indent();
             if (C.Mode == Mode.Marker)
             {
+                ImGui.Text("""
+                           Set the command to execute when the Fire debuff is applied.
+                           Make sure the command is one that assigns markers.
+                           Please note that the functionality may not work correctly if markers are not assigned to all party members.
+                           """);
                 ImGui.InputText("Early Fire Command", ref C.EarlyFireCommand, 100);
                 ImGui.InputText("Middle Fire Command", ref C.MiddleFireCommand, 100);
                 ImGui.InputText("Late Fire Command", ref C.LateFireCommand, 100);
@@ -510,6 +538,15 @@ public class P3_Ultimate_Relativity : SplatoonScript
             ImGui.SameLine();
             var text = C.LookOutsideText.Get();
             C.LookOutsideText.ImGuiEdit(ref text);
+
+            ImGui.Checkbox("Base Orientation is North", ref C.BaseOrientationIsNorth);
+            ImGuiEx.HelpMarker("""
+                               Set the reference direction.
+                                enabled: The direction in which the shape formed by the yellow hourglass resembles a "Y" is considered north.
+                                disabled: The direction in which the shape formed by the yellow hourglass resembles a "Y" is considered south.
+                                
+                               For developers: Internally, the priority is simply reversed.
+                               """);
             ImGui.Unindent();
         }
 
@@ -557,56 +594,56 @@ public class P3_Ultimate_Relativity : SplatoonScript
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Early,
                         Number = 1,
-                        Direction = C.Attack1Direction
+                        Direction = SwapAsOrientation(C.Attack1Direction)
                     },
                     (uint)MarkerType.Attack2 => new PlayerData
                     {
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Early,
                         Number = 2,
-                        Direction = C.Attack2Direction
+                        Direction = SwapAsOrientation(C.Attack2Direction)
                     },
                     (uint)MarkerType.Attack3 => new PlayerData
                     {
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Early,
                         Number = 3,
-                        Direction = C.Attack3Direction
+                        Direction = SwapAsOrientation(C.Attack3Direction)
                     },
                     (uint)MarkerType.Bind1 => new PlayerData
                     {
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Late,
                         Number = 1,
-                        Direction = C.Bind1Direction
+                        Direction = SwapAsOrientation(C.Bind1Direction)
                     },
                     (uint)MarkerType.Bind2 => new PlayerData
                     {
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Late,
                         Number = 2,
-                        Direction = C.Bind2Direction
+                        Direction = SwapAsOrientation(C.Bind2Direction)
                     },
                     (uint)MarkerType.Bind3 => new PlayerData
                     {
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Late,
                         Number = 3,
-                        Direction = C.Bind3Direction
+                        Direction = SwapAsOrientation(C.Bind3Direction)
                     },
                     (uint)MarkerType.Ignore1 => new PlayerData
                     {
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Middle,
                         Number = 1,
-                        Direction = C.Ignore1Direction
+                        Direction = SwapAsOrientation(C.Ignore1Direction)
                     },
                     (uint)MarkerType.Ignore2 => new PlayerData
                     {
                         PlayerName = player?.Name.ToString(),
                         KindFire = KindFire.Middle,
                         Number = 2,
-                        Direction = C.Ignore2Direction
+                        Direction = SwapAsOrientation(C.Ignore2Direction)
                     },
                     _ => _playerDatas[p2]
                 };
@@ -760,6 +797,8 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+
+        public bool BaseOrientationIsNorth = true;
         public Direction Bind1Direction = Direction.SouthWest;
         public Direction Bind2Direction = Direction.SouthEast;
         public Direction Bind3Direction = Direction.North;

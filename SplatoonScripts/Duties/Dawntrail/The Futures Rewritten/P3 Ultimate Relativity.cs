@@ -681,7 +681,12 @@ public class P3_Ultimate_Relativity : SplatoonScript
             GoOutside(Direction.NorthEast);
             GoCenter(Direction.East);
             GoCenter(Direction.SouthEast);
-            GoOutside(Direction.South);
+
+            if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.South }))
+                GoCenter(Direction.South);
+            else
+                GoOutside(Direction.South);
+
             GoCenter(Direction.SouthWest);
             GoCenter(Direction.West);
             GoOutside(Direction.NorthWest);
@@ -721,7 +726,11 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
         else if (_state == State.ThirdFire)
         {
-            GoOutside(Direction.North);
+            if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.North }))
+                GoCenter(Direction.North);
+            else
+                GoOutside(Direction.North);
+
             GoCenter(Direction.NorthEast);
             GoCenter(Direction.East);
             GoOutside(Direction.SouthEast);

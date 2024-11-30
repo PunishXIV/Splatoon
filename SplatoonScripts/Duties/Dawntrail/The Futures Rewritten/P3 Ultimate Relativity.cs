@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Interface.Components;
@@ -190,6 +191,120 @@ public class P3_Ultimate_Relativity : SplatoonScript
                             throw new ArgumentOutOfRangeException();
                     }
                 }
+                else if (C.Mode == Mode.Priority)
+                {
+                    var earlyPriority = (C.PriorityList.GetPlayers(x =>
+                            ((IPlayerCharacter)x.IGameObject).StatusList.Any(y =>
+                                y is { StatusId: (uint)Debuff.Fire, RemainingTime: < 15 })) ?? [])
+                        .Select(x => (IPlayerCharacter)x.IGameObject);
+                    var middlePriority = (C.PriorityList.GetPlayers(x =>
+                            ((IPlayerCharacter)x.IGameObject).StatusList.Any(y =>
+                                y is { StatusId: (uint)Debuff.Fire, RemainingTime: >= 15 and < 25 })) ?? [])
+                        .Select(x => (IPlayerCharacter)x.IGameObject);
+                    var latePriority = (C.PriorityList.GetPlayers(x =>
+                            ((IPlayerCharacter)x.IGameObject).StatusList.Any(y =>
+                                y is { StatusId: (uint)Debuff.Fire, RemainingTime: >= 25 })) ?? [])
+                        .Select(x => (IPlayerCharacter)x.IGameObject);
+
+
+                    var index = 0;
+                    foreach (var player in earlyPriority)
+                        if (player.GetRole() != CombatRole.DPS)
+                        {
+                            _playerDatas[player.GameObjectId] = new PlayerData
+                            {
+                                PlayerName = player.Name.ToString(),
+                                KindFire = KindFire.Early,
+                                Number = 3,
+                                Direction = Direction.South
+                            };
+                        }
+                        else
+                        {
+                            // West
+                            if (index == 0)
+                            {
+                                _playerDatas[player.GameObjectId] = new PlayerData
+                                {
+                                    PlayerName = player.Name.ToString(),
+                                    KindFire = KindFire.Early,
+                                    Number = 1,
+                                    Direction = Direction.NorthWest
+                                };
+                                index++;
+                            }
+                            // East
+                            else
+                            {
+                                _playerDatas[player.GameObjectId] = new PlayerData
+                                {
+                                    PlayerName = player.Name.ToString(),
+                                    KindFire = KindFire.Early,
+                                    Number = 2,
+                                    Direction = Direction.NorthEast
+                                };
+                            }
+                        }
+
+                    foreach (var player in middlePriority)
+                        if (player.GetRole() != CombatRole.DPS)
+                            _playerDatas[player.GameObjectId] = new PlayerData
+                            {
+                                PlayerName = player.Name.ToString(),
+                                KindFire = KindFire.Middle,
+                                Number = 1,
+                                Direction = Direction.West
+                            };
+                        else
+                            _playerDatas[player.GameObjectId] = new PlayerData
+                            {
+                                PlayerName = player.Name.ToString(),
+                                KindFire = KindFire.Middle,
+                                Number = 2,
+                                Direction = Direction.East
+                            };
+
+                    index = 0;
+                    foreach (var player in latePriority)
+                        if (player.GetRole() != CombatRole.DPS)
+                        {
+                            // West
+                            if (index == 0)
+                            {
+                                _playerDatas[player.GameObjectId] = new PlayerData
+                                {
+                                    PlayerName = player.Name.ToString(),
+                                    KindFire = KindFire.Late,
+                                    Number = 1,
+                                    Direction = Direction.SouthWest
+                                };
+                                index++;
+                            }
+                            // East
+                            else
+                            {
+                                _playerDatas[player.GameObjectId] = new PlayerData
+                                {
+                                    PlayerName = player.Name.ToString(),
+                                    KindFire = KindFire.Late,
+                                    Number = 2,
+                                    Direction = Direction.SouthEast
+                                };
+                            }
+                        }
+                        else
+                        {
+                            _playerDatas[player.GameObjectId] = new PlayerData
+                            {
+                                PlayerName = player.Name.ToString(),
+                                KindFire = KindFire.Late,
+                                Number = 3,
+                                Direction = Direction.South
+                            };
+                        }
+
+                    if (_playerDatas.Count != 8) DuoLog.Warning("Error: Not all players are assigned");
+                }
             }
 
         if (_state == State.End) return;
@@ -199,7 +314,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             var clockwise = Status.Param == 348 ? Clockwise.Clockwise : Clockwise.CounterClockwise;
             var position = sourceId.GetObject()?.Position ?? throw new InvalidOperationException();
             var direction = GetDirection(position);
-            var basedDirection = (Direction)(((int)direction - (int)_baseDirection.Value - 90));
+            var basedDirection = (Direction)((int)direction - (int)_baseDirection.Value - 90);
             if (basedDirection < 0) basedDirection += 360;
 
             _hourglasses[basedDirection] = new Hourglass { Clockwise = clockwise, Direction = direction };
@@ -345,9 +460,9 @@ public class P3_Ultimate_Relativity : SplatoonScript
             }
             else if (C.Mode == Mode.Priority)
             {
-                ImGuiEx.Text(EColor.RedBright, "No implementation yet");
-                ImGuiEx.Text(EColor.RedBright, "Please use Marker mode for now");
-                // C.PriorityList.Draw();
+                ImGui.Text("West");
+                C.PriorityList.Draw();
+                ImGui.Text("East");
             }
 
             ImGui.Unindent();

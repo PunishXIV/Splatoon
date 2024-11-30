@@ -57,7 +57,7 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -70,7 +70,10 @@ public class P2_Mirror_Mirror : SplatoonScript
             if (castId == 40205)
             {
                 var closestDirection = _redMirrorDirections
-                    .OrderBy(dir => Math.Abs((int)dir - (int)_firstActionDirection))
+                    .OrderBy(dir => Math.Min(
+                        Math.Abs((int)dir - (int)_firstActionDirection),
+                        8 - Math.Abs((int)dir - (int)_firstActionDirection)
+                    ))
                     .ThenBy(dir => C.Clockwise == Clockwise.Clockwise ? (int)dir : -(int)dir)
                     .First();
                 ApplyElement(closestDirection);

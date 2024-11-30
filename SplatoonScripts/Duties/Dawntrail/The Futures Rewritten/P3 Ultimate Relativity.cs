@@ -835,7 +835,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         public InternationalString LookOutsideText = new() { En = "Look Outside", Jp = "外を見ろ" };
         public string MiddleFireCommand = "";
 
-        public Mode Mode = Mode.Marker;
+        public Mode Mode = Mode.Priority;
 
         public Vector4 OtherColor = 0xFF0000FF.ToVector4();
         public PriorityData PriorityList = new();

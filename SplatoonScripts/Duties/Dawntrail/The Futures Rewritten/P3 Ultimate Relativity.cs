@@ -191,23 +191,29 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 if (C.Mode == Mode.Marker)
                 {
                     var myKindFire = GetKindFire(Player.Status);
-                    switch (myKindFire)
+                    var random = 0;
+                    if (C.ShouldUseRandomWait)
+                        random = new Random().Next((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
+                    Controller.Schedule(() =>
                     {
-                        case KindFire.Early:
-                            Chat.Instance.ExecuteCommand(C.EarlyFireCommand);
-                            break;
-                        case KindFire.Middle:
-                            Chat.Instance.ExecuteCommand(C.MiddleFireCommand);
-                            break;
-                        case KindFire.Late:
-                            Chat.Instance.ExecuteCommand(C.LateFireCommand);
-                            break;
-                        case KindFire.Blizzard:
-                            Chat.Instance.ExecuteCommand(C.BlizzardCommand);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                        switch (myKindFire)
+                        {
+                            case KindFire.Early:
+                                Chat.Instance.ExecuteCommand(C.EarlyFireCommand);
+                                break;
+                            case KindFire.Middle:
+                                Chat.Instance.ExecuteCommand(C.MiddleFireCommand);
+                                break;
+                            case KindFire.Late:
+                                Chat.Instance.ExecuteCommand(C.LateFireCommand);
+                                break;
+                            case KindFire.Blizzard:
+                                Chat.Instance.ExecuteCommand(C.BlizzardCommand);
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }, random);
                 }
                 else if (C.Mode == Mode.Priority)
                 {
@@ -503,6 +509,26 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 ImGui.InputText("Middle Fire Command", ref C.MiddleFireCommand, 100);
                 ImGui.InputText("Late Fire Command", ref C.LateFireCommand, 100);
                 ImGui.InputText("Blizzard Command", ref C.BlizzardCommand, 100);
+
+                ImGui.Checkbox("Random Wait", ref C.ShouldUseRandomWait);
+                if (C.ShouldUseRandomWait)
+                {
+                    var minWait = C.WaitRange.X;
+                    var maxWait = C.WaitRange.Y;
+                    ImGui.SliderFloat2("Wait Range (sec)", ref C.WaitRange, 0f, 3f, "%.1f");
+                    if (Math.Abs(minWait - C.WaitRange.X) > 0.01f)
+                    {
+                        if (C.WaitRange.X > C.WaitRange.Y)
+                            C.WaitRange.Y = C.WaitRange.X;
+                    }
+                    else if (Math.Abs(maxWait - C.WaitRange.Y) > 0.01f)
+                    {
+                        if (C.WaitRange.Y < C.WaitRange.X)
+                            C.WaitRange.X = C.WaitRange.Y;
+                    }
+                }
+
+
                 ImGui.Separator();
                 ImGuiEx.EnumCombo("Attack 1 Direction", ref C.Attack1Direction);
                 ImGuiEx.EnumCombo("Attack 2 Direction", ref C.Attack2Direction);
@@ -839,6 +865,9 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
         public Vector4 OtherColor = 0xFF0000FF.ToVector4();
         public PriorityData PriorityList = new();
+
+        public bool ShouldUseRandomWait = true;
         public bool ShowOther;
+        public Vector2 WaitRange = new(0.5f, 1.5f);
     }
 }

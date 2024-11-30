@@ -647,6 +647,10 @@ public class P3_Ultimate_Relativity : SplatoonScript
                     },
                     _ => _playerDatas[p2]
                 };
+
+                if (player is IPlayerCharacter playerCharacter &&
+                    playerCharacter.StatusList.Any(x => x.StatusId == (uint)Debuff.Blizzard))
+                    _playerDatas[p2].KindFire = KindFire.Blizzard;
             }
     }
 

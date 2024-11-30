@@ -139,18 +139,17 @@ public class P3_Ultimate_Relativity : SplatoonScript
                     throw new InvalidOperationException()).ToList();
 
                 var baseOrientationHourglass = _earlyHourglassList.Except(nonHourglass).First();
-                _baseDirection = (Direction)((int)GetDirection(baseOrientationHourglass.Position) + 90);
+                _baseDirection = (Direction)((int)GetDirection(baseOrientationHourglass.Position) % 360);
             }
         }
     }
 
     public Direction GetDirection(Vector3 position)
     {
-        var center = new Vector3(100, 0, 100);
-        var isNorth = position.Z < center.Z;
-        var isEast = position.X > center.X;
-        var isSouth = position.Z > center.Z;
-        var isWest = position.X < center.X;
+        var isNorth = position.Z < 95f;
+        var isEast = position.X > 105f;
+        var isSouth = position.Z > 105f;
+        var isWest = position.X < 95f;
 
         if (isNorth && isEast) return Direction.NorthEast;
         if (isEast && isSouth) return Direction.SouthEast;
@@ -199,9 +198,11 @@ public class P3_Ultimate_Relativity : SplatoonScript
         {
             var clockwise = Status.Param == 348 ? Clockwise.Clockwise : Clockwise.CounterClockwise;
             var position = sourceId.GetObject()?.Position ?? throw new InvalidOperationException();
-            var basedDirection = ((int)GetDirection(position) - (int)_baseDirection.Value + 360) % 360;
+            var direction = GetDirection(position);
+            var basedDirection = (Direction)(((int)direction - (int)_baseDirection.Value - 90));
+            if (basedDirection < 0) basedDirection += 360;
 
-            _hourglasses[(Direction)basedDirection] = new Hourglass { Clockwise = clockwise };
+            _hourglasses[basedDirection] = new Hourglass { Clockwise = clockwise, Direction = direction };
 
             _state = _hourglasses.Count switch
             {
@@ -230,7 +231,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     public void BaitHourglass(Direction direction)
     {
         if (_baseDirection == null) return;
-        var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value) % 360);
+        var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
         var hourglass = _hourglasses[direction];
         var radius = 11f;
         var offset = hourglass.Clockwise == Clockwise.Clockwise ? -15 : 15;
@@ -258,7 +259,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     {
         var radius = 18f;
         if (_baseDirection == null) return;
-        var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value) % 360);
+        var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
         var center = new Vector2(100, 100);
         var position = new Vector2(
             center.X + radius * MathF.Cos(MathF.PI * (int)basedDirection / 180),
@@ -272,7 +273,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     public void PlaceReturnToHourglass(Direction direction)
     {
         if (_baseDirection == null) return;
-        var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value) % 360);
+        var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
         var radius = 10f;
         var center = new Vector2(100, 100);
         var position = new Vector2(
@@ -313,6 +314,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         _baseDirection = null;
         _earlyHourglassList.Clear();
         _lateHourglassList.Clear();
+        _positions.Clear();
 
         if (Controller.TryGetElementByName("Text", out var element)) element.Enabled = false;
         Controller.GetRegisteredElements().Each(x => x.Value.tether = false);
@@ -343,8 +345,8 @@ public class P3_Ultimate_Relativity : SplatoonScript
             }
             else if (C.Mode == Mode.Priority)
             {
-                ImGuiEx.Text(EColor.RedBright,"No implementation yet");
-                ImGuiEx.Text(EColor.RedBright,"Please use Marker mode for now");
+                ImGuiEx.Text(EColor.RedBright, "No implementation yet");
+                ImGuiEx.Text(EColor.RedBright, "Please use Marker mode for now");
                 // C.PriorityList.Draw();
             }
 
@@ -390,7 +392,8 @@ public class P3_Ultimate_Relativity : SplatoonScript
             ImGuiEx.EzTable("Hourglasses", _hourglasses.SelectMany(x => new ImGuiEx.EzTableEntry[]
             {
                 new("Direction", () => ImGuiEx.Text(x.Key.ToString())),
-                new("Clockwise", () => ImGuiEx.Text(x.Value.Clockwise.ToString()))
+                new("Clockwise", () => ImGuiEx.Text(x.Value.Clockwise.ToString())),
+                new("OriginalDirection", () => ImGuiEx.Text(x.Value.Direction.ToString()))
             }));
         }
     }
@@ -399,70 +402,72 @@ public class P3_Ultimate_Relativity : SplatoonScript
         uint p6, ulong targetId,
         byte replaying)
     {
-        if (_state is not (State.None or State.End) && _playerDatas.Count < 8)
+        if (_state is not (State.None or State.End))
             if (command == 502)
             {
                 var player = Svc.Objects.FirstOrDefault(x => x.GameObjectId == p2);
                 if (player == null) PluginLog.Warning("Error: Cannot find player");
-                switch (p1)
+
+                _playerDatas[p2] = p1 switch
                 {
-                    case (uint)MarkerType.Attack1:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Early, Number = 1,
-                            Direction = C.Attack1Direction
-                        });
-                        break;
-                    case (uint)MarkerType.Attack2:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Early, Number = 2,
-                            Direction = C.Attack2Direction
-                        });
-                        break;
-                    case (uint)MarkerType.Attack3:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Early, Number = 3,
-                            Direction = C.Attack3Direction
-                        });
-                        break;
-                    case (uint)MarkerType.Bind1:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Late, Number = 1,
-                            Direction = C.Bind1Direction
-                        });
-                        break;
-                    case (uint)MarkerType.Bind2:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Late, Number = 2,
-                            Direction = C.Bind2Direction
-                        });
-                        break;
-                    case (uint)MarkerType.Bind3:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Late, Number = 3,
-                            Direction = C.Bind3Direction
-                        });
-                        break;
-                    case (uint)MarkerType.Ignore1:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Middle, Number = 1,
-                            Direction = C.Ignore1Direction
-                        });
-                        break;
-                    case (uint)MarkerType.Ignore2:
-                        _playerDatas.Add(p2, new PlayerData
-                        {
-                            PlayerName = player?.Name.ToString(), KindFire = KindFire.Middle, Number = 2,
-                            Direction = C.Ignore2Direction
-                        });
-                        break;
-                }
+                    (uint)MarkerType.Attack1 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Early,
+                        Number = 1,
+                        Direction = C.Attack1Direction
+                    },
+                    (uint)MarkerType.Attack2 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Early,
+                        Number = 2,
+                        Direction = C.Attack2Direction
+                    },
+                    (uint)MarkerType.Attack3 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Early,
+                        Number = 3,
+                        Direction = C.Attack3Direction
+                    },
+                    (uint)MarkerType.Bind1 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Late,
+                        Number = 1,
+                        Direction = C.Bind1Direction
+                    },
+                    (uint)MarkerType.Bind2 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Late,
+                        Number = 2,
+                        Direction = C.Bind2Direction
+                    },
+                    (uint)MarkerType.Bind3 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Late,
+                        Number = 3,
+                        Direction = C.Bind3Direction
+                    },
+                    (uint)MarkerType.Ignore1 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Middle,
+                        Number = 1,
+                        Direction = C.Ignore1Direction
+                    },
+                    (uint)MarkerType.Ignore2 => new PlayerData
+                    {
+                        PlayerName = player?.Name.ToString(),
+                        KindFire = KindFire.Middle,
+                        Number = 2,
+                        Direction = C.Ignore2Direction
+                    },
+                    _ => _playerDatas[p2]
+                };
             }
     }
 
@@ -478,6 +483,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         Controller.GetRegisteredElements().Where(x => x.Key != "Text").Each(x =>
         {
             x.Value.color = C.OtherColor.ToUint();
+            x.Value.tether = false;
             x.Value.Enabled = C.ShowOther;
         });
 
@@ -588,6 +594,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     public record Hourglass
     {
         public Clockwise Clockwise { get; init; }
+        public Direction Direction { get; init; }
     }
 
     public record PlayerData

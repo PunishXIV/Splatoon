@@ -19,6 +19,8 @@ H1 H2 T1 T2 R1 R2 M1 M2
 ```
 Fill in the configuration accordingly.
 
+And please uncheck **Base Orientation is North**.
+
 ### Marker Mode
 This mode allows you to execute commands when a debuff is applied.
 - Write the commands corresponding to each debuff.
@@ -43,6 +45,7 @@ West
 East
 ```
 Fill in the configuration accordingly.
+And please check **Base Orientation is North**.
 
 To prevent marker assignment conflicts, use **Random Wait** as necessary.
 

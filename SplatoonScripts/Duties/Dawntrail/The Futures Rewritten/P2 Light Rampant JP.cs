@@ -101,6 +101,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
         {
             radius = 4f,
             thicc = 6f,
+            tether = true,
             overlayText = "<< Go Here >>",
             overlayFScale = 3f,
             overlayVOffset = 3f

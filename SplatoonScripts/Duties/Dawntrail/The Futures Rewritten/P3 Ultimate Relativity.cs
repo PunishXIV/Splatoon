@@ -329,13 +329,13 @@ public class P3_Ultimate_Relativity : SplatoonScript
                         }
                         else
                         {
-                            directions.Remove(SwapAsOrientation(Direction.South));
+                            directions.Remove(SwapAsOrientation(Direction.North));
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
                                 KindFire = KindFire.Late,
                                 Number = 3,
-                                Direction = SwapAsOrientation(Direction.South)
+                                Direction = SwapAsOrientation(Direction.North)
                             };
                         }
 

@@ -90,7 +90,7 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/
 
 
 ```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P5%20Wrath%20of%20the%20Heavens.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's%20Reprise/P5%20Death%20of%20the%20Heavens.cs
 ```
 
 [International][Beta][Untested] Caster Limit Break

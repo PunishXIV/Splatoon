@@ -1,26 +1,23 @@
 ﻿using ECommons.GameHelpers;
 using ECommons.PartyFunctions;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 #nullable enable
 
 namespace Splatoon.SplatoonScripting.Priority;
+/// <summary>
+/// If you need other amount of players in your priority list, create a class that inherits PriorityData and override GetNumPlayers method.
+/// </summary>
 public class PriorityData
 {
     internal string ID = GetTemporaryId();
     public string Name = "Priority list";
     public string Description = "";
-    internal int NumPlayers = 8;
+    public virtual int GetNumPlayers() => 8;
     /// <summary>
     /// Do not access directly!
     /// </summary>
     public List<PriorityList> PriorityLists = [];
 
     public PriorityData() { }
-
-    public PriorityData(int numPlayers)
-    {
-        this.NumPlayers = numPlayers;
-    }
 
     public void Draw()
     {
@@ -34,11 +31,11 @@ public class PriorityData
         {
             var playerList = PriorityLists[i];
             playerList.DragDrop.Begin();
-            while (playerList.List.Count > NumPlayers)
+            while (playerList.List.Count > GetNumPlayers())
             {
                 playerList.List.RemoveAt(playerList.List.Count - 1);
             }
-            while (playerList.List.Count < NumPlayers)
+            while (playerList.List.Count < GetNumPlayers())
             {
                 playerList.List.Add(new());
             }
@@ -72,13 +69,13 @@ public class PriorityData
                 var cur = ImGui.GetCursorPos();
                 ImGui.SetCursorPos(statusCursor);
 
-                if(NumPlayers > UniversalParty.LengthPlayback)
+                if(GetNumPlayers() > UniversalParty.LengthPlayback)
                 {
                     ImGui.PushFont(UiBuilder.IconFont);
                     ImGuiEx.TextV(EColor.OrangeBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
                     ImGui.PopFont();
                     ImGui.SameLine();
-                    ImGuiEx.Text(EColor.OrangeBright, $"Can't validate list: there are less than {NumPlayers} players in your party. ");
+                    ImGuiEx.Text(EColor.OrangeBright, $"Can't validate list: there are less than {GetNumPlayers()} players in your party. ");
                 }
                 else
                 {

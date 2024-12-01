@@ -412,14 +412,14 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoCenter(Direction direction)
+    public void GoCenter(Direction direction,float radius = 2f)
     {
         if (_baseDirection == null) return;
         var center = new Vector2(100f, 100f);
         _positions[direction] = center;
         if (Controller.TryGetElementByName(direction.ToString(), out var element))
         {
-            element.radius = 2f;
+            element.radius = radius;
             element.SetOffPosition(center.ToVector3(0f));
         }
     }
@@ -749,7 +749,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             GoCenter(Direction.SouthEast);
 
             if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.South }))
-                GoCenter(Direction.South);
+                GoCenter(Direction.South,1f);
             else
                 GoOutside(Direction.South);
 
@@ -824,7 +824,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         else if (_state == State.ThirdFire)
         {
             if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.North }))
-                GoCenter(Direction.North);
+                GoCenter(Direction.North,1f);
             else
                 GoOutside(Direction.North);
 

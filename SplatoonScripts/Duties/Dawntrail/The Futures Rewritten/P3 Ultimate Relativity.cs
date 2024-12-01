@@ -172,7 +172,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 Direction.NorthEast => Direction.NorthWest,
                 Direction.East => Direction.West,
                 Direction.SouthEast => Direction.SouthWest,
-                Direction.South => Direction.East,
+                Direction.South => Direction.South,
                 Direction.SouthWest => Direction.SouthEast,
                 Direction.West => Direction.East,
                 Direction.NorthWest => Direction.NorthEast,
@@ -191,23 +191,29 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 if (C.Mode == Mode.Marker)
                 {
                     var myKindFire = GetKindFire(Player.Status);
-                    switch (myKindFire)
+                    var random = 0;
+                    if (C.ShouldUseRandomWait)
+                        random = new Random().Next((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
+                    Controller.Schedule(() =>
                     {
-                        case KindFire.Early:
-                            Chat.Instance.ExecuteCommand(C.EarlyFireCommand);
-                            break;
-                        case KindFire.Middle:
-                            Chat.Instance.ExecuteCommand(C.MiddleFireCommand);
-                            break;
-                        case KindFire.Late:
-                            Chat.Instance.ExecuteCommand(C.LateFireCommand);
-                            break;
-                        case KindFire.Blizzard:
-                            Chat.Instance.ExecuteCommand(C.BlizzardCommand);
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
+                        switch (myKindFire)
+                        {
+                            case KindFire.Early:
+                                Chat.Instance.ExecuteCommand(C.EarlyFireCommand);
+                                break;
+                            case KindFire.Middle:
+                                Chat.Instance.ExecuteCommand(C.MiddleFireCommand);
+                                break;
+                            case KindFire.Late:
+                                Chat.Instance.ExecuteCommand(C.LateFireCommand);
+                                break;
+                            case KindFire.Blizzard:
+                                Chat.Instance.ExecuteCommand(C.BlizzardCommand);
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException();
+                        }
+                    }, random);
                 }
                 else if (C.Mode == Mode.Priority)
                 {
@@ -323,13 +329,13 @@ public class P3_Ultimate_Relativity : SplatoonScript
                         }
                         else
                         {
-                            directions.Remove(SwapAsOrientation(Direction.South));
+                            directions.Remove(SwapAsOrientation(Direction.North));
                             _playerDatas[player.GameObjectId] = new PlayerData
                             {
                                 PlayerName = player.Name.ToString(),
                                 KindFire = KindFire.Late,
                                 Number = 3,
-                                Direction = SwapAsOrientation(Direction.South)
+                                Direction = SwapAsOrientation(Direction.North)
                             };
                         }
 
@@ -400,16 +406,40 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
         _positions[direction] = position;
         if (Controller.TryGetElementByName(direction.ToString(), out var element))
+        {
+            element.radius = 0.5f;
             element.SetOffPosition(position.ToVector3(0f));
+        }
     }
 
-    public void GoCenter(Direction direction)
+    public void GoCenter(Direction direction,float radius = 2f)
     {
         if (_baseDirection == null) return;
         var center = new Vector2(100f, 100f);
         _positions[direction] = center;
         if (Controller.TryGetElementByName(direction.ToString(), out var element))
+        {
+            element.radius = radius;
             element.SetOffPosition(center.ToVector3(0f));
+        }
+    }
+    
+    public void GoNearCenter(Direction direction)
+    {
+        var radius = 1f;
+        if (_baseDirection == null) return;
+        var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
+        var center = new Vector2(100, 100);
+        var position = new Vector2(
+            center.X + radius * MathF.Cos(MathF.PI * (int)basedDirection / 180),
+            center.Y + radius * MathF.Sin(MathF.PI * (int)basedDirection / 180)
+        );
+        _positions[direction] = position;
+        if (Controller.TryGetElementByName(direction.ToString(), out var element))
+        {
+            element.radius = 0.5f;
+            element.SetOffPosition(position.ToVector3(0f));
+        }
     }
 
     public void GoOutside(Direction direction)
@@ -424,14 +454,16 @@ public class P3_Ultimate_Relativity : SplatoonScript
         );
         _positions[direction] = position;
         if (Controller.TryGetElementByName(direction.ToString(), out var element))
+        {
+            element.radius = 2f;
             element.SetOffPosition(position.ToVector3(0f));
+        }
     }
 
-    public void PlaceReturnToHourglass(Direction direction)
+    public void PlaceReturnToHourglass(Direction direction,float radius)
     {
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
-        var radius = 10f;
         var center = new Vector2(100, 100);
         var position = new Vector2(
             center.X + radius * MathF.Cos(MathF.PI * (int)basedDirection / 180),
@@ -439,8 +471,16 @@ public class P3_Ultimate_Relativity : SplatoonScript
         );
         _positions[direction] = position;
         if (Controller.TryGetElementByName(direction.ToString(), out var element))
+        {
+            element.radius = 1f;
             element.SetOffPosition(position.ToVector3(0f));
+        }
     }
+
+    public void PlaceReturnToHourglass(Direction direction) => PlaceReturnToHourglass(direction, 10f);
+    
+    public void PlaceReturnToHourglassOutside(Direction direction) => PlaceReturnToHourglass(direction, 12f);
+    public void PlaceReturnToHourglassInside(Direction direction) => PlaceReturnToHourglass(direction, 8f);
 
 
     public override void OnSetup()
@@ -457,6 +497,8 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
         Controller.RegisterElement("Text", new Element(0)
         {
+            offX = 100f,
+            offY = 100f,
             overlayFScale = 5f,
             overlayVOffset = 5f,
             radius = 0f
@@ -503,6 +545,26 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 ImGui.InputText("Middle Fire Command", ref C.MiddleFireCommand, 100);
                 ImGui.InputText("Late Fire Command", ref C.LateFireCommand, 100);
                 ImGui.InputText("Blizzard Command", ref C.BlizzardCommand, 100);
+
+                ImGui.Checkbox("Random Wait", ref C.ShouldUseRandomWait);
+                if (C.ShouldUseRandomWait)
+                {
+                    var minWait = C.WaitRange.X;
+                    var maxWait = C.WaitRange.Y;
+                    ImGui.SliderFloat2("Wait Range (sec)", ref C.WaitRange, 0f, 3f, "%.1f");
+                    if (Math.Abs(minWait - C.WaitRange.X) > 0.01f)
+                    {
+                        if (C.WaitRange.X > C.WaitRange.Y)
+                            C.WaitRange.Y = C.WaitRange.X;
+                    }
+                    else if (Math.Abs(maxWait - C.WaitRange.Y) > 0.01f)
+                    {
+                        if (C.WaitRange.Y < C.WaitRange.X)
+                            C.WaitRange.X = C.WaitRange.Y;
+                    }
+                }
+
+
                 ImGui.Separator();
                 ImGuiEx.EnumCombo("Attack 1 Direction", ref C.Attack1Direction);
                 ImGuiEx.EnumCombo("Attack 2 Direction", ref C.Attack2Direction);
@@ -687,7 +749,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             GoCenter(Direction.SouthEast);
 
             if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.South }))
-                GoCenter(Direction.South);
+                GoCenter(Direction.South,1f);
             else
                 GoOutside(Direction.South);
 
@@ -698,25 +760,44 @@ public class P3_Ultimate_Relativity : SplatoonScript
         else if (_state == State.BaitEarlyHourglass)
         {
             BaitHourglass(Direction.North);
-            PlaceReturnToHourglass(Direction.NorthEast);
+            
+            var northEastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
+            if (FakeParty.Get().Where(x => x.Name.ToString() == northEastPlayer.Value.PlayerName)
+                .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
+                PlaceReturnToHourglassOutside(Direction.NorthEast);
+            else
+                PlaceReturnToHourglassInside(Direction.NorthEast);
 
             var eastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
             if (FakeParty.Get().Where(x => x.Name.ToString() == eastPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
-                GoCenter(Direction.East);
+                GoNearCenter(Direction.East);
             else
                 PlaceReturnToHourglass(Direction.East);
             BaitHourglass(Direction.SouthEast);
-            PlaceReturnToHourglass(Direction.South);
+            
+            var southPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
+            if (FakeParty.Get().Where(x => x.Name.ToString() == southPlayer.Value.PlayerName)
+                .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
+                PlaceReturnToHourglassOutside(Direction.South);
+            else
+                PlaceReturnToHourglassInside(Direction.South);
+            
             BaitHourglass(Direction.SouthWest);
 
             var westPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.West);
             if (FakeParty.Get().Where(x => x.Name.ToString() == westPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
-                GoCenter(Direction.West);
+                GoNearCenter(Direction.West);
             else
                 PlaceReturnToHourglass(Direction.West);
-            PlaceReturnToHourglass(Direction.NorthWest);
+            
+            var northWestPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.NorthWest);
+            if (FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)
+                .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
+                PlaceReturnToHourglassOutside(Direction.NorthWest);
+            else
+                PlaceReturnToHourglassInside(Direction.NorthWest);
         }
         else if (_state == State.SecondFire)
         {
@@ -731,19 +812,19 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
         else if (_state == State.BaitNoTetherHourglass)
         {
-            GoCenter(Direction.North);
+            GoNearCenter(Direction.North);
             BaitHourglass(Direction.NorthEast);
             GoCenter(Direction.East);
-            GoCenter(Direction.SouthEast);
+            GoNearCenter(Direction.SouthEast);
             BaitHourglass(Direction.South);
-            GoCenter(Direction.SouthWest);
+            GoNearCenter(Direction.SouthWest);
             GoCenter(Direction.West);
             BaitHourglass(Direction.NorthWest);
         }
         else if (_state == State.ThirdFire)
         {
             if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.North }))
-                GoCenter(Direction.North);
+                GoCenter(Direction.North,1f);
             else
                 GoOutside(Direction.North);
 
@@ -839,6 +920,9 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
         public Vector4 OtherColor = 0xFF0000FF.ToVector4();
         public PriorityData PriorityList = new();
+
+        public bool ShouldUseRandomWait = true;
         public bool ShowOther;
+        public Vector2 WaitRange = new(0.5f, 1.5f);
     }
 }

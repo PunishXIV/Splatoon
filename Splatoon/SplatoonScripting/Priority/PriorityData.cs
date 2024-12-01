@@ -9,11 +9,18 @@ public class PriorityData
     internal string ID = GetTemporaryId();
     public string Name = "Priority list";
     public string Description = "";
-    public int NumPlayers = 8;
+    internal int NumPlayers = 8;
     /// <summary>
     /// Do not access directly!
     /// </summary>
     public List<PriorityList> PriorityLists = [];
+
+    public PriorityData() { }
+
+    public PriorityData(int numPlayers)
+    {
+        this.NumPlayers = numPlayers;
+    }
 
     public void Draw()
     {

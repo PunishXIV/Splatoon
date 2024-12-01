@@ -14,6 +14,17 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Mirror%20Mirror.cs
 ```
 
+## [JP] [WIP] [Script] Light Rampant JP
+It highlights your tower.
+Configuration:
+- Set player names and directions.
+- It is based on the following strategy.
+  https://x.com/anzucadesu/status/1861717909548196323
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Light%20Rampant%2JP.cs
+```
+
+
 ## Flower-like explosions
 Will show after knockback, to not obstruct your view. Feel free to edit that out but good luck seeing anything...
 ```

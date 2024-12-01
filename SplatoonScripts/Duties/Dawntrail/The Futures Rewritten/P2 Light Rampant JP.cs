@@ -16,7 +16,7 @@ using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
-public class P2_Light_Tempest_JP : SplatoonScript
+public class P2_Light_Rampant_JP : SplatoonScript
 {
     public enum Direction
     {

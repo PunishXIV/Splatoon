@@ -88,3 +88,8 @@ Shows only for EN clients, requires translation
 ```
 ~Lv2~{"Name":"P2 - Banish III Spread","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"近くにいるプレイヤー","type":1,"radius":6.0,"color":4278190335,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":2.0,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorComparisonType":5,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"ー","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"Spread","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.5,"Match":"(12809>40221)"}],"MaxDistance":7.5,"UseDistanceLimit":true,"DistanceLimitType":1}
 ```
+
+## Light rampant orb explosion
+```
+~Lv2~{"Name":"P2 - Light rampant orb explosion","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":1,"radius":11.0,"refActorNPCNameID":9318,"refActorRequireCast":true,"refActorCastId":[40219],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":4.7,"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```

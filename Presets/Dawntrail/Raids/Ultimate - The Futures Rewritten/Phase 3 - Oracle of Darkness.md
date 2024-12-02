@@ -38,9 +38,9 @@ For example, for the following DPS settings in the given strategy:
 NorthWest
 NorthEast
 South
-North
 SouthWest
 SouthEast
+North
 West
 East
 ```

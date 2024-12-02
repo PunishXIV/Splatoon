@@ -84,6 +84,8 @@ public class P4_Crystallize_Time : SplatoonScript
         East
     }
 
+    private readonly Vector2 _center = new(100, 100);
+
     private readonly List<IBattleChara> _earlyHourglassList = new();
     private readonly List<IBattleChara> _lateHourglassList = new();
 
@@ -307,10 +309,8 @@ public class P4_Crystallize_Time : SplatoonScript
         _earlyHourglassList.Clear();
         _lateHourglassList.Clear();
     }
-    
-    private readonly Vector2 _center = new(100, 100);
-    
-    
+
+
     public Vector2 SwapXIfNecessary(Vector2 position)
     {
         if (_lateHourglassDirection == Direction.NorthEast || _lateHourglassDirection == Direction.SouthWest)
@@ -363,7 +363,6 @@ public class P4_Crystallize_Time : SplatoonScript
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
         }
-
 
 
         var myMove = _players[Player.Object.GameObjectId].MoveType.ToString();
@@ -733,9 +732,17 @@ public class P4_Crystallize_Time : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        ImGuiEx.Text(EColor.RedBright, """
+                                       This script has not been thoroughly tested.
+                                       It may not work properly.
+                                       If you encounter any bugs, please let us know.
+                                       """);
         if (ImGuiEx.CollapsingHeader("General"))
         {
+            ImGui.Text("West");
             C.PriorityData.Draw();
+            ImGui.Text("East");
+
             ImGui.Separator();
             ImGuiEx.Text("Sentence Moves");
             ImGui.Indent();

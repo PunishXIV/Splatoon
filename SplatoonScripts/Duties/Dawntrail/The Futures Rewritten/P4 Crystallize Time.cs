@@ -37,14 +37,14 @@ public class P4_Crystallize_Time : SplatoonScript
 
     public enum Direction
     {
-        North,
-        NorthEast,
-        East,
-        SouthEast,
-        South,
-        SouthWest,
-        West,
-        NorthWest
+        North = 0,
+        NorthEast = 45,
+        East = 90,
+        SouthEast = 135,
+        South = 180,
+        SouthWest = 225,
+        West = 270,
+        NorthWest = 315
     }
 
     public enum MoveType
@@ -93,9 +93,12 @@ public class P4_Crystallize_Time : SplatoonScript
 
     private int _burnHourglassCount;
 
+    private Direction _debugDirection1 = Direction.North;
+    private Direction _debugDirection2 = Direction.North;
+
     private Direction? _firstWaveDirection;
 
-    private Direction _lateHourglassDirection;
+    private Direction? _lateHourglassDirection;
     private Direction? _secondWaveDirection;
 
     private State _state = State.None;
@@ -123,17 +126,34 @@ public class P4_Crystallize_Time : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action.Value.RowId == 40299)
+        if (_state is State.None or State.End) return;
+        if (set.Action is null) return;
+        switch (set.Action.Value.RowId)
         {
-            _burnHourglassCount++;
-            if (_burnHourglassCount == 2)
-                _state = State.HitDragonAndRed;
-            else if (_burnHourglassCount == 4) _state = State.HitDragonAndAero;
+            case 40299:
+            {
+                _burnHourglassCount++;
+                _state = _burnHourglassCount switch
+                {
+                    2 => State.HitDragonAndRed,
+                    4 => State.HitDragonAndAero,
+                    _ => _state
+                };
+                break;
+            }
+            case 40280:
+            {
+                if (_state == State.HitDragonAndRed)
+                    _state = State.BurnHourglass;
+                break;
+            }
+            case 40289:
+            {
+                if (_state == State.Split)
+                    _state = State.End;
+                break;
+            }
         }
-
-        if (set.Action.Value.RowId == 40280)
-            if (_state == State.HitDragonAndRed)
-                _state = State.BurnHourglass;
     }
 
     public override void OnRemoveBuffEffect(uint sourceId, Status Status)
@@ -150,7 +170,7 @@ public class P4_Crystallize_Time : SplatoonScript
 
         if (_state == State.PlaceReturn)
             if (FakeParty.Get().All(x => x.StatusList.All(y => y.StatusId != (uint)Debuff.Return)))
-                _state = State.End;
+                _state = State.Split;
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
@@ -228,6 +248,8 @@ public class P4_Crystallize_Time : SplatoonScript
                     case (uint)Debuff.Quietus:
                         _players[player.GameObjectId].HasQuietus = true;
                         break;
+                    case (uint)Debuff.Return:
+                        break;
                     default:
                         _players[player.GameObjectId].Debuff = (Debuff)debuff.StatusId;
                         break;
@@ -261,7 +283,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 foreach (var otherPlayer in _players.Where(x => x.Value.MoveType == null))
                     _players[otherPlayer.Key].MoveType = otherPlayer.Value.Debuff switch
                     {
-                        Debuff.Aero => MoveType.BlueHoly,
+                        Debuff.Holy => MoveType.BlueHoly,
                         Debuff.Blizzard => MoveType.BlueBlizzard,
                         Debuff.Water => MoveType.BlueWater,
                         Debuff.Eruption => MoveType.BlueEruption,
@@ -277,11 +299,24 @@ public class P4_Crystallize_Time : SplatoonScript
     {
         _state = State.None;
         _baseDirection = null;
-        _lateHourglassDirection = Direction.North;
+        _lateHourglassDirection = null;
         _firstWaveDirection = null;
         _secondWaveDirection = null;
         _players.Clear();
         _burnHourglassCount = 0;
+        _earlyHourglassList.Clear();
+        _lateHourglassList.Clear();
+    }
+    
+    private readonly Vector2 _center = new(100, 100);
+    
+    
+    public Vector2 SwapXIfNecessary(Vector2 position)
+    {
+        if (_lateHourglassDirection == Direction.NorthEast || _lateHourglassDirection == Direction.SouthWest)
+            return position;
+        var swapX = _center.X * 2 - position.X;
+        return new Vector2(swapX, position.Y);
     }
 
     public override void OnSetup()
@@ -329,21 +364,27 @@ public class P4_Crystallize_Time : SplatoonScript
             return;
         }
 
-        Controller.GetRegisteredElements()
-            .Where(x => x.Key != "Alert")
-            .Each(x =>
-            {
-                x.Value.color = EColor.Red.ToUint();
-                x.Value.Enabled = C.ShowOther;
-            });
+
 
         var myMove = _players[Player.Object.GameObjectId].MoveType.ToString();
-        if (myMove != null)
-            if (Controller.TryGetElementByName(myMove, out var element))
+        foreach (var move in Enum.GetValues<MoveType>())
+            if (Controller.TryGetElementByName(move.ToString(), out var element))
             {
-                element.Enabled = true;
-                element.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
-                element.tether = true;
+                if (_state == State.PlaceReturn)
+                {
+                    element.Enabled = false;
+                    continue;
+                }
+
+                element.Enabled = C.ShowOther;
+                element.color = EColor.Red.ToUint();
+
+                if (myMove == move.ToString())
+                {
+                    element.Enabled = true;
+                    element.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+                    element.tether = true;
+                }
             }
 
         switch (_state)
@@ -375,6 +416,9 @@ public class P4_Crystallize_Time : SplatoonScript
             case State.PlaceReturn:
                 PlaceReturn();
                 break;
+            case State.Split:
+                Split();
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -396,10 +440,9 @@ public class P4_Crystallize_Time : SplatoonScript
                 MoveType.BlueEruption => new Vector2(96, 104),
                 _ => throw new InvalidOperationException()
             };
-
+            position = SwapXIfNecessary(position);
             if (Controller.TryGetElementByName(move.ToString(), out var element))
             {
-                element.Enabled = true;
                 element.radius = 2f;
                 element.SetOffPosition(position.ToVector3(0));
             }
@@ -423,9 +466,9 @@ public class P4_Crystallize_Time : SplatoonScript
                 _ => throw new InvalidOperationException()
             };
 
+            position = SwapXIfNecessary(position);
             if (Controller.TryGetElementByName(player.ToString(), out var element))
             {
-                element.Enabled = true;
                 element.radius = 0.5f;
                 element.SetOffPosition(position.ToVector3(0));
             }
@@ -449,9 +492,9 @@ public class P4_Crystallize_Time : SplatoonScript
                 _ => throw new InvalidOperationException()
             };
 
+            position = SwapXIfNecessary(position);
             if (Controller.TryGetElementByName(player.ToString(), out var element))
             {
-                element.Enabled = true;
                 element.radius = 0.5f;
                 element.SetOffPosition(position.ToVector3(0));
             }
@@ -482,9 +525,9 @@ public class P4_Crystallize_Time : SplatoonScript
                 _ => throw new InvalidOperationException()
             };
 
+            position = SwapXIfNecessary(position);
             if (Controller.TryGetElementByName(player.ToString(), out var element))
             {
-                element.Enabled = true;
                 element.radius = 0.5f;
                 element.SetOffPosition(position.ToVector3(0));
             }
@@ -514,9 +557,9 @@ public class P4_Crystallize_Time : SplatoonScript
                 _ => throw new InvalidOperationException()
             };
 
+            position = SwapXIfNecessary(position);
             if (Controller.TryGetElementByName(player.ToString(), out var element))
             {
-                element.Enabled = true;
                 element.radius = 2f;
                 element.SetOffPosition(position.ToVector3(0));
             }
@@ -569,9 +612,9 @@ public class P4_Crystallize_Time : SplatoonScript
             else if (player == C.EastSentence)
                 position = new Vector2(113, 100);
 
+            position = SwapXIfNecessary(position);
             if (Controller.TryGetElementByName(player.ToString(), out var element))
             {
-                element.Enabled = true;
                 element.radius = 2f;
                 element.SetOffPosition(position.ToVector3(0));
             }
@@ -582,41 +625,110 @@ public class P4_Crystallize_Time : SplatoonScript
 
     public void PlaceReturn()
     {
-        foreach (var player in Enum.GetValues<MoveType>())
+        var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
         {
-            var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
-            {
-                (Direction.North, Direction.East) => Direction.NorthEast,
-                (Direction.East, Direction.South) => Direction.SouthEast,
-                (Direction.South, Direction.West) => Direction.SouthWest,
-                (Direction.West, Direction.North) => Direction.NorthWest,
-                (Direction.North, Direction.West) => Direction.NorthWest,
-                (Direction.West, Direction.South) => Direction.SouthWest,
-                (Direction.South, Direction.East) => Direction.SouthEast,
-                (Direction.East, Direction.North) => Direction.NorthEast,
-                _ => throw new InvalidOperationException()
-            };
+            (Direction.North, Direction.East) => Direction.NorthEast,
+            (Direction.East, Direction.South) => Direction.SouthEast,
+            (Direction.South, Direction.West) => Direction.SouthWest,
+            (Direction.West, Direction.North) => Direction.NorthWest,
+            (Direction.North, Direction.West) => Direction.NorthWest,
+            (Direction.West, Direction.South) => Direction.SouthWest,
+            (Direction.South, Direction.East) => Direction.SouthEast,
+            (Direction.East, Direction.North) => Direction.NorthEast,
+            _ => throw new InvalidOperationException()
+        };
 
-            var position = returnDirection switch
-            {
-                Direction.NorthEast => new Vector2(115, 85),
-                Direction.SouthEast => new Vector2(115, 115),
-                Direction.SouthWest => new Vector2(85, 115),
-                Direction.NorthWest => new Vector2(85, 85),
-                _ => throw new InvalidOperationException()
-            };
+        var basePosition = returnDirection switch
+        {
+            Direction.NorthEast => new Vector2(113, 87),
+            Direction.SouthEast => new Vector2(113, 113),
+            Direction.SouthWest => new Vector2(87, 113),
+            Direction.NorthWest => new Vector2(87, 87),
+            _ => throw new InvalidOperationException()
+        };
 
-            if (Controller.TryGetElementByName(player.ToString(), out var element))
+        var isWest = returnDirection switch
+        {
+            Direction.NorthEast => C.IsWestWhenNorthEastWave,
+            Direction.SouthEast => C.IsWestWhenSouthEastWave,
+            Direction.SouthWest => C.IsWestWhenSouthWestWave,
+            Direction.NorthWest => C.IsWestWhenNorthWestWave,
+            _ => throw new InvalidOperationException()
+        };
+
+        var myStack = (isWest, C.IsTank) switch
+        {
+            (true, true) => WaveStack.WestTank,
+            (false, true) => WaveStack.EastTank,
+            (true, false) => WaveStack.West,
+            (false, false) => WaveStack.East
+        };
+
+        var westTankPosition = basePosition;
+        var eastTankPosition = basePosition;
+        var westPosition = basePosition;
+        var eastPosition = basePosition;
+
+        switch (returnDirection)
+        {
+            case Direction.NorthEast:
+                westTankPosition += new Vector2(-3f, -0.5f);
+                eastTankPosition += new Vector2(0.5f, 3f);
+                westPosition += new Vector2(-3f, 1f);
+                eastPosition += new Vector2(-1f, 3f);
+                break;
+            case Direction.SouthEast:
+                westTankPosition += new Vector2(-3f, 0.5f);
+                eastTankPosition += new Vector2(0.5f, -3f);
+                westPosition += new Vector2(-3f, -1f);
+                eastPosition += new Vector2(-1f, -3f);
+                break;
+            case Direction.SouthWest:
+                westTankPosition += new Vector2(-0.5f, -3f);
+                eastTankPosition += new Vector2(3f, 0.5f);
+                westPosition += new Vector2(1f, -3f);
+                eastPosition += new Vector2(3f, -1f);
+                break;
+            default:
+                westTankPosition += new Vector2(-0.5f, 3f);
+                eastTankPosition += new Vector2(3f, -0.5f);
+                westPosition += new Vector2(1f, 3f);
+                eastPosition += new Vector2(3f, -1f);
+                break;
+        }
+
+        westTankPosition = SwapXIfNecessary(westTankPosition);
+        eastTankPosition = SwapXIfNecessary(eastTankPosition);
+        westPosition = SwapXIfNecessary(westPosition);
+        eastPosition = SwapXIfNecessary(eastPosition);
+
+        foreach (var stack in Enum.GetValues<WaveStack>())
+            if (Controller.TryGetElementByName(stack + nameof(WaveStack), out var element))
             {
-                element.Enabled = true;
-                element.radius = 1f;
-                element.SetOffPosition(position.ToVector3(0));
+                element.Enabled = C.ShowOther;
+                element.radius = stack is WaveStack.WestTank or WaveStack.EastTank ? 0.5f : 1.2f;
+                element.SetOffPosition(stack switch
+                {
+                    WaveStack.WestTank => westTankPosition.ToVector3(0),
+                    WaveStack.EastTank => eastTankPosition.ToVector3(0),
+                    WaveStack.West => westPosition.ToVector3(0),
+                    WaveStack.East => eastPosition.ToVector3(0),
+                    _ => throw new InvalidOperationException()
+                });
             }
+
+        if (Controller.TryGetElementByName(myStack + nameof(WaveStack), out var myElement))
+        {
+            myElement.Enabled = true;
+            myElement.tether = true;
+            myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
         }
     }
 
     public void Split()
     {
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        Alert("散開！");
     }
 
     public override void OnSettingsDraw()
@@ -689,8 +801,67 @@ public class P4_Crystallize_Time : SplatoonScript
                 new("Has Quietus", () => ImGuiEx.Text(x.Value.HasQuietus.ToString())),
                 new("Move Type", () => ImGuiEx.Text(x.Value.MoveType.ToString()))
             }));
+
+            ImGuiEx.EnumCombo("First Wave Direction", ref _debugDirection1);
+            ImGuiEx.EnumCombo("Second Wave Direction", ref _debugDirection2);
+            if (ImGui.Button("Show Return Placement"))
+            {
+                _firstWaveDirection = _debugDirection1;
+                _secondWaveDirection = _debugDirection2;
+                _state = State.PlaceReturn;
+            }
         }
     }
+
+    /*public class CoordinateTransformer(Direction baseDirection, Direction targetDirection, Vector2 center = default)
+    {
+        public Direction TransformedTargetDirection
+        {
+            get
+            {
+                var baseAngle = (int)baseDirection;
+                var targetAngle = (int)targetDirection;
+
+                var relativeAngle = (targetAngle - baseAngle + 360) % 360;
+
+                return (Direction)relativeAngle;
+            }
+        }
+
+        private static Vector2 RotatePoint(Vector2 pos, float angle)
+        {
+            var rad = Math.PI * angle / 180.0;
+            var newX = pos.X * Math.Cos(rad) - pos.Y * Math.Sin(rad);
+            var newY = pos.X * Math.Sin(rad) + pos.Y * Math.Cos(rad);
+            return new Vector2((float)newX, (float)newY);
+        }
+
+        public Vector2 Transform(Vector2 targetCoords)
+        {
+            var baseAngle = (int)baseDirection;
+
+            var relativePosition = targetCoords - center;
+            var rotated = RotatePoint(relativePosition, -baseAngle);
+
+            if (TransformedTargetDirection is Direction.NorthEast or Direction.SouthWest) return rotated + center;
+
+            var axisDirection = RotatePoint(Vector2.UnitY, baseAngle); // 基準方向の軸ベクトル
+            rotated = ReflectAcrossAxis(rotated, Vector2.Zero, axisDirection); // 左上原点で反転
+            return rotated + center;
+        }
+
+        private static Vector2 ReflectAcrossAxis(Vector2 point, Vector2 axisOrigin, Vector2 axisDirection)
+        {
+            var axis = Vector2.Normalize(axisDirection - axisOrigin);
+
+            var relativePoint = point - axisOrigin;
+            var projection = Vector2.Dot(relativePoint, axis) * axis;
+
+            var reflection = 2 * projection - relativePoint;
+
+            return axisOrigin + reflection;
+        }
+    }*/
 
     public record PlayerData()
     {

@@ -21,7 +21,7 @@ Configuration:
 - It is based on the following strategy.
   https://x.com/anzucadesu/status/1861717909548196323
 ```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Light%20Rampant%2JP.cs
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Light%20Rampant%20JP.cs
 ```
 
 

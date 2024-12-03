@@ -21,6 +21,7 @@ public class PriorityData
 
     public void Draw()
     {
+        ImGui.PushID(this.ID);
         if (PriorityLists.Count == 0) PriorityLists.Add(new());
         if (ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new priority list"))
         {
@@ -106,6 +107,7 @@ public class PriorityData
             ImGui.NewLine();
             ImGui.NewLine();
         }
+        ImGui.PopID();
     }
 
     public PriorityList? GetFirstValidList()

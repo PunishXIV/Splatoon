@@ -1,260 +1,99 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
-using ECommons;
+﻿using ECommons;
 using ECommons.DalamudServices;
-using ECommons.ImGuiMethods;
-using ECommons.Logging;
-using ECommons.Schedulers;
-using ECommons.SplatoonAPI;
-using ImGuiNET;
-using Lumina.Excel.Sheets;
+using ECommons.MathHelpers;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
+    public override Metadata? Metadata => new(2, "Errer, NightmareXIV");
+    public long StartTime = 0;
 
-    List<IGameObject> objectsWithTargetDataId = new List<IGameObject>();
-
-    List<IGameObject> allObjects = new List<IGameObject>();
-    public override Metadata? Metadata => new(1, "Errer");
-
-    IBattleNpc? OracleofDarkness  => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.IsTargetable && x.DataId == 17831);
-
-    private IBattleChara[] fire => [.. Svc.Objects.OfType<IBattleChara>().Where(x => x.DataId == 2011391)];
-
-    private TickScheduler? _scheduler;
-
-
+    Dictionary<int, Vector2> Positions = new()
+    {
+        [0] = new(100, 100),
+        [1] = new(100, 86),
+        [2] = new(109.9f, 90.1f),
+        [3] = new(114, 100),
+        [4] = new(109.9f, 109.9f),
+        [-4] = new(90.1f, 90.1f),
+        [-3] = new(86, 100),
+        [-2] = new(90.1f, 109.9f),
+        [-1] = new(100, 114),
+    };
 
     public override void OnSetup()
     {
-
+        for(int i = 0; i < 6; i++)
+        {
+            Controller.RegisterElementFromCode($"Circle{i}", "{\"Name\":\"Circle\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":9.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            Controller.RegisterElementFromCode($"EarlyCircle{i}", "{\"Name\":\"Circle\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":9.0,\"color\":3355508223,\"fillIntensity\":0.25,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        }
     }
 
-    private void FireCircle(IGameObject obj)
+    int[][] Clockwise = [[0, 1, -1], [0, 1, -1, 2, -2], [1, 2, 3, -1, -2, -3], [2, 3, 4, -2, -3, -4], [1, 3, 4, -1, -3, -4], [1,2,4,-1,-2,-4]];
+    int[][] CounterClockwise = [[0, 1, -1], [0, 1, -1, 4, -4], [1, 3, 4, -1, -3, -4], [2, 3, 4, -2, -3, -4], [1, 2, 3, -1, -2, -3], [1, 2, 4, -1, -2, -4]];
+
+    void Draw(int[] values, int rotation, bool early = false)
     {
-
-        Controller.RegisterElementFromCode(obj.GameObjectId.ToString(), $"{{\"Name\":\"Cross\",\"type\":1,\"radius\":9.0,\"fillIntensity\":0.5,\"refActorObjectID\":{obj.GameObjectId},\"refActorComparisonType\":2,\"includeRotation\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}}");
-        Controller.ScheduleReset(20000);
-
-
+        for(int i = 0; i < values.Length; i++)
+        {
+            if(Controller.TryGetElementByName((early?"Early":"")+$"Circle{i}", out var e))
+            {
+                e.Enabled = true;
+                var pos = Positions[values[i]].ToVector3(0);
+                var rotated = MathHelper.RotateWorldPoint(new(100, 0, 100), rotation.DegreesToRadians(), pos);
+                e.SetRefPosition(rotated);
+            }
+        }
     }
+
+    int InitialDelay = 14000 + 4000;
+    int Delay = 2000;
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        var sourceObj = source.GetObject();
-        if (sourceObj == null)
-            return;
-
-        if (sourceObj.DataId == 0 || sourceObj.DataId != 17831)
-            return;
-
-        if (castId == 40296)
-        {
-
-            _scheduler = new TickScheduler(() =>
-            {
-                ShowElement();
-            }, 10000);
-
-            _scheduler = new TickScheduler(() =>
-            {
-                OnReset();
-            }, 18000);
-
-
-
-        }
-
-
-
-
-
+        if(castId == 40296) StartTime = Environment.TickCount64;
     }
-
-    public void ShowElement()
-    {
-        var objectsToProcess = allObjects.Take(6).ToList();
-        foreach (var obj in objectsToProcess)
-        {
-          
-            FireCircle(obj);
-        }
-
-    }
-
-
 
     public override void OnUpdate()
     {
-       
-
-        if (OracleofDarkness == null)
-            return;
-        if (fire.Length == 0)
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        var obj = Svc.Objects.Where(x => x.DataId == 2011391);
+        var close = obj.FirstOrDefault(x => Vector3.Distance(x.Position, Positions[0].ToVector3(0)) < 1f);
+        var far = obj.FirstOrDefault(x => Vector3.Distance(x.Position, Positions[1].ToVector3(0)) < 1f);
+        if(close != null && far != null)
         {
-          objectsWithTargetDataId.Clear();
-          allObjects.Clear();
-        }
-
-        Calculatelocation();
-
-
-
-    }
-
-    public override void OnReset()
-    {
-        Controller.ClearRegisteredElements();
-    }
-
-    public override void OnSettingsDraw()
-    {
-        if (ImGuiEx.CollapsingHeader("Debug"))
-        {
-            ImGui.Indent();
-            foreach (var obj in allObjects)
+            var rot = close.Rotation.RadToDeg();
+            var angle = 0;
+            if(rot.InRange(22, 22 + 45) || rot.InRange(180 + 22, 180 + 22 + 45)) angle = 45*3;
+            if(rot.InRange(22 + 45, 22 + 45 * 2) || rot.InRange(180 + 22 + 45, 180 + 22 + 45 * 2)) angle = 45*2;
+            if(rot.InRange(22 + 45*2, 22 + 45 * 3) || rot.InRange(180 + 22 + 45*2, 180 + 22 + 45 * 3)) angle = 45;
+            var isClockwise = far.Rotation.RadToDeg().InRange(45,45+90);
+            var set = isClockwise ? Clockwise : CounterClockwise;
+            var phase = Environment.TickCount64 - StartTime;
+            if(phase > 6000)
             {
-                ImGui.Text($"gameobjid = {obj.GameObjectId}, pos = ({obj.Position.X}, {obj.Position.Y}, {obj.Position.Z})");
-            }
-            ImGui.Unindent();
-        }
-
-    }
-
-    public void Calculatelocation()
-    {
-        var targetPosition = new Vector3(100, 0, 100);
-        foreach (var gameObject in Svc.Objects)
-        {
-            if (gameObject.DataId == 0x1EB0FF)
-            {
-                objectsWithTargetDataId.Add(gameObject);
-            }
-        }
-        if (objectsWithTargetDataId.Count < 2)
-        {
-
-            return;
-        }
-        var closestObjects = objectsWithTargetDataId
-            .OrderBy(obj => Vector3.Distance(obj.Position, targetPosition))
-            .Take(2)
-            .ToList();
-        for (int i = 0; i < closestObjects.Count; i++)
-        {
-            var gameObject = closestObjects[i];
-            Vector3 position = gameObject.Position;
-            float facing = gameObject.Rotation;
-            float facingDegrees = facing * (180 / MathF.PI);
-            if (facingDegrees < 0)
-            {
-                facingDegrees += 360;
-            }
-            float dx = MathF.Cos(facing);  
-            float dz = MathF.Sin(facing);  
-            float distance = 15f;
-            float newX = position.X + dz * distance;  
-            float newZ = position.Z + dx * distance;  
-            IGameObject nextTarget = null;
-            float minDistance = float.MaxValue;
-
-            foreach (var obj in Svc.Objects)
-            {
-                if (obj.DataId == 0x1EB0FF)
+                for(int i = 0; i < 6; i++)
                 {
-        
-                    float dist = Vector3.Distance(new Vector3(newX, position.Y, newZ), obj.Position);
-                    if (dist < minDistance)
+                    if(phase < InitialDelay + Delay * i)
                     {
-                        minDistance = dist;
-                        nextTarget = obj;
-                    }
-                }
-            }
-
-        
-            if (nextTarget != null)
-            {
-              
-                allObjects.Add(gameObject);
-            
-                Vector3 nextPosition = nextTarget.Position;
-                float nextFacing = nextTarget.Rotation;
-     
-                float nextDx = MathF.Cos(nextFacing);
-                float nextDz = MathF.Sin(nextFacing);
-
-                float nextNewX = nextPosition.X + nextDz * distance;
-                float nextNewZ = nextPosition.Z + nextDx * distance;
-
-                IGameObject secondNextTarget = null;
-                float secondMinDistance = float.MaxValue;
-
-                foreach (var obj in Svc.Objects)
-                {
-                    if (obj.DataId == 0x1EB0FF)
-                    {
-                        float dist = Vector3.Distance(new Vector3(nextNewX, nextPosition.Y, nextNewZ), obj.Position);
-                        if (dist < secondMinDistance)
+                        Draw(set[i], angle);
+                        if(i < 5)
                         {
-                            secondMinDistance = dist;
-                            secondNextTarget = obj;
+                            Draw(set[i + 1].Where(x => !set[i].Contains(x)).ToArray(), angle, true);
                         }
-                    }
-                }
-
-                if (secondNextTarget != null)
-                {
-                    allObjects.Add(nextTarget);
-
-                    Vector3 secondNextPosition = secondNextTarget.Position;
-                    float secondNextFacing = secondNextTarget.Rotation;
-                    float secondNextDx = MathF.Cos(secondNextFacing);
-                    float secondNextDz = MathF.Sin(secondNextFacing);
-                    float secondNextNewX = secondNextPosition.X + secondNextDz * distance;
-                    float secondNextNewZ = secondNextPosition.Z + secondNextDx * distance;
-                    IGameObject thirdNextTarget = null;
-                    float thirdMinDistance = float.MaxValue;
-
-                    foreach (var obj in Svc.Objects)
-                    {
-                        if (obj.DataId == 0x1EB0FF)
-                        {
-                            float dist = Vector3.Distance(new Vector3(secondNextNewX, secondNextPosition.Y, secondNextNewZ), obj.Position);
-                            if (dist < thirdMinDistance)
-                            {
-                                thirdMinDistance = dist;
-                                thirdNextTarget = obj;
-                            }
-                        }
-                    }
-
-                    if (thirdNextTarget != null)
-                    {
-
-                        allObjects.Add(secondNextTarget);
+                        break;
                     }
                 }
             }
         }
-
-      
     }
-
-
-
-
-
-
-
 }

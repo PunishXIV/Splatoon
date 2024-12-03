@@ -54,7 +54,7 @@ D4 -  D1 > D2 > D3
 0 = NE// 1=  SW -// 2 = N
 ```
 
-Thanks for Braum Oak 
+Thanks for Tora
 
 ## [WIP] [Script] AutoTargetCrystal
 Auto-targets nearest light crystal, then auto-targets the center crystal after all light crystals are destroyed.

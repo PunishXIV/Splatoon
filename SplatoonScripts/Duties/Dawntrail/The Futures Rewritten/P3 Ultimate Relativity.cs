@@ -107,7 +107,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -364,7 +364,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             var position = sourceId.GetObject()?.Position ?? throw new InvalidOperationException();
             var direction = GetDirection(position);
             var basedDirection = (Direction)((int)direction - (int)_baseDirection.Value - 90);
-            if (basedDirection < 0) basedDirection += 360;
+            while (basedDirection < 0) basedDirection += 360;
 
             _hourglasses[basedDirection] = new Hourglass { Clockwise = clockwise, Direction = direction };
 
@@ -412,7 +412,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoCenter(Direction direction,float radius = 2f)
+    public void GoCenter(Direction direction, float radius = 2f)
     {
         if (_baseDirection == null) return;
         var center = new Vector2(100f, 100f);
@@ -423,7 +423,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             element.SetOffPosition(center.ToVector3(0f));
         }
     }
-    
+
     public void GoNearCenter(Direction direction)
     {
         var radius = 1f;
@@ -460,7 +460,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void PlaceReturnToHourglass(Direction direction,float radius)
+    public void PlaceReturnToHourglass(Direction direction, float radius)
     {
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
@@ -477,10 +477,20 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void PlaceReturnToHourglass(Direction direction) => PlaceReturnToHourglass(direction, 10f);
-    
-    public void PlaceReturnToHourglassOutside(Direction direction) => PlaceReturnToHourglass(direction, 12f);
-    public void PlaceReturnToHourglassInside(Direction direction) => PlaceReturnToHourglass(direction, 8f);
+    public void PlaceReturnToHourglass(Direction direction)
+    {
+        PlaceReturnToHourglass(direction, 10f);
+    }
+
+    public void PlaceReturnToHourglassOutside(Direction direction)
+    {
+        PlaceReturnToHourglass(direction, 11f);
+    }
+
+    public void PlaceReturnToHourglassInside(Direction direction)
+    {
+        PlaceReturnToHourglass(direction, 8f);
+    }
 
 
     public override void OnSetup()
@@ -732,9 +742,10 @@ public class P3_Ultimate_Relativity : SplatoonScript
             x.Value.Enabled = C.ShowOther;
         });
 
-        var myDirection = _playerDatas.First(x => x.Value.PlayerName == Player.Name).Value.Direction.ToString();
+        var myDirection = _playerDatas.FirstOrDefault(x => x.Value.PlayerName == Player.Name).Value?.Direction
+            .ToString();
         if (myDirection == null) return;
-        if (Controller.TryGetElementByName(myDirection!, out var myElement) && myElement.offX != 0f)
+        if (Controller.TryGetElementByName(myDirection, out var myElement) && myElement.offX != 0f)
         {
             myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
             myElement.tether = true;
@@ -749,7 +760,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             GoCenter(Direction.SouthEast);
 
             if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.South }))
-                GoCenter(Direction.South,1f);
+                GoCenter(Direction.South, 1f);
             else
                 GoOutside(Direction.South);
 
@@ -760,7 +771,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         else if (_state == State.BaitEarlyHourglass)
         {
             BaitHourglass(Direction.North);
-            
+
             var northEastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
             if (FakeParty.Get().Where(x => x.Name.ToString() == northEastPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
@@ -775,14 +786,14 @@ public class P3_Ultimate_Relativity : SplatoonScript
             else
                 PlaceReturnToHourglass(Direction.East);
             BaitHourglass(Direction.SouthEast);
-            
+
             var southPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
             if (FakeParty.Get().Where(x => x.Name.ToString() == southPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
                 PlaceReturnToHourglassOutside(Direction.South);
             else
                 PlaceReturnToHourglassInside(Direction.South);
-            
+
             BaitHourglass(Direction.SouthWest);
 
             var westPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.West);
@@ -791,7 +802,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 GoNearCenter(Direction.West);
             else
                 PlaceReturnToHourglass(Direction.West);
-            
+
             var northWestPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.NorthWest);
             if (FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
@@ -824,7 +835,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         else if (_state == State.ThirdFire)
         {
             if (_playerDatas.Any(x => x.Value is { KindFire: KindFire.Blizzard, Direction: Direction.North }))
-                GoCenter(Direction.North,1f);
+                GoCenter(Direction.North, 1f);
             else
                 GoOutside(Direction.North);
 

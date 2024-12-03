@@ -56,6 +56,12 @@ D4 -  D1 > D2 > D3
 
 Thanks for Braum Oak 
 
+## [WIP] [Script] AutoTargetCrystal
+Auto-targets nearest light crystal, then auto-targets the center crystal after all light crystals are destroyed.
+No configuration needed.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20AutoTargetCrystal.cs
+```
 
 ## Flower-like explosions
 Will show after knockback, to not obstruct your view. Feel free to edit that out but good luck seeing anything...

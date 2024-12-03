@@ -32,7 +32,7 @@ D1 D2 D3 D4
 T1 - Put No name 
 0 = NW // 1 = None // 2 = None
 
-T2 adjust for 
+T2 - Put T1 name
 0 = S // 1 = NW // 2 = None
 
 H1 - T1 > T2
@@ -44,7 +44,7 @@ H2 -T1 > T2 > H1
 D1 - Put no name
 0 = SE // 1 = None // 2 = None
 
-D2 adjust for
+D2 - Put D1 name
 0 = N // 1 = SE // 2 = None
 
 D3- D1 > D2

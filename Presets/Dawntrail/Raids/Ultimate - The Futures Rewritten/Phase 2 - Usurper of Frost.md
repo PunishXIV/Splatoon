@@ -18,11 +18,43 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/
 It highlights your tower.
 Configuration:
 - Set player names and directions.
-- It is based on the following strategy.
-  https://x.com/anzucadesu/status/1861717909548196323
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Light%20Rampant%20JP.cs
 ```
+
+### JP Box
+the setup is as follows, with SW and SE, N and S swapping, and H2 and D4 making adjustments:
+```
+T1 T2 H1 H2
+D1 D2 D3 D4
+```
+```
+T1 - Put No name 
+0 = NW // 1 = None // 2 = None
+
+T2 adjust for 
+0 = S // 1 = NW // 2 = None
+
+H1 - T1 > T2
+0 = NE // 1 = S // 2 =  NW
+
+H2 -T1 > T2 > H1
+0 = SW // 1 = NE // 2 = S
+--------------------------
+D1 - Put no name
+0 = SE // 1 = None // 2 = None
+
+D2 adjust for
+0 = N // 1 = SE // 2 = None
+
+D3- D1 > D2
+ 0 = SW // 1 = N // 2 = SE
+
+D4 -  D1 > D2 > D3
+0 = NE// 1=  SW -// 2 = N
+```
+
+Thanks for Braum Oak 
 
 
 ## Flower-like explosions

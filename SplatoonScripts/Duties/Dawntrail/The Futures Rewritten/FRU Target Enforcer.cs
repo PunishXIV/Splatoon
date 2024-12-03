@@ -21,7 +21,7 @@ public class FRU_Target_Enforcer : SplatoonScript
 {
 
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
     Config C => Controller.GetConfig<Config>();
 
     public static class Enemies
@@ -48,10 +48,16 @@ public class FRU_Target_Enforcer : SplatoonScript
     {
         if(!Controller.InCombat) return;
         if(Controller.CombatSeconds < C.CombatTreshold) return;
-        if(C.DisableWhenMemberDead && Svc.Party.Count(x => x.GameObject is IPlayerCharacter pc && !pc.IsDead) < 8) return;
+        if(Player.Object.IsDead || Player.Object.CurrentHp == 0)
+        {
+            EzThrottler.Throttle($"{this.InternalData.FullName}_SetTarget", 10000, true);
+            return;
+        } 
+        if(!GenericHelpers.IsScreenReady()) return;
+        if(C.DisableWhenMemberDead && Svc.Party.Count(x => x.GameObject is IPlayerCharacter pc && !pc.IsDead) < 6) return;
         if(Svc.Targets.Target is IBattleNpc npc)
         {
-            if(npc.NameId.EqualsAny(Enemies.Fatebreaker, Enemies.UsurperOfFrost, Enemies.CrystalOfLight, Enemies.OracleOfDarkness)) return;
+            if(npc.NameId.EqualsAny(Enemies.Fatebreaker, Enemies.UsurperOfFrost, Enemies.OracleOfDarkness)) return;
         }
         var t = GetTargetToSet();
         if(t != null && !t.IsTarget() && t.IsTargetable && Throttle())

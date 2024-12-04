@@ -7,6 +7,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
@@ -457,8 +458,8 @@ public class P4_Crystallize_Time : SplatoonScript
         {
             var position = player switch
             {
-                MoveType.RedBlizzardWest => new Vector2(87, 100),
-                MoveType.RedBlizzardEast => new Vector2(113, 100),
+                MoveType.RedBlizzardWest => WestDragon?.Position.ToVector2() ?? new Vector2(87, 100),
+                MoveType.RedBlizzardEast => EastDragon?.Position.ToVector2() ?? new Vector2(113, 100),
                 MoveType.RedAeroWest => new Vector2(90, 117),
                 MoveType.RedAeroEast => new Vector2(107, 118),
                 MoveType.BlueBlizzard => new Vector2(91, 115),
@@ -475,9 +476,16 @@ public class P4_Crystallize_Time : SplatoonScript
                 element.SetOffPosition(position.ToVector3(0));
             }
         }
-
-        Alert(C.HitDragonText.Get());
+        
+        if (_players[Player.Object.GameObjectId].MoveType == MoveType.RedBlizzardEast ||
+            _players[Player.Object.GameObjectId].MoveType == MoveType.RedBlizzardWest)
+            Alert(C.HitDragonText.Get());
     }
+
+    public static IBattleNpc? WestDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: <= 100 })
+        .Select(x => x as IBattleNpc).First();
+    public static IBattleNpc? EastDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: > 100 })
+        .Select(x => x as IBattleNpc).First();
 
     public void DebuffExpire()
     {
@@ -524,8 +532,8 @@ public class P4_Crystallize_Time : SplatoonScript
             {
                 MoveType.RedBlizzardWest => new Vector2(85, 85),
                 MoveType.RedBlizzardEast => new Vector2(85, 85),
-                MoveType.RedAeroWest => new Vector2(87, 108),
-                MoveType.RedAeroEast => new Vector2(113, 108),
+                MoveType.RedAeroWest => WestDragon?.Position.ToVector2() ?? new Vector2(87, 108),
+                MoveType.RedAeroEast => EastDragon?.Position.ToVector2() ?? new Vector2(113, 108),
                 MoveType.BlueBlizzard => new Vector2(85, 85),
                 MoveType.BlueHoly => new Vector2(85, 85),
                 MoveType.BlueWater => new Vector2(85, 85),
@@ -541,7 +549,9 @@ public class P4_Crystallize_Time : SplatoonScript
             }
         }
 
-        Alert(C.HitDragonText.Get());
+        if (_players[Player.Object.GameObjectId].MoveType == MoveType.RedAeroEast ||
+            _players[Player.Object.GameObjectId].MoveType == MoveType.RedAeroWest)
+            Alert(C.HitDragonText.Get());
     }
 
     public void CorrectCleanse()
@@ -558,7 +568,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 (Direction.West, Direction.South) => Direction.SouthWest,
                 (Direction.South, Direction.East) => Direction.SouthEast,
                 (Direction.East, Direction.North) => Direction.NorthEast,
-                _ => throw new InvalidOperationException()
+                _ => null,
             };
 
             var returnPosition = returnDirection switch
@@ -567,7 +577,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 Direction.SouthEast => new Vector2(115, 115),
                 Direction.SouthWest => new Vector2(85, 115),
                 Direction.NorthWest => new Vector2(85, 85),
-                _ => throw new InvalidOperationException()
+                _ => new Vector2(100f,100f);
             };
 
             var position = player switch

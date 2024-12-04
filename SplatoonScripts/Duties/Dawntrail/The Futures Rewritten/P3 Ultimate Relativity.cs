@@ -32,17 +32,6 @@ public class P3_Ultimate_Relativity : SplatoonScript
         CounterClockwise
     }
 
-    public enum Debuff : uint
-    {
-        Holy = 0x996,
-        Fire = 0x997,
-        ShadowEye = 0x998,
-        Eruption = 0x99C,
-        DarkWater = 0x99D,
-        Blizzard = 0x99E,
-        Return = 0x9A0
-    }
-
     public enum Direction
     {
         East = 0,
@@ -63,35 +52,10 @@ public class P3_Ultimate_Relativity : SplatoonScript
         Blizzard
     }
 
-    public enum MarkerType : uint
-    {
-        Attack1 = 0,
-        Attack2 = 1,
-        Attack3 = 2,
-        Bind1 = 5,
-        Bind2 = 6,
-        Bind3 = 7,
-        Ignore1 = 8,
-        Ignore2 = 9
-    }
-
     public enum Mode
     {
         Marker,
         Priority
-    }
-
-    public enum State
-    {
-        None,
-        Start,
-        FirstFire,
-        BaitEarlyHourglass,
-        SecondFire,
-        BaitNoTetherHourglass,
-        ThirdFire,
-        BaitLateHourglass,
-        End
     }
 
     private readonly List<IBattleChara> _earlyHourglassList = [];
@@ -112,7 +76,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     public override HashSet<uint>? ValidTerritories => [1238];
     public override Metadata? Metadata => new(4, "Garume");
 
-    public Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -156,7 +120,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public Direction GetDirection(Vector3 position)
+    private static Direction GetDirection(Vector3 position)
     {
         var isNorth = position.Z < 95f;
         var isEast = position.X > 105f;
@@ -402,7 +366,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             };
     }
 
-    public void BaitHourglass(Direction direction)
+    private void BaitHourglass(Direction direction)
     {
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
@@ -423,7 +387,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoCenter(Direction direction, float radius = 2f)
+    private void GoCenter(Direction direction, float radius = 2f)
     {
         if (_baseDirection == null) return;
         var center = new Vector2(100f, 100f);
@@ -435,9 +399,9 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoNearCenter(Direction direction)
+    private void GoNearCenter(Direction direction)
     {
-        var radius = 1f;
+        const float radius = 1f;
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
         var center = new Vector2(100, 100);
@@ -453,9 +417,9 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoOutside(Direction direction)
+    private void GoOutside(Direction direction)
     {
-        var radius = 18f;
+        const float radius = 18f;
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
         var center = new Vector2(100, 100);
@@ -471,7 +435,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void PlaceReturnToHourglass(Direction direction, float radius)
+    private void PlaceReturnToHourglass(Direction direction, float radius)
     {
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
@@ -488,25 +452,26 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void PlaceReturnToHourglass(Direction direction)
+    private void PlaceReturnToHourglass(Direction direction)
     {
         PlaceReturnToHourglass(direction, 10f);
     }
 
-    public void PlaceReturnToHourglassOutside(Direction direction)
+    private void PlaceReturnToHourglassOutside(Direction direction)
     {
         PlaceReturnToHourglass(direction, 11f);
     }
 
-    public void PlaceReturnToHourglassInside(Direction direction)
+    private void PlaceReturnToHourglassInside(Direction direction)
     {
         PlaceReturnToHourglass(direction, 8f);
     }
 
-    public void ShowSinboundMeltdown()
+    private void ShowSinboundMeltdown()
     {
-        var hourGlassesList = Svc.Objects.Where(x => x is IBattleNpc npc && npc.CastActionId == 40291 && npc.IsCasting);
-        if (hourGlassesList.Count() == 0) return;
+        var hourGlassesList = Svc.Objects
+            .Where(x => x is IBattleNpc npc && npc is { CastActionId: 40291, IsCasting: true }).ToList();
+        if (!hourGlassesList.Any()) return;
         PluginLog.Information($"hourGlassesList.Count(): {hourGlassesList.Count()}");
 
         var pcs = FakeParty.Get().ToList();
@@ -519,7 +484,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             var closestPlayer = pcs.MinBy(x => Vector3.Distance(x.Position, hourglass.Position));
 
             // Show Element
-            if (Controller.TryGetElementByName($"SinboundMeltdown{i}", out var element))
+            if (Controller.TryGetElementByName($"SinboundMeltdown{i}", out var element) && closestPlayer != null)
             {
                 var extPos = GetExtendedAndClampedPosition(hourglass.Position, closestPlayer.Position, 20f, 20f);
                 element.SetRefPosition(hourglass.Position);
@@ -537,7 +502,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 element.Enabled = false;
     }
 
-    public static Vector3 GetExtendedAndClampedPosition(Vector3 center, Vector3 currentPos, float extensionLength,
+    private static Vector3 GetExtendedAndClampedPosition(Vector3 center, Vector3 currentPos, float extensionLength,
         float? limit)
     {
         // Calculate the normalized direction vector from the center to the current position
@@ -732,77 +697,77 @@ public class P3_Ultimate_Relativity : SplatoonScript
         uint p6, ulong targetId,
         byte replaying)
     {
-        if (_state is not (State.None or State.End))
-            if (command == 502)
+        if (_state is State.None or State.End) return;
+        if (command == 502)
+        {
+            var player = Svc.Objects.FirstOrDefault(x => x.GameObjectId == p2);
+            if (player == null) PluginLog.Warning("Error: Cannot find player");
+
+            _playerDatas[p2] = p1 switch
             {
-                var player = Svc.Objects.FirstOrDefault(x => x.GameObjectId == p2);
-                if (player == null) PluginLog.Warning("Error: Cannot find player");
-
-                _playerDatas[p2] = p1 switch
+                (uint)MarkerType.Attack1 => new PlayerData
                 {
-                    (uint)MarkerType.Attack1 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Early,
-                        Number = 1,
-                        Direction = SwapAsOrientation(C.Attack1Direction)
-                    },
-                    (uint)MarkerType.Attack2 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Early,
-                        Number = 2,
-                        Direction = SwapAsOrientation(C.Attack2Direction)
-                    },
-                    (uint)MarkerType.Attack3 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Early,
-                        Number = 3,
-                        Direction = SwapAsOrientation(C.Attack3Direction)
-                    },
-                    (uint)MarkerType.Bind1 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Late,
-                        Number = 1,
-                        Direction = SwapAsOrientation(C.Bind1Direction)
-                    },
-                    (uint)MarkerType.Bind2 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Late,
-                        Number = 2,
-                        Direction = SwapAsOrientation(C.Bind2Direction)
-                    },
-                    (uint)MarkerType.Bind3 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Late,
-                        Number = 3,
-                        Direction = SwapAsOrientation(C.Bind3Direction)
-                    },
-                    (uint)MarkerType.Ignore1 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Middle,
-                        Number = 1,
-                        Direction = SwapAsOrientation(C.Ignore1Direction)
-                    },
-                    (uint)MarkerType.Ignore2 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Middle,
-                        Number = 2,
-                        Direction = SwapAsOrientation(C.Ignore2Direction)
-                    },
-                    _ => _playerDatas[p2]
-                };
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Early,
+                    Number = 1,
+                    Direction = SwapAsOrientation(C.Attack1Direction)
+                },
+                (uint)MarkerType.Attack2 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Early,
+                    Number = 2,
+                    Direction = SwapAsOrientation(C.Attack2Direction)
+                },
+                (uint)MarkerType.Attack3 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Early,
+                    Number = 3,
+                    Direction = SwapAsOrientation(C.Attack3Direction)
+                },
+                (uint)MarkerType.Bind1 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Late,
+                    Number = 1,
+                    Direction = SwapAsOrientation(C.Bind1Direction)
+                },
+                (uint)MarkerType.Bind2 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Late,
+                    Number = 2,
+                    Direction = SwapAsOrientation(C.Bind2Direction)
+                },
+                (uint)MarkerType.Bind3 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Late,
+                    Number = 3,
+                    Direction = SwapAsOrientation(C.Bind3Direction)
+                },
+                (uint)MarkerType.Ignore1 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Middle,
+                    Number = 1,
+                    Direction = SwapAsOrientation(C.Ignore1Direction)
+                },
+                (uint)MarkerType.Ignore2 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Middle,
+                    Number = 2,
+                    Direction = SwapAsOrientation(C.Ignore2Direction)
+                },
+                _ => _playerDatas[p2]
+            };
 
-                if (player is IPlayerCharacter playerCharacter &&
-                    playerCharacter.StatusList.Any(x => x.StatusId == (uint)Debuff.Blizzard))
-                    _playerDatas[p2].KindFire = KindFire.Blizzard;
-            }
+            if (player is IPlayerCharacter playerCharacter &&
+                playerCharacter.StatusList.Any(x => x.StatusId == (uint)Debuff.Blizzard))
+                _playerDatas[p2].KindFire = KindFire.Blizzard;
+        }
     }
 
 
@@ -946,7 +911,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         if (_showSinboundMeltdown) ShowSinboundMeltdown();
     }
 
-    public KindFire GetKindFire(StatusList statuses)
+    private static KindFire GetKindFire(StatusList statuses)
     {
         foreach (var status in statuses)
             switch (status.StatusId)
@@ -968,13 +933,49 @@ public class P3_Ultimate_Relativity : SplatoonScript
         return KindFire.Early;
     }
 
-    public record Hourglass
+    private enum Debuff : uint
+    {
+        Holy = 0x996,
+        Fire = 0x997,
+        ShadowEye = 0x998,
+        Eruption = 0x99C,
+        DarkWater = 0x99D,
+        Blizzard = 0x99E,
+        Return = 0x9A0
+    }
+
+    private enum MarkerType : uint
+    {
+        Attack1 = 0,
+        Attack2 = 1,
+        Attack3 = 2,
+        Bind1 = 5,
+        Bind2 = 6,
+        Bind3 = 7,
+        Ignore1 = 8,
+        Ignore2 = 9
+    }
+
+    private enum State
+    {
+        None,
+        Start,
+        FirstFire,
+        BaitEarlyHourglass,
+        SecondFire,
+        BaitNoTetherHourglass,
+        ThirdFire,
+        BaitLateHourglass,
+        End
+    }
+
+    private record Hourglass
     {
         public Clockwise Clockwise { get; init; }
         public Direction Direction { get; init; }
     }
 
-    public record PlayerData
+    private record PlayerData
     {
         public string? PlayerName { init; get; }
         public KindFire KindFire { set; get; }
@@ -987,7 +988,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public class Config : IEzConfig
+    private class Config : IEzConfig
     {
         public Direction Attack1Direction = Direction.NorthWest;
         public Direction Attack2Direction = Direction.NorthEast;

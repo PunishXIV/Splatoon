@@ -35,7 +35,7 @@ public class P4_Crystallize_Time : SplatoonScript
         Return = 0x1070
     }
 
-    public enum Direction
+    public enum Direction : int
     {
         North = 0,
         NorthEast = 45,
@@ -86,8 +86,8 @@ public class P4_Crystallize_Time : SplatoonScript
 
     private readonly Vector2 _center = new(100, 100);
 
-    private readonly List<IBattleChara> _earlyHourglassList = new();
-    private readonly List<IBattleChara> _lateHourglassList = new();
+    private readonly List<IBattleChara> _earlyHourglassList = [];
+    private readonly List<IBattleChara> _lateHourglassList = [];
 
     private readonly Dictionary<ulong, PlayerData> _players = new();
 
@@ -105,11 +105,11 @@ public class P4_Crystallize_Time : SplatoonScript
 
     private State _state = State.None;
 
-    public IEnumerable<uint> AllDebuffIds = Enum.GetValues<Debuff>().Cast<uint>();
+    public readonly IEnumerable<uint> AllDebuffIds = Enum.GetValues<Debuff>().Cast<uint>();
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
-    public Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -138,15 +138,18 @@ public class P4_Crystallize_Time : SplatoonScript
                 _state = _burnHourglassCount switch
                 {
                     2 => State.HitDragonAndRed,
-                    4 => State.HitDragonAndAero,
+                    4 => C.HitTiming == HitTiming.Late ? State.BurnPurpleHourglass : State.HitDragonAndAero,
+                    6 => State.HitDragonAndAero,
                     _ => _state
                 };
                 break;
             }
             case 40280:
             {
-                if (_state == State.HitDragonAndRed)
+                if (_state == State.HitDragonAndRed && Player.Status.Any(x => x.StatusId != (uint)Debuff.Red))
                     _state = State.BurnHourglass;
+                if (_state == State.HitDragonAndAero && Player.Status.Any(x => x.StatusId != (uint)Debuff.Blue))
+                    _state = State.BurnPurpleHourglass;
                 break;
             }
             case 40289:
@@ -389,8 +392,6 @@ public class P4_Crystallize_Time : SplatoonScript
         switch (_state)
         {
             case State.PreSplit:
-                ShowPreSplit();
-                break;
             case State.BurnYellowHourglass:
                 BurnYellowHourglass();
                 break;
@@ -423,30 +424,6 @@ public class P4_Crystallize_Time : SplatoonScript
         }
     }
 
-    public void ShowPreSplit()
-    {
-        foreach (var move in Enum.GetValues<MoveType>())
-        {
-            var position = move switch
-            {
-                MoveType.RedBlizzardWest => new Vector2(98, 95),
-                MoveType.RedBlizzardEast => new Vector2(102, 95),
-                MoveType.RedAeroWest => new Vector2(92, 108),
-                MoveType.RedAeroEast => new Vector2(100, 108),
-                MoveType.BlueBlizzard => new Vector2(104, 104),
-                MoveType.BlueHoly => new Vector2(104, 104),
-                MoveType.BlueWater => new Vector2(104, 104),
-                MoveType.BlueEruption => new Vector2(96, 104),
-                _ => throw new InvalidOperationException()
-            };
-            position = SwapXIfNecessary(position);
-            if (Controller.TryGetElementByName(move.ToString(), out var element))
-            {
-                element.radius = 2f;
-                element.SetOffPosition(position.ToVector3(0));
-            }
-        }
-    }
 
     public void BurnYellowHourglass()
     {
@@ -499,7 +476,7 @@ public class P4_Crystallize_Time : SplatoonScript
             }
         }
 
-        Alert("竜に当たれ！");
+        Alert(C.HitDragonText.Get());
     }
 
     public void DebuffExpire()
@@ -536,7 +513,7 @@ public class P4_Crystallize_Time : SplatoonScript
     public void BurnPurpleHourglass()
     {
         BurnHourglass();
-        Alert("波をよけろ！");
+        Alert(C.AvoidWaveText.Get());
     }
 
     public void HitDragonAndAero()
@@ -564,7 +541,7 @@ public class P4_Crystallize_Time : SplatoonScript
             }
         }
 
-        Alert("竜に当たれ！");
+        Alert(C.HitDragonText.Get());
     }
 
     public void CorrectCleanse()
@@ -619,7 +596,8 @@ public class P4_Crystallize_Time : SplatoonScript
             }
         }
 
-        Alert("白を取れ！");
+        if (Player.Status.Any(x => x.StatusId == (uint)Debuff.Blue))
+            Alert(C.CleanseText.Get());
     }
 
     public void PlaceReturn()
@@ -722,12 +700,14 @@ public class P4_Crystallize_Time : SplatoonScript
             myElement.tether = true;
             myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
         }
+        
+        Alert(C.PlaceReturnText.Get());
     }
 
     public void Split()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        Alert("散開！");
+        Alert(C.SplitText.Get());
     }
 
     public override void OnSettingsDraw()
@@ -739,10 +719,16 @@ public class P4_Crystallize_Time : SplatoonScript
                                        """);
         if (ImGuiEx.CollapsingHeader("General"))
         {
+            ImGuiEx.Text("Priority");
+            ImGui.Indent();
             ImGui.Text("West");
             C.PriorityData.Draw();
             ImGui.Text("East");
-
+            ImGui.Unindent();
+            ImGui.Separator();
+            
+            ImGuiEx.EnumCombo("Hit Timing", ref C.HitTiming);
+            
             ImGui.Separator();
             ImGuiEx.Text("Sentence Moves");
             ImGui.Indent();
@@ -777,6 +763,30 @@ public class P4_Crystallize_Time : SplatoonScript
 
             ImGui.Unindent();
 
+            ImGui.Separator();
+            
+            ImGui.Text("Dialogue Text:");
+            ImGui.Indent();
+            var splitText = C.SplitText.Get();
+            ImGui.Text("Split Text:");
+            ImGui.SameLine();
+            C.SplitText.ImGuiEdit(ref splitText);
+            
+            var hitDragonText = C.HitDragonText.Get();
+            ImGui.Text("Hit Dragon Text:");
+            ImGui.SameLine();
+            C.HitDragonText.ImGuiEdit(ref hitDragonText);
+            
+            var cleanseText = C.CleanseText.Get();
+            ImGui.Text("Cleanse Text:");
+            ImGui.SameLine();
+            C.CleanseText.ImGuiEdit(ref cleanseText);
+            
+            var placeReturnText = C.PlaceReturnText.Get();
+            ImGui.Text("Place Return Text:");
+            ImGui.SameLine();
+            C.PlaceReturnText.ImGuiEdit(ref placeReturnText);
+            
             ImGui.Separator();
             ImGui.Text("Bait Color:");
             ImGuiComponents.HelpMarker(
@@ -880,12 +890,20 @@ public class P4_Crystallize_Time : SplatoonScript
 
         public bool HasDebuff => Debuff != null && Color != null;
     }
+    
+    public enum HitTiming
+    {
+        Early,
+        Late
+    }
 
     public class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public MoveType EastSentence = MoveType.BlueBlizzard;
+        
+        public HitTiming HitTiming = HitTiming.Late;
 
         public bool IsTank;
         public bool IsWestWhenNorthEastWave;
@@ -894,6 +912,13 @@ public class P4_Crystallize_Time : SplatoonScript
         public bool IsWestWhenSouthWestWave;
 
         public PriorityData PriorityData = new();
+
+        public InternationalString HitDragonText = new() { En = "Hit Dragon", Jp = "竜に当たれ！" };
+        public InternationalString SplitText = new() { En = "Split", Jp = "散開！" };
+        public InternationalString CleanseText = new() { En = "Get Cleanse", Jp = "白を取れ！" };
+        public InternationalString PlaceReturnText = new() { En = "Place Return", Jp = "リターンを置け！" };
+        public InternationalString AvoidWaveText = new() { En = "Avoid Wave", Jp = "波をよけろ！" };
+        
 
         public bool ShowOther;
         public MoveType SouthEastSentence = MoveType.BlueHoly;

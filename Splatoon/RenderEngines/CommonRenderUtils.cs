@@ -28,7 +28,7 @@ public unsafe static class CommonRenderUtils
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
         .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
         .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
-        .Replace("$CAST", go is IBattleChara chr3 ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
+        .Replace("$CAST", go is IBattleChara chr3 && chr3.Struct()->GetCastInfo() != null ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
         .Replace("\\n", "\n")
         .Replace("$TRANSFORM", $"{(go is ICharacter chr5 ? chr5.GetTransformationID() : 0).Format()}")
         .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");

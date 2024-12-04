@@ -5,7 +5,6 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
@@ -13,22 +12,21 @@ using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 internal class P1_Cyclonic_Break :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
 
     class PlayerData
     {
         public uint EntityId;
-        public Vector3 Position;
+        public float Angle;
         public PlayerData(uint entityId)
         {
             EntityId = entityId;
-            Position = Vector3.Zero;
+            Angle = 0;
         }
     }
 
@@ -51,7 +49,7 @@ internal class P1_Cyclonic_Break :SplatoonScript
     {
         for (int i = 0; i < 8; i++)
         {
-            Controller.RegisterElement($"Cone{i}", new(5) { radius = 20.0f, coneAngleMin = -14, coneAngleMax = 14, refActorComparisonType = 2, includeRotation = true });
+            Controller.RegisterElement($"Cone{i}", new(5) { radius = 20.0f, coneAngleMin = -12, coneAngleMax = 12, refActorComparisonType = 2, includeRotation = true });
         }
     }
 
@@ -82,7 +80,7 @@ internal class P1_Cyclonic_Break :SplatoonScript
                 _ = new TickScheduler(delegate { _gimmickStarted = true; _isFirst = true; }, 2000);
             }
         }
-        if (castId == 40154 || castId == 40137)
+        if (castId == 40154 || castId == 40137 || castId == 40170)
         {
             OnReset();
         }
@@ -102,7 +100,7 @@ internal class P1_Cyclonic_Break :SplatoonScript
                 var obj = player.EntityId.GetObject();
                 if (obj != null)
                 {
-                    player.Position = obj.Position;
+                    player.Angle = MathHelper.GetRelativeAngle(obj.Position, _enemyId.GetObject().Position);
                 }
             }
             Show();
@@ -119,10 +117,13 @@ internal class P1_Cyclonic_Break :SplatoonScript
             }
             foreach (var player in _playerList)
             {
-                var obj = player.EntityId.GetObject();
-                if (obj != null)
+                if ((player.Angle + 22.0f) > 360.0f)
                 {
-                    player.Position = obj.Position;
+                    player.Angle = player.Angle + 22.0f - 360.0f;
+                }
+                else
+                {
+                    player.Angle = player.Angle + 22.0f;
                 }
             }
             Show();
@@ -140,7 +141,14 @@ internal class P1_Cyclonic_Break :SplatoonScript
     public override void OnUpdate()
     {
         if (!_isFirst || !_gimmickStarted) return;
-        DynamicShow();
+        try
+        {
+            DynamicShow();
+        }
+        catch (System.Exception e)
+        {
+            this.OnReset();
+        }
     }
 
     public override void OnReset()
@@ -168,7 +176,7 @@ internal class P1_Cyclonic_Break :SplatoonScript
                 {
                     var obj = player.EntityId.GetObject();
                     if (obj == null) continue;
-                    ImGui.Text($"Player {obj.Name.ToString()}: RelativeRotation: {MathHelper.GetRelativeAngle(player.Position, _enemyId.GetObject().Position)}: {player.Position}");
+                    ImGui.Text($"Player {obj.Name.ToString()}: RelativeRotation: {player.Angle}");
                 }
             }
         }
@@ -176,7 +184,6 @@ internal class P1_Cyclonic_Break :SplatoonScript
 
     private void Hide()
     {
-        PluginLog.Information("Hiding cones");
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
@@ -187,7 +194,7 @@ internal class P1_Cyclonic_Break :SplatoonScript
             var obj = player.EntityId.GetObject();
             if (obj != null)
             {
-                player.Position = obj.Position;
+                player.Angle = MathHelper.GetRelativeAngle(obj.Position, _enemyId.GetObject().Position);
             }
         }
 
@@ -195,11 +202,10 @@ internal class P1_Cyclonic_Break :SplatoonScript
         {
             var cone = Controller.GetElementByName($"Cone{i}");
             var player = _playerList[i];
-            var angle = MathHelper.GetRelativeAngle(player.Position, _enemyId.GetObject().Position);
             if (cone != null)
             {
                 cone.SetRefPosition(_enemyId.GetObject().Position);
-                cone.AdditionalRotation = MathHelper.DegToRad(angle);
+                cone.AdditionalRotation = MathHelper.DegToRad(player.Angle);
                 cone.Enabled = true;
             }
         }
@@ -207,16 +213,14 @@ internal class P1_Cyclonic_Break :SplatoonScript
 
     private void Show()
     {
-        PluginLog.Information("Showing cones");
         for (int i = 0; i < 8; i++)
         {
             var cone = Controller.GetElementByName($"Cone{i}");
             var player = _playerList[i];
-            var angle = MathHelper.GetRelativeAngle(player.Position, _enemyId.GetObject().Position);
             if (cone != null)
             {
                 cone.SetRefPosition(_enemyId.GetObject().Position);
-                cone.AdditionalRotation = MathHelper.DegToRad(angle);
+                cone.AdditionalRotation = MathHelper.DegToRad(player.Angle);
                 cone.Enabled = true;
             }
         }

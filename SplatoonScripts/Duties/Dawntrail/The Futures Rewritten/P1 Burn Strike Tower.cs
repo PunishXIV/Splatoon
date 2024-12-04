@@ -1,10 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
-using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -14,11 +10,14 @@ using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using Element = Splatoon.Element;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
-public class P1_Burn_Strike_Tower : SplatoonScript
+public class P1_Burn_Strike_Tower :SplatoonScript
 {
     private enum State
     {
@@ -30,23 +29,23 @@ public class P1_Burn_Strike_Tower : SplatoonScript
 
     private IBattleNpc?[] _currentTowers = new IBattleNpc[3];
     private readonly ImGuiEx.RealtimeDragDrop<Job> _dragDrop = new("DragDropJob", x => x.ToString());
-
-    private readonly Dictionary<int, uint> TowerCastIds = new()
+    private readonly uint[] kCastIds = { 40131u, 40135u, 40125u, 40122u, 40126u, 40123u, 40124u, 40121u, };
+    private class towerId
     {
-        { 1, 0x9CC7 },
-        { 2, 0x9CBD },
-        { 3, 0x9CBE },
-        { 4, 0x9CBF }
-    };
+        public int count;
+        public uint castId;
+
+        public towerId(int count, uint castId)
+        {
+            this.count = count;
+            this.castId = castId;
+        }
+    }
 
     private IBattleNpc? _myTower;
-
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
-
-    public IEnumerable<IGameObject> Towers => Svc.Objects.Where(x =>
-        x is IBattleNpc { IsCasting: true } npc && TowerCastIds.ContainsValue(npc.CastActionId));
+    public override Metadata? Metadata => new(4, "redmoon");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -186,29 +185,34 @@ public class P1_Burn_Strike_Tower : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
+        if (set.Action == null) return;
         if (_state != State.Split) return;
-        if (TowerCastIds.ContainsValue(set.Action.Value.RowId))
+        if (kCastIds.Contains(set.Action.Value.RowId))
             _state = State.End;
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId is 40135 or 40130) _state = State.Start;
+        if (kCastIds.Contains(castId) && _state == State.None)
+        {
+            _state = State.Start;
+        }
 
-        if (TowerCastIds.ContainsValue(castId))
+        if (kCastIds.Contains(castId))
+        {
             if (source.GetObject() is IBattleNpc npc)
             {
                 switch (npc.Position.Z)
                 {
                     case < 95:
-                        _currentTowers[0] = npc;
-                        break;
+                    _currentTowers[0] = npc;
+                    break;
                     case < 105:
-                        _currentTowers[1] = npc;
-                        break;
+                    _currentTowers[1] = npc;
+                    break;
                     default:
-                        _currentTowers[2] = npc;
-                        break;
+                    _currentTowers[2] = npc;
+                    break;
                 }
 
                 if (_currentTowers.All(x => x != null))
@@ -218,7 +222,18 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                     var index = 0;
                     foreach (var tower in _currentTowers)
                     {
-                        var towerCount = TowerCastIds.First(x => x.Value == tower.CastActionId).Key;
+                        var towerCount = tower.CastActionId switch
+                        {
+                            40131u => 1,
+                            40135u => 1,
+                            40125u => 2,
+                            40122u => 2,
+                            40126u => 3,
+                            40123u => 3,
+                            40124u => 4,
+                            40121u => 4,
+                            _ => 0
+                        };
                         var lastIndex = index;
                         index += towerCount;
 
@@ -234,9 +249,10 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                     }
                 }
             }
+        }
     }
 
-    public class Config : IEzConfig
+    public class Config :IEzConfig
     {
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

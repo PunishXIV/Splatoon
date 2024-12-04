@@ -20,11 +20,11 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
+namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 internal class P1_Turn_of_the_Heavens :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
 
     Config Conf => Controller.GetConfig<Config>();
     List<IPlayerCharacter> _sortedList = new();
@@ -138,7 +138,7 @@ internal class P1_Turn_of_the_Heavens :SplatoonScript
     {
         if (source.GetObject() is IBattleChara npc)
         {
-            if (castId == 40151)
+            if (castId is 40151 or 40150)
             {
                 if (!TryGetPriorityList(out _sortedList))
                     return;
@@ -248,6 +248,7 @@ internal class P1_Turn_of_the_Heavens :SplatoonScript
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         _stackedList.Clear();
+        _sortedList.Clear();
         _mechanicActive = false;
     }
 

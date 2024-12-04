@@ -59,7 +59,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     #region public Fields
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(7, "Redmoon");
 
     public class Config :IEzConfig
     {
@@ -81,14 +81,14 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     #region Public Methods
     public override void OnSetup()
     {
-        Controller.RegisterElement("LeftTether", new Splatoon.Element(0) { refX = 95.0f, refY = 100.0f, thicc = 10.0f, tether = true });
-        Controller.RegisterElement("LeftTetherNext", new Splatoon.Element(0) { refX = 95.0f, refY = 98.0f, thicc = 10.0f, tether = true });
-        Controller.RegisterElement("LeftNone1", new Splatoon.Element(0) { refX = 95.0f, refY = 102.0f, thicc = 10.0f, tether = true });
-        Controller.RegisterElement("LeftNone2", new Splatoon.Element(0) { refX = 93.0f, refY = 100.0f, thicc = 10.0f, tether = true });
-        Controller.RegisterElement("RightTether", new Splatoon.Element(0) { refX = 105.0f, refY = 100.0f, thicc = 10.0f, tether = true });
-        Controller.RegisterElement("RightTetherNext", new Splatoon.Element(0) { refX = 105.0f, refY = 98.0f, thicc = 10.0f, tether = true });
-        Controller.RegisterElement("RightNone1", new Splatoon.Element(0) { refX = 105.0f, refY = 102.0f, thicc = 10.0f, tether = true });
-        Controller.RegisterElement("RightNone2", new Splatoon.Element(0) { refX = 107.0f, refY = 100.0f, thicc = 10.0f, tether = true });
+        Controller.RegisterElement("LeftTether", new Splatoon.Element(0) { refX = 94.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("LeftTetherNext", new Splatoon.Element(0) { refX = 94.0f, refY = 98.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("LeftNone1", new Splatoon.Element(0) { refX = 94.0f, refY = 102.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("LeftNone2", new Splatoon.Element(0) { refX = 92.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("RightTether", new Splatoon.Element(0) { refX = 106.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("RightTetherNext", new Splatoon.Element(0) { refX = 106.0f, refY = 98.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("RightNone1", new Splatoon.Element(0) { refX = 106.0f, refY = 102.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("RightNone2", new Splatoon.Element(0) { refX = 108.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -333,12 +333,12 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     private void ParseData()
     {
-        DuoLog.Information("Parsing Data");
         // No Buffer Check
         var LRBuffers = C.NoBufferPriority.GetPlayers(x => x.IGameObject is IPlayerCharacter pc && pc.StatusList.All(z => z.StatusId != 1051));
-        if (LRBuffers.Count() == 0)
+        if (LRBuffers == null || LRBuffers.Count() == 0)
         {
-            DuoLog.Information("No Buffer Priority is Empty");
+            if (LRBuffers == null) DuoLog.Error("No Buffer Priority List is Null");
+            else DuoLog.Error("No Buffer Priority List is Empty");
             _state = State.End;
             return;
         }
@@ -350,6 +350,11 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             {
                 if (pc.EntityId == LRBuffer.IGameObject.EntityId)
                 {
+                    var obj = pc.EntityId.GetObject();
+                    if (obj == null)
+                    {
+                        DuoLog.Error("Object is Null 357");
+                    }
                     pc.LR = (i < 2) ? LR.Left : LR.Right;
                     ++i;
                     break;
@@ -362,15 +367,20 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
         if (leftNoBuffPcs.Count() != 2 || rightNoBuffPcs.Count() != 2)
         {
-            DuoLog.Information("No Buffer Priority is not 2");
+            DuoLog.Error("No Buffer Priority List is not 2");
             _state = State.End;
             return;
         }
 
-        int indexFirst = 0;
-        int indexSecond = 0;
-        indexFirst = C.NoBufferPriority.GetOwnIndex(x => x.IGameObject.EntityId == leftNoBuffPcs[0].EntityId);
-        indexSecond = C.NoBufferPriority.GetOwnIndex(x => x.IGameObject.EntityId == leftNoBuffPcs[1].EntityId);
+        var list = C.LRPriority.GetPlayers(_ => true);
+        int indexFirst = list.FindIndex(x => x.IGameObject.EntityId == leftNoBuffPcs[0].EntityId);
+        int indexSecond = list.FindIndex(x => x.IGameObject.EntityId == leftNoBuffPcs[1].EntityId);
+        if (indexFirst == -1 || indexSecond == -1)
+        {
+            DuoLog.Error("No Buffer Priority Index is -1");
+            _state = State.End;
+            return;
+        }
         if (indexFirst > indexSecond)
         {
             leftNoBuffPcs[0].PriorityNum = 1;
@@ -382,8 +392,16 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             leftNoBuffPcs[1].PriorityNum = 1;
         }
 
-        indexFirst = C.NoBufferPriority.GetOwnIndex(x => x.IGameObject.EntityId == rightNoBuffPcs[0].EntityId);
-        indexSecond = C.NoBufferPriority.GetOwnIndex(x => x.IGameObject.EntityId == rightNoBuffPcs[1].EntityId);
+
+        indexFirst = list.FindIndex(x => x.IGameObject.EntityId == rightNoBuffPcs[0].EntityId);
+        indexSecond = list.FindIndex(x => x.IGameObject.EntityId == rightNoBuffPcs[1].EntityId);
+        if (indexFirst == -1 || indexSecond == -1)
+        {
+            DuoLog.Error("No Buffer Priority Index is -1");
+            _state = State.End;
+            return;
+        }
+
         if (indexFirst > indexSecond)
         {
             rightNoBuffPcs[0].PriorityNum = 1;
@@ -394,6 +412,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             rightNoBuffPcs[0].PriorityNum = 2;
             rightNoBuffPcs[1].PriorityNum = 1;
         }
+
     }
 
     private void ShowElements()
@@ -403,6 +422,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         {
             foreach (var pc in _partyDatas)
             {
+                if (pc.EntityId != Svc.ClientState.LocalPlayer.EntityId) continue;
                 if (pc.LR == LR.Left)
                 {
                     if (_fireThunders[0] == FireThunder.Fire)
@@ -443,6 +463,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         {
             foreach (var pc in _partyDatas)
             {
+                if (pc.EntityId != Svc.ClientState.LocalPlayer.EntityId) continue;
                 if (pc.LR == LR.Left)
                 {
                     if (_fireThunders[2] == FireThunder.Fire)
@@ -483,6 +504,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         {
             foreach (var pc in _partyDatas)
             {
+                if (pc.EntityId != Svc.ClientState.LocalPlayer.EntityId) continue;
                 if (pc.LR == LR.Left)
                 {
                     if (_fireThunders[2] == FireThunder.Fire)
@@ -523,6 +545,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         {
             foreach (var pc in _partyDatas)
             {
+                if (pc.EntityId != Svc.ClientState.LocalPlayer.EntityId) continue;
                 if (pc.LR == LR.Left)
                 {
                     Controller.GetElementByName("LeftNone2").Enabled = true;

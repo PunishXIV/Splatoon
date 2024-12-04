@@ -12,6 +12,7 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
@@ -104,6 +105,8 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
     private Direction? _baseDirection;
 
+    private bool _showSinboundMeltdown;
+
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
@@ -115,6 +118,14 @@ public class P3_Ultimate_Relativity : SplatoonScript
     {
         if (_state == State.End) return;
         if (castId == 40266) _state = State.Start;
+        if (castId == 40291) _showSinboundMeltdown = true;
+    }
+
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (_state == State.End || set.Action == null) return;
+        var castId = set.Action.Value.RowId;
+        if (castId is 40291 or 40235) _showSinboundMeltdown = false;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
@@ -492,6 +503,61 @@ public class P3_Ultimate_Relativity : SplatoonScript
         PlaceReturnToHourglass(direction, 8f);
     }
 
+    public void ShowSinboundMeltdown()
+    {
+        var hourGlassesList = Svc.Objects.Where(x => x is IBattleNpc npc && npc.CastActionId == 40291 && npc.IsCasting);
+        if (hourGlassesList.Count() == 0) return;
+        PluginLog.Information($"hourGlassesList.Count(): {hourGlassesList.Count()}");
+
+        var pcs = FakeParty.Get().ToList();
+        if (pcs.Count != 8) return;
+
+        var i = 0;
+        foreach (var hourglass in hourGlassesList)
+        {
+            // Search for the closest player
+            var closestPlayer = pcs.MinBy(x => Vector3.Distance(x.Position, hourglass.Position));
+
+            // Show Element
+            if (Controller.TryGetElementByName($"SinboundMeltdown{i}", out var element))
+            {
+                var extPos = GetExtendedAndClampedPosition(hourglass.Position, closestPlayer.Position, 20f, 20f);
+                element.SetRefPosition(hourglass.Position);
+                element.SetOffPosition(extPos);
+                element.Enabled = true;
+                i++;
+            }
+        }
+    }
+
+    public void HideSinboundMeltdown()
+    {
+        for (var i = 0; i < 3; ++i)
+            if (Controller.TryGetElementByName($"SinboundMeltdown{i}", out var element))
+                element.Enabled = false;
+    }
+
+    public static Vector3 GetExtendedAndClampedPosition(Vector3 center, Vector3 currentPos, float extensionLength,
+        float? limit)
+    {
+        // Calculate the normalized direction vector from the center to the current position
+        var direction = Vector3.Normalize(currentPos - center);
+
+        // Extend the position by the specified length
+        var extendedPos = currentPos + direction * extensionLength;
+
+        // If limit is null, return the extended position without clamping
+        if (!limit.HasValue) return extendedPos;
+
+        // Calculate the distance from the center to the extended position
+        var distanceFromCenter = Vector3.Distance(center, extendedPos);
+
+        // If the extended position exceeds the limit, clamp it within the limit
+        if (distanceFromCenter > limit.Value) return center + direction * limit.Value;
+
+        // If within the limit, return the extended position as is
+        return extendedPos;
+    }
 
     public override void OnSetup()
     {
@@ -513,11 +579,24 @@ public class P3_Ultimate_Relativity : SplatoonScript
             overlayVOffset = 5f,
             radius = 0f
         });
+
+        for (var i = 0; i < 3; ++i)
+        {
+            var element = new Element(2)
+            {
+                thicc = 2f,
+                radius = 2.5f,
+                fillIntensity = 0.25f,
+                Filled = true
+            };
+            Controller.RegisterElement($"SinboundMeltdown{i}", element);
+        }
     }
 
     public override void OnReset()
     {
         _state = State.None;
+        _showSinboundMeltdown = false;
         _playerDatas.Clear();
         _hourglasses.Clear();
         _baseDirection = null;
@@ -863,6 +942,8 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 element.overlayText = C.LookOutsideText.Get();
             }
         }
+
+        if (_showSinboundMeltdown) ShowSinboundMeltdown();
     }
 
     public KindFire GetKindFire(StatusList statuses)

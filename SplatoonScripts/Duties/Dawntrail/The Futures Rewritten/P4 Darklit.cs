@@ -8,6 +8,7 @@ using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
 using ImGuiNET;
+using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 
@@ -60,15 +61,35 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 00) _state = State.Start;
+        if (castId == ) _state = State.Start;
     }
+
+    public override void OnSetup()
+    {
+        foreach (var direction in Enum.GetValues<Direction>())
+        {
+            Controller.RegisterElement(direction.ToString(),new Element(0)
+            {
+                thicc = 6f,
+            });
+        }
+        
+        Controller.RegisterElement("Stack", new Element(0)
+        {
+            radius = 0f,
+            overlayText = "<< STACK >>",
+            refActorComparisonType = 5,
+            color = EColor.BlueBright.ToUint()
+        });
+    }
+
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
         if (_state == State.Start && source.GetObject() is IPlayerCharacter sourcePlayer &&
             target.GetObject() is IPlayerCharacter targetPlayer)
         {
-            var direction = Direction.North;
+            Direction direction;
             var priority = C.PriorityData.GetPlayers(x => true).IndexOf(x => x.Name == sourcePlayer.Name.ToString());
             if (priority < 4)
                 direction = C.Mode == Mode.Vertical ? Direction.North : Direction.West;
@@ -89,11 +110,9 @@ public class P4_Darklit : SplatoonScript
 
             if (_players.Count == 4)
             {
-                MoveType? moveType = null;
                 if (C.Mode == Mode.Vertical)
                 {
-                    var isSameRole = _players.Any(player => player.Value.Role == player.Value.LinkToRole);
-                    if (!isSameRole) moveType = MoveType.Clockwise;
+                    MoveType? moveType;
                     var left = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
                         .OrderBy(x => x.Priority).ToList();
                     var right = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: true })
@@ -103,37 +122,38 @@ public class P4_Darklit : SplatoonScript
                         moveType = MoveType.Swap;
                     else
                         moveType = MoveType.Straight;
+                    
+                    var isSameRole = _players.Any(player => player.Value.Role == player.Value.LinkToRole);
+                    if (!isSameRole) moveType = MoveType.Clockwise;
 
-                    if (moveType == MoveType.Straight)
+                    switch (moveType)
                     {
-                        _players[left[0].Id].Direction = Direction.North;
-                        _players[left[1].Id].Direction = Direction.South;
-                        _players[right[0].Id].Direction = Direction.North;
-                        _players[right[1].Id].Direction = Direction.South;
-                    }
-                    else if (moveType == MoveType.Clockwise)
-                    {
-                        _players[left[0].Id].Direction = Direction.North;
-                        _players[left[1].Id].Direction = Direction.North;
-                        _players[right[0].Id].Direction = Direction.South;
-                        _players[right[1].Id].Direction = Direction.South;
-                    }
-                    else if (moveType == MoveType.Swap)
-                    {
-                        if (C.IsDpsSwap)
-                        {
+                        case MoveType.Straight:
                             _players[left[0].Id].Direction = Direction.North;
                             _players[left[1].Id].Direction = Direction.South;
-                            _players[right[0].Id].Direction = Direction.South;
-                            _players[right[1].Id].Direction = Direction.North;
-                        }
-                        else
-                        {
+                            _players[right[0].Id].Direction = Direction.North;
+                            _players[right[1].Id].Direction = Direction.South;
+                            break;
+                        case MoveType.Clockwise:
                             _players[left[0].Id].Direction = Direction.North;
                             _players[left[1].Id].Direction = Direction.North;
                             _players[right[0].Id].Direction = Direction.South;
                             _players[right[1].Id].Direction = Direction.South;
-                        }
+                            break;
+                        case MoveType.Swap when C.IsDpsSwap:
+                            _players[left[0].Id].Direction = Direction.North;
+                            _players[left[1].Id].Direction = Direction.South;
+                            _players[right[0].Id].Direction = Direction.South;
+                            _players[right[1].Id].Direction = Direction.North;
+                            break;
+                        case MoveType.Swap:
+                            _players[left[0].Id].Direction = Direction.North;
+                            _players[left[1].Id].Direction = Direction.North;
+                            _players[right[0].Id].Direction = Direction.South;
+                            _players[right[1].Id].Direction = Direction.South;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
 
                     var otherLeft = _players.Values.Where(x => x is { Priority: < 4, IsInkling: false })

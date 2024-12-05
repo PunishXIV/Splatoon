@@ -558,7 +558,7 @@ public class P4_Crystallize_Time : SplatoonScript
     {
         foreach (var player in Enum.GetValues<MoveType>())
         {
-            var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
+            Direction? returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
             {
                 (Direction.North, Direction.East) => Direction.NorthEast,
                 (Direction.East, Direction.South) => Direction.SouthEast,
@@ -568,7 +568,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 (Direction.West, Direction.South) => Direction.SouthWest,
                 (Direction.South, Direction.East) => Direction.SouthEast,
                 (Direction.East, Direction.North) => Direction.NorthEast,
-                _ => null,
+                _ => null
             };
 
             var returnPosition = returnDirection switch
@@ -577,7 +577,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 Direction.SouthEast => new Vector2(115, 115),
                 Direction.SouthWest => new Vector2(85, 115),
                 Direction.NorthWest => new Vector2(85, 85),
-                _ => new Vector2(100f,100f);
+                _ => new Vector2(100f,100f)
             };
 
             var position = player switch

@@ -841,6 +841,11 @@ public class P4_Crystallize_Time : SplatoonScript
             ImGui.Text("Hit Dragon Text:");
             ImGui.SameLine();
             C.HitDragonText.ImGuiEdit(ref hitDragonText);
+            
+            var avoidWaveText = C.AvoidWaveText.Get();
+            ImGui.Text("Avoid Wave Text:");
+            ImGui.SameLine();
+            C.AvoidWaveText.ImGuiEdit(ref avoidWaveText);
 
             var cleanseText = C.CleanseText.Get();
             ImGui.Text("Cleanse Text:");

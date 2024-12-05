@@ -74,7 +74,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(5, "Garume");
+    public override Metadata? Metadata => new(6, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -817,14 +817,14 @@ public class P3_Ultimate_Relativity : SplatoonScript
             BaitHourglass(Direction.North);
 
             var northEastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == northEastPlayer.Value.PlayerName)
+            if (northEastPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == northEastPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
                 PlaceReturnToHourglassOutside(Direction.NorthEast);
             else
                 PlaceReturnToHourglassInside(Direction.NorthEast);
 
             var eastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == eastPlayer.Value.PlayerName)
+            if (eastPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == eastPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
                 GoNearCenter(Direction.East);
             else
@@ -832,7 +832,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             BaitHourglass(Direction.SouthEast);
 
             var southPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == southPlayer.Value.PlayerName)
+            if (southPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == southPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
                 PlaceReturnToHourglassOutside(Direction.South);
             else
@@ -841,14 +841,14 @@ public class P3_Ultimate_Relativity : SplatoonScript
             BaitHourglass(Direction.SouthWest);
 
             var westPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.West);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == westPlayer.Value.PlayerName)
+            if (westPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == westPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
                 GoNearCenter(Direction.West);
             else
                 PlaceReturnToHourglass(Direction.West);
 
             var northWestPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.NorthWest);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)
+            if (northWestPlayer.Value != null &&FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
                 PlaceReturnToHourglassOutside(Direction.NorthWest);
             else

@@ -21,7 +21,7 @@ public class FRU_Target_Enforcer : SplatoonScript
 {
 
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
     Config C => Controller.GetConfig<Config>();
 
     public static class Enemies
@@ -52,7 +52,8 @@ public class FRU_Target_Enforcer : SplatoonScript
         {
             EzThrottler.Throttle($"{this.InternalData.FullName}_SetTarget", 10000, true);
             return;
-        } 
+        }
+        if(C.KeepPlayers && Svc.Targets.Target is IPlayerCharacter) return;
         if(!GenericHelpers.IsScreenReady()) return;
         if(C.DisableWhenMemberDead && Svc.Party.Count(x => x.GameObject is IPlayerCharacter pc && !pc.IsDead) < 6) return;
         if(Svc.Targets.Target is IBattleNpc npc)
@@ -124,6 +125,7 @@ public class FRU_Target_Enforcer : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGui.InputFloat($"Limit distance", ref C.MaxDistance);
         ImGui.Unindent();
+        ImGui.Checkbox("Do not switch off players", ref C.KeepPlayers);
         ImGui.Separator();
         var t = GetTargetToSet();
         ImGuiEx.Text($"Current suggested target: {t} at {t?.Position} ({t?.IsTarget()})");
@@ -138,6 +140,7 @@ public class FRU_Target_Enforcer : SplatoonScript
         public CrystalDirection EnableCrystals = CrystalDirection.Disabled;
         public bool DisableWhenMemberDead = true;
         public bool EnableOracle = true;
+        public bool KeepPlayers = false;
     }
 
     public enum CrystalDirection { Disabled, North, West, South, East };

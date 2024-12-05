@@ -12,6 +12,7 @@ using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
@@ -36,7 +37,7 @@ public class P4_Crystallize_Time : SplatoonScript
         Return = 0x1070
     }
 
-    public enum Direction : int
+    public enum Direction
     {
         North = 0,
         NorthEast = 45,
@@ -46,6 +47,21 @@ public class P4_Crystallize_Time : SplatoonScript
         SouthWest = 225,
         West = 270,
         NorthWest = 315
+    }
+
+
+    public enum HitTiming
+    {
+        Early,
+        Late
+    }
+
+    public enum MarkerType : uint
+    {
+        Attack1 = 0,
+        Attack2 = 1,
+        Attack3 = 2,
+        Attack4 = 3
     }
 
     public enum MoveType
@@ -92,6 +108,8 @@ public class P4_Crystallize_Time : SplatoonScript
 
     private readonly Dictionary<ulong, PlayerData> _players = new();
 
+    public readonly IEnumerable<uint> AllDebuffIds = Enum.GetValues<Debuff>().Cast<uint>();
+
     private Direction? _baseDirection = Direction.North;
 
     private int _burnHourglassCount;
@@ -105,12 +123,16 @@ public class P4_Crystallize_Time : SplatoonScript
     private Direction? _secondWaveDirection;
 
     private State _state = State.None;
-
-    public readonly IEnumerable<uint> AllDebuffIds = Enum.GetValues<Debuff>().Cast<uint>();
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
+
+    public static IBattleNpc? WestDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: <= 100 })
+        .Select(x => x as IBattleNpc).First();
+
+    public static IBattleNpc? EastDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: > 100 })
+        .Select(x => x as IBattleNpc).First();
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -476,16 +498,11 @@ public class P4_Crystallize_Time : SplatoonScript
                 element.SetOffPosition(position.ToVector3(0));
             }
         }
-        
+
         if (_players[Player.Object.GameObjectId].MoveType == MoveType.RedBlizzardEast ||
             _players[Player.Object.GameObjectId].MoveType == MoveType.RedBlizzardWest)
             Alert(C.HitDragonText.Get());
     }
-
-    public static IBattleNpc? WestDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: <= 100 })
-        .Select(x => x as IBattleNpc).First();
-    public static IBattleNpc? EastDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: > 100 })
-        .Select(x => x as IBattleNpc).First();
 
     public void DebuffExpire()
     {
@@ -577,7 +594,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 Direction.SouthEast => new Vector2(115, 115),
                 Direction.SouthWest => new Vector2(85, 115),
                 Direction.NorthWest => new Vector2(85, 85),
-                _ => new Vector2(100f,100f)
+                _ => new Vector2(100f, 100f)
             };
 
             var position = player switch
@@ -589,14 +606,41 @@ public class P4_Crystallize_Time : SplatoonScript
                 _ => Vector2.Zero
             };
 
-            if (player == C.WestSentence)
-                position = new Vector2(87, 100);
-            else if (player == C.SouthWestSentence)
-                position = new Vector2(92, 110);
-            else if (player == C.SouthEastSentence)
-                position = new Vector2(108, 110);
-            else if (player == C.EastSentence)
-                position = new Vector2(113, 100);
+            if (position == Vector2.Zero)
+            {
+                var direction = Direction.West;
+                if (C.PrioritizeMarker && _players.GetOrDefault(Player.CID)?.Marker is { } marker)
+                {
+                    direction = marker switch
+                    {
+                        MarkerType.Attack1 => C.WhenAttack1,
+                        MarkerType.Attack2 => C.WhenAttack2,
+                        MarkerType.Attack3 => C.WhenAttack3,
+                        MarkerType.Attack4 => C.WhenAttack4,
+                        _ => direction
+                    };
+                }
+                else
+                {
+                    if (player == C.WestSentence)
+                        direction = Direction.West;
+                    else if (player == C.SouthWestSentence)
+                        direction = Direction.SouthWest;
+                    else if (player == C.SouthEastSentence)
+                        direction = Direction.SouthEast;
+                    else if (player == C.EastSentence)
+                        direction = Direction.East;
+                }
+
+                position = direction switch
+                {
+                    Direction.West => new Vector2(87, 100),
+                    Direction.SouthWest => new Vector2(92, 110),
+                    Direction.SouthEast => new Vector2(108, 110),
+                    Direction.East => new Vector2(113, 100),
+                    _ => position
+                };
+            }
 
             position = SwapXIfNecessary(position);
             if (Controller.TryGetElementByName(player.ToString(), out var element))
@@ -710,7 +754,7 @@ public class P4_Crystallize_Time : SplatoonScript
             myElement.tether = true;
             myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
         }
-        
+
         Alert(C.PlaceReturnText.Get());
     }
 
@@ -736,12 +780,23 @@ public class P4_Crystallize_Time : SplatoonScript
             ImGui.Text("East");
             ImGui.Unindent();
             ImGui.Separator();
-            
+
             ImGuiEx.EnumCombo("Hit Timing", ref C.HitTiming);
-            
+
             ImGui.Separator();
             ImGuiEx.Text("Sentence Moves");
             ImGui.Indent();
+            ImGui.Checkbox("PrioritizeMarker", ref C.PrioritizeMarker);
+            if (C.PrioritizeMarker)
+            {
+                ImGui.Indent();
+                ImGuiEx.EnumCombo("When Attack 1", ref C.WhenAttack1);
+                ImGuiEx.EnumCombo("When Attack 2", ref C.WhenAttack2);
+                ImGuiEx.EnumCombo("When Attack 3", ref C.WhenAttack3);
+                ImGuiEx.EnumCombo("When Attack 4", ref C.WhenAttack4);
+                ImGui.Unindent();
+            }
+
             ImGuiEx.EnumCombo("West Sentence", ref C.WestSentence);
             ImGuiEx.EnumCombo("South West Sentence", ref C.SouthWestSentence);
             ImGuiEx.EnumCombo("South East Sentence", ref C.SouthEastSentence);
@@ -774,29 +829,29 @@ public class P4_Crystallize_Time : SplatoonScript
             ImGui.Unindent();
 
             ImGui.Separator();
-            
+
             ImGui.Text("Dialogue Text:");
             ImGui.Indent();
             var splitText = C.SplitText.Get();
             ImGui.Text("Split Text:");
             ImGui.SameLine();
             C.SplitText.ImGuiEdit(ref splitText);
-            
+
             var hitDragonText = C.HitDragonText.Get();
             ImGui.Text("Hit Dragon Text:");
             ImGui.SameLine();
             C.HitDragonText.ImGuiEdit(ref hitDragonText);
-            
+
             var cleanseText = C.CleanseText.Get();
             ImGui.Text("Cleanse Text:");
             ImGui.SameLine();
             C.CleanseText.ImGuiEdit(ref cleanseText);
-            
+
             var placeReturnText = C.PlaceReturnText.Get();
             ImGui.Text("Place Return Text:");
             ImGui.SameLine();
             C.PlaceReturnText.ImGuiEdit(ref placeReturnText);
-            
+
             ImGui.Separator();
             ImGui.Text("Bait Color:");
             ImGuiComponents.HelpMarker(
@@ -838,6 +893,22 @@ public class P4_Crystallize_Time : SplatoonScript
                 _state = State.PlaceReturn;
             }
         }
+    }
+
+    public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5,
+        uint p6, ulong targetId,
+        byte replaying)
+    {
+        if (_state is not (State.None or State.End))
+            if (command == 502)
+                try
+                {
+                    _players[p2].Marker = (MarkerType)p1;
+                }
+                catch
+                {
+                    PluginLog.Warning($"GameObjectId:{p2} was not found");
+                }
     }
 
     /*public class CoordinateTransformer(Direction baseDirection, Direction targetDirection, Vector2 center = default)
@@ -890,29 +961,28 @@ public class P4_Crystallize_Time : SplatoonScript
         }
     }*/
 
-    public record PlayerData()
+    public record PlayerData
     {
         public Debuff? Color;
         public Debuff? Debuff;
         public bool HasQuietus;
+        public MarkerType? Marker;
         public MoveType? MoveType;
         public string PlayerName;
 
         public bool HasDebuff => Debuff != null && Color != null;
     }
-    
-    public enum HitTiming
-    {
-        Early,
-        Late
-    }
 
     public class Config : IEzConfig
     {
+        public InternationalString AvoidWaveText = new() { En = "Avoid Wave", Jp = "波をよけろ！" };
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public InternationalString CleanseText = new() { En = "Get Cleanse", Jp = "白を取れ！" };
         public MoveType EastSentence = MoveType.BlueBlizzard;
-        
+
+        public InternationalString HitDragonText = new() { En = "Hit Dragon", Jp = "竜に当たれ！" };
+
         public HitTiming HitTiming = HitTiming.Late;
 
         public bool IsTank;
@@ -920,19 +990,21 @@ public class P4_Crystallize_Time : SplatoonScript
         public bool IsWestWhenNorthWestWave;
         public bool IsWestWhenSouthEastWave;
         public bool IsWestWhenSouthWestWave;
+        public InternationalString PlaceReturnText = new() { En = "Place Return", Jp = "リターンを置け！" };
+
+        public bool PrioritizeMarker;
 
         public PriorityData PriorityData = new();
 
-        public InternationalString HitDragonText = new() { En = "Hit Dragon", Jp = "竜に当たれ！" };
-        public InternationalString SplitText = new() { En = "Split", Jp = "散開！" };
-        public InternationalString CleanseText = new() { En = "Get Cleanse", Jp = "白を取れ！" };
-        public InternationalString PlaceReturnText = new() { En = "Place Return", Jp = "リターンを置け！" };
-        public InternationalString AvoidWaveText = new() { En = "Avoid Wave", Jp = "波をよけろ！" };
-        
 
         public bool ShowOther;
         public MoveType SouthEastSentence = MoveType.BlueHoly;
         public MoveType SouthWestSentence = MoveType.BlueWater;
+        public InternationalString SplitText = new() { En = "Split", Jp = "散開！" };
         public MoveType WestSentence = MoveType.BlueEruption;
+        public Direction WhenAttack1 = Direction.East;
+        public Direction WhenAttack2 = Direction.SouthEast;
+        public Direction WhenAttack3 = Direction.SouthWest;
+        public Direction WhenAttack4 = Direction.West;
     }
 }

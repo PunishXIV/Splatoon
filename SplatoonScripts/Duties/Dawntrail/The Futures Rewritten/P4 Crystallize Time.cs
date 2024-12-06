@@ -125,7 +125,7 @@ public class P4_Crystallize_Time : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 

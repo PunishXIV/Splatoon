@@ -224,6 +224,6 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         ];
 
         public int Interval = 300;
-        public bool TimingMode = true;
+        public bool TimingMode = false;
     }
 }

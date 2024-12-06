@@ -6,6 +6,7 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
 using ECommons;
+using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
@@ -124,7 +125,7 @@ public class P4_Crystallize_Time : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -162,7 +163,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 {
                     2 => State.HitDragonAndRed,
                     4 => C.HitTiming == HitTiming.Late ? State.BurnPurpleHourglass : State.HitDragonAndAero,
-                    6 => State.HitDragonAndAero,
+                    6 => C.HitTiming == HitTiming.Late ? State.HitDragonAndAero : _state,
                     _ => _state
                 };
                 break;
@@ -318,6 +319,16 @@ public class P4_Crystallize_Time : SplatoonScript
                         _ => _players[otherPlayer.Key].MoveType
                     };
 
+
+                if (!string.IsNullOrEmpty(C.CommandWhenBlueDebuff) &&
+                    Player.Status.Any(x => x.StatusId == (uint)Debuff.Blue))
+                {
+                    var random = 0;
+                    if (C.ShouldUseRandomWait)
+                        random = new Random().Next((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
+                    Controller.Schedule(() => { Chat.Instance.ExecuteCommand(C.CommandWhenBlueDebuff); }, random);
+                }
+
                 _state = State.PreSplit;
             }
         }
@@ -339,7 +350,7 @@ public class P4_Crystallize_Time : SplatoonScript
 
     public Vector2 SwapXIfNecessary(Vector2 position)
     {
-        if (_lateHourglassDirection == Direction.NorthEast || _lateHourglassDirection == Direction.SouthWest)
+        if (_lateHourglassDirection is Direction.NorthEast or Direction.SouthWest)
             return position;
         var swapX = _center.X * 2 - position.X;
         return new Vector2(swapX, position.Y);
@@ -379,6 +390,12 @@ public class P4_Crystallize_Time : SplatoonScript
             element.Enabled = true;
             element.overlayText = text;
         }
+    }
+
+    public void HideAlert()
+    {
+        if (Controller.TryGetElementByName("Alert", out var element))
+            element.Enabled = false;
     }
 
 
@@ -466,7 +483,7 @@ public class P4_Crystallize_Time : SplatoonScript
             };
 
             position = SwapXIfNecessary(position);
-            if (Controller.TryGetElementByName(player.ToString(), out var element))
+            if (Controller.TryGetElementByName(SwapIfNecessary(player), out var element))
             {
                 element.radius = 0.5f;
                 element.SetOffPosition(position.ToVector3(0));
@@ -492,7 +509,7 @@ public class P4_Crystallize_Time : SplatoonScript
             };
 
             position = SwapXIfNecessary(position);
-            if (Controller.TryGetElementByName(player.ToString(), out var element))
+            if (Controller.TryGetElementByName(SwapIfNecessary(player), out var element))
             {
                 element.radius = 0.5f;
                 element.SetOffPosition(position.ToVector3(0));
@@ -515,21 +532,21 @@ public class P4_Crystallize_Time : SplatoonScript
         {
             var position = player switch
             {
-                MoveType.RedBlizzardWest => new Vector2(100, 85),
-                MoveType.RedBlizzardEast => new Vector2(100, 85),
+                MoveType.RedBlizzardWest => new Vector2(110, 86),
+                MoveType.RedBlizzardEast => new Vector2(110, 86),
                 MoveType.RedAeroWest => new Vector2(100, 115),
-                MoveType.RedAeroEast => new Vector2(113, 108),
-                MoveType.BlueBlizzard => new Vector2(100, 18),
-                MoveType.BlueHoly => new Vector2(100, 85),
-                MoveType.BlueWater => new Vector2(100, 85),
-                MoveType.BlueEruption => new Vector2(100, 85),
+                MoveType.RedAeroEast => new Vector2(107, 118),
+                MoveType.BlueBlizzard => new Vector2(110, 86),
+                MoveType.BlueHoly => new Vector2(110, 86),
+                MoveType.BlueWater => new Vector2(110, 86),
+                MoveType.BlueEruption => new Vector2(110, 86),
                 _ => throw new InvalidOperationException()
             };
 
             position = SwapXIfNecessary(position);
-            if (Controller.TryGetElementByName(player.ToString(), out var element))
+            if (Controller.TryGetElementByName(SwapIfNecessary(player), out var element))
             {
-                element.radius = 0.5f;
+                element.radius = 1f;
                 element.SetOffPosition(position.ToVector3(0));
             }
         }
@@ -537,41 +554,33 @@ public class P4_Crystallize_Time : SplatoonScript
 
     public void BurnPurpleHourglass()
     {
-        BurnHourglass();
-        Alert(C.AvoidWaveText.Get());
-    }
-
-    public void HitDragonAndAero()
-    {
         foreach (var player in Enum.GetValues<MoveType>())
         {
             var position = player switch
             {
-                MoveType.RedBlizzardWest => new Vector2(85, 85),
-                MoveType.RedBlizzardEast => new Vector2(85, 85),
-                MoveType.RedAeroWest => WestDragon?.Position.ToVector2() ?? new Vector2(87, 108),
-                MoveType.RedAeroEast => EastDragon?.Position.ToVector2() ?? new Vector2(113, 108),
-                MoveType.BlueBlizzard => new Vector2(85, 85),
-                MoveType.BlueHoly => new Vector2(85, 85),
-                MoveType.BlueWater => new Vector2(85, 85),
-                MoveType.BlueEruption => new Vector2(85, 85),
+                MoveType.RedBlizzardWest => new Vector2(100, 85),
+                MoveType.RedBlizzardEast => new Vector2(100, 85),
+                MoveType.RedAeroWest => new Vector2(100, 118),
+                MoveType.RedAeroEast => new Vector2(110, 110),
+                MoveType.BlueBlizzard => new Vector2(100, 85),
+                MoveType.BlueHoly => new Vector2(100, 85),
+                MoveType.BlueWater => new Vector2(100, 85),
+                MoveType.BlueEruption => new Vector2(100, 85),
                 _ => throw new InvalidOperationException()
             };
 
             position = SwapXIfNecessary(position);
-            if (Controller.TryGetElementByName(player.ToString(), out var element))
+            if (Controller.TryGetElementByName(SwapIfNecessary(player), out var element))
             {
-                element.radius = 2f;
+                element.radius = 1f;
                 element.SetOffPosition(position.ToVector3(0));
             }
         }
 
-        if (_players[Player.Object.GameObjectId].MoveType == MoveType.RedAeroEast ||
-            _players[Player.Object.GameObjectId].MoveType == MoveType.RedAeroWest)
-            Alert(C.HitDragonText.Get());
+        Alert(C.AvoidWaveText.Get());
     }
 
-    public void CorrectCleanse()
+    public void HitDragonAndAero()
     {
         foreach (var player in Enum.GetValues<MoveType>())
         {
@@ -594,6 +603,97 @@ public class P4_Crystallize_Time : SplatoonScript
                 Direction.SouthEast => new Vector2(115, 115),
                 Direction.SouthWest => new Vector2(85, 115),
                 Direction.NorthWest => new Vector2(85, 85),
+                _ => new Vector2(100f, 100f)
+            };
+
+            var position = player switch
+            {
+                MoveType.RedBlizzardWest => returnPosition,
+                MoveType.RedBlizzardEast => returnPosition,
+                MoveType.RedAeroWest => WestDragon?.Position.ToVector2() ?? new Vector2(87, 108),
+                MoveType.RedAeroEast => EastDragon?.Position.ToVector2() ?? new Vector2(113, 108),
+                MoveType.BlueBlizzard => new Vector2(100, 100),
+                MoveType.BlueHoly => new Vector2(100, 100),
+                MoveType.BlueWater => new Vector2(100, 100),
+                MoveType.BlueEruption => new Vector2(100, 100),
+                _ => throw new InvalidOperationException()
+            };
+
+            position = SwapXIfNecessary(position);
+            if (Controller.TryGetElementByName(SwapIfNecessary(player), out var element))
+            {
+                element.radius = 2f;
+                element.SetOffPosition(position.ToVector3(0));
+            }
+        }
+
+        if (_players[Player.Object.GameObjectId].MoveType == MoveType.RedAeroEast ||
+            _players[Player.Object.GameObjectId].MoveType == MoveType.RedAeroWest)
+            Alert(C.HitDragonText.Get());
+    }
+
+    public string SwapIfNecessary(MoveType move)
+    {
+        if (_lateHourglassDirection is Direction.NorthEast or Direction.SouthWest)
+            return move.ToString();
+        return move switch
+        {
+            MoveType.RedBlizzardWest => MoveType.RedBlizzardEast.ToString(),
+            MoveType.RedBlizzardEast => MoveType.RedBlizzardWest.ToString(),
+            MoveType.RedAeroWest => MoveType.RedAeroEast.ToString(),
+            MoveType.RedAeroEast => MoveType.RedAeroWest.ToString(),
+            _ => move.ToString()
+        };
+    }
+
+    public void CorrectCleanse()
+    {
+        foreach (var player in Enum.GetValues<MoveType>())
+        {
+            if (_burnHourglassCount < 5)
+            {
+                var pos = player switch
+                {
+                    MoveType.RedBlizzardWest => new Vector2(100, 85),
+                    MoveType.RedBlizzardEast => new Vector2(100, 85),
+                    MoveType.RedAeroWest => new Vector2(100, 115),
+                    MoveType.RedAeroEast => new Vector2(100, 115),
+                    MoveType.BlueBlizzard => new Vector2(100, 85),
+                    MoveType.BlueHoly => new Vector2(100, 85),
+                    MoveType.BlueWater => new Vector2(100, 85),
+                    MoveType.BlueEruption => new Vector2(100, 85),
+                    _ => throw new InvalidOperationException()
+                };
+
+                if (Controller.TryGetElementByName(SwapIfNecessary(player), out var e))
+                {
+                    e.radius = 1f;
+                    e.SetOffPosition(pos.ToVector3(0));
+                }
+
+                continue;
+            }
+
+
+            Direction? returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
+            {
+                (Direction.North, Direction.East) => Direction.NorthEast,
+                (Direction.East, Direction.South) => Direction.SouthEast,
+                (Direction.South, Direction.West) => Direction.SouthWest,
+                (Direction.West, Direction.North) => Direction.NorthWest,
+                (Direction.North, Direction.West) => Direction.NorthWest,
+                (Direction.West, Direction.South) => Direction.SouthWest,
+                (Direction.South, Direction.East) => Direction.SouthEast,
+                (Direction.East, Direction.North) => Direction.NorthEast,
+                _ => null
+            };
+
+            var returnPosition = returnDirection switch
+            {
+                Direction.NorthEast => new Vector2(112, 88),
+                Direction.SouthEast => new Vector2(112, 112),
+                Direction.SouthWest => new Vector2(88, 112),
+                Direction.NorthWest => new Vector2(88, 88),
                 _ => new Vector2(100f, 100f)
             };
 
@@ -642,8 +742,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 };
             }
 
-            position = SwapXIfNecessary(position);
-            if (Controller.TryGetElementByName(player.ToString(), out var element))
+            if (Controller.TryGetElementByName(SwapIfNecessary(player), out var element))
             {
                 element.radius = 2f;
                 element.SetOffPosition(position.ToVector3(0));
@@ -652,6 +751,8 @@ public class P4_Crystallize_Time : SplatoonScript
 
         if (Player.Status.Any(x => x.StatusId == (uint)Debuff.Blue))
             Alert(C.CleanseText.Get());
+        else
+            HideAlert();
     }
 
     public void PlaceReturn()
@@ -728,11 +829,6 @@ public class P4_Crystallize_Time : SplatoonScript
                 break;
         }
 
-        westTankPosition = SwapXIfNecessary(westTankPosition);
-        eastTankPosition = SwapXIfNecessary(eastTankPosition);
-        westPosition = SwapXIfNecessary(westPosition);
-        eastPosition = SwapXIfNecessary(eastPosition);
-
         foreach (var stack in Enum.GetValues<WaveStack>())
             if (Controller.TryGetElementByName(stack + nameof(WaveStack), out var element))
             {
@@ -790,6 +886,26 @@ public class P4_Crystallize_Time : SplatoonScript
             if (C.PrioritizeMarker)
             {
                 ImGui.Indent();
+                ImGui.InputText("Execute Command When Blue Debuff Gained", ref C.CommandWhenBlueDebuff, 30);
+                ImGui.Checkbox("Random Wait", ref C.ShouldUseRandomWait);
+                if (C.ShouldUseRandomWait)
+                {
+                    var minWait = C.WaitRange.X;
+                    var maxWait = C.WaitRange.Y;
+                    ImGui.SliderFloat2("Wait Range (sec)", ref C.WaitRange, 0f, 3f, "%.1f");
+                    if (Math.Abs(minWait - C.WaitRange.X) > 0.01f)
+                    {
+                        if (C.WaitRange.X > C.WaitRange.Y)
+                            C.WaitRange.Y = C.WaitRange.X;
+                    }
+                    else if (Math.Abs(maxWait - C.WaitRange.Y) > 0.01f)
+                    {
+                        if (C.WaitRange.Y < C.WaitRange.X)
+                            C.WaitRange.X = C.WaitRange.Y;
+                    }
+                }
+
+                ImGui.Separator();
                 ImGuiEx.EnumCombo("When Attack 1", ref C.WhenAttack1);
                 ImGuiEx.EnumCombo("When Attack 2", ref C.WhenAttack2);
                 ImGuiEx.EnumCombo("When Attack 3", ref C.WhenAttack3);
@@ -841,7 +957,7 @@ public class P4_Crystallize_Time : SplatoonScript
             ImGui.Text("Hit Dragon Text:");
             ImGui.SameLine();
             C.HitDragonText.ImGuiEdit(ref hitDragonText);
-            
+
             var avoidWaveText = C.AvoidWaveText.Get();
             ImGui.Text("Avoid Wave Text:");
             ImGui.SameLine();
@@ -984,6 +1100,7 @@ public class P4_Crystallize_Time : SplatoonScript
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public InternationalString CleanseText = new() { En = "Get Cleanse", Jp = "白を取れ！" };
+        public string CommandWhenBlueDebuff = "";
         public MoveType EastSentence = MoveType.BlueBlizzard;
 
         public InternationalString HitDragonText = new() { En = "Hit Dragon", Jp = "竜に当たれ！" };
@@ -1001,11 +1118,14 @@ public class P4_Crystallize_Time : SplatoonScript
 
         public PriorityData PriorityData = new();
 
+        public bool ShouldUseRandomWait = true;
+
 
         public bool ShowOther;
         public MoveType SouthEastSentence = MoveType.BlueHoly;
         public MoveType SouthWestSentence = MoveType.BlueWater;
         public InternationalString SplitText = new() { En = "Split", Jp = "散開！" };
+        public Vector2 WaitRange = new(0.5f, 1.5f);
         public MoveType WestSentence = MoveType.BlueEruption;
         public Direction WhenAttack1 = Direction.East;
         public Direction WhenAttack2 = Direction.SouthEast;

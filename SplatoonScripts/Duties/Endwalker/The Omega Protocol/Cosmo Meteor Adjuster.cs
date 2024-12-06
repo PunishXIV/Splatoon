@@ -8,7 +8,9 @@ using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
+using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using System;
@@ -16,8 +18,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using ECommons.PartyFunctions;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
@@ -87,40 +87,40 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if(target.GetObject() is IPlayerCharacter character && _gimmickActive)
+        if (target.GetObject() is IPlayerCharacter character && _gimmickActive)
         {
-            if(vfxPath == VfxPath.Flare)
+            if (vfxPath == VfxPath.Flare)
             {
                 _flarePos.Add(new FlareContainer(character, false));
-                if(character.Address == Svc.ClientState.LocalPlayer.Address)
+                if (character.Address == Svc.ClientState.LocalPlayer.Address)
                 {
                     _flarePos.Last().mine = true;
                     _isFlareMine = true;
                 }
 
-                if(RangedDps.Contains(character.GetJob()))
+                if (RangedDps.Contains(character.GetJob()))
                 {
                     _isFindRange = true;
                     _stackPos = StackPos.South;
                 }
-                else if(_flarePos.Count >= 3 && _isFindRange == false)
+                else if (_flarePos.Count >= 3 && _isFindRange == false)
                 {
                     _stackPos = StackPos.North;
                 }
 
-                if(_flarePos.Count >= 3)
+                if (_flarePos.Count >= 3)
                 {
                     Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
                     ArbitPosition();
 
-                    if(!_isFlareMine)
+                    if (!_isFlareMine)
                     {
-                        if(_stackPos == StackPos.North)
+                        if (_stackPos == StackPos.North)
                         {
                             Controller.GetElementByName("StackNorth").Enabled = true;
                             Controller.GetElementByName("StackNorth").tether = true;
                         }
-                        else if(_stackPos == StackPos.South)
+                        else if (_stackPos == StackPos.South)
                         {
                             Controller.GetElementByName("StackSouth").Enabled = true;
                             Controller.GetElementByName("StackSouth").tether = true;
@@ -133,7 +133,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if(castId == CastID.CosmoMeteor)
+        if (castId == CastID.CosmoMeteor)
         {
             _gimmickActive = true;
         }
@@ -141,10 +141,10 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if(set.Action == null)
+        if (set.Action == null)
             return;
 
-        if(set.Action.Value.RowId == CastID.CosmoMeteorFlare)
+        if (set.Action.Value.RowId == 40165)
         {
             this.OnReset();
         }
@@ -152,17 +152,17 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 
     public override void OnUpdate()
     {
-        if(Controller.GetElementByName("FlareNorth").Enabled == true)
+        if (Controller.GetElementByName("FlareNorth").Enabled == true)
             Controller.GetElementByName("FlareNorth").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if(Controller.GetElementByName("FlareEast").Enabled == true)
+        if (Controller.GetElementByName("FlareEast").Enabled == true)
             Controller.GetElementByName("FlareEast").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if(Controller.GetElementByName("FlareWest").Enabled == true)
+        if (Controller.GetElementByName("FlareWest").Enabled == true)
             Controller.GetElementByName("FlareWest").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if(Controller.GetElementByName("FlareSouth").Enabled == true)
+        if (Controller.GetElementByName("FlareSouth").Enabled == true)
             Controller.GetElementByName("FlareSouth").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if(Controller.GetElementByName("StackNorth").Enabled == true)
+        if (Controller.GetElementByName("StackNorth").Enabled == true)
             Controller.GetElementByName("StackNorth").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if(Controller.GetElementByName("StackSouth").Enabled == true)
+        if (Controller.GetElementByName("StackSouth").Enabled == true)
             Controller.GetElementByName("StackSouth").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
     }
 
@@ -181,7 +181,7 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
     {
         public bool Debug = false;
         public List<string[]> clockWisePriorities = new();
-        
+
         public List<Job> Jobs =
         [
             Job.PLD,
@@ -212,9 +212,9 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
     {
         ImGui.Text("# How to determine left/right priority : ");
         ImGui.SameLine();
-        if(ImGui.SmallButton("Test"))
+        if (ImGui.SmallButton("Test"))
         {
-            if(TryGetPriorityList(out var list))
+            if (TryGetPriorityList(out var list))
             {
                 DuoLog.Information($"Success: priority list {list.Print()}");
             }
@@ -224,22 +224,22 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
             }
         }
         var toRem = -1;
-        for(int i = 0; i < C.clockWisePriorities.Count; i++)
+        for (int i = 0; i < C.clockWisePriorities.Count; i++)
         {
-            if(DrawPrioList(i))
+            if (DrawPrioList(i))
             {
                 toRem = i;
             }
         }
-        if(toRem != -1)
+        if (toRem != -1)
         {
             C.clockWisePriorities.RemoveAt(toRem);
         }
-        if(ImGui.Button("Create new priority list"))
+        if (ImGui.Button("Create new priority list"))
         {
             C.clockWisePriorities.Add(new string[] { "", "", "", "", "", "", "", "" });
         }
-        
+
         if (ImGuiEx.CollapsingHeader("Option"))
         {
             DragDrop.Begin();
@@ -262,20 +262,20 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
             DragDrop.End();
         }
 
-        if(ImGui.CollapsingHeader("Debug"))
+        if (ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Text("Stack Position: " + _stackPos.ToString());
             ImGui.Text("Gimmick Active: " + _gimmickActive.ToString());
             ImGui.Text("Flare Mine: " + _isFlareMine.ToString());
 
-            foreach((string, string) data in _flareData)
+            foreach ((string, string) data in _flareData)
             {
-                if(data.Item1 == null || data.Item2 == null) continue;
+                if (data.Item1 == null || data.Item2 == null) continue;
                 ImGui.Text(data.Item1 + ": " + data.Item2);
             }
 
             List<ImGuiEx.EzTableEntry> entries = [];
-            foreach(FlareContainer character in _flarePos)
+            foreach (FlareContainer character in _flarePos)
             {
                 entries.Add(new ImGuiEx.EzTableEntry("Name", () => ImGui.Text(character.character.Name.ToString())));
                 entries.Add(new ImGuiEx.EzTableEntry("Mine", () => ImGui.Text(character.mine.ToString())));
@@ -292,19 +292,19 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
     #region private
     private bool TryGetPriorityList([NotNullWhen(true)] out List<IPlayerCharacter> values)
     {
-        foreach(var p in C.clockWisePriorities)
+        foreach (var p in C.clockWisePriorities)
         {
             var valid = true;
             var l = FakeParty.Get().Select(x => x.Name.ToString()).ToHashSet();
-            foreach(var x in p)
+            foreach (var x in p)
             {
-                if(!l.Remove(x))
+                if (!l.Remove(x))
                 {
                     valid = false;
                     break;
                 }
             }
-            if(valid)
+            if (valid)
             {
                 values = FakeParty.Get().ToList().OrderBy(x => Array.IndexOf(p, x.Name.ToString())).ToList();
                 return true;
@@ -320,14 +320,14 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
         ImGuiEx.Text($"# Priority list {num + 1}");
         ImGui.PushID($"prio{num}");
         ImGuiEx.Text($"    North (Ranged DPS) ClockWise");
-        for(int i = 0; i < prio.Length; i++)
+        for (int i = 0; i < prio.Length; i++)
         {
             ImGui.PushID($"prio{num}element{i}");
             ImGui.SetNextItemWidth(200);
             ImGui.InputText($"Player {i + 1}", ref prio[i], 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
-            if(ImGui.BeginCombo("##partysel", "Select from party"))
+            if (ImGui.BeginCombo("##partysel", "Select from party"))
             {
                 foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
                              .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
@@ -338,11 +338,11 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
             ImGui.PopID();
         }
         ImGuiEx.Text($"    NorthWest");
-        if(ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
+        if (ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
         {
             return true;
         }
-        
+
         ImGui.SameLine();
         if (ImGui.Button("Fill by job"))
         {
@@ -384,17 +384,17 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
 
         List<IPlayerCharacter> priorityList = new List<IPlayerCharacter>();
 
-        if(!TryGetPriorityList(out priorityList)) return;
+        if (!TryGetPriorityList(out priorityList)) return;
 
-        if(_stackPos == StackPos.North)
+        if (_stackPos == StackPos.North)
         {
             int i = 0;
-            foreach(var priorityMember in priorityList)
+            foreach (var priorityMember in priorityList)
             {
-                if(_flarePos.Any(x => x.character.Address == priorityMember.Address))
+                if (_flarePos.Any(x => x.character.Address == priorityMember.Address))
                 {
                     _flareData[i] = (northElementsArray[i], priorityMember.Name.ToString());
-                    if(Svc.ClientState.LocalPlayer.Address == priorityMember.Address)
+                    if (Svc.ClientState.LocalPlayer.Address == priorityMember.Address)
                     {
                         Controller.GetElementByName(northElementsArray[i]).Enabled = true;
                         Controller.GetElementByName(northElementsArray[i]).tether = true;
@@ -403,15 +403,15 @@ internal unsafe class Cosmo_Meteor_Adjuster :SplatoonScript
                 }
             }
         }
-        else if(_stackPos == StackPos.South)
+        else if (_stackPos == StackPos.South)
         {
             int i = 0;
-            foreach(var priorityMember in priorityList)
+            foreach (var priorityMember in priorityList)
             {
-                if(_flarePos.Any(x => x.character.Address == priorityMember.Address))
+                if (_flarePos.Any(x => x.character.Address == priorityMember.Address))
                 {
                     _flareData[i] = (southElementsArray[i], priorityMember.Name.ToString());
-                    if(Svc.ClientState.LocalPlayer.Address == priorityMember.Address)
+                    if (Svc.ClientState.LocalPlayer.Address == priorityMember.Address)
                     {
                         Controller.GetElementByName(southElementsArray[i]).Enabled = true;
                         Controller.GetElementByName(southElementsArray[i]).tether = true;

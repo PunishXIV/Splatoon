@@ -92,7 +92,7 @@ public class P4_Darklit : SplatoonScript
         if (castId == 40239) _state = State.Start;
         if (_holyWingIds.Contains(castId))
         {
-            var x = castId == _holyWingIds[0] ? 105f : 95f;
+            var x = castId == _holyWingIds[0] ? 106.5f : 93.5f;
 
             if (Controller.TryGetElementByName("StackBaitNorth", out var northElement)) northElement.refX = x;
 

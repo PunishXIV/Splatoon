@@ -38,7 +38,7 @@ public class P2_Diamond_Dust : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 

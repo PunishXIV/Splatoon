@@ -1,6 +1,7 @@
 ﻿using ECommons;
 using ECommons.Configuration;
 using ECommons.ImGuiMethods;
+using ECommons.PartyFunctions;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
@@ -19,23 +20,35 @@ public class PriorityTest : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ref var r = ref Ref<int>.Get(this.InternalData.FullName);
-        ImGui.InputInt("num", ref r);
-        ImGuiEx.Text($"Players with names <= {r}");
-        var n = r;
-        ImGuiEx.Text($"""
+        try
+        {
+            ref var r = ref Ref<int>.Get(this.InternalData.FullName);
+            ImGui.InputInt("num", ref r);
+            ImGuiEx.Text($"Players with names <= {r}");
+            var n = r;
+            ImGuiEx.Text($"""
             List:
-            {C.Priority.GetPlayers(x => x.Name.Length <= n).Select(x => x.Name).Print("\n")}
+            {C.Priority.GetPlayers(x => x.Name.Length <= n)?.Select(x => x.Name).Print("\n")}
             
             Your index: {C.Priority.GetOwnIndex(x => x.Name.Length <= n)}
             Your index backwards: {C.Priority.GetOwnIndex(x => x.Name.Length <= n, true)}
             """);
+        }
+        catch(Exception e)
+        {
+            e.Log();
+        }
         ImGui.Separator();
         C.Priority.Draw();
     }
 
     public class Config : IEzConfig
     {
-        public PriorityData Priority = new();
+        public PriorityData4 Priority = new();
+    }
+
+    public class PriorityData4 : PriorityData
+    {
+        public override int GetNumPlayers() => 4;
     }
 }

@@ -460,7 +460,7 @@ public class P4_Darklit : SplatoonScript
             ImGuiEx.EnumCombo("Mode", ref C.Mode);
             ImGuiEx.Text("Priority");
             ImGuiEx.Text(C.Mode == Mode.Vertical
-                ? "NorthWest -> SouthWest -> NorthEast -> SouthWest"
+                ? "NorthWest -> SouthWest -> NorthEast -> SouthEast"
                 : "NorthWest -> NorthEast -> SouthWest -> SouthEast");
             C.PriorityData.Draw();
             ImGuiEx.EnumCombo("Box Swap Type", ref C.BoxSwapType);

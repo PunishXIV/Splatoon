@@ -12,6 +12,7 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
@@ -29,17 +30,6 @@ public class P3_Ultimate_Relativity : SplatoonScript
     {
         Clockwise,
         CounterClockwise
-    }
-
-    public enum Debuff : uint
-    {
-        Holy = 0x996,
-        Fire = 0x997,
-        ShadowEye = 0x998,
-        Eruption = 0x99C,
-        DarkWater = 0x99D,
-        Blizzard = 0x99E,
-        Return = 0x9A0
     }
 
     public enum Direction
@@ -62,35 +52,10 @@ public class P3_Ultimate_Relativity : SplatoonScript
         Blizzard
     }
 
-    public enum MarkerType : uint
-    {
-        Attack1 = 0,
-        Attack2 = 1,
-        Attack3 = 2,
-        Bind1 = 5,
-        Bind2 = 6,
-        Bind3 = 7,
-        Ignore1 = 8,
-        Ignore2 = 9
-    }
-
     public enum Mode
     {
         Marker,
         Priority
-    }
-
-    public enum State
-    {
-        None,
-        Start,
-        FirstFire,
-        BaitEarlyHourglass,
-        SecondFire,
-        BaitNoTetherHourglass,
-        ThirdFire,
-        BaitLateHourglass,
-        End
     }
 
     private readonly List<IBattleChara> _earlyHourglassList = [];
@@ -104,17 +69,27 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
     private Direction? _baseDirection;
 
+    private bool _showSinboundMeltdown;
+
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(6, "Garume");
 
-    public Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
     {
         if (_state == State.End) return;
         if (castId == 40266) _state = State.Start;
+        if (castId == 40291) _showSinboundMeltdown = true;
+    }
+
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (_state == State.End || set.Action == null) return;
+        var castId = set.Action.Value.RowId;
+        if (castId is 40291 or 40235) _showSinboundMeltdown = false;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
@@ -145,7 +120,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public Direction GetDirection(Vector3 position)
+    private static Direction GetDirection(Vector3 position)
     {
         var isNorth = position.Z < 95f;
         var isEast = position.X > 105f;
@@ -391,7 +366,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             };
     }
 
-    public void BaitHourglass(Direction direction)
+    private void BaitHourglass(Direction direction)
     {
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
@@ -412,7 +387,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoCenter(Direction direction, float radius = 2f)
+    private void GoCenter(Direction direction, float radius = 2f)
     {
         if (_baseDirection == null) return;
         var center = new Vector2(100f, 100f);
@@ -424,9 +399,9 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoNearCenter(Direction direction)
+    private void GoNearCenter(Direction direction)
     {
-        var radius = 1f;
+        const float radius = 1f;
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
         var center = new Vector2(100, 100);
@@ -442,9 +417,9 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void GoOutside(Direction direction)
+    private void GoOutside(Direction direction)
     {
-        var radius = 18f;
+        const float radius = 18f;
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
         var center = new Vector2(100, 100);
@@ -460,7 +435,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void PlaceReturnToHourglass(Direction direction, float radius)
+    private void PlaceReturnToHourglass(Direction direction, float radius)
     {
         if (_baseDirection == null) return;
         var basedDirection = (Direction)(((int)direction + (int)_baseDirection.Value + 90) % 360);
@@ -477,21 +452,77 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public void PlaceReturnToHourglass(Direction direction)
+    private void PlaceReturnToHourglass(Direction direction)
     {
         PlaceReturnToHourglass(direction, 10f);
     }
 
-    public void PlaceReturnToHourglassOutside(Direction direction)
+    private void PlaceReturnToHourglassOutside(Direction direction)
     {
         PlaceReturnToHourglass(direction, 11f);
     }
 
-    public void PlaceReturnToHourglassInside(Direction direction)
+    private void PlaceReturnToHourglassInside(Direction direction)
     {
         PlaceReturnToHourglass(direction, 8f);
     }
 
+    private void ShowSinboundMeltdown()
+    {
+        var hourGlassesList = Svc.Objects
+            .Where(x => x is IBattleNpc npc && npc is { CastActionId: 40291, IsCasting: true }).ToList();
+        if (!hourGlassesList.Any()) return;
+        PluginLog.Information($"hourGlassesList.Count(): {hourGlassesList.Count()}");
+
+        var pcs = FakeParty.Get().ToList();
+        if (pcs.Count != 8) return;
+
+        var i = 0;
+        foreach (var hourglass in hourGlassesList)
+        {
+            // Search for the closest player
+            var closestPlayer = pcs.MinBy(x => Vector3.Distance(x.Position, hourglass.Position));
+
+            // Show Element
+            if (Controller.TryGetElementByName($"SinboundMeltdown{i}", out var element) && closestPlayer != null)
+            {
+                var extPos = GetExtendedAndClampedPosition(hourglass.Position, closestPlayer.Position, 20f, 20f);
+                element.SetRefPosition(hourglass.Position);
+                element.SetOffPosition(extPos);
+                element.Enabled = true;
+                i++;
+            }
+        }
+    }
+
+    public void HideSinboundMeltdown()
+    {
+        for (var i = 0; i < 3; ++i)
+            if (Controller.TryGetElementByName($"SinboundMeltdown{i}", out var element))
+                element.Enabled = false;
+    }
+
+    private static Vector3 GetExtendedAndClampedPosition(Vector3 center, Vector3 currentPos, float extensionLength,
+        float? limit)
+    {
+        // Calculate the normalized direction vector from the center to the current position
+        var direction = Vector3.Normalize(currentPos - center);
+
+        // Extend the position by the specified length
+        var extendedPos = currentPos + direction * extensionLength;
+
+        // If limit is null, return the extended position without clamping
+        if (!limit.HasValue) return extendedPos;
+
+        // Calculate the distance from the center to the extended position
+        var distanceFromCenter = Vector3.Distance(center, extendedPos);
+
+        // If the extended position exceeds the limit, clamp it within the limit
+        if (distanceFromCenter > limit.Value) return center + direction * limit.Value;
+
+        // If within the limit, return the extended position as is
+        return extendedPos;
+    }
 
     public override void OnSetup()
     {
@@ -513,11 +544,24 @@ public class P3_Ultimate_Relativity : SplatoonScript
             overlayVOffset = 5f,
             radius = 0f
         });
+
+        for (var i = 0; i < 3; ++i)
+        {
+            var element = new Element(2)
+            {
+                thicc = 2f,
+                radius = 2.5f,
+                fillIntensity = 0.25f,
+                Filled = true
+            };
+            Controller.RegisterElement($"SinboundMeltdown{i}", element);
+        }
     }
 
     public override void OnReset()
     {
         _state = State.None;
+        _showSinboundMeltdown = false;
         _playerDatas.Clear();
         _hourglasses.Clear();
         _baseDirection = null;
@@ -653,77 +697,77 @@ public class P3_Ultimate_Relativity : SplatoonScript
         uint p6, ulong targetId,
         byte replaying)
     {
-        if (_state is not (State.None or State.End))
-            if (command == 502)
+        if (_state is State.None or State.End) return;
+        if (command == 502)
+        {
+            var player = Svc.Objects.FirstOrDefault(x => x.GameObjectId == p2);
+            if (player == null) PluginLog.Warning("Error: Cannot find player");
+
+            _playerDatas[p2] = p1 switch
             {
-                var player = Svc.Objects.FirstOrDefault(x => x.GameObjectId == p2);
-                if (player == null) PluginLog.Warning("Error: Cannot find player");
-
-                _playerDatas[p2] = p1 switch
+                (uint)MarkerType.Attack1 => new PlayerData
                 {
-                    (uint)MarkerType.Attack1 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Early,
-                        Number = 1,
-                        Direction = SwapAsOrientation(C.Attack1Direction)
-                    },
-                    (uint)MarkerType.Attack2 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Early,
-                        Number = 2,
-                        Direction = SwapAsOrientation(C.Attack2Direction)
-                    },
-                    (uint)MarkerType.Attack3 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Early,
-                        Number = 3,
-                        Direction = SwapAsOrientation(C.Attack3Direction)
-                    },
-                    (uint)MarkerType.Bind1 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Late,
-                        Number = 1,
-                        Direction = SwapAsOrientation(C.Bind1Direction)
-                    },
-                    (uint)MarkerType.Bind2 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Late,
-                        Number = 2,
-                        Direction = SwapAsOrientation(C.Bind2Direction)
-                    },
-                    (uint)MarkerType.Bind3 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Late,
-                        Number = 3,
-                        Direction = SwapAsOrientation(C.Bind3Direction)
-                    },
-                    (uint)MarkerType.Ignore1 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Middle,
-                        Number = 1,
-                        Direction = SwapAsOrientation(C.Ignore1Direction)
-                    },
-                    (uint)MarkerType.Ignore2 => new PlayerData
-                    {
-                        PlayerName = player?.Name.ToString(),
-                        KindFire = KindFire.Middle,
-                        Number = 2,
-                        Direction = SwapAsOrientation(C.Ignore2Direction)
-                    },
-                    _ => _playerDatas[p2]
-                };
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Early,
+                    Number = 1,
+                    Direction = SwapAsOrientation(C.Attack1Direction)
+                },
+                (uint)MarkerType.Attack2 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Early,
+                    Number = 2,
+                    Direction = SwapAsOrientation(C.Attack2Direction)
+                },
+                (uint)MarkerType.Attack3 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Early,
+                    Number = 3,
+                    Direction = SwapAsOrientation(C.Attack3Direction)
+                },
+                (uint)MarkerType.Bind1 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Late,
+                    Number = 1,
+                    Direction = SwapAsOrientation(C.Bind1Direction)
+                },
+                (uint)MarkerType.Bind2 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Late,
+                    Number = 2,
+                    Direction = SwapAsOrientation(C.Bind2Direction)
+                },
+                (uint)MarkerType.Bind3 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Late,
+                    Number = 3,
+                    Direction = SwapAsOrientation(C.Bind3Direction)
+                },
+                (uint)MarkerType.Ignore1 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Middle,
+                    Number = 1,
+                    Direction = SwapAsOrientation(C.Ignore1Direction)
+                },
+                (uint)MarkerType.Ignore2 => new PlayerData
+                {
+                    PlayerName = player?.Name.ToString(),
+                    KindFire = KindFire.Middle,
+                    Number = 2,
+                    Direction = SwapAsOrientation(C.Ignore2Direction)
+                },
+                _ => _playerDatas[p2]
+            };
 
-                if (player is IPlayerCharacter playerCharacter &&
-                    playerCharacter.StatusList.Any(x => x.StatusId == (uint)Debuff.Blizzard))
-                    _playerDatas[p2].KindFire = KindFire.Blizzard;
-            }
+            if (player is IPlayerCharacter playerCharacter &&
+                playerCharacter.StatusList.Any(x => x.StatusId == (uint)Debuff.Blizzard))
+                _playerDatas[p2].KindFire = KindFire.Blizzard;
+        }
     }
 
 
@@ -773,14 +817,14 @@ public class P3_Ultimate_Relativity : SplatoonScript
             BaitHourglass(Direction.North);
 
             var northEastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == northEastPlayer.Value.PlayerName)
+            if (northEastPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == northEastPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
                 PlaceReturnToHourglassOutside(Direction.NorthEast);
             else
                 PlaceReturnToHourglassInside(Direction.NorthEast);
 
             var eastPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == eastPlayer.Value.PlayerName)
+            if (eastPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == eastPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
                 GoNearCenter(Direction.East);
             else
@@ -788,7 +832,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
             BaitHourglass(Direction.SouthEast);
 
             var southPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.East);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == southPlayer.Value.PlayerName)
+            if (southPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == southPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
                 PlaceReturnToHourglassOutside(Direction.South);
             else
@@ -797,14 +841,14 @@ public class P3_Ultimate_Relativity : SplatoonScript
             BaitHourglass(Direction.SouthWest);
 
             var westPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.West);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == westPlayer.Value.PlayerName)
+            if (westPlayer.Value != null && FakeParty.Get().Where(x => x.Name.ToString() == westPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
                 GoNearCenter(Direction.West);
             else
                 PlaceReturnToHourglass(Direction.West);
 
             var northWestPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.NorthWest);
-            if (FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)
+            if (northWestPlayer.Value != null &&FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.Eruption)))
                 PlaceReturnToHourglassOutside(Direction.NorthWest);
             else
@@ -863,9 +907,11 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 element.overlayText = C.LookOutsideText.Get();
             }
         }
+
+        if (_showSinboundMeltdown) ShowSinboundMeltdown();
     }
 
-    public KindFire GetKindFire(StatusList statuses)
+    private static KindFire GetKindFire(StatusList statuses)
     {
         foreach (var status in statuses)
             switch (status.StatusId)
@@ -887,13 +933,49 @@ public class P3_Ultimate_Relativity : SplatoonScript
         return KindFire.Early;
     }
 
-    public record Hourglass
+    private enum Debuff : uint
+    {
+        Holy = 0x996,
+        Fire = 0x997,
+        ShadowEye = 0x998,
+        Eruption = 0x99C,
+        DarkWater = 0x99D,
+        Blizzard = 0x99E,
+        Return = 0x9A0
+    }
+
+    private enum MarkerType : uint
+    {
+        Attack1 = 0,
+        Attack2 = 1,
+        Attack3 = 2,
+        Bind1 = 5,
+        Bind2 = 6,
+        Bind3 = 7,
+        Ignore1 = 8,
+        Ignore2 = 9
+    }
+
+    private enum State
+    {
+        None,
+        Start,
+        FirstFire,
+        BaitEarlyHourglass,
+        SecondFire,
+        BaitNoTetherHourglass,
+        ThirdFire,
+        BaitLateHourglass,
+        End
+    }
+
+    private record Hourglass
     {
         public Clockwise Clockwise { get; init; }
         public Direction Direction { get; init; }
     }
 
-    public record PlayerData
+    private record PlayerData
     {
         public string? PlayerName { init; get; }
         public KindFire KindFire { set; get; }
@@ -906,7 +988,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
         }
     }
 
-    public class Config : IEzConfig
+    private class Config : IEzConfig
     {
         public Direction Attack1Direction = Direction.NorthWest;
         public Direction Attack2Direction = Direction.NorthEast;

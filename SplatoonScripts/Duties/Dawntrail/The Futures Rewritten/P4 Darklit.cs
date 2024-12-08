@@ -84,7 +84,7 @@ public class P4_Darklit : SplatoonScript
 
     public uint WaterId = 0x99D;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
     public Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)

@@ -84,7 +84,7 @@ public class P4_Darklit : SplatoonScript
 
     public uint WaterId = 0x99D;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
     public Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
@@ -92,7 +92,7 @@ public class P4_Darklit : SplatoonScript
         if (castId == 40239) _state = State.Start;
         if (_holyWingIds.Contains(castId))
         {
-            var x = castId == _holyWingIds[0] ? 105f : 95f;
+            var x = castId == _holyWingIds[0] ? 106.5f : 93.5f;
 
             if (Controller.TryGetElementByName("StackBaitNorth", out var northElement)) northElement.refX = x;
 
@@ -460,7 +460,7 @@ public class P4_Darklit : SplatoonScript
             ImGuiEx.EnumCombo("Mode", ref C.Mode);
             ImGuiEx.Text("Priority");
             ImGuiEx.Text(C.Mode == Mode.Vertical
-                ? "NorthWest -> SouthWest -> NorthEast -> SouthWest"
+                ? "NorthWest -> SouthWest -> NorthEast -> SouthEast"
                 : "NorthWest -> NorthEast -> SouthWest -> SouthEast");
             C.PriorityData.Draw();
             ImGuiEx.EnumCombo("Box Swap Type", ref C.BoxSwapType);

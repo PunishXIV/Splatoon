@@ -532,14 +532,14 @@ public class P4_Crystallize_Time : SplatoonScript
         {
             var position = player switch
             {
-                MoveType.RedBlizzardWest => new Vector2(110, 86),
-                MoveType.RedBlizzardEast => new Vector2(110, 86),
+                MoveType.RedBlizzardWest => new Vector2(112, 86),
+                MoveType.RedBlizzardEast => new Vector2(112, 86),
                 MoveType.RedAeroWest => new Vector2(100, 115),
                 MoveType.RedAeroEast => new Vector2(107, 118),
-                MoveType.BlueBlizzard => new Vector2(110, 86),
-                MoveType.BlueHoly => new Vector2(110, 86),
-                MoveType.BlueWater => new Vector2(110, 86),
-                MoveType.BlueEruption => new Vector2(110, 86),
+                MoveType.BlueBlizzard => new Vector2(112, 86),
+                MoveType.BlueHoly => new Vector2(112, 86),
+                MoveType.BlueWater => new Vector2(112, 86),
+                MoveType.BlueEruption => new Vector2(112, 86),
                 _ => throw new InvalidOperationException()
             };
 
@@ -603,7 +603,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 Direction.SouthEast => new Vector2(115, 115),
                 Direction.SouthWest => new Vector2(85, 115),
                 Direction.NorthWest => new Vector2(85, 85),
-                _ => new Vector2(100f, 100f)
+                _ => new Vector2(100f, 85f)
             };
 
             var position = player switch
@@ -709,7 +709,8 @@ public class P4_Crystallize_Time : SplatoonScript
             if (position == Vector2.Zero)
             {
                 var direction = Direction.West;
-                if (C.PrioritizeMarker && _players.GetOrDefault(Player.CID)?.Marker is { } marker)
+                if (C.PrioritizeMarker &&
+                    _players.FirstOrDefault(x => x.Value.PlayerName == Player.Name).Value?.Marker is { } marker)
                 {
                     direction = marker switch
                     {

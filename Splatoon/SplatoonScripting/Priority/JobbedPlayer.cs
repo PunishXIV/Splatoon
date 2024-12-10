@@ -9,42 +9,51 @@ public class JobbedPlayer
     internal string ID = GetTemporaryId();
     public string Name = "";
     public HashSet<Job> Jobs = [];
+    public RolePosition Role = RolePosition.Not_Selected;
 
-    internal void DrawSelector()
+    internal void DrawSelector(bool isRole)
     {
-        var hint = Jobs.Count == 0 ? "Unused slot..." : "Any name";
-        ImGui.SetNextItemWidth(150f);
-        ImGui.InputTextWithHint("##input", hint, ref Name, 100);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(100f);
-        ImGuiEx.JobSelector("##selJobs", Jobs, noJobSelectedPreview: "Any job");
-        ImGui.SameLine();
-        if(ImGuiEx.IconButton(FontAwesomeIcon.Users))
+        if(isRole)
         {
-            ImGui.OpenPopup("SelectParty");
+            ImGui.SetNextItemWidth(150f);
+            ImGuiEx.EnumCombo("##selRole", ref Role);
         }
-        if(ImGui.BeginPopup("SelectParty"))
+        else
         {
-            foreach(var x in UniversalParty.MembersPlayback)
+            var hint = Jobs.Count == 0 ? "Unused slot..." : "Any name";
+            ImGui.SetNextItemWidth(150f);
+            ImGui.InputTextWithHint("##input", hint, ref Name, 100);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(100f);
+            ImGuiEx.JobSelector("##selJobs", Jobs, noJobSelectedPreview: "Any job");
+            ImGui.SameLine();
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Users))
             {
-                if(ThreadLoadImageHandler.TryGetIconTextureWrap(x.ClassJob.GetIcon(), true, out var tex))
-                {
-                    ImGui.Image(tex.ImGuiHandle, new(ImGui.GetFontSize()));
-                    ImGui.SameLine(0, 1);
-                }
-                if(ImGui.Selectable($"{x.NameWithWorld}"))
-                {
-                    Name = x.NameWithWorld;
-                }
-                if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                {
-                    Name = x.NameWithWorld;
-                    Jobs = [x.ClassJob];
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGuiEx.Tooltip("Left-click - set player name. \nRight-click - set player name and job.");
+                ImGui.OpenPopup("SelectParty");
             }
-            ImGui.EndPopup();
+            if(ImGui.BeginPopup("SelectParty"))
+            {
+                foreach(var x in UniversalParty.MembersPlayback)
+                {
+                    if(ThreadLoadImageHandler.TryGetIconTextureWrap(x.ClassJob.GetIcon(), true, out var tex))
+                    {
+                        ImGui.Image(tex.ImGuiHandle, new(ImGui.GetFontSize()));
+                        ImGui.SameLine(0, 1);
+                    }
+                    if(ImGui.Selectable($"{x.NameWithWorld}"))
+                    {
+                        Name = x.NameWithWorld;
+                    }
+                    if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                    {
+                        Name = x.NameWithWorld;
+                        Jobs = [x.ClassJob];
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGuiEx.Tooltip("Left-click - set player name. \nRight-click - set player name and job.");
+                }
+                ImGui.EndPopup();
+            }
         }
     }
 

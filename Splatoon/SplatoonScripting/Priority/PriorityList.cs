@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using ECommons.PartyFunctions;
+using System.Diagnostics.CodeAnalysis;
 #nullable enable
 
 namespace Splatoon.SplatoonScripting.Priority;
@@ -7,6 +8,7 @@ public class PriorityList
     internal string ID = GetTemporaryId();
     public List<JobbedPlayer> List = [];
     internal ImGuiEx.RealtimeDragDrop<JobbedPlayer> DragDrop;
+    public bool IsRole = false;
 
     public PriorityList()
     {
@@ -25,12 +27,13 @@ public class PriorityList
             DragDrop.NextRow();
             DragDrop.DrawButtonDummy(player, List, q);
             ImGui.TableNextColumn();
-            player.DrawSelector();
+            player.DrawSelector(IsRole);
             ImGui.TableNextColumn();
             if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
             {
                 player.Name = "";
                 player.Jobs.Clear();
+                player.Role = RolePosition.Not_Selected;
             }
             ImGui.PopID();
         }
@@ -38,13 +41,42 @@ public class PriorityList
 
     public bool Test([NotNullWhen(false)] out string? error)
     {
-        if(List.Any(x => x.Name == "" && x.Jobs.Count == 0))
+        error = null;
+        if(!IsRole)
         {
-            error = "There are unfilled slots in this priority list.";
-            return false;
+            if(List.Any(x => x.Name == "" && x.Jobs.Count == 0))
+            {
+                error = "There are unfilled slots in this priority list.";
+                return false;
+            }
         }
-        var ret = List.All(x => x.IsInParty(out _));
-        error = ret ? null : "Current party does not matches this priority list.";
-        return ret;
+        else
+        {
+            if(List.Any(x => x.Role == RolePosition.Not_Selected))
+            {
+                error = "There are unfilled slots in this priority list.";
+                return false;
+            }
+        }
+        var exist = new List<UniversalPartyMember>();
+        foreach(var x in List)
+        {
+            if(x.IsInParty(out var member))
+            {
+                if(exist.Contains(member))
+                {
+                    error = "One or more entries matches multiple players.";
+                }
+                else
+                {
+                    exist.Add(member);
+                }
+            }
+            else
+            {
+                error = "Current party does not matches this priority list.";
+            }
+        }
+        return error == null;
     }
 }

@@ -25,16 +25,16 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private Timings _currentTiming = Timings.Start;
     private float _lastMinPercentage;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
     private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)
-        .FirstOrDefault(o => o.DataId == 0x3144) as IBattleChara;
+        .FirstOrDefault(o => o.DataId == 0x45AB) as IBattleChara;
 
     private IBattleChara? LightGirl => Svc.Objects
         .Where(o => o.IsTargetable)
-        .FirstOrDefault(o => o.DataId == 0x3145) as IBattleChara;
+        .FirstOrDefault(o => o.DataId == 0x45A9) as IBattleChara;
 
     private bool IsActive => !C.TimingMode ||
                              (C.EnableTimings.Contains(_currentTiming) && !C.DisableTimings.Contains(_currentTiming));

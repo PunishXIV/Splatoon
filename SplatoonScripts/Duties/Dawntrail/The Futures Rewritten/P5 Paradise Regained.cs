@@ -86,7 +86,7 @@ public class P5_Paradise_Regained : SplatoonScript
     {
         Controller.TryRegisterElement("Tower", new Element(0)
         {
-            radius = 4f,
+            radius = 3f,
             thicc = 6f,
             overlayFScale = 3f,
             overlayVOffset = 3f,
@@ -94,7 +94,7 @@ public class P5_Paradise_Regained : SplatoonScript
         });
         Controller.TryRegisterElement("PredictTower", new Element(0)
         {
-            radius = 4f,
+            radius = 3f,
             thicc = 6f,
             overlayFScale = 3f,
             overlayVOffset = 3f,
@@ -117,7 +117,7 @@ public class P5_Paradise_Regained : SplatoonScript
             thicc = 6f,
             overlayFScale = 3f,
             overlayVOffset = 3f,
-            overlayText = "<< Go Here >>"
+            overlayText = "<< Next >>"
         });
     }
 
@@ -218,7 +218,7 @@ public class P5_Paradise_Regained : SplatoonScript
 
             if (C.MoveType == MoveType.SecondBait)
             {
-                var tankDirection = (int)firstTower.Direction + (_currentAttack == AttackType.Light ? -45 : 45);
+                var tankDirection = (int)firstTower.Direction + (_currentAttack == AttackType.Light ? -60 : 60);
                 if (tankDirection >= 360) tankDirection -= 360;
                 if (tankDirection < 0) tankDirection += 360;
 
@@ -247,7 +247,7 @@ public class P5_Paradise_Regained : SplatoonScript
                 if (C.TowerType == TowerType.Left)
                     if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
                     {
-                        if (_towers.IndexOf(tower) == 1)
+                        if (_towers.IndexOf(tower) == 1 && _currentAttack == AttackType.Dark)
                             SetTowerPosition(tower.Position.ToVector3(0));
                         else
                             SetPredictTowerPosition(tower.Position.ToVector3(0));
@@ -256,7 +256,7 @@ public class P5_Paradise_Regained : SplatoonScript
                 if (C.TowerType == TowerType.Right)
                     if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
                     {
-                        if (_towers.IndexOf(tower) == 1)
+                        if (_towers.IndexOf(tower) == 1 && _currentAttack == AttackType.Light)
                             SetTowerPosition(tower.Position.ToVector3(0));
                         else
                             SetPredictTowerPosition(tower.Position.ToVector3(0));
@@ -448,7 +448,8 @@ public class P5_Paradise_Regained : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGuiEx.EnumCombo("Move Type", ref C.MoveType);
-        ImGuiEx.EnumCombo("Tower Type", ref C.TowerType);
+        if (C.MoveType == MoveType.Tower)
+            ImGuiEx.EnumCombo("Tower Type", ref C.TowerType);
 
         ImGui.Text("Bait Color:");
         ImGuiComponents.HelpMarker(

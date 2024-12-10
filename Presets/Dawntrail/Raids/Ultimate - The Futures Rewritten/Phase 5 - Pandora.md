@@ -16,3 +16,9 @@
 ~Lv2~{"Name":"P5 WingsDarkandLight  T1  Right1","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"1","type":4,"radius":20.0,"coneAngleMin":-180,"coneAngleMax":45,"color":3355459317,"fillIntensity":0.5,"refActorTargetingYou":1,"refActorNPCNameID":13561,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"faceplayer":"<t1>"}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":6.7,"Match":" (13561>40313)"}]}
 ~Lv2~{"Name":"P5 WingsDarkandLight  T2  Right2","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"1","type":4,"radius":20.0,"coneAngleMin":-180,"coneAngleMax":45,"color":3355459317,"fillIntensity":0.5,"refActorTargetingYou":1,"refActorNPCNameID":13561,"refActorComparisonType":6,"includeRotation":true,"onlyVisible":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"faceplayer":"<t2>"}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":3.0,"Match":" (13561>40233)","MatchDelay":6.7}]}
 ```
+
+## [JP] [WIP] [Script] Paradise Regained
+!!! Guide pending !!!
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P5%20Paradise%20Regained.cs
+```

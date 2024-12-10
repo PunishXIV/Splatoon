@@ -36,3 +36,8 @@ Timings may be a little off
 ~Lv2~{"Name":"P4 - Crystallize traffic explosions (Late tether)","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":12.0,"refActorNPCNameID":9823,"refActorComparisonType":6,"refActorTether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":999.0,"refActorTetherParam2":133,"refActorTetherConnectedWithPlayer":[]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":4.0,"Match":"(12809>40240)","MatchDelay":28.0}]}
 ~Lv2~{"Name":"P4 - Crystallize traffic explosions (Early tether)","Group":"FRU","ZoneLockH":[1238],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":12.0,"refActorNPCNameID":9823,"refActorComparisonType":6,"refActorTether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":999.0,"refActorTetherParam2":134,"refActorTetherConnectedWithPlayer":[]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":6.5,"Match":"(12809>40240)","MatchDelay":15.0}]}
 ```
+
+## Better Tidal Light
+```
+~Lv2~{"Name":"P4 - Tidal Light","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":3,"refY":10.0,"radius":20.0,"refActorNPCNameID":12809,"refActorRequireCast":true,"refActorCastId":[40253],"refActorUseCastTime":true,"refActorCastTimeMax":1.699,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```

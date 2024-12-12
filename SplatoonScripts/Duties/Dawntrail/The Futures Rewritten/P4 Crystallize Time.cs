@@ -369,7 +369,7 @@ public class P4_Crystallize_Time : SplatoonScript
         foreach (var stack in Enum.GetValues<WaveStack>())
             Controller.RegisterElement(stack + nameof(WaveStack), new Element(0)
             {
-                radius = 1f,
+                radius = 0.5f,
                 thicc = 6f
             });
 
@@ -707,10 +707,10 @@ public class P4_Crystallize_Time : SplatoonScript
             {
                 returnPosition = returnDirection switch
                 {
-                    Direction.NorthEast => new Vector2(100, 95),
-                    Direction.SouthEast => new Vector2(100, 105),
-                    Direction.SouthWest => new Vector2(100, 105),
-                    Direction.NorthWest => new Vector2(100, 95),
+                    Direction.NorthEast => new Vector2(100, 98),
+                    Direction.SouthEast => new Vector2(100, 102),
+                    Direction.SouthWest => new Vector2(100, 102),
+                    Direction.NorthWest => new Vector2(100, 98),
                     _ => new Vector2(100f, 100f)
                 };
             }
@@ -892,7 +892,7 @@ public class P4_Crystallize_Time : SplatoonScript
                 myElement.tether = true;
                 myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
                 myElement.SetOffPosition(Vector3.Zero);
-                myElement.SetRefPosition(new(100, 0, 100 + (returnDirection == Direction.North?-5:5)));
+                myElement.SetRefPosition(new(100, 0, 100 + (returnDirection == Direction.North?-2:2)));
             }
         }
 

@@ -15,6 +15,13 @@ public class PriorityList
         DragDrop = new(ID, x => x.ID);
     }
 
+    internal void DrawModeSelector()
+    {
+        ImGuiEx.TextV("List mode:");
+        ImGui.SameLine();
+        ImGuiEx.RadioButtonBool("Roles", "Names and/or jobs", ref this.IsRole, true);
+    }
+
     internal void Draw()
     {
         for(var q = 0; q < List.Count; q++)
@@ -28,6 +35,26 @@ public class PriorityList
             DragDrop.DrawButtonDummy(player, List, q);
             ImGui.TableNextColumn();
             player.DrawSelector(IsRole);
+            if(IsRole)
+            {
+                ImGui.SameLine();
+                if(player.IsInParty(true, out var resolved))
+                {
+                    ImGui.PushFont(UiBuilder.IconFont);
+                    ImGuiEx.Text(EColor.GreenBright, FontAwesomeIcon.Check.ToIconString());
+                    ImGui.PopFont();
+                    ImGui.SameLine();
+                    ImGuiEx.Text($"Resolved to: {resolved.NameWithWorld} | {resolved.ClassJob}");
+                }
+                else
+                {
+                    ImGui.PushFont(UiBuilder.IconFont);
+                    ImGuiEx.Text(EColor.RedBright, FontAwesomeIcon.Times.ToIconString());
+                    ImGui.PopFont();
+                    ImGui.SameLine();
+                    ImGuiEx.Text($"Not resolved");
+                }
+            }
             ImGui.TableNextColumn();
             if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
             {
@@ -61,7 +88,7 @@ public class PriorityList
         var exist = new List<UniversalPartyMember>();
         foreach(var x in List)
         {
-            if(x.IsInParty(out var member))
+            if(x.IsInParty(this.IsRole, out var member))
             {
                 if(exist.Contains(member))
                 {

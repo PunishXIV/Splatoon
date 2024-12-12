@@ -17,6 +17,10 @@ class Commands : IDisposable
             {
                 P.ConfigGui.Open = !P.ConfigGui.Open;
             }
+            else if(arguments.EqualsIgnoreCaseAny("p", "priority", "prio"))
+            {
+                P.PriorityPopupWindow.Open(true);
+            }
             else if(GenericHelpers.EqualsIgnoreCase(arguments, "log"))
             {
                 P.LogWindow.IsOpen = true;

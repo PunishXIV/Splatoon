@@ -41,3 +41,9 @@ Timings may be a little off
 ```
 ~Lv2~{"Name":"P4 - Tidal Light","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":3,"refY":10.0,"radius":20.0,"refActorNPCNameID":12809,"refActorRequireCast":true,"refActorCastId":[40253],"refActorUseCastTime":true,"refActorCastTimeMax":1.699,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
+
+## Highlight cleanse puddles
+They are barely visible
+```
+~Lv2~{"Name":"P4 - cleanse puddle highlight","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":1,"radius":1.0,"color":4294907136,"fillIntensity":0.5,"thicc":4.0,"refActorDataID":2014529,"refActorComparisonType":3,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```

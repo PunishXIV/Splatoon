@@ -131,3 +131,9 @@ Shows only for EN clients, requires translation
 ```
 ~Lv2~{"Name":"P2 - Light rampant orb explosion","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":1,"radius":11.0,"refActorNPCNameID":9318,"refActorRequireCast":true,"refActorCastId":[40219],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":4.7,"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
+
+## [Beta] Intermission ice deleter
+Deletes annoying white ice from intermission, fixing bug which renders AOEs invisible and making your eyes hurt a lot less on that phase.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P4%20Delete%20Intermission%20Ice.cs
+```

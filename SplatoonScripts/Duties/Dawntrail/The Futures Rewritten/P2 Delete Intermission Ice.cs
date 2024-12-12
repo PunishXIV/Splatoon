@@ -5,7 +5,7 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
-public unsafe class P4_Delete_Intermission_Ice : SplatoonScript
+public unsafe class P2_Delete_Intermission_Ice : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
     public override Metadata? Metadata => new(1, "NightmareXIV");

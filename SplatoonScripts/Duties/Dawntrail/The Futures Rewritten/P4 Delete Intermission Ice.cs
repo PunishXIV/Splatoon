@@ -8,6 +8,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P4_Delete_Intermission_Ice : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
+    public override Metadata? Metadata => new(1, "NightmareXIV");
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {

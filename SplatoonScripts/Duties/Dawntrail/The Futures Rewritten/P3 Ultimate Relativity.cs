@@ -74,7 +74,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(7, "Garume");
+    public override Metadata? Metadata => new(8, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 

@@ -115,7 +115,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
     bool Initialized = false;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -127,6 +127,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
     MechanicStage GetStage()
     {
+        if(!Svc.Objects.Any(x => x.DataId == 17837)) return MechanicStage.Unknown;
         var time = this.SpellInWaitingDebuffTime;
         if(time > 0)
         {

@@ -108,8 +108,6 @@ public class PriorityData
             }
             ImGui.PopID();
             playerList.DragDrop.End();
-            ImGui.NewLine();
-            ImGui.NewLine();
         }
         ImGui.PopID();
     }

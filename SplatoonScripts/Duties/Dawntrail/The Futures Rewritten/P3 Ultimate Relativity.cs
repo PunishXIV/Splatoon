@@ -841,7 +841,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
                 GoNearCenter(Direction.West);
             else
-                PlaceReturnToHourglass(Direction.West);
+                PlaceReturnToHourglass(Direction.West, 9f);
 
             var northWestPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.NorthWest);
             if (C.ShouldPlaceEruptionToHourglassOutside && northWestPlayer.Value != null &&FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)

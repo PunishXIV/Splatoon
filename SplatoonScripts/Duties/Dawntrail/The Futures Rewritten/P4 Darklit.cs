@@ -24,7 +24,7 @@ public class P4_Darklit : SplatoonScript
         NorthEastAndSouthEast
     }
 
-    public enum Direction
+    private enum Direction
     {
         North = 0,
         NorthEast = 45,
@@ -50,20 +50,20 @@ public class P4_Darklit : SplatoonScript
         Horizontal
     }
 
-    public enum MoveType
+    private enum MoveType
     {
         Straight,
         Hourglass,
         Box
     }
 
-    public enum Role
+    private enum Role
     {
         Dps,
         TankAndHealer
     }
 
-    public enum State
+    private enum State
     {
         None,
         Start,
@@ -82,10 +82,10 @@ public class P4_Darklit : SplatoonScript
 
     private State _state = State.None;
 
-    public uint WaterId = 0x99D;
+    private const uint WaterId = 0x99D;
     public override HashSet<uint>? ValidTerritories => [1238];
     public override Metadata? Metadata => new(2, "Garume");
-    public Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -171,7 +171,7 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_state == State.Tower && set.Action.Value.RowId == 40190)
+        if (set.Action != null && _state == State.Tower && set.Action.Value.RowId == 40190)
         {
             foreach (var direction in Enum.GetValues<Direction>())
                 if (Controller.TryGetElementByName(direction.ToString(), out var element))
@@ -180,216 +180,214 @@ public class P4_Darklit : SplatoonScript
             _state = State.Split;
         }
 
-        if (_state == State.Split && set.Action.Value.RowId == 40289)
+        if (set.Action != null && _state == State.Split && set.Action.Value.RowId == 40289)
         {
             if (Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = false;
             if (Controller.TryGetElementByName("Stack", out var stackElement)) stackElement.Enabled = true;
             _state = State.Stack;
         }
 
-        if (_state == State.Stack && _holyWingIds.Contains(set.Action.Value.RowId)) _state = State.End;
+        if (set.Action != null && _state == State.Stack && _holyWingIds.Contains(set.Action.Value.RowId)) _state = State.End;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state == State.Start && source.GetObject() is IPlayerCharacter sourcePlayer &&
-            target.GetObject() is IPlayerCharacter targetPlayer)
+        if (_state != State.Start || source.GetObject() is not IPlayerCharacter sourcePlayer ||
+            target.GetObject() is not IPlayerCharacter targetPlayer) return;
+        var priority = C.PriorityData.GetPlayers(x => true).IndexOf(x => x.Name == sourcePlayer.Name.ToString());
+        _players[source] = new PlayerData
         {
-            var priority = C.PriorityData.GetPlayers(x => true).IndexOf(x => x.Name == sourcePlayer.Name.ToString());
-            _players[source] = new PlayerData
-            {
-                Name = sourcePlayer.Name.ToString(),
-                IsInkling = true,
-                LinkToRole = targetPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
-                Id = source,
-                LinkTo = target,
-                Role = sourcePlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
-                Priority = priority,
-                HasWater = sourcePlayer.StatusList.Any(x => x.StatusId == WaterId)
-            };
+            Name = sourcePlayer.Name.ToString(),
+            IsInkling = true,
+            LinkToRole = targetPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
+            Id = source,
+            LinkTo = target,
+            Role = sourcePlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
+            Priority = priority,
+            HasWater = sourcePlayer.StatusList.Any(x => x.StatusId == WaterId)
+        };
 
-            if (_players.Count == 4)
-            {
-                var otherPlayers = FakeParty.Get().Where(x => !_players.ContainsKey(x.GameObjectId)).ToList();
-                foreach (var otherPlayer in otherPlayers)
-                    _players[otherPlayer.GameObjectId] = new PlayerData
-                    {
-                        Name = otherPlayer.Name.ToString(),
-                        IsInkling = false,
-                        LinkToRole = otherPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
-                        Id = otherPlayer.GameObjectId,
-                        Role = otherPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
-                        Priority = C.PriorityData.GetPlayers(x => true)
-                            .IndexOf(x => x.Name == otherPlayer.Name.ToString()),
-                        HasWater = otherPlayer.StatusList.Any(x => x.StatusId == WaterId)
-                    };
-                if (C.Mode == Mode.Vertical)
+        if (_players.Count == 4)
+        {
+            var otherPlayers = FakeParty.Get().Where(x => !_players.ContainsKey(x.GameObjectId)).ToList();
+            foreach (var otherPlayer in otherPlayers)
+                _players[otherPlayer.GameObjectId] = new PlayerData
                 {
-                    var left = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
-                        .OrderBy(x => x.Priority).ToList();
-                    var right = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: true })
-                        .OrderBy(x => x.Priority).ToList();
-                    var isSameRole = _players.Where(x => x.Value.IsInkling)
-                        .Any(player => player.Value.Role == player.Value.LinkToRole);
+                    Name = otherPlayer.Name.ToString(),
+                    IsInkling = false,
+                    LinkToRole = otherPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
+                    Id = otherPlayer.GameObjectId,
+                    Role = otherPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
+                    Priority = C.PriorityData.GetPlayers(x => true)
+                        .IndexOf(x => x.Name == otherPlayer.Name.ToString()),
+                    HasWater = otherPlayer.StatusList.Any(x => x.StatusId == WaterId)
+                };
+            if (C.Mode == Mode.Vertical)
+            {
+                var left = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
+                    .OrderBy(x => x.Priority).ToList();
+                var right = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: true })
+                    .OrderBy(x => x.Priority).ToList();
+                var isSameRole = _players.Where(x => x.Value.IsInkling)
+                    .Any(player => player.Value.Role == player.Value.LinkToRole);
 
-                    if ((_players[left[0].LinkTo].Name == right[0].Name ||
-                         _players[right[0].LinkTo].Name == left[0].Name) && isSameRole)
-                        _moveType = MoveType.Box;
-                    else if (!isSameRole)
-                        _moveType = MoveType.Hourglass;
-                    else
-                        _moveType = MoveType.Straight;
-
-
-                    switch (_moveType)
-                    {
-                        case MoveType.Straight:
-                            _players[left[0].Id].Direction = Direction.North;
-                            _players[left[1].Id].Direction = Direction.South;
-                            _players[right[0].Id].Direction = Direction.North;
-                            _players[right[1].Id].Direction = Direction.South;
-                            break;
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthEastAndSouthWest:
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.Clockwise:
-                            _players[left[0].Id].Direction = Direction.North;
-                            _players[left[1].Id].Direction = Direction.North;
-                            _players[right[0].Id].Direction = Direction.South;
-                            _players[right[1].Id].Direction = Direction.South;
-                            break;
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthWestAndSouthEast:
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.CounterClockwise:
-                            _players[left[0].Id].Direction = Direction.South;
-                            _players[left[1].Id].Direction = Direction.South;
-                            _players[right[0].Id].Direction = Direction.North;
-                            _players[right[1].Id].Direction = Direction.North;
-                            break;
-                        case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthWestAndSouthWest:
-                            _players[left[0].Id].Direction = Direction.South;
-                            _players[left[1].Id].Direction = Direction.North;
-                            _players[right[0].Id].Direction = Direction.North;
-                            _players[right[1].Id].Direction = Direction.South;
-                            break;
-                        case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthEastAndSouthEast:
-                            _players[left[0].Id].Direction = Direction.North;
-                            _players[left[1].Id].Direction = Direction.South;
-                            _players[right[0].Id].Direction = Direction.South;
-                            _players[right[1].Id].Direction = Direction.North;
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    var otherLeft = _players.Values.Where(x => x is { Priority: < 4, IsInkling: false })
-                        .OrderBy(x => x.Priority).ToList();
-                    var otherRight = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: false })
-                        .OrderBy(x => x.Priority).ToList();
-                    _players[otherLeft[0].Id].Direction = Direction.NorthWest;
-                    _players[otherRight[0].Id].Direction = Direction.SouthWest;
-                    _players[otherLeft[1].Id].Direction = Direction.NorthEast;
-                    _players[otherRight[1].Id].Direction = Direction.SouthEast;
-                }
+                if ((_players[left[0].LinkTo].Name == right[0].Name ||
+                     _players[right[0].LinkTo].Name == left[0].Name) && isSameRole)
+                    _moveType = MoveType.Box;
+                else if (!isSameRole)
+                    _moveType = MoveType.Hourglass;
                 else
+                    _moveType = MoveType.Straight;
+
+
+                switch (_moveType)
                 {
-                    var up = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
-                        .OrderBy(x => x.Priority).ToList();
-                    var down = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: true })
-                        .OrderBy(x => x.Priority).ToList();
-                    var isSameRole = _players.Where(x => x.Value.IsInkling)
-                        .Any(player => player.Value.Role == player.Value.LinkToRole);
-
-                    if ((_players[up[0].LinkTo].Name == down[0].Name ||
-                         _players[down[0].LinkTo].Name == up[0].Name) && isSameRole)
-                        _moveType = MoveType.Box;
-                    else if (isSameRole)
-                        _moveType = MoveType.Hourglass;
-                    else
-                        _moveType = MoveType.Straight;
-
-
-                    switch (_moveType)
-                    {
-                        case MoveType.Straight:
-                            _players[up[0].Id].Direction = Direction.North;
-                            _players[up[1].Id].Direction = Direction.North;
-                            _players[down[0].Id].Direction = Direction.South;
-                            _players[down[1].Id].Direction = Direction.South;
-                            break;
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthEastAndSouthWest:
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.Clockwise:
-                            _players[up[0].Id].Direction = Direction.North;
-                            _players[up[1].Id].Direction = Direction.South;
-                            _players[down[0].Id].Direction = Direction.North;
-                            _players[down[1].Id].Direction = Direction.South;
-                            break;
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthWestAndSouthEast:
-                        case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.CounterClockwise:
-                            _players[up[0].Id].Direction = Direction.South;
-                            _players[up[1].Id].Direction = Direction.North;
-                            _players[down[0].Id].Direction = Direction.South;
-                            _players[down[1].Id].Direction = Direction.North;
-                            break;
-                        case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthWestAndSouthWest:
-                            _players[up[0].Id].Direction = Direction.South;
-                            _players[down[1].Id].Direction = Direction.North;
-                            _players[up[0].Id].Direction = Direction.North;
-                            _players[down[1].Id].Direction = Direction.South;
-                            break;
-                        case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthEastAndSouthEast:
-                            _players[up[0].Id].Direction = Direction.North;
-                            _players[up[1].Id].Direction = Direction.South;
-                            _players[down[0].Id].Direction = Direction.South;
-                            _players[down[1].Id].Direction = Direction.North;
-                            break;
-                        default:
-                            throw new ArgumentOutOfRangeException();
-                    }
-
-                    var otherUp = _players.Values.Where(x => x is { Priority: < 4, IsInkling: false })
-                        .OrderBy(x => x.Priority).ToList();
-                    var otherDown = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: false })
-                        .OrderBy(x => x.Priority).ToList();
-                    _players[otherUp[0].Id].Direction = Direction.NorthWest;
-                    _players[otherUp[1].Id].Direction = Direction.NorthEast;
-                    _players[otherDown[0].Id].Direction = Direction.SouthWest;
-                    _players[otherDown[1].Id].Direction = Direction.SouthEast;
+                    case MoveType.Straight:
+                        _players[left[0].Id].Direction = Direction.North;
+                        _players[left[1].Id].Direction = Direction.South;
+                        _players[right[0].Id].Direction = Direction.North;
+                        _players[right[1].Id].Direction = Direction.South;
+                        break;
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthEastAndSouthWest:
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.Clockwise:
+                        _players[left[0].Id].Direction = Direction.North;
+                        _players[left[1].Id].Direction = Direction.North;
+                        _players[right[0].Id].Direction = Direction.South;
+                        _players[right[1].Id].Direction = Direction.South;
+                        break;
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthWestAndSouthEast:
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.CounterClockwise:
+                        _players[left[0].Id].Direction = Direction.South;
+                        _players[left[1].Id].Direction = Direction.South;
+                        _players[right[0].Id].Direction = Direction.North;
+                        _players[right[1].Id].Direction = Direction.North;
+                        break;
+                    case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthWestAndSouthWest:
+                        _players[left[0].Id].Direction = Direction.South;
+                        _players[left[1].Id].Direction = Direction.North;
+                        _players[right[0].Id].Direction = Direction.North;
+                        _players[right[1].Id].Direction = Direction.South;
+                        break;
+                    case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthEastAndSouthEast:
+                        _players[left[0].Id].Direction = Direction.North;
+                        _players[left[1].Id].Direction = Direction.South;
+                        _players[right[0].Id].Direction = Direction.South;
+                        _players[right[1].Id].Direction = Direction.North;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
 
+                var otherLeft = _players.Values.Where(x => x is { Priority: < 4, IsInkling: false })
+                    .OrderBy(x => x.Priority).ToList();
+                var otherRight = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: false })
+                    .OrderBy(x => x.Priority).ToList();
+                _players[otherLeft[0].Id].Direction = Direction.NorthWest;
+                _players[otherRight[0].Id].Direction = Direction.NorthEast;
+                _players[otherLeft[1].Id].Direction = Direction.SouthWest;
+                _players[otherRight[1].Id].Direction = Direction.SouthEast;
+            }
+            else
+            {
+                var up = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
+                    .OrderBy(x => x.Priority).ToList();
+                var down = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: true })
+                    .OrderBy(x => x.Priority).ToList();
+                var isSameRole = _players.Where(x => x.Value.IsInkling)
+                    .Any(player => player.Value.Role == player.Value.LinkToRole);
 
-                var noTetherAndHasWater =
-                    _players.Values.Where(x => x is { IsInkling: false, HasWater: true }).ToList();
-                if (noTetherAndHasWater.Count == 1)
+                if ((_players[up[0].LinkTo].Name == down[0].Name ||
+                     _players[down[0].LinkTo].Name == up[0].Name) && isSameRole)
+                    _moveType = MoveType.Box;
+                else if (isSameRole)
+                    _moveType = MoveType.Hourglass;
+                else
+                    _moveType = MoveType.Straight;
+
+
+                switch (_moveType)
                 {
-                    var player = noTetherAndHasWater.First();
-                    var otherPlayer = _players.Values.First(x => x is { IsInkling: true, HasWater: true });
-                    var playerAboutDirection = player.Direction switch
+                    case MoveType.Straight:
+                        _players[up[0].Id].Direction = Direction.North;
+                        _players[up[1].Id].Direction = Direction.North;
+                        _players[down[0].Id].Direction = Direction.South;
+                        _players[down[1].Id].Direction = Direction.South;
+                        break;
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthEastAndSouthWest:
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.Clockwise:
+                        _players[up[0].Id].Direction = Direction.North;
+                        _players[up[1].Id].Direction = Direction.South;
+                        _players[down[0].Id].Direction = Direction.North;
+                        _players[down[1].Id].Direction = Direction.South;
+                        break;
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.NorthWestAndSouthEast:
+                    case MoveType.Hourglass when C.HourglassSwapType == HourglassSwapType.CounterClockwise:
+                        _players[up[0].Id].Direction = Direction.South;
+                        _players[up[1].Id].Direction = Direction.North;
+                        _players[down[0].Id].Direction = Direction.South;
+                        _players[down[1].Id].Direction = Direction.North;
+                        break;
+                    case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthWestAndSouthWest:
+                        _players[up[0].Id].Direction = Direction.South;
+                        _players[down[1].Id].Direction = Direction.North;
+                        _players[up[0].Id].Direction = Direction.North;
+                        _players[down[1].Id].Direction = Direction.South;
+                        break;
+                    case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthEastAndSouthEast:
+                        _players[up[0].Id].Direction = Direction.North;
+                        _players[up[1].Id].Direction = Direction.South;
+                        _players[down[0].Id].Direction = Direction.South;
+                        _players[down[1].Id].Direction = Direction.North;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                var otherUp = _players.Values.Where(x => x is { Priority: < 4, IsInkling: false })
+                    .OrderBy(x => x.Priority).ToList();
+                var otherDown = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: false })
+                    .OrderBy(x => x.Priority).ToList();
+                _players[otherUp[0].Id].Direction = Direction.NorthWest;
+                _players[otherUp[1].Id].Direction = Direction.NorthEast;
+                _players[otherDown[0].Id].Direction = Direction.SouthWest;
+                _players[otherDown[1].Id].Direction = Direction.SouthEast;
+            }
+
+
+            var noTetherAndHasWater =
+                _players.Values.Where(x => x is { IsInkling: false, HasWater: true }).ToList();
+            if (noTetherAndHasWater.Count == 1)
+            {
+                var player = noTetherAndHasWater.First();
+                var otherPlayer = _players.Values.First(x => x is { IsInkling: true, HasWater: true });
+                var playerAboutDirection = player.Direction switch
+                {
+                    Direction.North => Direction.North,
+                    Direction.NorthEast => Direction.North,
+                    Direction.SouthEast => Direction.South,
+                    Direction.South => Direction.South,
+                    Direction.SouthWest => Direction.South,
+                    Direction.NorthWest => Direction.North,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
+                if (playerAboutDirection == otherPlayer.Direction)
+                {
+                    var otherPlayerDirection = player.Direction switch
                     {
-                        Direction.North => Direction.North,
-                        Direction.NorthEast => Direction.North,
-                        Direction.SouthEast => Direction.South,
-                        Direction.South => Direction.South,
-                        Direction.SouthWest => Direction.South,
-                        Direction.NorthWest => Direction.North,
+                        Direction.NorthEast => Direction.SouthEast,
+                        Direction.SouthEast => Direction.NorthEast,
+                        Direction.SouthWest => Direction.NorthWest,
+                        Direction.NorthWest => Direction.SouthWest,
                         _ => throw new ArgumentOutOfRangeException()
                     };
-
-                    if (playerAboutDirection == otherPlayer.Direction)
-                    {
-                        var otherPlayerDirection = player.Direction switch
-                        {
-                            Direction.NorthEast => Direction.SouthEast,
-                            Direction.SouthEast => Direction.NorthEast,
-                            Direction.SouthWest => Direction.NorthWest,
-                            Direction.NorthWest => Direction.SouthWest,
-                            _ => throw new ArgumentOutOfRangeException()
-                        };
-                        var anotherPlayer = _players.Values.First(x => x.Direction == otherPlayerDirection);
-                        _players[anotherPlayer.Id].Direction = player.Direction;
-                        _players[player.Id].Direction = otherPlayerDirection;
-                    }
+                    var anotherPlayer = _players.Values.First(x => x.Direction == otherPlayerDirection);
+                    _players[anotherPlayer.Id].Direction = player.Direction;
+                    _players[player.Id].Direction = otherPlayerDirection;
                 }
-
-                _state = State.Tower;
             }
+
+            _state = State.Tower;
         }
     }
 
@@ -487,7 +485,7 @@ public class P4_Darklit : SplatoonScript
         }
     }
 
-    public record PlayerData
+    private record PlayerData
     {
         public Direction Direction;
         public bool HasWater;

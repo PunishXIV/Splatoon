@@ -74,7 +74,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(7, "Garume");
+    public override Metadata? Metadata => new(8, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -841,7 +841,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                 .Any(x => x.StatusList.Any(y => y.StatusId == (uint)Debuff.DarkWater)))
                 GoNearCenter(Direction.West);
             else
-                PlaceReturnToHourglass(Direction.West);
+                PlaceReturnToHourglass(Direction.West, 9f);
 
             var northWestPlayer = _playerDatas.FirstOrDefault(x => x.Value.Direction == Direction.NorthWest);
             if (C.ShouldPlaceEruptionToHourglassOutside && northWestPlayer.Value != null &&FakeParty.Get().Where(x => x.Name.ToString() == northWestPlayer.Value.PlayerName)

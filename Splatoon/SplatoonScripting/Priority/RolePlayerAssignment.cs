@@ -9,5 +9,4 @@ public class RolePlayerAssignment
 {
     public uint Territory;
     public List<JobbedPlayer> Players = [];
-    public List<RolePosition> RolePositions = [];
 }

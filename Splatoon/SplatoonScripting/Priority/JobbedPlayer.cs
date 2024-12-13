@@ -1,5 +1,6 @@
 ﻿using ECommons.ExcelServices;
 using ECommons.PartyFunctions;
+using Splatoon.Gui.Priority;
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 
@@ -57,8 +58,24 @@ public class JobbedPlayer
         }
     }
 
-    public bool IsInParty([NotNullWhen(true)] out UniversalPartyMember? member)
+    public UniversalPartyMember? ResolveByRole(RolePosition role)
     {
+        var player = P.PriorityPopupWindow.Assignments.SafeSelect(PriorityPopupWindow.RolePositions.IndexOf(role));
+        if(player == null) return null;
+        if(player.IsInParty(false, out var ret))
+        {
+            return ret;
+        }
+        return null;
+    }
+
+    public bool IsInParty(bool byRole, [NotNullWhen(true)] out UniversalPartyMember? member)
+    {
+        if(byRole)
+        {
+            member = ResolveByRole(this.Role);
+            return member != null;
+        }
         foreach(var x in UniversalParty.MembersPlayback)
         {
             if(Name != "")
@@ -83,5 +100,10 @@ public class JobbedPlayer
         }
         member = null;
         return false;
+    }
+
+    public string GetNameAndJob()
+    {
+        return $"{this.Name} - {(this.Jobs.Count > 0?Jobs.Print():"Any job")}";
     }
 }

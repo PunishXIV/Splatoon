@@ -13,6 +13,11 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static string FancySymbols(this string n)
+    {
+        return n.ToString().ReplaceByChar("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", "");
+    }
+
     public static bool WorldToScreen(Vector3 worldPos, out Vector2 screenPos)
     {
         return S.VbmCamera.WorldToScreen(worldPos, out screenPos);

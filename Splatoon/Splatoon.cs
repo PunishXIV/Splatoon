@@ -6,6 +6,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
+using ECommons.Automation.NeoTaskManager;
 using ECommons.CircularBuffers;
 using ECommons.Configuration;
 using ECommons.Events;
@@ -21,6 +22,7 @@ using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
 using PInvoke;
 using Splatoon.Gui;
+using Splatoon.Gui.Priority;
 using Splatoon.Memory;
 using Splatoon.Modules;
 using Splatoon.RenderEngines.DirectX11;
@@ -87,6 +89,8 @@ public unsafe class Splatoon :IDalamudPlugin
     private ActorControlProcessor ActorControlProcessor;
     internal BuffEffectProcessor BuffEffectProcessor;
     internal LogWindow LogWindow;
+    internal PriorityPopupWindow PriorityPopupWindow;
+    internal TaskManager TaskManager;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -199,6 +203,9 @@ public unsafe class Splatoon :IDalamudPlugin
         BuffEffectProcessor = new();
         LogWindow = new();
         EzConfigGui.WindowSystem.AddWindow(LogWindow);
+        PriorityPopupWindow = new();
+        EzConfigGui.WindowSystem.AddWindow(PriorityPopupWindow);
+        TaskManager = new(new(showDebug:true));
         Init = true;
         SplatoonIPC.Init();
     }
@@ -342,6 +349,8 @@ public unsafe class Splatoon :IDalamudPlugin
 
     internal void TerritoryChangedEvent(ushort e)
     {
+        PriorityPopupWindow.IsOpen = false;
+        PriorityPopupWindow.Open(false);
         Phase = 1;
         if(SFind.Count > 0 && !P.Config.NoFindReset)
         {

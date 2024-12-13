@@ -1,4 +1,5 @@
-﻿using ECommons.PartyFunctions;
+﻿using ECommons.Configuration;
+using ECommons.PartyFunctions;
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 
@@ -20,6 +21,33 @@ public class PriorityList
         ImGuiEx.TextV("List mode:");
         ImGui.SameLine();
         ImGuiEx.RadioButtonBool("Roles", "Names and/or jobs", ref this.IsRole, true);
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy to Clipboard"))
+        {
+            var copy = this.JSONClone();
+            if(copy.IsRole) copy.List.Each(x =>
+            {
+                x.Name = "";
+                x.Jobs.Clear();
+            });
+            Copy(EzConfig.DefaultSerializationFactory.Serialize(copy, false)!);
+        }
+        ImGui.SameLine();
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Override from Clipboard", ImGuiEx.Ctrl || List.All(x => x.Name == "" && x.Jobs.Count == 0 && x.Role == RolePosition.Not_Selected)))
+        {
+            try
+            {
+                var item = EzConfig.DefaultSerializationFactory.Deserialize<PriorityList>(Paste()!);
+                if(item == null || item.List == null || item.List.Any(x => x.Name == null)) throw new NullReferenceException();
+                this.List = item.List;
+                this.IsRole = item.IsRole;
+            }
+            catch(Exception e)
+            {
+                PluginLog.Error(e.ToString());
+                DuoLog.Error(e.Message);
+            }
+        }
+        ImGuiEx.Tooltip("Hold CTRL and click");
     }
 
     internal void Draw()

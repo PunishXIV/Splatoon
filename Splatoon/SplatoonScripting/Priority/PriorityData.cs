@@ -53,6 +53,7 @@ public class PriorityData
                 statusCursor = ImGui.GetCursorPos();
                 ImGuiEx.TextV($"");
                 ImGuiEx.TextV($"");
+                ImGuiEx.TextV($"");
 
                 ImGui.PushID(playerList.ID);
                 playerList.Draw();

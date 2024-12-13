@@ -273,23 +273,29 @@ internal static partial class ScriptingProcessor
                             try
                             {
                                 byte[] code = null;
+                                byte[] pdb = null;
                                 if(!P.Config.DisableScriptCache)
                                 {
                                     var md5 = MD5.HashData(Encoding.UTF8.GetBytes(result.code)).Select(x => $"{x:X2}").Join("");
                                     var cacheFile = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.bin");
-                                    PluginLog.Debug($"Cache path: {cacheFile}");
-                                    if(File.Exists(cacheFile))
+                                    var cacheFilePdb = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.pdb");
+                                    PluginLog.Debug($"Cache path: {cacheFile}, {cacheFilePdb}");
+                                    if(File.Exists(cacheFile) && File.Exists(cacheFilePdb))
                                     {
                                         PluginLog.Debug($"Loading from cache...");
                                         code = File.ReadAllBytes(cacheFile);
+                                        pdb = File.ReadAllBytes(cacheFilePdb);
                                     }
                                     else
                                     {
                                         PluginLog.Debug($"Compiling...");
-                                        code = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
-                                        if(code != null)
+                                        var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
+                                        code = data?.Assembly;
+                                        pdb = data?.Pdb;
+                                        if(code != null && pdb != null)
                                         {
                                             File.WriteAllBytes(cacheFile, code);
+                                            File.WriteAllBytes(cacheFilePdb, pdb);
                                             PluginLog.Debug($"Compiled and saved");
                                         }
                                     }
@@ -297,15 +303,17 @@ internal static partial class ScriptingProcessor
                                 else
                                 {
                                     PluginLog.Debug($"Compiling, cache bypassed...");
-                                    code = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
+                                    var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
+                                    code = data?.Assembly;
+                                    pdb = data?.Pdb;
                                 }
-                                if(code != null)
+                                if(code != null && pdb != null)
                                 {
                                     Svc.Framework.RunOnFrameworkThread(delegate
                                     {
                                         if(P != null && !P.Disposed)
                                         {
-                                            var assembly = Compiler.Load(code);
+                                            var assembly = Compiler.Load(code, pdb);
                                             foreach(var t in assembly.GetTypes())
                                             {
                                                 if(t.BaseType?.FullName == "Splatoon.SplatoonScripting.SplatoonScript")

@@ -5,14 +5,14 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.ExcelServices;
-using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using ECommons.PartyFunctions;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
+using ECommons.Logging;
+using ECommons.SimpleGui;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 using Element = Splatoon.Element;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
@@ -35,121 +35,42 @@ public class P1_Burn_Strike_Tower : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
 
     private Config C => Controller.GetConfig<Config>();
-
-    private unsafe bool DrawPriorityList()
-    {
-        if (C.Priority.Length != 6)
-            C.Priority = ["", "", "", "", "", ""];
-
-        ImGuiEx.Text("Priority list");
-        ImGui.SameLine();
-        ImGuiEx.Spacing();
-        // if (ImGui.Button("Perform test")) SelfTest();
-        ImGui.SameLine();
-        if (ImGui.Button("Fill by job"))
-        {
-            HashSet<(string, Job)> party = [];
-            foreach (var x in FakeParty.Get())
-                party.Add((x.Name.ToString(), x.GetJob()));
-
-            var proxy = InfoProxyCrossRealm.Instance();
-            for (var i = 0; i < proxy->GroupCount; i++)
-            {
-                var group = proxy->CrossRealmGroups[i];
-                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
-                {
-                    var x = group.GroupMembers[c];
-                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
-                }
-            }
-
-            var index = 0;
-            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
-            {
-                C.Priority[index] = party.First(x => x.Item2 == job).Item1;
-                index++;
-            }
-
-            for (var i = index; i < C.Priority.Length; i++)
-                C.Priority[i] = "";
-        }
-
-        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
-
-        ImGui.SameLine();
-
-        ImGui.Checkbox("Enabled Fixed Priority", ref C.FixEnabled);
-        ImGuiEx.Tooltip(
-            "If enabled, the priority will be fixed based on the order of the fixed priority list.\n1st -> North, 2nd -> Center, 3rd -> South");
-
-        if (C.FixEnabled && C.FixedPriority.Count(x => x) !=3)
-        {
-            ImGuiEx.Text(EColor.RedBright,"Please select 3 fixed.");
-        }
-        
-        ImGui.PushID("prio");
-        for (var i = 0; i < C.Priority.Length; i++)
-        {
-            ImGui.PushID($"prioelement{i}");
-            ImGui.Text($"Character {i + 1}");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(200);
-            ImGui.InputText($"##Character{i}", ref C.Priority[i], 50);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
-            {
-                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
-                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if (ImGui.Selectable(x))
-                        C.Priority[i] = x;
-                ImGui.EndCombo();
-            }
-
-            if (C.FixEnabled)
-            {
-                ImGui.SameLine();
-                ImGui.Checkbox($"##FixedPriority{i}", ref C.FixedPriority[i]);
-            }
-
-
-            ImGui.PopID();
-        }
-
-        ImGui.PopID();
-        return false;
-    }
 
 
     public override void OnSettingsDraw()
     {
         ImGui.Text("General");
-        DrawPriorityList();
-
-        if (ImGuiEx.CollapsingHeader("Option"))
+        C.PriorityData.Draw();
+        ImGui.Separator();
+        ImGui.Checkbox("Enabled Fixed Priority", ref C.FixEnabled);
+        ImGuiEx.HelpMarker(
+            "If enabled, the priority will be fixed based on the order of the fixed priority list.\n1st -> North, 2nd -> Center, 3rd -> South");
+        if (C.FixEnabled)
         {
-            _dragDrop.Begin();
-            foreach (var job in C.Jobs)
+            ImGui.Indent();
+
+            if (C.PriorityData.PriorityLists.First().IsRole)
             {
-                _dragDrop.NextRow();
-                ImGui.Text(job.ToString());
-                ImGui.SameLine();
+                ImGuiEx.EnumCombo("1st Fixed Role", ref C.FirstFixRole);
+                ImGuiEx.EnumCombo("2nd Fixed Role", ref C.SecondFixRole);
+                ImGuiEx.EnumCombo("3rd Fixed Role", ref C.ThirdFixRole);
+            }
+            else
+            {
+                ImGui.SliderInt("1st Fixed Index", ref C.FirstFixIndex, 0, 5);
+                ImGui.SliderInt("2nd Fixed Index", ref C.SecondFixIndex, 0, 5);
+                ImGui.SliderInt("3rd Fixed Index", ref C.ThirdFixIndex, 0, 5);
 
-                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
-                {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
-                    ImGui.SameLine();
-                }
-
-                ImGui.SameLine();
-                _dragDrop.DrawButtonDummy(job, C.Jobs, C.Jobs.IndexOf(job));
+                if (C.FirstFixIndex == C.SecondFixIndex || C.FirstFixIndex == C.ThirdFixIndex ||
+                    C.SecondFixIndex == C.ThirdFixIndex)
+                    ImGuiEx.Text(EColor.RedBright, "Indexes must be different");
             }
 
-            _dragDrop.End();
+            ImGui.Unindent();
         }
 
         if (ImGui.CollapsingHeader("Debug"))
@@ -160,6 +81,21 @@ public class P1_Burn_Strike_Tower : SplatoonScript
             foreach (var tower in _currentTowers)
                 ImGui.Text(tower + " " + tower?.Position);
         }
+    }
+
+    public override void OnScriptUpdated(uint previousVersion)
+    {
+        if (previousVersion < 3)
+            new PopupWindow(() =>
+            {
+                ImGuiEx.Text($"""
+                              Warning: Splatoon Script 
+                              {InternalData.Name}
+                              was updated. 
+                              If you were using the fixed priority feature,
+                              Please make sure to set the fixed roles again.
+                              """);
+            });
     }
 
     public override void OnSetup()
@@ -220,61 +156,96 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                         break;
                 }
 
-                if (_currentTowers.All(x => x != null))
+                if (_currentTowers.Any(x => x == null)) return;
+                _state = State.Split;
+                var list = C.PriorityData.GetFirstValidList();
+                if (list is null)
                 {
-                    _state = State.Split;
+                    DuoLog.Warning("[P1 Burn Strike Tower] Priority list is not 6");
+                    return;
+                }
 
-                    if (C.FixEnabled)
+                if (C.FixEnabled)
+                {
+                    List<string> nonFixed;
+                    if (list.IsRole)
                     {
-                        var index = 0;
-                        for (var i = 0; i < C.FixedPriority.Length; i++)
-                            if (C.FixedPriority[i])
-                            {
-                                if (C.Priority[i] == Player.Name)
-                                    _myTower = _currentTowers[index];
-                                index++;
-                            }
-
-                        var nonFixed = C.Priority.Where((x, i) => C.FixedPriority[i] == false).ToList();
-                        foreach (var tower in _currentTowers)
-                        {
-                            var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
-                            var remaining = towerCount - 1;
-
-                            if (remaining == 0)
-                            {
-                                index++;
-                                continue;
-                            }
-
-                            for (var i = 0; i < remaining; i++)
-                            {
-                                if (nonFixed.First() == Player.Name)
-                                    _myTower = tower;
-                                nonFixed.RemoveAt(0);
-                            }
-                        }
+                        var myRole = list.List.First(x => x.IsInParty(true, out var upm) && upm.Name == Player.Name)
+                            .Role;
+                        if (C.FirstFixRole == myRole)
+                            _myTower = _currentTowers[0];
+                        else if (C.SecondFixRole == myRole)
+                            _myTower = _currentTowers[1];
+                        else if (C.ThirdFixRole == myRole)
+                            _myTower = _currentTowers[2];
+                        DuoLog.Warning("2");
+                        nonFixed = list.List.Where(x =>
+                                x.Role != C.FirstFixRole && x.Role != C.SecondFixRole && x.Role != C.ThirdFixRole)
+                            .Select(x => x.Name.Split("@").First()).ToList();
                     }
                     else
                     {
-                        var index = 0;
-                        foreach (var tower in _currentTowers)
-                        {
-                            var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
-                            var lastIndex = index;
-                            index += towerCount;
+                        var myIndex = C.PriorityData.GetOwnIndex(x => true);
+                        if (myIndex == C.FirstFixIndex)
+                            _myTower = _currentTowers[0];
+                        else if (myIndex == C.SecondFixIndex)
+                            _myTower = _currentTowers[1];
+                        else if (myIndex == C.ThirdFixIndex)
+                            _myTower = _currentTowers[2];
 
-                            for (var i = lastIndex; i < index; i++)
-                                if (C.Priority[i] == Player.Name)
-                                    _myTower = tower;
+                        nonFixed = list.List.Where(x =>
+                            x.Name != list.List[C.FirstFixIndex].Name &&
+                            x.Name != list.List[C.SecondFixIndex].Name &&
+                            x.Name != list.List[C.ThirdFixIndex].Name).Select(x => x.Name.Split("@").First()).ToList();
+                    }
+
+                    foreach (var tower in _currentTowers)
+                    {
+                        if (tower is null)
+                        {
+                            DuoLog.Warning("[P1 Burn Strike Tower] Tower is null");
+                            continue;
+                        }
+
+                        var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
+                        var remaining = towerCount - 1;
+
+                        if (remaining == 0) continue;
+
+                        for (var i = 0; i < remaining; i++)
+                        {
+                            if (nonFixed.First() == Player.Name)
+                                _myTower = tower;
+                            nonFixed.RemoveAt(0);
                         }
                     }
+                }
 
-                    if (Controller.TryGetElementByName("Bait", out var bait))
+                else
+                {
+                    var index = 0;
+                    foreach (var tower in _currentTowers)
                     {
-                        bait.Enabled = true;
-                        bait.SetOffPosition(_myTower.Position);
+                        if (tower is null)
+                        {
+                            DuoLog.Warning("[P1 Burn Strike Tower] Tower is null");
+                            continue;
+                        }
+
+                        var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
+                        var lastIndex = index;
+                        index += towerCount;
+
+                        for (var i = lastIndex; i < index; i++)
+                            if (list?.List[i].Name == Player.Name)
+                                _myTower = tower;
                     }
+                }
+
+                if (Controller.TryGetElementByName("Bait", out var bait))
+                {
+                    bait.Enabled = true;
+                    bait.SetOffPosition(_myTower.Position);
                 }
             }
     }
@@ -292,30 +263,22 @@ public class P1_Burn_Strike_Tower : SplatoonScript
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
 
-        public readonly List<Job> Jobs =
-        [
-            Job.WHM,
-            Job.SCH,
-            Job.AST,
-            Job.SGE,
-            Job.VPR,
-            Job.DRG,
-            Job.MNK,
-            Job.SAM,
-            Job.RPR,
-            Job.NIN,
-            Job.BRD,
-            Job.MCH,
-            Job.DNC,
-            Job.BLM,
-            Job.SMN,
-            Job.RDM,
-            Job.PCT
-        ];
-
-        public bool[] FixedPriority = [false, false, false, false, false, false];
+        public int FirstFixIndex;
+        public RolePosition FirstFixRole = RolePosition.H1;
 
         public bool FixEnabled;
-        public string[] Priority = ["", "", "", "", "", ""];
+        public PriorityData6 PriorityData = new();
+        public int SecondFixIndex = 1;
+        public RolePosition SecondFixRole = RolePosition.H2;
+        public int ThirdFixIndex = 5;
+        public RolePosition ThirdFixRole = RolePosition.R2;
+    }
+
+    private class PriorityData6 : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 6;
+        }
     }
 }

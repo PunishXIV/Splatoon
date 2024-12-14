@@ -25,7 +25,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private Timings _currentTiming = Timings.Start;
     private float _lastMinPercentage;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -98,6 +98,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
             ImGui.Checkbox("DebugMode", ref C.DebugMode);
             ImGui.Text($"Timings: {C.TimingMode}");
             ImGui.Text($"IsActive: {IsActive}");
+            ImGui.Text($"Current Timing: {_currentTiming}");
             ImGui.Text($"Current Target: {_currentTarget?.Name}");
 
             ImGui.Separator();
@@ -125,6 +126,26 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
         switch (set.Action.Value.RowId)
         {
+            case 40285:
+                _currentTiming = Timings.SomberDanceEnd;
+                break;
+            case 40249:
+                _mornAfahCount++;
+                _currentTiming = _mornAfahCount == 1 ? Timings.FirstMornAfahEnd : Timings.SecondMornAfahEnd;
+                break;
+            
+        }
+    }
+    
+    private int _akhMornCount = 0;
+    private int _mornAfahCount = 0;
+
+    public override void OnStartingCast(uint source, uint castId)
+    {
+        if (castId == 40247)
+        {
+            _akhMornCount++;
+            _currentTiming = _akhMornCount == 1 ? Timings.FirstAkhMorn : Timings.SecondAkhMorn;
         }
     }
 
@@ -201,13 +222,20 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         _currentTarget = null;
         _currentTiming = Timings.Start;
         _lastMinPercentage = 0f;
+        _akhMornCount = 0;
+        _mornAfahCount = 0;
         _targets.Clear();
         _percentages.Clear();
     }
 
     private enum Timings
     {
-        Start
+        Start,
+        SomberDanceEnd,
+        FirstAkhMorn,
+        FirstMornAfahEnd,
+        SecondAkhMorn,
+        SecondMornAfahEnd 
     }
 
     private class Config : IEzConfig

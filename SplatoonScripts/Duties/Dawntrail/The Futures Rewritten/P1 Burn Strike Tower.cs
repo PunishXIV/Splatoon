@@ -178,7 +178,6 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                             _myTower = _currentTowers[1];
                         else if (C.ThirdFixRole == myRole)
                             _myTower = _currentTowers[2];
-                        DuoLog.Warning("2");
                         nonFixed = list.List.Where(x =>
                                 x.Role != C.FirstFixRole && x.Role != C.SecondFixRole && x.Role != C.ThirdFixRole)
                             .Select(x => x.Name.Split("@").First()).ToList();

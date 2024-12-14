@@ -1,18 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -34,7 +37,7 @@ public class P1_Fall_of_Faith : SplatoonScript
 
     private int _tetherCount = 1;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
     private Config C => Controller.GetConfig<Config>();
 
     public override void OnStartingCast(uint source, uint castId)
@@ -100,7 +103,8 @@ public class P1_Fall_of_Faith : SplatoonScript
         if (_state != State.Start) return;
         _tetherCount++;
         if (_tetherCount is > 4 or < 2) return;
-        var name = target.GetObject().Name.ToString();
+        if (target.GetObject() is not IPlayerCharacter targetPlayer) return;
+        var name = targetPlayer.Name.ToString();
 
         var debuff = data3 switch
         {
@@ -120,12 +124,16 @@ public class P1_Fall_of_Faith : SplatoonScript
         if (_tetherCount == 4)
         {
             _state = State.Split;
-            var party = C.Priority.ToArray();
-            var noTether = party.Where(x => !_partyDatas.ContainsKey(x)).ToList();
-            _partyDatas[noTether[0]] = new PlayerData(Debuff.None, C.NoTether12Direction, 0);
-            _partyDatas[noTether[1]] = new PlayerData(Debuff.None, C.NoTether12Direction, 0);
-            _partyDatas[noTether[2]] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
-            _partyDatas[noTether[3]] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
+            var noTether = C.PriorityData.GetPlayers(x => !_partyDatas.ContainsKey(x.Name));
+            if (noTether == null)
+            {
+                DuoLog.Warning("[P1 Fall of Faith] NoTether is null");
+                return;
+            }
+            _partyDatas[noTether[0].Name] = new PlayerData(Debuff.None, C.NoTether12Direction, 0);
+            _partyDatas[noTether[1].Name] = new PlayerData(Debuff.None, C.NoTether12Direction, 0);
+            _partyDatas[noTether[2].Name] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
+            _partyDatas[noTether[3].Name] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
         }
         
         ApplyElement();
@@ -160,73 +168,6 @@ public class P1_Fall_of_Faith : SplatoonScript
         }
     }
 
-
-    private unsafe bool DrawPriorityList()
-    {
-        if (C.Priority.Length != 8)
-            C.Priority = ["", "", "", "", "", "", "", ""];
-
-        ImGuiEx.Text("Priority list");
-        ImGui.SameLine();
-        ImGuiEx.Spacing();
-        // if (ImGui.Button("Perform test")) SelfTest();
-        ImGui.SameLine();
-        if (ImGui.Button("Fill by job"))
-        {
-            HashSet<(string, Job)> party = [];
-            foreach (var x in FakeParty.Get())
-                party.Add((x.Name.ToString(), x.GetJob()));
-
-            var proxy = InfoProxyCrossRealm.Instance();
-            for (var i = 0; i < proxy->GroupCount; i++)
-            {
-                var group = proxy->CrossRealmGroups[i];
-                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
-                {
-                    var x = group.GroupMembers[c];
-                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
-                }
-            }
-
-            var index = 0;
-            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
-            {
-                C.Priority[index] = party.First(x => x.Item2 == job).Item1;
-                index++;
-            }
-
-            for (var i = index; i < C.Priority.Length; i++)
-                C.Priority[i] = "";
-        }
-
-        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
-
-        ImGui.PushID("prio");
-        for (var i = 0; i < C.Priority.Length; i++)
-        {
-            ImGui.PushID($"prioelement{i}");
-            ImGui.Text($"Character {i + 1}");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(200);
-            ImGui.InputText($"##Character{i}", ref C.Priority[i], 50);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
-            {
-                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
-                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if (ImGui.Selectable(x))
-                        C.Priority[i] = x;
-                ImGui.EndCombo();
-            }
-
-            ImGui.PopID();
-        }
-
-        ImGui.PopID();
-        return false;
-    }
-
     public override void OnUpdate()
     {
         switch (_state)
@@ -256,7 +197,7 @@ public class P1_Fall_of_Faith : SplatoonScript
 
         ImGui.Separator();
 
-        DrawPriorityList();
+        C.PriorityData.Draw();
 
         ImGui.Separator();
 
@@ -269,28 +210,6 @@ public class P1_Fall_of_Faith : SplatoonScript
         ImGui.SameLine();
         var blueTether = C.BlueTetherText.Get();
         C.BlueTetherText.ImGuiEdit(ref blueTether);
-
-        if (ImGuiEx.CollapsingHeader("Option"))
-        {
-            DragDrop.Begin();
-            foreach (var job in C.Jobs)
-            {
-                DragDrop.NextRow();
-                ImGui.Text(job.ToString());
-                ImGui.SameLine();
-
-                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
-                {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
-                    ImGui.SameLine();
-                }
-
-                ImGui.SameLine();
-                DragDrop.DrawButtonDummy(job, C.Jobs, C.Jobs.IndexOf(job));
-            }
-
-            DragDrop.End();
-        }
 
         if (ImGui.CollapsingHeader("Debug"))
         {
@@ -327,37 +246,12 @@ public class P1_Fall_of_Faith : SplatoonScript
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
 
-        public readonly List<Job> Jobs =
-        [
-            Job.PLD,
-            Job.WAR,
-            Job.DRK,
-            Job.GNB,
-            Job.WHM,
-            Job.SCH,
-            Job.AST,
-            Job.SGE,
-            Job.VPR,
-            Job.DRG,
-            Job.MNK,
-            Job.SAM,
-            Job.RPR,
-            Job.NIN,
-            Job.BRD,
-            Job.MCH,
-            Job.DNC,
-            Job.BLM,
-            Job.SMN,
-            Job.RDM,
-            Job.PCT
-        ];
-
         public InternationalString BlueTetherText = new() { Jp = "雷 散開" };
 
         public Direction NoTether12Direction = Direction.North;
         public Direction NoTether34Direction = Direction.South;
 
-        public string[] Priority = ["", "", "", "", "", "", "", ""];
+        public PriorityData PriorityData = new();
 
         public InternationalString RedTetherText = new() { Jp = "炎 ペア割" };
 

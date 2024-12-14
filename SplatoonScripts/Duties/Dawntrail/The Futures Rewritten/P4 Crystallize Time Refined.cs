@@ -129,7 +129,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
     bool Initialized = false;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -456,7 +456,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
                         if(forcedPosition != null)
                         {
                             element.SetOffPosition(forcedPosition.Value.ToVector3(0));
-                            element.radius = 0.25f;
+                            element.radius = 0.4f;
                         }
                     }
                 }

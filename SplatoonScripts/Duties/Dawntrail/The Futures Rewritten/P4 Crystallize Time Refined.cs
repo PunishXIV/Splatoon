@@ -22,6 +22,7 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using Splatoon.Utility;
 using Action = Lumina.Excel.Sheets.Action;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
@@ -54,6 +55,9 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
     private Direction _debugDirection1 = Direction.North;
     private Direction _debugDirection2 = Direction.North;
+
+    private Direction _editSplitElementDirection;
+    private float _editSplitElementRadius;
 
     private Direction? _firstWaveDirection;
 
@@ -678,112 +682,42 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
     {
         foreach (var player in Enum.GetValues<MoveType>())
         {
-            if (GetStage() < MechanicStage.Step6_ThirdHourglass)
+            var direction = Direction.West;
+            if (C.PrioritizeMarker &&
+                _players.FirstOrDefault(x => x.Value.PlayerName == BasePlayer.Name.ToString()).Value?.Marker is
+                    { } marker)
             {
-                var pos = player switch
+                direction = marker switch
                 {
-                    MoveType.RedBlizzardWest => new Vector2(100, 85),
-                    MoveType.RedBlizzardEast => new Vector2(100, 85),
-                    MoveType.RedAeroWest => new Vector2(100, 115),
-                    MoveType.RedAeroEast => new Vector2(100, 115),
-                    MoveType.BlueBlizzard => new Vector2(100, 85),
-                    MoveType.BlueHoly => new Vector2(100, 85),
-                    MoveType.BlueWater => new Vector2(100, 85),
-                    MoveType.BlueEruption => new Vector2(100, 85),
-                    _ => throw new InvalidOperationException()
+                    MarkerType.Attack1 => C.WhenAttack1,
+                    MarkerType.Attack2 => C.WhenAttack2,
+                    MarkerType.Attack3 => C.WhenAttack3,
+                    MarkerType.Attack4 => C.WhenAttack4,
+                    _ => direction
                 };
-
-                if (Controller.TryGetElementByName(SwapIfNecessary(player), out var e))
-                {
-                    e.radius = 1f;
-                    e.SetOffPosition(pos.ToVector3(0));
-                }
-
-                continue;
             }
-
-
-            Direction? returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
-            {
-                (Direction.North, Direction.East) => Direction.NorthEast,
-                (Direction.East, Direction.South) => Direction.SouthEast,
-                (Direction.South, Direction.West) => Direction.SouthWest,
-                (Direction.West, Direction.North) => Direction.NorthWest,
-                (Direction.North, Direction.West) => Direction.NorthWest,
-                (Direction.West, Direction.South) => Direction.SouthWest,
-                (Direction.South, Direction.East) => Direction.SouthEast,
-                (Direction.East, Direction.North) => Direction.NorthEast,
-                _ => null
-            };
-
-            Vector2 returnPosition;
-            if (!C.KBIRewind)
-                returnPosition = returnDirection switch
-                {
-                    Direction.NorthEast => new Vector2(112, 88),
-                    Direction.SouthEast => new Vector2(112, 112),
-                    Direction.SouthWest => new Vector2(88, 112),
-                    Direction.NorthWest => new Vector2(88, 88),
-                    _ => new Vector2(100f, 100f)
-                };
             else
-                returnPosition = returnDirection switch
-                {
-                    Direction.NorthEast => new Vector2(100, 98),
-                    Direction.SouthEast => new Vector2(100, 102),
-                    Direction.SouthWest => new Vector2(100, 102),
-                    Direction.NorthWest => new Vector2(100, 98),
-                    _ => new Vector2(100f, 100f)
-                };
-
-            var position = player switch
             {
-                MoveType.RedBlizzardWest => returnPosition,
-                MoveType.RedBlizzardEast => returnPosition,
-                MoveType.RedAeroWest => returnPosition,
-                MoveType.RedAeroEast => returnPosition,
-                _ => Vector2.Zero
-            };
-
-            if (position == Vector2.Zero)
-            {
-                var direction = Direction.West;
-                if (C.PrioritizeMarker &&
-                    _players.FirstOrDefault(x => x.Value.PlayerName == BasePlayer.Name.ToString()).Value?.Marker is
-                        { } marker)
-                {
-                    direction = marker switch
-                    {
-                        MarkerType.Attack1 => C.WhenAttack1,
-                        MarkerType.Attack2 => C.WhenAttack2,
-                        MarkerType.Attack3 => C.WhenAttack3,
-                        MarkerType.Attack4 => C.WhenAttack4,
-                        _ => direction
-                    };
-                }
-                else
-                {
-                    if (player == C.WestSentence)
-                        direction = Direction.West;
-                    else if (player == C.SouthWestSentence)
-                        direction = Direction.SouthWest;
-                    else if (player == C.SouthEastSentence)
-                        direction = Direction.SouthEast;
-                    else if (player == C.EastSentence)
-                        direction = Direction.East;
-                }
-
-                var cleanses = Cleanses.ToArray();
-
-                position = direction switch
-                {
-                    Direction.West => cleanses[0].Position.ToVector2(),
-                    Direction.SouthWest => cleanses[1].Position.ToVector2(),
-                    Direction.SouthEast => cleanses[2].Position.ToVector2(),
-                    Direction.East => cleanses[3].Position.ToVector2(),
-                    _ => position
-                };
+                if (player == C.WestSentence)
+                    direction = Direction.West;
+                else if (player == C.SouthWestSentence)
+                    direction = Direction.SouthWest;
+                else if (player == C.SouthEastSentence)
+                    direction = Direction.SouthEast;
+                else if (player == C.EastSentence)
+                    direction = Direction.East;
             }
+
+            var cleanses = Cleanses.ToArray();
+
+            var position = direction switch
+            {
+                Direction.West => cleanses[0].Position.ToVector2(),
+                Direction.SouthWest => cleanses[1].Position.ToVector2(),
+                Direction.SouthEast => cleanses[2].Position.ToVector2(),
+                Direction.East => cleanses[3].Position.ToVector2(),
+                _ => new Vector2(100, 100)
+            };
 
             if (Controller.TryGetElementByName(SwapIfNecessary(player), out var element))
             {
@@ -800,127 +734,182 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
     private void PlaceReturn()
     {
-        if (!C.KBIRewind)
-        {
-            var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
-            {
-                (Direction.North, Direction.East) => Direction.NorthEast,
-                (Direction.East, Direction.South) => Direction.SouthEast,
-                (Direction.South, Direction.West) => Direction.SouthWest,
-                (Direction.West, Direction.North) => Direction.NorthWest,
-                (Direction.North, Direction.West) => Direction.NorthWest,
-                (Direction.West, Direction.South) => Direction.SouthWest,
-                (Direction.South, Direction.East) => Direction.SouthEast,
-                (Direction.East, Direction.North) => Direction.NorthEast,
-                _ => throw new InvalidOperationException()
-            };
-
-            var basePosition = returnDirection switch
-            {
-                Direction.NorthEast => new Vector2(113, 87),
-                Direction.SouthEast => new Vector2(113, 113),
-                Direction.SouthWest => new Vector2(87, 113),
-                Direction.NorthWest => new Vector2(87, 87),
-                _ => throw new InvalidOperationException()
-            };
-
-            var isWest = returnDirection switch
-            {
-                Direction.NorthEast => C.IsWestWhenNorthEastWave,
-                Direction.SouthEast => C.IsWestWhenSouthEastWave,
-                Direction.SouthWest => C.IsWestWhenSouthWestWave,
-                Direction.NorthWest => C.IsWestWhenNorthWestWave,
-                _ => throw new InvalidOperationException()
-            };
-
-            var myStack = (isWest, C.IsTank) switch
-            {
-                (true, true) => WaveStack.WestTank,
-                (false, true) => WaveStack.EastTank,
-                (true, false) => WaveStack.West,
-                (false, false) => WaveStack.East
-            };
-
-            var westTankPosition = basePosition;
-            var eastTankPosition = basePosition;
-            var westPosition = basePosition;
-            var eastPosition = basePosition;
-
-            switch (returnDirection)
-            {
-                case Direction.NorthEast:
-                    westTankPosition += new Vector2(-3f, -0.5f);
-                    eastTankPosition += new Vector2(0.5f, 3f);
-                    westPosition += new Vector2(-3f, 1f);
-                    eastPosition += new Vector2(-1f, 3f);
-                    break;
-                case Direction.SouthEast:
-                    westTankPosition += new Vector2(-3f, 0.5f);
-                    eastTankPosition += new Vector2(0.5f, -3f);
-                    westPosition += new Vector2(-3f, -1f);
-                    eastPosition += new Vector2(-1f, -3f);
-                    break;
-                case Direction.SouthWest:
-                    westTankPosition += new Vector2(-0.5f, -3f);
-                    eastTankPosition += new Vector2(3f, 0.5f);
-                    westPosition += new Vector2(1f, -3f);
-                    eastPosition += new Vector2(3f, -1f);
-                    break;
-                default:
-                    westTankPosition += new Vector2(-0.5f, 3f);
-                    eastTankPosition += new Vector2(3f, -0.5f);
-                    westPosition += new Vector2(1f, 3f);
-                    eastPosition += new Vector2(3f, -1f);
-                    break;
-            }
-
-            foreach (var stack in Enum.GetValues<WaveStack>())
-                if (Controller.TryGetElementByName(stack + nameof(WaveStack), out var element))
-                {
-                    element.Enabled = C.ShowOther;
-                    element.radius = stack is WaveStack.WestTank or WaveStack.EastTank ? 0.5f : 1.2f;
-                    element.SetOffPosition(stack switch
-                    {
-                        WaveStack.WestTank => westTankPosition.ToVector3(0),
-                        WaveStack.EastTank => eastTankPosition.ToVector3(0),
-                        WaveStack.West => westPosition.ToVector3(0),
-                        WaveStack.East => eastPosition.ToVector3(0),
-                        _ => throw new InvalidOperationException()
-                    });
-                }
-
-            if (Controller.TryGetElementByName(myStack + nameof(WaveStack), out var myElement))
-            {
-                myElement.Enabled = true;
-                myElement.tether = true;
-                myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
-            }
-        }
+        if (C.NukemaruRewind)
+            NukemaruPlaceReturn();
+        else if (C.KBIRewind)
+            KBIPlaceReturn();
         else
-        {
-            var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
-            {
-                (Direction.North, Direction.East) => Direction.North,
-                (Direction.East, Direction.South) => Direction.South,
-                (Direction.South, Direction.West) => Direction.South,
-                (Direction.West, Direction.North) => Direction.North,
-                (Direction.North, Direction.West) => Direction.North,
-                (Direction.West, Direction.South) => Direction.South,
-                (Direction.South, Direction.East) => Direction.South,
-                (Direction.East, Direction.North) => Direction.North,
-                _ => throw new InvalidOperationException()
-            };
-            if (Controller.TryGetElementByName(WaveStack.West + nameof(WaveStack), out var myElement))
-            {
-                myElement.Enabled = true;
-                myElement.tether = true;
-                myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
-                myElement.SetOffPosition(Vector3.Zero);
-                myElement.SetRefPosition(new Vector3(100, 0, 100 + (returnDirection == Direction.North ? -2 : 2)));
-            }
-        }
+            DefaultPlaceReturn();
 
         Alert(C.PlaceReturnText.Get());
+    }
+
+    private void KBIPlaceReturn()
+    {
+        var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
+        {
+            (Direction.North, Direction.East) => Direction.North,
+            (Direction.East, Direction.South) => Direction.South,
+            (Direction.South, Direction.West) => Direction.South,
+            (Direction.West, Direction.North) => Direction.North,
+            (Direction.North, Direction.West) => Direction.North,
+            (Direction.West, Direction.South) => Direction.South,
+            (Direction.South, Direction.East) => Direction.South,
+            (Direction.East, Direction.North) => Direction.North,
+            _ => throw new InvalidOperationException()
+        };
+        if (Controller.TryGetElementByName(WaveStack.West + nameof(WaveStack), out var myElement))
+        {
+            myElement.Enabled = true;
+            myElement.tether = true;
+            myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+            myElement.SetOffPosition(Vector3.Zero);
+            myElement.SetRefPosition(new Vector3(100, 0, 100 + (returnDirection == Direction.North ? -2 : 2)));
+        }
+    }
+
+    private void NukemaruPlaceReturn()
+    {
+        var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
+        {
+            (Direction.North, Direction.East) => Direction.NorthEast,
+            (Direction.East, Direction.South) => Direction.SouthEast,
+            (Direction.South, Direction.West) => Direction.SouthWest,
+            (Direction.West, Direction.North) => Direction.NorthWest,
+            (Direction.North, Direction.West) => Direction.NorthWest,
+            (Direction.West, Direction.South) => Direction.SouthWest,
+            (Direction.South, Direction.East) => Direction.SouthEast,
+            (Direction.East, Direction.North) => Direction.NorthEast,
+            _ => throw new InvalidOperationException()
+        };
+
+        var basePosition = returnDirection switch
+        {
+            Direction.NorthEast => new Vector3(100, 0, 95),
+            Direction.SouthEast => new Vector3(100, 0, 105),
+            Direction.SouthWest => new Vector3(100, 0, 105),
+            Direction.NorthWest => new Vector3(100, 0, 95),
+            _ => throw new InvalidOperationException()
+        };
+
+        var direction = returnDirection switch
+        {
+            Direction.NorthEast => C.NukemaruRewindPositionWhenNorthEastWave,
+            Direction.SouthEast => C.NukemaruRewindPositionWhenSouthEastWave,
+            Direction.SouthWest => C.NukemaruRewindPositionWhenSouthWestWave,
+            Direction.NorthWest => C.NukemaruRewindPositionWhenNorthWestWave,
+            _ => throw new InvalidOperationException()
+        };
+
+        var position = basePosition +
+                       MathHelper.RotateWorldPoint(Vector3.Zero, ((int)direction).DegreesToRadians(),
+                           -Vector3.UnitZ * 3f);
+
+        if (Controller.TryGetElementByName(WaveStack.West + nameof(WaveStack), out var myElement))
+        {
+            myElement.Enabled = true;
+            myElement.tether = true;
+            myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+            myElement.SetOffPosition(Vector3.Zero);
+            myElement.SetRefPosition(position);
+        }
+    }
+
+    private void DefaultPlaceReturn()
+    {
+        var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
+        {
+            (Direction.North, Direction.East) => Direction.NorthEast,
+            (Direction.East, Direction.South) => Direction.SouthEast,
+            (Direction.South, Direction.West) => Direction.SouthWest,
+            (Direction.West, Direction.North) => Direction.NorthWest,
+            (Direction.North, Direction.West) => Direction.NorthWest,
+            (Direction.West, Direction.South) => Direction.SouthWest,
+            (Direction.South, Direction.East) => Direction.SouthEast,
+            (Direction.East, Direction.North) => Direction.NorthEast,
+            _ => throw new InvalidOperationException()
+        };
+
+        var basePosition = returnDirection switch
+        {
+            Direction.NorthEast => new Vector2(113, 87),
+            Direction.SouthEast => new Vector2(113, 113),
+            Direction.SouthWest => new Vector2(87, 113),
+            Direction.NorthWest => new Vector2(87, 87),
+            _ => throw new InvalidOperationException()
+        };
+
+        var isWest = returnDirection switch
+        {
+            Direction.NorthEast => C.IsWestWhenNorthEastWave,
+            Direction.SouthEast => C.IsWestWhenSouthEastWave,
+            Direction.SouthWest => C.IsWestWhenSouthWestWave,
+            Direction.NorthWest => C.IsWestWhenNorthWestWave,
+            _ => throw new InvalidOperationException()
+        };
+
+        var myStack = (isWest, C.IsTank) switch
+        {
+            (true, true) => WaveStack.WestTank,
+            (false, true) => WaveStack.EastTank,
+            (true, false) => WaveStack.West,
+            (false, false) => WaveStack.East
+        };
+
+        var westTankPosition = basePosition;
+        var eastTankPosition = basePosition;
+        var westPosition = basePosition;
+        var eastPosition = basePosition;
+
+        switch (returnDirection)
+        {
+            case Direction.NorthEast:
+                westTankPosition += new Vector2(-3f, -0.5f);
+                eastTankPosition += new Vector2(0.5f, 3f);
+                westPosition += new Vector2(-3f, 1f);
+                eastPosition += new Vector2(-1f, 3f);
+                break;
+            case Direction.SouthEast:
+                westTankPosition += new Vector2(-3f, 0.5f);
+                eastTankPosition += new Vector2(0.5f, -3f);
+                westPosition += new Vector2(-3f, -1f);
+                eastPosition += new Vector2(-1f, -3f);
+                break;
+            case Direction.SouthWest:
+                westTankPosition += new Vector2(-0.5f, -3f);
+                eastTankPosition += new Vector2(3f, 0.5f);
+                westPosition += new Vector2(1f, -3f);
+                eastPosition += new Vector2(3f, -1f);
+                break;
+            default:
+                westTankPosition += new Vector2(-0.5f, 3f);
+                eastTankPosition += new Vector2(3f, -0.5f);
+                westPosition += new Vector2(1f, 3f);
+                eastPosition += new Vector2(3f, -1f);
+                break;
+        }
+
+        foreach (var stack in Enum.GetValues<WaveStack>())
+            if (Controller.TryGetElementByName(stack + nameof(WaveStack), out var element))
+            {
+                element.Enabled = C.ShowOther;
+                element.radius = stack is WaveStack.WestTank or WaveStack.EastTank ? 0.5f : 1.2f;
+                element.SetOffPosition(stack switch
+                {
+                    WaveStack.WestTank => westTankPosition.ToVector3(0),
+                    WaveStack.EastTank => eastTankPosition.ToVector3(0),
+                    WaveStack.West => westPosition.ToVector3(0),
+                    WaveStack.East => eastPosition.ToVector3(0),
+                    _ => throw new InvalidOperationException()
+                });
+            }
+
+        if (Controller.TryGetElementByName(myStack + nameof(WaveStack), out var myElement))
+        {
+            myElement.Enabled = true;
+            myElement.tether = true;
+            myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+        }
     }
 
     private void Split()
@@ -1009,14 +998,52 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             ImGuiEx.TextWrapped(EColor.RedBright,
                 "You must go to Registered Elements section and put \"SplitPosition\" element to where you want it to be. Go to Eden's Promise: Eternity undersized for a preview, if necessary.");
 
+            if (C.HighlightSplitPosition)
+                if (Controller.TryGetElementByName("SplitPosition", out var element))
+                {
+                    ImGui.Indent();
+                    ImGui.Text($"Position:{element.refX}, {element.refY}");
+                    ImGuiEx.EnumCombo("Edit Direction", ref _editSplitElementDirection);
+                    ImGui.InputFloat("Edit Radius", ref _editSplitElementRadius, 0.1f);
+                    if (ImGui.Button("Set"))
+                    {
+                        var position = new Vector3(100, 0, 100) + MathHelper.RotateWorldPoint(Vector3.Zero,
+                            ((int)_editSplitElementDirection).DegreesToRadians(),
+                            -Vector3.UnitZ * _editSplitElementRadius);
+                        element.SetRefPosition(position);
+                    }
+
+                    ImGui.Unindent();
+                }
+
             ImGui.Separator();
 
             ImGuiEx.Text("Place Return Moves");
             ImGui.Indent();
 
-            ImGui.Checkbox("Knockback immunity return positions (beta)", ref C.KBIRewind);
+            var kbiRewind = C.KBIRewind;
+            var nukemaruRewind = C.NukemaruRewind;
+            ImGui.Checkbox("Knockback immunity return positions (beta)", ref kbiRewind);
+            ImGui.Checkbox("Nukemaru's return positions", ref nukemaruRewind);
 
-            if (!C.KBIRewind)
+            if (!C.KBIRewind && kbiRewind)
+                nukemaruRewind = false;
+            else if (!C.NukemaruRewind && nukemaruRewind) kbiRewind = false;
+
+            C.KBIRewind = kbiRewind;
+            C.NukemaruRewind = nukemaruRewind;
+
+            if (C.NukemaruRewind)
+            {
+                ImGui.Indent();
+                ImGuiEx.EnumCombo("When North East Wave", ref C.NukemaruRewindPositionWhenNorthEastWave);
+                ImGuiEx.EnumCombo("When South East Wave", ref C.NukemaruRewindPositionWhenSouthEastWave);
+                ImGuiEx.EnumCombo("When South West Wave", ref C.NukemaruRewindPositionWhenSouthWestWave);
+                ImGuiEx.EnumCombo("When North West Wave", ref C.NukemaruRewindPositionWhenNorthWestWave);
+                ImGui.Unindent();
+            }
+
+            if (C is { KBIRewind: false, NukemaruRewind: false })
             {
                 ImGui.Checkbox("Is Tank", ref C.IsTank);
 
@@ -1213,8 +1240,8 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
     private Vector2? ResolveRedBlizzardMove()
     {
-        if (_players.SafeSelect(BasePlayer.GameObjectId)!.MoveType?.
-                EqualsAny<MoveType>(MoveType.RedBlizzardWest, MoveType.RedBlizzardEast) != true) return null;
+        if (_players.SafeSelect(BasePlayer.GameObjectId)!.MoveType?.EqualsAny<MoveType>(MoveType.RedBlizzardWest,
+                MoveType.RedBlizzardEast) != true) return null;
         var isPlayerWest = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType == MoveType.RedBlizzardWest;
         var isLateHourglassSameSide =
             (_lateHourglassDirection == Direction.NorthEast || _lateHourglassDirection == Direction.SouthWest) ==
@@ -1382,6 +1409,12 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
         public uint MitigationAction;
 
         public bool NoWindWait = false;
+        public bool NukemaruRewind;
+
+        public Direction NukemaruRewindPositionWhenNorthEastWave = Direction.North;
+        public Direction NukemaruRewindPositionWhenNorthWestWave = Direction.North;
+        public Direction NukemaruRewindPositionWhenSouthEastWave = Direction.South;
+        public Direction NukemaruRewindPositionWhenSouthWestWave = Direction.South;
         public InternationalString PlaceReturnText = new() { En = "Place Return", Jp = "リターンを置け！" };
 
         public bool PrioritizeMarker;

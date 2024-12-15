@@ -138,6 +138,10 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
     public static IBattleNpc? EastDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: > 100 })
         .Select(x => x as IBattleNpc).First();
+    
+    public static IEnumerable<IEventObj> Cleanses => Svc.Objects.Where(x => x is { DataId: 0x1EBD41 })
+        .OfType<IEventObj>()
+        .OrderBy(x => x.Position.X);
 
     MechanicStage GetStage()
     {
@@ -859,13 +863,15 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
                     else if(player == C.EastSentence)
                         direction = Direction.East;
                 }
+                
+                var cleanses = Cleanses.ToArray();
 
                 position = direction switch
                 {
-                    Direction.West => new Vector2(87, 100),
-                    Direction.SouthWest => new Vector2(92, 110),
-                    Direction.SouthEast => new Vector2(108, 110),
-                    Direction.East => new Vector2(113, 100),
+                    Direction.West => cleanses[0].Position.ToVector2(),
+                    Direction.SouthWest => cleanses[1].Position.ToVector2(),
+                    Direction.SouthEast => cleanses[2].Position.ToVector2(),
+                    Direction.East => cleanses[3].Position.ToVector2(),
                     _ => position
                 };
             }

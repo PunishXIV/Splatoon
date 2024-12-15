@@ -13,6 +13,7 @@ using ECommons.PartyFunctions;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -41,7 +42,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -68,13 +69,16 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
             var count = 0;
             foreach (var aoeTarget in _aoeTargets)
-                if (C.Players.Contains(aoeTarget))
-                    count++;
+            {
+                if (C.PlayersCount == 1 && C.PriorityData1.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
+                if (C.PlayersCount == 2 && C.PriorityData2.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
+                if (C.PlayersCount == 3 && C.PriorityData3.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
+            }
 
             var direction = C.Directions[count];
 
             DuoLog.Warning($"Direction: {direction} Count: {count}");
-            var radius = 16f;
+            const float radius = 16f;
             var center = new Vector2(100f, 100f);
             var angle = (int)direction;
             var x = center.X + radius * MathF.Cos(angle * MathF.PI / 180);
@@ -92,7 +96,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action.Value.RowId == 40213) _state = State.End;
+        if (set.Action is { RowId: 40213 }) _state = State.End;
     }
 
     public override void OnSetup()
@@ -124,29 +128,21 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (C.Players.Count == 0) C.Players.Add("");
-        var toRem = -1;
-        for (var i = 0; i < C.Players.Count; i++)
+        ImGui.SliderInt("Players Count", ref C.PlayersCount, 0, 3);
+        
+        switch (C.PlayersCount)
         {
-            ImGui.SetCursorPosX(30);
-            ImGuiEx.Text($"{C.Players[i]}");
-            ImGui.SameLine();
-            if (ImGui.SmallButton("Delete##" + i)) toRem = i;
+            case 1:
+                C.PriorityData1.Draw();
+                break;
+            case 2:
+                C.PriorityData2.Draw();
+                break;
+            case 3:
+                C.PriorityData3.Draw();
+                break;
         }
-
-        if (toRem != -1) C.Players.RemoveAt(toRem);
-
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(120f);
-        if (ImGui.BeginCombo("##partysel", "Select from party"))
-        {
-            foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
-                         .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                if (ImGui.Selectable(x))
-                    C.Players.Add(x);
-            ImGui.EndCombo();
-        }
-
+        
         foreach (var direction in C.Directions)
         {
             var dir = direction.Value;
@@ -162,8 +158,33 @@ public class P2_Light_Rampant_JP : SplatoonScript
             ImGuiEx.Text($"State: {_state}");
             ImGuiEx.Text($"AOE Targets: {_aoeTargets.Print()}");
         }
+        
     }
 
+
+    public class PriorityData1 : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 1;
+        }
+    }
+    
+    public class PriorityData2 : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 2;
+        }
+    }
+    
+    public class PriorityData3 : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 3;
+        }
+    }
 
     public class Config : IEzConfig
     {
@@ -177,6 +198,10 @@ public class P2_Light_Rampant_JP : SplatoonScript
             [2] = Direction.None
         };
 
-        public List<string> Players = [""];
+        public PriorityData1 PriorityData1 = new();
+        public PriorityData2 PriorityData2 = new();
+        public PriorityData3 PriorityData3 = new();
+        
+        public int PlayersCount = 2;
     }
 }

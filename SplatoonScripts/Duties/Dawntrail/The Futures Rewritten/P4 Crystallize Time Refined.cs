@@ -274,16 +274,12 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        if(!Initialized && sourceId.GetObject() is IPlayerCharacter player)
+        if(IsActive && !Initialized && sourceId.GetObject() is IPlayerCharacter player)
         {
             var debuffs = player.StatusList.Where(x => AllDebuffIds.Contains(x.StatusId));
 
-            if(_players.All(x => x.Key != player.GameObjectId))
-                _players[player.GameObjectId] = new PlayerData
-                {
-                    PlayerName = player.Name.ToString()
-                };
-
+            _players.TryAdd(player.GameObjectId, new PlayerData { PlayerName = player.Name.ToString() });
+            
             foreach(var debuff in debuffs)
                 switch(debuff.StatusId)
                 {

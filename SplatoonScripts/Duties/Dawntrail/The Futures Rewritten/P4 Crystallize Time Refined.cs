@@ -12,11 +12,13 @@ using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
+using FFXIVClientStructs.FFXIV.Application.Network.WorkDefinitions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
@@ -406,11 +408,22 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
     public void Alert(string text)
     {
+        var playerOrder = GetPlayerOrder(BasePlayer);
         if(Controller.TryGetElementByName("Alert", out var element))
         {
             element.Enabled = true;
             element.overlayText = text;
+            element.refActorPlaceholder = [$"<{playerOrder}>"];
         }
+    }
+    
+    private int GetPlayerOrder(IGameObject c)
+    {
+        for (var i = 1; i <= 8; i++)
+            if ((nint)FakePronoun.Resolve($"<{i}>") == c.Address)
+                return i;
+
+        return 0;
     }
 
     public void HideAlert()
@@ -423,6 +436,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
     public override void OnUpdate()
     {
         ProcessAutoCast();
+        
         if(GetStage() == MechanicStage.Unknown)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
@@ -554,6 +568,28 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
                         }
                     }
                 }
+
+                if (C.UseSprintAuto && C.ShouldGoNorthRedBlizzard &&
+                    BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Red) &&
+                    BasePlayer.StatusList.Any(x => x is { StatusId: (uint)Debuff.Blizzard, RemainingTime: < 1f }))
+                {
+                    if (!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                    {
+                        if (ActionManager.Instance()->GetActionStatus(ActionType.Action, 29057) == 0 &&
+                            EzThrottler.Throttle(this.InternalData.FullName + "AutoCast", 100))
+                        {
+                            Chat.Instance.ExecuteAction(29057);
+                        }
+                    }
+                    else
+                    {
+                        if (EzThrottler.Throttle(this.InternalData.FullName + "InformCast", 100))
+                        {
+                            DuoLog.Information(
+                                $"Would use sprint action {ExcelActionHelper.GetActionName(29057)} if possible");
+                        }
+                    }
+                }
             }
         }
         catch(Exception e)
@@ -633,9 +669,12 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             }
         }
 
-        if(_players[Player.Object.GameObjectId].MoveType == MoveType.RedBlizzardEast ||
-            _players[Player.Object.GameObjectId].MoveType == MoveType.RedBlizzardWest)
-            Alert(C.HitDragonText.Get());
+        var myMove = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType;
+        if (myMove is MoveType.RedBlizzardEast or MoveType.RedBlizzardWest)
+        {
+            var remainingTime = BasePlayer.StatusList.FirstOrDefault(x => x.StatusId == (uint)Debuff.Blizzard)?.RemainingTime;
+            Alert(C.HitDragonText.Get() + (remainingTime != null ? $" ({remainingTime.Value:0.0}s)" : ""));
+        }
     }
 
     public void BurnHourglass()
@@ -743,8 +782,8 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             }
         }
 
-        if(_players[BasePlayer.GameObjectId].MoveType == MoveType.RedAeroEast ||
-            _players[BasePlayer.GameObjectId].MoveType == MoveType.RedAeroWest)
+        var myMove = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType;
+        if(myMove is MoveType.RedAeroEast or MoveType.RedAeroWest)
             Alert(C.HitDragonText.Get());
     }
 
@@ -1044,6 +1083,14 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             ImGui.Separator();
 
             ImGuiEx.EnumCombo("Hit Timing", ref C.HitTiming);
+            ImGui.Checkbox("Should Go North When Red Blizzard Hit to Dragon", ref C.ShouldGoNorthRedBlizzard);
+            ImGuiEx.HelpMarker("During Red Blizzard, if there is no one in the north, the navigation will appear in the north instead of the south.");
+            if (C.ShouldGoNorthRedBlizzard)
+            {
+                ImGui.Indent();
+                ImGui.Checkbox("Automatically use sprint action ~1 seconds", ref C.UseSprintAuto);
+                ImGui.Unindent();
+            }
 
             ImGui.Separator();
             ImGuiEx.Text("Sentence Moves");
@@ -1148,6 +1195,8 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             ImGui.Text("Place Return Text:");
             ImGui.SameLine();
             C.PlaceReturnText.ImGuiEdit(ref placeReturnText);
+            
+            ImGui.Unindent();
 
             ImGui.Separator();
             ImGui.Text("Bait Color:");
@@ -1348,7 +1397,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             {
                 if(isLateHourglassSameSide)
                 {
-                    if(stage <= MechanicStage.Step4_SecondHourglass)
+                    if(stage <= MechanicStage.Step4_SecondHourglass && !C.ShouldGoNorthRedBlizzard)
                     {
 
                         return MirrorX(new(119, 103), isPlayerWest);
@@ -1416,6 +1465,9 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
         public Direction WhenAttack2 = Direction.SouthEast;
         public Direction WhenAttack3 = Direction.SouthWest;
         public Direction WhenAttack4 = Direction.West;
+        
+        public bool ShouldGoNorthRedBlizzard = false;
+        public bool UseSprintAuto = false;
 
         public bool HighlightSplitPosition = false;
 

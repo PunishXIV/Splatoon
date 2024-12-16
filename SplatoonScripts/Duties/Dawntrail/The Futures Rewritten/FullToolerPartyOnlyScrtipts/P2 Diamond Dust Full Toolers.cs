@@ -124,7 +124,7 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "redmoon");
+    public override Metadata? Metadata => new(7, "redmoon");
     #endregion
 
     #region private properties
@@ -182,9 +182,9 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
     {
         if (castId == CircleCastId) _aoeType = AoeType.Circle;
         else if (castId == DonutCastId) _aoeType = AoeType.Donut;
-        else if (castId == 40198u && _firstIcicleImpactDirection == Direction.None)
+        else if (castId == 40198u && _firstIcicleImpactDirection == Direction.None && source.TryGetObject(out var obj))
         {
-            Direction direction = DividePoint(source.GetObject().Position);
+            Direction direction = DividePoint(obj.Position);
 
             // 北,北東, 東, 南東以外の方向は対角の方向に変換
             if (direction == Direction.NorthWest)
@@ -237,6 +237,12 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
 
             if (_partyDataList.Count == 0) return;
             else _state = State.CastedDD;
+        }
+        if (set.Action.Value.RowId == 40199)
+        {
+            _state = State.AOESet;
+            HideAllElements();
+            ShowKnockBack();
         }
         if (set.Action.Value.RowId == 40203)
         {
@@ -328,15 +334,7 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
             ShowAvoidKick();
             _state = State.DynamoChariotCasting;
         }
-        if (_state == State.DynamoChariotCasting)
-        {
-            var obj = Svc.Objects.First(x => x.DataId == 0x45A0);
-            if (Vector3.Distance(obj.Position, new(100, 0, 100)) > 9.8f)
-            {
-                ShowKnockBack();
-                _state = State.AOESet;
-            }
-        }
+
         if (_state == State.KnockbackEnded || _state == State.HitHoly || _state == State.HitHolyEnded)
         {
             var el = Controller.GetElementByName("Bait");
@@ -375,20 +373,12 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
             ImGui.Text($"PartyDataList: {_partyDataList.Count}");
             ImGui.Text($"DressUpId1: {_dressUpId1}");
             ImGui.Text($"DressUpId2: {_dressUpId2}");
-            var obj = Svc.Objects.First(x => x.DataId == 0x45A0);
-            ImGui.Text($"MOB: {obj.Name} {obj.Position} {obj.EntityId}");
-            if (Vector3.Distance(obj.Position, new(100, 0, 100)) > 9.8f)
-            {
-                ImGui.Text($"Direction1: {NearDividePoint(obj.Position)}");
-                ImGui.Text($"Direction2: {DividePoint(Svc.Objects.First(x => x.DataId == 0x459F).Position)}");
-                ImGui.Text($"MyDirection: {DividePoint(Player.Object.Position)}");
-            }
             List<ImGuiEx.EzTableEntry> Entries = [];
             foreach (var x in _partyDataList)
             {
                 Entries.Add(new ImGuiEx.EzTableEntry("Index", true, () => ImGui.Text(x.index.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("EntityId", true, () => ImGui.Text(x.EntityId.ToString())));
-                Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(x.EntityId.GetObject().Name.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(x.EntityId.TryGetObject(out var obj) ? obj.Name.ToString() : "-")));
                 Entries.Add(new ImGuiEx.EzTableEntry("Mine", true, () => ImGui.Text(x.Mine.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("HasAoe", true, () => ImGui.Text(x.HasAoe.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("AvoidDirection", true, () => ImGui.Text(x.AvoidDrection.ToString())));
@@ -487,37 +477,6 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
         PartyData mine = _partyDataList.Find(x => x.EntityId == Player.Object.EntityId);
         if (mine != null) mine.Mine = true;
     }
-
-    private IReadOnlyList<DirectionalVector> nearDirectionalVectors = new List<DirectionalVector>
-    {
-        new DirectionalVector(Direction.North, new Vector3(100, 0, 90)),
-        new DirectionalVector(Direction.NorthEast, new Vector3(107.08789f, 0, 92.91211f)),
-        new DirectionalVector(Direction.East, new Vector3(110, 0, 100)),
-        new DirectionalVector(Direction.SouthEast, new Vector3(107.08789f, 0, 107.04199f)),
-        new DirectionalVector(Direction.South, new Vector3(100f, 0, 110f)),
-        new DirectionalVector(Direction.SouthWest, new Vector3(92.91211f, 0, 107.04199f)),
-        new DirectionalVector(Direction.West, new Vector3(90f, 0, 100f)),
-        new DirectionalVector(Direction.NorthWest, new Vector3(107.04199f, 0, 92.91211f))
-    };
-
-    private Direction NearDividePoint(Vector3 Position)
-    {
-        // ８方向の内、最も近い方向ベクトルを取得
-        var closestDirection = Direction.North;
-        var closestDistance = float.MaxValue;
-        foreach (var directionalVector in directionalVectors)
-        {
-            var distance = Vector3.Distance(Position, directionalVector.Position);
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestDirection = directionalVector.Direction;
-            }
-        }
-
-        return closestDirection;
-    }
-
 
     private Direction DividePoint(Vector3 Position)
     {
@@ -665,7 +624,7 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
 
         if (_aoeType == AoeType.Circle)
         {
-            if (pc.HasAoe) ApplyElement("Bait", pc.AvoidDrection, 20f - 1.5f);
+            if (pc.HasAoe) ApplyElement("Bait", pc.AvoidDrection, 20f);
             else ApplyElement("Bait", pc.AvoidDrection, 20f - 3.5f);
 
         }
@@ -688,7 +647,7 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
     {
         var pc = _partyDataList.Find(x => x.Mine);
         if (pc == null) return;
-        if (pc.HasAoe) ApplyElement("Bait", pc.AvoidDrection, 8.4f, 0.5f);
+        if (pc.HasAoe) ApplyElement("Bait", pc.AvoidDrection, 16.0f, 0.5f);
         else ApplyElement("Bait", pc.AvoidDrection, 0.0f, 0.5f);
     }
 
@@ -696,109 +655,6 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
     {
         var pc = _partyDataList.Find(x => x.Mine);
         if (pc == null) return;
-
-        var obj = Svc.Objects.First(x => x.DataId == 0x45A0);
-
-        // ノックバック位置最終確定
-        float angle = GetTwoPointAngle(pc.KnockBackDirection, NearDividePoint(obj.Position));
-        DuoLog.Information($"Angle: {angle}");
-
-        // 135度の場合は、90度になるようにDirectionを変更
-        if (angle == 135)
-        {
-            pc.KnockBackDirection = pc.KnockBackDirection switch
-            {
-                Direction.North => Direction.NorthEast,
-                Direction.NorthEast => Direction.East,
-                Direction.East => Direction.SouthEast,
-                Direction.SouthEast => Direction.South,
-                Direction.South => Direction.SouthWest,
-                Direction.SouthWest => Direction.West,
-                Direction.West => Direction.NorthWest,
-                Direction.NorthWest => Direction.North,
-                _ => Direction.None
-            };
-        }
-        // 180度の場合は、135度になるようにDirectionを変更
-        else if (angle == 180)
-        {
-            pc.KnockBackDirection = pc.KnockBackDirection switch
-            {
-                Direction.North => Direction.NorthEast,
-                Direction.NorthEast => Direction.East,
-                Direction.SouthEast => Direction.South,
-                Direction.South => Direction.SouthWest,
-                Direction.SouthWest => Direction.West,
-                Direction.West => Direction.NorthWest,
-                Direction.NorthWest => Direction.North,
-                _ => Direction.None
-            };
-        }
-        // -135度の場合は、-90度になるようにDirectionを変更
-        else if (angle == -135)
-        {
-            pc.KnockBackDirection = pc.KnockBackDirection switch
-            {
-                Direction.North => Direction.NorthWest,
-                Direction.NorthWest => Direction.West,
-                Direction.West => Direction.SouthWest,
-                Direction.SouthWest => Direction.South,
-                Direction.South => Direction.SouthEast,
-                Direction.SouthEast => Direction.East,
-                Direction.East => Direction.NorthEast,
-                Direction.NorthEast => Direction.North,
-                _ => Direction.None
-            };
-        }
-        // 0度の場合は、-45度になるようにDirectionを変更
-        else if (angle == 0)
-        {
-            pc.KnockBackDirection = pc.KnockBackDirection switch
-            {
-                Direction.North => Direction.NorthWest,
-                Direction.NorthWest => Direction.West,
-                Direction.West => Direction.SouthWest,
-                Direction.SouthWest => Direction.South,
-                Direction.South => Direction.SouthEast,
-                Direction.SouthEast => Direction.East,
-                Direction.East => Direction.NorthEast,
-                Direction.NorthEast => Direction.North,
-                _ => Direction.None
-            };
-        }
-        // 45度の場合は、90度になるようにDirectionを変更
-        else if (angle == 45)
-        {
-            pc.KnockBackDirection = pc.KnockBackDirection switch
-            {
-                Direction.North => Direction.NorthWest,
-                Direction.NorthWest => Direction.West,
-                Direction.West => Direction.SouthWest,
-                Direction.SouthWest => Direction.South,
-                Direction.South => Direction.SouthEast,
-                Direction.SouthEast => Direction.East,
-                Direction.East => Direction.NorthEast,
-                Direction.NorthEast => Direction.North,
-                _ => Direction.None
-            };
-        }
-        // -45度の場合は、-90度になるようにDirectionを変更
-        else if (angle == -45)
-        {
-            pc.KnockBackDirection = pc.KnockBackDirection switch
-            {
-                Direction.North => Direction.NorthEast,
-                Direction.NorthEast => Direction.East,
-                Direction.East => Direction.SouthEast,
-                Direction.SouthEast => Direction.South,
-                Direction.South => Direction.SouthWest,
-                Direction.SouthWest => Direction.West,
-                Direction.West => Direction.NorthWest,
-                Direction.NorthWest => Direction.North,
-                _ => Direction.None
-            };
-        }
-
         ApplyElement("Bait", pc.KnockBackDirection, 3.5f, 0.5f);
     }
 
@@ -872,52 +728,14 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
     private void LockFace()
     {
         if (!C.LockFace) return;
-        var obj = Svc.Objects.First(x => x.DataId == 0x45A0);
-        Direction dressUp1drection = DividePoint(obj.Position);
-        Direction dressUp2drection = DividePoint(Svc.Objects.First(x => x.DataId == 0x459F).Position);
+        //var obj = Svc.Objects.First(x => x.DataId == 0x45A0);
+        //Direction dressUp1drection = DividePoint(obj.Position);
+        //Direction dressUp2drection = DividePoint(Svc.Objects.First(x => x.DataId == 0x459F).Position);
 
-        // 自身の方向を取得
-        var myDirection = DividePoint(Player.Object.Position);
+        Direction dressUpdrection = DividePoint(Svc.Objects.First(x => x.DataId == 0x459F).Position);
 
-        // ドレスアップの方向が自身の方向と同じ場合はそのまま
-        if (myDirection == dressUp1drection)
-        {
-            // もう１体がその方角から180度なら90度回転
-            if (GetTwoPointAngle(dressUp1drection, dressUp2drection) == 180)
-            {
-                myDirection = GetDirectionFromAngle(myDirection, 90);
-            }
-            // もう１体がその方角から45 ~ 135度なら-90度回転
-            else if (GetTwoPointAngle(dressUp1drection, dressUp2drection) >= 45 && GetTwoPointAngle(dressUp1drection, dressUp2drection) <= 135)
-            {
-                myDirection = GetDirectionFromAngle(myDirection, -90);
-            }
-            // もう１体がその方角から-45 ~ -135度なら90度回転
-            else if (GetTwoPointAngle(dressUp1drection, dressUp2drection) <= -45 && GetTwoPointAngle(dressUp1drection, dressUp2drection) >= -135)
-            {
-                myDirection = GetDirectionFromAngle(myDirection, 90);
-            }
-        }
-        else if (myDirection == dressUp2drection)
-        {
-            // もう１体がその方角から180度なら90度回転
-            if (GetTwoPointAngle(dressUp2drection, dressUp1drection) == 180)
-            {
-                myDirection = GetDirectionFromAngle(myDirection, 90);
-            }
-            // もう１体がその方角から45 ~ 135度なら-90度回転
-            else if (GetTwoPointAngle(dressUp2drection, dressUp1drection) >= 45 && GetTwoPointAngle(dressUp2drection, dressUp1drection) <= 135)
-            {
-                myDirection = GetDirectionFromAngle(myDirection, -90);
-            }
-            // もう１体がその方角から-45 ~ -135度なら90度回転
-            else if (GetTwoPointAngle(dressUp2drection, dressUp1drection) <= -45 && GetTwoPointAngle(dressUp2drection, dressUp1drection) >= -135)
-            {
-                myDirection = GetDirectionFromAngle(myDirection, 90);
-            }
-        }
         // 方向からrotationを取得
-        var rot = myDirection switch
+        var rot = GetOppositeDirection(dressUpdrection) switch
         {
             Direction.North => 0,
             Direction.NorthEast => 45,
@@ -1064,7 +882,7 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
         // 角度が0または180度の場合に、時計回りに45度回転
         if (angle == 0 || angle == 180 || angle == -180)
         {
-            return GetDirectionFromAngle(knockBackDirection, 45);
+            return Rotate45Clockwise(knockBackDirection);
         }
         return knockBackDirection;
     }
@@ -1083,7 +901,37 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
         }
     }
 
-    private Direction GetOppositeDirection(Direction direction) => GetDirectionFromAngle(direction, 180);
+    private Direction Rotate45Clockwise(Direction direction)
+    {
+        return direction switch
+        {
+            Direction.North => Direction.NorthEast,
+            Direction.NorthEast => Direction.East,
+            Direction.East => Direction.SouthEast,
+            Direction.SouthEast => Direction.South,
+            Direction.South => Direction.SouthWest,
+            Direction.SouthWest => Direction.West,
+            Direction.West => Direction.NorthWest,
+            Direction.NorthWest => Direction.North,
+            _ => Direction.None
+        };
+    }
+
+    private Direction GetOppositeDirection(Direction direction)
+    {
+        return direction switch
+        {
+            Direction.North => Direction.South,
+            Direction.NorthEast => Direction.SouthWest,
+            Direction.East => Direction.West,
+            Direction.SouthEast => Direction.NorthWest,
+            Direction.South => Direction.North,
+            Direction.SouthWest => Direction.NorthEast,
+            Direction.West => Direction.East,
+            Direction.NorthWest => Direction.SouthEast,
+            _ => Direction.None
+        };
+    }
 
     private void ApplyElement(string elementName, Direction direction, float radius, float elementRadius = 0.3f)
     {
@@ -1118,7 +966,7 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
     {
         if (Svc.Condition[ConditionFlag.DutyRecorderPlayback] && EzThrottler.Throttle("FaceTarget", 10000))
         {
-            if (false) PluginLog.Information($"FaceTarget {rotation}");
+            if (true) PluginLog.Information($"FaceTarget {rotation}");
             EzThrottler.Throttle("FaceTarget", 1000, true);
         }
 

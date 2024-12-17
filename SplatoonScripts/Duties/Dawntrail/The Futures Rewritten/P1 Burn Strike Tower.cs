@@ -4,7 +4,6 @@ using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
-using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
@@ -19,8 +18,6 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P1_Burn_Strike_Tower : SplatoonScript
 {
-    private readonly ImGuiEx.RealtimeDragDrop<Job> _dragDrop = new("DragDropJob", x => x.ToString());
-
     private readonly Dictionary<int, List<uint>> TowerCastIds = new()
     {
         { 1, [0x9CC7, 0x9CC3] },
@@ -35,7 +32,7 @@ public class P1_Burn_Strike_Tower : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
 
     private Config C => Controller.GetConfig<Config>();
@@ -89,9 +86,9 @@ public class P1_Burn_Strike_Tower : SplatoonScript
             new PopupWindow(() =>
             {
                 ImGuiEx.Text($"""
-                              Warning: Splatoon Script 
+                              Warning: Splatoon Script
                               {InternalData.Name}
-                              was updated. 
+                              was updated.
                               If you were using the fixed priority feature,
                               Please make sure to set the fixed roles again.
                               """);
@@ -139,114 +136,115 @@ public class P1_Burn_Strike_Tower : SplatoonScript
     {
         if (_state == State.Split) return;
         if (castId is 40135 or 40129) _state = State.Start;
-
-        if (TowerCastIds.Values.Any(x => x.Contains(castId)))
-            if (source.GetObject() is IBattleNpc npc)
+        if (!TowerCastIds.Values.Any(x => x.Contains(castId))) return;
+        if (source.GetObject() is IBattleNpc npc)
+            switch (npc.Position.Z)
             {
-                switch (npc.Position.Z)
+                case < 95:
+                    _currentTowers[0] = npc;
+                    break;
+                case < 105:
+                    _currentTowers[1] = npc;
+                    break;
+                default:
+                    _currentTowers[2] = npc;
+                    break;
+            }
+
+        if (_currentTowers.Any(x => x == null)) return;
+        _state = State.Split;
+        var list = C.PriorityData.GetFirstValidList();
+        var players = C.PriorityData.GetPlayers(x => true);
+        if (list is null || players is null)
+        {
+            DuoLog.Warning("[P1 Burn Strike Tower] Priority list is not setup");
+            return;
+        }
+
+
+        if (C.FixEnabled)
+        {
+            List<string> nonFixed;
+            if (list.IsRole)
+            {
+                var roleList = list.List
+                    .Select(x =>
+                        x.IsInParty(list.IsRole, out var upm) ? (upm.Name, x.Role) : ("", RolePosition.Not_Selected))
+                    .ToDictionary(x => x.Item1, x => x.Item2);
+                var myRole = roleList[Player.Name];
+                if (C.FirstFixRole == myRole)
+                    _myTower = _currentTowers[0];
+                else if (C.SecondFixRole == myRole)
+                    _myTower = _currentTowers[1];
+                else if (C.ThirdFixRole == myRole)
+                    _myTower = _currentTowers[2];
+                nonFixed = roleList
+                    .Where(x => x.Value != C.FirstFixRole && x.Value != C.SecondFixRole &&
+                                x.Value != C.ThirdFixRole).Select(x => x.Key).ToList();
+            }
+            else
+            {
+                var myIndex = C.PriorityData.GetOwnIndex(x => true);
+                if (myIndex == C.FirstFixIndex)
+                    _myTower = _currentTowers[0];
+                else if (myIndex == C.SecondFixIndex)
+                    _myTower = _currentTowers[1];
+                else if (myIndex == C.ThirdFixIndex)
+                    _myTower = _currentTowers[2];
+
+                nonFixed = players
+                    .Where((_, i) => i != C.FirstFixIndex && i != C.SecondFixIndex && i != C.ThirdFixIndex)
+                    .Select(x => x.Name).ToList();
+            }
+
+            foreach (var tower in _currentTowers)
+            {
+                if (tower is null)
                 {
-                    case < 95:
-                        _currentTowers[0] = npc;
-                        break;
-                    case < 105:
-                        _currentTowers[1] = npc;
-                        break;
-                    default:
-                        _currentTowers[2] = npc;
-                        break;
+                    DuoLog.Warning("[P1 Burn Strike Tower] Tower is null");
+                    continue;
                 }
 
-                if (_currentTowers.Any(x => x == null)) return;
-                _state = State.Split;
-                var list = C.PriorityData.GetFirstValidList();
-                if (list is null)
+                var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
+                var remaining = towerCount - 1;
+
+                if (remaining == 0) continue;
+
+                for (var i = 0; i < remaining; i++)
                 {
-                    DuoLog.Warning("[P1 Burn Strike Tower] Priority list is not 6");
-                    return;
-                }
-
-                if (C.FixEnabled)
-                {
-                    List<string> nonFixed;
-                    if (list.IsRole)
-                    {
-                        var myRole = list.List.First(x => x.IsInParty(true, out var upm) && upm.Name == Player.Name)
-                            .Role;
-                        if (C.FirstFixRole == myRole)
-                            _myTower = _currentTowers[0];
-                        else if (C.SecondFixRole == myRole)
-                            _myTower = _currentTowers[1];
-                        else if (C.ThirdFixRole == myRole)
-                            _myTower = _currentTowers[2];
-                        nonFixed = list.List.Where(x =>
-                                x.Role != C.FirstFixRole && x.Role != C.SecondFixRole && x.Role != C.ThirdFixRole)
-                            .Select(x => x.Name.Split("@").First()).ToList();
-                    }
-                    else
-                    {
-                        var myIndex = C.PriorityData.GetOwnIndex(x => true);
-                        if (myIndex == C.FirstFixIndex)
-                            _myTower = _currentTowers[0];
-                        else if (myIndex == C.SecondFixIndex)
-                            _myTower = _currentTowers[1];
-                        else if (myIndex == C.ThirdFixIndex)
-                            _myTower = _currentTowers[2];
-
-                        nonFixed = list.List.Where(x =>
-                            x.Name != list.List[C.FirstFixIndex].Name &&
-                            x.Name != list.List[C.SecondFixIndex].Name &&
-                            x.Name != list.List[C.ThirdFixIndex].Name).Select(x => x.Name.Split("@").First()).ToList();
-                    }
-
-                    foreach (var tower in _currentTowers)
-                    {
-                        if (tower is null)
-                        {
-                            DuoLog.Warning("[P1 Burn Strike Tower] Tower is null");
-                            continue;
-                        }
-
-                        var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
-                        var remaining = towerCount - 1;
-
-                        if (remaining == 0) continue;
-
-                        for (var i = 0; i < remaining; i++)
-                        {
-                            if (nonFixed.First() == Player.Name)
-                                _myTower = tower;
-                            nonFixed.RemoveAt(0);
-                        }
-                    }
-                }
-
-                else
-                {
-                    var index = 0;
-                    foreach (var tower in _currentTowers)
-                    {
-                        if (tower is null)
-                        {
-                            DuoLog.Warning("[P1 Burn Strike Tower] Tower is null");
-                            continue;
-                        }
-
-                        var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
-                        var lastIndex = index;
-                        index += towerCount;
-
-                        for (var i = lastIndex; i < index; i++)
-                            if (list?.List[i].Name == Player.Name)
-                                _myTower = tower;
-                    }
-                }
-
-                if (Controller.TryGetElementByName("Bait", out var bait))
-                {
-                    bait.Enabled = true;
-                    bait.SetOffPosition(_myTower.Position);
+                    if (nonFixed.First() == Player.Name)
+                        _myTower = tower;
+                    nonFixed.RemoveAt(0);
                 }
             }
+        }
+
+        else
+        {
+            var index = 0;
+            foreach (var tower in _currentTowers)
+            {
+                if (tower is null)
+                {
+                    DuoLog.Warning("[P1 Burn Strike Tower] Tower is null");
+                    continue;
+                }
+
+                var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
+                var lastIndex = index;
+                index += towerCount;
+
+                for (var i = lastIndex; i < index; i++)
+                    if (players[i].Name == Player.Name)
+                        _myTower = tower;
+            }
+        }
+
+        if (Controller.TryGetElementByName("Bait", out var bait))
+        {
+            bait.Enabled = true;
+            bait.SetOffPosition(_myTower.Position);
+        }
     }
 
     private enum State

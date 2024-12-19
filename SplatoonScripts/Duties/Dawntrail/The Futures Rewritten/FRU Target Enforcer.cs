@@ -21,7 +21,7 @@ public class FRU_Target_Enforcer : SplatoonScript
 {
 
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
     Config C => Controller.GetConfig<Config>();
 
     public static class Enemies
@@ -48,6 +48,7 @@ public class FRU_Target_Enforcer : SplatoonScript
     {
         if(!Controller.InCombat) return;
         if(Controller.CombatSeconds < C.CombatTreshold) return;
+        if(C.NoSwitchOffTarget && Svc.Targets.Target != null) return;
         if(Player.Object.IsDead || Player.Object.CurrentHp == 0)
         {
             EzThrottler.Throttle($"{this.InternalData.FullName}_SetTarget", 10000, true);
@@ -126,6 +127,7 @@ public class FRU_Target_Enforcer : SplatoonScript
         ImGui.InputFloat($"Limit distance", ref C.MaxDistance);
         ImGui.Unindent();
         ImGui.Checkbox("Do not switch off players", ref C.KeepPlayers);
+        ImGui.Checkbox("Do not select target when player already has target", ref C.NoSwitchOffTarget);
         ImGui.Separator();
         var t = GetTargetToSet();
         ImGuiEx.Text($"Current suggested target: {t} at {t?.Position} ({t?.IsTarget()})");
@@ -141,6 +143,7 @@ public class FRU_Target_Enforcer : SplatoonScript
         public bool DisableWhenMemberDead = true;
         public bool EnableOracle = true;
         public bool KeepPlayers = false;
+        public bool NoSwitchOffTarget = false;
     }
 
     public enum CrystalDirection { Disabled, North, West, South, East };

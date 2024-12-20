@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -37,7 +38,7 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public enum FirstBaitType
     {
-        GoToSecondOrFirstTower,
+        GoToSecondOrThirdTower,
         GoToOppositeFirstTower
     }
 
@@ -87,7 +88,7 @@ public class P5_Paradise_Regained : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -128,7 +129,7 @@ public class P5_Paradise_Regained : SplatoonScript
             overlayVOffset = 3f,
             overlayText = "<< Next >>"
         });
-        
+
         Controller.TryRegisterElement("TankAOE", new Element(0)
         {
             radius = 5f,
@@ -201,12 +202,12 @@ public class P5_Paradise_Regained : SplatoonScript
     {
         if (Controller.TryGetElementByName("PredictTower", out var predictTower)) predictTower.Enabled = false;
     }
-    
+
     public void SetAoe(Vector3 position)
     {
         SetElementPosition("TankAOE", position);
     }
-    
+
     public void HideAoe()
     {
         if (Controller.TryGetElementByName("TankAOE", out var aoe)) aoe.Enabled = false;
@@ -222,75 +223,70 @@ public class P5_Paradise_Regained : SplatoonScript
 
         Controller.GetRegisteredElements().Where(x => x.Key is "Bait" or "Tower").Each(e =>
             e.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
-        
-        
+
+
         if (_state == State.FirstTower)
         {
             if (C.ShowAOE)
             {
                 Vector3 aoePosition;
                 if (_firstAttack == AttackType.Light)
-                {
                     aoePosition = FakeParty.Get().Select(x => x.Position)
                         .MaxBy(x => Vector3.Distance(x, new Vector3(100, 0, 100)));
-                }
                 else
-                {
                     aoePosition = FakeParty.Get().Select(x => x.Position)
                         .MinBy(x => Vector3.Distance(x, new Vector3(100, 0, 100)));
-                }
 
                 SetAoe(aoePosition);
             }
 
             var firstTower = _towers[0];
             if (C.MoveType == MoveType.FirstBait)
-            {
                 switch (C.FirstBaitType)
                 {
-                    case FirstBaitType.GoToSecondOrFirstTower:
+                    case FirstBaitType.GoToSecondOrThirdTower:
                     {
-                        var tankDirection = (int)firstTower.Direction + (_firstAttack == AttackType.Light ? -120 : 120);
+                        var tankDirection = firstTower.RealAngle + (_firstAttack == AttackType.Light ? -120 : 120);
                         if (tankDirection >= 360) tankDirection -= 360;
                         if (tankDirection < 0) tankDirection += 360;
                         var position = new Vector3(100, 0, 92f);
                         _firstBaitPosition =
                             MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
                                 position);
+                        SetBaitPosition(_firstBaitPosition);
 
-                        tankDirection = (int)ReverseDirection(firstTower.Direction);
+                        tankDirection = firstTower.OppositeRealAngle;
                         position = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 2f : 14f));
                         _secondBaitPosition =
                             MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
                                 position);
+                        SetPredictBaitPosition(_secondBaitPosition);
                         break;
                     }
                     case FirstBaitType.GoToOppositeFirstTower:
                     {
-                        var tankDirection = ReverseDirection(firstTower.Direction);
+                        var tankDirection = firstTower.OppositeRealAngle;
                         var position = new Vector3(100, 0, 92f);
                         _firstBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), ((int)tankDirection).DegreesToRadians(),
+                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
                                 position);
                         SetBaitPosition(_firstBaitPosition);
 
                         position = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 2f : 14f));
                         _secondBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), ((int)tankDirection).DegreesToRadians(),
+                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
                                 position);
                         SetPredictBaitPosition(_secondBaitPosition);
                         break;
                     }
                 }
-            }
 
             if (C.MoveType == MoveType.SecondBait)
-            {
                 switch (C.SecondBaitType)
                 {
                     case SecondBaitType.GoToFirstTower:
                     {
-                        var tankDirection = (int)firstTower.Direction;
+                        var tankDirection = firstTower.RealAngle;
 
                         var position = new Vector3(100, 0, 100f - (_firstAttack == AttackType.Light ? 14f : 2f));
                         _firstBaitPosition =
@@ -298,7 +294,7 @@ public class P5_Paradise_Regained : SplatoonScript
                                 position);
                         SetBaitPosition(_firstBaitPosition);
 
-                        tankDirection = (int)firstTower.Direction + (_firstAttack == AttackType.Light ? -60 : 60);
+                        tankDirection += _firstAttack == AttackType.Light ? -60 : 60;
                         position = new Vector3(100, 0, 92f);
                         _secondBaitPosition =
                             MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
@@ -308,13 +304,14 @@ public class P5_Paradise_Regained : SplatoonScript
                     }
                     case SecondBaitType.GoToSafe:
                     {
-                        var tankDirection = (int)firstTower.Direction + (_firstAttack == AttackType.Light ? -60 : 60);
+                        var tankDirection = firstTower.RealAngle + (_firstAttack == AttackType.Light ? -60 : 60);
                         if (tankDirection >= 360) tankDirection -= 360;
                         if (tankDirection < 0) tankDirection += 360;
 
                         var radius = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 14f : 2f));
                         _firstBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(), radius);
+                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                radius);
                         SetBaitPosition(_firstBaitPosition);
 
                         var position = new Vector3(100, 0, 92f);
@@ -324,7 +321,6 @@ public class P5_Paradise_Regained : SplatoonScript
                         break;
                     }
                 }
-            }
 
             if (C.MoveType == MoveType.Tower)
                 switch (C.TowerType)
@@ -407,19 +403,15 @@ public class P5_Paradise_Regained : SplatoonScript
             {
                 Vector3 aoePosition;
                 if (_firstAttack == AttackType.Light)
-                {
                     aoePosition = FakeParty.Get().Select(x => x.Position)
                         .MinBy(x => Vector3.Distance(x, new Vector3(100, 0, 100)));
-                }
                 else
-                {
                     aoePosition = FakeParty.Get().Select(x => x.Position)
                         .MaxBy(x => Vector3.Distance(x, new Vector3(100, 0, 100)));
-                }
 
                 SetAoe(aoePosition);
             }
-            
+
             if (C.MoveType == MoveType.FirstBait)
             {
                 SetBaitPosition(_secondBaitPosition);
@@ -514,54 +506,40 @@ public class P5_Paradise_Regained : SplatoonScript
                 HideTower();
                 HidePredictTower();
 
-                switch (C.TowerType)
+                if (C.TowerType == TowerType.Third)
                 {
-                    case TowerType.Third:
-                        SetTowerPosition(_towers[2].Position.ToVector3(0));
-                        break;
-                    case TowerType.Left:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower)) ShowTowerIfThird(tower);
-
-                        break;
-                    }
-                    case TowerType.Right:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
-                            ShowTowerIfThird(tower);
-
-                        break;
-                    }
-                    case TowerType.LeftWhenSecondCleave:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
-                            ShowTowerIfThird(tower);
-
-                        break;
-                    }
-                    case TowerType.RightWhenSecondCleave:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
-                            ShowTowerIfThird(tower);
-
-                        break;
-                    }
-                    case TowerType.FirstSafe:
-                    {
-                        var isLeft = _firstAttack == AttackType.Dark;
-                        if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
-                            ShowTowerIfThird(tower);
-
-                        break;
-                    }
-                    case TowerType.SecondSafe:
-                    {
-                        var isLeft = _firstAttack == AttackType.Light;
-                        if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
-                            ShowTowerIfThird(tower);
-
-                        break;
-                    }
+                    SetTowerPosition(_towers[2].Position.ToVector3(0));
+                }
+                else if (C.TowerType == TowerType.Left)
+                {
+                    if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower)) ShowTowerIfThird(tower);
+                }
+                else if (C.TowerType == TowerType.Right)
+                {
+                    if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                        ShowTowerIfThird(tower);
+                }
+                else if (C.TowerType == TowerType.LeftWhenSecondCleave)
+                {
+                    if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
+                        ShowTowerIfThird(tower);
+                }
+                else if (C.TowerType == TowerType.RightWhenSecondCleave)
+                {
+                    if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                        ShowTowerIfThird(tower);
+                }
+                else if (C.TowerType == TowerType.FirstSafe)
+                {
+                    var isLeft = _firstAttack == AttackType.Dark;
+                    if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                        ShowTowerIfThird(tower);
+                }
+                else if (C.TowerType == TowerType.SecondSafe)
+                {
+                    var isLeft = _firstAttack == AttackType.Light;
+                    if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                        ShowTowerIfThird(tower);
                 }
             }
         }
@@ -644,7 +622,6 @@ public class P5_Paradise_Regained : SplatoonScript
         if (set.Action is null) return;
 
         if (set.Action.Value.RowId == 40320)
-        {
             _state = _state switch
             {
                 State.FirstTower => State.SecondTower,
@@ -652,7 +629,6 @@ public class P5_Paradise_Regained : SplatoonScript
                 State.ThirdTower => State.End,
                 _ => _state
             };
-        }
     }
 
     public override void OnSettingsDraw()
@@ -687,7 +663,7 @@ public class P5_Paradise_Regained : SplatoonScript
             for (var i = 0; i < _towers.Count; i++)
             {
                 var tower = _towers[i];
-                ImGui.Text($"Tower {i + 1}: {tower.Position} {tower.Direction} {tower.IsLeft}");
+                ImGui.Text($"Tower {i + 1}: {tower.Position} {tower.Direction} {tower.RealAngle} {tower.IsLeft}");
             }
 
             ImGui.Text($"Angle Difference: {_towers[0].AngleDifference(_towers[1])}");
@@ -710,6 +686,32 @@ public class P5_Paradise_Regained : SplatoonScript
             }
         }
 
+        public int RealAngle
+        {
+            get
+            {
+                var center = new Vector2(100, 100);
+                var angle = Math.Atan2(Position.Y - center.Y, Position.X - center.X) * 180 / Math.PI;
+                angle += 90;
+                if (angle < 0) angle += 360;
+                angle %= 360;
+                return (int)angle;
+            }
+        }
+
+        public int OppositeRealAngle
+        {
+            get
+            {
+                var center = new Vector2(100, 100);
+                var angle = Math.Atan2(center.Y - Position.Y, center.X - Position.X) * 180 / Math.PI;
+                angle += 90;
+                if (angle < 0) angle += 360;
+                angle %= 360;
+                return (int)angle;
+            }
+        }
+
         public float AngleDifference(TowerData other)
         {
             var angle = NormalizeAngle;
@@ -729,8 +731,8 @@ public class P5_Paradise_Regained : SplatoonScript
 
         public Vector4 PredictColor = EColor.RedBright;
         public SecondBaitType SecondBaitType = SecondBaitType.GoToSafe;
+        public bool ShowAOE = true;
         public bool ShowPredict = true;
-        public TowerType TowerType = TowerType.First; 
-        public bool ShowAOE = true; 
+        public TowerType TowerType = TowerType.First;
     }
 }

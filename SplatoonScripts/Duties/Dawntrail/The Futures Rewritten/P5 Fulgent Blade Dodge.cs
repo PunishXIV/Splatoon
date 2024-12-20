@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿Doesn't works yet!
+/*using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
@@ -125,3 +126,4 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
         }
     }
 }
+*/

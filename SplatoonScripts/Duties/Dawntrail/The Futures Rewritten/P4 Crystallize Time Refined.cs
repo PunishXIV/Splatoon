@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Security.Cryptography;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -85,7 +86,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
     private bool IsActive => Svc.Objects.Any(x => x.DataId == 17837) && !BasePlayer.IsDead;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(6, "Garume, NightmareXIV");
+    public override Metadata? Metadata => new(7, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -255,7 +256,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             {
                 var random = 0;
                 if (C.ShouldUseRandomWait)
-                    random = new Random().Next((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
+                    random = RandomNumberGenerator.GetInt32((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
                 Controller.Schedule(() => { Chat.Instance.ExecuteCommand(C.CommandWhenBlueDebuff); }, random);
             }
 
@@ -313,6 +314,8 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
         Controller.RegisterElementFromCode("SplitPosition",
             "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("KBHelper", "{\"Name\":\"\",\"type\":2,\"Enabled\":false,\"radius\":0.0,\"color\":3356425984,\"Filled\":false,\"fillIntensity\":0.345,\"thicc\":4.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     private void Alert(string text)

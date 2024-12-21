@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Security.Cryptography;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
@@ -74,7 +75,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(8, "Garume");
+    public override Metadata? Metadata => new(9, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -168,7 +169,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
                     var myKindFire = GetKindFire(Player.Status);
                     var random = 0;
                     if (C.ShouldUseRandomWait)
-                        random = new Random().Next((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
+                        random = RandomNumberGenerator.GetInt32((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
                     Controller.Schedule(() =>
                     {
                         switch (myKindFire)

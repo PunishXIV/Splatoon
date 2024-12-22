@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
@@ -24,18 +26,6 @@ public class P4_Darklit : SplatoonScript
         NorthEastAndSouthEast
     }
 
-    private enum Direction
-    {
-        North = 0,
-        NorthEast = 45,
-        East = 90,
-        SouthEast = 135,
-        South = 180,
-        SouthWest = 225,
-        West = 270,
-        NorthWest = 315
-    }
-
     public enum HourglassSwapType
     {
         NorthWestAndSouthEast,
@@ -50,30 +40,8 @@ public class P4_Darklit : SplatoonScript
         Horizontal
     }
 
-    private enum MoveType
-    {
-        Straight,
-        Hourglass,
-        Box
-    }
+    private const uint WaterId = 0x99D;
 
-    private enum Role
-    {
-        Dps,
-        TankAndHealer
-    }
-
-    private enum State
-    {
-        None,
-        Start,
-        Tower,
-        Split,
-        Stack,
-        End
-    }
-
-    // 40228 : East
     private uint[] _holyWingIds = [40227, 40228];
 
     private MoveType? _moveType;
@@ -81,11 +49,12 @@ public class P4_Darklit : SplatoonScript
     private Dictionary<ulong, PlayerData> _players = new();
 
     private State _state = State.None;
-
-    private const uint WaterId = 0x99D;
     public override HashSet<uint>? ValidTerritories => [1238];
     public override Metadata? Metadata => new(3, "Garume");
     private Config C => Controller.GetConfig<Config>();
+
+    private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)
+        .FirstOrDefault(o => o.DataId == 0x45AB) as IBattleChara;
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -95,10 +64,14 @@ public class P4_Darklit : SplatoonScript
             var x = castId == _holyWingIds[0] ? 106.5f : 93.5f;
 
             if (Controller.TryGetElementByName("StackBaitNorth", out var northElement)) northElement.refX = x;
-
             if (Controller.TryGetElementByName("StackBaitSouth", out var southElement)) southElement.refX = x;
-
             if (Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = false;
+            x = castId == _holyWingIds[0] ? 118f : 82f;
+            if (Controller.TryGetElementByName("TankBait", out var tankBaitElement))
+            {
+                tankBaitElement.refX = x;
+                tankBaitElement.refY = 100f;
+            }
         }
     }
 
@@ -167,11 +140,18 @@ public class P4_Darklit : SplatoonScript
             thicc = 6f,
             refY = 113f
         });
+
+        Controller.RegisterElement("TankBait", new Element(0)
+        {
+            radius = 1f,
+            thicc = 6f
+        });
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action != null && _state == State.Tower && set.Action.Value.RowId == 40190)
+        if (set.Action is not { } action) return;
+        if (_state == State.Tower && action.RowId == 40190)
         {
             foreach (var direction in Enum.GetValues<Direction>())
                 if (Controller.TryGetElementByName(direction.ToString(), out var element))
@@ -180,14 +160,17 @@ public class P4_Darklit : SplatoonScript
             _state = State.Split;
         }
 
-        if (set.Action != null && _state == State.Split && set.Action.Value.RowId == 40289)
+        if (_state == State.Split && action.RowId == 40289)
         {
             if (Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = false;
             if (Controller.TryGetElementByName("Stack", out var stackElement)) stackElement.Enabled = true;
             _state = State.Stack;
         }
 
-        if (set.Action != null && _state == State.Stack && _holyWingIds.Contains(set.Action.Value.RowId)) _state = State.End;
+        if (_state == State.Stack && _holyWingIds.Contains(action.RowId)) _state = State.FirstBait;
+
+        if (_state == State.FirstBait && action.RowId == 40284) _state = State.SecondBait;
+        if (_state == State.SecondBait && action.RowId == 40285) _state = State.End;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
@@ -440,6 +423,28 @@ public class P4_Darklit : SplatoonScript
                 northElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
             }
         }
+        else if (_state is State.FirstBait)
+        {
+            if (Controller.TryGetElementByName("TankBait", out var tankBaitElement))
+            {
+                tankBaitElement.Enabled = C.ShowTank1stBait;
+                tankBaitElement.tether = true;
+                tankBaitElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+            }
+        }
+
+        else if (_state is State.SecondBait)
+        {
+            var dirkGirl = DarkGirl;
+            if (Controller.TryGetElementByName("TankBait", out var tankBaitElement) && dirkGirl != null)
+            {
+                tankBaitElement.Enabled = C.ShowTank2ndBait;
+                tankBaitElement.tether = true;
+                tankBaitElement.refX = dirkGirl.Position.X;
+                tankBaitElement.refY = dirkGirl.Position.Z;
+                tankBaitElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+            }
+        }
     }
 
 
@@ -464,6 +469,12 @@ public class P4_Darklit : SplatoonScript
             ImGuiEx.EnumCombo("Box Swap Type", ref C.BoxSwapType);
             ImGuiEx.EnumCombo("Hourglass Swap Type", ref C.HourglassSwapType);
             ImGui.Checkbox("Show Other", ref C.ShowOther);
+            ImGui.Separator();
+            ImGui.Text("Tank Settings");
+            ImGui.Indent();
+            ImGui.Checkbox("Show Tank 1st Bait Guide", ref C.ShowTank1stBait);
+            ImGui.Checkbox("Show Tank 2nd Bait Guide", ref C.ShowTank2ndBait);
+            ImGui.Unindent();
         }
 
         if (ImGuiEx.CollapsingHeader("Debug"))
@@ -483,6 +494,43 @@ public class P4_Darklit : SplatoonScript
                 new("Has Water", () => ImGuiEx.Text(x.Value.HasWater.ToString()))
             }));
         }
+    }
+
+    private enum Direction
+    {
+        North = 0,
+        NorthEast = 45,
+        East = 90,
+        SouthEast = 135,
+        South = 180,
+        SouthWest = 225,
+        West = 270,
+        NorthWest = 315
+    }
+
+    private enum MoveType
+    {
+        Straight,
+        Hourglass,
+        Box
+    }
+
+    private enum Role
+    {
+        Dps,
+        TankAndHealer
+    }
+
+    private enum State
+    {
+        None,
+        Start,
+        Tower,
+        Split,
+        Stack,
+        FirstBait,
+        SecondBait,
+        End
     }
 
     private record PlayerData
@@ -507,5 +555,7 @@ public class P4_Darklit : SplatoonScript
         public Mode Mode = Mode.Vertical;
         public PriorityData PriorityData = new();
         public bool ShowOther = true;
+        public bool ShowTank1stBait;
+        public bool ShowTank2ndBait;
     }
 }

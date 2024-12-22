@@ -50,7 +50,7 @@ public class P4_Darklit : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
     private Config C => Controller.GetConfig<Config>();
 
     private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)

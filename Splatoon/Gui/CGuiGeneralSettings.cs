@@ -1,6 +1,7 @@
 ﻿using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using ECommons.LanguageHelpers;
+using NightmareUI.PrimaryUI;
 using Splatoon.Modules;
 using Splatoon.Serializables;
 using Splatoon.Utility;
@@ -127,5 +128,41 @@ partial class CGui
             Utils.ProcessStart(Splatoon.DiscordURL);
         }
         ImGui.Checkbox("Disable stream notice (effective only after restart)".Loc(), ref P.Config.NoStreamWarning);
+
+        new NuiBuilder().Section("Script auto-reloading (for developers)", collapsible: true)
+        .TextWrapped("Add pathes to folders that contain scripts that you are editing. Do NOT add Splatoon's own configuration folder here.")
+        .Widget(() =>
+        {
+            for(int i = 0; i < P.Config.FileWatcherPathes.Count; i++)
+            {
+                var index = i;
+                var f = P.Config.FileWatcherPathes[i];
+                ImGuiEx.InputWithRightButtonsArea(() =>
+                {
+                    if(ImGui.InputTextWithHint("##path to folder", "Path to folder...", ref f, 2000))
+                    {
+                        P.Config.FileWatcherPathes[index] = f;
+                    }
+                }, () =>
+                {
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
+                    {
+                        new TickScheduler(() => P.Config.FileWatcherPathes.RemoveAt(index));
+                    }
+                });
+            }
+            ImGuiEx.LineCentered(() =>
+            {
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add New"))
+                {
+                    P.Config.FileWatcherPathes.Add("");
+                }
+                ImGui.SameLine();
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Apply settings"))
+                {
+                    S.ScriptFileWatcher.StartWatching();
+                }
+            });
+        }).Draw();
     }
 }

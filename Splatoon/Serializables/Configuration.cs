@@ -85,6 +85,7 @@ internal class Configuration : IEzConfig
     public List<uint> NoPrioPopupTerritories = [];
     public List<RolePlayerAssignment> RolePlayerAssignments = [];
     public bool PrioUnifyDps = false;
+    public List<string> FileWatcherPathes = [];
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

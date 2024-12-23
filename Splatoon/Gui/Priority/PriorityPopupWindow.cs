@@ -1,4 +1,5 @@
-﻿using Dalamud.Interface.Colors;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
 using ECommons.ChatMethods;
 using ECommons.ExcelServices;
@@ -152,6 +153,7 @@ public class PriorityPopupWindow : Window
         });
     }
 
+
     int GetOrderedRoleIndex(Job job)
     {
         if(Svc.Data.GetExcelSheet<ClassJob>().TryGetRow((uint)job, out var data))
@@ -166,7 +168,7 @@ public class PriorityPopupWindow : Window
 
     public bool ShouldAutoOpen()
     {
-        return ScriptingProcessor.Scripts.Any(x => !x.IsDisabledByUser && x.ValidTerritories?.Contains(this.TerritoryType) == true && !P.Config.NoPrioPopupTerritories.Contains(this.TerritoryType));
+        return ScriptingProcessor.Scripts.Any(x => !x.IsDisabledByUser && x.InternalData.ContainsPriorityLists() && x.ValidTerritories?.Contains(this.TerritoryType) == true && !P.Config.NoPrioPopupTerritories.Contains(this.TerritoryType)) && !Svc.Condition[ConditionFlag.DutyRecorderPlayback];
     }
 
     public void Open(bool force)

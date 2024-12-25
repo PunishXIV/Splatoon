@@ -7,7 +7,7 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 
 ## [Beta] Script
 
-[Mami Darklit (EU)](https://raidplan.io/plan/scWeh81_SDmJyOsn)
+- [Mami Darklit (EU):](https://raidplan.io/plan/scWeh81_SDmJyOsn)
 ```
 Prio: H1 H2 MT ST R1 R2 M1 M2
 Mode: Vertical
@@ -15,7 +15,7 @@ Box swap type: northeast and southeast
 Hourglass swap type: clockwise
 ```
 
-[NAUR Darklit](https://docs.google.com/presentation/d/1kFM5ggrIj86Mc2EcYS5RfFgF_pawSRk7-vryQmQb2Is/edit#slide=id.g31adfe2f526_0_115)
+- [NAUR Darklit:](https://docs.google.com/presentation/d/1kFM5ggrIj86Mc2EcYS5RfFgF_pawSRk7-vryQmQb2Is/edit#slide=id.g31adfe2f526_0_115)
 ```
 Prio: H1 H2 T1 T2 R1 R2 M1 M2
 Mode: Horizontal
@@ -23,7 +23,7 @@ Box swap type: northeast and southeast
 Hourglass swap type: northeast and southwest
 ```
 
-[Kanatan (not verified)](http://kanatan.info/archives/38608367.html)
+- [Kanatan (not verified)](http://kanatan.info/archives/38608367.html)
 ```
 Prio: T1 T2 H1 H2 M1 M2 R1 R2
 Mode: Vertical
@@ -43,7 +43,17 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 # Crystallize Time
 
 ## [Beta] Script
-!!! Guide pending !!!
+Configuration guide:
+- Priority list: determines Red debuff position. Higher player will go West, lower player will go East.
+- Hit timing: determines when to highlight dragonhead for Red Wind players. "Late" option is not thoroughly tested.
+- Should go North when Red Blizzard to Dragon: if selected, solo Ice Red player will go directly to North after popping dragon head instead of returning back momentarily to dodge hourglass. This is rather dangerous move.
+- Sentence Moves:
+- - Prioritize Marker: enables automarker strat. Allows you to configure command that you will execute upon getting debuff as well as allows you to configure where you will cleanse based on your marker. 
+- - West, East, Southwest, Southeast sentences: determine where you go based on your initial debuff.
+- Highlight static Spirit Taker position: if your position is set to be static, highlights it. (Beta)
+- Place return moves:
+- - Knockback immunity return positions: will highlight from middle a bit north or south. Assumes you will use KB immunity and mitigations.
+- - [Nukemaru return positions](https://x.com/PoneKoni/status/1866137320883409367)
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P4%20Crystallize%20Time.cs
 ```

@@ -28,6 +28,7 @@ internal static partial class ScriptingProcessor
     internal static ImmutableList<BlacklistData> Blacklist = ImmutableList<BlacklistData>.Empty;
     internal static volatile bool UpdateCompleted = false;
     internal static List<string> ForceUpdate = [];
+    internal static volatile bool OpenedUpdateNotifyWindow = false;
 
     internal static string ExtractNamespaceFromCode(string code)
     {
@@ -154,11 +155,6 @@ internal static partial class ScriptingProcessor
                     PluginLog.Information($"Downloading script from {x}");
                     BlockingDownloadScript(x);
                 }
-
-                if(P.ScriptUpdateWindow.FailedScripts.Count > 0 || P.ScriptUpdateWindow.UpdatedScripts.Count > 0)
-                {
-                    P.ScriptUpdateWindow.Open();
-                }
             }
             catch(Exception e)
             {
@@ -207,6 +203,7 @@ internal static partial class ScriptingProcessor
     internal static void ReloadAll()
     {
         P.ScriptUpdateWindow.Reset();
+        OpenedUpdateNotifyWindow = false;
         if(ThreadIsRunning)
         {
             DuoLog.Error("Can not reload yet, please wait");
@@ -427,8 +424,21 @@ internal static partial class ScriptingProcessor
                     }
                     PluginLog.Debug($"Update finished");
                 }
-
+                OpenUpdatePopupIfNeeded();
             }).Start();
+        }
+    }
+
+    internal static void OpenUpdatePopupIfNeeded()
+    {
+        PluginLog.Information("Script updates now finished");
+        if(P.ScriptUpdateWindow.FailedScripts.Count > 0 || P.ScriptUpdateWindow.UpdatedScripts.Count > 0)
+        {
+            if(!OpenedUpdateNotifyWindow)
+            {
+                P.ScriptUpdateWindow.Open();
+                OpenedUpdateNotifyWindow = true;
+            }
         }
     }
 

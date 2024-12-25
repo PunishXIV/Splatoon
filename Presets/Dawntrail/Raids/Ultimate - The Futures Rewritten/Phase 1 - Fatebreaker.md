@@ -1,6 +1,4 @@
-## Warning! These presets are WORK IN PROGRESS. They may change frequently, and they may not fully cover mechanic/cover mechanic correctly.
-
-## [WIP] [Script] Fall of Faith
+## [WIP] Fall of Faith
 It highlights positions and tells whether it's fire or lightning, and which turn it is.
 Configuration:
 - You need to set priorities, for example: MT, ST, H1, H2, D1, D2, D3, D4.
@@ -9,13 +7,13 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1%20Fall%20of%20Faith.cs
 ```
 
-## [WIP] [Script] Alternative Fall of Faith
+## [Script] Alternative Fall of Faith
 Altetnative implementation of Fall of Faith resolution. 
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1%20Fall%20of%20Faith%20EN.cs
 ```
 
-## [WIP] [Script] Burn Strike (Tower)
+## [Script] Burn Strike (Tower)
 It highlights positions where towers you need to go to are.
 Configuration:
 - You need to set priorities, for example: H1, H2, D1, D2, D3, D4.

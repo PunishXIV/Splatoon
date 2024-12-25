@@ -138,6 +138,7 @@ unsafe partial class CGui:IDisposable
                         ("Contribute".Loc(), Contribute.Draw, null, true)
                         //("Contributors".Loc(), TabContributors.Draw, null, true)
                         );
+                    TabRequest = null;
                 }
             }
             catch(Exception ex)

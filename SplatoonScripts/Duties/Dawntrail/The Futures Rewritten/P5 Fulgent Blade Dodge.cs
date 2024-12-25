@@ -1,5 +1,5 @@
-﻿Doesn't works yet!
-/*using Dalamud.Game.ClientState.Objects.Types;
+﻿wip
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
@@ -14,6 +14,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
@@ -92,9 +93,19 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
                 }
             }
             var r = pair!.OrderBy(x => x.CurrentCastTime).ToArray();
-            Reference = (r[1].Position, r[1].Rotation);
-            IsCCW = MathHelper.GetRelativeAngle(r[0].Position, r[1].Position) < 180;
-            DuoLog.Information($"IsCCW: {IsCCW}");
+            IsCCW = MathHelper.GetRelativeAngle(r[1].Position, r[0].Position) < 180;
+
+            var cross = GetIntersectionPoint(r[0].Position.ToVector2(), r[0].Rotation.RadToDeg(), r[1].Position.ToVector2(), r[1].Rotation.RadToDeg());
+
+            if(cross != null)
+            {
+                Reference = (cross.Value.ToVector3(0), r[0].Rotation);
+                DuoLog.Information($"IsCCW: {IsCCW}, ref = {Reference} \n {r[0].Position.ToVector2()}, {r[0].Rotation.RadToDeg()} \n {r[1].Position.ToVector2()}, {r[1].Rotation.RadToDeg()}\n{MathHelper.GetRelativeAngle(r[1].Position, r[0].Position)}");
+            }
+            else
+            {
+                DuoLog.Error("Fulgent blade reference is null!");
+            }
         }
         if(Reference != null)
         {
@@ -125,5 +136,33 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
             ImGuiEx.Text($"{x}: {ExcelActionHelper.GetActionName(x.CastActionId, true)}/{x.CurrentCastTime} - {rot}");
         }
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="x0"></param>
+    /// <param name="a0">Degrees</param>
+    /// <param name="x1"></param>
+    /// <param name="a1">Degrees</param>
+    /// <returns></returns>
+    public Vector2? GetIntersectionPoint(Vector2 x0, float a0, Vector2 x1, float a1)
+    {
+        var toRad = Math.PI / 180;
+        if((((a0 - a1) % 180) + 180) % 180 == 0) return null;
+        if(((a0 % 180) + 180) % 180 == 90)
+        {
+            // vertical line at x = x0
+            return new(x0.X, (float)(Math.Tan(a1 * toRad) * (x0.X - x1.X) + x1.Y));
+        }
+        else if(((a1 % 180) + 180) % 180 == 90)
+        {
+            // vertical line at x = x0
+            return new(x1.X, (float)(Math.Tan(a0 * toRad) * (x1.X - x0.X) + x0.Y));
+        }
+        var m0 = Math.Tan(a0 * toRad); // Line 0: y = m0 (x - x0) + y0
+        var m1 = Math.Tan(a1 * toRad); // Line 1: y = m1 (x - x1) + y1
+        var x = ((m0 * x0.X - m1 * x1.X) - (x0.Y - x1.Y)) / (m0 - m1);
+        return new((float)x, (float)(m0 * (x - x0.X) + x0.Y));
+    }
+
 }
-*/

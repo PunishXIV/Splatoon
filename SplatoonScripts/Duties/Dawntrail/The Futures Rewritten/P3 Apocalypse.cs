@@ -22,12 +22,14 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(5, "Errer, NightmareXIV");
     public long StartTime = 0;
     bool IsAdjust = false;
     long Phase => Environment.TickCount64 - StartTime;
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
+
+    List<Vector2> Spreads = [new(106, 81.5f), new(100, 90.5f), new(96, 81), new(93, 93.5f)];
 
     Dictionary<int, Vector2> Positions = new()
     {
@@ -65,6 +67,11 @@ public class P3_Apocalypse : SplatoonScript
         for(int i = 0; i < 8; i++)
         {
             Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        }
+
+        for(int i = 0; i < 4; i++)
+        {
+            Controller.RegisterElementFromCode($"Spreads{i}", "{\"Name\":\"\",\"Enabled\":false,\"refX\":93.0,\"refY\":93.5,\"refZ\":9.536743E-07,\"radius\":0.5,\"Donut\":0.2,\"color\":3357671168,\"fillIntensity\":1.0,\"thicc\":1.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
     }
 
@@ -187,7 +194,7 @@ public class P3_Apocalypse : SplatoonScript
                 }
             }
 
-            if(C.SelectedPositions.Count == 4 && Phase < C.TankDelayMS && this.NumDebuffs == 4)
+            if(C.SelectedPositions.Count == 4 && Phase < 22000 && this.NumDebuffs == 4)
             {
                 Vector3[] candidates = [MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[isClockwise ? -4 : 2].ToVector3(0)), MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[isClockwise ? 4 : -2].ToVector3(0))];
                 int i = 0;
@@ -204,12 +211,24 @@ public class P3_Apocalypse : SplatoonScript
                         if(Vector2.Distance(Positions[x], pos.ToVector2()) < 2f)
                         {
                             var element = Controller.GetElementByName("Safe")!;
-                            element.Enabled = true;
+                            element.Enabled = Phase < C.TankDelayMS;
                             element.SetRefPosition(pos);
+                            var adjustAngle = MathHelper.GetRelativeAngle(new Vector2(100f, 100f), pos.ToVector2());
+                            for(int s = 0; s < this.Spreads.Count; s++)
+                            {
+                                if(Controller.TryGetElementByName($"Spreads{s}", out var e))
+                                {
+                                    e.Enabled = true;
+                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), Spreads[s].ToVector3(0));
+                                    e.SetRefPosition(adjPos);
+                                }
+                            }
                         }
+
                     }
                 }
             }
+
             if(C.ShowMoveGuide && Phase < C.TankDelayMS)
             {
                 {

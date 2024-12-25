@@ -59,7 +59,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Chain_Lightning,3,https://github.co
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Midnight_Sabbath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Midnight Sabbath.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Unsafe_Cannon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Unsafe Cannon.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@FRU_Target_Enforcer,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/FRU Target Enforcer.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_AutoTargetSwitcher,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 AutoTargetSwitcher.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_AutoTargetSwitcher,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 AutoTargetSwitcher.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P5_Paradise_Regained,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P5 Paradise Regained.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Fall_of_Faith,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Fall of Faith.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P5_Fulgent_Blade_Dodge,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P5 Fulgent Blade Dodge.cs
@@ -103,7 +103,7 @@ SplatoonScriptsOfficial.Generic@ZoneNameToast,3,https://github.com/PunishXIV/Spl
 SplatoonScriptsOfficial.Generic@ScriptEventLogger,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@NoSproutIcon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/NoSproutIcon.cs
 SplatoonScriptsOfficial.Generic@AetherSight,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AetherSight.cs
-SplatoonScriptsOfficial.Generic@AutoTargetSwitcher,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoTargetSwitcher.cs
+SplatoonScriptsOfficial.Generic@AutoTargetSwitcher,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoTargetSwitcher.cs
 SplatoonScriptsOfficial.Generic@CheckEmote,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CheckEmote.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@ShowEmote,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs

@@ -34,6 +34,7 @@ unsafe partial class CGui:IDisposable
     public bool Open = false;
     bool WasOpen = false;
     float RightWidth = 0;
+    internal string TabRequest = null;
 
     public CGui(Splatoon p)
     {
@@ -115,7 +116,7 @@ unsafe partial class CGui:IDisposable
                     }, false);
                     ImGui.SetCursorPos(curCursor);
 
-                    ImGuiEx.EzTabBar("SplatoonSettings",
+                    ImGuiEx.EzTabBar("SplatoonSettings", null, TabRequest,
                         ("General".Loc() + "###tab1", DisplayGeneralSettings, null, true),
                         ("Render".Loc() + "###tab2", DisplayRenderers, null, true),
                         ("Layouts".Loc(), DislayLayouts, Colors.Green.ToVector4(), true),

@@ -18,9 +18,9 @@ using System.Text.RegularExpressions;
 #pragma warning disable
 namespace SplatoonScriptsOfficial.Tests; 
 public unsafe class GenericTest4 : SplatoonScript
-{  
+{   
 		public override HashSet<uint>? ValidTerritories => new(); 
-    public override Metadata? Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata? Metadata { get; } = new(1, "NightmareXIV");
     int a1;
 		string Filter = "";
 

@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Windowing;
+using ECommons;
 using ECommons.ChatMethods;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
@@ -31,8 +32,10 @@ public class ScriptUpdateWindow : Window
             {
                 ImGui.TableSetupColumn("1", ImGuiTableColumnFlags.WidthStretch);
                 ImGui.TableSetupColumn("2");
+
                 foreach(var x in UpdatedScripts)
                 {
+                    ImGui.PushID(x.InternalData.FullName);
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
@@ -41,9 +44,20 @@ public class ScriptUpdateWindow : Window
                     if(change != null)
                     {
                         ImGui.Indent();
-                        ImGuiEx.Text(ImGuiColors.DalamudGrey, change);
+                        ImGuiEx.TextWrapped(ImGuiColors.DalamudGrey, change);
                         ImGui.Unindent();
                     }
+                    ImGui.TableNextColumn();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Cog))
+                    {
+                        P.ConfigGui.Open = true;
+                        P.ConfigGui.TabRequest = "Scripts".Loc();
+                        Svc.Framework.RunOnTick(() =>
+                        {
+                            TabScripting.RequestOpen = x.InternalData.FullName;
+                        }, delayTicks:2);
+                    }
+                    ImGui.PopID();
                 }
                 ImGui.EndTable();
             }
@@ -51,10 +65,33 @@ public class ScriptUpdateWindow : Window
         }
         if(FailedScripts.Count > 0)
         {
-            ImGuiEx.TextWrapped($"The following scripts have failed to load.");
-            foreach(var x in FailedScripts)
+            ImGuiEx.TextWrapped($"The following scripts have failed to load. ");
+            if(ImGui.BeginTable("##table1", 2, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
             {
-                ImGuiEx.Text($"{x}");
+                ImGui.TableSetupColumn("1", ImGuiTableColumnFlags.WidthStretch);
+                ImGui.TableSetupColumn("2");
+
+                var rep = Path.Combine(Svc.PluginInterface.ConfigDirectory.FullName, "Scripts");
+                foreach(var x in FailedScripts)
+                {
+                    ImGui.PushID(x);
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.AlignTextToFramePadding();
+                    ImGuiEx.TextWrapped($"{x.Replace(rep, "..")}");
+                    ImGui.TableNextColumn();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
+                    {
+                        new TickScheduler(() =>
+                        {
+                            FailedScripts.Remove(x);
+                            GenericHelpers.DeleteFileToRecycleBin(x);
+                        });
+                    }
+                    ImGuiEx.Tooltip("Delete this script");
+                    ImGui.PopID();
+                }
+                ImGui.EndTable();
             }
         }
     }

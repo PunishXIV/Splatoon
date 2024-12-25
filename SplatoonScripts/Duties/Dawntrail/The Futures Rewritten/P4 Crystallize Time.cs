@@ -88,10 +88,10 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private bool IsActive => Svc.Objects.Any(x => x.DataId == 17837) && !BasePlayer.IsDead;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(9, "Garume, NightmareXIV");
+    public override Metadata? Metadata => new(10, "Garume, NightmareXIV");
     public override Dictionary<int, string> Changelog => new()
     {
-        [9] = "A large addition of various functions as well as changes to general mechanic flow. Please validate settings and if possible verify that the script works fine in replay."
+        [10] = "A large addition of various functions as well as changes to general mechanic flow. Please validate settings and if possible verify that the script works fine in replay."
     };
 
     private Config C => Controller.GetConfig<Config>();
@@ -1149,6 +1149,19 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             ImGui.Separator();
 
             ImGui.Checkbox("Show Other", ref C.ShowOther);
+
+            if(ImGui.CollapsingHeader("Prio list"))
+            {
+                ImGuiEx.Text(C.PriorityData.GetPlayers(x => true).Select(x => x.NameWithWorld).Print("\n"));
+                ImGui.Separator();
+                ImGuiEx.Text("Red bliz:");
+                ImGuiEx.Text(C.PriorityData.GetPlayers(x => _players.First(y => y.Value.PlayerName == x.Name).Value is
+                { Color: Debuff.Red, Debuff: Debuff.Blizzard }).Select(x => x.NameWithWorld).Print("\n"));
+                ImGui.Separator();
+                ImGuiEx.Text("Red aero:");
+                ImGuiEx.Text(C.PriorityData.GetPlayers(x => _players.First(y => y.Value.PlayerName == x.Name).Value is
+                { Color: Debuff.Red, Debuff: Debuff.Aero }).Select(x => x.NameWithWorld).Print("\n"));
+            }
         }
 
         if(ImGuiEx.CollapsingHeader("Debug"))
@@ -1208,7 +1221,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
 
     private Vector2? ResolveRedAeroMove()
     {
-        if(_players.SafeSelect(BasePlayer.GameObjectId)!.MoveType?
+        if(_players.SafeSelect(BasePlayer.GameObjectId)?.MoveType?
                 .EqualsAny<MoveType>(MoveType.RedAeroEast, MoveType.RedAeroWest) != true) return null;
         var isPlayerWest = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType == MoveType.RedAeroWest;
         var isLateHourglassSameSide =
@@ -1264,7 +1277,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
 
     private Vector2? ResolveRedBlizzardMove()
     {
-        if(_players.SafeSelect(BasePlayer.GameObjectId)!.MoveType?.EqualsAny<MoveType>(MoveType.RedBlizzardWest,
+        if(_players.SafeSelect(BasePlayer.GameObjectId)?.MoveType?.EqualsAny<MoveType>(MoveType.RedBlizzardWest,
                 MoveType.RedBlizzardEast) != true) return null;
         var isPlayerWest = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType == MoveType.RedBlizzardWest;
         var isLateHourglassSameSide =

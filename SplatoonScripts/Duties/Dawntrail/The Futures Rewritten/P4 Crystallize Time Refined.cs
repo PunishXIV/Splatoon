@@ -66,6 +66,8 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
     private Direction? _secondWaveDirection;
     private bool Initialized;
 
+    private List<float> ExtraRandomness = [];
+
     private IPlayerCharacter BasePlayer
     {
         get
@@ -86,7 +88,11 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
     private bool IsActive => Svc.Objects.Any(x => x.DataId == 17837) && !BasePlayer.IsDead;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(7, "Garume, NightmareXIV");
+    public override Metadata? Metadata => new(8, "Garume, NightmareXIV");
+    public override Dictionary<int, string> Changelog => new()
+    {
+        [8] = "Crystallize Time Refined should not be used anymore. Please install regular Crystallize Time script and uninstall Refined version. Refined version was moved to regular script."
+    };
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -275,6 +281,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
         _players.Clear();
         _earlyHourglassList.Clear();
         _lateHourglassList.Clear();
+        ExtraRandomness = [(float)Random.Shared.NextDouble() - 0.5f, (float)Random.Shared.NextDouble() - 0.5f, (float)Random.Shared.NextDouble() - 0.5f];
     }
 
 
@@ -315,7 +322,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
         Controller.RegisterElementFromCode("SplitPosition",
             "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
-        Controller.RegisterElementFromCode("KBHelper", "{\"Name\":\"\",\"type\":2,\"Enabled\":false,\"radius\":0.0,\"color\":3356425984,\"Filled\":false,\"fillIntensity\":0.345,\"thicc\":4.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("KBHelper", "{\"Name\":\"\",\"type\":2,\"Enabled\":false,\"radius\":0.0,\"color\":3355508503,\"fillIntensity\":0.345,\"thicc\":4.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     private void Alert(string text)
@@ -355,6 +362,20 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             return;
         }
 
+        {
+            var e = Controller.GetElementByName("KBHelper")!;
+            e.Enabled = false;
+            if(GetStage() == MechanicStage.Step2_FirstHourglass && BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Blue))
+            {
+                var wind = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector3.Distance(x.Position, BasePlayer.Position)).Where(x => x.StatusList.Any(s => s.StatusId == (uint)Debuff.Aero)).FirstOrDefault();
+                if(wind != null && Vector3.Distance(BasePlayer.Position, wind.Position) < 5f)
+                {
+                    e.Enabled = true;
+                    e.SetRefPosition(wind.Position);
+                    e.SetOffPosition(new(100 + (_lateHourglassDirection.EqualsAny(Direction.NorthEast, Direction.SouthWest) ? 12 : -12), 0, 85));
+                }
+            }
+        }
 
         var myMove = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType.ToString();
         var forcedPosition = ResolveRedAeroMove();
@@ -435,13 +456,13 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
             if (Svc.Objects.Any(x => x.DataId == 17837) && !BasePlayer.IsDead)
             {
                 if (C.UseKbiAuto &&
-                    BasePlayer.StatusList.Any(x => x is { StatusId: (uint)Debuff.Return, RemainingTime: < 2f }))
+                    BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Return && x.RemainingTime < 2f + ExtraRandomness.SafeSelect(0)))
                     //7559 : surecast
                     //7548 : arm's length
                     UseAntiKb();
 
                 if (C.UseMitigation && C.MitigationAction != 0 &&
-                    BasePlayer.StatusList.Any(x => x is { StatusId: (uint)Debuff.Return, RemainingTime: < 6f }))
+                    BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Return && x.RemainingTime < 6f + ExtraRandomness.SafeSelect(1)))
                 {
                     if (!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                     {
@@ -459,7 +480,7 @@ public unsafe class P4_Crystallize_Time_Refined : SplatoonScript
 
                 if (C is { UseSprintAuto: true, ShouldGoNorthRedBlizzard: true } &&
                     BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Red) &&
-                    BasePlayer.StatusList.Any(x => x is { StatusId: (uint)Debuff.Blizzard, RemainingTime: < 1f }))
+                    BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Blizzard && x.RemainingTime < 1f + ExtraRandomness.SafeSelect(2)))
                 {
                     if (!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                     {

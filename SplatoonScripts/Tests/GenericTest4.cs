@@ -19,12 +19,17 @@ using System.Text.RegularExpressions;
 namespace SplatoonScriptsOfficial.Tests; 
 public unsafe class GenericTest4 : SplatoonScript
 {  
-		public override HashSet<uint>? ValidTerritories => new();
-    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
+		public override HashSet<uint>? ValidTerritories => new(); 
+    public override Metadata? Metadata { get; } = new(3, "NightmareXIV");
     int a1;
 		string Filter = "";
 
-		public override void OnSettingsDraw()
+		public override Dictionary<int, string> Changelog => new()
+		{
+				[3] = "Test changelog entry. Just really test changelog entry, anything can go here.\nAlso supports newlines I guess."
+		};
+
+    public override void OnSettingsDraw()
 		{
 				if (TaskManager?.IsBusy == true)
 				{

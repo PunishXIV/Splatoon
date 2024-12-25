@@ -6,14 +6,8 @@ using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.LanguageHelpers;
 using ECommons.PartyFunctions;
-using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Splatoon.Gui.Priority;
 #nullable enable
@@ -53,6 +47,7 @@ public class PriorityPopupWindow : Window
     {
         this.SetSizeConstraints(new(500, 100), new(500, float.MaxValue));
         this.ShowCloseButton = false;
+        this.RespectCloseHotkey = false;
     }
 
     public override void Draw()
@@ -68,9 +63,15 @@ public class PriorityPopupWindow : Window
         ImGuiEx.TextWrapped($"You have entered a zone for which you have enabled scripts that use priority lists. If you have any priority lists set to \"Placeholder\" mode, please configure them here.");
         ImGuiEx.CollectionCheckbox($"Display this popup in {ExcelTerritoryHelper.GetName(TerritoryType)}", TerritoryType, P.Config.NoPrioPopupTerritories, true);
         ImGui.Checkbox("Display DPS as D1/D2/D3/D4", ref P.Config.PrioUnifyDps);
-        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.List, "Fill automatically", enabled:ImGuiEx.Ctrl || this.Assignments.All(x => x.Name == "" && x.Jobs.Count == 0)))
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.List, "Fill automatically", enabled:ImGuiEx.Ctrl || this.Assignments.All(x => x.IsPlayerEmpty())))
         {
             Autofill();
+        }
+        ImGuiEx.Tooltip("Hold CTRL and click");
+        ImGui.SameLine();
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Ban, "Clear List", enabled: ImGuiEx.Ctrl || this.Assignments.All(x => x.IsPlayerEmpty())))
+        {
+            this.Assignments.Clear();
         }
         ImGuiEx.Tooltip("Hold CTRL and click");
 
@@ -95,6 +96,13 @@ public class PriorityPopupWindow : Window
                 DragDrop.DrawButtonDummy(item, Assignments, i);
                 ImGui.TableNextColumn();
                 item.DrawSelector(false);
+                ImGui.SameLine();
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Ban))
+                {
+                    item.Jobs = [];
+                    item.Name = "";
+                }
+                ImGuiEx.Tooltip("Clear this assignment");
                 ImGui.PopID();
             }
 
@@ -149,20 +157,95 @@ public class PriorityPopupWindow : Window
     {
         new TickScheduler(() =>
         {
-            Assignments = UniversalParty.MembersPlayback.OrderBy(x => GetOrderedRoleIndex(x.ClassJob)).Select(x => new JobbedPlayer() { Jobs = [x.ClassJob], Name = x.NameWithWorld }).ToList();
+            var jobs = UniversalParty.MembersPlayback.OrderBy(x => GetOrderedRoleIndex(x.ClassJob)).Select(x => new JobbedPlayer() { Jobs = [x.ClassJob], Name = x.NameWithWorld }).ToList();
+
+            Assignments = [new(), new(), new(), new(), new(), new(), new(), new()];
+
+            var preferred = P.Config.PreferredPositions.SafeSelect(Player.Job, RolePosition.Not_Selected);
+            if(preferred != RolePosition.Not_Selected)
+            {
+                var index = RolePositions.IndexOf(preferred);
+                if(index != -1)
+                {
+                    Assignments[index] = new()
+                    {
+                        Jobs = [Player.Job],
+                        Name = Player.NameWithWorld
+                    };
+                    jobs.RemoveAll(x => x.Name == Player.NameWithWorld);
+                }
+            }
+
+            var tanks = jobs.Where(x => x.Jobs.FirstOrNull()?.IsTank() == true).ToArray();
+            var healers = jobs.Where(x => x.Jobs.FirstOrNull()?.IsHealer() == true).ToArray();
+            var dps = jobs.Where(x => x.Jobs.FirstOrNull()?.IsDps() == true).ToArray();
+
+            var tankSlots = Assignments[..2].Count(x => x.Name == "");
+            var healerSlots = Assignments[2..4].Count(x => x.Name == "");
+            var dpsSlots = Assignments[4..].Count(x => x.Name == "");
+
+            //normal composition
+            foreach(var x in tanks)
+            {
+                for(int i = 0; i < 2; i++)
+                {
+                    if(Assignments[i].IsPlayerEmpty())
+                    {
+                        Assignments[i] = x;
+                        break;
+                    }
+                }
+            }
+            foreach(var x in healers)
+            {
+                for(int i = 2; i < 4; i++)
+                {
+                    if(Assignments[i].IsPlayerEmpty())
+                    {
+                        Assignments[i] = x;
+                        break;
+                    }
+                }
+            }
+            foreach(var x in dps)
+            {
+                for(int i = 4; i < Assignments.Count; i++)
+                {
+                    if(Assignments[i].IsPlayerEmpty())
+                    {
+                        Assignments[i] = x;
+                        break;
+                    }
+                }
+            }
+            //remaining players
+            foreach(var x in jobs)
+            {
+                if(Assignments.Any(a => a.Name == x.Name && a.Jobs.SequenceEqual(x.Jobs))) continue;
+                for(int i = 0; i < Assignments.Count; i++)
+                {
+                    if(Assignments[i].IsPlayerEmpty())
+                    {
+                        Assignments[i] = x;
+                        break;
+                    }
+                }
+            }
         });
     }
 
 
-    int GetOrderedRoleIndex(Job job)
+    internal int GetOrderedRoleIndex(Job job)
     {
-        if(Svc.Data.GetExcelSheet<ClassJob>().TryGetRow((uint)job, out var data))
-        {
-            if(data.Role == 1) return 1;
-            if(data.Role == 2) return 3;
-            if(data.Role == 3) return 4;
-            if(data.Role == 4) return 2;
-        }
+        if(job == Job.WAR) return 1;
+        if(job == Job.PLD) return 2;
+        if(job == Job.GNB) return 3;
+        if(job == Job.DRK) return 4;
+        if(job.IsTank()) return 10;
+        if(job.IsHealer()) return 20;
+        if(job.IsMeleeDps()) return 30;
+        if(job.IsPhysicalRangedDps()) return 40;
+        if(job.IsMagicalRangedDps()) return 50;
         return 999;
     }
 

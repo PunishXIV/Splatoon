@@ -32,7 +32,7 @@ internal class Compiler
         return null;
     } 
 
-    internal static (byte[] Assembly, byte[] Pdb)? Compile(string sourceCode, string identity)
+    internal static (byte[] Assembly, byte[] Pdb)? Compile(string sourceCode, string identity, string path = null)
     {
         using var peStream = new MemoryStream();
         using var pdbStream = new MemoryStream();
@@ -58,6 +58,10 @@ internal class Compiler
             {
                 PluginLog.Warning($"{diagnostic.Id}: {diagnostic.GetMessage()}");
             }
+            Svc.Framework.RunOnFrameworkThread(() =>
+            {
+                P.ScriptUpdateWindow.FailedScripts.Add(path);
+            }).Wait();
 
             return null;
         }

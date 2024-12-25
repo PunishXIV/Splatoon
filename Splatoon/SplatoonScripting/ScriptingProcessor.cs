@@ -154,6 +154,11 @@ internal static partial class ScriptingProcessor
                     PluginLog.Information($"Downloading script from {x}");
                     BlockingDownloadScript(x);
                 }
+
+                if(P.ScriptUpdateWindow.FailedScripts.Count > 0 || P.ScriptUpdateWindow.UpdatedScripts.Count > 0)
+                {
+                    P.ScriptUpdateWindow.Open();
+                }
             }
             catch(Exception e)
             {
@@ -201,6 +206,7 @@ internal static partial class ScriptingProcessor
 
     internal static void ReloadAll()
     {
+        P.ScriptUpdateWindow.Reset();
         if(ThreadIsRunning)
         {
             DuoLog.Error("Can not reload yet, please wait");
@@ -289,7 +295,7 @@ internal static partial class ScriptingProcessor
                                     else
                                     {
                                         PluginLog.Debug($"Compiling...");
-                                        var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
+                                        var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path), result.path);
                                         code = data?.Assembly;
                                         pdb = data?.Pdb;
                                         if(code != null && pdb != null)
@@ -303,7 +309,7 @@ internal static partial class ScriptingProcessor
                                 else
                                 {
                                     PluginLog.Debug($"Compiling, cache bypassed...");
-                                    var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
+                                    var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path), result.path);
                                     code = data?.Assembly;
                                     pdb = data?.Pdb;
                                 }
@@ -358,8 +364,11 @@ internal static partial class ScriptingProcessor
                                                     if (previousVersion > 0)
                                                     {
                                                         instance.OnScriptUpdated(previousVersion);
+                                                        P.ScriptUpdateWindow.UpdatedScripts.Add(instance);
+                                                        PluginLog.Debug($"Detected version update for {instance}");
                                                     }
                                                     PluginLog.Debug($"Load success");
+                                                    if(fpath != null) P.ScriptUpdateWindow.FailedScripts.Remove(fpath);
                                                     instance.UpdateState();
                                                 }
                                             }
@@ -373,6 +382,13 @@ internal static partial class ScriptingProcessor
                                 else
                                 {
                                     PluginLog.Error("Loading process ended with error");
+                                    if(fpath != null)
+                                    {
+                                        Svc.Framework.RunOnFrameworkThread(() =>
+                                        {
+                                            P.ScriptUpdateWindow.FailedScripts.Add(fpath);
+                                        });
+                                    }
                                 }
                             }
                             catch(Exception e)

@@ -23,6 +23,7 @@ using NotificationMasterAPI;
 using PInvoke;
 using Splatoon.Gui;
 using Splatoon.Gui.Priority;
+using Splatoon.Gui.Scripting;
 using Splatoon.Memory;
 using Splatoon.Modules;
 using Splatoon.RenderEngines.DirectX11;
@@ -90,6 +91,7 @@ public unsafe class Splatoon :IDalamudPlugin
     internal BuffEffectProcessor BuffEffectProcessor;
     internal LogWindow LogWindow;
     internal PriorityPopupWindow PriorityPopupWindow;
+    internal ScriptUpdateWindow ScriptUpdateWindow;
     internal TaskManager TaskManager;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
@@ -188,8 +190,6 @@ public unsafe class Splatoon :IDalamudPlugin
         {
             Timeout = TimeSpan.FromSeconds(10)
         };
-        ScriptingProcessor.TerritoryChanged();
-        ScriptingProcessor.ReloadAll();
         ObjectLife.OnObjectCreation = ScriptingProcessor.OnObjectCreation;
         //VFXManager = new();
         RenderableZoneSelector = new();
@@ -205,7 +205,11 @@ public unsafe class Splatoon :IDalamudPlugin
         EzConfigGui.WindowSystem.AddWindow(LogWindow);
         PriorityPopupWindow = new();
         EzConfigGui.WindowSystem.AddWindow(PriorityPopupWindow);
+        ScriptUpdateWindow = new();
+        EzConfigGui.WindowSystem.AddWindow(ScriptUpdateWindow);
         TaskManager = new(new(showDebug:true));
+        ScriptingProcessor.TerritoryChanged();
+        ScriptingProcessor.ReloadAll();
         Init = true;
         SplatoonIPC.Init();
     }

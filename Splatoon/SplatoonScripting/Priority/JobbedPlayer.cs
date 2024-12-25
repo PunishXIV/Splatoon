@@ -58,6 +58,11 @@ public class JobbedPlayer
         }
     }
 
+    public bool IsPlayerEmpty()
+    {
+        return this.Name == "" && this.Jobs.Count == 0;
+    }
+
     public UniversalPartyMember? ResolveByRole(RolePosition role)
     {
         var player = P.PriorityPopupWindow.Assignments.SafeSelect(PriorityPopupWindow.RolePositions.IndexOf(role));

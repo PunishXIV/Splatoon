@@ -35,6 +35,11 @@ public abstract class SplatoonScript
     public virtual Metadata? Metadata { get; }
 
     /// <summary>
+    /// If you want, you can supply changelog for your script. It will be displayed to user upon script update.
+    /// </summary>
+    public virtual Dictionary<int, string> Changelog { get; }
+
+    /// <summary>
     /// Indicates whether your script operates strictly within Splatoon, ECommons and Dalamud APIs. 
     /// </summary>
     public virtual bool Safe { get; } = false;

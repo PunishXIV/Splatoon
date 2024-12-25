@@ -1,4 +1,5 @@
 ﻿using ECommons.Configuration;
+using ECommons.ExcelServices;
 using Newtonsoft.Json;
 using Pictomancy;
 using Splatoon.RenderEngines;
@@ -86,6 +87,8 @@ internal class Configuration : IEzConfig
     public List<RolePlayerAssignment> RolePlayerAssignments = [];
     public bool PrioUnifyDps = false;
     public List<string> FileWatcherPathes = [];
+    public bool UseServerBar = true;
+    public Dictionary<Job, RolePosition> PreferredPositions = [];
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

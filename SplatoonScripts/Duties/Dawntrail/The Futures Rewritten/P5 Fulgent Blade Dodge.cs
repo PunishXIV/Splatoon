@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     long MechanicStartTime = 0;
     long Phase => Environment.TickCount64 - MechanicStartTime;
@@ -86,7 +86,7 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements()
-            .Where(x => !x.Key.StartsWith("Ref"))
+            //.Where(x => !x.Key.StartsWith("Ref"))
             .Each(x => x.Value.Enabled = false);
         var npcs = Npcs;
         if(Phase > 30000)

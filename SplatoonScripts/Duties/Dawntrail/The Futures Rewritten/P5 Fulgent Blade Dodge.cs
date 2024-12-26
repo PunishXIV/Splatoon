@@ -1,5 +1,4 @@
-﻿wip
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
@@ -7,14 +6,14 @@ using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.Reflection;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
@@ -25,25 +24,26 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
     long MechanicStartTime = 0;
     long Phase => Environment.TickCount64 - MechanicStartTime;
 
-    static Vector2[] DodgeSpots = [new(5.6f, 15.7f), new(8.2f, 8.4f), new(3.8f, 6.7f), new(1.8f, 11.7f)];
+    static Vector2[] DodgeCw = [new(5.700f, 10.800f), new(0.800f, 11.300f), new(2.3f, 6.2f), new(6.4f, 9.6f)];
+    static Vector2[] DodgeCcw = [new(-5.500f, 12.900f), new(-0.400f, 12.300f), new(-2.400f, 6.100f), new(-5.600f, 10.700f)];
 
-    Vector2[] Dodges = [
-        DodgeSpots[0],
-        DodgeSpots[1],
-        DodgeSpots[1],
-        DodgeSpots[2],
-        DodgeSpots[2],
-        DodgeSpots[3],
-        DodgeSpots[3],
+    Vector2[] DodgesCcw = [
+        DodgeCcw[0],
+        DodgeCcw[1],
+        DodgeCcw[1],
+        DodgeCcw[2],
+        DodgeCcw[2],
+        DodgeCcw[3],
+        //DodgeCcw[3],
         ];
-    Vector2[] Dodges2 = [
-        new(3.6f, 8.9f),
-        new(8.6f, 6.8f),
-        new(8.6f, 6.8f),
-        new(10.5f, 11f),
-        new(10.5f, 11f),
-        new(3.5f, 14.5f),
-        new(3.5f, 14.5f),
+    Vector2[] DodgesCw = [
+        DodgeCw[0],
+        DodgeCw[1],
+        DodgeCw[1],
+        DodgeCw[2],
+        DodgeCw[2],
+        DodgeCw[3],
+        //DodgeCw[3],
         ];
 
     IBattleNpc[] Npcs => Svc.Objects.OfType<IBattleNpc>().Where(x => x.NameId.EqualsAny<uint>(13561) && x.Struct()->GetCastInfo() != null && x.CastActionId.EqualsAny<uint>(40118, 40307) && x.IsCasting).ToArray();
@@ -59,14 +59,35 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
         }
         for(int i = 0; i < 8; i++)
         {
-            Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"type\":1,\"offY\":2.0,\"radius\":0.68,\"color\":3355508712,\"fillIntensity\":0.5,\"refActorComparisonType\":2,\"includeRotation\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"type\":3,\"refY\":5.0,\"radius\":0.0,\"color\":3356425984,\"fillIntensity\":0.345,\"thicc\":4.0,\"refActorComparisonType\":2,\"includeRotation\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
         Controller.RegisterElementFromCode("Debug", "{\"Name\":\"\",\"refX\":90.0,\"refY\":110.0,\"refZ\":1.9073486E-06,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        for(int i = 0; i < 2; i++)
+        {
+            Controller.RegisterElementFromCode($"Ref{i}", "{\"Name\":\"\",\"refX\":90.0,\"refY\":110.0,\"refZ\":1.9073486E-06,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        }
+    }
+
+    public override void OnReset()
+    {
+        Reference = null;
+        MechanicStartTime = 0;
+    }
+
+    public override void OnStartingCast(uint source, uint castId)
+    {
+        if(castId == 40306)
+        {
+            this.Controller.Reset();
+        }
     }
 
     public override void OnUpdate()
     {
-        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        Controller.GetRegisteredElements()
+            .Where(x => !x.Key.StartsWith("Ref"))
+            .Each(x => x.Value.Enabled = false);
         var npcs = Npcs;
         if(Phase > 30000)
         {
@@ -76,6 +97,15 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
             }
             Reference = null;
         }
+        /*var validNpcs = npcs.Where(x => ((x.Rotation.RadToDeg() + MathHelper.GetRelativeAngle(x.Position, new(100, 0, 100))) % 360).InRange(180 - 90, 180 + 90)).ToArray();
+        for(int i = 0; i < validNpcs.Length; i++)
+        {
+            if(Controller.TryGetElementByName($"Debug{i}", out var e))
+            {
+                e.Enabled = true;
+                e.refActorObjectID = validNpcs[i].EntityId;
+            }
+        }*/
         if(npcs.Length == 8 && Reference == null)
         {
             var validNpcs = npcs.Where(x => ((x.Rotation.RadToDeg() + MathHelper.GetRelativeAngle(x.Position, new(100, 0, 100))) % 360).InRange(180 - 90, 180 + 90)).ToArray();
@@ -93,9 +123,24 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
                 }
             }
             var r = pair!.OrderBy(x => x.CurrentCastTime).ToArray();
-            IsCCW = MathHelper.GetRelativeAngle(r[1].Position, r[0].Position) < 180;
 
-            var cross = GetIntersectionPoint(r[0].Position.ToVector2(), r[0].Rotation.RadToDeg(), r[1].Position.ToVector2(), r[1].Rotation.RadToDeg());
+            var lateRot = MathHelper.GetRelativeAngle(new(100f, 100f), r[0].Position.ToVector2());
+            var earlyRot = (MathHelper.GetRelativeAngle(new(100f, 100f), r[1].Position.ToVector2()) - lateRot + 360) % 360;
+
+            IsCCW = earlyRot < 180;
+            DuoLog.Information($"Early rotation: {earlyRot}");
+
+            var cross = GetIntersectionPoint(r[0].Position.ToVector2(), r[0].Rotation.RadToDeg(), r[1].Position.ToVector2(), r[1].Rotation.RadToDeg() + 90);
+
+            if(Controller.TryGetElementByName("Ref0", out var e0) && Controller.TryGetElementByName("Ref1", out var e1))
+            {
+                e0.Enabled = true;
+                e0.SetRefPosition(r[0].Position);
+                e0.overlayText = "Ref0";
+                e1.Enabled = true;
+                e1.SetRefPosition(r[1].Position);
+                e1.overlayText = "Ref1";
+            }
 
             if(cross != null)
             {
@@ -104,7 +149,7 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
             }
             else
             {
-                DuoLog.Error("Fulgent blade reference is null!");
+                PluginLog.Error("Fulgent blade reference is null!");
             }
         }
         if(Reference != null)
@@ -112,14 +157,15 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
             var d = Controller.GetElementByName("Debug")!;
             d.Enabled = true;
             d.SetRefPosition(Reference.Value.Position);
-            for(int i = 0; i < Dodges.Length; i++)
+            d.overlayText = "Ref";
+            for(int i = 0; i < DodgesCcw.Length; i++)
             {
                 if(Phase < 8700 + i * 2000)
                 {
                     var e = Controller.GetElementByName($"Dodge{i}");
                     e.Enabled = true;
                     e.overlayText = $"{i + 1}";
-                    var refAddPoint = Reference.Value.Position + (Dodges[i] with { X = Dodges[i].X * -1f }).ToVector3(0);
+                    var refAddPoint = Reference.Value.Position + ((IsCCW ? DodgesCcw : DodgesCw)[i]).ToVector3(0);
                     var extend = MathHelper.RotateWorldPoint(Reference.Value.Position, -Reference.Value.Rotation, refAddPoint);
                     e.SetRefPosition(extend);
                     return;
@@ -145,24 +191,22 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
     /// <param name="x1"></param>
     /// <param name="a1">Degrees</param>
     /// <returns></returns>
-    public Vector2? GetIntersectionPoint(Vector2 x0, float a0, Vector2 x1, float a1)
+    public Vector2? GetIntersectionPoint(Vector2 a, float angle1, Vector2 b, float angle2)
     {
-        var toRad = Math.PI / 180;
-        if((((a0 - a1) % 180) + 180) % 180 == 0) return null;
-        if(((a0 % 180) + 180) % 180 == 90)
-        {
-            // vertical line at x = x0
-            return new(x0.X, (float)(Math.Tan(a1 * toRad) * (x0.X - x1.X) + x1.Y));
-        }
-        else if(((a1 % 180) + 180) % 180 == 90)
-        {
-            // vertical line at x = x0
-            return new(x1.X, (float)(Math.Tan(a0 * toRad) * (x1.X - x0.X) + x0.Y));
-        }
-        var m0 = Math.Tan(a0 * toRad); // Line 0: y = m0 (x - x0) + y0
-        var m1 = Math.Tan(a1 * toRad); // Line 1: y = m1 (x - x1) + y1
-        var x = ((m0 * x0.X - m1 * x1.X) - (x0.Y - x1.Y)) / (m0 - m1);
-        return new((float)x, (float)(m0 * (x - x0.X) + x0.Y));
+        double x1 = a.X, y1 = a.Y;
+        double x2 = b.X, y2 = b.Y;
+
+        double m1 = Math.Tan(angle1 * Math.PI / 180.0);
+        double m2 = Math.Tan(angle2 * Math.PI / 180.0);
+
+        double b1 = y1 - m1 * x1;
+        double b2 = y2 - m2 * x2;
+
+        if(m1 - m2 == 0) return null;
+
+        double xIntersect = (b2 - b1) / (m1 - m2);
+        double yIntersect = m1 * xIntersect + b1;
+        return new((float)xIntersect, (float)yIntersect);
     }
 
 }

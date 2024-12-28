@@ -21,7 +21,7 @@ public class FRU_Target_Enforcer : SplatoonScript
 {
 
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(4, "NightmareXIV");
+    public override Metadata? Metadata => new(5, "NightmareXIV");
     Config C => Controller.GetConfig<Config>();
 
     public static class Enemies
@@ -71,7 +71,7 @@ public class FRU_Target_Enforcer : SplatoonScript
     IBattleNpc? GetTargetToSet()
     {
         var sortedObj = Svc.Objects.OfType<IBattleNpc>().OrderBy(Player.DistanceTo);
-        if(C.EnableCrystals != CrystalDirection.Disabled)
+        if(C.EnableCrystals != CrystalDirection.Disabled && EzThrottler.Check("CrystalDeny"))
         {
             //special handling for crystals of light
             var priorityCrystal = sortedObj.Where(x => x.NameId == Enemies.CrystalOfLight && x.IsTargetable && !x.IsDead && x.CurrentHp > 0).OrderBy(x => Vector2.Distance(x.Position.ToVector2(), CrystalPositions[C.EnableCrystals]));
@@ -85,6 +85,10 @@ public class FRU_Target_Enforcer : SplatoonScript
                 if(veil != null)
                 {
                     return veil;
+                }
+                else
+                {
+                    EzThrottler.Throttle("CrystalDeny", 200, true);
                 }
             }
         }

@@ -22,10 +22,15 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(5, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(6, "Errer, NightmareXIV");
     public long StartTime = 0;
     bool IsAdjust = false;
     long Phase => Environment.TickCount64 - StartTime;
+
+    public override Dictionary<int, string> Changelog => new()
+    {
+        [6] = "Temporarily disabled spread grid, has some issues"
+    };
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
 
@@ -216,12 +221,12 @@ public class P3_Apocalypse : SplatoonScript
                             var adjustAngle = MathHelper.GetRelativeAngle(new Vector2(100f, 100f), pos.ToVector2());
                             for(int s = 0; s < this.Spreads.Count; s++)
                             {
-                                if(Controller.TryGetElementByName($"Spreads{s}", out var e))
+                                /*if(Controller.TryGetElementByName($"Spreads{s}", out var e))
                                 {
                                     e.Enabled = true;
                                     var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), Spreads[s].ToVector3(0));
                                     e.SetRefPosition(adjPos);
-                                }
+                                }*/
                             }
                         }
 

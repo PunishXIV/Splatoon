@@ -22,21 +22,24 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(6, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(7, "Errer, NightmareXIV");
     public long StartTime = 0;
-    bool IsAdjust = false;
-    long Phase => Environment.TickCount64 - StartTime;
+    private bool IsAdjust = false;
+
+    private long Phase => Environment.TickCount64 - StartTime;
 
     public override Dictionary<int, string> Changelog => new()
     {
-        [6] = "Temporarily disabled spread grid, has some issues"
+        [(int)Metadata!.Version] = """
+            - Temporarily disabled spread grid, has some issues.
+            - Added an option to point to original group for Dark eruption spreads.
+            """,
     };
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
 
-    List<Vector2> Spreads = [new(106, 81.5f), new(100, 90.5f), new(96, 81), new(93, 93.5f)];
-
-    Dictionary<int, Vector2> Positions = new()
+    private List<Vector2> Spreads = [new(106, 81.5f), new(100, 90.5f), new(96, 81), new(93, 93.5f)];
+    private Dictionary<int, Vector2> Positions = new()
     {
         [0] = new(100, 100),
         [1] = new(100, 86),
@@ -51,7 +54,7 @@ public class P3_Apocalypse : SplatoonScript
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 6; i++)
+        for(var i = 0; i < 6; i++)
         {
             Controller.RegisterElementFromCode($"Circle{i}", "{\"Name\":\"Circle\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":9.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
             Controller.RegisterElementFromCode($"EarlyCircle{i}", "{\"Name\":\"Circle\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":9.0,\"color\":3355508223,\"fillIntensity\":0.25,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
@@ -69,25 +72,25 @@ public class P3_Apocalypse : SplatoonScript
 
         Controller.RegisterElementFromCode("Stack", "{\"Name\":\"\",\"Enabled\":false,\"refX\":89.721855,\"refY\":98.5322,\"refZ\":-1.9073486E-06,\"radius\":1.0,\"color\":3355476735,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"thicc\":4.0,\"overlayText\":\">>> Stack <<<\",\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
-        for(int i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
 
-        for(int i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             Controller.RegisterElementFromCode($"Spreads{i}", "{\"Name\":\"\",\"Enabled\":false,\"refX\":93.0,\"refY\":93.5,\"refZ\":9.536743E-07,\"radius\":0.5,\"Donut\":0.2,\"color\":3357671168,\"fillIntensity\":1.0,\"thicc\":1.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
     }
 
-    int[][] Clockwise = [[0, 1, -1], [0, 1, -1, 2, -2], [1, 2, 3, -1, -2, -3], [2, 3, 4, -2, -3, -4], [1, 3, 4, -1, -3, -4], [1,2,4,-1,-2,-4]];
-    int[][] CounterClockwise = [[0, 1, -1], [0, 1, -1, 4, -4], [1, 3, 4, -1, -3, -4], [2, 3, 4, -2, -3, -4], [1, 2, 3, -1, -2, -3], [1, 2, 4, -1, -2, -4]];
+    private int[][] Clockwise = [[0, 1, -1], [0, 1, -1, 2, -2], [1, 2, 3, -1, -2, -3], [2, 3, 4, -2, -3, -4], [1, 3, 4, -1, -3, -4], [1, 2, 4, -1, -2, -4]];
+    private int[][] CounterClockwise = [[0, 1, -1], [0, 1, -1, 4, -4], [1, 3, 4, -1, -3, -4], [2, 3, 4, -2, -3, -4], [1, 2, 3, -1, -2, -3], [1, 2, 4, -1, -2, -4]];
 
-    void Draw(int[] values, int rotation, bool early = false)
+    private void Draw(int[] values, int rotation, bool early = false)
     {
-        for(int i = 0; i < values.Length; i++)
+        for(var i = 0; i < values.Length; i++)
         {
-            if(Controller.TryGetElementByName((early?"Early":"")+$"Circle{i}", out var e))
+            if(Controller.TryGetElementByName((early ? "Early" : "") + $"Circle{i}", out var e))
             {
                 e.Enabled = true;
                 var pos = Positions[values[i]].ToVector3(0);
@@ -97,8 +100,8 @@ public class P3_Apocalypse : SplatoonScript
         }
     }
 
-    int InitialDelay = 14000 + 4000;
-    int Delay = 2000;
+    private int InitialDelay = 14000 + 4000;
+    private int Delay = 2000;
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -110,11 +113,11 @@ public class P3_Apocalypse : SplatoonScript
         IsAdjust = false;
     }
 
-    List<int> GetValidPositions()
+    private List<int> GetValidPositions(bool respectAdjust)
     {
-        if(IsAdjust)
+        if(respectAdjust && IsAdjust)
         {
-            return this.Positions.Keys.Where(x => !C.SelectedPositions.Contains(x) && x != 0).ToList();
+            return Positions.Keys.Where(x => !C.SelectedPositions.Contains(x) && x != 0).ToList();
         }
         else
         {
@@ -134,7 +137,7 @@ public class P3_Apocalypse : SplatoonScript
                 if(C.Priority.GetOwnIndex(x => Math.Abs(GetDebuffTime((IPlayerCharacter)x.IGameObject) - selfDebuffTime) < 1, true) == 1)
                 {
                     IsAdjust = true;
-                    var positionToAdjust = Positions[GetValidPositions()[2]];
+                    var positionToAdjust = Positions[GetValidPositions(true)[2]];
                     if(Controller.TryGetElementByName("Adjust", out var e))
                     {
                         e.Enabled = Player.DistanceTo(positionToAdjust) > 5;
@@ -144,7 +147,7 @@ public class P3_Apocalypse : SplatoonScript
             }
         }
 
-        if(Phase < 60000 && C.SelectedPositions.Count == 4 && this.NumDebuffs <= 2)
+        if(Phase < 60000 && C.SelectedPositions.Count == 4 && NumDebuffs <= 2)
         {
             var players = Svc.Objects.OfType<IPlayerCharacter>().Where(x => GetDebuffTime(x) > 0).ToArray();
             if(players.Length > 0)
@@ -155,7 +158,7 @@ public class P3_Apocalypse : SplatoonScript
                     var gaia = Svc.Objects.FirstOrDefault(x => x is IBattleNpc n && n.NameId == 9832 && n.IsTargetable);
                     if(gaia != null)
                     {
-                        var gaiaAngle = (180 + 360 - MathHelper.GetRelativeAngle(new(100, 0, 100), gaia.Position)) % 360 ;
+                        var gaiaAngle = (180 + 360 - MathHelper.GetRelativeAngle(new(100, 0, 100), gaia.Position)) % 360;
                         var a = -1;
                         if(C.IsLeftStack) a *= -1;
                         if(IsAdjust) a *= -1;
@@ -182,10 +185,10 @@ public class P3_Apocalypse : SplatoonScript
         {
             var rot = close.Rotation.RadToDeg();
             var angle = 0;
-            if(rot.InRange(22, 22 + 45) || rot.InRange(180 + 22, 180 + 22 + 45)) angle = 45*3;
-            if(rot.InRange(22 + 45, 22 + 45 * 2) || rot.InRange(180 + 22 + 45, 180 + 22 + 45 * 2)) angle = 45*2;
-            if(rot.InRange(22 + 45*2, 22 + 45 * 3) || rot.InRange(180 + 22 + 45*2, 180 + 22 + 45 * 3)) angle = 45;
-            var isClockwise = far.Rotation.RadToDeg().InRange(45,45+90);
+            if(rot.InRange(22, 22 + 45) || rot.InRange(180 + 22, 180 + 22 + 45)) angle = 45 * 3;
+            if(rot.InRange(22 + 45, 22 + 45 * 2) || rot.InRange(180 + 22 + 45, 180 + 22 + 45 * 2)) angle = 45 * 2;
+            if(rot.InRange(22 + 45 * 2, 22 + 45 * 3) || rot.InRange(180 + 22 + 45 * 2, 180 + 22 + 45 * 3)) angle = 45;
+            var isClockwise = far.Rotation.RadToDeg().InRange(45, 45 + 90);
             var set = isClockwise ? Clockwise : CounterClockwise;
             if(C.ShowInitialApocMove && Phase < 15000)
             {
@@ -199,13 +202,13 @@ public class P3_Apocalypse : SplatoonScript
                 }
             }
 
-            if(C.SelectedPositions.Count == 4 && Phase < 22000 && this.NumDebuffs == 4)
+            if(C.SelectedPositions.Count == 4 && Phase < 22000 && NumDebuffs == 4)
             {
                 Vector3[] candidates = [MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[isClockwise ? -4 : 2].ToVector3(0)), MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[isClockwise ? 4 : -2].ToVector3(0))];
-                int i = 0;
-                foreach(var x in GetValidPositions())
+                var i = 0;
+                foreach(var x in GetValidPositions(!C.OriginalSpreads))
                 {
-                    if(this.ShowDebug && Controller.TryGetElementByName($"Debug{i++}", out var d))
+                    if(ShowDebug && Controller.TryGetElementByName($"Debug{i++}", out var d))
                     {
                         d.Enabled = true;
                         d.SetRefPosition(Positions[x].ToVector3(0));
@@ -219,7 +222,7 @@ public class P3_Apocalypse : SplatoonScript
                             element.Enabled = Phase < C.TankDelayMS;
                             element.SetRefPosition(pos);
                             var adjustAngle = MathHelper.GetRelativeAngle(new Vector2(100f, 100f), pos.ToVector2());
-                            for(int s = 0; s < this.Spreads.Count; s++)
+                            for(var s = 0; s < Spreads.Count; s++)
                             {
                                 /*if(Controller.TryGetElementByName($"Spreads{s}", out var e))
                                 {
@@ -259,7 +262,7 @@ public class P3_Apocalypse : SplatoonScript
             }
             if(Phase > C.DelayMS)
             {
-                for(int i = 0; i < 6; i++)
+                for(var i = 0; i < 6; i++)
                 {
                     if(Phase < InitialDelay + Delay * i)
                     {
@@ -286,7 +289,7 @@ public class P3_Apocalypse : SplatoonScript
         }
     }
 
-    void ResolvePrio()
+    private void ResolvePrio()
     {
         if(C.SelectedPositions.Count != 4) return;
     }
@@ -302,6 +305,7 @@ public class P3_Apocalypse : SplatoonScript
         ImGuiEx.SliderIntAsFloat("Hide move guide and switch to tank bait guide at", ref C.TankDelayMS, 0, 30000);
         ImGui.Separator();
         ImGuiEx.Text($"If you want to resolve adjusts, safe spot and stack player, fill this fata");
+        ImGui.Checkbox("Original groups for Dark Eruption", ref C.OriginalSpreads);
         ImGuiEx.Text($"Select 4 safe spot positions for your default group");
         //-4  1  2
         //-3  0  3
@@ -335,9 +339,9 @@ public class P3_Apocalypse : SplatoonScript
             ImGui.Checkbox("Adjust", ref IsAdjust);
             ImGui.Checkbox("ShowDebug", ref ShowDebug);
             ImGuiEx.Text($"unadjusted: {C.SelectedPositions.Print()}");
-            ImGuiEx.Text($"Safe: {this.GetValidPositions().Print()}");
-            int i = 0;
-            foreach(var x in this.GetValidPositions())
+            ImGuiEx.Text($"Safe: {GetValidPositions(true).Print()}");
+            var i = 0;
+            foreach(var x in GetValidPositions(true))
             {
                 if(Controller.TryGetElementByName($"Debug{i++}", out var d))
                 {
@@ -349,9 +353,9 @@ public class P3_Apocalypse : SplatoonScript
         }
     }
 
-    bool ShowDebug = false;
+    private bool ShowDebug = false;
 
-    Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
     {
         public int DelayMS = 8000;
@@ -362,6 +366,7 @@ public class P3_Apocalypse : SplatoonScript
         public Priority4 Priority = new();
         public List<int> SelectedPositions = [];
         public bool IsLeftStack = false;
+        public bool OriginalSpreads = false;
     }
 
     public class Priority4 : PriorityData
@@ -372,7 +377,7 @@ public class P3_Apocalypse : SplatoonScript
         }
     }
 
-    float GetDebuffTime(IPlayerCharacter pc)
+    private float GetDebuffTime(IPlayerCharacter pc)
     {
         return pc.StatusList.FirstOrDefault(x => x.StatusId == 2461)?.RemainingTime ?? 0f;
     }

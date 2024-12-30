@@ -276,7 +276,7 @@ internal static class TabScripting
                             {
                                 P.Config.DisabledScripts.Add(script.InternalData.FullName);
                             }
-                            ScriptingProcessor.Scripts.ForEach(x => x.UpdateState());
+                            ScriptingProcessor.Scripts.Each(x => x.UpdateState());
                         }
                         ImGuiEx.Tooltip(e ? "Enable script".Loc() : "Disable script".Loc());
                     }
@@ -332,7 +332,7 @@ internal static class TabScripting
                             new TickScheduler(() =>
                             {
                                 script.Disable();
-                                ScriptingProcessor.Scripts = ScriptingProcessor.Scripts.Remove(script);
+                                ScriptingProcessor.RemoveScript(script);
                                 DeleteFileToRecycleBin(script.InternalData.Path);
                             });
                         }

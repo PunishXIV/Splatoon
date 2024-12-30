@@ -264,7 +264,7 @@ public class PriorityPopupWindow : Window
 
     public bool ShouldAutoOpen()
     {
-        return ScriptingProcessor.Scripts.Any(x => !x.IsDisabledByUser && x.InternalData.ContainsPriorityLists() && x.ValidTerritories?.Contains(this.TerritoryType) == true && !P.Config.NoPrioPopupTerritories.Contains(this.TerritoryType)) && !Svc.Condition[ConditionFlag.DutyRecorderPlayback];
+        return ScriptingProcessor.AnyScriptUsesPriority(this.TerritoryType) && !P.Config.NoPrioPopupTerritories.Contains(this.TerritoryType) && !Svc.Condition[ConditionFlag.DutyRecorderPlayback];
     }
 
     public void Open(bool force)

@@ -4,6 +4,7 @@ using ECommons.Events;
 using ECommons.EzEventManager;
 using ECommons.GameHelpers;
 using Splatoon.Gui.Priority;
+using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +34,7 @@ public class InfoBar : IDisposable
     {
         try
         {
-            Entry.Shown = true;
+            Entry.Shown = ScriptingProcessor.AnyScriptUsesPriority();
             var newRole = -1;
             if(P.PriorityPopupWindow?.Assignments != null)
             {

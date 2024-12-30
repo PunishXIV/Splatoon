@@ -380,7 +380,7 @@ public unsafe class Splatoon :IDalamudPlugin
         {
             ResetLayout(l);
         }
-        ScriptingProcessor.Scripts.ForEach(x => x.Controller.Layouts.Values.Each(ResetLayout));
+        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
         AttachedInfo.VFXInfos.Clear();
         Logger.OnTerritoryChanged();
         ScriptingProcessor.TerritoryChanged();
@@ -505,7 +505,7 @@ public unsafe class Splatoon :IDalamudPlugin
                                 ResetLayout(l);
                             }
                         }
-                        ScriptingProcessor.Scripts.ForEach(x => x.Controller.Layouts.Values.Each(ResetLayout));
+                        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
                     }
                 }
 
@@ -550,8 +550,8 @@ public unsafe class Splatoon :IDalamudPlugin
                     ProcessLayout(i);
                 }
 
-                ScriptingProcessor.Scripts.ForEach(x => { if(x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
-                ScriptingProcessor.Scripts.ForEach(x => { if(x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
+                ScriptingProcessor.Scripts.Each(x => { if(x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
+                ScriptingProcessor.Scripts.Each(x => { if(x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
                 foreach(var e in InjectedElements)
                 {
                     S.RenderManager.GetRenderer(e).ProcessElement(e);

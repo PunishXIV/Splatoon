@@ -361,8 +361,8 @@ internal static partial class ScriptingProcessor
                                                     if (previousVersion > 0)
                                                     {
                                                         instance.OnScriptUpdated(previousVersion);
-                                                        P.ScriptUpdateWindow.UpdatedScripts.RemoveAll(x => x.InternalData.FullName == instance.InternalData.FullName);
-                                                        P.ScriptUpdateWindow.UpdatedScripts.Add(instance);
+                                                        P.ScriptUpdateWindow.UpdatedScripts = P.ScriptUpdateWindow.UpdatedScripts.RemoveAll(x => x.InternalData.FullName == instance.InternalData.FullName);
+                                                        P.ScriptUpdateWindow.UpdatedScripts = P.ScriptUpdateWindow.UpdatedScripts.Add(instance);
                                                         PluginLog.Debug($"Detected version update for {instance}");
                                                     }
                                                     PluginLog.Debug($"Load success");
@@ -437,9 +437,9 @@ internal static partial class ScriptingProcessor
             if(!OpenedUpdateNotifyWindow)
             {
                 P.ScriptUpdateWindow.Open();
-                OpenedUpdateNotifyWindow = true;
             }
         }
+        OpenedUpdateNotifyWindow = true;
     }
 
     internal static void OnUpdate()

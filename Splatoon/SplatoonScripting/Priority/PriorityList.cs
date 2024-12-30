@@ -48,6 +48,14 @@ public class PriorityList
             }
         }
         ImGuiEx.Tooltip("Hold CTRL and click");
+        if(this.IsRole)
+        {
+            ImGui.SameLine();
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Users, "Edit Roles"))
+            {
+                P.PriorityPopupWindow.Open(true);
+            }
+        }
     }
 
     internal void Draw()

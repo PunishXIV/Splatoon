@@ -8,14 +8,17 @@ using ECommons.LanguageHelpers;
 using ECommons.PartyFunctions;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace Splatoon.Gui.Priority;
 #nullable enable
 public class PriorityPopupWindow : Window
 {
     public uint TerritoryType;
-    public List<JobbedPlayer> Assignments = [];
+    public readonly ObservableCollection<JobbedPlayer> Assignments = [];
     public static readonly IReadOnlyList<RolePosition> RolePositions = [RolePosition.T1,  RolePosition.T2, RolePosition.H1, RolePosition.H2, RolePosition.M1, RolePosition.M2, RolePosition.R1, RolePosition.R2,];
+    TickScheduler? UpdateScheduler;
     public static readonly IReadOnlyDictionary<RolePosition, string> NormalNames = new Dictionary<RolePosition, string>()
     {
         [RolePosition.Not_Selected] = "Not Selected",
@@ -48,6 +51,13 @@ public class PriorityPopupWindow : Window
         this.SetSizeConstraints(new(500, 100), new(500, float.MaxValue));
         this.ShowCloseButton = false;
         this.RespectCloseHotkey = false;
+        this.Assignments.CollectionChanged += Assignments_CollectionChanged;
+    }
+
+    private void Assignments_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        UpdateScheduler?.Dispose();
+        UpdateScheduler = new(() => S.InfoBar.Update(false));
     }
 
     public override void Draw()
@@ -124,6 +134,7 @@ public class PriorityPopupWindow : Window
             }
             ImGuiEx.Tooltip($"When you will join {ExcelTerritoryHelper.GetName(TerritoryType)} again with same players on same jobs, this priority list will be loaded again.");
         });
+        S.InfoBar.Update(false);
     }
 
     public void Save()
@@ -142,7 +153,7 @@ public class PriorityPopupWindow : Window
         }
         P.Config.RolePlayerAssignments.Add(new()
         {
-            Players = Assignments.JSONClone(),
+            Players = [.. Assignments.JSONClone()],
             Territory = this.TerritoryType
         });
         P.Config.Save();
@@ -159,7 +170,8 @@ public class PriorityPopupWindow : Window
         {
             var jobs = UniversalParty.MembersPlayback.OrderBy(x => GetOrderedRoleIndex(x.ClassJob)).Select(x => new JobbedPlayer() { Jobs = [x.ClassJob], Name = x.NameWithWorld }).ToList();
 
-            Assignments = [new(), new(), new(), new(), new(), new(), new(), new()];
+            Assignments.Clear();
+            Assignments.AddRange([new(), new(), new(), new(), new(), new(), new(), new()]);
 
             var preferred = P.Config.PreferredPositions.SafeSelect(Player.Job, RolePosition.Not_Selected);
             if(preferred != RolePosition.Not_Selected)
@@ -180,9 +192,9 @@ public class PriorityPopupWindow : Window
             var healers = jobs.Where(x => x.Jobs.FirstOrNull()?.IsHealer() == true).ToArray();
             var dps = jobs.Where(x => x.Jobs.FirstOrNull()?.IsDps() == true).ToArray();
 
-            var tankSlots = Assignments[..2].Count(x => x.Name == "");
-            var healerSlots = Assignments[2..4].Count(x => x.Name == "");
-            var dpsSlots = Assignments[4..].Count(x => x.Name == "");
+            var tankSlots = Assignments.ToArray()[..2].Count(x => x.Name == "");
+            var healerSlots = Assignments.ToArray()[2..4].Count(x => x.Name == "");
+            var dpsSlots = Assignments.ToArray()[4..].Count(x => x.Name == "");
 
             //normal composition
             foreach(var x in tanks)
@@ -231,6 +243,7 @@ public class PriorityPopupWindow : Window
                     }
                 }
             }
+            S.InfoBar.Update(false);
         });
     }
 
@@ -272,7 +285,8 @@ public class PriorityPopupWindow : Window
                     var ass = GetMatchingAssignment(this.TerritoryType);
                     if(ass != null)
                     {
-                        this.Assignments = ass.Players.JSONClone();
+                        this.Assignments.Clear();
+                        this.Assignments.AddRange(ass.Players.JSONClone());
                         ChatPrinter.Green($"[Splatoon] Priority assignments loaded for {ExcelTerritoryHelper.GetName(this.TerritoryType)}:\n{RolePositions.Select(x => $"{x}: {Assignments.SafeSelect(RolePositions.IndexOf(x)).GetNameAndJob()}").Print("\n")}");
                     }
                     open();

@@ -384,6 +384,7 @@ public unsafe class Splatoon :IDalamudPlugin
         AttachedInfo.VFXInfos.Clear();
         Logger.OnTerritoryChanged();
         ScriptingProcessor.TerritoryChanged();
+        S.InfoBar.Update(true);
     }
 
     static void ResetLayout(Layout l)

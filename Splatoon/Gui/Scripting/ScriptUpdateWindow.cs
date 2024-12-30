@@ -9,6 +9,7 @@ using ECommons.LanguageHelpers;
 using ECommons.PartyFunctions;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using System.Collections.Immutable;
 
 namespace Splatoon.Gui.Scripting;
 #nullable enable
@@ -20,8 +21,8 @@ public class ScriptUpdateWindow : Window
         this.RespectCloseHotkey = false;
     }
 
-    internal List<SplatoonScript> UpdatedScripts = [];
-    internal List<string> FailedScripts = [];
+    internal ImmutableList<SplatoonScript> UpdatedScripts = [];
+    internal ImmutableList<string> FailedScripts = [];
 
     public override void Draw()
     {
@@ -35,27 +36,34 @@ public class ScriptUpdateWindow : Window
 
                 foreach(var x in UpdatedScripts)
                 {
-                    ImGui.PushID(x.InternalData.FullName);
-                    ImGui.TableNextRow();
-                    ImGui.TableNextColumn();
-                    ImGui.AlignTextToFramePadding();
-                    ImGuiEx.TextWrapped($"{x.InternalData.FullName} - v{x.Metadata?.Version ?? 0}");
-                    var change = x.Changelog?.SafeSelect((int?)x.Metadata?.Version ?? 0);
-                    if(change != null)
+                    ImGui.PushID(x.InternalData?.FullName ?? $"{x}");
+                    try
                     {
-                        ImGui.Indent();
-                        ImGuiEx.TextWrapped(ImGuiColors.DalamudGrey, change);
-                        ImGui.Unindent();
-                    }
-                    ImGui.TableNextColumn();
-                    if(ImGuiEx.IconButton(FontAwesomeIcon.Cog))
-                    {
-                        P.ConfigGui.Open = true;
-                        P.ConfigGui.TabRequest = "Scripts".Loc();
-                        Svc.Framework.RunOnTick(() =>
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.AlignTextToFramePadding();
+                        ImGuiEx.TextWrapped($"{x.InternalData?.FullName} - v{x.Metadata?.Version ?? 0}");
+                        var change = x.Changelog?.SafeSelect((int?)x.Metadata?.Version ?? 0);
+                        if(change != null)
                         {
-                            TabScripting.RequestOpen = x.InternalData.FullName;
-                        }, delayTicks:2);
+                            ImGui.Indent();
+                            ImGuiEx.TextWrapped(ImGuiColors.DalamudGrey, change);
+                            ImGui.Unindent();
+                        }
+                        ImGui.TableNextColumn();
+                        if(ImGuiEx.IconButton(FontAwesomeIcon.Cog))
+                        {
+                            P.ConfigGui.Open = true;
+                            P.ConfigGui.TabRequest = "Scripts".Loc();
+                            Svc.Framework.RunOnTick(() =>
+                            {
+                                TabScripting.RequestOpen = x.InternalData.FullName;
+                            }, delayTicks: 2);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        e.Log();
                     }
                     ImGui.PopID();
                 }
@@ -103,7 +111,7 @@ public class ScriptUpdateWindow : Window
 
     public void Reset()
     {
-        this.UpdatedScripts.Clear();
-        this.FailedScripts.Clear();
+        UpdatedScripts = [];
+        FailedScripts = [];
     }
 }

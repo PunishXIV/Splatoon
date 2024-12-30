@@ -89,6 +89,7 @@ internal class Configuration : IEzConfig
     public List<string> FileWatcherPathes = [];
     public bool UseServerBar = true;
     public Dictionary<Job, RolePosition> PreferredPositions = [];
+    public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

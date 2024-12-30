@@ -42,10 +42,9 @@ public class ScriptFileWatcher : IDisposable
                     NotifyFilter = NotifyFilters.Attributes |
                     NotifyFilters.CreationTime |
                     NotifyFilters.FileName |
-                    NotifyFilters.LastAccess |
                     NotifyFilters.LastWrite |
                     NotifyFilters.Size |
-                    NotifyFilters.Security,
+                    NotifyFilters.Security, 
                     EnableRaisingEvents = true
                 };
                 watcher.Created += Watcher_Created;

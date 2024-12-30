@@ -132,6 +132,8 @@ partial class CGui
                 {
                     DalamudReflector.SetDtrEntryState(InfoBar.EntryName, state);
                 }
+                ImGui.SetNextItemWidth(150f);
+                ImGuiEx.EnumCombo("Priority assignment auto-loading notification", ref P.Config.ScriptPriorityNotification);
                 ImGuiEx.TreeNodeCollapsingHeader("Preferred Role Assignments", () =>
                 {
                     ImGuiEx.Text($"Select role assignments that you would like to assigned to yourself via autofill function");
@@ -161,6 +163,51 @@ partial class CGui
                         ImGuiEx.TextV(j.ToString());
                         ImGui.PopID();
                     }
+                });
+                ImGuiEx.TreeNodeCollapsingHeader("Edit saved priority lists", () =>
+                {
+                    Dictionary<uint, List<RolePlayerAssignment>> dict = [];
+                    foreach(var x in P.Config.RolePlayerAssignments)
+                    {
+                        if(!dict.TryGetValue(x.Territory, out var list))
+                        {
+                            list = new();
+                            dict[x.Territory] = list;
+                        }
+                        list.Add(x);
+                    }
+                    foreach(var x in dict)
+                    {
+                        ImGui.PushID(x.Key.ToString());
+                        ImGuiEx.TreeNodeCollapsingHeader($"{ExcelTerritoryHelper.GetName(x.Key)} - {x.Value.Count} assignments###edit{x.Key}", () =>
+                        {
+                            if(ImGui.BeginTable($"PrioTable{x.Key}", 2, ImGuiEx.DefaultTableFlags))
+                            {
+                                ImGui.TableSetupColumn("1", ImGuiTableColumnFlags.WidthStretch);
+                                ImGui.TableSetupColumn("2");
+
+                                foreach(var a in x.Value)
+                                {
+                                    ImGui.PushID(a.ToString());
+                                    ImGui.TableNextRow();
+                                    ImGui.TableNextColumn();
+                                    var lst = a.Players.Select(p => $"{PriorityPopupWindow.ConfiguredNames.SafeSelect(PriorityPopupWindow.RolePositions.SafeSelect(a.Players.IndexOf(p)))}: {p.Name}{(p.Jobs.Count > 0 ? $" - {p.Jobs.Print()}" : "")}");
+                                    ImGuiEx.TextV($"{lst.Print()}");
+                                    ImGuiEx.Tooltip(lst.Print("\n"));
+                                    ImGui.TableNextColumn();
+                                    if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
+                                    {
+                                        new TickScheduler(() => P.Config.RolePlayerAssignments.Remove(a));
+                                    }
+                                    ImGui.PopID();
+                                }
+
+                                ImGui.EndTable();
+                            }
+                        });
+                        ImGui.PopID();
+                    }
+                    
                 });
             })
 

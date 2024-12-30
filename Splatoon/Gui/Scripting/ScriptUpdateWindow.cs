@@ -21,8 +21,16 @@ public class ScriptUpdateWindow : Window
         this.RespectCloseHotkey = false;
     }
 
-    internal ImmutableList<SplatoonScript> UpdatedScripts = [];
-    internal ImmutableList<string> FailedScripts = [];
+    private volatile ImmutableList<SplatoonScript> UpdatedScripts = [];
+    private volatile ImmutableList<string> FailedScripts = [];
+
+    public void UpdatedScripts_Add(SplatoonScript s) => UpdatedScripts = UpdatedScripts.Add(s);
+    public void UpdatedScripts_RemoveAll(Predicate<SplatoonScript> predicate) => UpdatedScripts = UpdatedScripts.RemoveAll(predicate);
+    public int UpdatedScripts_Count() => UpdatedScripts.Count;
+
+    public void FailedScripts_Add(string s) => FailedScripts = FailedScripts.Add(s);
+    public void FailedScripts_Remove(string s) => FailedScripts = FailedScripts.Remove(s);
+    public int FailedScripts_Count() => FailedScripts.Count;
 
     public override void Draw()
     {

@@ -13,11 +13,12 @@ using System.Threading.Tasks;
 namespace Splatoon.Services;
 public class InfoBar : IDisposable
 {
+    public static readonly string EntryName = "SplatoonPriority";
     private int CurrentRole = -1;
     private IDtrBarEntry Entry;
     private InfoBar()
     {
-        Entry = Svc.DtrBar.Get("SplatoonPriority", "");
+        Entry = Svc.DtrBar.Get(EntryName, "");
         Entry.OnClick = () => P.PriorityPopupWindow.Open(true);
         Entry.Tooltip = "Edit Splatoon priority";
         ProperOnLogin.RegisterAvailable(() => Update(true), true);
@@ -30,26 +31,33 @@ public class InfoBar : IDisposable
 
     public void Update(bool force)
     {
-        Entry.Shown = true;
-        var newRole = -1;
-        if(P.PriorityPopupWindow?.Assignments != null)
+        try
         {
-            for(var i = 0; i < P.PriorityPopupWindow.Assignments.Count; i++)
+            Entry.Shown = true;
+            var newRole = -1;
+            if(P.PriorityPopupWindow?.Assignments != null)
             {
-                var ass = P.PriorityPopupWindow.Assignments[i];
-                if(ass.IsInParty(false, out var m) && m.NameWithWorld == Player.NameWithWorld)
+                for(var i = 0; i < P.PriorityPopupWindow.Assignments.Count; i++)
                 {
-                    newRole = i;
-                    break;
+                    var ass = P.PriorityPopupWindow.Assignments[i];
+                    if(ass.IsInParty(false, out var m) && m.NameWithWorld == Player.NameWithWorld)
+                    {
+                        newRole = i;
+                        break;
+                    }
                 }
-            }
 
+            }
+            if(force || newRole != CurrentRole)
+            {
+                PluginLog.Debug($"Role change: {CurrentRole}");
+                CurrentRole = newRole;
+                UpdateText();
+            }
         }
-        if(force || newRole != CurrentRole)
+        catch(Exception e)
         {
-            PluginLog.Debug($"Role change: {CurrentRole}");
-            CurrentRole = newRole;
-            UpdateText();
+            e.Log();
         }
     }
 

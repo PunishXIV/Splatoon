@@ -28,7 +28,6 @@ internal static partial class ScriptingProcessor
     internal static ImmutableList<BlacklistData> Blacklist = ImmutableList<BlacklistData>.Empty;
     internal static volatile bool UpdateCompleted = false;
     internal static List<string> ForceUpdate = [];
-    internal static volatile bool OpenedUpdateNotifyWindow = false;
 
     internal static string ExtractNamespaceFromCode(string code)
     {
@@ -153,7 +152,7 @@ internal static partial class ScriptingProcessor
                 foreach(var x in Updates)
                 {
                     PluginLog.Information($"Downloading script from {x}");
-                    BlockingDownloadScript(x);
+                    BlockingDownloadScript(x, true);
                 }
             }
             catch(Exception e)
@@ -177,22 +176,22 @@ internal static partial class ScriptingProcessor
         return url.StartsWithAny(TrustedURLs, StringComparison.OrdinalIgnoreCase);
     }
 
-    internal static void DownloadScript(string url)
+    internal static void DownloadScript(string url, bool isFirst)
     {
         Task.Run(delegate
         {
-            BlockingDownloadScript(url);
+            BlockingDownloadScript(url, isFirst);
         });
 
         Notify.Info("Downloading script from trusted URL...".Loc());
     }
 
-    static void BlockingDownloadScript(string url)
+    static void BlockingDownloadScript(string url, bool isFirst)
     {
         try
         {
             var result = P.HttpClient.GetStringAsync(url).Result;
-            CompileAndLoad(result, null);
+            CompileAndLoad(result, null, isFirst);
         }
         catch(Exception e)
         {
@@ -203,7 +202,6 @@ internal static partial class ScriptingProcessor
     internal static void ReloadAll()
     {
         P.ScriptUpdateWindow.Reset();
-        OpenedUpdateNotifyWindow = false;
         if(ThreadIsRunning)
         {
             DuoLog.Error("Can not reload yet, please wait");
@@ -219,7 +217,7 @@ internal static partial class ScriptingProcessor
         }
         foreach(var f in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
         {
-            CompileAndLoad(File.ReadAllText(f, Encoding.UTF8), f);
+            CompileAndLoad(File.ReadAllText(f, Encoding.UTF8), f, true);
         }
     }
 
@@ -232,10 +230,10 @@ internal static partial class ScriptingProcessor
         }
         s.Disable();
         Scripts = Scripts.Remove(s);
-        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
+        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, false);
     }
 
-    internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts)
+    internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts, bool isFirst)
     {
         if(ThreadIsRunning)
         {
@@ -246,11 +244,11 @@ internal static partial class ScriptingProcessor
         {
             s.Disable();
             Scripts = Scripts.Remove(s);
-            CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
+            CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, isFirst);
         }
     }
 
-    internal static void CompileAndLoad(string sourceCode, string fpath)
+    internal static void CompileAndLoad(string sourceCode, string fpath, bool isFirst)
     {
         PluginLog.Debug($"Requested script loading");
         LoadScriptQueue.Enqueue((sourceCode, fpath));
@@ -361,12 +359,12 @@ internal static partial class ScriptingProcessor
                                                     if (previousVersion > 0)
                                                     {
                                                         instance.OnScriptUpdated(previousVersion);
-                                                        P.ScriptUpdateWindow.UpdatedScripts = P.ScriptUpdateWindow.UpdatedScripts.RemoveAll(x => x.InternalData.FullName == instance.InternalData.FullName);
-                                                        P.ScriptUpdateWindow.UpdatedScripts = P.ScriptUpdateWindow.UpdatedScripts.Add(instance);
+                                                        P.ScriptUpdateWindow.UpdatedScripts_RemoveAll(x => x.InternalData.FullName == instance.InternalData.FullName);
+                                                        P.ScriptUpdateWindow.UpdatedScripts_Add(instance);
                                                         PluginLog.Debug($"Detected version update for {instance}");
                                                     }
                                                     PluginLog.Debug($"Load success");
-                                                    if(fpath != null) P.ScriptUpdateWindow.FailedScripts.Remove(fpath);
+                                                    if(fpath != null) P.ScriptUpdateWindow.FailedScripts_Remove(fpath);
                                                     instance.UpdateState();
                                                 }
                                             }
@@ -384,7 +382,7 @@ internal static partial class ScriptingProcessor
                                     {
                                         Svc.Framework.RunOnFrameworkThread(() =>
                                         {
-                                            P.ScriptUpdateWindow.FailedScripts.Add(fpath);
+                                            P.ScriptUpdateWindow.FailedScripts_Add(fpath);
                                         });
                                     }
                                 }
@@ -424,22 +422,18 @@ internal static partial class ScriptingProcessor
                     }
                     PluginLog.Debug($"Update finished");
                 }
-                OpenUpdatePopupIfNeeded();
+                if(isFirst) OpenUpdatePopupIfNeeded();
             }).Start();
         }
     }
 
     internal static void OpenUpdatePopupIfNeeded()
     {
-        PluginLog.Information("Script updates now finished");
-        if(P.ScriptUpdateWindow.FailedScripts.Count > 0 || P.ScriptUpdateWindow.UpdatedScripts.Count > 0)
+        PluginLog.Information($"Script updates now finished {P.ScriptUpdateWindow.FailedScripts_Count()}/{P.ScriptUpdateWindow.UpdatedScripts_Count()}");
+        if(P.ScriptUpdateWindow.FailedScripts_Count() > 0 || P.ScriptUpdateWindow.UpdatedScripts_Count() > 0)
         {
-            if(!OpenedUpdateNotifyWindow)
-            {
-                P.ScriptUpdateWindow.Open();
-            }
+            P.ScriptUpdateWindow.Open();
         }
-        OpenedUpdateNotifyWindow = true;
     }
 
     internal static void OnUpdate()

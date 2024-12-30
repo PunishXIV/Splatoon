@@ -27,8 +27,9 @@ internal static class TabScripting
         }
         var force = ForceUpdate;
         if(ImGui.Checkbox($"Force Update".Loc(), ref force)) ForceUpdate = force;
+        ImGuiEx.Tooltip("Enable this checkbox and click \"Reload and Update\" button to forcibly redownload all scripts, even should they have no updates, that were installed from the Internet.");
         ImGui.SameLine();
-        if(ImGui.Button("Clear cache, rescan directory and reload all scripts".Loc()))
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Undo, "Reload and Update".Loc()))
         {
             var dir = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "ScriptCache");
             foreach(var x in Directory.GetFiles(dir))
@@ -41,19 +42,21 @@ internal static class TabScripting
             }
             ScriptingProcessor.ReloadAll();
         }
+        ImGuiEx.Tooltip("Clears cache, recompiles and reloads all scripts and checks them for updates immediately.");
         ImGui.SameLine();
-        if(ImGui.Button("Install from clipboard (code or trusted URL)".Loc()))
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Install from Clipboard".Loc()))
         {
             var text = ImGui.GetClipboardText();
             if (ScriptingProcessor.IsUrlTrusted(text))
             {
-                ScriptingProcessor.DownloadScript(text);
+                ScriptingProcessor.DownloadScript(text, false);
             }
             else 
             {
-                ScriptingProcessor.CompileAndLoad(text, null);
+                ScriptingProcessor.CompileAndLoad(text, null, false);
             }
         }
+        ImGuiEx.Tooltip("Installs script from clipboard. Your clipboard should contain either code of the script or link to a trusted URL (a script from Splatoon repository)");
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2.05f);
         ImGui.InputTextWithHint("##search", "Search...", ref Search, 50);
         ImGui.SameLine();
@@ -111,7 +114,7 @@ internal static class TabScripting
             }
             if(toReload.Count > 0)
             {
-                ScriptingProcessor.ReloadScripts(toReload);
+                ScriptingProcessor.ReloadScripts(toReload, false);
             }
             ImGui.EndCombo();
         }

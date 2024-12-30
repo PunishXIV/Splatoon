@@ -3,6 +3,7 @@ using Dalamud.Interface.Components;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
+using ECommons.Reflection;
 using NightmareUI;
 using NightmareUI.PrimaryUI;
 using Splatoon.Gui.Priority;
@@ -126,6 +127,11 @@ partial class CGui
             .Widget(() =>
             {
                 ImGui.Checkbox("Disable script cache".Loc(), ref p.Config.DisableScriptCache);
+                var state = DalamudReflector.GetDtrEntryState(InfoBar.EntryName);
+                if(ImGui.Checkbox("Enable info bar priority indicator", ref state))
+                {
+                    DalamudReflector.SetDtrEntryState(InfoBar.EntryName, state);
+                }
                 ImGuiEx.TreeNodeCollapsingHeader("Preferred Role Assignments", () =>
                 {
                     ImGuiEx.Text($"Select role assignments that you would like to assigned to yourself via autofill function");

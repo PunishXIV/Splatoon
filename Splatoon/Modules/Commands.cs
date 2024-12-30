@@ -108,10 +108,13 @@ class Commands : IDisposable
             }
         })
         {
-            HelpMessage = "open Splatoon configuration menu \n" +
-            "/splatoon toggle <PresetName> → toggle specified preset \n" +
-            "/splatoon disable <PresetName> → disable specified preset \n" +
-            "/splatoon enable <PresetName> → enable specified preset"
+            HelpMessage = """
+            open Splatoon configuration menu 
+            /splatoon toggle <PresetName> → toggle specified preset 
+            /splatoon disable <PresetName> → disable specified preset 
+            /splatoon enable <PresetName> → enable specified preset
+            /splatoon p → open script priority editor
+            """
         });
 
         Svc.Commands.AddHandler("/sf", new CommandInfo(delegate (string command, string args)

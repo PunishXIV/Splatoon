@@ -60,7 +60,7 @@ internal class Compiler
             }
             Svc.Framework.RunOnFrameworkThread(() =>
             {
-                P.ScriptUpdateWindow.FailedScripts.Add(path);
+                P.ScriptUpdateWindow.FailedScripts_Add(path);
             }).Wait();
 
             return null;

@@ -93,7 +93,7 @@ public class ScriptFileWatcher : IDisposable
                             {
                                 PluginLog.Information($"Auto-reloading {script.InternalData.FullName} from {e.FullPath}");
                                 ChatPrinter.Green($"Auto-reloading script {script.InternalData.Name}");
-                                ScriptingProcessor.CompileAndLoad(text, script.InternalData.Path);
+                                ScriptingProcessor.CompileAndLoad(text, script.InternalData.Path, false);
                             }
                         }
                     }

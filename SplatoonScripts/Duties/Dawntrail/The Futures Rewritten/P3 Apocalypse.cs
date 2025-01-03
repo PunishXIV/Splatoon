@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(7, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(8, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
 
@@ -39,6 +39,7 @@ public class P3_Apocalypse : SplatoonScript
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
 
     private List<Vector2> Spreads = [new(106, 81.5f), new(100, 90.5f), new(96, 81), new(93, 93.5f)];
+    private List<Vector2> SpreadsInverted = [new(100-6, 81.5f), new(100, 90.5f), new(100+4, 81), new(100+7, 93.5f)];
     private Dictionary<int, Vector2> Positions = new()
     {
         [0] = new(100, 100),
@@ -224,12 +225,12 @@ public class P3_Apocalypse : SplatoonScript
                             var adjustAngle = MathHelper.GetRelativeAngle(new Vector2(100f, 100f), pos.ToVector2());
                             for(var s = 0; s < Spreads.Count; s++)
                             {
-                                /*if(Controller.TryGetElementByName($"Spreads{s}", out var e))
+                                if(Controller.TryGetElementByName($"Spreads{s}", out var e))
                                 {
                                     e.Enabled = true;
-                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), Spreads[s].ToVector3(0));
+                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (isClockwise? Spreads: SpreadsInverted)[s].ToVector3(0));
                                     e.SetRefPosition(adjPos);
-                                }*/
+                                }
                             }
                         }
 

@@ -43,7 +43,7 @@ public class PriorityList
             }
             catch(Exception e)
             {
-                PluginLog.Error(e.ToString());
+                PluginLog.Error(e.ToStringFull());
                 DuoLog.Error(e.Message);
             }
         }

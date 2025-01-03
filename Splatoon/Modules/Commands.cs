@@ -45,7 +45,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("disable "))
@@ -57,7 +57,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("toggle "))
@@ -69,7 +69,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("settarget "))
@@ -93,7 +93,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("floodchat "))
@@ -207,7 +207,7 @@ class Commands : IDisposable
         catch (Exception e)
         {
             p.Log(e.Message, true);
-            p.Log(e.StackTrace);
+            p.Log(e.ToStringFull());
         }
     }
 

@@ -336,7 +336,7 @@ public unsafe class Splatoon :IDalamudPlugin
                 {
                     Log("Critical error occurred while starting HTTP server.".Loc(), true);
                     Log(e.Message, true);
-                    Log(e.StackTrace);
+                    Log(e.ToStringFull());
                     HttpServer = null;
                 }
             }
@@ -603,7 +603,7 @@ public unsafe class Splatoon :IDalamudPlugin
         catch(Exception e)
         {
             Log("Caught exception: " + e.Message);
-            Log(e.StackTrace);
+            Log(e.ToStringFull());
         }
     }
 

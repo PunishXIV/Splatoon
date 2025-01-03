@@ -144,7 +144,7 @@ unsafe partial class CGui:IDisposable
             catch(Exception ex)
             {
                 ex.Log();
-                ImGuiEx.Text(ImGuiColors.DalamudRed, $"Error: {ex.Message}\n{ex.StackTrace}");
+                ImGuiEx.Text(ImGuiColors.DalamudRed, $"Error: {ex.ToStringFull()}");
             }
         }
         ImGui.PopStyleVar();

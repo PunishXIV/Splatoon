@@ -194,8 +194,7 @@ internal class Configuration : IEzConfig
             {
                 plugin.tickScheduler.Enqueue(delegate
                 {
-                    plugin.Log("Failed to create backup: " + e.Message, true);
-                    plugin.Log(e.StackTrace, true);
+                    plugin.Log("Failed to create backup: " + e.ToStringFull(), true);
                 });
             }
             ZipSemaphore.Release();

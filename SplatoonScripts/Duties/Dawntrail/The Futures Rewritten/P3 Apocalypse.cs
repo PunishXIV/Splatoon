@@ -31,8 +31,7 @@ public class P3_Apocalypse : SplatoonScript
     public override Dictionary<int, string> Changelog => new()
     {
         [(int)Metadata!.Version] = """
-            - Temporarily disabled spread grid, has some issues.
-            - Added an option to point to original group for Dark eruption spreads.
+            - Reenabled and fixed spread grid.
             """,
     };
 

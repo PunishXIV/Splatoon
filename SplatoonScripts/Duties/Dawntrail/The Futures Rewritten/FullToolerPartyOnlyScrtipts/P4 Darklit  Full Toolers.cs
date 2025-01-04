@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
+using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -11,7 +12,6 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +31,7 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         AvoidAkhRhai,
         DarklitReady,
         tower,
+        split,
         HalfCutStack,
         MTAttack
     }
@@ -42,14 +43,14 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
     /********************************************************************/
     public class Config :IEzConfig
     {
-        public bool NorthSwap = false;
-        public PriorityData Priority = new();
+        public float FastCheatDefault = 1.0f;
+        public float FastCheat = 1.5f;
     }
 
     private class PartyData
     {
         public int Index { get; set; }
-        public bool Mine => this.EntityId == Player.Object.EntityId;
+        public bool Mine = false;
         public uint EntityId;
         public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject()! ?? null;
         public uint TetherPairId1 = 0;
@@ -57,18 +58,21 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         public DirectionCalculator.Direction TowerDirection = DirectionCalculator.Direction.None;
         public int ConeIndex = 0;
         public bool IsStack = false;
+        public Vector3 SplitPos = Vector3.Zero;
 
         public bool IsTank => TankJobs.Contains(Object?.GetJob() ?? Job.WHM);
         public bool IsHealer => HealerJobs.Contains(Object?.GetJob() ?? Job.PLD);
         public bool IsTH => IsTank || IsHealer;
         public bool IsMeleeDps => MeleeDpsJobs.Contains(Object?.GetJob() ?? Job.MCH);
         public bool IsRangedDps => RangedDpsJobs.Contains(Object?.GetJob() ?? Job.MNK);
-        public bool IsDps => IsMeleeDps || IsRangedDps;
+        public bool IsMagicDps => MagicDpsJobs.Contains(Object?.GetJob() ?? Job.WHM);
+        public bool IsDps => IsMeleeDps || IsRangedDps || IsMagicDps;
 
         public PartyData(uint entityId, int index)
         {
             EntityId = entityId;
             Index = index;
+            Mine = entityId == Player.Object.EntityId;
         }
     }
     #endregion
@@ -77,6 +81,18 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
     /********************************************************************/
     /* const                                                            */
     /********************************************************************/
+    private readonly List<(DirectionCalculator.Direction, Vector3)> vector3List =
+        new List<(DirectionCalculator.Direction, Vector3)>
+    {
+        (DirectionCalculator.Direction.North, new Vector3(96f, 0f, 95f)),
+        (DirectionCalculator.Direction.North, new Vector3(104f, 0f, 95f)),
+        (DirectionCalculator.Direction.East, new Vector3(110f, 0f, 102f)),
+        (DirectionCalculator.Direction.East, new Vector3(110f, 0f, 110f)),
+        (DirectionCalculator.Direction.West, new Vector3(90f, 0f, 102f)),
+        (DirectionCalculator.Direction.West, new Vector3(90f, 0f, 110f)),
+        (DirectionCalculator.Direction.South, new Vector3(96f, 0f, 115f)),
+        (DirectionCalculator.Direction.South, new Vector3(104f, 0f, 115f)),
+    };
     #endregion
 
     #region public properties
@@ -84,7 +100,7 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "redmoon");
+    public override Metadata? Metadata => new(12, "redmoon");
     #endregion
 
     #region private properties
@@ -120,9 +136,11 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40300)
+        if (castId == 40246)
         {
             SetListEntityIdByJob();
+            //_partyDataList.Each(x => x.Mine = false);
+            //_partyDataList[6].Mine = true;
             HideAllElements();
             ShowAkhRhaiReadyGuide(source);
             _state = State.AkhRhai;
@@ -173,6 +191,13 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
             HideAllElements();
         }
 
+        if (castId == 40213 && _state == State.tower)
+        {
+            HideAllElements();
+            _state = State.split;
+            ShowSplit();
+        }
+
         if (castId is 40227 or 40228)
         {
             HideAllElements();
@@ -207,6 +232,12 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         _akhRhaiCount = 0;
         _wing = "";
         HideAllElements();
+        _partyDataList.Clear();
+        if (Player.Job == Job.DRK)
+        {
+            var C = Controller.GetConfig<Config>();
+            Chat.Instance.ExecuteCommand($"/pdrspeed {C.FastCheatDefault}");
+        }
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
@@ -235,6 +266,10 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        var C = Controller.GetConfig<Config>();
+        ImGui.SliderFloat("FastCheat", ref C.FastCheat, 1.0f, 1.5f);
+        ImGui.SliderFloat("FastCheatDefault", ref C.FastCheatDefault, 1.0f, 1.5f);
+
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
@@ -249,8 +284,15 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
                 Entries.Add(new ImGuiEx.EzTableEntry("TetherPairId2", true, () => ImGui.Text(x.TetherPairId2.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("TowerDirection", true, () => ImGui.Text(x.TowerDirection.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("ConeIndex", true, () => ImGui.Text(x.ConeIndex.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("SplitPos", true, () => ImGui.Text(x.SplitPos.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("IsStack", true, () => ImGui.Text(x.IsStack.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("IsTank", true, () => ImGui.Text(x.IsTank.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsHealer", true, () => ImGui.Text(x.IsHealer.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsTH", true, () => ImGui.Text(x.IsTH.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsMeleeDps", true, () => ImGui.Text(x.IsMeleeDps.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsRangedDps", true, () => ImGui.Text(x.IsRangedDps.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsMagicDps", true, () => ImGui.Text(x.IsMagicDps.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsDps", true, () => ImGui.Text(x.IsDps.ToString())));
 
             }
             ImGuiEx.EzTable(Entries);
@@ -270,10 +312,10 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
 
         DirectionCalculator.Direction direction = DirectionCalculator.DividePoint(obj.Position, 10);
 
-        var angle = DirectionCalculator.GetAngle(direction) + ((pc.Index == 0) ? -30 : 30);
+        var angle = DirectionCalculator.GetAngle(direction) + ((pc.Index == 0) ? -45 : 45);
 
-        if (pc.Index == 0) ApplyElement("Bait", angle, 12);
-        else ApplyElement("Bait", angle, 12);
+        if (pc.Index == 0) ApplyElement("Bait", angle, 10);
+        else ApplyElement("Bait", angle, 10);
     }
 
     private void ShowAvoidAkhRhaiGuide() => ApplyElement("Bait", DirectionCalculator.Direction.North, 0);
@@ -332,6 +374,61 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         }
     }
 
+    private void ShowSplit()
+    {
+        Vector3 anothernorth = Vector3.Zero;
+        Vector3 anothersouth = Vector3.Zero;
+        foreach (var pc in _partyDataList)
+        {
+            if (pc.SplitPos != Vector3.Zero) continue;
+            if (pc.TetherPairId1 == 0)
+            {
+                pc.SplitPos = pc.ConeIndex switch
+                {
+                    1 => vector3List[2].Item2,
+                    2 => vector3List[3].Item2,
+                    4 => vector3List[4].Item2,
+                    3 => vector3List[5].Item2,
+                    _ => Vector3.Zero
+                };
+            }
+        }
+
+        var northes = _partyDataList.Where(x => x.TowerDirection == DirectionCalculator.Direction.North && x.TetherPairId1 != 0).ToList();
+        if (northes.Count() != 2) return;
+
+        if (northes[0].Object.Position.X < northes[1].Object.Position.X)
+        {
+            northes[0].SplitPos = vector3List[0].Item2;
+            northes[1].SplitPos = vector3List[1].Item2;
+        }
+        else
+        {
+            northes[1].SplitPos = vector3List[0].Item2;
+            northes[0].SplitPos = vector3List[1].Item2;
+        }
+
+        var souths = _partyDataList.Where(x => x.TowerDirection == DirectionCalculator.Direction.South && x.TetherPairId1 != 0).ToList();
+        if (souths.Count() != 2) return;
+
+        // vector3Listの6,7の内もっとも近い方を取得
+        if (souths[0].Object.Position.X < souths[1].Object.Position.X)
+        {
+            souths[0].SplitPos = vector3List[6].Item2;
+            souths[1].SplitPos = vector3List[7].Item2;
+        }
+        else
+        {
+            souths[1].SplitPos = vector3List[6].Item2;
+            souths[0].SplitPos = vector3List[7].Item2;
+        }
+
+        var p = GetMinedata();
+        if (p == null) return;
+
+        ApplyElement("Bait", p.SplitPos);
+    }
+
     private void ShowHalfCutStack()
     {
         if (_wing == "") return;
@@ -339,12 +436,21 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         var pc = GetMinedata();
         if (pc == null) return;
 
-        float northCorrectionAngle = (_wing == "Left") ? 35 : -35;
-        float southCorrectionAngle = (_wing == "Left") ? -35 : 35;
+        if (pc.Index == 0)
+        {
+            var C = Controller.GetConfig<Config>();
+            Chat.Instance.ExecuteCommand($"/pdrspeed {C.FastCheat}");
+        }
 
-        ApplyElement(
-            "Bait", DirectionCalculator.GetAngle(pc.TowerDirection) +
-                ((pc.TowerDirection == DirectionCalculator.Direction.North) ? northCorrectionAngle : southCorrectionAngle), 5f);
+        float Xoffset = (_wing == "Left") ? 2f : -2f;
+        if (pc.TowerDirection == DirectionCalculator.Direction.North)
+        {
+            ApplyElement("Bait", new Vector3(100f + Xoffset, 0, 95f));
+        }
+        else
+        {
+            ApplyElement("Bait", new Vector3(100f + Xoffset, 0, 115f));
+        }
     }
 
     private void ShowMTAttack()
@@ -352,9 +458,38 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         var pc = GetMinedata();
         if (pc == null) return;
 
-        ApplyElement("Bait", DirectionCalculator.Direction.East, 19f);
-    }
+        if (pc.Index == 0)
+        {
+            var posEast = new Vector3(100, 0, 100) + (19f * new Vector3(
+                MathF.Cos(MathF.PI * DirectionCalculator.GetAngle(DirectionCalculator.Direction.East) / 180f), 0, MathF.Sin(MathF.PI * 0 / 180f)));
+            var posWest = new Vector3(100, 0, 100) + (19f * new Vector3(
+                MathF.Cos(MathF.PI * DirectionCalculator.GetAngle(DirectionCalculator.Direction.West) / 180f), 0, MathF.Sin(MathF.PI * 0 / 180f)));
+            var disEast = Vector3.Distance(Player.Object.Position, posEast);
+            var disWest = Vector3.Distance(Player.Object.Position, posWest);
 
+            // 短い方に誘導する
+            if (disEast < disWest)
+            {
+                ApplyElement("Bait", DirectionCalculator.Direction.East, 19f);
+            }
+            else
+            {
+                ApplyElement("Bait", DirectionCalculator.Direction.West, 19f);
+            }
+        }
+        else
+        {
+            float Xoffset = (_wing == "Left") ? 2f : -2f;
+            if (pc.TowerDirection == DirectionCalculator.Direction.North)
+            {
+                ApplyElement("Bait", new Vector3(100f + Xoffset, 0, 95f));
+            }
+            else
+            {
+                ApplyElement("Bait", new Vector3(100f + Xoffset, 0, 115f));
+            }
+        }
+    }
 
     private bool ParseTether()
     {
@@ -384,42 +519,31 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         // 線付きヒラは北確定
         healer.TowerDirection = DirectionCalculator.Direction.North;
 
-        // 線付きヒラとつながっているDPSを取得
-        var dps = _partyDataList
-            .Find(x => x.TetherPairId1 == healer.EntityId || (x.TetherPairId2 == healer.EntityId && x.IsDps));
-        if (dps == null) return false;
+        // 線付きヒラとつながっている2人を南にする
+        var t1 = _partyDataList.Find(x => x.TetherPairId1 == healer.EntityId);
+        var t2 = _partyDataList.Find(x => x.TetherPairId2 == healer.EntityId);
+        if (t1 == null || t2 == null) return false;
 
-        // そのDPSはそのヒラと同じ塔に入れないので南
-        dps.TowerDirection = DirectionCalculator.Direction.South;
+        t1.TowerDirection = DirectionCalculator.Direction.South;
+        t2.TowerDirection = DirectionCalculator.Direction.South;
 
-        // もう一人のタンヒラを取得
-        var tankHealer = _partyDataList.Find(x => x.EntityId != healer.EntityId && x.TetherPairId1 != 0 && x.IsTH);
-        if (tankHealer == null) return false;
+        // Directionが未確定でTetherPairId1がある人を取得
+        var t3 = _partyDataList.Find(x => x.TowerDirection == DirectionCalculator.Direction.None && x.TetherPairId1 != 0);
+        if (t3 == null) return false;
 
-        // タンヒラは線付きヒラと同じ塔に入れないので南
-        tankHealer.TowerDirection = DirectionCalculator.Direction.South;
-
-        // 残りの1人は北
-        var dps2 = _partyDataList.Find(x => !new[] { healer, dps, tankHealer }.Contains(x) && x.TetherPairId1 != 0);
-        if (dps2 == null) return false;
-
-        dps2.TowerDirection = DirectionCalculator.Direction.North;
+        t3.TowerDirection = DirectionCalculator.Direction.North;
 
         // 線のついていない4人を取得
         var noneTether = _partyDataList.Where(x => x.TetherPairId1 == 0 && x.TetherPairId2 == 0).ToList();
         if (noneTether.Count != 4) return false;
 
-        // 上からConeIndexを割り振る
-        for (var i = 0; i < noneTether.Count; i++)
-        {
-            noneTether[i].ConeIndex = i + 1;
-        }
+        var TetherStackers = _partyDataList.Where(x => x.IsStack && x.TetherPairId1 != 0).ToList();
 
         // 頭割り調整 (わからないので全てのパターンを書く) TODO: あとで不要なものを削除
         // 線付きに頭割り対象がいる場合
-        if (healer.IsStack && tankHealer.IsStack)
+        if (TetherStackers.Count() == 2)
         {
-            DuoLog.Information("Healer and TankHealer are stacker");
+            DuoLog.Information("TetherStackers 2");
             // 両方の場合は調整のしようがないのでそのまま
             // 線無し4人を割り振る
             for (var i = 0; i < noneTether.Count; i++)
@@ -428,16 +552,16 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
                 else noneTether[i].TowerDirection = DirectionCalculator.Direction.South;
             }
         }
-        else if (healer.IsStack)
+        else if (TetherStackers.Count() == 1)
         {
-            DuoLog.Information("Healer is stacker");
+            DuoLog.Information("TetherStackers 1");
             // 線無しに1人頭割り対象がいるので逆に配置
             var noneTetherStacker = noneTether.Find(x => x.IsStack);
             if (noneTetherStacker == null) return false;
 
             DuoLog.Information($"noneTetherStacker: {noneTetherStacker.Object?.Name}");
 
-            if (healer.TowerDirection == DirectionCalculator.Direction.North)
+            if (TetherStackers[0].TowerDirection == DirectionCalculator.Direction.North)
             {
                 noneTetherStacker.TowerDirection = DirectionCalculator.Direction.South;
             }
@@ -468,60 +592,56 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
             }
 
         }
-        else if (tankHealer.IsTank)
+        else if (TetherStackers.Count() == 0)
         {
-            DuoLog.Information("tankHealer.IsTank");
+            DuoLog.Information("TetherStackers 0");
             // 線無しに1人頭割り対象がいるので逆に配置
-            var noneTetherStacker = noneTether.Find(x => x.IsStack);
-            if (noneTetherStacker == null) return false;
-
-            if (tankHealer.TowerDirection == DirectionCalculator.Direction.North)
-            {
-                noneTetherStacker.TowerDirection = DirectionCalculator.Direction.South;
-            }
-            else
-            {
-                noneTetherStacker.TowerDirection = DirectionCalculator.Direction.North;
-            }
-
-            // 線無し3人を割り振る
-            noneTether = noneTether.Where(x => !x.IsStack).ToList();
-            if (noneTether.Count != 3) return false;
-
-            if (noneTetherStacker.TowerDirection != DirectionCalculator.Direction.North)
-            {
-                for (var i = 0; i < noneTether.Count; i++)
-                {
-                    if (i >= 1) noneTether[i].TowerDirection = DirectionCalculator.Direction.North;
-                    else noneTether[i].TowerDirection = DirectionCalculator.Direction.South;
-                }
-            }
-            else
-            {
-                for (var i = 0; i < noneTether.Count; i++)
-                {
-                    if (i >= 1) noneTether[i].TowerDirection = DirectionCalculator.Direction.South;
-                    else noneTether[i].TowerDirection = DirectionCalculator.Direction.North;
-                }
-            }
-        }
-        // どちらもいない場合
-        else
-        {
-            DuoLog.Information("No stacker");
-            // 線無し頭割り対象を取得
             var noneTetherStacker = noneTether.Where(x => x.IsStack).ToList();
             if (noneTetherStacker.Count() != 2) return false;
 
             noneTetherStacker[0].TowerDirection = DirectionCalculator.Direction.North;
             noneTetherStacker[1].TowerDirection = DirectionCalculator.Direction.South;
 
-            // 残りの2人を割り振る
-            var noneTetherNormal = noneTether.Where(x => !x.IsStack).ToList();
-            if (noneTetherNormal.Count() != 2) return false;
+            // 線無し2人を割り振る
+            var noneTetherNoneStacker = noneTether.Where(x => !x.IsStack).ToList();
+            if (noneTetherNoneStacker.Count() != 2) return false;
 
-            noneTetherNormal[0].TowerDirection = DirectionCalculator.Direction.North;
-            noneTetherNormal[1].TowerDirection = DirectionCalculator.Direction.South;
+            noneTetherNoneStacker[0].TowerDirection = DirectionCalculator.Direction.North;
+            noneTetherNoneStacker[1].TowerDirection = DirectionCalculator.Direction.South;
+        }
+
+        noneTether = _partyDataList.Where(x => x.TetherPairId1 == 0 && x.TetherPairId2 == 0).ToList();
+        if (noneTether.Count != 4) return false;
+
+        // 上からConeIndexを割り振る
+        int northCount = 0;
+        int southCount = 0;
+        for (var i = 0; i < noneTether.Count; i++)
+        {
+            if (noneTether[i].TowerDirection == DirectionCalculator.Direction.North)
+            {
+                if (northCount == 0)
+                {
+                    noneTether[i].ConeIndex = 1;
+                    northCount++;
+                }
+                else
+                {
+                    noneTether[i].ConeIndex = 4;
+                }
+            }
+            else
+            {
+                if (southCount == 0)
+                {
+                    noneTether[i].ConeIndex = 2;
+                    southCount++;
+                }
+                else
+                {
+                    noneTether[i].ConeIndex = 3;
+                }
+            }
         }
 
         DuoLog.Information("ParseTether: Success");
@@ -846,36 +966,83 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
 
     private void HideAllElements() => Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-    private void ApplyElement(
-        string elementName,
-        DirectionCalculator.Direction direction,
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool tether = true)
+    private Vector3 BasePosition => new Vector3(100, 0, 100);
+
+    private Vector3 CalculatePositionFromAngle(float angle, float radius = 0f)
     {
-        var position = new Vector3(100, 0, 100);
+        return BasePosition + (radius * new Vector3(
+            MathF.Cos(MathF.PI * angle / 180f),
+            0,
+            MathF.Sin(MathF.PI * angle / 180f)
+        ));
+    }
+
+    private Vector3 CalculatePositionFromDirection(DirectionCalculator.Direction direction, float radius = 0f)
+    {
         var angle = DirectionCalculator.GetAngle(direction);
-        position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
+        return CalculatePositionFromAngle(angle, radius);
+    }
+
+    /// <summary>
+    /// Elementへの実適用処理を行う"大元"のメソッド。
+    /// </summary>
+    private void InternalApplyElement(Element element, Vector3 position, float elementRadius, bool filled, bool tether)
+    {
+        element.Enabled = true;
+        element.radius = elementRadius;
+        element.tether = tether;
+        element.Filled = filled;
+        element.SetRefPosition(position);
+    }
+
+    //----------------------- 公開ApplyElementメソッド群 -----------------------
+
+    // Elementインスタンスと直接的な座標指定
+    public void ApplyElement(Element element, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと角度指定
+    public void ApplyElement(Element element, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromAngle(angle, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと方向指定
+    public void ApplyElement(Element element, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromDirection(direction, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Element名と直接的な座標指定
+    public void ApplyElement(string elementName, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            element.Enabled = true;
-            element.radius = elementRadius;
-            element.tether = tether;
-            element.SetRefPosition(position);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 
-    private void ApplyElement(
-        string elementName, float angle, float radius = 0f, float elementRadius = 0.3f, bool tether = true)
+    // Element名と角度指定
+    public void ApplyElement(string elementName, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
-        var position = new Vector3(100, 0, 100);
-        position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            element.Enabled = true;
-            element.radius = elementRadius;
-            element.tether = tether;
-            element.SetRefPosition(position);
+            var position = CalculatePositionFromAngle(angle, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
+        }
+    }
+
+    // Element名と方向指定
+    public void ApplyElement(string elementName, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        if (Controller.TryGetElementByName(elementName, out var element))
+        {
+            var position = CalculatePositionFromDirection(direction, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 

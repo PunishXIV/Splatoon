@@ -11,6 +11,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.Schedulers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Lumina.Excel.Sheets;
@@ -29,7 +30,7 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     /********************************************************************/
     /* types                                                            */
     /********************************************************************/
-    private enum State
+    private enum StateCommon
     {
         None = 0,
         GetBuffs,
@@ -37,17 +38,62 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
         IceElapAelo,
         holy,
         SetReturn,
-        GetRemoveBuff,
+        Split,
+    }
+
+    private enum StateAeloFirst
+    {
+        None = 0,
+        HourGlassWater,
+        IceElapAelo,
+        GetDragon,
+        AvoidNorth,
+        SetReturn,
         Split
     }
 
-    private enum AeloSubState
+    private enum StateAeloSecond
     {
         None = 0,
+        HourGlassWater,
+        IceElapAelo,
         Wait,
         GetDragon,
-        AvoidSouth,
-        SetReturn
+        SetReturn,
+        Split
+    }
+
+    private enum StateRedIce3
+    {
+        None = 0,
+        HourGlassWater,
+        IceElapAelo,
+        holy,
+        SetReturn,
+        Split
+    }
+
+    private enum StateBlueFirst
+    {
+        None = 0,
+        HourGlassWater,
+        IceElapAelo,
+        holy,
+        WaitNorth,
+        GetRemoveBuff,
+        SetReturn,
+        Split
+    }
+
+    private enum StateBlueSecond
+    {
+        None = 0,
+        HourGlassWater,
+        IceElapAelo,
+        holy,
+        WaitNorth,
+        SetReturn,
+        GetRemoveBuff,
     }
 
     private enum WaveState
@@ -81,9 +127,11 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     /********************************************************************/
     public class Config :IEzConfig
     {
-        public bool Sprint = true;
         public bool ArmsLength = true;
         public bool FastRunRedIce3 = true;
+        public float FastCheatDefault = 1.0f;
+        public float FastCheat = 1.5f;
+        public bool IsMaster = false;
     }
 
     private class RemoveBuff
@@ -95,13 +143,14 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     private class PartyData
     {
         public int Index = 0;
-        public bool Mine => this.EntityId == Player.Object.EntityId;
+        public bool Mine = false;
         public uint EntityId;
         public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject()! ?? null;
         public string CrowColor = "";
         public Gimmick Gimmick = Gimmick.None;
         public string AeloLR = "";
         public string Ice3LR = "";
+        public int AttackIndex = 0;
 
         public bool IsTank => TankJobs.Contains(Object?.GetJob() ?? Job.WHM);
         public bool IsHealer => HealerJobs.Contains(Object?.GetJob() ?? Job.PLD);
@@ -113,7 +162,7 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
         public PartyData(uint entityId, int index)
         {
             EntityId = entityId;
-            //if (this.EntityId == Player.Object.EntityId) this.Mine = true;
+            this.Mine = this.EntityId == Player.Object.EntityId;
             Index = index;
         }
     }
@@ -130,18 +179,23 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "redmoon");
+    public override Metadata? Metadata => new(20, "redmoon");
     #endregion
 
     #region private properties
     /********************************************************************/
     /* private properties                                               */
     /********************************************************************/
-    private State _state = State.None;
-    private AeloSubState _aeloSubState = AeloSubState.None;
+    private StateCommon _state = StateCommon.None;
+    private StateAeloFirst _aeloFirst = StateAeloFirst.None;
+    private StateAeloSecond _aeloSecond = StateAeloSecond.None;
+    private StateRedIce3 _redIce3 = StateRedIce3.None;
+    private StateBlueFirst _blueFirst = StateBlueFirst.None;
+    private StateBlueSecond _blueSecond = StateBlueSecond.None;
     private Config C => Controller.GetConfig<Config>();
     private List<PartyData> _partyDataList = new();
     private MineRoleAction? _mineRoleAction = null;
+    private MineRoleAction? _mineBlueRoleAction = null;
     private int _removeReturnCount = 0;
     private DirectionCalculator.Direction _slowHourGlassDirection = DirectionCalculator.Direction.None;
     private WaveState _waveState = WaveState.None;
@@ -156,6 +210,8 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     private bool _BeforeReturnProcDone = false;
     private int _maelstromCount = 0;
     private long _runEndTime = 0;
+    private bool _stackBlizzard = false;
+    private Vector3 _lastVnavPos = Vector3.Zero;
     #endregion
 
     #region public methods
@@ -165,6 +221,12 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     public override void OnSetup()
     {
         Controller.RegisterElement("Bait", new Element(0) { tether = true, radius = 3f, thicc = 6f });
+
+        Controller.RegisterElement("BaitD1", new Element(0) { tether = false, radius = 0.3f, thicc = 6f, color = 0xC8FF0000 });
+        Controller.RegisterElement("BaitD2", new Element(0) { tether = false, radius = 0.3f, thicc = 6f, color = 0xC8FF0000 });
+        Controller.RegisterElement("BaitD3", new Element(0) { tether = false, radius = 0.3f, thicc = 6f, color = 0xC800FF00 });
+        Controller.RegisterElement("BaitD4", new Element(0) { tether = false, radius = 0.3f, thicc = 6f, color = 0xC800FF00 });
+
         Controller.RegisterElement("BaitObject", new Element(1)
         {
             tether = true,
@@ -178,18 +240,30 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
             Controller.RegisterElement($"CircleFixed{i}", new Element(0) { radius = 5.0f, thicc = 2f, fillIntensity = 0.5f });
         }
 
+        for (var i = 0; i < 4; i++)
+        {
+            Controller.RegisterElement($"CircleFixed1{i}", new Element(0) { radius = 5.0f, thicc = 2f, fillIntensity = 0.5f });
+        }
+
         Controller.RegisterElement($"Line", new Element(2) { radius = 0f, thicc = 6f, fillIntensity = 0.5f });
+
+        Controller.RegisterElement($"Wave1", new Element(2) { radius = 0f, thicc = 6f, fillIntensity = 0.5f });
+        Controller.RegisterElement($"Wave2", new Element(2) { radius = 0f, thicc = 6f, fillIntensity = 0.5f });
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
         if (castId == 40298)
         {
+            this.OnReset();
             SetListEntityIdByJob();
-            SetState(State.GetBuffs);
+            //// DEBUG
+            //_partyDataList.Each(x => x.Mine = false);
+            //_partyDataList[1].Mine = true;
+            SetState(StateCommon.GetBuffs);
         }
 
-        if (_state == State.None) return;
+        if (_state == StateCommon.None) return;
 
         if (castId == 40251 && _waveState == WaveState.None)
         {
@@ -205,53 +279,24 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
             {
                 _secondKnockback = DirectionCalculator.DividePoint(obj.Position, 20.0f);
             }
+
+            if (_secondKnockback != DirectionCalculator.Direction.None && _redIce3 == StateRedIce3.holy)
+            {
+                SetState(StateRedIce3.SetReturn);
+            }
+
+            if (_secondKnockback != DirectionCalculator.Direction.None && _blueSecond == StateBlueSecond.WaitNorth)
+            {
+                SetState(StateBlueSecond.SetReturn);
+            }
         }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
+        if (_state == StateCommon.None) return;
         if (set.Action == null) return;
         var castId = set.Action.Value.RowId;
-
-        if (castId == 40299 && _state == State.HourGlassWater)
-        {
-            SetState(State.IceElapAelo);
-        }
-
-        if (castId == 40274 && _state == State.IceElapAelo)
-        {
-            SetState(State.holy);
-        }
-
-        if (castId == 40277 && _state == State.holy)
-        {
-            HideAllElements();
-            var pc = GetMinedata();
-            if (pc == null || pc.Object == null) return;
-            bool ExistBlue = pc.Object.StatusList.Any(x => x.StatusId == 3264);
-            _StateProcEnd = false;
-            if (pc.CrowColor == "")
-            {
-                SetState(State.SetReturn);
-            }
-            else
-            {
-                SetState(State.GetRemoveBuff);
-            }
-        }
-
-        if (castId == 40241 && set.SourceCharacter != null)
-        {
-            RemoveBuff removeBuff = new();
-            removeBuff.Position = set.SourceCharacter.Value.Position;
-            _removeBuffPosList.Add(removeBuff);
-
-            if (_removeBuffPosList.Count == 4)
-            {
-                AdjustRemoveBuff();
-                _BeforeReturnProcDone = true;
-            }
-        }
 
         if (castId == 40251 && _waveState == WaveState.None)
         {
@@ -276,20 +321,28 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
             _waveState++;
         }
 
+        if (castId == 40241 && set.SourceCharacter != null)
+        {
+            RemoveBuff removeBuff = new();
+            removeBuff.Position = set.SourceCharacter.Value.Position;
+            _removeBuffPosList.Add(removeBuff);
+        }
+
         if (castId == 40299)
         {
             _maelstromCount++;
-            if (_maelstromCount == 3 && _aeloSubState == AeloSubState.Wait)
+
+            if (_maelstromCount is 1 or 3 or 5)
             {
                 HideAllElements();
-                _aeloSubState = AeloSubState.GetDragon;
-            }
-            else if (_maelstromCount == 5)
-            {
-                HideAllElements();
-                if (_aeloSubState == AeloSubState.AvoidSouth)
+                if (_state == StateCommon.SetReturn)
                 {
-                    _aeloSubState = AeloSubState.SetReturn;
+                    SetState(StateCommon.Split);
+                }
+
+                if (_maelstromCount >= 5 && _blueFirst == StateBlueFirst.WaitNorth)
+                {
+                    SetState(StateBlueFirst.GetRemoveBuff);
                 }
             }
         }
@@ -298,11 +351,102 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
         {
             this.OnReset();
         }
+
+        if (castId == 40299 && _state == StateCommon.HourGlassWater)
+        {
+            SetState(StateCommon.IceElapAelo);
+        }
+
+        if (castId == 40274 && _state == StateCommon.IceElapAelo)
+        {
+            SetState(StateCommon.holy);
+        }
+
+        if (castId == 40277 && _state == StateCommon.holy)
+        {
+            SetState(StateCommon.SetReturn);
+        }
+
+        if (_aeloFirst != StateAeloFirst.None)
+        {
+            if (castId == 40299 && _aeloFirst == StateAeloFirst.HourGlassWater)
+            {
+                SetState(StateAeloFirst.IceElapAelo);
+            }
+
+            if (castId == 40274 && _aeloFirst == StateAeloFirst.IceElapAelo)
+            {
+                _ = new TickScheduler(() => SetState(StateAeloFirst.GetDragon), 1000);
+            }
+        }
+        else if (_aeloSecond != StateAeloSecond.None)
+        {
+            if (castId == 40299 && _aeloSecond == StateAeloSecond.HourGlassWater)
+            {
+                _ = new TickScheduler(() => SetState(StateAeloSecond.IceElapAelo), 1000);
+            }
+
+            if (castId == 40274 && _aeloSecond == StateAeloSecond.IceElapAelo)
+            {
+                SetState(StateAeloSecond.Wait);
+            }
+
+            if (_maelstromCount == 3 && _aeloSecond == StateAeloSecond.Wait)
+            {
+                SetState(StateAeloSecond.GetDragon);
+            }
+        }
+        else if (_redIce3 != StateRedIce3.None)
+        {
+            if (castId == 40299 && _redIce3 == StateRedIce3.HourGlassWater)
+            {
+                SetState(StateRedIce3.IceElapAelo);
+            }
+
+            if (castId == 40274 && _redIce3 == StateRedIce3.IceElapAelo)
+            {
+                SetState(StateRedIce3.holy);
+            }
+        }
+        else if (_blueFirst != StateBlueFirst.None)
+        {
+            if (castId == 40299 && _blueFirst == StateBlueFirst.HourGlassWater)
+            {
+                SetState(StateBlueFirst.IceElapAelo);
+            }
+
+            if (castId == 40274 && _blueFirst == StateBlueFirst.IceElapAelo)
+            {
+                SetState(StateBlueFirst.holy);
+            }
+
+            if (castId == 40277 && _blueFirst == StateBlueFirst.holy)
+            {
+                SetState(StateBlueFirst.WaitNorth);
+            }
+        }
+        else if (_blueSecond != StateBlueSecond.None)
+        {
+            if (castId == 40299 && _blueSecond == StateBlueSecond.HourGlassWater)
+            {
+                SetState(StateBlueSecond.IceElapAelo);
+            }
+
+            if (castId == 40274 && _blueSecond == StateBlueSecond.IceElapAelo)
+            {
+                SetState(StateBlueSecond.holy);
+            }
+
+            if (castId == 40277 && _blueSecond == StateBlueSecond.holy)
+            {
+                SetState(StateBlueSecond.WaitNorth);
+            }
+        }
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state == State.None) return;
+        if (_state == StateCommon.None) return;
         if (_slowHourGlassDirection == DirectionCalculator.Direction.None &&
             data2 == 0 && data3 == 133 && data5 == 15 && source.TryGetObject(out var obj))
         {
@@ -317,11 +461,124 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
 
             _slowHourGlassDirection = direction;
         }
+
+        // 全ての情報が揃ったら、次のステップへ
+        if (_partyDataList.All(x => x.Gimmick != Gimmick.None && x.CrowColor != "")
+            && _mineRoleAction == null
+            && _slowHourGlassDirection != DirectionCalculator.Direction.None)
+        {
+            var mine = GetMinedata();
+            if (mine == null) return;
+
+            // エアロガ調整 indexが若い人が左
+            var aelos = _partyDataList.Where(x => x.Gimmick == Gimmick.Aelo).ToList();
+            if (aelos.Count != 2) return;
+
+            if (aelos[0].Index > aelos[1].Index)
+            {
+                aelos[0].AeloLR = "R";
+                aelos[1].AeloLR = "L";
+            }
+            else
+            {
+                aelos[0].AeloLR = "L";
+                aelos[1].AeloLR = "R";
+            }
+
+            // 赤ブリザガ調整 indexが若い人が左
+            var ices = _partyDataList.Where(x => x.Gimmick == Gimmick.Ice3 && x.CrowColor == "red").ToList();
+            if (ices.Count != 2) return;
+
+            if (ices[0].Index > ices[1].Index)
+            {
+                ices[0].Ice3LR = "R";
+                ices[1].Ice3LR = "L";
+            }
+            else
+            {
+                ices[0].Ice3LR = "L";
+                ices[1].Ice3LR = "R";
+            }
+
+            var i = 1;
+            foreach (var x in _partyDataList.Where(x => x.CrowColor == "blue"))
+            {
+                x.AttackIndex = i;
+                i++;
+            }
+
+            if (C.IsMaster)
+            {
+                // マーカー付与
+                foreach (var x in _partyDataList)
+                {
+                    int tag = GetPlayerTag(x.EntityId);
+                    if (tag == -1) continue;
+                    if (x.Gimmick == Gimmick.Ice3 && x.CrowColor == "red")
+                    {
+                        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback]) DuoLog.Information($"/mk bind <{tag}>");
+                        else Chat.Instance.ExecuteCommand($"/mk bind <{tag}>");
+                    }
+                    else if (x.Gimmick == Gimmick.Aelo)
+                    {
+                        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback]) DuoLog.Information($"/mk stop <{tag}>");
+                        else Chat.Instance.ExecuteCommand($"/mk stop <{tag}>");
+                    }
+                    else
+                    {
+                        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback]) DuoLog.Information($"/mk attack <{tag}>");
+                        else Chat.Instance.ExecuteCommand($"/mk attack <{tag}>");
+                    }
+                }
+            }
+
+            // 自分のアクションメソッドを設定
+            // 赤+エアロガ
+            if (mine.Gimmick == Gimmick.Aelo && mine.CrowColor == "red")
+            {
+                if ((_slowHourGlassDirection == DirectionCalculator.Direction.NorthWest && mine.AeloLR == "R") ||
+                    (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast && mine.AeloLR == "L"))
+                {
+                    _mineRoleAction = RedAeloFirst; // 1人
+                    SetState(StateAeloFirst.HourGlassWater);
+                }
+                else
+                {
+                    _mineRoleAction = RedAeloSecond; // 1人
+                    SetState(StateAeloSecond.HourGlassWater);
+                }
+            }
+            // 赤+ブリザガ
+            else if (mine.Gimmick == Gimmick.Ice3 && mine.CrowColor == "red")
+            {
+                _mineRoleAction = RedIce3; // 2人
+                SetState(StateRedIce3.HourGlassWater);
+            }
+            // 青
+            else if (mine.CrowColor == "blue")
+            {
+                _mineRoleAction = BlueBefore; // 3人 (Water3, Holy, Ice3)
+                if (mine.AttackIndex <= 2)
+                {
+                    SetState(StateBlueFirst.HourGlassWater);
+                    _mineBlueRoleAction = BlueAfterFirst;
+                }
+                else
+                {
+                    SetState(StateBlueSecond.HourGlassWater);
+                    _mineBlueRoleAction = BlueAfterSecond;
+                }
+            }
+
+            Chat.Instance.ExecuteCommand($"/pdrspeed {C.FastCheat}");
+
+            SetState(StateCommon.HourGlassWater);
+        }
     }
 
     public override void OnGainBuffEffect(uint sourceId, FFXIVClientStructs.FFXIV.Client.Game.Status Status)
     {
-        if (_state != State.GetBuffs) return;
+        if (_state == StateCommon.None) return;
         var statusId = Status.StatusId;
 
         PartyData? pc = null;
@@ -367,92 +624,38 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 // NOP
                 break;
         }
-
-        // 全ての情報が揃ったら、次のステップへ
-        if (_partyDataList.All(x => x.Gimmick != Gimmick.None && x.CrowColor != "") && _mineRoleAction == null)
-        {
-            var mine = GetMinedata();
-            if (mine == null) return;
-            // 自分のアクションメソッドを設定
-            // 青+エラプション
-            if (mine.Gimmick == Gimmick.Elap && mine.CrowColor == "blue")
-            {
-                _mineRoleAction = BlueElap; // 1人
-            }
-            // 赤+エアロガ
-            else if (mine.Gimmick == Gimmick.Ice3 && mine.CrowColor == "red")
-            {
-                _mineRoleAction = RedIce3; // 2人
-            }
-            // 赤+ブリザガ
-            else if (mine.Gimmick == Gimmick.Ice3 && mine.CrowColor == "red")
-            {
-                _mineRoleAction = RedAelo; // 2人
-            }
-            // 青+そのた
-            else if (mine.CrowColor == "blue")
-            {
-                _mineRoleAction = Blue; // 3人 (Water3, Holy, Ice3)
-            }
-
-            // エアロガ調整 indexが若い人が左
-            var aelos = _partyDataList.Where(x => x.Gimmick == Gimmick.Aelo).ToList();
-            if (aelos.Count != 2) return;
-
-            if (aelos[0].Index > aelos[1].Index)
-            {
-                aelos[0].AeloLR = "R";
-                aelos[1].AeloLR = "L";
-            }
-            else
-            {
-                aelos[0].AeloLR = "L";
-                aelos[1].AeloLR = "R";
-            }
-
-            // 赤ブリザガ調整 indexが若い人が左
-            var ices = _partyDataList.Where(x => x.Gimmick == Gimmick.Ice3 && x.CrowColor == "red").ToList();
-            if (ices.Count != 2) return;
-
-            if (ices[0].Index > ices[1].Index)
-            {
-                ices[0].Ice3LR = "R";
-                ices[1].Ice3LR = "L";
-            }
-            else
-            {
-                ices[0].Ice3LR = "L";
-                ices[1].Ice3LR = "R";
-            }
-
-            // DEBUG
-            //_mineRoleAction = RedIce3; // TODO あとで消す
-            //_partyDataList.Each(x => x.Mine = false);
-            //_partyDataList[0].Mine = true;
-
-            SetState(State.HourGlassWater);
-        }
     }
 
     public override void OnRemoveBuffEffect(uint sourceId, FFXIVClientStructs.FFXIV.Client.Game.Status Status)
     {
-        if (_state == State.None) return;
+        if (_state == StateCommon.None) return;
         var statusId = Status.StatusId;
 
         if (statusId == 4208)
         {
             _removeReturnCount++;
+            SetState(StateCommon.Split);
             if (_removeReturnCount == 8)
             {
-                var pc = GetMinedata();
-                if (pc == null || pc.Object == null) return;
-                if (pc.CrowColor == "")
+                if (_blueFirst == StateBlueFirst.SetReturn)
                 {
-                    SetState(State.Split);
+                    SetState(StateBlueFirst.Split);
                 }
-                else
+                else if (_blueSecond == StateBlueSecond.SetReturn)
                 {
-                    SetState(State.GetRemoveBuff);
+                    SetState(StateBlueSecond.GetRemoveBuff);
+                }
+                else if (_redIce3 == StateRedIce3.SetReturn)
+                {
+                    SetState(StateRedIce3.Split);
+                }
+                else if (_aeloFirst == StateAeloFirst.SetReturn)
+                {
+                    SetState(StateAeloFirst.Split);
+                }
+                else if (_aeloSecond == StateAeloSecond.SetReturn)
+                {
+                    SetState(StateAeloSecond.Split);
                 }
             }
         }
@@ -463,17 +666,29 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
             if (pc != null)
             {
                 pc.CrowColor = "";
-                if (_aeloSubState == AeloSubState.GetDragon && pc.Mine)
-                {
-                    if (_maelstromCount >= 5)
-                    {
-                        _aeloSubState = AeloSubState.SetReturn;
-                    }
-                    else
-                    {
-                        _aeloSubState = AeloSubState.AvoidSouth;
-                    }
-                }
+            }
+
+            var mine = GetMinedata();
+            if (mine == null) return;
+
+            if (mine.Gimmick != Gimmick.Aelo) return;
+
+            var anotherAelo = _partyDataList.Find(x => x.Gimmick == Gimmick.Aelo && x.EntityId != mine.EntityId);
+            if (anotherAelo == null) return;
+
+            if (mine.EntityId == sourceId && _aeloFirst == StateAeloFirst.GetDragon)
+            {
+                SetState(StateAeloFirst.AvoidNorth);
+            }
+            else if (mine.EntityId == sourceId && _aeloSecond == StateAeloSecond.GetDragon)
+            {
+                SetState(StateAeloSecond.SetReturn);
+            }
+
+            if (!_partyDataList.Any(x => x.CrowColor == "red"))
+            {
+                if (_aeloFirst != StateAeloFirst.None) SetState(StateAeloFirst.SetReturn);
+                else SetState(StateAeloSecond.SetReturn);
             }
         }
 
@@ -485,19 +700,20 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 pc.CrowColor = "";
             }
 
-            pc = GetMinedata();
-            if (pc == null || pc.Object == null) return;
+            var mine = GetMinedata();
+            if (mine == null) return;
+            if (mine.EntityId != sourceId) return;
 
-            if (pc.CrowColor == "" && pc.EntityId == sourceId)
+            if (_blueFirst == StateBlueFirst.GetRemoveBuff)
             {
-                SetState(State.SetReturn);
+                SetState(StateBlueFirst.SetReturn);
             }
         }
     }
 
     public override void OnUpdate()
     {
-        if (_state == State.None) return;
+        if (_state == StateCommon.None) return;
 
         if (_mineRoleAction != null && _slowHourGlassDirection != DirectionCalculator.Direction.None) _mineRoleAction();
 
@@ -513,139 +729,39 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
             if (el.Enabled) el.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
         }
 
-        // Sprint, ArmsLength Automations
-        do
+        UseArmsLength();
+
+        if (_runEndTime != 0 && _stackBlizzard)
         {
-            if (C.Sprint && !_usedSprint)
+            var pc = GetMinedata();
+            if (pc == null || pc.Object == null) return;
+            bool redIsNone = pc.Object.StatusList.All(x => x.StatusId != 3263);
+
+            if (redIsNone)
             {
-                var pc = GetMinedata();
-                if (pc == null || pc.Object == null) break;
-
-                // 赤+ブリザガ
-                if (pc.CrowColor == "red" && pc.Gimmick == Gimmick.Ice3)
+                if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                 {
-                    var ice3 = pc.Object?.StatusList.FirstOrDefault(x => x.StatusId is 2462) ?? null;
-                    if (ice3 == null) break;
-
-                    if (ice3.RemainingTime > 3.0f) break;
-
-                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 3u))
-                        {
-                            DuoLog.Information("Sprint");
-                            _usedSprint = true;
-                        }
-                    }
+                    if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                        DuoLog.Information($"/vnav moveto 112 0 85");
                     else
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 3u))
-                        {
-                            actionManager->UseAction(ActionType.Action, 3u);
-                        }
-
-                        if (!_usedSprint && actionManager->IsRecastTimerActive(ActionType.Action, 3u))
-                        {
-                            _usedSprint = true;
-                        }
-                    }
-                }
-
-                // 赤+エアロガ
-                if (pc.CrowColor == "red" && pc.Gimmick == Gimmick.Aelo)
-                {
-                    var aelo = pc.Object?.StatusList.FirstOrDefault(x => x.StatusId is 4208) ?? null;
-                    if (aelo == null) break;
-
-                    if (aelo.RemainingTime > 17.0f) break;
-
-                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 3u))
-                        {
-                            DuoLog.Information("Sprint");
-                            _usedSprint = true;
-                        }
-                    }
-                    else
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 3u))
-                        {
-                            actionManager->UseAction(ActionType.Action, 3u);
-                        }
-
-                        if (!_usedSprint && actionManager->IsRecastTimerActive(ActionType.Action, 3u))
-                        {
-                            _usedSprint = true;
-                        }
-                    }
-                }
-            }
-        } while (false);
-
-        do
-        {
-            if (C.ArmsLength && !_usedArmsLength)
-            {
-                var pc = GetMinedata();
-                if (pc == null || pc.Object == null) break;
-
-                var return4Buff = pc.Object?.StatusList.FirstOrDefault(x => x.StatusId == 2452) ?? null;
-                if (return4Buff == null) break;
-
-                if (return4Buff.RemainingTime > 1.5f) break;
-
-                if (HealerJobs.Contains(Player.Object.GetJob()) || MagicDpsJobs.Contains(Player.Object.GetJob()))
-                {
-                    // ヒーラー、魔法DPS
-                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 7559u))
-                        {
-                            DuoLog.Information("SureCast");
-                            _usedSprint = true;
-                        }
-                    }
-                    else
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 7559u))
-                        {
-                            actionManager->UseAction(ActionType.Action, 7559u);
-                        }
-
-                        if (!_usedSprint && actionManager->IsRecastTimerActive(ActionType.Action, 7559u))
-                        {
-                            _usedSprint = true;
-                        }
-                    }
+                        DuoLog.Information($"/vnav moveto 88 0 85");
                 }
                 else
                 {
-                    // タンク、近接DPS、遠隔DPS
-                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 7548u))
-                        {
-                            DuoLog.Information("ArmsLength");
-                            _usedArmsLength = true;
-                        }
-                    }
+                    if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                        Chat.Instance.ExecuteCommand($"/vnav moveto 112 0 85");
                     else
-                    {
-                        if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 7548u))
-                        {
-                            actionManager->UseAction(ActionType.Action, 7548u);
-                        }
-
-                        if (!_usedArmsLength && actionManager->IsRecastTimerActive(ActionType.Action, 7548u))
-                        {
-                            _usedArmsLength = true;
-                        }
-                    }
-
+                        Chat.Instance.ExecuteCommand($"/vnav moveto 88 0 85");
                 }
+
+                if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                    ApplyElement("Bait", new Vector3(112f, 0, 85f));
+                else
+                    ApplyElement("Bait", new Vector3(88f, 0, 85f));
+
+                _stackBlizzard = false;
             }
-        } while (false);
+        }
 
         if (_runEndTime != 0 && _runEndTime < Environment.TickCount64)
         {
@@ -663,8 +779,12 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
 
     public override void OnReset()
     {
-        _state = State.None;
-        _aeloSubState = AeloSubState.None;
+        _state = StateCommon.None;
+        _aeloFirst = StateAeloFirst.None;
+        _aeloSecond = StateAeloSecond.None;
+        _redIce3 = StateRedIce3.None;
+        _blueFirst = StateBlueFirst.None;
+        _blueSecond = StateBlueSecond.None;
         _removeReturnCount = 0;
         _mineRoleAction = null;
         _partyDataList.Clear();
@@ -679,18 +799,56 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
         _usedArmsLength = false;
         _BeforeReturnProcDone = false;
         _maelstromCount = 0;
+        _runEndTime = 0;
+        _stackBlizzard = false;
+        _lastVnavPos = Vector3.Zero;
+        Chat.Instance.ExecuteCommand($"/pdrspeed {C.FastCheatDefault}");
         HideAllElements();
+
+        var c = Controller.GetConfig<Config>();
+        if (!c.IsMaster) return;
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <bind>");
+        Chat.Instance.ExecuteCommand($"/mk off <bind>");
+        Chat.Instance.ExecuteCommand($"/mk off <bind>");
+        Chat.Instance.ExecuteCommand($"/mk off <stop>");
+        Chat.Instance.ExecuteCommand($"/mk off <stop>");
+        Chat.Instance.ExecuteCommand($"/mk off <square>");
+        Chat.Instance.ExecuteCommand($"/mk off <circle>");
+        Chat.Instance.ExecuteCommand($"/mk off <triangle>");
+        Chat.Instance.ExecuteCommand($"/mk off <cross>");
     }
 
     public override void OnSettingsDraw()
     {
-        ImGui.Checkbox("Sprint", ref C.Sprint);
         ImGui.Checkbox("ArmsLength", ref C.ArmsLength);
         ImGui.Checkbox("FastRunRedIce3", ref C.FastRunRedIce3);
+        ImGui.SliderFloat("FastCheat", ref C.FastCheat, 1.0f, 1.5f);
+        ImGui.SliderFloat("FastCheatDefault", ref C.FastCheatDefault, 1.0f, 1.5f);
+        ImGui.Checkbox("IsMaster", ref C.IsMaster);
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
+            if (ImGui.Button("SetReturnDebug"))
+            {
+                SetReturn(0, "BaitD1");
+                SetReturn(1, "BaitD2");
+                SetReturn(2, "BaitD3");
+                SetReturn(3, "BaitD4");
+            }
+
             ImGui.Text($"State: {_state}");
-            ImGui.Text($"AeloSubState: {_aeloSubState}");
+            ImGui.Text($"AeloFirst: {_aeloFirst}");
+            ImGui.Text($"AeloSecond: {_aeloSecond}");
+            ImGui.Text($"RedIce3: {_redIce3}");
+            ImGui.Text($"BlueFirst: {_blueFirst}");
+            ImGui.Text($"BlueSecond: {_blueSecond}");
             ImGui.Text($"RemoveReturnCount: {_removeReturnCount}");
             ImGui.Text($"_usedSprint: {_usedSprint}");
             ImGui.Text($"_usedArmsLength: {_usedArmsLength}");
@@ -703,6 +861,9 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
             ImGui.Text($"_MineRoleAction: {_mineRoleAction?.Method.Name}");
             ImGui.Text($"_BeforeReturnProcDone: {_BeforeReturnProcDone}");
             ImGui.Text($"_maelstromCount: {_maelstromCount}");
+            ImGui.Text($"_runEndTime: {_runEndTime}");
+            ImGui.Text($"_stackBlizzard: {_stackBlizzard}");
+            ImGui.Text($"_lastVnavPos: {_lastVnavPos.ToString()}");
 
             ImGui.Text("PartyDataList");
             List<ImGuiEx.EzTableEntry> Entries = [];
@@ -727,6 +888,7 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 Entries.Add(new ImGuiEx.EzTableEntry("Gimmick", true, () => ImGui.Text(x.Gimmick.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("AeloLR", true, () => ImGui.Text(x.AeloLR)));
                 Entries.Add(new ImGuiEx.EzTableEntry("Ice3LR", true, () => ImGui.Text(x.Ice3LR)));
+                Entries.Add(new ImGuiEx.EzTableEntry("AttackIndex", true, () => ImGui.Text(x.AttackIndex.ToString())));
             }
             ImGuiEx.EzTable(Entries);
 
@@ -749,260 +911,382 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     /********************************************************************/
     /* private methods                                                  */
     /********************************************************************/
-    private void SetState(State state)
+    private void SetState(StateCommon state)
     {
         HideAllElements();
         ResetCircleElement();
         _StateProcEnd = false;
         _StateProcEndCommon = false;
+        _lastVnavPos = Vector3.Zero;
         _state = state;
     }
-
-    private void AdjustRemoveBuff()
+    private void SetState(StateAeloFirst state)
     {
-        // RemoveBuffPosList が4つでなければ処理を中止
-        if (_removeBuffPosList.Count != 4) return;
-
-        // CrowColorが"blue"のエントリを抽出
-        var blues = _partyDataList.Where(x => x.CrowColor == "blue").ToList();
-
-        // 割り当て可能なRemoveBuffリストのコピーを作成
-        var unassignedBuffs = new List<RemoveBuff>(_removeBuffPosList);
-
-        foreach (var blue in blues)
-        {
-            // blue.Objectがnullの場合スキップ
-            if (blue.Object == null) continue;
-
-            // 最も近い未割り当てのRemoveBuffを探す
-            var nearestBuff = unassignedBuffs
-                .OrderBy(buff => Vector3.Distance(blue.Object.Position, buff.Position))
-                .FirstOrDefault();
-
-            if (nearestBuff == null) break;
-
-            // EntityIdを割り当て
-            nearestBuff.AssignEntityId = blue.EntityId;
-
-            // 割り当て済みのBuffをリストから削除
-            unassignedBuffs.Remove(nearestBuff);
-        }
+        HideAllElements();
+        ResetCircleElement();
+        _StateProcEnd = false;
+        _StateProcEndCommon = false;
+        _lastVnavPos = Vector3.Zero;
+        _aeloFirst = state;
+    }
+    private void SetState(StateAeloSecond state)
+    {
+        HideAllElements();
+        ResetCircleElement();
+        _StateProcEnd = false;
+        _StateProcEndCommon = false;
+        _lastVnavPos = Vector3.Zero;
+        _aeloSecond = state;
+    }
+    private void SetState(StateRedIce3 state)
+    {
+        HideAllElements();
+        ResetCircleElement();
+        _StateProcEnd = false;
+        _StateProcEndCommon = false;
+        _lastVnavPos = Vector3.Zero;
+        _redIce3 = state;
+    }
+    private void SetState(StateBlueFirst state)
+    {
+        HideAllElements();
+        ResetCircleElement();
+        _StateProcEnd = false;
+        _StateProcEndCommon = false;
+        _lastVnavPos = Vector3.Zero;
+        _blueFirst = state;
+    }
+    private void SetState(StateBlueSecond state)
+    {
+        HideAllElements();
+        ResetCircleElement();
+        _StateProcEnd = false;
+        _StateProcEndCommon = false;
+        _lastVnavPos = Vector3.Zero;
+        _blueSecond = state;
     }
 
-    private void BlueElap() // 1人
+    private void RedAeloFirst() // 1人
     {
         if (_StateProcEnd) return;
         var pc = GetMinedata();
         if (pc == null || pc.Object == null) return;
 
-        if (_state == State.HourGlassWater)
+        if (_aeloFirst == StateAeloFirst.HourGlassWater)
         {
-            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
-                ApplyElement("Bait", new Vector3(112f, 0, 85f));
-            else
-                ApplyElement("Bait", new Vector3(88f, 0, 85f));
-
-            _StateProcEnd = true;
+            if (pc.AeloLR == "L") ApplyElement("Bait", new Vector3(88f, 0, 115f));
+            else ApplyElement("Bait", new Vector3(112f, 0, 115f));
         }
-        else if (_state == State.IceElapAelo)
+        else if (_aeloFirst == StateAeloFirst.IceElapAelo)
         {
-            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
-                ApplyElement("Bait", new Vector3(112f, 0, 85f));
-            else
-                ApplyElement("Bait", new Vector3(88f, 0, 85f));
-
-            _StateProcEnd = true;
+            if (pc.AeloLR == "L") ApplyElement("Bait", new Vector3(90.228f, 0, 116.768f));
+            else ApplyElement("Bait", new Vector3(109.601f, 0, 116.626f));
         }
-        else if (_state == State.holy)
+        else if (_aeloFirst == StateAeloFirst.GetDragon)
         {
-            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
-                ApplyElement("Bait", new Vector3(112f, 0, 85f));
-            else
-                ApplyElement("Bait", new Vector3(88f, 0, 85f));
+            if (pc.AeloLR == "L") ApplyElement("Bait", new Vector3(92f, 0, 110f));
+            else ApplyElement("Bait", new Vector3(108f, 0, 110f));
 
-            _StateProcEnd = true;
-        }
-        else if (_state == State.GetRemoveBuff)
-        {
-            var removeBuff = _removeBuffPosList.Find(x => x.AssignEntityId == pc.EntityId);
-            if (removeBuff != null)
+            do
             {
-                ApplyElement("Bait", removeBuff.Position);
-                _StateProcEnd = true;
+                if (C.FastRunRedIce3)
+                {
+                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                    {
+                        if (pc.AeloLR == "L")
+                        {
+                            if (_lastVnavPos == new Vector3(92, 0, 110)) break;
+                            DuoLog.Information($"/vnav moveto 92 0 110");
+                            _lastVnavPos = new Vector3(92, 0, 110);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(108, 0, 110)) break;
+                            DuoLog.Information($"/vnav moveto 108 0 110");
+                            _lastVnavPos = new Vector3(108, 0, 110);
+                        }
+                    }
+                    else
+                    {
+                        if (pc.AeloLR == "L")
+                        {
+                            if (_lastVnavPos == new Vector3(92, 0, 110)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 92 0 110");
+                            _lastVnavPos = new Vector3(92, 0, 110);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(108, 0, 110)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 108 0 110");
+                            _lastVnavPos = new Vector3(108, 0, 110);
+                        }
+                    }
+                    _runEndTime = Environment.TickCount64 + 10000;
+                }
+            } while (false);
+
+            _StateProcEnd = true;
+        }
+        else if (_aeloFirst == StateAeloFirst.AvoidNorth)
+        {
+            if (_firstKnockback == DirectionCalculator.Direction.West)
+            {
+                ApplyElement("Bait", new Vector3(102f, 0, 118f));
             }
             else
             {
-                ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
+                ApplyElement("Bait", new Vector3(98f, 0, 118f));
             }
+
+            do
+            {
+                if (C.FastRunRedIce3)
+                {
+                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                    {
+                        if (_firstKnockback == DirectionCalculator.Direction.West)
+                        {
+                            if (_lastVnavPos == new Vector3(102, 0, 118)) break;
+                            DuoLog.Information($"/vnav moveto 102 0 118");
+                            _lastVnavPos = new Vector3(102, 0, 118);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(98, 0, 118)) break;
+                            DuoLog.Information($"/vnav moveto 98 0 118");
+                            _lastVnavPos = new Vector3(98, 0, 118);
+                        }
+                    }
+                    else
+                    {
+                        if (_firstKnockback == DirectionCalculator.Direction.West)
+                        {
+                            if (_lastVnavPos == new Vector3(102, 0, 118)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 102 0 118");
+                            _lastVnavPos = new Vector3(102, 0, 118);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(98, 0, 118)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 98 0 118");
+                            _lastVnavPos = new Vector3(98, 0, 118);
+                        }
+                    }
+                    _runEndTime = Environment.TickCount64 + 10000;
+                }
+            } while (false);
+
+            _StateProcEnd = true;
         }
-        else if (_state == State.SetReturn)
+        else if (_aeloFirst == StateAeloFirst.SetReturn)
         {
             SetReturn();
         }
+        else if (_aeloFirst == StateAeloFirst.Split)
+        {
+            Split();
+        }
     }
 
-    private void Blue() // 3人 (Water3, Holy, Ice3)
+    private void RedAeloSecond() // 1人
     {
         if (_StateProcEnd) return;
         var pc = GetMinedata();
         if (pc == null || pc.Object == null) return;
 
-        if (_state == State.HourGlassWater)
+        if (_aeloSecond == StateAeloSecond.HourGlassWater)
         {
-            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
-                ApplyElement("Bait", new Vector3(88f, 0, 115f));
-            else
-                ApplyElement("Bait", new Vector3(112f, 0, 115f));
+            if (pc.AeloLR == "L") ApplyElement("Bait", new Vector3(88f, 0, 115f));
+            else ApplyElement("Bait", new Vector3(112f, 0, 115f));
         }
-        else if (_state == State.IceElapAelo)
+        else if (_aeloSecond == StateAeloSecond.IceElapAelo)
         {
-            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
-                ApplyElement("Bait", new Vector3(91f, 0, 115.6f));
-            else
-                ApplyElement("Bait", new Vector3(109f, 0, 115.6f));
+            if (pc.AeloLR == "L") ApplyElement("Bait", new Vector3(90.008f, 0, 117.148f));
+            else ApplyElement("Bait", new Vector3(109.881f, 0, 117.086f));
+        }
+        else if (_aeloSecond == StateAeloSecond.Wait)
+        {
+            if (pc.AeloLR == "R") ApplyElement("Bait", DirectionCalculator.GetAngle(DirectionCalculator.Direction.South) - 15f, 18f);
+            else ApplyElement("Bait", DirectionCalculator.GetAngle(DirectionCalculator.Direction.South) + 15f, 18f);
 
-            if (Controller.TryGetElementByName("Line", out var el))
+            if (C.FastRunRedIce3)
             {
-                if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                 {
-                    var aelo = _partyDataList.Find(x => x.Gimmick == Gimmick.Aelo && x.AeloLR == "L");
-                    if (aelo == null || aelo.Object == null) return;
-                    var overDistance = Vector3.Distance(pc.Object.Position, aelo.Object.Position);
-                    el.SetRefPosition(aelo.Object.Position);
-                    var endPos = GetExtendedAndClampedPosition(aelo.Object.Position, pc.Object.Position, 34 + overDistance, 70f);
-                    el.SetOffPosition(endPos);
-                    el.Enabled = true;
+                    if (pc.AeloLR == "R")
+                    {
+                        var angle = DirectionCalculator.GetAngle(DirectionCalculator.Direction.South) - 15f;
+                        var position = new Vector3(100, 0, 100);
+                        position += 18f * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
+
+                        DuoLog.Information($"/vnav moveto {position.X} 0 {position.Z}");
+                    }
+                    else
+                    {
+                        var angle = DirectionCalculator.GetAngle(DirectionCalculator.Direction.South) + 15f;
+                        var position = new Vector3(100, 0, 100);
+                        position += 18f * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
+
+                        DuoLog.Information($"/vnav moveto {position.X} 0 {position.Z}");
+                    }
                 }
                 else
                 {
-                    // NorthWest
-                    var aelo = _partyDataList.Find(x => x.Gimmick == Gimmick.Aelo && x.AeloLR == "R");
-                    if (aelo == null || aelo.Object == null) return;
-                    var overDistance = Vector3.Distance(pc.Object.Position, aelo.Object.Position);
-                    el.SetRefPosition(aelo.Object.Position);
-                    var endPos = GetExtendedAndClampedPosition(aelo.Object.Position, pc.Object.Position, 34 + overDistance, 70f);
-                    el.SetOffPosition(endPos);
-                    el.Enabled = true;
+                    if (pc.AeloLR == "R")
+                    {
+                        var angle = DirectionCalculator.GetAngle(DirectionCalculator.Direction.South) - 15f;
+                        var position = new Vector3(100, 0, 100);
+                        position += 18f * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
+
+                        Chat.Instance.ExecuteCommand($"/vnav moveto {position.X} 0 {position.Z}");
+                    }
+                    else
+                    {
+                        var angle = DirectionCalculator.GetAngle(DirectionCalculator.Direction.South) + 15f;
+                        var position = new Vector3(100, 0, 100);
+                        position += 18f * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
+
+                        Chat.Instance.ExecuteCommand($"/vnav moveto {position.X} 0 {position.Z}");
+                    }
                 }
+                _runEndTime = Environment.TickCount64 + 10000;
             }
+
+            _StateProcEnd = true;
         }
-        else if (_state == State.holy)
+        else if (_aeloSecond == StateAeloSecond.GetDragon)
         {
-            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
-                ApplyElement("Bait", new Vector3(112f, 0, 85f));
-            else
-                ApplyElement("Bait", new Vector3(88f, 0, 85f));
-        }
-        else if (_state == State.GetRemoveBuff)
-        {
-            var removeBuff = _removeBuffPosList.Find(x => x.AssignEntityId == pc.EntityId);
-            if (removeBuff != null)
+            if (pc.AeloLR == "R") ApplyElement("Bait", new Vector3(106f, 0, 111.5f));
+            else ApplyElement("Bait", new Vector3(94f, 0, 111.5f));
+
+            do
             {
-                ApplyElement("Bait", removeBuff.Position);
-                _StateProcEnd = true;
-            }
-            else
-            {
-                ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
-            }
+                if (C.FastRunRedIce3)
+                {
+                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                    {
+                        if (pc.AeloLR == "R")
+                        {
+                            if (_lastVnavPos == new Vector3(106, 0, 111.5f)) break;
+                            DuoLog.Information($"/vnav moveto 106 0 111.5");
+                            _lastVnavPos = new Vector3(106, 0, 111.5f);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(94, 0, 111.5f)) break;
+                            DuoLog.Information($"/vnav moveto 94 0 111.5");
+                            _lastVnavPos = new Vector3(94, 0, 111.5f);
+                        }
+                    }
+                    else
+                    {
+                        if (pc.AeloLR == "R")
+                        {
+                            if (_lastVnavPos == new Vector3(106, 0, 111.5f)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 106 0 111.5");
+                            _lastVnavPos = new Vector3(106f, 0, 111.5f);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(94, 0, 111.5f)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 94 0 111.5");
+                            _lastVnavPos = new Vector3(94f, 0, 111.5f);
+                        }
+                    }
+                    _runEndTime = Environment.TickCount64 + 10000;
+                }
+            } while (false);
+
+            _StateProcEnd = true;
         }
-        else if (_state == State.SetReturn)
+        else if (_aeloSecond == StateAeloSecond.SetReturn)
         {
+            do
+            {
+                if (C.FastRunRedIce3)
+                {
+                    if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                    {
+                        if (_firstKnockback == DirectionCalculator.Direction.West)
+                        {
+                            if (_lastVnavPos == new Vector3(102, 0, 118)) break;
+                            DuoLog.Information($"/vnav moveto 102 0 118");
+                            _lastVnavPos = new Vector3(102, 0, 118);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(98, 0, 118)) break;
+                            DuoLog.Information($"/vnav moveto 98 0 118");
+                            _lastVnavPos = new Vector3(98, 0, 118);
+                        }
+                    }
+                    else
+                    {
+                        if (_firstKnockback == DirectionCalculator.Direction.West)
+                        {
+                            if (_lastVnavPos == new Vector3(102, 0, 118)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 102 0 118");
+                            _lastVnavPos = new Vector3(102, 0, 118);
+                        }
+                        else
+                        {
+                            if (_lastVnavPos == new Vector3(98, 0, 118)) break;
+                            Chat.Instance.ExecuteCommand($"/vnav moveto 98 0 118");
+                            _lastVnavPos = new Vector3(98, 0, 118);
+                        }
+                    }
+                    _runEndTime = Environment.TickCount64 + 10000;
+                }
+            } while (false);
+
             SetReturn();
         }
-    }
-
-    private void RedAelo() // 2人
-    {
-        if (_StateProcEnd) return;
-        var pc = GetMinedata();
-        if (pc == null || pc.Object == null) return;
-
-        if (_state == State.HourGlassWater)
+        else if (_aeloSecond == StateAeloSecond.Split)
         {
-            if (pc.AeloLR == "L")
-                ApplyElement("Bait", new Vector3(88f, 0, 115f));
-            else
-                ApplyElement("Bait", new Vector3(112f, 0, 115f));
-        }
-        else if (_state == State.IceElapAelo)
-        {
-            if (pc.AeloLR == "L")
-                ApplyElement("Bait", new Vector3(90.008f, 0, 117.148f));
-            else
-                ApplyElement("Bait", new Vector3(109.881f, 0, 117.086f));
-        }
-        else if (_state is State.holy or State.GetRemoveBuff or State.SetReturn)
-        {
-            if (_aeloSubState == AeloSubState.None)
-            {
-                if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast && pc.AeloLR == "L")
-                    _aeloSubState = AeloSubState.GetDragon;
-                else if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast && pc.AeloLR == "R")
-                    _aeloSubState = AeloSubState.Wait;
-                else if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthWest && pc.AeloLR == "L")
-                    _aeloSubState = AeloSubState.Wait;
-                else if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthWest && pc.AeloLR == "R")
-                    _aeloSubState = AeloSubState.GetDragon;
-            }
-
-            if (_aeloSubState == AeloSubState.Wait || _aeloSubState == AeloSubState.AvoidSouth)
-            {
-                ApplyElement("Bait", DirectionCalculator.Direction.South, 18f);
-            }
-            else if (_aeloSubState == AeloSubState.GetDragon)
-            {
-                if (pc.AeloLR == "L")
-                {
-                    if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
-                        ApplyElement("Bait", new Vector3(90f, 0, 107f));
-                    else
-                        ApplyElement("Bait", new Vector3(90.5f, 0, 109f));
-                }
-                else
-                {
-                    if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthWest)
-                        ApplyElement("Bait", new Vector3(110f, 0, 107f));
-                    else
-                        ApplyElement("Bait", new Vector3(109.5f, 0, 109f));
-                }
-            }
-            else if (_aeloSubState == AeloSubState.SetReturn)
-            {
-                _BeforeReturnProcDone = true;
-                SetReturn();
-            }
+            Split();
         }
     }
 
     private void RedIce3() // 2人
     {
+        if (_redIce3 == StateRedIce3.None) return;
         if (_StateProcEnd) return;
         var pc = GetMinedata();
         if (pc == null || pc.Object == null) return;
 
-        if (_state == State.HourGlassWater)
+        if (_redIce3 == StateRedIce3.HourGlassWater)
         {
             if (pc.Ice3LR == "L")
                 ApplyElement("Bait", new Vector3(87f, 0, 100f));
             else
                 ApplyElement("Bait", new Vector3(113f, 0, 100f));
+
+            _StateProcEnd = true;
         }
-        else if (_state == State.IceElapAelo)
+        else if (_redIce3 == StateRedIce3.IceElapAelo)
         {
             if (pc.Ice3LR == "L")
                 ApplyElement("Bait", new Vector3(87f, 0, 100f));
             else
                 ApplyElement("Bait", new Vector3(113f, 0, 100f));
-        }
-        else if (_state == State.holy)
-        {
-            ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
+
             if (C.FastRunRedIce3)
             {
+                var Ice3Buff = pc.Object?.StatusList.FirstOrDefault(x => x.StatusId == 2462) ?? null;
+                if (Ice3Buff == null) return;
+
+                if (Ice3Buff.RemainingTime > 0.5f) return;
+
+                if ((_slowHourGlassDirection == DirectionCalculator.Direction.NorthWest && pc.Ice3LR == "L") ||
+                (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast && pc.Ice3LR == "R"))
+                {
+                    _stackBlizzard = true;
+                }
+
                 var angle = DirectionCalculator.GetAngle(DirectionCalculator.Direction.North);
                 var position = new Vector3(100, 0, 100);
                 position += 18f * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
+
                 if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                 {
                     DuoLog.Information($"/vnav moveto {position.X} 0 {position.Z}");
@@ -1011,23 +1295,196 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 {
                     Chat.Instance.ExecuteCommand($"/vnav moveto {position.X} 0 {position.Z}");
                 }
-
-                _runEndTime = Environment.TickCount64 + 3000;
+                _runEndTime = Environment.TickCount64 + 10000;
             }
+
             _StateProcEnd = true;
         }
-        else if (_state == State.SetReturn)
+        else if (_redIce3 == StateRedIce3.holy)
+        {
+            //if ((_slowHourGlassDirection == DirectionCalculator.Direction.NorthWest && pc.Ice3LR == "L") ||
+            //    (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast && pc.Ice3LR == "R"))
+            //    if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+            //        ApplyElement("Bait", new Vector3(112f, 0, 85f));
+            //    else
+            //        ApplyElement("Bait", new Vector3(88f, 0, 85f));
+            //else
+            //    ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
+
+            ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
+        }
+        else if (_redIce3 == StateRedIce3.SetReturn)
         {
             SetReturn();
         }
-        else if (_state == State.GetRemoveBuff)
+        else if (_redIce3 == StateRedIce3.Split)
         {
-            var removeBuff = _removeBuffPosList.Find(x => x.AssignEntityId == pc.EntityId);
-            if (removeBuff != null)
+            Split();
+        }
+    }
+
+    private void BlueElap() // 1人
+    {
+        if (_StateProcEnd) return;
+        var pc = GetMinedata();
+        if (pc == null || pc.Object == null) return;
+        if (_blueFirst == StateBlueFirst.HourGlassWater || _blueSecond == StateBlueSecond.HourGlassWater)
+        {
+            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                ApplyElement("Bait", new Vector3(112f, 0, 85f));
+            else
+                ApplyElement("Bait", new Vector3(88f, 0, 85f));
+
+            _StateProcEnd = true;
+        }
+        else if (_blueFirst == StateBlueFirst.IceElapAelo || _blueSecond == StateBlueSecond.IceElapAelo)
+        {
+            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                ApplyElement("Bait", new Vector3(112f, 0, 85f));
+            else
+                ApplyElement("Bait", new Vector3(88f, 0, 85f));
+
+            _StateProcEnd = true;
+        }
+    }
+
+    private void BlueBefore() // 3人 (Water3, Holy, Ice3)
+    {
+        if (_StateProcEnd) return;
+        var pc = GetMinedata();
+        if (pc == null || pc.Object == null) return;
+
+        if (_blueFirst == StateBlueFirst.HourGlassWater || _blueSecond == StateBlueSecond.HourGlassWater)
+        {
+            if (pc.Gimmick == Gimmick.Elap)
             {
-                ApplyElement("Bait", removeBuff.Position);
-                _StateProcEnd = true;
+                BlueElap();
+                return;
             }
+
+            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                ApplyElement("Bait", new Vector3(88f, 0, 115f));
+            else
+                ApplyElement("Bait", new Vector3(112f, 0, 115f));
+        }
+        else if (_blueFirst == StateBlueFirst.IceElapAelo || _blueSecond == StateBlueSecond.IceElapAelo)
+        {
+
+            if (pc.Gimmick == Gimmick.Elap)
+            {
+                BlueElap();
+                return;
+            }
+
+            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                ApplyElement("Bait", new Vector3(91f, 0, 115.6f));
+            else
+                ApplyElement("Bait", new Vector3(109f, 0, 115.6f));
+
+            //if (Controller.TryGetElementByName("Line", out var el))
+            //{
+            //    if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+            //    {
+            //        var aelo = _partyDataList.Find(x => x.Gimmick == Gimmick.Aelo && x.AeloLR == "L");
+            //        if (aelo == null || aelo.Object == null) return;
+            //        var overDistance = Vector3.Distance(pc.Object.Position, aelo.Object.Position);
+            //        el.SetRefPosition(aelo.Object.Position);
+            //        var endPos = GetExtendedAndClampedPosition(aelo.Object.Position, pc.Object.Position, 34 + overDistance, 70f);
+            //        el.SetOffPosition(endPos);
+            //        el.Enabled = true;
+            //    }
+            //    else
+            //    {
+            //        // NorthWest
+            //        var aelo = _partyDataList.Find(x => x.Gimmick == Gimmick.Aelo && x.AeloLR == "R");
+            //        if (aelo == null || aelo.Object == null) return;
+            //        var overDistance = Vector3.Distance(pc.Object.Position, aelo.Object.Position);
+            //        el.SetRefPosition(aelo.Object.Position);
+            //        var endPos = GetExtendedAndClampedPosition(aelo.Object.Position, pc.Object.Position, 34 + overDistance, 70f);
+            //        el.SetOffPosition(endPos);
+            //        el.Enabled = true;
+            //    }
+            //}
+        }
+        else if (_blueFirst == StateBlueFirst.holy || _blueSecond == StateBlueSecond.holy)
+        {
+            if (_slowHourGlassDirection == DirectionCalculator.Direction.NorthEast)
+                ApplyElement("Bait", new Vector3(112f, 0, 85f));
+            else
+                ApplyElement("Bait", new Vector3(88f, 0, 85f));
+        }
+        else if (_blueFirst != StateBlueFirst.None)
+        {
+            BlueAfterFirst();
+        }
+        else
+        {
+            // _blueSecond != StateBlueSecond.None
+            BlueAfterSecond();
+        }
+    }
+
+    private void BlueAfterFirst() // 2人 (Water3, Holy, Ice3)
+    {
+        if (_StateProcEnd) return;
+        var pc = GetMinedata();
+        if (pc == null || pc.Object == null) return;
+
+        if (_blueFirst == StateBlueFirst.WaitNorth)
+        {
+            ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
+        }
+        if (_blueFirst == StateBlueFirst.GetRemoveBuff)
+        {
+            ShowBlueLocation();
+        }
+        else if (_blueFirst == StateBlueFirst.SetReturn)
+        {
+            SetReturn();
+        }
+        else if (_blueFirst == StateBlueFirst.Split)
+        {
+            Split();
+        }
+    }
+
+    private void BlueAfterSecond() // 2人 (Water3, Holy, Ice3)
+    {
+        if (_StateProcEnd) return;
+        var pc = GetMinedata();
+        if (pc == null || pc.Object == null) return;
+
+        if (_blueSecond == StateBlueSecond.WaitNorth)
+        {
+            ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
+        }
+        else if (_blueSecond == StateBlueSecond.SetReturn)
+        {
+            SetReturn();
+        }
+        else if (_blueSecond == StateBlueSecond.GetRemoveBuff)
+        {
+            Split();
+        }
+    }
+
+    private void ShowBlueLocation()
+    {
+        if (_StateProcEnd) return;
+        var pc = GetMinedata();
+        if (pc == null || pc.Object == null) return;
+        if (_removeBuffPosList.Count == 0) return;
+
+        // buffが2 ~ 3人の場合
+        if (_removeBuffPosList.Count >= 2 && _removeBuffPosList.Count <= 3)
+        {
+            // 若番の２人以外は何もしない
+            if (pc.AttackIndex > 2) return;
+            ApplyElement("Bait", _removeBuffPosList[pc.AttackIndex - 1].Position);
+        }
+        if (_removeBuffPosList.Count == 4)
+        {
+            ApplyElement("Bait", _removeBuffPosList[pc.AttackIndex - 1].Position);
         }
     }
 
@@ -1035,7 +1492,7 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     {
         if (_StateProcEndCommon) return;
 
-        if (_state == State.HourGlassWater)
+        if (_state == StateCommon.HourGlassWater)
         {
             // Dark Water
             var water = _partyDataList.Find(x => x.Gimmick == Gimmick.Water3);
@@ -1060,16 +1517,16 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 ApplyElement(el, DirectionCalculator.Direction.South, 11.0f, 12.0f, true, false);
             }
         }
-        else if (_state == State.IceElapAelo)
+        if (_state == StateCommon.IceElapAelo)
         {
-            // Dark Blizzard III
+            //// Dark Blizzard III
             var ice = _partyDataList.FirstOrDefault(x => x.Gimmick == Gimmick.Ice3);
             if (ice != null && Controller.TryGetElementByName("CircleFixed0", out var el) && ice.Object != null)
             {
                 el.SetRefPosition(ice.Object.Position);
                 el.color = 0xC80000FF; // red
                 el.radius = 3.0f;
-                el.Donut = 12.0f;
+                el.Donut = 9.0f;
                 el.Enabled = true;
             }
 
@@ -1080,7 +1537,7 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 el.SetRefPosition(anotherIce.Object.Position);
                 el.color = 0xC80000FF; // red
                 el.radius = 3.0f;
-                el.Donut = 12.0f;
+                el.Donut = 9.0f;
                 el.Enabled = true;
             }
 
@@ -1094,7 +1551,7 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 el.Enabled = true;
             }
         }
-        else if (_state == State.holy)
+        if (_state == StateCommon.holy)
         {
             // Dark Holy
             var holy = _partyDataList.FirstOrDefault(x => x.Gimmick == Gimmick.Holy);
@@ -1129,7 +1586,7 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
                 ApplyElement(el, DirectionCalculator.GetAngle(DirectionCalculator.GetOppositeDirection(normalHourGlassDirection)) + correctinAngle, 11.0f, 12.0f, true, false);
             }
         }
-        else if (_state == State.SetReturn)
+        if (_state == StateCommon.SetReturn)
         {
             float correctinAngle = _slowHourGlassDirection switch
             {
@@ -1148,59 +1605,184 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
             }
             _StateProcEndCommon = true;
         }
+        if (_aeloFirst == StateAeloFirst.SetReturn || _aeloSecond == StateAeloSecond.SetReturn || _redIce3 == StateRedIce3.SetReturn)
+        {
+            int i = 0;
+            foreach (var x in _removeBuffPosList)
+            {
+                if (Controller.TryGetElementByName($"CircleFixed1{i}", out var el))
+                {
+                    ApplyElement(el, x.Position, 1f, tether: false);
+                }
+                i++;
+            }
+        }
     }
 
-    private void SetReturn()
+    private void SetReturn(int index = 0xFFFF, string elname = "Bait")
     {
-        if (!_BeforeReturnProcDone)
-        {
-            ApplyElement("Bait", DirectionCalculator.Direction.North, 18f);
-            return;
-        }
+        PartyData? pc = null;
 
-        var pc = GetMinedata();
-        if (pc == null || pc.Object == null) return;
+        if (index == 0xFFFF)
+        {
+            pc = GetMinedata();
+            if (pc == null || pc.Object == null) return;
+        }
+        else
+        {
+            pc = _partyDataList[index];
+            if (pc == null || pc.Object == null) return;
+        }
 
         if (_firstKnockback == DirectionCalculator.Direction.None ||
             _secondKnockback == DirectionCalculator.Direction.None)
         {
-            ApplyElement("Bait", new Vector3(100f, 0, 100f));
+            if (pc.Gimmick == Gimmick.Aelo) ApplyElement(elname, DirectionCalculator.Direction.South, 18f);
+            else ApplyElement(elname, DirectionCalculator.Direction.North, 18f);
             return;
         }
 
-        if (pc.Index == 0)
+        // DEBUG
+        //_firstKnockback = DirectionCalculator.Direction.East;
+        //_secondKnockback = DirectionCalculator.Direction.South;
+
+        if (pc.Index == 6)
         {
-            if (_secondKnockback == DirectionCalculator.Direction.North)
-                ApplyElement("Bait", new Vector3(100f, 0, 88f));
-            else
-                ApplyElement("Bait", new Vector3(100f, 0, 112f));
+            ApplyElement(elname, DirectionCalculator.GetAngle(_secondKnockback), 12f);
         }
-        else if (pc.Index == 1)
+        else if (pc.Index == 7)
         {
-            if (_secondKnockback == DirectionCalculator.Direction.North)
-            {
-                if (_firstKnockback == DirectionCalculator.Direction.East)
-                    ApplyElement("Bait", new Vector3(107f, 0, 95f));
-                else
-                    ApplyElement("Bait", new Vector3(93f, 0, 95f));
-            }
+            if ((_firstKnockback == DirectionCalculator.Direction.East && _secondKnockback == DirectionCalculator.Direction.South) ||
+                (_firstKnockback == DirectionCalculator.Direction.West && _secondKnockback == DirectionCalculator.Direction.North))
+                ApplyElement(elname, DirectionCalculator.GetAngle(_secondKnockback) - 45f, 8f);
             else
+                ApplyElement(elname, DirectionCalculator.GetAngle(_secondKnockback) + 45f, 8f);
+        }
+        else if (pc.Index is 2 or 4 or 0) // D1
+        {
+            if ((_firstKnockback == DirectionCalculator.Direction.East && _secondKnockback == DirectionCalculator.Direction.South) ||
+                (_firstKnockback == DirectionCalculator.Direction.West && _secondKnockback == DirectionCalculator.Direction.North))
+                ApplyElement(elname, DirectionCalculator.GetAngle(_secondKnockback) - 35f, 5f);
+            else
+                ApplyElement(elname, DirectionCalculator.GetAngle(_secondKnockback) + 35f, 5f);
+        }
+        else // D2
+        {
+            if ((_firstKnockback == DirectionCalculator.Direction.East && _secondKnockback == DirectionCalculator.Direction.South) ||
+                (_firstKnockback == DirectionCalculator.Direction.West && _secondKnockback == DirectionCalculator.Direction.North))
+                ApplyElement(elname, DirectionCalculator.GetAngle(_secondKnockback) + 15f, 10f);
+            else
+                ApplyElement(elname, DirectionCalculator.GetAngle(_secondKnockback) - 15f, 10f);
+        }
+    }
+
+    private void Split()
+    {
+        var pc = GetMinedata();
+        if (pc == null || pc.Object == null) return;
+        if (_removeBuffPosList.Count == 0) return;
+
+        if (!_StateProcEnd)
+        {
+            Chat.Instance.ExecuteCommand($"/pdrspeed 1.7");
+            _StateProcEnd = true;
+        }
+
+
+        Vector3 pos = new Vector3();
+
+        if (pc.AttackIndex != 0) // Blue
+        {
+            ApplyElement("Bait", _removeBuffPosList[pc.AttackIndex - 1].Position);
+
+            pos = _removeBuffPosList[pc.AttackIndex - 1].Position;
+        }
+        else // Red
+        {
+            if (pc.Gimmick == Gimmick.Aelo && pc.AeloLR == "L")
             {
-                if (_firstKnockback == DirectionCalculator.Direction.East)
-                    ApplyElement("Bait", new Vector3(107f, 0, 105f));
+                pos = new Vector3(93.376f, 0, 103.187f);
+            }
+            else if (pc.Gimmick == Gimmick.Aelo && pc.AeloLR == "R")
+            {
+                pos = new Vector3(100.461f, 0, 106.201f);
+            }
+            else if (pc.Gimmick == Gimmick.Ice3 && pc.Ice3LR == "L")
+            {
+                pos = new Vector3(95.302f, 0, 96.108f);
+            }
+            else if (pc.Gimmick == Gimmick.Ice3 && pc.Ice3LR == "R")
+            {
+                pos = new Vector3(103.871f, 0, 97.839f);
+            }
+        }
+
+        ApplyElement("Bait", pos);
+
+        do
+        {
+            if (C.FastRunRedIce3)
+            {
+                if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                {
+                    if (_lastVnavPos == pos) break;
+                    DuoLog.Information($"/vnav moveto {pos.X} 0 {pos.Z}");
+                    _lastVnavPos = pos;
+                }
                 else
-                    ApplyElement("Bait", new Vector3(93f, 0, 105f));
+                {
+                    if (_lastVnavPos == pos) break;
+                    Chat.Instance.ExecuteCommand($"/vnav moveto {pos.X} 0 {pos.Z}");
+                    _lastVnavPos = pos;
+                }
+                _runEndTime = Environment.TickCount64 + 10000;
+            }
+        } while (false);
+    }
+
+    private void UseArmsLength()
+    {
+        if (!C.ArmsLength || _usedArmsLength) return;
+
+        var pc = GetMinedata();
+        if (pc == null || pc.Object == null) return;
+
+        var return4Buff = pc.Object?.StatusList.FirstOrDefault(x => x.StatusId == 2452) ?? null;
+        if (return4Buff == null) return;
+
+        if (return4Buff.RemainingTime > 2.0f) return;
+
+        uint castID = 0;
+
+        if (HealerJobs.Contains(Player.Object.GetJob()) || MagicDpsJobs.Contains(Player.Object.GetJob()))
+        {
+            castID = 7559u; // SureCast
+        }
+        else
+        {
+            castID = 7548u; // ArmsLength
+        }
+
+        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+        {
+            if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, castID))
+            {
+                DuoLog.Information((castID == 7548) ? "ArmsLength" : "SureCast");
+                _usedArmsLength = true;
             }
         }
         else
         {
-            if (_secondKnockback == DirectionCalculator.Direction.North)
-                ApplyElement("Bait", new Vector3(100f, 0, 95f));
-            else
-                ApplyElement("Bait", new Vector3(100f, 0, 105f));
-        }
+            if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, castID))
+            {
+                actionManager->UseAction(ActionType.Action, castID);
+            }
 
-        _StateProcEnd = true;
+            if (actionManager->IsRecastTimerActive(ActionType.Action, castID))
+            {
+                _usedArmsLength = true;
+            }
+        }
     }
 
     private void ResetCircleElement()
@@ -1249,20 +1831,10 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     /********************************************************************/
     private static readonly Job[] jobOrder =
     {
-        Job.DRK,
-        Job.WAR,
-        Job.GNB,
-        Job.PLD,
         Job.WHM,
         Job.AST,
         Job.SCH,
         Job.SGE,
-        Job.DRG,
-        Job.VPR,
-        Job.SAM,
-        Job.MNK,
-        Job.RPR,
-        Job.NIN,
         Job.BRD,
         Job.MCH,
         Job.DNC,
@@ -1270,6 +1842,16 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
         Job.SMN,
         Job.PCT,
         Job.BLM,
+        Job.DRG,
+        Job.VPR,
+        Job.SAM,
+        Job.MNK,
+        Job.RPR,
+        Job.NIN,
+        Job.DRK,
+        Job.WAR,
+        Job.GNB,
+        Job.PLD,
     };
 
     private static readonly Job[] TankJobs = { Job.DRK, Job.WAR, Job.GNB, Job.PLD };
@@ -1686,6 +2268,19 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     public static void ExceptionReturn(string message)
     {
         PluginLog.Error(message);
+    }
+
+    private unsafe int GetPlayerTag(uint entityId)
+    {
+        for (int i = 1; i <= 8; i++)
+        {
+            var obj = FakePronoun.Resolve($"<{i}>");
+            if (obj != null && obj->EntityId == entityId)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
     #endregion
 }

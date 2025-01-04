@@ -15,7 +15,6 @@ using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 
@@ -54,7 +53,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     private class PartyData
     {
         public int Index = 0;
-        public bool Mine => this.EntityId == Player.Object.EntityId;
+        public bool Mine = false;
         public uint EntityId;
         public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject()! ?? null;
         public DirectionCalculator.Direction AssignDirection = DirectionCalculator.Direction.None;
@@ -70,6 +69,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         {
             EntityId = entityId;
             Index = index;
+            Mine = this.EntityId == Player.Object.EntityId;
         }
     }
     #endregion
@@ -98,7 +98,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "redmoon");
+    public override Metadata? Metadata => new(5, "redmoon");
     #endregion
 
     #region private properties
@@ -121,6 +121,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     public override void OnSetup()
     {
         Controller.RegisterElement("Bait", new Element(0) { tether = true, radius = 3f, thicc = 6f });
+        Controller.RegisterElement("BaitStnby", new Element(0) { tether = true, radius = 3f, thicc = 6f, color = 0xC800FF00 });
         Controller.RegisterElement("BaitObject", new Element(1)
         {
             tether = true,
@@ -142,6 +143,10 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         if (castId == 40319)
         {
             SetListEntityIdByJob();
+            // DEBUG
+            //_partyDataList.Each(x => x.Mine = false);
+            //_partyDataList[4].Mine = true;
+
             var npc = source.GetObject() as IBattleNpc;
             if (npc == null) return;
 
@@ -269,6 +274,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"FirstBladeIs: {_firstBladeIs}");
+            ImGui.Text($"_StateProcEnded: {_StateProcEnded}");
             if (_mineRoleAction != null) ImGui.Text($"_mineRoleAction: {_mineRoleAction.Method.Name}");
             ImGui.Text("PartyDataList");
             List<ImGuiEx.EzTableEntry> Entries = [];
@@ -289,6 +295,14 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 Entries.Add(new ImGuiEx.EzTableEntry("Mine", true, () => ImGui.Text(x.Mine.ToString())));
             }
             ImGuiEx.EzTable(Entries);
+
+            ImGui.Text("Towers");
+            List<ImGuiEx.EzTableEntry> Entries2 = [];
+            foreach (var x in towers)
+            {
+                Entries2.Add(new ImGuiEx.EzTableEntry("Direction", true, () => ImGui.Text(x.ToString())));
+            }
+            ImGuiEx.EzTable(Entries2);
         }
     }
     #endregion
@@ -380,7 +394,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, 45);
 
                 // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 22.5f, 3f);
+                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 10.5f, 3f);
 
                 _ = new TimedMiddleOverlayWindow("Darkpre", 7000, () =>
                 {
@@ -390,11 +404,11 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
             }
             else if (_firstBladeIs == "Light")
             {
-                // 0のタワーから45度のdirectionを取得
+                // 0のタワーから-45度のdirectionを取得
                 var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, -45);
 
                 // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 22.5f, 9f);
+                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 10.5f, 9f);
 
                 _ = new TimedMiddleOverlayWindow("Lightpre", 7000, () =>
                 {
@@ -415,7 +429,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, 45);
 
                 // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 22.5f, 3f);
+                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 10.5f, 3f);
             }
             else if (_firstBladeIs == "Light")
             {
@@ -423,7 +437,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, -45);
 
                 // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 22.5f, 13f);
+                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 10.5f, 13f);
             }
 
             _StateProcEnded = true;
@@ -437,7 +451,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, 45);
 
                 // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 22.5f, 9f);
+                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 10.5f, 9f);
             }
             else if (_firstBladeIs == "Light")
             {
@@ -445,7 +459,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, -45);
 
                 // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 22.5f, 11f);
+                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 10.5f, 11f);
             }
 
             if (_firstBladeIs == "Dark")
@@ -477,6 +491,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         {
             if (_firstBladeIs == "") return;
             var towerDirection = towers[0];
+            ApplyElement("Bait", TowerPos[towerDirection], 3f);
 
             if (_firstBladeIs == "Dark")
             {
@@ -500,7 +515,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         if (_state is State.Tower2 or State.Tower3)
         {
             var towerDirection = towers[0];
-            ApplyElement("Bait", TowerOppsitePos[towerDirection]);
+            ApplyElement("Bait", TowerPos[towerDirection], 3f);
 
             _StateProcEnded = true;
         }
@@ -523,6 +538,10 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 }, 400);
             }
 
+            var towerDirection = towers[0];
+
+            ApplyElement("Bait", TowerOppsitePos[towerDirection]);
+
             _StateProcEnded = true;
         }
     }
@@ -535,7 +554,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         {
             if (_firstBladeIs == "") return;
             var towerDirection = towers[0];
-            ApplyElement("Bait", TowerPos[towerDirection], 3f);
+            //ApplyElement("BaitStnby", TowerPos[towerDirection], 3f, tether: false);
 
             if (_firstBladeIs == "Dark")
             {
@@ -558,27 +577,33 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         }
         if (_state is State.Tower2)
         {
-            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == 135) ||
-               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == -135))
+            DuoLog.Information($"Tower1: {towers[0]}, Tower2: {towers[1]}");
+            DuoLog.Information($"GetTwoPointAngle: {DirectionCalculator.GetTwoPointAngle(towers[0], towers[1])}");
+            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is 135 or 90) ||
+               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is -135 or -90))
             {
                 var towerDirection = towers[1];
-                ApplyElement("Bait", TowerPos[towerDirection], 3f);
+                ApplyElement("BaitStnby", TowerPos[towerDirection], 3f, tether: false);
             }
             else
             {
-                var towerDirection = towers[0];
-                ApplyElement("Bait", TowerPos[towerDirection], 3f);
+                //var towerDirection = towers[0];
+                //ApplyElement("Bait", TowerPos[towerDirection], 3f);
             }
 
             _StateProcEnded = true;
         }
         if (_state is State.Tower3)
         {
-            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == 135) ||
-               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == -135))
+            DuoLog.Information($"Tower1: {towers[0]}, Tower2: {towers[1]}, Tower3: {towers[2]}");
+            DuoLog.Information($"GetTwoPointAngle1: {DirectionCalculator.GetTwoPointAngle(towers[0], towers[1])}");
+            DuoLog.Information($"GetTwoPointAngle2: {DirectionCalculator.GetTwoPointAngle(towers[1], towers[2])}");
+
+            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is 135 or 90) ||
+               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is -135 or -90))
             {
                 var towerDirection = towers[1];
-                ApplyElement("Bait", TowerPos[towerDirection], 3f);
+                ApplyElement("BaitStnby", TowerPos[towerDirection], 3f, tether: false);
             }
             else
             {
@@ -621,8 +646,8 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         if (_state is State.Tower1)
         {
             if (_firstBladeIs == "") return;
-            var towerDirection = towers[0];
-            ApplyElement("Bait", TowerPos[towerDirection], 3f);
+            //var towerDirection = towers[0];
+            //ApplyElement("Bait", TowerPos[towerDirection], 3f);
 
             if (_firstBladeIs == "Dark")
             {
@@ -645,24 +670,25 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
         }
         if (_state is State.Tower2)
         {
-            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == 135) ||
-               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == -135))
+            DuoLog.Information($"GetTwoPointAngle: {DirectionCalculator.GetTwoPointAngle(towers[0], towers[1])}");
+            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is 135 or 90) ||
+               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is -135 or -90))
             {
                 var towerDirection = towers[1];
                 ApplyElement("Bait", TowerPos[towerDirection], 3f);
             }
             else
             {
-                var towerDirection = towers[0];
-                ApplyElement("Bait", TowerPos[towerDirection], 3f);
+                //var towerDirection = towers[0];
+                //ApplyElement("Bait", TowerPos[towerDirection], 3f);
             }
 
             _StateProcEnded = true;
         }
         if (_state is State.Tower3)
         {
-            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == 135) ||
-               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) == -135))
+            if ((_firstBladeIs == "Dark" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is 135 or 90) ||
+               (_firstBladeIs == "Light" && DirectionCalculator.GetTwoPointAngle(towers[0], towers[1]) is -135 or -90))
             {
                 var towerDirection = towers[1];
                 ApplyElement("Bait", TowerPos[towerDirection], 3f);
@@ -670,7 +696,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
             else
             {
                 var towerDirection = towers[2];
-                ApplyElement("Bait", TowerPos[towerDirection], 3f);
+                ApplyElement("BaitStnby", TowerPos[towerDirection], 3f, tether: false);
             }
 
             _StateProcEnded = true;
@@ -794,6 +820,19 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
             NorthWest = 5,
             North = 6,
             NorthEast = 7,
+        }
+
+        public enum DirectionRelative :int
+        {
+            None = -1,
+            East = 4,
+            SouthEast = 3,
+            South = 2,
+            SouthWest = 3,
+            West = 4,
+            NorthWest = 5,
+            North = 6,
+            NorthEast = 5,
         }
 
         public enum LR :int
@@ -1023,87 +1062,83 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
 
     private void HideAllElements() => Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-    // original
-    private void ApplyElement(
-        [NotNull] Element element,
-        Vector3 position,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    private Vector3 BasePosition => new Vector3(100, 0, 100);
+
+    private Vector3 CalculatePositionFromAngle(float angle, float radius = 0f)
+    {
+        return BasePosition + (radius * new Vector3(
+            MathF.Cos(MathF.PI * angle / 180f),
+            0,
+            MathF.Sin(MathF.PI * angle / 180f)
+        ));
+    }
+
+    private Vector3 CalculatePositionFromDirection(DirectionCalculator.Direction direction, float radius = 0f)
+    {
+        var angle = DirectionCalculator.GetAngle(direction);
+        return CalculatePositionFromAngle(angle, radius);
+    }
+
+    /// <summary>
+    /// Elementへの実適用処理を行う"大元"のメソッド。
+    /// </summary>
+    private void InternalApplyElement(Element element, Vector3 position, float elementRadius, bool filled, bool tether)
     {
         element.Enabled = true;
         element.radius = elementRadius;
         element.tether = tether;
-        element.Filled = Filled;
+        element.Filled = filled;
         element.SetRefPosition(position);
     }
 
-    // mutable
-    private void ApplyElement(
-        string elementName, // mutable
-        Vector3 position,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    //----------------------- 公開ApplyElementメソッド群 -----------------------
+
+    // Elementインスタンスと直接的な座標指定
+    public void ApplyElement(Element element, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと角度指定
+    public void ApplyElement(Element element, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromAngle(angle, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと方向指定
+    public void ApplyElement(Element element, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromDirection(direction, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Element名と直接的な座標指定
+    public void ApplyElement(string elementName, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            ApplyElement(element, position, elementRadius, Filled, tether);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 
-    private void ApplyElement(
-        [NotNull] Element element,
-        float angle, // mutable
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
-    {
-        var position = new Vector3(100, 0, 100);
-        position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
-        ApplyElement(element, position, elementRadius, Filled, tether);
-    }
-
-    private void ApplyElement(
-        [NotNull] Element element, // mutable
-        DirectionCalculator.Direction direction, // mutable
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
-    {
-        var angle = DirectionCalculator.GetAngle(direction);
-        ApplyElement(element, angle, radius, elementRadius, Filled, tether);
-    }
-
-
-    private void ApplyElement(
-        string elementName, // mutable
-        DirectionCalculator.Direction direction, // mutable
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    // Element名と角度指定
+    public void ApplyElement(string elementName, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            var angle = DirectionCalculator.GetAngle(direction);
-            ApplyElement(element, angle, radius, elementRadius, Filled, tether);
+            var position = CalculatePositionFromAngle(angle, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 
-    private void ApplyElement(
-        string elementName, // mutable
-        float angle,
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    // Element名と方向指定
+    public void ApplyElement(string elementName, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            ApplyElement(element, angle, radius, elementRadius, Filled, tether);
+            var position = CalculatePositionFromDirection(direction, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 

@@ -1,7 +1,10 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Automation;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -13,14 +16,13 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
-internal class P3_Apocalypse_Full_Toolers :SplatoonScript
+internal unsafe class P3_Apocalypse_Full_Toolers :SplatoonScript
 {
     #region types
     /********************************************************************/
@@ -40,19 +42,21 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
     #endregion
 
     #region class
-    /********************************************************************/
+    /******************************************************** ************/
     /* class                                                            */
     /********************************************************************/
     public class Config :IEzConfig
     {
-        public bool NorthSwap = false;
-        public PriorityData Priority = new();
+        public bool Master = false;
+        public bool UseFastCheat = false;
+        public float FastCheatDefault = 1.0f;
+        public float FastCheat = 1.5f;
     }
 
     private class PartyData
     {
         public int Index = 0;
-        public bool Mine => this.EntityId == Player.Object.EntityId;
+        public bool Mine = false;
         public uint EntityId = 0;
         public int DebuffTime = 0;
         public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject() ?? null;
@@ -67,6 +71,7 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         {
             EntityId = entityId;
             Index = index;
+            Mine = this.EntityId == Player.Object.EntityId;
         }
     }
     #endregion
@@ -75,6 +80,19 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
     /********************************************************************/
     /* const                                                            */
     /********************************************************************/
+    private readonly Vector3[] elementPos = {
+        // south (基準点: (100,0,108))
+        new Vector3(99f, 0f, 107.2f),
+        new Vector3(101f, 0f, 107.2f),
+        new Vector3(99f, 0f, 109.2f),
+        new Vector3(101f, 0f, 109.2f),
+
+        // north (基準点: (100,0,92))
+        new Vector3(99f, 0f, 92.8f),
+        new Vector3(101f, 0f, 92.8f),
+        new Vector3(99f, 0f, 90.8f),
+        new Vector3(101f, 0f, 90.8f),
+    };
     #endregion
 
     #region public properties
@@ -82,7 +100,7 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "redmoon");
+    public override Metadata? Metadata => new(11, "redmoon");
     #endregion
 
     #region private properties
@@ -116,6 +134,21 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
             Controller.RegisterElement($"2Circle{i}", new Element(0) { radius = 5.0f, refActorComparisonType = 2, thicc = 2f, fillIntensity = 0.5f });
         }
         Controller.RegisterElement($"Line", new Element(2) { radius = 5.0f, thicc = 2f, fillIntensity = 0.5f });
+
+        for (var i = 0; i < 8; i++)
+        {
+            Controller.RegisterElement($"split{i}", new Element(0)
+            {
+                radius = 0.3f,
+                refActorComparisonType = 2,
+                thicc = 2f,
+                fillIntensity = 0.5f,
+                color = 0xC8FF00FF,
+                refX = elementPos[i].X,
+                refY = elementPos[i].Z,
+                refZ = elementPos[i].Y,
+            });
+        }
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -123,6 +156,14 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         if (castId == 40269)
         {
             SetListEntityIdByJob();
+            //_partyDataList[0].Mine = false;
+            //_partyDataList[1].Mine = false;
+            //_partyDataList[2].Mine = true;
+            //_partyDataList[3].Mine = false;
+            //_partyDataList[4].Mine = false;
+            //_partyDataList[5].Mine = false;
+            //_partyDataList[6].Mine = false;
+            //_partyDataList[7].Mine = false;
             _state = State.GimmickStart;
         }
         if (_state == State.None) return;
@@ -164,6 +205,10 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         if (castId == 40271 && _state == State.Stack1)
         {
             HideAllElements();
+            if (Controller.GetConfig<Config>().UseFastCheat)
+            {
+                Chat.Instance.ExecuteCommand($"/pdrspeed {Controller.GetConfig<Config>().FastCheat}");
+            }
             ShowSplit1Pos(true);
             _state = State.Split1;
         }
@@ -231,13 +276,39 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
 
     public override void OnReset()
     {
+        var c = Controller.GetConfig<Config>();
         _state = State.None;
         _DebuffCount = 0;
         _startDirection = DirectionCalculator.Direction.None;
         _isClockwise = false;
         _clockDirectionCalculator = new(DirectionCalculator.Direction.None);
         _gaiaEntityId = 0;
+        _partyDataList.Clear();
         HideAllElements();
+
+        if (Controller.GetConfig<Config>().UseFastCheat)
+        {
+            Chat.Instance.ExecuteCommand($"/pdrspeed {Controller.GetConfig<Config>().FastCheatDefault}");
+        }
+
+        if (!c.Master) return;
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <attack>");
+        Chat.Instance.ExecuteCommand($"/mk off <bind>");
+        Chat.Instance.ExecuteCommand($"/mk off <bind>");
+        Chat.Instance.ExecuteCommand($"/mk off <bind>");
+        Chat.Instance.ExecuteCommand($"/mk off <stop>");
+        Chat.Instance.ExecuteCommand($"/mk off <stop>");
+        Chat.Instance.ExecuteCommand($"/mk off <square>");
+        Chat.Instance.ExecuteCommand($"/mk off <circle>");
+        Chat.Instance.ExecuteCommand($"/mk off <triangle>");
+        Chat.Instance.ExecuteCommand($"/mk off <cross>");
     }
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
@@ -274,13 +345,34 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        var C = Controller.GetConfig<Config>();
+        ImGui.Checkbox("Master", ref C.Master);
+        ImGui.Checkbox("Use Fast Cheat", ref C.UseFastCheat);
+        if (C.UseFastCheat)
+        {
+            ImGui.SliderFloat("Fast Cheat", ref C.FastCheat, 1.0f, 2.0f);
+            ImGui.SliderFloat("Fast Cheat Default", ref C.FastCheatDefault, 1.0f, 2.0f);
+        }
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"DebuffCount: {_DebuffCount}");
             ImGui.Text($"Clockwise: {_isClockwise}");
             ImGui.Text($"StartDirection: {_startDirection}");
-            ImGuiDrowPartyList();
+            List<ImGuiEx.EzTableEntry> Entries = [];
+            foreach (var x in _partyDataList)
+            {
+                IPlayerCharacter? pcObj = x.EntityId.GetObject() as IPlayerCharacter ?? null;
+                if (pcObj == null) continue;
+
+                Entries.Add(new ImGuiEx.EzTableEntry("Index", () => ImGui.Text(x.Index.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("Mine", () => ImGui.Text(x.Mine.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("EntityId", () => ImGui.Text(x.EntityId.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("Job", () => ImGui.Text(pcObj.GetJob().ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("DebuffTime", () => ImGui.Text(x.DebuffTime.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("MTSTGroup", () => ImGui.Text(x.MTSTGroup)));
+            }
+            ImGuiEx.EzTable(Entries);
         }
     }
     #endregion
@@ -315,33 +407,6 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         }
     }
 
-    private void ImGuiDrowPartyList()
-    {
-        List<ImGuiEx.EzTableEntry> Entries = [];
-        var properties = typeof(PartyData).GetProperties(); // _partyDataList の要素の型を指定
-
-        foreach (var x in _partyDataList)
-        {
-            IPlayerCharacter? pcObj = x.EntityId.GetObject() as IPlayerCharacter ?? null;
-            if (pcObj == null) continue;
-
-            foreach (var prop in properties)
-            {
-                object? value = prop.GetValue(x);
-
-                // value が null の場合はエントリを追加しない
-                if (value == null) continue;
-
-                Entries.Add(new ImGuiEx.EzTableEntry(
-                    prop.Name,
-                    true,
-                    () => ImGui.Text(value.ToString())
-                ));
-            }
-        }
-        ImGuiEx.EzTable(Entries);
-    }
-
     private bool ParseDebuff()
     {
         var mine = GetMinedata();
@@ -349,8 +414,6 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
 
         _partyDataList[0].MTSTGroup = "MT";
         _partyDataList[1].MTSTGroup = "ST";
-        _partyDataList[2].MTSTGroup = "MT";
-        _partyDataList[3].MTSTGroup = "ST";
 
         foreach (var pc in _partyDataList)
         {
@@ -378,6 +441,47 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         }
 
         if (_partyDataList.Any(x => x.MTSTGroup == "None")) return false;
+
+        // Set Head Marker
+        var MTs = _partyDataList.Where(x => x.MTSTGroup == "MT").ToList();
+        var STs = _partyDataList.Where(x => x.MTSTGroup == "ST").ToList();
+        var C = Controller.GetConfig<Config>();
+        if (!C.Master) return true;
+        for (var i = 0; i < 4; i++)
+        {
+            if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            {
+                int index = GetPlayerTag(MTs[i].EntityId);
+                if (index != -1) DuoLog.Information($"Name: {MTs[i].Object?.Name} Command: /mk attack <{index}>");
+
+                //if (i < 2) // マーカー２つしかない
+                //{
+                //    index = GetPlayerTag(STs[i].EntityId);
+                //    if (index != -1) DuoLog.Information($"Name: {STs[i].Object?.Name} Command: /mk bind <{index}>");
+                //}
+                //else
+                //{
+                //    index = GetPlayerTag(STs[i].EntityId);
+                //    if (index != -1) DuoLog.Information($"Name: {STs[i].Object?.Name} Command: /mk stop <{index}>");
+                //}
+            }
+            else
+            {
+                int index = GetPlayerTag(MTs[i].EntityId);
+                if (index != -1) Chat.Instance.ExecuteCommand($"/mk attack <{index}>");
+
+                if (i < 2) // マーカー２つしかない
+                {
+                    index = GetPlayerTag(STs[i].EntityId);
+                    if (index != -1) Chat.Instance.ExecuteCommand($"/mk bind <{index}>");
+                }
+                else
+                {
+                    index = GetPlayerTag(STs[i].EntityId);
+                    if (index != -1) Chat.Instance.ExecuteCommand($"/mk stop <{index}>");
+                }
+            }
+        }
         return true;
     }
 
@@ -408,6 +512,14 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
                 el.color = 0xC000FF00;
                 el.radius = 6.0f;
                 el.Filled = false;
+                el.Enabled = true;
+            }
+        }
+
+        for (var i = 0; i < 8; i++)
+        {
+            if (Controller.TryGetElementByName($"split{i}", out var el))
+            {
                 el.Enabled = true;
             }
         }
@@ -520,36 +632,108 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         if (pc == null) return;
 
         // その中で何番目かを取得
-        var index = _partyDataList.FindIndex(x => x.EntityId == pc.EntityId);
+
+        var MTs = _partyDataList.Where(x => x.MTSTGroup == "MT").ToList();
+        var STs = _partyDataList.Where(x => x.MTSTGroup == "ST").ToList();
+
+        // 自分がどちらか、何番目かを取得
+        bool isMT = pc.MTSTGroup == "MT";
+        int index = isMT ? MTs.FindIndex(x => x.EntityId == pc.EntityId) : STs.FindIndex(x => x.EntityId == pc.EntityId);
         if (index == -1) return;
 
-        switch (index)
+        Vector3 pos1 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7), 10.0f);
+        Vector3 pos2 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1), 10.0f);
+
+        float distance1 = Vector3.Distance(_partyDataList[0].Object.Position, pos1);
+        float distance2 = Vector3.Distance(_partyDataList[0].Object.Position, pos2);
+
+        int MTsClock = 0;
+        int MTsClockDps = 0;
+        int STsClock = 0;
+        int STsClockDps = 0;
+
+        if (distance1 < distance2)
         {
-            case 0:
-                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7), 10.0f);
-                break;
-            case 1:
-                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1), 10.0f);
-                break;
-            case 2:
-                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7)) + (_isClockwise ? -15 : 15), 19.0f);
-                break;
-            case 3:
-                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1)) + (_isClockwise ? -15 : 15), 19.0f);
-                break;
-            case 4:
-                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 3 : 9), 10.0f);
-                break;
-            case 5:
-                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 9 : 3), 10.0f);
-                break;
-            case 6:
-                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7)) + (_isClockwise ? 15 : -15), 19.0f);
-                break;
-            case 7:
-                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1)) + (_isClockwise ? 15 : -15), 19.0f);
-                break;
+            MTsClock = _isClockwise ? 4 : 7;
+            MTsClockDps = _isClockwise ? 3 : 9;
+            STsClock = _isClockwise ? 10 : 1;
+            STsClockDps = _isClockwise ? 9 : 3;
         }
+        else
+        {
+            MTsClock = _isClockwise ? 10 : 1;
+            MTsClockDps = _isClockwise ? 9 : 3;
+            STsClock = _isClockwise ? 4 : 7;
+            STsClockDps = _isClockwise ? 3 : 9;
+        }
+
+        if (isMT)
+        {
+            if (index == 0)
+            {
+                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(MTsClock), 10.0f);
+            }
+            else if (index == 1)
+            {
+                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(MTsClockDps), 10.0f);
+            }
+            else if (index == 2)
+            {
+                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(MTsClock)) + (_isClockwise ? -15 : 15), 19.0f);
+            }
+            else if (index == 3)
+            {
+                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(MTsClock)) + (_isClockwise ? 15 : -15), 19.0f);
+            }
+        }
+        else
+        {
+            if (index == 0)
+            {
+                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(STsClock), 10.0f);
+            }
+            else if (index == 1)
+            {
+                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(STsClockDps), 10.0f);
+            }
+            else if (index == 2)
+            {
+                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(STsClock)) + (_isClockwise ? -15 : 15), 19.0f);
+            }
+            else if (index == 3)
+            {
+                ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(STsClock)) + (_isClockwise ? 15 : -15), 19.0f);
+            }
+        }
+
+
+        //switch (index)
+        //{
+        //    case 0:
+        //        ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7), 10.0f);
+        //        break;
+        //    case 1:
+        //        ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1), 10.0f);
+        //        break;
+        //    case 2:
+        //        ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7)) + (_isClockwise ? -15 : 15), 19.0f);
+        //        break;
+        //    case 3:
+        //        ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1)) + (_isClockwise ? -15 : 15), 19.0f);
+        //        break;
+        //    case 4:
+        //        ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 3 : 9), 10.0f);
+        //        break;
+        //    case 5:
+        //        ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 9 : 3), 10.0f);
+        //        break;
+        //    case 6:
+        //        ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7)) + (_isClockwise ? 15 : -15), 19.0f);
+        //        break;
+        //    case 7:
+        //        ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1)) + (_isClockwise ? 15 : -15), 19.0f);
+        //        break;
+        //}
 
         ShowAoePos();
     }
@@ -578,21 +762,30 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         var pc = GetMinedata();
         if (pc == null) return;
 
-        string MTST = pc.MTSTGroup;
-        if (MTST == "None") return;
+        Vector3 pos1 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7), 10.0f);
+        Vector3 pos2 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1), 10.0f);
 
-        // MTSTの人を抽出
-        var MTSTs = _partyDataList.Where(x => x.MTSTGroup == MTST).ToList();
-        if (MTSTs.Count != 4) return;
+        float distance1 = Vector3.Distance(_partyDataList[0].Object.Position, pos1);
+        float distance2 = Vector3.Distance(_partyDataList[0].Object.Position, pos2);
 
-        if (MTST == "MT")
+        int MTsClock = 0;
+        int STsClock = 0;
+        if (distance1 < distance2)
         {
-            ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7), 4.0f);
+            MTsClock = _isClockwise ? 4 : 7;
+            STsClock = _isClockwise ? 10 : 1;
         }
         else
         {
-            ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1), 4.0f);
+            MTsClock = _isClockwise ? 10 : 1;
+            STsClock = _isClockwise ? 4 : 7;
         }
+
+        string MTST = pc.MTSTGroup;
+        if (MTST == "None") return;
+
+        ApplyElement("Bait", DirectionCalculator.GetAngle(
+            _clockDirectionCalculator.GetDirectionFromClock((MTST == "MT") ? MTsClock : STsClock)) + (_isClockwise ? -22f : 22f), 5.2f);
 
         var Debuff30s = _partyDataList.Where(x => x.DebuffTime == 30).ToList();
         if (Debuff30s.Count == 0) return;
@@ -609,7 +802,6 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
                 el.Enabled = true;
             }
         }
-
         ShowAoe2Pos();
     }
 
@@ -635,9 +827,20 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         var pc = GetMinedata();
         if (pc == null) return;
 
-        if (pc.Index == 0)
+        if (pc.Index == 1)
         {
-            ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 3 : 9), 19.0f);
+            Vector3 pos3 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(3), 19.0f);
+            Vector3 pos9 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(9), 19.0f);
+            float distance3 = Vector3.Distance(Player.Position, pos3);
+            float distance9 = Vector3.Distance(Player.Position, pos9);
+            if (distance3 < distance9)
+            {
+                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(3), 19.0f);
+            }
+            else
+            {
+                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(9), 19.0f);
+            }
         }
         else
         {
@@ -683,17 +886,17 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
             el.Enabled = true;
         }
 
-        if (Controller.TryGetElementByName("Line", out el))
-        {
-            el.thicc = 6f;
-            el.radius = 0f;
-            el.color = 0xC8FF00FF;
-            var overDistance = Vector3.Distance(Player.Position, npc.Position);
-            el.SetRefPosition(npc.Position);
-            var endPos = GetExtendedAndClampedPosition(npc.Position, Player.Position, 15 + overDistance, 50f);
-            el.SetOffPosition(endPos);
-            el.Enabled = true;
-        }
+        //if (Controller.TryGetElementByName("Line", out el))
+        //{
+        //    el.thicc = 6f;
+        //    el.radius = 0f;
+        //    el.color = 0xC8FF00FF;
+        //    var overDistance = Vector3.Distance(Player.Position, npc.Position);
+        //    el.SetRefPosition(npc.Position);
+        //    var endPos = GetExtendedAndClampedPosition(npc.Position, Player.Position, 15 + overDistance, 50f);
+        //    el.SetOffPosition(endPos);
+        //    el.Enabled = true;
+        //}
     }
     #endregion
 
@@ -707,10 +910,6 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         Job.WAR,
         Job.GNB,
         Job.PLD,
-        Job.WHM,
-        Job.AST,
-        Job.SCH,
-        Job.SGE,
         Job.DRG,
         Job.VPR,
         Job.SAM,
@@ -724,6 +923,10 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         Job.SMN,
         Job.PCT,
         Job.BLM,
+        Job.WHM,
+        Job.AST,
+        Job.SCH,
+        Job.SGE,
     };
 
     private static readonly Job[] TankJobs = { Job.DRK, Job.WAR, Job.GNB, Job.PLD };
@@ -914,22 +1117,21 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
             if (!isValid)
                 return DirectionCalculator.Direction.None;
 
-            // 特別ケース: clock = 0 の場合、_12ClockDirection をそのまま返す
-            if (clock == 0)
-                return _12ClockDirection;
-
-            // 12時計位置を8方向にマッピング
+            // clockの値に応じて方向オフセット(ステップ)を定義
+            // 30度刻みのclockを45度刻みの8方向へ近似的にマッピング
+            // 0:同方向、1,2:右斜め上、3:右、4,5:右斜め下、6:反対、7,8:左斜め下、9:左、10,11:左斜め上
+            // ※ ここを修正ポイント
             var clockToDirectionMapping = new Dictionary<int, int>
-        {
-            { 0, 0 },   // Same as _12ClockDirection
-            { 1, 1 }, { 2, 1 },   // Diagonal right up
-            { 3, 2 },             // Right
-            { 4, 3 }, { 5, 3 },   // Diagonal right down
-            { 6, 4 },             // Opposite
-            { 7, -3 }, { 8, -3 }, // Diagonal left down
-            { 9, -2 },            // Left
-            { 10, -1 }, { 11, -1 } // Diagonal left up
-        };
+            {
+                { 0, 0 },   // Same as _12ClockDirection
+                { 1, 1 }, { 2, 1 },   // Diagonal right up
+                { 3, 2 },             // Right
+                { 4, 3 }, { 5, 3 },   // Diagonal right down
+                { 6, 4 },             // Opposite
+                { 7, -3 }, { 8, -3 }, // Diagonal left down
+                { 9, -2 },            // Left
+                { 10, -1 }, { 11, -1 } // Diagonal left up
+            };
 
             // 現在の12時方向をインデックスとして取得
             int baseIndex = (int)_12ClockDirection;
@@ -940,9 +1142,9 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
             // 新しい方向を計算し、範囲を正規化
             int targetIndex = (baseIndex + step + 8) % 8;
 
-            // 対応する方向を返す
             return (DirectionCalculator.Direction)targetIndex;
         }
+
 
         public int GetClockFromDirection(DirectionCalculator.Direction direction)
         {
@@ -983,34 +1185,88 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
 
     private void HideAllElements() => Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-    private void ApplyElement(string elementName, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool tether = true)
+    private Vector3 BasePosition => new Vector3(100, 0, 100);
+
+    private Vector3 CalculatePositionFromAngle(float angle, float radius = 0f)
     {
-        var position = new Vector3(100, 0, 100);
+        return BasePosition + (radius * new Vector3(
+            MathF.Cos(MathF.PI * angle / 180f),
+            0,
+            MathF.Sin(MathF.PI * angle / 180f)
+        ));
+    }
+
+    private Vector3 CalculatePositionFromDirection(DirectionCalculator.Direction direction, float radius = 0f)
+    {
         var angle = DirectionCalculator.GetAngle(direction);
-        position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
-        if (Controller.TryGetElementByName(elementName, out var element))
-        {
-            element.Enabled = true;
-            element.radius = elementRadius;
-            element.tether = tether;
-            element.SetRefPosition(position);
-        }
+        return CalculatePositionFromAngle(angle, radius);
     }
 
-    private void ApplyElement(string elementName, float angle, float radius = 0f, float elementRadius = 0.3f, bool tether = true)
+    /// <summary>
+    /// Elementへの実適用処理を行う"大元"のメソッド。
+    /// </summary>
+    private void InternalApplyElement(Element element, Vector3 position, float elementRadius, bool filled, bool tether)
     {
-        var position = new Vector3(100, 0, 100);
-        position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
+        element.Enabled = true;
+        element.radius = elementRadius;
+        element.tether = tether;
+        element.Filled = filled;
+        element.SetRefPosition(position);
+    }
+
+    //----------------------- 公開ApplyElementメソッド群 -----------------------
+
+    // Elementインスタンスと直接的な座標指定
+    public void ApplyElement(Element element, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと角度指定
+    public void ApplyElement(Element element, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromAngle(angle, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと方向指定
+    public void ApplyElement(Element element, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromDirection(direction, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Element名と直接的な座標指定
+    public void ApplyElement(string elementName, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            element.Enabled = true;
-            element.radius = elementRadius;
-            element.tether = tether;
-            element.SetRefPosition(position);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 
-    private static float GetCorrectionAngle(Vector3 origin, Vector3 target, float rotation) => GetCorrectionAngle(MathHelper.ToVector2(origin), MathHelper.ToVector2(target), rotation);
+    // Element名と角度指定
+    public void ApplyElement(string elementName, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        if (Controller.TryGetElementByName(elementName, out var element))
+        {
+            var position = CalculatePositionFromAngle(angle, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
+        }
+    }
+
+    // Element名と方向指定
+    public void ApplyElement(string elementName, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        if (Controller.TryGetElementByName(elementName, out var element))
+        {
+            var position = CalculatePositionFromDirection(direction, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
+        }
+    }
+
+    private static float GetCorrectionAngle(Vector3 origin, Vector3 target, float rotation) =>
+            GetCorrectionAngle(MathHelper.ToVector2(origin), MathHelper.ToVector2(target), rotation);
 
     private static float GetCorrectionAngle(Vector2 origin, Vector2 target, float rotation)
     {
@@ -1051,7 +1307,8 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         return radians;
     }
 
-    public static Vector3 GetExtendedAndClampedPosition(Vector3 center, Vector3 currentPos, float extensionLength, float? limit)
+    private static Vector3 GetExtendedAndClampedPosition(
+        Vector3 center, Vector3 currentPos, float extensionLength, float? limit)
     {
         // Calculate the normalized direction vector from the center to the current position
         Vector3 direction = Vector3.Normalize(currentPos - center);
@@ -1078,9 +1335,22 @@ internal class P3_Apocalypse_Full_Toolers :SplatoonScript
         return extendedPos;
     }
 
-    public static void ExceptionReturn(string message)
+    private static void ExceptionReturn(string message)
     {
         PluginLog.Error(message);
+    }
+
+    private unsafe int GetPlayerTag(uint entityId)
+    {
+        for (int i = 1; i <= 8; i++)
+        {
+            var obj = FakePronoun.Resolve($"<{i}>");
+            if (obj != null && obj->EntityId == entityId)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
     #endregion
 }

@@ -1,6 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
-using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -9,71 +8,50 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
-internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
+internal unsafe class P4_Akh_Morn_Full_Toolers :SplatoonScript
 {
     #region types
     /********************************************************************/
     /* types                                                            */
     /********************************************************************/
-    private enum State
-    {
-        None = 0,
-        Stack1,
-        Dodge1,
-        Stack2,
-        Dodge2,
-        Stack3,
-        Dodge3,
-        Stack4,
-        Dodge4,
-    }
     #endregion
 
     #region class
     /********************************************************************/
     /* class                                                            */
     /********************************************************************/
-    public class Config :IEzConfig
-    {
-        public float FastCheatDefault = 1.0f;
-        public float FastCheat = 1.5f;
-    }
-
-    private class RemoveBuff
-    {
-        public Vector3 Position = Vector3.Zero;
-        public uint AssignEntityId = 0;
-    }
+    public class Config :IEzConfig { }
 
     private class PartyData
     {
-        public int Index = 0;
-        public bool Mine => this.EntityId == Player.Object.EntityId;
+        public int Index { get; set; }
+        public bool Mine = false;
         public uint EntityId;
         public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject()! ?? null;
-        public DirectionCalculator.Direction AssignDirection = DirectionCalculator.Direction.None;
 
         public bool IsTank => TankJobs.Contains(Object?.GetJob() ?? Job.WHM);
         public bool IsHealer => HealerJobs.Contains(Object?.GetJob() ?? Job.PLD);
         public bool IsTH => IsTank || IsHealer;
         public bool IsMeleeDps => MeleeDpsJobs.Contains(Object?.GetJob() ?? Job.MCH);
         public bool IsRangedDps => RangedDpsJobs.Contains(Object?.GetJob() ?? Job.MNK);
-        public bool IsDps => IsMeleeDps || IsRangedDps;
+        public bool IsMagicDps => MagicDpsJobs.Contains(Object?.GetJob() ?? Job.WHM);
+        public bool IsDps => IsMeleeDps || IsRangedDps || IsMagicDps;
 
         public PartyData(uint entityId, int index)
         {
             EntityId = entityId;
             Index = index;
+            Mine = entityId == Player.Object.EntityId;
         }
     }
     #endregion
@@ -82,17 +60,6 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     /********************************************************************/
     /* const                                                            */
     /********************************************************************/
-    private readonly Dictionary<int, (string, string, string, string)> BaitList = new()
-    {
-        { 0, ("L", "R", "R", "R") },
-        { 1, ("R", "L", "L", "L") },
-        { 2, ("L", "L", "L", "L") },
-        { 3, ("R", "R", "R", "R") },
-        { 4, ("L", "L", "R", "R") },
-        { 5, ("R", "R", "L", "L") },
-        { 6, ("L", "L", "L", "R") },
-        { 7, ("R", "R", "R", "L") },
-    };
     #endregion
 
     #region public properties
@@ -107,12 +74,13 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     /********************************************************************/
     /* private properties                                               */
     /********************************************************************/
-    private State _state = State.None;
+    private bool _gimmick = false;
     private List<PartyData> _partyDataList = new();
-    private Config C => Controller.GetConfig<Config>();
-    private ClockDirectionCalculator _clockDirectionCalculator = new();
-    private int _firstLightPcIndex = 0;
-    private int _firstDarkPcIndex = 0;
+    private uint _gaiaEntityId = 0;
+    private uint _RinEntityId = 0;
+    private int _akhMornCount = 0;
+    private bool _mitiBuff = false;
+    private ActionManager* actionManager = ActionManager.Instance();
     #endregion
 
     #region public methods
@@ -126,134 +94,130 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40316)
+        if (castId == 40302)
         {
-            SetListEntityIdByJob();
-            if (!source.TryGetObject(out var obj)) return;
-            var angle = ConvertRotationRadiansToDegrees(obj.Rotation);
-            var dir = DirectionCalculator.GetDirectionFromAngle(DirectionCalculator.Direction.North, (int)angle);
-            _clockDirectionCalculator._12ClockDirection = dir;
-            _firstLightPcIndex = 0;
-            _firstDarkPcIndex = 1;
-            var pc = GetMinedata();
-            if (pc == null) return;
-            // BaitListの中から、自分のIndexに対応するものを取得
-            var bait = BaitList[pc?.Index ?? 0];
-            string bait1 = bait.Item1;
-            float range = (pc.Index == _firstLightPcIndex || pc.Index == _firstDarkPcIndex) ? 5f : 10f;
-            DuoLog.Information($"bait1: {bait1} range: {range}");
-            if (bait1 == "L") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(7)) - 15, range);
-            if (bait1 == "R") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(4)) + 15, range);
-            _state = State.Stack1;
-
-            Chat.Instance.ExecuteCommand($"/pdrspeed {C.FastCheat}");
+            _gaiaEntityId = source;
+        }
+        if (castId == 40247)
+        {
+            _RinEntityId = source;
         }
 
-        if (_state == State.None) return;
+        if ((castId == 40302 || castId == 40247) &&
+            _gaiaEntityId != 0 && _RinEntityId != 0)
+        {
+            _gimmick = true;
+            SetListEntityIdByJob();
+
+            // DEBUG
+            //_partyDataList.Each(x => x.Mine = false);
+            //_partyDataList[2].Mine = true;
+
+            var pc = GetMinedata();
+            if (pc == null) return;
+            if (_akhMornCount == 0) // 1回目
+            {
+                if (pc.Index == 1)
+                {
+                    ApplyElement("Bait", DirectionCalculator.Direction.East, 13f);
+                }
+                else
+                {
+                    ApplyElement("Bait", DirectionCalculator.Direction.East, 0f);
+                }
+            }
+            else // 2回目
+            {
+                _mitiBuff = true;
+                if (pc.Index == 0)
+                {
+                    ApplyElement("Bait", DirectionCalculator.Direction.West, 13f);
+                }
+                else
+                {
+                    ApplyElement("Bait", DirectionCalculator.Direction.West, 0);
+                }
+            }
+
+            _akhMornCount++;
+        }
+
+        if (castId == 40249)
+        {
+            ApplyElement("Bait", DirectionCalculator.Direction.East, 0);
+        }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_state == State.None) return;
         if (set.Action == null) return;
         var castId = set.Action.Value.RowId;
 
-        if (castId is 40317) // Light
+        if (castId == 40249)
         {
-            var pc = _partyDataList[_firstLightPcIndex].Object;
-            //if (pc != null && Controller.TryGetElementByName("Line", out var el))
-            //{
-            //    el.SetRefPosition(new Vector3(100, 0, 100));
-            //    var pos = GetExtendedAndClampedPosition(new Vector3(100, 0, 100), pc.Position, 25f);
-            //    el.SetOffPosition(pos);
-            //    el.radius = 3f;
-            //    el.thicc = 2f;
-            //    el.Enabled = true;
-            //}
-
-            ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(6), 8f);
-
-            _state++;
-        }
-
-        if (castId is 40318) // Dark
-        {
-            var pc = _partyDataList[_firstDarkPcIndex].Object;
-            //if (pc != null && Controller.TryGetElementByName("Line2", out var el))
-            //{
-            //    el.SetRefPosition(new Vector3(100, 0, 100));
-            //    var pos = GetExtendedAndClampedPosition(new Vector3(100, 0, 100), pc.Position, 25f);
-            //    el.SetOffPosition(pos);
-            //    el.radius = 3f;
-            //    el.thicc = 2f;
-            //    el.Enabled = true;
-            //}
-        }
-
-        if (castId is 40119)
-        {
-            if (Controller.TryGetElementByName("Line", out var el)) el.Enabled = false;
-            if (_state == State.Dodge4)
-            {
-                this.OnReset();
-                return;
-            }
-            _state++;
-            ChengeStatus();
-            Show();
-        }
-        if (castId is 40120)
-        {
-            if (Controller.TryGetElementByName("Line2", out var el)) el.Enabled = false;
+            HotReset();
         }
     }
 
     public override void OnUpdate()
     {
-        if (_state == State.None) return;
+        if (!_gimmick) return;
 
         if (Controller.TryGetElementByName("Bait", out var el))
         {
             if (el.Enabled) el.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
         }
+
+        if (_mitiBuff && (Player.Job == Job.DRK))
+        {
+            if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 7531u))
+            {
+                actionManager->UseAction(ActionType.Action, 7531u);
+            }
+            if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 3634u))
+            {
+                actionManager->UseAction(ActionType.Action, 3634u);
+            }
+            if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 25754u))
+            {
+                actionManager->UseAction(ActionType.Action, 25754u);
+            }
+            if (actionManager->AnimationLock == 0 && !actionManager->IsRecastTimerActive(ActionType.Action, 7393u))
+            {
+                actionManager->UseAction(ActionType.Action, 7393u);
+            }
+        }
     }
 
     public override void OnReset()
     {
-        _state = State.None;
-        _partyDataList.Clear();
-        _firstLightPcIndex = 0;
-        _firstDarkPcIndex = 0;
-        Chat.Instance.ExecuteCommand($"/pdrspeed {C.FastCheatDefault}");
-        HideAllElements();
+        _akhMornCount = 0;
+        HotReset();
     }
 
     public override void OnSettingsDraw()
     {
-        ImGui.SliderFloat("FastCheat", ref C.FastCheat, 1.0f, 1.5f);
-        ImGui.SliderFloat("FastCheatDefault", ref C.FastCheatDefault, 1.0f, 1.5f);
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
-            ImGui.Text($"State: {_state}");
-            ImGui.Text($"FirstLightPcIndex: {_firstLightPcIndex}");
-            ImGui.Text($"FirstDarkPcIndex: {_firstDarkPcIndex}");
-            ImGui.Text("PartyDataList");
+            ImGui.Text($"Gimmick: {_gimmick}");
+            ImGui.Text($"Akh Morn Count: {_akhMornCount}");
+            ImGui.Text($"Gaia: {_gaiaEntityId}");
+            ImGui.Text($"Rin: {_RinEntityId}");
             List<ImGuiEx.EzTableEntry> Entries = [];
             foreach (var x in _partyDataList)
             {
                 Entries.Add(new ImGuiEx.EzTableEntry("Index", true, () => ImGui.Text(x.Index.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("EntityId", true, () => ImGui.Text(x.EntityId.ToString())));
-                if (x.Object != null)
-                {
-                    Entries.Add(new ImGuiEx.EzTableEntry("Job", true, () => ImGui.Text(x.Object.GetJob().ToString())));
-                    Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(x.Object.Name.ToString())));
-                }
-                else
-                {
-                    Entries.Add(new ImGuiEx.EzTableEntry("Job", true, () => ImGui.Text("null")));
-                    Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text("null")));
-                }
+                Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(x.EntityId.GetObject().Name.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("Mine", true, () => ImGui.Text(x.Mine.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsTank", true, () => ImGui.Text(x.IsTank.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsHealer", true, () => ImGui.Text(x.IsHealer.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsTH", true, () => ImGui.Text(x.IsTH.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsMeleeDps", true, () => ImGui.Text(x.IsMeleeDps.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsRangedDps", true, () => ImGui.Text(x.IsRangedDps.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsMagicDps", true, () => ImGui.Text(x.IsMagicDps.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsDps", true, () => ImGui.Text(x.IsDps.ToString())));
+
             }
             ImGuiEx.EzTable(Entries);
         }
@@ -264,44 +228,14 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     /********************************************************************/
     /* private methods                                                  */
     /********************************************************************/
-    private void ChengeStatus()
-    {
-        _firstLightPcIndex = _firstLightPcIndex switch
-        {
-            0 => 4,
-            4 => 6,
-            6 => 2,
-            _ => 0
-        };
 
-        _firstDarkPcIndex = _firstDarkPcIndex switch
-        {
-            1 => 5,
-            5 => 7,
-            7 => 3,
-            _ => 1
-        };
-    }
-
-    private void Show()
+    private void HotReset()
     {
-        var pc = GetMinedata();
-        if (pc == null) return;
-        // BaitListの中から、自分のIndexに対応するものを取得
-        var bait = BaitList[pc?.Index ?? 0];
-        string bait1 = _state switch
-        {
-            State.Stack1 => bait.Item1,
-            State.Stack2 => bait.Item2,
-            State.Stack3 => bait.Item3,
-            State.Stack4 => bait.Item4,
-            _ => "L"
-        };
-        DuoLog.Information($"_firstLightPcIndex: {_firstLightPcIndex} _firstDarkPcIndex: {_firstDarkPcIndex}");
-        float range = (pc.Index == _firstLightPcIndex || pc.Index == _firstDarkPcIndex) ? 5f : 10f;
-        DuoLog.Information($"bait1: {bait1} range: {range}");
-        if (bait1 == "L") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(7)) - 15, range);
-        if (bait1 == "R") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(4)) + 15, range);
+        _gaiaEntityId = 0;
+        _RinEntityId = 0;
+        _partyDataList.Clear();
+        _mitiBuff = false;
+        HideAllElements();
     }
 
     private PartyData? GetMinedata() => _partyDataList.Find(x => x.Mine) ?? null;
@@ -330,7 +264,6 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         }
     }
     #endregion
-
 
     #region API
     /********************************************************************/
@@ -534,9 +467,14 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
     public class ClockDirectionCalculator
     {
-        public DirectionCalculator.Direction _12ClockDirection = DirectionCalculator.Direction.None;
+        private DirectionCalculator.Direction _12ClockDirection = DirectionCalculator.Direction.None;
         public bool isValid => _12ClockDirection != DirectionCalculator.Direction.None;
         public DirectionCalculator.Direction Get12ClockDirection() => _12ClockDirection;
+
+        public ClockDirectionCalculator(DirectionCalculator.Direction direction)
+        {
+            _12ClockDirection = direction;
+        }
 
         // _12ClockDirectionを0時方向として、指定時計からの方向を取得
         public DirectionCalculator.Direction GetDirectionFromClock(int clock)
@@ -613,87 +551,83 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
     private void HideAllElements() => Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-    // original
-    private void ApplyElement(
-        [NotNull] Element element,
-        Vector3 position,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    private Vector3 BasePosition => new Vector3(100, 0, 100);
+
+    private Vector3 CalculatePositionFromAngle(float angle, float radius = 0f)
+    {
+        return BasePosition + (radius * new Vector3(
+            MathF.Cos(MathF.PI * angle / 180f),
+            0,
+            MathF.Sin(MathF.PI * angle / 180f)
+        ));
+    }
+
+    private Vector3 CalculatePositionFromDirection(DirectionCalculator.Direction direction, float radius = 0f)
+    {
+        var angle = DirectionCalculator.GetAngle(direction);
+        return CalculatePositionFromAngle(angle, radius);
+    }
+
+    /// <summary>
+    /// Elementへの実適用処理を行う"大元"のメソッド。
+    /// </summary>
+    private void InternalApplyElement(Element element, Vector3 position, float elementRadius, bool filled, bool tether)
     {
         element.Enabled = true;
         element.radius = elementRadius;
         element.tether = tether;
-        element.Filled = Filled;
+        element.Filled = filled;
         element.SetRefPosition(position);
     }
 
-    // mutable
-    private void ApplyElement(
-        string elementName, // mutable
-        Vector3 position,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    //----------------------- 公開ApplyElementメソッド群 -----------------------
+
+    // Elementインスタンスと直接的な座標指定
+    public void ApplyElement(Element element, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと角度指定
+    public void ApplyElement(Element element, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromAngle(angle, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Elementインスタンスと方向指定
+    public void ApplyElement(Element element, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
+    {
+        var position = CalculatePositionFromDirection(direction, radius);
+        InternalApplyElement(element, position, elementRadius, filled, tether);
+    }
+
+    // Element名と直接的な座標指定
+    public void ApplyElement(string elementName, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            ApplyElement(element, position, elementRadius, Filled, tether);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 
-    private void ApplyElement(
-        [NotNull] Element element,
-        float angle, // mutable
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
-    {
-        var position = new Vector3(100, 0, 100);
-        position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
-        ApplyElement(element, position, elementRadius, Filled, tether);
-    }
-
-    private void ApplyElement(
-        [NotNull] Element element, // mutable
-        DirectionCalculator.Direction direction, // mutable
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
-    {
-        var angle = DirectionCalculator.GetAngle(direction);
-        ApplyElement(element, angle, radius, elementRadius, Filled, tether);
-    }
-
-
-    private void ApplyElement(
-        string elementName, // mutable
-        DirectionCalculator.Direction direction, // mutable
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    // Element名と角度指定
+    public void ApplyElement(string elementName, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            var angle = DirectionCalculator.GetAngle(direction);
-            ApplyElement(element, angle, radius, elementRadius, Filled, tether);
+            var position = CalculatePositionFromAngle(angle, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 
-    private void ApplyElement(
-        string elementName, // mutable
-        float angle,
-        float radius = 0f,
-        float elementRadius = 0.3f,
-        bool Filled = true,
-        bool tether = true)
+    // Element名と方向指定
+    public void ApplyElement(string elementName, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
         if (Controller.TryGetElementByName(elementName, out var element))
         {
-            ApplyElement(element, angle, radius, elementRadius, Filled, tether);
+            var position = CalculatePositionFromDirection(direction, radius);
+            InternalApplyElement(element, position, elementRadius, filled, tether);
         }
     }
 
@@ -740,7 +674,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     }
 
     public static Vector3 GetExtendedAndClampedPosition(
-        Vector3 center, Vector3 currentPos, float extensionLength, float? limit = null)
+        Vector3 center, Vector3 currentPos, float extensionLength, float? limit)
     {
         // Calculate the normalized direction vector from the center to the current position
         Vector3 direction = Vector3.Normalize(currentPos - center);

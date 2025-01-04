@@ -122,7 +122,7 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "redmoon");
+    public override Metadata? Metadata => new(7, "redmoon");
     #endregion
 
     #region private properties
@@ -232,8 +232,20 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
                 _ => State.None
             };
 
-            HideAllElements();
-            mineRoleAction();
+            if (_state == State.Laser3 && mineRoleAction.Method.Name == "MiddleFire")
+            {
+                HideAllElements();
+                var pc = GetMinedata();
+                if (pc == null) return;
+                int clock = pc.IsDarkWater ? 3 : 9;
+                if (_clockDirectionCalculator == null) return;
+                ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(clock), 8f);
+            }
+            else
+            {
+                HideAllElements();
+                mineRoleAction();
+            }
         }
 
         if (castId == 40274 && !_transLock) // Return (Eruption)
@@ -316,6 +328,9 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
                         debuff = pc.StatusList.FirstOrDefault(x => x.StatusId == (uint)Debuff.Blizzard);
                         if (debuff == null) continue;
                         x.IsBlizzard = true;
+                        if (pc.StatusList.Any(x => x.StatusId == (uint)Debuff.Eruption)) x.IsEruption = true;
+                        if (pc.StatusList.Any(x => x.StatusId == (uint)Debuff.DarkWater)) x.IsDarkWater = true;
+                        if (pc.StatusList.Any(x => x.StatusId is (uint)Debuff.DarkWater or (uint)Debuff.ShadowEye)) x.IsStacker = true;
                         continue;
                     }
                     x.DebuffTime = debuff.RemainingTime switch
@@ -480,6 +495,7 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
                 Entries.Add(new ImGuiEx.EzTableEntry("IsBlizzard", true, () => ImGui.Text(x.IsBlizzard.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("IsEruption", true, () => ImGui.Text(x.IsEruption.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("IsDarkWater", true, () => ImGui.Text(x.IsDarkWater.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("IsStacker", true, () => ImGui.Text(x.IsStacker.ToString())));
             }
             ImGuiEx.EzTable(Entries);
 
@@ -567,7 +583,7 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
                 break;
             case State.Interval1:
             case State.Laser1: // リターン(エラプ)捨て
-                var range = pc.IsStacker ? 2 : 8;
+                var range = pc.IsStacker ? 2f : 9f;
                 if (index == 0) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(1), range);
                 else if (index == 1) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(6), range);
                 else if (index == 2) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(10), range);
@@ -654,8 +670,8 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
                 break;
             case State.Interval1:
             case State.Laser1: // ウォタガなら3時、エラプなら9時でリターン捨て
-                if (pc.IsDarkWater) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(3), 2);
-                else if (pc.IsEruption) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(9), 8);
+                if (pc.IsDarkWater) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(3), 2f);
+                else if (pc.IsEruption) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(9), 9f);
                 break;
 
             case State.Fire2: // ウォタガなら3時、エラプなら9時でファイガ捨て
@@ -762,7 +778,7 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
                 break;
             case State.Interval2:
             case State.Laser2: // リターン設置
-                var range = pc.IsStacker ? 2 : 8;
+                var range = pc.IsStacker ? 2f : 9.5f;
                 if (index == 0) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(0), range);
                 else if (index == 1) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(4), range);
                 else if (index == 2) ApplyElement("Bait", _clockDirectionCalculator.GetDirectionFromClock(7), range);
@@ -783,9 +799,9 @@ internal class P3_Ultimate_Relativity_Full_Toolers :SplatoonScript
             case State.Laser3: // ニート(向きだけ注意)
                 ApplyElement("Bait", DirectionCalculator.GetOppositeDirection(_clockDirectionCalculator.GetDirectionFromClock(index switch
                 {
-                    0 => 4,
-                    1 => 7,
-                    2 => 10,
+                    0 => 0,
+                    1 => 4,
+                    2 => 7,
                     _ => 0
                 })), 2);
 

@@ -90,7 +90,7 @@ internal static class Triggers
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message + "\n" + e.StackTrace);
+                    P.Log(e.ToStringFull());
                 }
             }
         }

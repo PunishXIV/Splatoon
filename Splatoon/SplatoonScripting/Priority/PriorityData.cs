@@ -52,15 +52,24 @@ public class PriorityData
                 ImGui.TableNextColumn();
                 statusCursor = ImGui.GetCursorPos();
                 ImGuiEx.TextV($"");
+                ImGuiEx.TextV($"");
+                ImGuiEx.TextV($"");
 
                 ImGui.PushID(playerList.ID);
-                playerList.Draw();
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                if (ImGuiEx.IconButtonWithText(FontAwesomeIcon.Minus, "Delete this priority list (Hold CTRL)", enabled: ImGuiEx.Ctrl))
+                try
                 {
-                    new TickScheduler(() => PriorityLists.Remove(playerList));
+                    playerList.Draw();
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Minus, "Delete this priority list (Hold CTRL)", enabled: ImGuiEx.Ctrl))
+                    {
+                        new TickScheduler(() => PriorityLists.Remove(playerList));
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.Log();
                 }
                 ImGui.PopID();
 
@@ -100,12 +109,12 @@ public class PriorityData
                     }
                 }
 
+                playerList.DrawModeSelector();
+
                 ImGui.SetCursorPos(cur);
             }
             ImGui.PopID();
             playerList.DragDrop.End();
-            ImGui.NewLine();
-            ImGui.NewLine();
         }
         ImGui.PopID();
     }
@@ -135,7 +144,7 @@ public class PriorityData
         {
             var index = fromEnd ? list.List.Count - 1 - i : i;
             var member = list.List[index];
-            if (member.IsInParty(out var ret) && predicate(ret))
+            if (member.IsInParty(list.IsRole, out var ret) && predicate(ret))
             {
                 if (++skip >= position)
                 {
@@ -158,7 +167,7 @@ public class PriorityData
         var ret = new List<UniversalPartyMember>();
         foreach (var x in list.List)
         {
-            if (x.IsInParty(out var upm) && predicate(upm))
+            if (x.IsInParty(list.IsRole, out var upm) && predicate(upm))
             {
                 ret.Add(upm);
             }

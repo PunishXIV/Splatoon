@@ -1,4 +1,4 @@
-## [WIP] [Script] Diamond Dust
+## [Beta] [Script] Diamond Dust
 It highlights positions.
 Configuration:
 - Set all spread positions based on the 1st Icicle Impact locations.
@@ -6,7 +6,7 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Diamond%20Dust.cs
 ```
 
-## [WIP] [Script] Mirror, Mirror
+## [Beta] [Script] Mirror, Mirror
 It highlights your next mirror positions.
 Configuration:
 - Set your first blue mirror.
@@ -14,7 +14,7 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Mirror%20Mirror.cs
 ```
 
-## [JP] [WIP] [Script] Light Rampant JP
+## [JP] [Beta] [Script] Light Rampant JP
 It highlights your tower.
 Configuration:
 - Set player names and directions.
@@ -55,13 +55,6 @@ D4 -  D1 > D2 > D3
 ```
 
 Thanks for Tora
-
-## [WIP] [Script] AutoTargetCrystal
-Auto-targets nearest light crystal, then auto-targets the center crystal after all light crystals are destroyed.
-No configuration needed.
-```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20AutoTargetCrystal.cs
-```
 
 ## Flower-like explosions
 Will show after knockback, to not obstruct your view. Feel free to edit that out but good luck seeing anything...
@@ -130,4 +123,17 @@ Shows only for EN clients, requires translation
 ## Light rampant orb explosion
 ```
 ~Lv2~{"Name":"P2 - Light rampant orb explosion","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":1,"radius":11.0,"refActorNPCNameID":9318,"refActorRequireCast":true,"refActorCastId":[40219],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":4.7,"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+
+## [Script] Intermission ice deleter
+Deletes annoying white ice from intermission, fixing bug which renders AOEs invisible and making your eyes hurt a lot less on that phase. DO NOT GO TO MIDDLE.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Delete%20Intermission%20Ice.cs
+```
+
+## [Beta] [Script] AutoTargetCrystal
+Auto-targets nearest light crystal, then auto-targets the center crystal after all light crystals are destroyed.
+No configuration needed.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20AutoTargetCrystal.cs
 ```

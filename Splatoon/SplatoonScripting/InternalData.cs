@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using ECommons.Configuration;
+using ECommons.Reflection;
 using Splatoon.Services;
+using Splatoon.SplatoonScripting.Priority;
 
 namespace Splatoon.SplatoonScripting;
 
@@ -53,6 +55,24 @@ public class InternalData
     public string GetConfigPathForConfigurationKey(string key)
     {
         return $"{Path}{(key == "" ? "" : $".{key}")}.json";
+    }
+
+    public bool ContainsPriorityLists()
+    {
+        foreach(var s in Script.GetType().Assembly.GetTypes())
+        {
+            foreach(var x in s.GetFieldPropertyUnions(ReflectionHelper.AllFlags))
+            {
+                if(x.UnionType.FullName == typeof(PriorityData).FullName) return true;
+                var t = x.UnionType.BaseType;
+                while(t != null)
+                {
+                    if(t.FullName == typeof(PriorityData).FullName) return true;
+                    t = t.BaseType;
+                }
+            }
+        }
+        return false;
     }
 
     internal string GetFreeConfigurationKey()

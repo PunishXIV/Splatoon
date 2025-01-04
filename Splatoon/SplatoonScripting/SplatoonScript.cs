@@ -35,6 +35,11 @@ public abstract class SplatoonScript
     public virtual Metadata? Metadata { get; }
 
     /// <summary>
+    /// If you want, you can supply changelog for your script. It will be displayed to user upon script update.
+    /// </summary>
+    public virtual Dictionary<int, string> Changelog { get; }
+
+    /// <summary>
     /// Indicates whether your script operates strictly within Splatoon, ECommons and Dalamud APIs. 
     /// </summary>
     public virtual bool Safe { get; } = false;
@@ -268,31 +273,35 @@ public abstract class SplatoonScript
                 }
             }
         });
-        if(TryGetAvailableConfigurations(out var confList))
+        var current = this.InternalData.CurrentConfigurationKey;
+        if(ImGui.BeginTable("ConfTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
         {
-            var current = this.InternalData.CurrentConfigurationKey;
-            if(ImGui.BeginTable("ConfTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
+            ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.WidthStretch);
+            ImGui.TableSetupColumn("##control");
+            ImGui.TableHeadersRow();
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGuiEx.TextV(current == ""?ImGuiColors.ParsedGreen:null, $"Default configuration".Loc());
+            if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it.".Loc()))
             {
-                ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn("##control");
-                ImGui.TableHeadersRow();
+                ApplyDefaultConfiguration();
+            }
+            ImGui.TableNextColumn();
 
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGuiEx.TextV(current == ""?ImGuiColors.ParsedGreen:null, $"Default configuration".Loc());
-                if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it.".Loc()))
-                {
-                    ApplyDefaultConfiguration();
-                }
-                ImGui.TableNextColumn();
-
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
-                {
-                    CopyConfigurationToClipboard("");
-                }
-                ImGuiEx.Tooltip("Copy this configuration to clipboard".Loc());
-                ImGui.SameLine();
-
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
+            {
+                CopyConfigurationToClipboard("");
+            }
+            ImGuiEx.Tooltip("Copy this configuration to clipboard".Loc());
+            ImGui.SameLine(0, 1);
+            if(ImGuiEx.IconButton(FontAwesomeIcon.ProjectDiagram))
+            {
+                DuplicateConfiguration("");
+            }
+            ImGuiEx.Tooltip("Duplicate this configuration".Loc());
+            if(TryGetAvailableConfigurations(out var confList))
+            {
                 foreach(var confKey in confList.Keys.ToArray())
                 {
                     var confValue = confList[confKey];
@@ -310,7 +319,13 @@ public abstract class SplatoonScript
                         CopyConfigurationToClipboard(confKey);
                     }
                     ImGuiEx.Tooltip("Copy this configuration to clipboard".Loc());
-                    ImGui.SameLine(0,1);
+                    ImGui.SameLine(0, 1);
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.ProjectDiagram))
+                    {
+                        DuplicateConfiguration(confKey);
+                    }
+                    ImGuiEx.Tooltip("Duplicate this configuration".Loc());
+                    ImGui.SameLine(0, 1);
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Edit))
                     {
                         ImGui.OpenPopup($"EditConf");
@@ -351,14 +366,41 @@ public abstract class SplatoonScript
                     }
                     ImGui.PopID();
                 }
-
-                ImGui.EndTable();
             }
+
+            ImGui.EndTable();
         }
-        else
+    }
+
+    internal void DuplicateConfiguration(string confKey)
+    {
+        new TickScheduler(() =>
         {
-            ImGuiEx.Text($"You have no optional configurations for this script.".Loc());
-        }
+            try
+            {
+                if(!TryGetAvailableConfigurations(out var confList))
+                {
+                    confList = [];
+                }
+                var m = GetExportedConfiguration(confKey)?.JSONClone() ?? throw new NullReferenceException();
+                var name = $"Copy of {confList.SafeSelect(confKey) ?? "Default configuration".Loc()}";
+                var name2 = name;
+                int i = 0;
+                while(confList.ContainsValue(name2))
+                {
+                    name2 = $"{name} ({++i})";
+                }
+                if(!ApplyExportedConfiguration(m, out var error, name2))
+                {
+                    Notify.Error(error);
+                }
+            }
+            catch(Exception e)
+            {
+                e.Log();
+                Notify.Error(e.Message);
+            }
+        });
     }
 
     internal void CopyConfigurationToClipboard(string confKey)
@@ -391,7 +433,7 @@ public abstract class SplatoonScript
             var ec = new ExportedScriptConfiguration()
             {
                 TargetScriptName = this.InternalData.FullName,
-                ConfigurationName = Utils.GetScriptConfigurationName(this.InternalData.FullName, key).NullWhenEmpty() ?? "Imported configuration",
+                ConfigurationName = Utils.GetScriptConfigurationName(this.InternalData.FullName, key).NullWhenEmpty() ?? "",
             };
             if(File.Exists(this.InternalData.GetConfigPathForConfigurationKey(key)))
             {
@@ -410,7 +452,7 @@ public abstract class SplatoonScript
         }
     }
 
-    internal bool ApplyExportedConfiguration(ExportedScriptConfiguration configuration, [NotNullWhen(false)]out string? error)
+    internal bool ApplyExportedConfiguration(ExportedScriptConfiguration configuration, [NotNullWhen(false)]out string? error, string? nameOverride = null)
     {
         if(configuration.TargetScriptName != this.InternalData.FullName)
         {
@@ -418,6 +460,10 @@ public abstract class SplatoonScript
             return false;
         }
         if(configuration.ConfigurationName.IsNullOrEmpty()) configuration.ConfigurationName = "Imported configuration".Loc();
+        if(nameOverride != null)
+        {
+            configuration.ConfigurationName = nameOverride;
+        }
         var newKey = InternalData.GetFreeConfigurationKey();
         if(configuration.Configuration != null)
         {

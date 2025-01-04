@@ -1,9 +1,11 @@
 ﻿using ECommons.Configuration;
+using ECommons.ExcelServices;
 using Newtonsoft.Json;
 using Pictomancy;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 using System.Collections.Specialized;
 using System.Threading;
 
@@ -81,6 +83,13 @@ internal class Configuration : IEzConfig
     public Dictionary<string, string> ActiveScriptConfigurations = [];
     public string ExtraTrustedRepos = "";
     public string ExtraUpdateLinks = "";
+    public List<uint> NoPrioPopupTerritories = [];
+    public List<RolePlayerAssignment> RolePlayerAssignments = [];
+    public bool PrioUnifyDps = false;
+    public List<string> FileWatcherPathes = [];
+    public bool UseServerBar = true;
+    public Dictionary<Job, RolePosition> PreferredPositions = [];
+    public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
 
     public uint ClampFillColorAlpha(uint fillColor)
     {
@@ -185,8 +194,7 @@ internal class Configuration : IEzConfig
             {
                 plugin.tickScheduler.Enqueue(delegate
                 {
-                    plugin.Log("Failed to create backup: " + e.Message, true);
-                    plugin.Log(e.StackTrace, true);
+                    plugin.Log("Failed to create backup: " + e.ToStringFull(), true);
                 });
             }
             ZipSemaphore.Release();

@@ -124,7 +124,7 @@ partial class CGui
                     var text = ImGui.GetClipboardText();
                     if (ScriptingProcessor.IsUrlTrusted(text))
                     {
-                        ScriptingProcessor.DownloadScript(text);
+                        ScriptingProcessor.DownloadScript(text, false);
                     }
                     else
                     {

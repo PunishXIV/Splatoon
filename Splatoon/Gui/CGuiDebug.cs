@@ -5,6 +5,7 @@ using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
 using Lumina.Excel.Sheets;
 using Splatoon.Memory;
+using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System.Globalization;
 
@@ -26,6 +27,16 @@ unsafe partial class CGui
 
     void DisplayDebug()
     {
+        if(ImGui.CollapsingHeader("Scripts w/prio list"))
+        {
+            foreach(var s in ScriptingProcessor.Scripts)
+            {
+                if(s.InternalData.ContainsPriorityLists())
+                {
+                    ImGuiEx.Text($"{s.InternalData.FullName} : enabled={!s.IsDisabledByUser}");
+                }
+            }
+        }
         if(ImGui.Button("Copy config"))
         {
             try

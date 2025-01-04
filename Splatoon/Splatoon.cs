@@ -6,6 +6,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
+using ECommons.Automation.NeoTaskManager;
 using ECommons.CircularBuffers;
 using ECommons.Configuration;
 using ECommons.Events;
@@ -21,6 +22,8 @@ using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
 using PInvoke;
 using Splatoon.Gui;
+using Splatoon.Gui.Priority;
+using Splatoon.Gui.Scripting;
 using Splatoon.Memory;
 using Splatoon.Modules;
 using Splatoon.RenderEngines.DirectX11;
@@ -87,6 +90,9 @@ public unsafe class Splatoon :IDalamudPlugin
     private ActorControlProcessor ActorControlProcessor;
     internal BuffEffectProcessor BuffEffectProcessor;
     internal LogWindow LogWindow;
+    internal PriorityPopupWindow PriorityPopupWindow;
+    internal ScriptUpdateWindow ScriptUpdateWindow;
+    internal TaskManager TaskManager;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -184,8 +190,6 @@ public unsafe class Splatoon :IDalamudPlugin
         {
             Timeout = TimeSpan.FromSeconds(10)
         };
-        ScriptingProcessor.TerritoryChanged();
-        ScriptingProcessor.ReloadAll();
         ObjectLife.OnObjectCreation = ScriptingProcessor.OnObjectCreation;
         //VFXManager = new();
         RenderableZoneSelector = new();
@@ -199,6 +203,13 @@ public unsafe class Splatoon :IDalamudPlugin
         BuffEffectProcessor = new();
         LogWindow = new();
         EzConfigGui.WindowSystem.AddWindow(LogWindow);
+        PriorityPopupWindow = new();
+        EzConfigGui.WindowSystem.AddWindow(PriorityPopupWindow);
+        ScriptUpdateWindow = new();
+        EzConfigGui.WindowSystem.AddWindow(ScriptUpdateWindow);
+        TaskManager = new(new(showDebug:true));
+        ScriptingProcessor.TerritoryChanged();
+        ScriptingProcessor.ReloadAll();
         Init = true;
         SplatoonIPC.Init();
     }
@@ -325,7 +336,7 @@ public unsafe class Splatoon :IDalamudPlugin
                 {
                     Log("Critical error occurred while starting HTTP server.".Loc(), true);
                     Log(e.Message, true);
-                    Log(e.StackTrace);
+                    Log(e.ToStringFull());
                     HttpServer = null;
                 }
             }
@@ -342,6 +353,8 @@ public unsafe class Splatoon :IDalamudPlugin
 
     internal void TerritoryChangedEvent(ushort e)
     {
+        PriorityPopupWindow.IsOpen = false;
+        PriorityPopupWindow.Open(false);
         Phase = 1;
         if(SFind.Count > 0 && !P.Config.NoFindReset)
         {
@@ -367,10 +380,11 @@ public unsafe class Splatoon :IDalamudPlugin
         {
             ResetLayout(l);
         }
-        ScriptingProcessor.Scripts.ForEach(x => x.Controller.Layouts.Values.Each(ResetLayout));
+        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
         AttachedInfo.VFXInfos.Clear();
         Logger.OnTerritoryChanged();
         ScriptingProcessor.TerritoryChanged();
+        S.InfoBar.Update(true);
     }
 
     static void ResetLayout(Layout l)
@@ -491,7 +505,7 @@ public unsafe class Splatoon :IDalamudPlugin
                                 ResetLayout(l);
                             }
                         }
-                        ScriptingProcessor.Scripts.ForEach(x => x.Controller.Layouts.Values.Each(ResetLayout));
+                        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
                     }
                 }
 
@@ -536,8 +550,8 @@ public unsafe class Splatoon :IDalamudPlugin
                     ProcessLayout(i);
                 }
 
-                ScriptingProcessor.Scripts.ForEach(x => { if(x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
-                ScriptingProcessor.Scripts.ForEach(x => { if(x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
+                ScriptingProcessor.Scripts.Each(x => { if(x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
+                ScriptingProcessor.Scripts.Each(x => { if(x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
                 foreach(var e in InjectedElements)
                 {
                     S.RenderManager.GetRenderer(e).ProcessElement(e);
@@ -589,7 +603,7 @@ public unsafe class Splatoon :IDalamudPlugin
         catch(Exception e)
         {
             Log("Caught exception: " + e.Message);
-            Log(e.StackTrace);
+            Log(e.ToStringFull());
         }
     }
 

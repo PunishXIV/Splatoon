@@ -4,6 +4,7 @@ using ECommons.LanguageHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon.Gui.Scripting;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -12,11 +13,12 @@ namespace Splatoon.SplatoonScripting;
 
 internal static partial class ScriptingProcessor
 {
-    internal static ImmutableList<SplatoonScript> Scripts = ImmutableList<SplatoonScript>.Empty;
+    private static ImmutableList<SplatoonScript> ScriptsInternal = [];
+    internal static IReadOnlyList<SplatoonScript> Scripts => ScriptsInternal;
     internal static ConcurrentQueue<(string code, string path)> LoadScriptQueue = new();
     internal static volatile bool ThreadIsRunning = false;
-    internal readonly static string[] TrustedURLs = new string[]
-    {
+    internal readonly static string[] TrustedURLs =
+    [
         "https://github.com/NightmareXIV/",
         "https://www.github.com/NightmareXIV/",
         "https://raw.githubusercontent.com/NightmareXIV/",
@@ -24,10 +26,53 @@ internal static partial class ScriptingProcessor
         "https://www.github.com/PunishXIV/",
         "https://raw.githubusercontent.com/PunishXIV/",
         "https://nightmarexiv.com/"
-    };
+    ];
     internal static ImmutableList<BlacklistData> Blacklist = ImmutableList<BlacklistData>.Empty;
     internal static volatile bool UpdateCompleted = false;
     internal static List<string> ForceUpdate = [];
+
+    internal static void AddScript(SplatoonScript script)
+    {
+        AssertOnFrameworkThread();
+        ScriptsInternal = ScriptsInternal.Add(script);
+        S.InfoBar?.Update(true);
+    }
+
+    internal static void RemoveScript(SplatoonScript script)
+    {
+        AssertOnFrameworkThread();
+        ScriptsInternal = ScriptsInternal.Remove(script);
+        S.InfoBar?.Update(true);
+    }
+
+    internal static void RemoveScripts(Predicate<SplatoonScript> predicate)
+    {
+        AssertOnFrameworkThread();
+        ArgumentNullException.ThrowIfNull(predicate);
+        ScriptsInternal = ScriptsInternal.RemoveAll(predicate);
+        S.InfoBar?.Update(true);
+    }
+
+    internal static void ClearScripts()
+    {
+        AssertOnFrameworkThread();
+        ScriptsInternal = ScriptsInternal.Clear();
+        S.InfoBar?.Update(true);
+    }
+
+    private static void AssertOnFrameworkThread()
+    {
+        if(!Svc.Framework.IsInFrameworkUpdateThread)
+        {
+            PluginLog.Error($"Operation performed outside of allowed bounds. Please report this to developer.\n{new StackTrace(true)}");
+        }
+    }
+
+    internal static bool AnyScriptUsesPriority(uint? territory = null)
+    {
+        territory ??= Svc.ClientState.TerritoryType;
+        return ScriptingProcessor.Scripts.Any(x => !x.IsDisabledByUser && x.InternalData.ContainsPriorityLists() && x.ValidTerritories?.Contains(territory.Value) == true);
+    }
 
     internal static string ExtractNamespaceFromCode(string code)
     {
@@ -152,7 +197,7 @@ internal static partial class ScriptingProcessor
                 foreach(var x in Updates)
                 {
                     PluginLog.Information($"Downloading script from {x}");
-                    BlockingDownloadScript(x);
+                    BlockingDownloadScript(x, true);
                 }
             }
             catch(Exception e)
@@ -176,22 +221,22 @@ internal static partial class ScriptingProcessor
         return url.StartsWithAny(TrustedURLs, StringComparison.OrdinalIgnoreCase);
     }
 
-    internal static void DownloadScript(string url)
+    internal static void DownloadScript(string url, bool isFirst)
     {
         Task.Run(delegate
         {
-            BlockingDownloadScript(url);
+            BlockingDownloadScript(url, isFirst);
         });
 
         Notify.Info("Downloading script from trusted URL...".Loc());
     }
 
-    static void BlockingDownloadScript(string url)
+    static void BlockingDownloadScript(string url, bool isFirst)
     {
         try
         {
             var result = P.HttpClient.GetStringAsync(url).Result;
-            CompileAndLoad(result, null);
+            CompileAndLoad(result, null, isFirst);
         }
         catch(Exception e)
         {
@@ -201,14 +246,15 @@ internal static partial class ScriptingProcessor
 
     internal static void ReloadAll()
     {
+        P.ScriptUpdateWindow.Reset();
         if(ThreadIsRunning)
         {
             DuoLog.Error("Can not reload yet, please wait");
             return;
         }
         UpdateCompleted = false;
-        Scripts.ForEach(x => x.Disable());
-        Scripts = ImmutableList<SplatoonScript>.Empty;
+        Scripts.Each(x => x.Disable());
+        ClearScripts();
         var dir = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Scripts");
         if(!Directory.Exists(dir))
         {
@@ -216,7 +262,7 @@ internal static partial class ScriptingProcessor
         }
         foreach(var f in Directory.GetFiles(dir, "*.cs", SearchOption.AllDirectories))
         {
-            CompileAndLoad(File.ReadAllText(f, Encoding.UTF8), f);
+            CompileAndLoad(File.ReadAllText(f, Encoding.UTF8), f, true);
         }
     }
 
@@ -228,11 +274,11 @@ internal static partial class ScriptingProcessor
             return;
         }
         s.Disable();
-        Scripts = Scripts.Remove(s);
-        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
+        RemoveScript(s);
+        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, false);
     }
 
-    internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts)
+    internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts, bool isFirst)
     {
         if(ThreadIsRunning)
         {
@@ -242,12 +288,12 @@ internal static partial class ScriptingProcessor
         foreach(var s in scripts)
         {
             s.Disable();
-            Scripts = Scripts.Remove(s);
-            CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path);
+            RemoveScript(s);
+            CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, isFirst);
         }
     }
 
-    internal static void CompileAndLoad(string sourceCode, string fpath)
+    internal static void CompileAndLoad(string sourceCode, string fpath, bool isFirst)
     {
         PluginLog.Debug($"Requested script loading");
         LoadScriptQueue.Enqueue((sourceCode, fpath));
@@ -273,23 +319,29 @@ internal static partial class ScriptingProcessor
                             try
                             {
                                 byte[] code = null;
+                                byte[] pdb = null;
                                 if(!P.Config.DisableScriptCache)
                                 {
                                     var md5 = MD5.HashData(Encoding.UTF8.GetBytes(result.code)).Select(x => $"{x:X2}").Join("");
                                     var cacheFile = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.bin");
-                                    PluginLog.Debug($"Cache path: {cacheFile}");
-                                    if(File.Exists(cacheFile))
+                                    var cacheFilePdb = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.pdb");
+                                    PluginLog.Debug($"Cache path: {cacheFile}, {cacheFilePdb}");
+                                    if(File.Exists(cacheFile) && File.Exists(cacheFilePdb))
                                     {
                                         PluginLog.Debug($"Loading from cache...");
                                         code = File.ReadAllBytes(cacheFile);
+                                        pdb = File.ReadAllBytes(cacheFilePdb);
                                     }
                                     else
                                     {
                                         PluginLog.Debug($"Compiling...");
-                                        code = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
-                                        if(code != null)
+                                        var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path), result.path);
+                                        code = data?.Assembly;
+                                        pdb = data?.Pdb;
+                                        if(code != null && pdb != null)
                                         {
                                             File.WriteAllBytes(cacheFile, code);
+                                            File.WriteAllBytes(cacheFilePdb, pdb);
                                             PluginLog.Debug($"Compiled and saved");
                                         }
                                     }
@@ -297,15 +349,17 @@ internal static partial class ScriptingProcessor
                                 else
                                 {
                                     PluginLog.Debug($"Compiling, cache bypassed...");
-                                    code = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path));
+                                    var data = Compiler.Compile(result.code, result.path == null ? "" : Path.GetFileNameWithoutExtension(result.path), result.path);
+                                    code = data?.Assembly;
+                                    pdb = data?.Pdb;
                                 }
-                                if(code != null)
+                                if(code != null && pdb != null)
                                 {
                                     Svc.Framework.RunOnFrameworkThread(delegate
                                     {
                                         if(P != null && !P.Disposed)
                                         {
-                                            var assembly = Compiler.Load(code);
+                                            var assembly = Compiler.Load(code, pdb);
                                             foreach(var t in assembly.GetTypes())
                                             {
                                                 if(t.BaseType?.FullName == "Splatoon.SplatoonScripting.SplatoonScript")
@@ -321,10 +375,10 @@ internal static partial class ScriptingProcessor
                                                         previousVersion = loadedScript.Metadata?.Version ?? 0;
                                                         result.path = loadedScript.InternalData.Path;
                                                         loadedScript.Disable();
-                                                        Scripts = Scripts.RemoveAll(x => ReferenceEquals(loadedScript, x));
+                                                        RemoveScripts(x => ReferenceEquals(loadedScript, x));
                                                         rewrite = true;
                                                     }
-                                                    Scripts = Scripts.Add(instance);
+                                                    AddScript(instance);
                                                     if(result.path == null)
                                                     {
                                                         var dir = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Scripts", instance.InternalData.Namespace);
@@ -350,8 +404,12 @@ internal static partial class ScriptingProcessor
                                                     if (previousVersion > 0)
                                                     {
                                                         instance.OnScriptUpdated(previousVersion);
+                                                        P.ScriptUpdateWindow.UpdatedScripts_RemoveAll(x => x.InternalData.FullName == instance.InternalData.FullName);
+                                                        P.ScriptUpdateWindow.UpdatedScripts_Add(instance);
+                                                        PluginLog.Debug($"Detected version update for {instance}");
                                                     }
                                                     PluginLog.Debug($"Load success");
+                                                    if(fpath != null) P.ScriptUpdateWindow.FailedScripts_Remove(fpath);
                                                     instance.UpdateState();
                                                 }
                                             }
@@ -365,6 +423,13 @@ internal static partial class ScriptingProcessor
                                 else
                                 {
                                     PluginLog.Error("Loading process ended with error");
+                                    if(fpath != null)
+                                    {
+                                        Svc.Framework.RunOnFrameworkThread(() =>
+                                        {
+                                            P.ScriptUpdateWindow.FailedScripts_Add(fpath);
+                                        });
+                                    }
                                 }
                             }
                             catch(Exception e)
@@ -402,8 +467,17 @@ internal static partial class ScriptingProcessor
                     }
                     PluginLog.Debug($"Update finished");
                 }
-
+                if(isFirst) OpenUpdatePopupIfNeeded();
             }).Start();
+        }
+    }
+
+    internal static void OpenUpdatePopupIfNeeded()
+    {
+        PluginLog.Information($"Script updates now finished {P.ScriptUpdateWindow.FailedScripts_Count()}/{P.ScriptUpdateWindow.UpdatedScripts_Count()}");
+        if(P.ScriptUpdateWindow.FailedScripts_Count() > 0 || P.ScriptUpdateWindow.UpdatedScripts_Count() > 0)
+        {
+            P.ScriptUpdateWindow.Open();
         }
     }
 
@@ -750,7 +824,7 @@ internal static partial class ScriptingProcessor
         {
             Scripts[i].Disable();
         }
-        Scripts = ImmutableList<SplatoonScript>.Empty;
+        ClearScripts();
     }
 
     internal static void LogError(this SplatoonScript s, Exception e, string methodName)

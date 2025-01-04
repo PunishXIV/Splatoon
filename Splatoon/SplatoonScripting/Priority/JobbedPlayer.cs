@@ -1,5 +1,6 @@
 ﻿using ECommons.ExcelServices;
 using ECommons.PartyFunctions;
+using Splatoon.Gui.Priority;
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 
@@ -9,47 +10,77 @@ public class JobbedPlayer
     internal string ID = GetTemporaryId();
     public string Name = "";
     public HashSet<Job> Jobs = [];
+    public RolePosition Role = RolePosition.Not_Selected;
 
-    internal void DrawSelector()
+    internal void DrawSelector(bool isRole)
     {
-        var hint = Jobs.Count == 0 ? "Unused slot..." : "Any name";
-        ImGui.SetNextItemWidth(150f);
-        ImGui.InputTextWithHint("##input", hint, ref Name, 100);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(100f);
-        ImGuiEx.JobSelector("##selJobs", Jobs, noJobSelectedPreview: "Any job");
-        ImGui.SameLine();
-        if(ImGuiEx.IconButton(FontAwesomeIcon.Users))
+        if(isRole)
         {
-            ImGui.OpenPopup("SelectParty");
+            ImGui.SetNextItemWidth(150f);
+            ImGuiEx.EnumCombo("##selRole", ref Role);
         }
-        if(ImGui.BeginPopup("SelectParty"))
+        else
         {
-            foreach(var x in UniversalParty.MembersPlayback)
+            var hint = Jobs.Count == 0 ? "Unused slot..." : "Any name";
+            ImGui.SetNextItemWidth(150f);
+            ImGui.InputTextWithHint("##input", hint, ref Name, 100);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(100f);
+            ImGuiEx.JobSelector("##selJobs", Jobs, noJobSelectedPreview: "Any job");
+            ImGui.SameLine();
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Users))
             {
-                if(ThreadLoadImageHandler.TryGetIconTextureWrap(x.ClassJob.GetIcon(), true, out var tex))
-                {
-                    ImGui.Image(tex.ImGuiHandle, new(ImGui.GetFontSize()));
-                    ImGui.SameLine(0, 1);
-                }
-                if(ImGui.Selectable($"{x.NameWithWorld}"))
-                {
-                    Name = x.NameWithWorld;
-                }
-                if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                {
-                    Name = x.NameWithWorld;
-                    Jobs = [x.ClassJob];
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGuiEx.Tooltip("Left-click - set player name. \nRight-click - set player name and job.");
+                ImGui.OpenPopup("SelectParty");
             }
-            ImGui.EndPopup();
+            if(ImGui.BeginPopup("SelectParty"))
+            {
+                foreach(var x in UniversalParty.MembersPlayback)
+                {
+                    if(ThreadLoadImageHandler.TryGetIconTextureWrap(x.ClassJob.GetIcon(), true, out var tex))
+                    {
+                        ImGui.Image(tex.ImGuiHandle, new(ImGui.GetFontSize()));
+                        ImGui.SameLine(0, 1);
+                    }
+                    if(ImGui.Selectable($"{x.NameWithWorld}"))
+                    {
+                        Name = x.NameWithWorld;
+                    }
+                    if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                    {
+                        Name = x.NameWithWorld;
+                        Jobs = [x.ClassJob];
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGuiEx.Tooltip("Left-click - set player name. \nRight-click - set player name and job.");
+                }
+                ImGui.EndPopup();
+            }
         }
     }
 
-    public bool IsInParty([NotNullWhen(true)] out UniversalPartyMember? member)
+    public bool IsPlayerEmpty()
     {
+        return this.Name == "" && this.Jobs.Count == 0;
+    }
+
+    public UniversalPartyMember? ResolveByRole(RolePosition role)
+    {
+        var player = P.PriorityPopupWindow.Assignments.SafeSelect(PriorityPopupWindow.RolePositions.IndexOf(role));
+        if(player == null) return null;
+        if(player.IsInParty(false, out var ret))
+        {
+            return ret;
+        }
+        return null;
+    }
+
+    public bool IsInParty(bool byRole, [NotNullWhen(true)] out UniversalPartyMember? member)
+    {
+        if(byRole)
+        {
+            member = ResolveByRole(this.Role);
+            return member != null;
+        }
         foreach(var x in UniversalParty.MembersPlayback)
         {
             if(Name != "")
@@ -74,5 +105,10 @@ public class JobbedPlayer
         }
         member = null;
         return false;
+    }
+
+    public string GetNameAndJob()
+    {
+        return $"{this.Name} - {(this.Jobs.Count > 0?Jobs.Print():"Any job")}";
     }
 }

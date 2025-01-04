@@ -737,48 +737,48 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             {
                 case Job.WHM:
                 case Job.AST:
-                    _partyDataList[0].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[0].EntityId = pc.EntityId;
+                break;
 
                 case Job.PLD:
-                    _partyDataList[1].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[1].EntityId = pc.EntityId;
+                break;
 
                 case Job.SAM:
                 case Job.MNK:
                 case Job.DRG:
                 case Job.RPR:
-                    _partyDataList[2].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[2].EntityId = pc.EntityId;
+                break;
 
                 case Job.NIN:
                 case Job.VPR:
                 case Job.RDM:
                 case Job.BLM:
                 case Job.SMN:
-                    _partyDataList[3].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[3].EntityId = pc.EntityId;
+                break;
 
                 case Job.BRD:
                 case Job.MCH:
                 case Job.DNC:
-                    _partyDataList[4].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[4].EntityId = pc.EntityId;
+                break;
 
                 case Job.PCT:
-                    _partyDataList[5].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[5].EntityId = pc.EntityId;
+                break;
 
                 case Job.WAR:
                 case Job.DRK:
                 case Job.GNB:
-                    _partyDataList[6].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[6].EntityId = pc.EntityId;
+                break;
 
                 case Job.SCH:
                 case Job.SGE:
-                    _partyDataList[7].EntityId = pc.EntityId;
-                    break;
+                _partyDataList[7].EntityId = pc.EntityId;
+                break;
             }
         }
     }

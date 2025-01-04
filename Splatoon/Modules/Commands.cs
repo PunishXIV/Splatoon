@@ -17,6 +17,10 @@ class Commands : IDisposable
             {
                 P.ConfigGui.Open = !P.ConfigGui.Open;
             }
+            else if(arguments.EqualsIgnoreCaseAny("p", "priority", "prio"))
+            {
+                P.PriorityPopupWindow.Open(true);
+            }
             else if(GenericHelpers.EqualsIgnoreCase(arguments, "log"))
             {
                 P.LogWindow.IsOpen = true;
@@ -41,7 +45,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("disable "))
@@ -53,7 +57,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("toggle "))
@@ -65,7 +69,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("settarget "))
@@ -89,7 +93,7 @@ class Commands : IDisposable
                 }
                 catch (Exception e)
                 {
-                    P.Log(e.Message);
+                    P.Log(e.ToStringFull());
                 }
             }
             else if (arguments.StartsWith("floodchat "))
@@ -104,10 +108,13 @@ class Commands : IDisposable
             }
         })
         {
-            HelpMessage = "open Splatoon configuration menu \n" +
-            "/splatoon toggle <PresetName> → toggle specified preset \n" +
-            "/splatoon disable <PresetName> → disable specified preset \n" +
-            "/splatoon enable <PresetName> → enable specified preset"
+            HelpMessage = """
+            open Splatoon configuration menu 
+            /splatoon toggle <PresetName> → toggle specified preset 
+            /splatoon disable <PresetName> → disable specified preset 
+            /splatoon enable <PresetName> → enable specified preset
+            /splatoon p → open script priority editor
+            """
         });
 
         Svc.Commands.AddHandler("/sf", new CommandInfo(delegate (string command, string args)
@@ -200,7 +207,7 @@ class Commands : IDisposable
         catch (Exception e)
         {
             p.Log(e.Message, true);
-            p.Log(e.StackTrace);
+            p.Log(e.ToStringFull());
         }
     }
 

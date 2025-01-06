@@ -9,6 +9,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using ImGuiNET;
+using NightmareUI.PrimaryUI;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using Splatoon.Utility;
@@ -23,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(10, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(11, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
     private bool IsClockwise = true;
@@ -36,6 +37,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
             - Added an option to make safe spots different when rotating cw and ccw
             """,
         [10] = "Added second stack display hint",
+        [11] = "Fixed issues regarding to second stack"
     };
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
@@ -56,7 +58,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
     };
 
     public override void OnSetup()
-    {
+    { 
         for(var i = 0; i < 6; i++)
         {
             Controller.RegisterElementFromCode($"Circle{i}", "{\"Name\":\"Circle\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":9.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
@@ -85,7 +87,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
             Controller.RegisterElementFromCode($"Spreads{i}", "{\"Name\":\"\",\"Enabled\":false,\"refX\":93.0,\"refY\":93.5,\"refZ\":9.536743E-07,\"radius\":0.5,\"Donut\":0.2,\"color\":3357671168,\"fillIntensity\":1.0,\"thicc\":1.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
 
-        Controller.RegisterElementFromCode($"SecondStack", "{\"Name\":\"\",\"Enabled\":false,\"radius\":0.75,\"color\":3355478271,\"Filled\":false,\"fillIntensity\":0.5,\"overlayTextColor\":4278234623,\"thicc\":5.0,\"overlayText\":\">>> Stack <<<\",\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode($"SecondStack", "{\"Name\":\"\",\"radius\":0.75,\"color\":4278251775,\"Filled\":false,\"fillIntensity\":0.5,\"overlayTextColor\":4278234623,\"thicc\":5.0,\"overlayText\":\">>> Stack <<<\",\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     private int[][] Clockwise = [[0, 1, -1], [0, 1, -1, 2, -2], [1, 2, 3, -1, -2, -3], [2, 3, 4, -2, -3, -4], [1, 3, 4, -1, -3, -4], [1, 2, 4, -1, -2, -4]];
@@ -252,7 +254,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
                 }
             }
 
-            if(C.SelectedPositions.Count == 4 && Phase.InRange(17000, 26500) && !Svc.Objects.OfType<IBattleNpc>().Any(x => x.Struct()->GetCastInfo() != null && x.IsCasting && x.CastActionId == 40273 && x.CurrentCastTime < 4.7f))
+            if(C.SelectedPositions.Count == 4 && Phase.InRange(17000, 26500) && !Svc.Objects.OfType<IBattleNpc>().Any(x => x.Struct()->GetCastInfo() != null && x.CastActionId == 40273 && x.CurrentCastTime < 4.7f))
             {
                 Vector3[] candidates = [MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[IsClockwise ? -4 : 2].ToVector3(0)), MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[IsClockwise ? 4 : -2].ToVector3(0))];
                 foreach(var x in GetValidPositions(true))
@@ -338,61 +340,62 @@ public unsafe class P3_Apocalypse : SplatoonScript
         ImGui.Checkbox("Show tank bait guide (beta)", ref C.ShowTankGuide);
         ImGui.SetNextItemWidth(200f);
         ImGuiEx.SliderIntAsFloat("Hide move guide and switch to tank bait guide at", ref C.TankDelayMS, 0, 30000);
-        ImGui.Separator();
-        ImGuiEx.Text($"If you want to resolve adjusts, safe spot and stack player, fill this fata");
-        ImGui.Checkbox("Original groups for Dark Eruption", ref C.OriginalSpreads);
-        ImGuiEx.Text($"Select 4 safe spot positions for your default group");
-        ImGui.Checkbox("Different safe spot positions for clockwise/counter-clockwise", ref C.IsDifferentSafeSpots);
-        //-4  1  2
-        //-3  0  3
-        //-2 -1  4
-        int[][] collection = [[-4, 1, 2], [-3, 0, 3], [-2, -1, 4]];
-        void drawSelector(ICollection<int> selectedPositions)
+        new NuiBuilder().Section("Safe spots and adjustments").Widget(() =>
         {
-            foreach(var a in collection)
+            ImGuiEx.TextWrapped(EColor.RedBright, $"If you want to resolve adjusts, safe spot and stack position, fill the priority list.");
+            ImGui.Checkbox("Original groups for Dark Eruption", ref C.OriginalSpreads);
+            ImGuiEx.Text($"Select 4 safe spot positions for your default group");
+            ImGui.Checkbox("Different safe spot positions for clockwise/counter-clockwise", ref C.IsDifferentSafeSpots);
+            //-4  1  2
+            //-3  0  3
+            //-2 -1  4
+            int[][] collection = [[-4, 1, 2], [-3, 0, 3], [-2, -1, 4]];
+            void drawSelector(ICollection<int> selectedPositions)
             {
-                foreach(var b in a)
+                foreach(var a in collection)
                 {
-                    var dis = b == 0 || (selectedPositions.Count >= 4 && !selectedPositions.Contains(b));
-                    if(dis) ImGui.BeginDisabled();
-                    ImGuiEx.CollectionCheckbox($"##{b}", b, selectedPositions);
-                    if(dis) ImGui.EndDisabled();
-                    ImGui.SameLine();
+                    foreach(var b in a)
+                    {
+                        var dis = b == 0 || (selectedPositions.Count >= 4 && !selectedPositions.Contains(b));
+                        if(dis) ImGui.BeginDisabled();
+                        ImGuiEx.CollectionCheckbox($"##{b}", b, selectedPositions);
+                        if(dis) ImGui.EndDisabled();
+                        ImGui.SameLine();
+                    }
+                    ImGui.NewLine();
                 }
-                ImGui.NewLine();
+                if(selectedPositions.Count == 4)
+                {
+                    ImGuiEx.Text(EColor.GreenBright, "Configuration is valid");
+                }
+                else
+                {
+                    ImGuiEx.Text(EColor.RedBright, "Configuration is not valid. 4 positions must be selected.");
+                }
             }
-            if(selectedPositions.Count == 4)
+            ImGui.Indent();
+            if(!C.IsDifferentSafeSpots)
             {
-                ImGuiEx.Text(EColor.GreenBright, "Configuration is valid");
+                drawSelector(C.SelectedPositions);
             }
             else
             {
-                ImGuiEx.Text(EColor.RedBright, "Configuration is not valid. 4 positions must be selected.");
+                ImGuiEx.Text("Clockwise pattern:");
+                ImGui.Indent();
+                drawSelector(C.SelectedPositions);
+                ImGui.Unindent();
+                ImGuiEx.Text("Counter-clockwise pattern:");
+                ImGui.Indent();
+                ImGui.PushID("CCW");
+                drawSelector(C.SelectedPositionsAlt);
+                ImGui.PopID();
+                ImGui.Unindent();
             }
-        }
-        ImGui.Indent();
-        if(!C.IsDifferentSafeSpots)
-        {
-            drawSelector(C.SelectedPositions);
-        }
-        else
-        {
-            ImGuiEx.Text("Clockwise pattern:");
-            ImGui.Indent();
-            drawSelector(C.SelectedPositions);
             ImGui.Unindent();
-            ImGuiEx.Text("Counter-clockwise pattern:");
-            ImGui.Indent();
-            ImGui.PushID("CCW");
-            drawSelector(C.SelectedPositionsAlt);
-            ImGui.PopID();
-            ImGui.Unindent();
-        }
-        ImGui.Unindent();
-        ImGuiEx.Text("Your default stack (when looking at Gaia):");
-        ImGuiEx.RadioButtonBool("Left", "Right", ref C.IsLeftStack, true);
-        C.Priority.Draw();
-
+            ImGuiEx.Text("Your default stack (when looking at Gaia):");
+            ImGuiEx.RadioButtonBool("Left", "Right", ref C.IsLeftStack, true);
+            C.Priority.Draw();
+        }).Draw();
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"""

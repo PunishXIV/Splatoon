@@ -22,16 +22,17 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(8, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(9, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
+    private bool IsClockwise = true;
 
     private long Phase => Environment.TickCount64 - StartTime;
 
     public override Dictionary<int, string> Changelog => new()
     {
-        [(int)Metadata!.Version] = """
-            - Reenabled and fixed spread grid.
+        [9] = """
+            - Added an option to make safe spots different when rotating cw and ccw
             """,
     };
 
@@ -111,10 +112,20 @@ public class P3_Apocalypse : SplatoonScript
     public override void OnReset()
     {
         IsAdjust = false;
+        IsClockwise = true;
     }
 
     private List<int> GetValidPositions(bool respectAdjust)
     {
+        List<int> positions;
+        if(!C.IsDifferentSafeSpots)
+        {
+            positions = C.SelectedPositions;
+        }
+        else
+        {
+            positions = IsClockwise ? C.SelectedPositions : C.SelectedPositionsAlt;
+        }
         if(respectAdjust && IsAdjust)
         {
             return Positions.Keys.Where(x => !C.SelectedPositions.Contains(x) && x != 0).ToList();
@@ -188,8 +199,8 @@ public class P3_Apocalypse : SplatoonScript
             if(rot.InRange(22, 22 + 45) || rot.InRange(180 + 22, 180 + 22 + 45)) angle = 45 * 3;
             if(rot.InRange(22 + 45, 22 + 45 * 2) || rot.InRange(180 + 22 + 45, 180 + 22 + 45 * 2)) angle = 45 * 2;
             if(rot.InRange(22 + 45 * 2, 22 + 45 * 3) || rot.InRange(180 + 22 + 45 * 2, 180 + 22 + 45 * 3)) angle = 45;
-            var isClockwise = far.Rotation.RadToDeg().InRange(45, 45 + 90);
-            var set = isClockwise ? Clockwise : CounterClockwise;
+            IsClockwise = far.Rotation.RadToDeg().InRange(45, 45 + 90);
+            var set = IsClockwise ? Clockwise : CounterClockwise;
             if(C.ShowInitialApocMove && Phase < 15000)
             {
                 if(Controller.TryGetElementByName("Line2", out var line))
@@ -204,7 +215,7 @@ public class P3_Apocalypse : SplatoonScript
 
             if(C.SelectedPositions.Count == 4 && Phase < 22000 && NumDebuffs == 4)
             {
-                Vector3[] candidates = [MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[isClockwise ? -4 : 2].ToVector3(0)), MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[isClockwise ? 4 : -2].ToVector3(0))];
+                Vector3[] candidates = [MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[IsClockwise ? -4 : 2].ToVector3(0)), MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[IsClockwise ? 4 : -2].ToVector3(0))];
                 var i = 0;
                 foreach(var x in GetValidPositions(!C.OriginalSpreads))
                 {
@@ -227,7 +238,7 @@ public class P3_Apocalypse : SplatoonScript
                                 if(Controller.TryGetElementByName($"Spreads{s}", out var e))
                                 {
                                     e.Enabled = true;
-                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (isClockwise? Spreads: SpreadsInverted)[s].ToVector3(0));
+                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (IsClockwise? Spreads: SpreadsInverted)[s].ToVector3(0));
                                     e.SetRefPosition(adjPos);
                                 }
                             }
@@ -243,7 +254,7 @@ public class P3_Apocalypse : SplatoonScript
                     if(Controller.TryGetElementByName("LineRot1", out var line))
                     {
                         line.Enabled = true;
-                        var linePos1 = Positions[isClockwise ? -4 : 2].ToVector3(0);
+                        var linePos1 = Positions[IsClockwise ? -4 : 2].ToVector3(0);
                         var linePos2 = Positions[1].ToVector3(0);
                         line.SetRefPosition(MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), linePos1));
                         line.SetOffPosition(MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), linePos2));
@@ -253,7 +264,7 @@ public class P3_Apocalypse : SplatoonScript
                     if(Controller.TryGetElementByName("LineRot2", out var line))
                     {
                         line.Enabled = true;
-                        var linePos1 = Positions[isClockwise ? 4 : -2].ToVector3(0);
+                        var linePos1 = Positions[IsClockwise ? 4 : -2].ToVector3(0);
                         var linePos2 = Positions[-1].ToVector3(0);
                         line.SetRefPosition(MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), linePos1));
                         line.SetOffPosition(MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), linePos2));
@@ -307,22 +318,53 @@ public class P3_Apocalypse : SplatoonScript
         ImGuiEx.Text($"If you want to resolve adjusts, safe spot and stack player, fill this fata");
         ImGui.Checkbox("Original groups for Dark Eruption", ref C.OriginalSpreads);
         ImGuiEx.Text($"Select 4 safe spot positions for your default group");
+        ImGui.Checkbox("Different safe spot positions for clockwise/counter-clockwise", ref C.IsDifferentSafeSpots);
         //-4  1  2
         //-3  0  3
         //-2 -1  4
         int[][] collection = [[-4, 1, 2], [-3, 0, 3], [-2, -1, 4]];
-        foreach(var a in collection)
+        void drawSelector(ICollection<int> selectedPositions)
         {
-            foreach(var b in a)
+            foreach(var a in collection)
             {
-                var dis = b == 0 || (C.SelectedPositions.Count >= 4 && !C.SelectedPositions.Contains(b));
-                if(dis) ImGui.BeginDisabled();
-                ImGuiEx.CollectionCheckbox($"##{b}", b, C.SelectedPositions);
-                if(dis) ImGui.EndDisabled();
-                ImGui.SameLine();
+                foreach(var b in a)
+                {
+                    var dis = b == 0 || (selectedPositions.Count >= 4 && !selectedPositions.Contains(b));
+                    if(dis) ImGui.BeginDisabled();
+                    ImGuiEx.CollectionCheckbox($"##{b}", b, selectedPositions);
+                    if(dis) ImGui.EndDisabled();
+                    ImGui.SameLine();
+                }
+                ImGui.NewLine();
             }
-            ImGui.NewLine();
+            if(selectedPositions.Count == 4)
+            {
+                ImGuiEx.Text(EColor.GreenBright, "Configuration is valid");
+            }
+            else
+            {
+                ImGuiEx.Text(EColor.RedBright, "Configuration is not valid. 4 positions must be selected.");
+            }
         }
+        ImGui.Indent();
+        if(!C.IsDifferentSafeSpots)
+        {
+            drawSelector(C.SelectedPositions);
+        }
+        else
+        {
+            ImGuiEx.Text("Clockwise pattern:");
+            ImGui.Indent();
+            drawSelector(C.SelectedPositions);
+            ImGui.Unindent();
+            ImGuiEx.Text("Counter-clockwise pattern:");
+            ImGui.Indent();
+            ImGui.PushID("CCW");
+            drawSelector(C.SelectedPositionsAlt);
+            ImGui.PopID();
+            ImGui.Unindent();
+        }
+        ImGui.Unindent();
         ImGuiEx.Text("Your default stack (when looking at Gaia):");
         ImGuiEx.RadioButtonBool("Left", "Right", ref C.IsLeftStack, true);
         C.Priority.Draw();
@@ -367,6 +409,8 @@ public class P3_Apocalypse : SplatoonScript
         public List<int> SelectedPositions = [];
         public bool IsLeftStack = false;
         public bool OriginalSpreads = false;
+        public bool IsDifferentSafeSpots = false;
+        public List<int> SelectedPositionsAlt = [];
     }
 
     public class Priority4 : PriorityData

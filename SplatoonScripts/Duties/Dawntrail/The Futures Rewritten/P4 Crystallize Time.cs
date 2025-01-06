@@ -30,6 +30,12 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public unsafe class P4_Crystallize_Time : SplatoonScript
 {
+    public override Metadata? Metadata => new(11, "Garume, NightmareXIV");
+    public override Dictionary<int, string> Changelog => new()
+    {
+        [10] = "A large addition of various functions as well as changes to general mechanic flow. Please validate settings and if possible verify that the script works fine in replay.",
+        [11] = "Added dragon explosion anticipation for eruption",
+    };
     public enum Direction
     {
         North = 0,
@@ -88,11 +94,6 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private bool IsActive => Svc.Objects.Any(x => x.DataId == 17837) && !BasePlayer.IsDead;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(10, "Garume, NightmareXIV");
-    public override Dictionary<int, string> Changelog => new()
-    {
-        [10] = "A large addition of various functions as well as changes to general mechanic flow. Please validate settings and if possible verify that the script works fine in replay."
-    };
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -323,6 +324,9 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
         Controller.RegisterElementFromCode("KBHelper", "{\"Name\":\"\",\"type\":2,\"Enabled\":false,\"radius\":0.0,\"color\":3355508503,\"fillIntensity\":0.345,\"thicc\":4.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("RedDragonExplosion1", "{\"Name\":\"\",\"refX\":87.5,\"refY\":98.0,\"refZ\":1.9073486E-06,\"radius\":13.0,\"color\":3372155112,\"fillIntensity\":0.5,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("RedDragonExplosion2", "{\"Name\":\"\",\"refX\":112.5,\"refY\":98.0,\"refZ\":1.9073486E-06,\"radius\":13.0,\"color\":3372155112,\"fillIntensity\":0.5,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     private void Alert(string text)
@@ -361,6 +365,11 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
         }
+
+        var spr = GetStage().EqualsAny(MechanicStage.Step1_Spread, MechanicStage.Step2_FirstHourglass) && BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Eruption) && SpellInWaitingDebuffTime < 25f && Svc.Objects.OfType<IPlayerCharacter>().Any(x => x.StatusList.Count(s => s.StatusId.EqualsAny((uint)Debuff.Red, (uint)Debuff.Blizzard)) == 2);
+        Controller.GetElementByName("RedDragonExplosion1")!.Enabled = spr;
+        Controller.GetElementByName("RedDragonExplosion2")!.Enabled = spr;
+
 
         {
             var e = Controller.GetElementByName("KBHelper")!;

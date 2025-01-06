@@ -3,6 +3,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
@@ -19,10 +20,10 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
-public class P3_Apocalypse : SplatoonScript
+public unsafe class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(9, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(10, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
     private bool IsClockwise = true;
@@ -34,6 +35,7 @@ public class P3_Apocalypse : SplatoonScript
         [9] = """
             - Added an option to make safe spots different when rotating cw and ccw
             """,
+        [10] = "Added second stack display hint",
     };
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
@@ -82,6 +84,8 @@ public class P3_Apocalypse : SplatoonScript
         {
             Controller.RegisterElementFromCode($"Spreads{i}", "{\"Name\":\"\",\"Enabled\":false,\"refX\":93.0,\"refY\":93.5,\"refZ\":9.536743E-07,\"radius\":0.5,\"Donut\":0.2,\"color\":3357671168,\"fillIntensity\":1.0,\"thicc\":1.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
+
+        Controller.RegisterElementFromCode($"SecondStack", "{\"Name\":\"\",\"Enabled\":false,\"radius\":0.75,\"color\":3355478271,\"Filled\":false,\"fillIntensity\":0.5,\"overlayTextColor\":4278234623,\"thicc\":5.0,\"overlayText\":\">>> Stack <<<\",\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
     }
 
     private int[][] Clockwise = [[0, 1, -1], [0, 1, -1, 2, -2], [1, 2, 3, -1, -2, -3], [2, 3, 4, -2, -3, -4], [1, 3, 4, -1, -3, -4], [1, 2, 4, -1, -2, -4]];
@@ -242,6 +246,26 @@ public class P3_Apocalypse : SplatoonScript
                                     e.SetRefPosition(adjPos);
                                 }
                             }
+                        }
+
+                    }
+                }
+            }
+
+            if(C.SelectedPositions.Count == 4 && Phase.InRange(17000, 26500) && !Svc.Objects.OfType<IBattleNpc>().Any(x => x.Struct()->GetCastInfo() != null && x.IsCasting && x.CastActionId == 40273 && x.CurrentCastTime < 4.7f))
+            {
+                Vector3[] candidates = [MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[IsClockwise ? -4 : 2].ToVector3(0)), MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), Positions[IsClockwise ? 4 : -2].ToVector3(0))];
+                foreach(var x in GetValidPositions(true))
+                {
+                    foreach(var pos in candidates)
+                    {
+                        if(Vector2.Distance(Positions[x], pos.ToVector2()) < 2f)
+                        {
+                            var element = Controller.GetElementByName("SecondStack")!;
+                            element.Enabled = true;
+                            var adjustAngle = MathHelper.GetRelativeAngle(new Vector2(100f, 100f), pos.ToVector2());
+                            var rotatedPoint = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), new(100, 0, 96));
+                            element.SetRefPosition(rotatedPoint);
                         }
 
                     }

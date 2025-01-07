@@ -37,7 +37,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
             - Added an option to make safe spots different when rotating cw and ccw
             """,
         [10] = "Added second stack display hint",
-        [11] = "Fixed issues regarding to second stack"
+        [11] = "Fixed issues regarding to second stack",
     };
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));

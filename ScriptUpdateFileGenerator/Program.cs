@@ -87,6 +87,6 @@ internal partial class Program
 
     [GeneratedRegex("([a-z0-9_\\.]+)\\s*:\\s*SplatoonScript", RegexOptions.IgnoreCase, "en-US")]
     private static partial Regex ClassRegex();
-    [GeneratedRegex("override.+Metadata.+Metadata.+new.+([0-9]+)")]
+    [GeneratedRegex("override.+Metadata.+Metadata.+new\D+([0-9]+)")]
     private static partial Regex VersionRegex();
 }

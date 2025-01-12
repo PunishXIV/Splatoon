@@ -24,7 +24,7 @@ internal static class RapidImport
                     if (ScriptingProcessor.IsUrlTrusted(text))
                     {
                         TryNotify("Downloading script from trusted URL".Loc());
-                        ScriptingProcessor.DownloadScript(text);
+                        ScriptingProcessor.DownloadScript(text, false);
                     }
                     else
                     {

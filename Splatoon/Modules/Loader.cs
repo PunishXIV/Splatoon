@@ -86,12 +86,12 @@ internal class Loader
                     }
                     catch(Exception ex)
                     {
-                        PluginLog.Error($"{ex.Message}\n{ex.StackTrace}");
+                        PluginLog.Error($"{ex.ToStringFull()}");
                     }
                 }
                 catch (Exception e)
                 {
-                    PluginLog.Error($"{e.Message}\n{e.StackTrace}");
+                    PluginLog.Error($"{e.ToStringFull()}");
                     verdict = Verdict.Error;
                 }
                 Safe(delegate

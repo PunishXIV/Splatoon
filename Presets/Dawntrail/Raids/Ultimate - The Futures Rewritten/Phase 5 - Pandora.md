@@ -1,3 +1,8 @@
+## [Untested] [Script] Fulgent blade dodge spots
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P5%20Fulgent%20Blade%20Dodge.cs
+```
+
 ## Fulgent Blade
 ```
 ~Lv2~{"Name":"Fulgent Blade 1 ","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"1","type":3,"refY":10.0,"offY":5.0,"radius":40.0,"refActorDataID":9020,"refActorRequireCast":true,"refActorCastId":[40307],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":3,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"2","type":3,"refY":-10.0,"offY":-5.0,"radius":40.42,"refActorDataID":9020,"refActorRequireCast":true,"refActorCastId":[40307],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":3,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"Freezing":true,"FreezeFor":8.7,"IntervalBetweenFreezes":0.8,"FreezeDisplayDelay":6.7}

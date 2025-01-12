@@ -1,4 +1,5 @@
 ﻿using ECommons.Configuration;
+using ECommons.ExcelServices;
 using Newtonsoft.Json;
 using Pictomancy;
 using Splatoon.RenderEngines;
@@ -85,6 +86,10 @@ internal class Configuration : IEzConfig
     public List<uint> NoPrioPopupTerritories = [];
     public List<RolePlayerAssignment> RolePlayerAssignments = [];
     public bool PrioUnifyDps = false;
+    public List<string> FileWatcherPathes = [];
+    public bool UseServerBar = true;
+    public Dictionary<Job, RolePosition> PreferredPositions = [];
+    public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
 
     public uint ClampFillColorAlpha(uint fillColor)
     {
@@ -189,8 +194,7 @@ internal class Configuration : IEzConfig
             {
                 plugin.tickScheduler.Enqueue(delegate
                 {
-                    plugin.Log("Failed to create backup: " + e.Message, true);
-                    plugin.Log(e.StackTrace, true);
+                    plugin.Log("Failed to create backup: " + e.ToStringFull(), true);
                 });
             }
             ZipSemaphore.Release();

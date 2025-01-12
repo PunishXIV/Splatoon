@@ -7,7 +7,7 @@ internal static class Logging
     public static void LogErrorAndNotify(Exception exception, string additionalDescription = null)
     {
         PluginLog.Error($"Error occurred during Splatoon plugin execution{(additionalDescription == null ? "" : $": {additionalDescription}")}");
-        PluginLog.Error($"{exception.Message}\n{exception.StackTrace ?? "No stack trace smh"}");
+        PluginLog.Error($"{exception.ToStringFull()}");
         Notify.Error(additionalDescription ?? exception.Message);
     }
 

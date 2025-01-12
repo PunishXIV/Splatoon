@@ -56,13 +56,20 @@ public class PriorityData
                 ImGuiEx.TextV($"");
 
                 ImGui.PushID(playerList.ID);
-                playerList.Draw();
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                if (ImGuiEx.IconButtonWithText(FontAwesomeIcon.Minus, "Delete this priority list (Hold CTRL)", enabled: ImGuiEx.Ctrl))
+                try
                 {
-                    new TickScheduler(() => PriorityLists.Remove(playerList));
+                    playerList.Draw();
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Minus, "Delete this priority list (Hold CTRL)", enabled: ImGuiEx.Ctrl))
+                    {
+                        new TickScheduler(() => PriorityLists.Remove(playerList));
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.Log();
                 }
                 ImGui.PopID();
 

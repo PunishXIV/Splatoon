@@ -25,7 +25,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private Timings _currentTiming = Timings.Start;
     private float _lastMinPercentage;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -152,6 +152,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     public override void OnUpdate()
     {
         if (!IsActive) return;
+        if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]) return;
         if (EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
         {
             var darkGirl = DarkGirl;

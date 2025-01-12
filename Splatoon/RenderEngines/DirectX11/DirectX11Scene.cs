@@ -91,15 +91,14 @@ internal unsafe class DirectX11Scene : IDisposable
                 {
                     lastErrorLogTime = now;
                     P.Log("Splatoon exception: please report it to developer", true);
-                    P.Log(e.Message, true);
-                    P.Log(e.StackTrace, true);
+                    P.Log(e.ToStringFull(), true);
                 }
             }
         }
         catch (Exception e)
         {
             P.Log("Caught exception: " + e.Message, true);
-            P.Log(e.StackTrace, true);
+            P.Log(e.ToStringFull(), true);
         }
     }
 

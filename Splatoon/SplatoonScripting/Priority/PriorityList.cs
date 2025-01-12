@@ -43,11 +43,19 @@ public class PriorityList
             }
             catch(Exception e)
             {
-                PluginLog.Error(e.ToString());
+                PluginLog.Error(e.ToStringFull());
                 DuoLog.Error(e.Message);
             }
         }
         ImGuiEx.Tooltip("Hold CTRL and click");
+        if(this.IsRole)
+        {
+            ImGui.SameLine();
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Users, "Edit Roles"))
+            {
+                P.PriorityPopupWindow.Open(true);
+            }
+        }
     }
 
     internal void Draw()

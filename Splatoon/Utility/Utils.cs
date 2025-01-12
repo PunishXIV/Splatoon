@@ -506,7 +506,7 @@ public static unsafe class Utils
         }
         catch (Exception e)
         {
-            Svc.Chat.Print("Error: " + e.Message + "\n" + e.StackTrace);
+            Svc.Chat.Print("Error: " + e.ToStringFull());
         }
     }
 

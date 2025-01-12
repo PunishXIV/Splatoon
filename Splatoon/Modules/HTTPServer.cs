@@ -155,8 +155,7 @@ class HTTPServer : IDisposable
                     catch (Exception e)
                     {
                         status.Add("Error:");
-                        status.Add(e.Message);
-                        status.Add(e.StackTrace);
+                        status.Add(e.ToStringFull());
                     }
                     HttpListenerResponse response = context.Response;
                     response.AppendHeader("Access-Control-Allow-Origin", request.Headers["Origin"]);

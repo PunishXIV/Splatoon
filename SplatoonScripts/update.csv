@@ -4,7 +4,7 @@ SplatoonScriptsOfficial.Duties.Endwalker@P10S_Debuffs,1,https://github.com/Punis
 SplatoonScriptsOfficial.Duties.Endwalker@P11S_Multiscript,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P11S Multiscript.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Dominion,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P8S2 Dominion.cs
 SplatoonScriptsOfficial.Duties.Endwalker@Aloalo_Bombs,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Aloalo Bombs.cs
-SplatoonScriptsOfficial.Duties.Endwalker@P12S_Pangenesis,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Pangenesis.cs
+SplatoonScriptsOfficial.Duties.Endwalker@P12S_Pangenesis,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Pangenesis.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P9S_JP_LC_Strat,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P9S JP LC Strat.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_P6_Cauterize_Unsafe,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR_P6_Cauterize_Unsafe.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_Dooms,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Dooms.cs
@@ -12,7 +12,7 @@ SplatoonScriptsOfficial.Duties.Endwalker@P10S_Tethers,5,https://github.com/Punis
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Caloric_Theory,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Caloric Theory.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Wing_Cleaves,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Wing Cleaves.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P8S2_Limitless_Desolation,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P8S2 Limitless Desolation.cs
-SplatoonScriptsOfficial.Duties.Endwalker@P12S_Classical_Concepts,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Classical Concepts.cs
+SplatoonScriptsOfficial.Duties.Endwalker@P12S_Classical_Concepts,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Classical Concepts.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P9S_Dualspell_InOut,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P9S Dualspell InOut.cs
 SplatoonScriptsOfficial.Duties.Endwalker@DSR_Towers,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/DSR Towers.cs
 SplatoonScriptsOfficial.Duties.Endwalker@P12S_Superchain,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/P12S Superchain.cs
@@ -29,10 +29,10 @@ SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Limitless_Synergy,3,
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_World_MoveGuide,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello World MoveGuide.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Oversampled_Wave_Cannon,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Oversampled Wave Cannon.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_Near_Far_World,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello Near Far World.cs
-SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Delta,0,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Delta.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Delta,10,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Delta.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_World,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello World.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@P5_Delta_Hello_Guide,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/P5 Delta Hello Guide.cs
-SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Program_Loop,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Program Loop.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Program_Loop,14,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Program Loop.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Sigma,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Sigma.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Cosmo_Meteor_Adjuster,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Cosmo Meteor Adjuster.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@BSOD_Adjuster,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/BSOD Adjuster.cs
@@ -68,13 +68,13 @@ SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Burn_Strike_To
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Powder_Mark_Trail,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Powder Mark Trail.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Delete_Intermission_Ice,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Delete Intermission Ice.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_Darklit,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 Darklit.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Ultimate_Relativity,0,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P3 Ultimate Relativity.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Ultimate_Relativity,10,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P3 Ultimate Relativity.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Diamond_Dust,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Diamond Dust.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Fall_of_Faith_EN,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Fall of Faith EN.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Light_Rampant_JP,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Light Rampant JP.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_Crystallize_Time,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 Crystallize Time.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_Crystallize_Time,11,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 Crystallize Time.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_AutoTargetCrystal,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 AutoTargetCrystal.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Apocalypse,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P3 Apocalypse.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Apocalypse,11,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P3 Apocalypse.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Turn_of_the_Heavens,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Turn of the Heavens.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Mirror_Mirror,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Mirror Mirror.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Cyclonic_Break,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Cyclonic Break.cs

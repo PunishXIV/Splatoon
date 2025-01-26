@@ -95,28 +95,28 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         new (Direction.West, new Vector3(80, 0, 100)),
     };
 
-    private readonly Vector2[] WestNeetSetReminderPos =
+    private readonly Vector3[] WestNeetSetReminderPos =
     {
-        new Vector2(120f, 100f),
-        new Vector2(113.740f, 100f),
-        new Vector2(107.460f, 100f),
-        new Vector2(100f, 103.000f),
-        new Vector2(100f, 109.320f),
+        new Vector3(120f, 0f, 100f),
+        new Vector3(113.740f, 0f, 100f),
+        new Vector3(107.460f, 0f, 100f),
+        new Vector3(100f, 0f, 103.000f),
+        new Vector3(103.940f, 0f, 109.320f),
     };
 
-    private readonly Vector2[] EastNeetSetReminderPos =
+    private readonly Vector3[] EastNeetSetReminderPos =
     {
-        new Vector2(80f, 100f),
-        new Vector2(86.260f, 100f),
-        new Vector2(92.540f, 100f),
-        new Vector2(100f, 96.000f),
-        new Vector2(100f, 90.680f),
+        new Vector3(80f, 0f, 100f),
+        new Vector3(86.260f, 0f, 100f),
+        new Vector3(92.540f, 0f, 100f),
+        new Vector3(100f, 0f, 96.000f),
+        new Vector3(96.040f, 0f, 90.260f),
     };
     #endregion
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "redmoon");
+    public override Metadata? Metadata => new(9, "redmoon");
     #endregion
 
     #region private properties
@@ -142,18 +142,18 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         for (var i = 0; i < 5; i++)
         {
             Controller.RegisterElement($"WestDropSpot{i}", new Element(0) { radius = 0.2f, thicc = 2f, Filled = true, fillIntensity = 1f });
-            Controller.GetElementByName($"WestDropSpot{i}").SetRefPosition(MathHelper.ToVector3(WestNeetSetReminderPos[i]));
+            Controller.GetElementByName($"WestDropSpot{i}").SetRefPosition(WestNeetSetReminderPos[i]);
             Controller.RegisterElement($"EastDropSpot{i}", new Element(0) { radius = 0.2f, thicc = 2f, Filled = true, fillIntensity = 1f });
-            Controller.GetElementByName($"EastDropSpot{i}").SetRefPosition(MathHelper.ToVector3(EastNeetSetReminderPos[i]));
+            Controller.GetElementByName($"EastDropSpot{i}").SetRefPosition(EastNeetSetReminderPos[i]);
         }
         for (var i = 0; i < 4; i++)
         {
             Controller.RegisterElement($"WestDropLine{i}", new Element(2) { radius = 0f, thicc = 3f, Filled = true, fillIntensity = 1f });
-            Controller.GetElementByName($"WestDropLine{i}").SetRefPosition(MathHelper.ToVector3(WestNeetSetReminderPos[i]));
-            Controller.GetElementByName($"WestDropLine{i}").SetOffPosition(MathHelper.ToVector3(WestNeetSetReminderPos[i + 1]));
+            Controller.GetElementByName($"WestDropLine{i}").SetRefPosition(WestNeetSetReminderPos[i]);
+            Controller.GetElementByName($"WestDropLine{i}").SetOffPosition(WestNeetSetReminderPos[i + 1]);
             Controller.RegisterElement($"EastDropLine{i}", new Element(2) { radius = 0f, thicc = 3f, Filled = true, fillIntensity = 1f });
-            Controller.GetElementByName($"EastDropLine{i}").SetRefPosition(MathHelper.ToVector3(EastNeetSetReminderPos[i]));
-            Controller.GetElementByName($"EastDropLine{i}").SetOffPosition(MathHelper.ToVector3(WestNeetSetReminderPos[i + 1]));
+            Controller.GetElementByName($"EastDropLine{i}").SetRefPosition(EastNeetSetReminderPos[i]);
+            Controller.GetElementByName($"EastDropLine{i}").SetOffPosition(EastNeetSetReminderPos[i + 1]);
         }
     }
 
@@ -382,18 +382,22 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             h2.TowerDirection = Direction.SouthEast;
 
             var pc = (h2.TetherPairId1 == h1.EntityId) ? _partyDataList.Find(x => x.EntityId == h2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == h2.TetherPairId1);
+            DuoLog.Information($"pc: {pc.Object.Name}");
             if (pc == null) return false;
             pc.TowerDirection = Direction.NorthWest;
 
             var pc2 = (pc.TetherPairId1 == h2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc.TetherPairId1);
+            DuoLog.Information($"pc2: {pc2.Object.Name}");
             if (pc2 == null) return false;
             pc2.TowerDirection = Direction.South;
 
             var pc3 = (pc2.TetherPairId1 == pc.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
+            DuoLog.Information($"pc3: {pc3.Object.Name}");
             if (pc3 == null) return false;
             pc3.TowerDirection = Direction.NorthEast;
 
-            var pc4 = (pc3.TetherPairId1 == h1.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
+            var pc4 = (pc3.TetherPairId1 == pc2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
+            DuoLog.Information($"pc4: {pc4.Object.Name}");
             if (pc4 == null) return false;
             pc4.TowerDirection = Direction.SouthWest;
 
@@ -407,26 +411,28 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             DuoLog.Information("Healer is all neet");
             // index = 1から始める
             var mt = _partyDataList.Find(x => x.index == 1);
-            var d1 = _partyDataList.Find(x => x.index == 2);
+            if (mt == null) return false;
+            var pc = _partyDataList.Find(x => x.EntityId == mt.TetherPairId1);
+            if (pc == null) return false;
 
             mt.TowerDirection = Direction.North;
-            d1.TowerDirection = Direction.SouthEast;
+            pc.TowerDirection = Direction.SouthEast;
 
-            var pc = (d1.TetherPairId1 == mt.EntityId) ? _partyDataList.Find(x => x.EntityId == d1.TetherPairId2) : _partyDataList.Find(x => x.EntityId == d1.TetherPairId1);
-            if (pc == null) return false;
-            pc.TowerDirection = Direction.NorthWest;
-
-            var pc2 = (pc.TetherPairId1 == d1.EntityId) ? _partyDataList.Find(x => x.EntityId == pc.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc.TetherPairId1);
+            var pc2 = (pc.TetherPairId1 == mt.EntityId) ? _partyDataList.Find(x => x.EntityId == pc.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc.TetherPairId1);
             if (pc2 == null) return false;
-            pc2.TowerDirection = Direction.South;
+            pc2.TowerDirection = Direction.NorthWest;
 
-            var pc3 = (pc2.TetherPairId1 == mt.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
+            var pc3 = (pc2.TetherPairId1 == pc.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
             if (pc3 == null) return false;
-            pc3.TowerDirection = Direction.NorthEast;
+            pc3.TowerDirection = Direction.South;
 
-            var pc4 = (pc3.TetherPairId1 == d1.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
+            var pc4 = (pc3.TetherPairId1 == pc2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
             if (pc4 == null) return false;
-            pc4.TowerDirection = Direction.SouthWest;
+            pc4.TowerDirection = Direction.NorthEast;
+
+            var pc5 = (pc4.TetherPairId1 == pc3.EntityId) ? _partyDataList.Find(x => x.EntityId == pc4.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc4.TetherPairId1);
+            if (pc5 == null) return false;
+            pc5.TowerDirection = Direction.SouthWest;
 
             // NEETは適当
             neetPc.Find(x => x.index == 0).TowerDirection = Direction.West;
@@ -449,15 +455,15 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             if (pc2 == null) return false;
             pc2.TowerDirection = Direction.NorthWest;
 
-            var pc3 = (pc2.TetherPairId1 == h.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
+            var pc3 = (pc2.TetherPairId1 == pc.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
             if (pc3 == null) return false;
             pc3.TowerDirection = Direction.South;
 
-            var pc4 = (pc3.TetherPairId1 == h.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
+            var pc4 = (pc3.TetherPairId1 == pc2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
             if (pc4 == null) return false;
             pc4.TowerDirection = Direction.NorthEast;
 
-            var pc5 = (pc4.TetherPairId1 == h.EntityId) ? _partyDataList.Find(x => x.EntityId == pc4.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc4.TetherPairId1);
+            var pc5 = (pc4.TetherPairId1 == pc3.EntityId) ? _partyDataList.Find(x => x.EntityId == pc4.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc4.TetherPairId1);
             if (pc5 == null) return false;
             pc5.TowerDirection = Direction.SouthWest;
 
@@ -472,7 +478,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
             // NEETは適当
             var neet = neetPc.Find(x => x.EntityId != neetHealer.EntityId);
-            neet.TowerDirection = Direction.East;
+            neet.TowerDirection = Direction.West;
         }
 
         if (_partyDataList.Where(x => x.TowerDirection != Direction.None).Count() != 8) return false;
@@ -530,22 +536,22 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             {
                 if (_northSpawn)
                 {
-                    element.SetRefPosition(new Vector3(112, 0, 85));
+                    element.SetRefPosition(new Vector3(111.280f, 0, 88.640f));
                 }
                 else
                 {
-                    element.SetRefPosition(new Vector3(106, 0, 83));
+                    element.SetRefPosition(new Vector3(103.300f, 0, 84.320f));
                 }
             }
             else // South
             {
                 if (_northSpawn)
                 {
-                    element.SetRefPosition(new Vector3(93, 0, 118));
+                    element.SetRefPosition(new Vector3(95.680f, 0, 115.480f));
                 }
                 else
                 {
-                    element.SetRefPosition(new Vector3(88, 0, 115));
+                    element.SetRefPosition(new Vector3(88.7f, 0, 111.280f));
                 }
             }
         }

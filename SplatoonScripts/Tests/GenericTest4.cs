@@ -24,11 +24,6 @@ public unsafe class GenericTest4 : SplatoonScript
     int a1;
 		string Filter = "";
 
-		public override Dictionary<int, string> Changelog => new()
-		{
-				[3] = "Test changelog entry. Just really test changelog entry, anything can go here.\nAlso supports newlines I guess."
-		};
-
     public override void OnSettingsDraw()
 		{
 				if (TaskManager?.IsBusy == true)

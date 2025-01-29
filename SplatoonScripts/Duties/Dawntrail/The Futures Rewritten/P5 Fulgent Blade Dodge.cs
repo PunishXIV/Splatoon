@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     long MechanicStartTime = 0;
     long Phase => Environment.TickCount64 - MechanicStartTime;
@@ -128,7 +128,7 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
             var earlyRot = (MathHelper.GetRelativeAngle(new(100f, 100f), r[1].Position.ToVector2()) - lateRot + 360) % 360;
 
             IsCCW = earlyRot < 180;
-            DuoLog.Information($"Early rotation: {earlyRot}");
+            PluginLog.Information($"Early rotation: {earlyRot}");
 
             var cross = GetIntersectionPoint(r[0].Position.ToVector2(), r[0].Rotation.RadToDeg(), r[1].Position.ToVector2(), r[1].Rotation.RadToDeg() + 90);
 
@@ -145,7 +145,7 @@ public unsafe class P5_Fulgent_Blade_Dodge : SplatoonScript
             if(cross != null)
             {
                 Reference = (cross.Value.ToVector3(0), r[0].Rotation);
-                DuoLog.Information($"IsCCW: {IsCCW}, ref = {Reference} \n {r[0].Position.ToVector2()}, {r[0].Rotation.RadToDeg()} \n {r[1].Position.ToVector2()}, {r[1].Rotation.RadToDeg()}\n{MathHelper.GetRelativeAngle(r[1].Position, r[0].Position)}");
+                PluginLog.Information($"IsCCW: {IsCCW}, ref = {Reference} \n {r[0].Position.ToVector2()}, {r[0].Rotation.RadToDeg()} \n {r[1].Position.ToVector2()}, {r[1].Rotation.RadToDeg()}\n{MathHelper.GetRelativeAngle(r[1].Position, r[0].Position)}");
             }
             else
             {

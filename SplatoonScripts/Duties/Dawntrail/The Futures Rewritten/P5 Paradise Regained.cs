@@ -88,7 +88,7 @@ public class P5_Paradise_Regained : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -575,6 +575,13 @@ public class P5_Paradise_Regained : SplatoonScript
         _firstAttack = null;
         _towers.Clear();
     }
+    
+    private readonly Dictionary<Direction,Vector2> _towerPositions = new()
+    {
+        {Direction.NorthWest, new Vector2(93.93782f, 96.5f)},
+        {Direction.NorthEast, new Vector2(106.0622f, 96.5f)},
+        {Direction.South, new Vector2(100f, 107f)}
+    };
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
@@ -606,10 +613,10 @@ public class P5_Paradise_Regained : SplatoonScript
                 {
                     var diff = _towers[0].AngleDifference(_towers[1]);
                     _towers[1].IsLeft = diff <= 180;
-                    break;
-                }
-                case 3:
-                {
+                    
+                    var lastTowerPosition = _towerPositions.First(x => x.Key != _towers[0].Direction && x.Key != _towers[1].Direction);
+                    _towers.Add(new TowerData {Position = lastTowerPosition.Value, Direction = lastTowerPosition.Key});
+                    
                     _towers[2].IsLeft = !_towers[1].IsLeft;
                     break;
                 }

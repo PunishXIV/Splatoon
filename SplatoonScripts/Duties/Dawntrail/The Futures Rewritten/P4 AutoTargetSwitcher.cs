@@ -30,7 +30,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private float _lastMinPercentage;
     private int _mornAfahCount;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(7, "Garume");
+    public override Metadata? Metadata => new(8, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -251,11 +251,11 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public readonly List<Timings> DisableTimings =
+        public List<Timings> DisableTimings =
         [
         ];
 
-        public readonly List<Timings> EnableTimings =
+        public List<Timings> EnableTimings =
         [
         ];
 

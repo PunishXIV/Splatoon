@@ -14,6 +14,7 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using ECommons.DalamudServices;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -39,10 +40,11 @@ public class P2_Light_Rampant_JP : SplatoonScript
     }
 
     private readonly HashSet<string> _aoeTargets = new();
-
+    private bool _PlayerHasAoE;
+    
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume, Lusaca");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -59,13 +61,21 @@ public class P2_Light_Rampant_JP : SplatoonScript
     {
         _state = State.None;
         _aoeTargets.Clear();
+        _PlayerHasAoE = false;
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
         if (_state is (State.Start or State.Split) && vfxPath == "vfx/lockon/eff/target_ae_s7k1.avfx")
         {
-            if (target.GetObject() is IPlayerCharacter player) _aoeTargets.Add(player.Name.ToString());
+            if (target.GetObject() is IPlayerCharacter player)
+            {
+                _aoeTargets.Add(player.Name.ToString());
+
+                if (player.Name.ToString().Equals(Svc.ClientState.LocalPlayer.Name.ToString()))
+                    _PlayerHasAoE = true;
+                
+            }
 
             var count = 0;
             foreach (var aoeTarget in _aoeTargets)
@@ -77,7 +87,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
             var direction = C.Directions[count];
 
-            DuoLog.Warning($"Direction: {direction} Count: {count}");
+            //DuoLog.Warning($"Direction: {direction} Count: {count}");
             const float radius = 16f;
             var center = new Vector2(100f, 100f);
             var angle = (int)direction;
@@ -119,7 +129,8 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state == State.Split)
+       
+        if (_state == State.Split && !_PlayerHasAoE)
             Controller.GetRegisteredElements()
                 .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
         else

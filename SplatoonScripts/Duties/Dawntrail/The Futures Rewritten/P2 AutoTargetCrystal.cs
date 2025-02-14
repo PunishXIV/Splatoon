@@ -58,7 +58,7 @@ public class P2_AutoTargetCrystal : SplatoonScript
             }
             case TargetType.OnlyVeil:
             {
-                if (IceCrystal is { } ice) Svc.Targets.SetTarget(ice);
+                if (!LightCrystals.Any(x => x.CurrentHp != 0) && IceCrystal is { } ice) Svc.Targets.SetTarget(ice);
                 return;
             }
             case TargetType.Both:
@@ -70,7 +70,6 @@ public class P2_AutoTargetCrystal : SplatoonScript
                 return;
             }
         }
-
     }
 
     public class Config : IEzConfig

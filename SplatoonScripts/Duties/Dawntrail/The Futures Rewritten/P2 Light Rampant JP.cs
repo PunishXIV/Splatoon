@@ -87,7 +87,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
             var direction = C.Directions[count];
 
-            //DuoLog.Warning($"Direction: {direction} Count: {count}");
+            DuoLog.Warning($"Direction: {direction} Count: {count}");
             const float radius = 16f;
             var center = new Vector2(100f, 100f);
             var angle = (int)direction;

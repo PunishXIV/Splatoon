@@ -7,6 +7,7 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
@@ -29,16 +30,12 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private float _lastMinPercentage;
     private int _mornAfahCount;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(5, "Garume");
+    public override Metadata? Metadata => new(8, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
-    private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)
-        .FirstOrDefault(o => o.DataId == 0x45AB) as IBattleChara;
-
-    private IBattleChara? LightGirl => Svc.Objects
-        .Where(o => o.IsTargetable)
-        .FirstOrDefault(o => o.DataId == 0x45A9) as IBattleChara;
+    private IBattleChara? DarkGirl => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(o => (!C.LimitDistance || Player.DistanceTo(o) < 3f + o.HitboxRadius) && o.IsTargetable && o.DataId == 0x45AB);
+    private IBattleChara? LightGirl => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(o => (!C.LimitDistance || Player.DistanceTo(o) < 3f + o.HitboxRadius) && o.IsTargetable && o.DataId == 0x45A9);
 
     private bool IsActive => !C.TimingMode ||
                              (C.EnableTimings.Contains(_currentTiming) && !C.DisableTimings.Contains(_currentTiming));
@@ -76,6 +73,8 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
         ImGui.Checkbox("Should Disable When Low Hp", ref C.ShouldDisableWhenLowHp);
         if (C.ShouldDisableWhenLowHp) ImGui.SliderFloat("Low Hp Percentage", ref C.LowHpPercentage, 0f, 100f);
+
+        ImGui.Checkbox("Do not switch if target is not in melee range", ref C.LimitDistance);
 
         ImGui.Checkbox("Timing Mode", ref C.TimingMode);
         if (C.TimingMode)
@@ -252,11 +251,11 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public readonly List<Timings> DisableTimings =
+        public List<Timings> DisableTimings =
         [
         ];
 
-        public readonly List<Timings> EnableTimings =
+        public List<Timings> EnableTimings =
         [
         ];
 
@@ -267,5 +266,6 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         public float LowHpPercentage = 1f;
         public bool ShouldDisableWhenLowHp;
         public bool TimingMode;
+        public bool LimitDistance = false;
     }
 }

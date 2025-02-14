@@ -2,13 +2,11 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
-using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -68,23 +66,24 @@ internal class P2_Light_Rampant :SplatoonScript
     private readonly List<(Direction, Vector3)> TowerPos = new()
     {
         new (Direction.NorthWest, new Vector3(86, 0, 92)),
-        new (Direction.North, new Vector3(100, 0, 100)),
+        new (Direction.North, new Vector3(100, 0, 84)),
         new (Direction.NorthEast, new Vector3(114, 0, 92)),
         new (Direction.SouthEast, new Vector3(114, 0, 108)),
-        new (Direction.South, new Vector3(100, 0, 100)),
+        new (Direction.South, new Vector3(100, 0, 116)),
         new (Direction.SouthWest, new Vector3(86, 0, 108)),
     };
     #endregion
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(1, "redmoon");
+    public override Metadata? Metadata => new(2, "redmoon & Smoothtalk");
     #endregion
 
     #region private properties
     private State _state = State.None;
     private List<PartyData> _partyDataList = new();
     private int _onTetherCount = 0;
+    private bool? _isClockwiseRotation = null;
     private Config C => Controller.GetConfig<Config>();
     private string NewPlayer = "";
     #endregion
@@ -106,7 +105,7 @@ internal class P2_Light_Rampant :SplatoonScript
     {
         if (castId == 40212)
         {
-            SetListEntityIdByJob();
+            SetListEntityId();
 
             _state = State.LightRampantCasting;
         }
@@ -149,6 +148,7 @@ internal class P2_Light_Rampant :SplatoonScript
         _state = State.None;
         _onTetherCount = 0;
         _partyDataList.Clear();
+        _isClockwiseRotation = null;
         HideAllElements();
     }
 
@@ -195,6 +195,8 @@ internal class P2_Light_Rampant :SplatoonScript
             ImGui.Text($"State: {_state}");
             ImGui.Text($"OnTetherCount: {_onTetherCount}");
             ImGui.Text($"PartyDataList.Count: {_partyDataList.Count}");
+            if (_isClockwiseRotation == null) ImGui.Text($"ClockwiseRotate: None");
+            else ImGui.Text($"ClockwiseRotate: {_isClockwiseRotation}");
             if (_partyDataList.Count <= 0) return;
             foreach (var pc in _partyDataList)
             {
@@ -211,8 +213,7 @@ internal class P2_Light_Rampant :SplatoonScript
     #endregion
 
     #region private methods
-    private readonly Job[] THJobs = new Job[] { Job.WAR, Job.DRK, Job.GNB, Job.PLD, Job.WHM, Job.AST, Job.SCH, Job.SGE };
-    private readonly Job[] DPSJobs = new Job[] { Job.SAM, Job.MNK, Job.DRG, Job.RPR, Job.NIN, Job.VPR, Job.BRD, Job.MCH, Job.DNC, Job.RDM, Job.SMN, Job.BLU, Job.PCT };
+    private readonly CombatRole[] SupportRoles = new CombatRole[] { CombatRole.Tank, CombatRole.Healer };
     private bool ParseTether()
     {
         foreach (var pc in _partyDataList)
@@ -257,27 +258,66 @@ internal class P2_Light_Rampant :SplatoonScript
 
         if (priority == null || priority.Count == 0) return false;
 
-        // 0は北西
+        _isClockwiseRotation = ClockwiseRotation(tethersSortedList);
+
+        // since both healers have puddles, SW DPS rotates to NW spot, move that player to 0 
+        if (_isClockwiseRotation == true)
+        {
+            //insert last position first
+            tethersSortedList.Insert(0, tethersSortedList[5]);
+
+            //delete the last element
+            tethersSortedList.RemoveAt(6);
+        }
+        
+        // NW
         var x = _partyDataList.Find(x => x.EntityId == tethersSortedList[0].EntityId.GetObject().EntityId).TowerDirection = (C.NorthSwap != true) ? Direction.NorthWest : Direction.NorthEast;
 
-        // 1は南確定
-        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[1].EntityId.GetObject().EntityId).TowerDirection = Direction.South;
+        // N
+        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[1].EntityId.GetObject().EntityId).TowerDirection = (C.NorthSwap != true) ? Direction.North : Direction.South;
 
-        // 2は北東
+        // NE
         x = _partyDataList.Find(x => x.EntityId == tethersSortedList[2].EntityId.GetObject().EntityId).TowerDirection = (C.NorthSwap != true) ? Direction.NorthEast : Direction.NorthWest;
 
-        // 3は南東
-        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[3].EntityId.GetObject().EntityId).TowerDirection = (C.NorthSwap != true) ? Direction.SouthWest : Direction.SouthEast;
+        // SE
+        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[3].EntityId.GetObject().EntityId).TowerDirection = Direction.SouthEast;
 
-        // 4は北確定
-        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[4].EntityId.GetObject().EntityId).TowerDirection = Direction.North;
+        // S
+        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[4].EntityId.GetObject().EntityId).TowerDirection = (C.NorthSwap != true) ? Direction.South : Direction.North;
 
-        // 5は南西
-        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[5].EntityId.GetObject().EntityId).TowerDirection = (C.NorthSwap != true) ? Direction.SouthEast : Direction.SouthWest;
+        // SW
+        x = _partyDataList.Find(x => x.EntityId == tethersSortedList[5].EntityId.GetObject().EntityId).TowerDirection = Direction.SouthWest;
 
 
         if (_partyDataList.Where(x => x.TowerDirection != Direction.None).Count() != 6) return false;
         else return true;
+    }
+
+    // Handle the odd case where two supports are selected and a dps becomes top left of the hexagon
+    private bool? ClockwiseRotation(List<PartyData> tethersSortedList)
+    {
+        List<CombatRole> tetheredRoles = new List<CombatRole>();
+
+        foreach (var pc in tethersSortedList)
+        {
+            if (pc.Object is IPlayerCharacter player)
+            {
+                CombatRole role = CharacterFunctions.GetRole(player);
+                
+                tetheredRoles.Add(role);
+            }
+        }
+
+        // Count how many THJobs appear in the tetheredJobs list
+        int thRoleCount = tetheredRoles.Count(role => SupportRoles.Contains(role));
+
+        // Check if count is 2 (4 dps, 2 supports)
+        if (thRoleCount == 2)
+        {
+            return true; // CW Rotation LR case detected
+        }
+
+        return false; // No Rotation LR case
     }
 
     #endregion
@@ -294,12 +334,6 @@ internal class P2_Light_Rampant :SplatoonScript
         SouthWest,
         West,
         NorthWest
-    }
-
-    public enum LR
-    {
-        Left = 0,
-        Right
     }
 
     public class DirectionalVector
@@ -319,305 +353,26 @@ internal class P2_Light_Rampant :SplatoonScript
         }
     }
 
-    private void SetListEntityIdByJob()
+    private void SetListEntityId()
     {
         _partyDataList.Clear();
 
-        // リストに８人分の初期インスタンス生成
-        for (var i = 0; i < 8; i++)
-        {
-            _partyDataList.Add(new PartyData(0));
-            _partyDataList[i].index = i;
-        }
+        var index = 0;
 
         foreach (var pc in FakeParty.Get())
         {
             var job = pc.GetJob();
-            switch (job)
-            {
-                case Job.WAR:
-                case Job.DRK:
-                case Job.GNB:
-                _partyDataList[0].EntityId = pc.EntityId;
-                break;
+            _partyDataList.Add(new PartyData(0));
 
-                case Job.PLD:
-                _partyDataList[1].EntityId = pc.EntityId;
-                break;
-
-                case Job.SAM:
-                case Job.MNK:
-                case Job.DRG:
-                case Job.RPR:
-                _partyDataList[2].EntityId = pc.EntityId;
-                break;
-
-                case Job.NIN:
-                case Job.VPR:
-                case Job.RDM:
-                case Job.BLM:
-                case Job.SMN:
-                _partyDataList[3].EntityId = pc.EntityId;
-                break;
-
-                case Job.BRD:
-                case Job.MCH:
-                case Job.DNC:
-                _partyDataList[4].EntityId = pc.EntityId;
-                break;
-
-                case Job.PCT:
-                _partyDataList[5].EntityId = pc.EntityId;
-                break;
-
-                case Job.WHM:
-                case Job.AST:
-                _partyDataList[6].EntityId = pc.EntityId;
-                break;
-
-                case Job.SCH:
-                case Job.SGE:
-                _partyDataList[7].EntityId = pc.EntityId;
-                break;
-            }
+            _partyDataList[index].index = index;
+            _partyDataList[index].EntityId = pc.EntityId;
+            index++;
         }
     }
 
     private PartyData GetMinedata() => _partyDataList.Find(x => x.Mine);
 
-    private Direction DividePoint(Vector3 Position, float Distance, Vector3? Center = null)
-    {
-        // Distance, Centerの値を用いて、８方向のベクトルを生成
-        var directionalVectors = GenerateDirectionalVectors(Distance, Center ?? new Vector3(100, 0, 100));
-
-        // ８方向の内、最も近い方向ベクトルを取得
-        var closestDirection = Direction.North;
-        var closestDistance = float.MaxValue;
-        foreach (var directionalVector in directionalVectors)
-        {
-            var distance = Vector3.Distance(Position, directionalVector.Position);
-            if (distance < closestDistance)
-            {
-                closestDistance = distance;
-                closestDirection = directionalVector.Direction;
-            }
-        }
-
-        return closestDirection;
-    }
-
-    public static List<DirectionalVector> GenerateDirectionalVectors(float distance, Vector3? center = null)
-    {
-        var directionalVectors = new List<DirectionalVector>();
-
-        // 各方向のオフセット計算
-        foreach (Direction direction in Enum.GetValues(typeof(Direction)))
-        {
-            if (direction == Direction.None) continue; // Noneはスキップ
-
-            Vector3 offset = direction switch
-            {
-                Direction.North => new Vector3(0, 0, -1),
-                Direction.NorthEast => Vector3.Normalize(new Vector3(1, 0, -1)),
-                Direction.East => new Vector3(1, 0, 0),
-                Direction.SouthEast => Vector3.Normalize(new Vector3(1, 0, 1)),
-                Direction.South => new Vector3(0, 0, 1),
-                Direction.SouthWest => Vector3.Normalize(new Vector3(-1, 0, 1)),
-                Direction.West => new Vector3(-1, 0, 0),
-                Direction.NorthWest => Vector3.Normalize(new Vector3(-1, 0, -1)),
-                _ => Vector3.Zero
-            };
-
-            // 距離を適用して座標を計算
-            Vector3 position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
-
-            // リストに追加
-            directionalVectors.Add(new DirectionalVector(direction, position));
-        }
-
-        return directionalVectors;
-    }
-
-    // 2つのDirectionを比較して、角度を返す。角度は正しい値ではなく0, 45, 90, 135, 180の値を返す
-    private int GetTwoPointAngle(Direction direction1, Direction direction2)
-    {
-        // enumの値を数値に変換
-        int angle1 = (int)direction1;
-        int angle2 = (int)direction2;
-
-        // 環状の差分を計算
-        int diff = (angle2 - angle1 + 8) % 8; // 環状に補正して差分を取得
-
-        // 差分に応じた角度を計算（時計回りで正、反時計回りで負）
-        int angle = diff switch
-        {
-            0 => 0,
-            1 => 45,
-            2 => 90,
-            3 => 135,
-            4 => 180,
-            5 => -135,
-            6 => -90,
-            7 => -45,
-            _ => 0 // このケースは通常発生しない
-        };
-
-        return angle;
-    }
-
-    // 2つのDirectionを比較して、左右どちらかを返す。左なら-1、右なら1、同じまたは逆なら0を返す
-    private LR GetTwoPointLeftRight(Direction direction1, Direction direction2)
-    {
-        if (direction1 == Direction.North && direction2 == Direction.NorthEast) return LR.Right;
-        if (direction1 == Direction.NorthEast && direction2 == Direction.East) return LR.Right;
-        if (direction1 == Direction.East && direction2 == Direction.SouthEast) return LR.Right;
-        if (direction1 == Direction.SouthEast && direction2 == Direction.South) return LR.Right;
-        if (direction1 == Direction.South && direction2 == Direction.SouthWest) return LR.Right;
-        if (direction1 == Direction.SouthWest && direction2 == Direction.West) return LR.Right;
-        if (direction1 == Direction.West && direction2 == Direction.NorthWest) return LR.Right;
-        if (direction1 == Direction.NorthWest && direction2 == Direction.North) return LR.Right;
-
-        if (direction1 == Direction.North && direction2 == Direction.West) return LR.Left;
-        if (direction1 == Direction.West && direction2 == Direction.South) return LR.Left;
-        if (direction1 == Direction.South && direction2 == Direction.East) return LR.Left;
-        if (direction1 == Direction.East && direction2 == Direction.North) return LR.Left;
-
-        if (direction1 == Direction.North && direction2 == Direction.SouthEast) return LR.Right;
-        if (direction1 == Direction.NorthEast && direction2 == Direction.South) return LR.Right;
-        if (direction1 == Direction.East && direction2 == Direction.SouthWest) return LR.Right;
-        if (direction1 == Direction.SouthEast && direction2 == Direction.West) return LR.Right;
-        if (direction1 == Direction.South && direction2 == Direction.NorthWest) return LR.Right;
-        if (direction1 == Direction.SouthWest && direction2 == Direction.North) return LR.Right;
-        if (direction1 == Direction.West && direction2 == Direction.NorthEast) return LR.Right;
-        if (direction1 == Direction.NorthWest && direction2 == Direction.East) return LR.Right;
-
-        return LR.Left;
-    }
     private void HideAllElements() => Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-    private Direction Rotate45Clockwise(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.North => Direction.NorthEast,
-            Direction.NorthEast => Direction.East,
-            Direction.East => Direction.SouthEast,
-            Direction.SouthEast => Direction.South,
-            Direction.South => Direction.SouthWest,
-            Direction.SouthWest => Direction.West,
-            Direction.West => Direction.NorthWest,
-            Direction.NorthWest => Direction.North,
-            _ => Direction.None
-        };
-    }
-
-    private Direction GetOppositeDirection(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.North => Direction.South,
-            Direction.NorthEast => Direction.SouthWest,
-            Direction.East => Direction.West,
-            Direction.SouthEast => Direction.NorthWest,
-            Direction.South => Direction.North,
-            Direction.SouthWest => Direction.NorthEast,
-            Direction.West => Direction.East,
-            Direction.NorthWest => Direction.SouthEast,
-            _ => Direction.None
-        };
-    }
-
-    private void ApplyElement(string elementName, Direction direction, float radius, float elementRadius = 0.3f)
-    {
-        var position = new Vector3(100, 0, 100);
-        var angle = GetAngle(direction);
-        position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
-        if (Controller.TryGetElementByName(elementName, out var element))
-        {
-            element.Enabled = true;
-            element.radius = elementRadius;
-            element.SetOffPosition(position);
-        }
-    }
-
-    private float GetAngle(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.North => 270,
-            Direction.NorthEast => 315,
-            Direction.East => 0,
-            Direction.SouthEast => 45,
-            Direction.South => 90,
-            Direction.SouthWest => 135,
-            Direction.West => 180,
-            Direction.NorthWest => 225,
-            _ => 0
-        };
-    }
-
-    /// <summary>
-    /// Calculates the correction angle needed to rotate the object to face the target.
-    /// </summary>
-    /// <param name="origin">The current position of the object.</param>
-    /// <param name="target">The position of the target.</param>
-    /// <param name="rotation">The current rotation angle of the object (in radian).</param>
-    /// <returns>The correction angle (in degrees) needed to face the target.</returns>
-    public static float GetCorrectionAngle(Vector3 origin, Vector3 target, float rotation) => GetCorrectionAngle(MathHelper.ToVector2(origin), MathHelper.ToVector2(target), rotation);
-
-    public static float GetCorrectionAngle(Vector2 origin, Vector2 target, float rotation)
-    {
-        // Calculate the relative angle to the target
-        Vector2 direction = target - origin;
-        float relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
-
-        // Normalize relative angle to 0-360 range
-        relativeAngle = (relativeAngle + 360) % 360;
-
-        // Calculate the correction angle
-        float correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
-
-        // Adjust correction angle to range -180 to 180 for shortest rotation
-        if (correctionAngle > 180)
-            correctionAngle -= 360;
-
-        return correctionAngle;
-    }
-
-    /// <summary>
-    /// Converts a rotation angle in radians to degrees in a system where:
-    /// - North is 0°
-    /// - Angles increase clockwise
-    /// - Range is 0° to 360°
-    /// </summary>
-    /// <param name="radians">The rotation angle in radians.</param>
-    /// <returns>The equivalent rotation angle in degrees.</returns>
-    public static float ConvertRotationRadiansToDegrees(float radians)
-    {
-        // Convert radians to degrees with coordinate system adjustment
-        float degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
-
-        // Ensure the result is within the 0° to 360° range
-        return degrees < 0 ? degrees + 360 : degrees;
-    }
-
-    /// <summary>
-    /// Converts a rotation angle in degrees to radians in a system where:
-    /// - North is 0°
-    /// - Angles increase clockwise
-    /// - Range is -π to π
-    /// </summary>
-    /// <param name="degrees">The rotation angle in degrees.</param>
-    /// <returns>The equivalent rotation angle in radians.</returns>
-    public static float ConvertDegreesToRotationRadians(float degrees)
-    {
-        // Convert degrees to radians with coordinate system adjustment
-        float radians = -(degrees - 180) * (MathF.PI / 180);
-
-        // Normalize the result to the range -π to π
-        radians = ((radians + MathF.PI) % (2 * MathF.PI)) - MathF.PI;
-
-        return radians;
-    }
     #endregion
 }

@@ -12,25 +12,25 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
-using System;
+using System;   
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 #pragma warning disable
-namespace SplatoonScriptsOfficial.Tests;
+namespace SplatoonScriptsOfficial.Tests; 
 public unsafe class GenericTest4 : SplatoonScript
-{
-		public override HashSet<uint>? ValidTerritories => new();
-    public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
+{   
+		public override HashSet<uint>? ValidTerritories => new(); 
+    public override Metadata? Metadata { get; } = new(4, "NightmareXIV");
     int a1;
 		string Filter = "";
 
-		public override void OnSettingsDraw()
+    public override void OnSettingsDraw()
 		{
 				if (TaskManager?.IsBusy == true)
 				{
 						if (ImGui.Button("Stop")) TaskManager.Abort();
 						return;
-				}
+				}   
 				ImGui.InputInt("Duty ID", ref a1);
 				if(ImGui.BeginCombo("Duty", Svc.Data.GetExcelSheet<ContentFinderCondition>().GetRowOrDefault((uint)a1)?.Name.ExtractText()))
 				{

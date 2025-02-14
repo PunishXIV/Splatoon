@@ -20,7 +20,7 @@ public class AutoTargetSwitcher : SplatoonScript
     private float _lastMinPercentage;
 
     public override HashSet<uint>? ValidTerritories => [];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -62,6 +62,7 @@ public class AutoTargetSwitcher : SplatoonScript
 
     public override void OnUpdate()
     {
+        if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]) return;
         if (EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
         {
             var targets = Svc.Objects

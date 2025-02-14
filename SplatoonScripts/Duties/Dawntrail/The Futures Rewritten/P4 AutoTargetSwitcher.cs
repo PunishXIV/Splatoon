@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
@@ -20,12 +21,15 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private readonly List<float> _percentages = [];
     private readonly Random _random = new();
     private readonly List<IBattleChara> _targets = [];
+
+    private int _akhMornCount;
     private IBattleChara? _currentTarget;
 
     private Timings _currentTiming = Timings.Start;
     private float _lastMinPercentage;
+    private int _mornAfahCount;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(5, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -69,6 +73,9 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
         ImGui.SliderFloat("Acceptable Percentage", ref C.AcceptablePercentage, 0f, 100f);
         ImGui.SliderInt("Interval", ref C.Interval, 100, 1000);
+
+        ImGui.Checkbox("Should Disable When Low Hp", ref C.ShouldDisableWhenLowHp);
+        if (C.ShouldDisableWhenLowHp) ImGui.SliderFloat("Low Hp Percentage", ref C.LowHpPercentage, 0f, 100f);
 
         ImGui.Checkbox("Timing Mode", ref C.TimingMode);
         if (C.TimingMode)
@@ -133,12 +140,8 @@ public class P4_AutoTargetSwitcher : SplatoonScript
                 _mornAfahCount++;
                 _currentTiming = _mornAfahCount == 1 ? Timings.FirstMornAfahEnd : Timings.SecondMornAfahEnd;
                 break;
-            
         }
     }
-    
-    private int _akhMornCount = 0;
-    private int _mornAfahCount = 0;
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -152,6 +155,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     public override void OnUpdate()
     {
         if (!IsActive) return;
+        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback]) return;
         if (EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
         {
             var darkGirl = DarkGirl;
@@ -162,6 +166,14 @@ public class P4_AutoTargetSwitcher : SplatoonScript
                 Alert("No targets found");
                 return;
             }
+
+            if (C.ShouldDisableWhenLowHp && darkGirl != null && lightGirl != null)
+                if ((float)darkGirl.CurrentHp / darkGirl.MaxHp * 100f < C.LowHpPercentage ||
+                    (float)lightGirl.CurrentHp / lightGirl.MaxHp * 100f < C.LowHpPercentage)
+                {
+                    Alert("Disabling due to low hp");
+                    return;
+                }
 
             if (darkGirl == null && lightGirl != null)
             {
@@ -235,14 +247,11 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         FirstAkhMorn,
         FirstMornAfahEnd,
         SecondAkhMorn,
-        SecondMornAfahEnd 
+        SecondMornAfahEnd
     }
 
     private class Config : IEzConfig
     {
-        public float AcceptablePercentage = 3f;
-        public bool DebugMode;
-
         public readonly List<Timings> DisableTimings =
         [
         ];
@@ -251,7 +260,12 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         [
         ];
 
+        public float AcceptablePercentage = 3f;
+        public bool DebugMode;
+
         public int Interval = 300;
-        public bool TimingMode = false;
+        public float LowHpPercentage = 1f;
+        public bool ShouldDisableWhenLowHp;
+        public bool TimingMode;
     }
 }

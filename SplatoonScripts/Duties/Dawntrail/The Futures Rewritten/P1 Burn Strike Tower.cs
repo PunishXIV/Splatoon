@@ -27,16 +27,16 @@ public class P1_Burn_Strike_Tower : SplatoonScript
     };
 
     private IBattleNpc?[] _currentTowers = new IBattleNpc[3];
-
     private IBattleNpc? _myTower;
-
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "Garume");
-
-
+    public override Metadata? Metadata => new(5, "Garume");
     private Config C => Controller.GetConfig<Config>();
 
+    private int TowerCount(uint castId)
+    {
+        return TowerCastIds.First(x => x.Value.Contains(castId)).Key;
+    }
 
     public override void OnSettingsDraw()
     {
@@ -49,7 +49,6 @@ public class P1_Burn_Strike_Tower : SplatoonScript
         if (C.FixEnabled)
         {
             ImGui.Indent();
-
             if (C.PriorityData.PriorityLists.First().IsRole)
             {
                 ImGuiEx.EnumCombo("1st Fixed Role", ref C.FirstFixRole);
@@ -66,12 +65,11 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                     C.SecondFixIndex == C.ThirdFixIndex)
                     ImGuiEx.Text(EColor.RedBright, "Indexes must be different");
             }
-            
-            ImGui.Checkbox("Enabled Flex Priority", ref C.FlexEnabled);
 
+            ImGui.Checkbox("Enabled Flex Priority", ref C.FlexEnabled);
             ImGui.Unindent();
         }
-        
+
         if (C.FlexEnabled)
         {
             ImGui.Indent();
@@ -91,6 +89,7 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                     C.SecondFlexIndex == C.ThirdFlexIndex)
                     ImGuiEx.Text(EColor.RedBright, "Indexes must be different");
             }
+
             ImGui.Unindent();
         }
 
@@ -185,18 +184,17 @@ public class P1_Burn_Strike_Tower : SplatoonScript
             DuoLog.Warning("[P1 Burn Strike Tower] Priority list is not setup");
             return;
         }
-        
+
         if (towers.Count != 3)
         {
             DuoLog.Warning("[P1 Burn Strike Tower] Tower is null");
             return;
         }
-        
+
         var roleList = list.List
             .Select(x =>
                 x.IsInParty(list.IsRole, out var upm) ? (upm.Name, x.Role) : ("", RolePosition.Not_Selected))
             .ToDictionary(x => x.Item1, x => x.Item2);
-
 
         if (C.FixEnabled)
         {
@@ -234,64 +232,63 @@ public class P1_Burn_Strike_Tower : SplatoonScript
                 List<string> flexPlayers;
                 if (list.IsRole)
                 {
-                    flexPlayers = roleList
-                        .Where(x => x.Value == C.FirstFlexRole || x.Value == C.SecondFlexRole ||
-                                    x.Value == C.ThirdFlexRole).Select(x => x.Key).ToList();
+                    var firstPlayer = roleList.First(x => x.Value == C.FirstFlexRole).Key;
+                    var secondPlayer = roleList.First(x => x.Value == C.SecondFlexRole).Key;
+                    var thirdPlayer = roleList.First(x => x.Value == C.ThirdFlexRole).Key;
+
+                    if (TowerCount(_currentTowers[0]!.CastActionId) == 1)
+                        nonDecided.Enqueue(firstPlayer);
+                    else if (firstPlayer == Player.Name)
+                        _myTower = _currentTowers[0];
+
+                    if (TowerCount(_currentTowers[1]!.CastActionId) == 1)
+                        nonDecided.Enqueue(secondPlayer);
+                    else if (secondPlayer == Player.Name)
+                        _myTower = _currentTowers[1];
+
+                    if (TowerCount(_currentTowers[2]!.CastActionId) == 1)
+                        nonDecided.Enqueue(thirdPlayer);
+                    else if (thirdPlayer == Player.Name)
+                        _myTower = _currentTowers[2];
                 }
                 else
                 {
-                    flexPlayers = players
-                        .Where((_, i) => i == C.FirstFlexIndex || i == C.SecondFlexIndex || i == C.ThirdFlexIndex)
-                        .Select(x => x.Name).ToList();
+                    var firstPlayer = players[C.FirstFlexIndex].Name;
+                    var secondPlayer = players[C.SecondFlexIndex].Name;
+                    var thirdPlayer = players[C.ThirdFlexIndex].Name;
+
+                    if (TowerCount(_currentTowers[0]!.CastActionId) == 1)
+                        nonDecided.Enqueue(firstPlayer);
+                    else if (firstPlayer == Player.Name)
+                        _myTower = _currentTowers[0];
+
+                    if (TowerCount(_currentTowers[1]!.CastActionId) == 1)
+                        nonDecided.Enqueue(secondPlayer);
+                    else if (secondPlayer == Player.Name)
+                        _myTower = _currentTowers[1];
+
+                    if (TowerCount(_currentTowers[2]!.CastActionId) == 1)
+                        nonDecided.Enqueue(thirdPlayer);
+                    else if (thirdPlayer == Player.Name)
+                        _myTower = _currentTowers[2];
                 }
 
-                for (int i = 0; i < towers.Count; i++)
-                {
-                    var tower = towers[i];
-                    var player = flexPlayers[i];
-                    
-                    var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
-                    if (towerCount == 2)
-                    {
-                        if (player == Player.Name)
-                            _myTower = tower;
-                    }
-                    else
-                    {
-                        nonDecided.Enqueue(player);
-                    }
-                }
+                DuoLog.Warning("[P1 Burn Strike Tower] Non Decided: " + string.Join(", ", nonDecided));
 
                 foreach (var tower in towers)
                 {
-                    
-                    var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
-                    switch (towerCount)
-                    {
-                        case 3:
-                        {
-                            var first = nonDecided.Dequeue();
-                            if (first == Player.Name)
-                                _myTower = tower;
-                            break;
-                        }
-                        case 4:
-                        {
-                            var first = nonDecided.Dequeue();
-                            var second = nonDecided.Dequeue();
-                            if (first == Player.Name || second == Player.Name)
-                                _myTower = tower;
-                            break;
-                        }
-                    }
+                    var remaining = TowerCount(tower.CastActionId);
+                    if (remaining < 3) continue;
+                    foreach (var player in nonDecided.DequeueMultiple(TowerCount(tower.CastActionId) - 2))
+                        if (player == Player.Name)
+                            _myTower = tower;
                 }
             }
             else
             {
                 foreach (var tower in towers)
                 {
-                    var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
-                    var remaining = towerCount - 1;
+                    var remaining = TowerCount(tower.CastActionId) - 1;
                     if (remaining == 0) continue;
                     for (var i = 0; i < remaining; i++)
                     {
@@ -307,9 +304,8 @@ public class P1_Burn_Strike_Tower : SplatoonScript
             var index = 0;
             foreach (var tower in towers)
             {
-                var towerCount = TowerCastIds.First(x => x.Value.Contains(tower.CastActionId)).Key;
                 var lastIndex = index;
-                index += towerCount;
+                index += TowerCount(tower.CastActionId);
 
                 for (var i = lastIndex; i < index; i++)
                     if (players[i].Name == Player.Name)
@@ -337,20 +333,20 @@ public class P1_Burn_Strike_Tower : SplatoonScript
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
 
-        public int FirstFixIndex = 0;
+        public int FirstFixIndex;
         public RolePosition FirstFixRole = RolePosition.H1;
+
+        public int FirstFlexIndex = 2;
+        public RolePosition FirstFlexRole = RolePosition.M1;
         public bool FixEnabled;
         public bool FlexEnabled;
         public PriorityData6 PriorityData = new();
         public int SecondFixIndex = 1;
         public RolePosition SecondFixRole = RolePosition.H2;
-        public int ThirdFixIndex = 5;
-        public RolePosition ThirdFixRole = RolePosition.R2;
-        
-        public int FirstFlexIndex = 2;
-        public RolePosition FirstFlexRole = RolePosition.M1;
         public int SecondFlexIndex = 3;
         public RolePosition SecondFlexRole = RolePosition.M2;
+        public int ThirdFixIndex = 5;
+        public RolePosition ThirdFixRole = RolePosition.R2;
         public int ThirdFlexIndex = 4;
         public RolePosition ThirdFlexRole = RolePosition.R1;
     }
@@ -361,5 +357,13 @@ public class P1_Burn_Strike_Tower : SplatoonScript
         {
             return 6;
         }
+    }
+}
+
+public static class QueueExtensions
+{
+    public static IEnumerable<T> DequeueMultiple<T>(this Queue<T> queue, int count)
+    {
+        for (var i = 0; i < count && queue.Count > 0; i++) yield return queue.Dequeue();
     }
 }

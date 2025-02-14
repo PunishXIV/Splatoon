@@ -184,7 +184,7 @@ internal static class LayoutDrawSelector
                 }
                 ImGui.PopID();
             }
-            ImGuiEx.ImGuiLineCentered("AddElement", delegate
+            ImGuiEx.LineCentered("AddElement", delegate
             {
                 if(ImGui.SmallButton("Add element".Loc()))
                 {

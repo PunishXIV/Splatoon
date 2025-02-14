@@ -25,7 +25,8 @@ public class P2_Mirror_Mirror : SplatoonScript
     public enum Clockwise
     {
         Clockwise,
-        CounterClockwise
+        CounterClockwise,
+        Do_not_display
     }
 
     public enum Direction
@@ -57,7 +58,7 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -67,7 +68,7 @@ public class P2_Mirror_Mirror : SplatoonScript
         if (castId == 40179) _state = State.Casting;
         if (_state == State.FirstAction)
         {
-            if (castId == 40205)
+            if(castId == 40205)
             {
                 var closestDirection = _redMirrorDirections
                     .OrderBy(dir => Math.Min(
@@ -131,7 +132,7 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state is State.End or State.None) Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        if (_state.EqualsAny(State.End, State.None) || (_state == State.SecondAction && C.Clockwise == Clockwise.Do_not_display)) Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
     public void ApplyElement(Direction direction)

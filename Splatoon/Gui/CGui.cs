@@ -34,6 +34,7 @@ unsafe partial class CGui:IDisposable
     public bool Open = false;
     bool WasOpen = false;
     float RightWidth = 0;
+    internal string TabRequest = null;
 
     public CGui(Splatoon p)
     {
@@ -115,7 +116,7 @@ unsafe partial class CGui:IDisposable
                     }, false);
                     ImGui.SetCursorPos(curCursor);
 
-                    ImGuiEx.EzTabBar("SplatoonSettings",
+                    ImGuiEx.EzTabBar("SplatoonSettings", null, TabRequest,
                         ("General".Loc() + "###tab1", DisplayGeneralSettings, null, true),
                         ("Render".Loc() + "###tab2", DisplayRenderers, null, true),
                         ("Layouts".Loc(), DislayLayouts, Colors.Green.ToVector4(), true),
@@ -137,12 +138,13 @@ unsafe partial class CGui:IDisposable
                         ("Contribute".Loc(), Contribute.Draw, null, true)
                         //("Contributors".Loc(), TabContributors.Draw, null, true)
                         );
+                    TabRequest = null;
                 }
             }
             catch(Exception ex)
             {
                 ex.Log();
-                ImGuiEx.Text(ImGuiColors.DalamudRed, $"Error: {ex.Message}\n{ex.StackTrace}");
+                ImGuiEx.Text(ImGuiColors.DalamudRed, $"Error: {ex.ToStringFull()}");
             }
         }
         ImGui.PopStyleVar();

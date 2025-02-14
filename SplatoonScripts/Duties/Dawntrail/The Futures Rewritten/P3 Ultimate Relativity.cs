@@ -75,7 +75,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(9, "Garume");
+    public override Metadata? Metadata => new(10, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -770,7 +770,7 @@ public class P3_Ultimate_Relativity : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state is State.None or State.Start or State.End)
+        if ((_state is State.None or State.Start or State.End) || !Svc.Objects.Any(x => x.DataId == 17832))
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;

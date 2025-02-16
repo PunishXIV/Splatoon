@@ -16,11 +16,11 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
-using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -51,7 +51,7 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
 
     private ZephiranDirection _zephiranDirection;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume");
     private bool IsStart => _sword1 != null && _sword2 != null;
     private Config C => Controller.GetConfig<Config>();
     private IBattleChara? Zephiran => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE31);
@@ -172,14 +172,14 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
         if (_zephiranDirection != ZephiranDirection.None)
         {
             var resolvePosition = C.ResolvePosition;
-
+            var pairCharacter = C.PriorityData.GetFirstValidList().List.First();
             if (_sword1.Name.ToString() == Player.Name)
                 resolvePosition = ResolvePosition.ZephiranFaceToFace;
             else if (_sword2.Name.ToString() == Player.Name)
                 resolvePosition = ResolvePosition.ZephiranBack;
-            else if (_sword1.Name.ToString() == C.PairCharacterName)
+            else if (_sword1.Name.ToString() == pairCharacter.Name)
                 resolvePosition = ResolvePosition.ZephiranBack;
-            else if (_sword2.Name.ToString() == C.PairCharacterName)
+            else if (_sword2.Name.ToString() == pairCharacter.Name)
                 resolvePosition = ResolvePosition.ZephiranFaceToFace;
 
             var element = ResolveElement(resolvePosition, _clockwiseDirection);
@@ -292,17 +292,8 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
         ImGuiEx.Spacing();
         if (ImGui.Button("Perform test")) SelfTest();
 
-        ImGui.InputText("##PairCharacterName", ref C.PairCharacterName, 32);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(150);
-        if (ImGui.BeginCombo("##partysel", "Select from party"))
-        {
-            foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
-                         .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                if (ImGui.Selectable(x))
-                    C.PairCharacterName = x;
-            ImGui.EndCombo();
-        }
+        ImGui.Text("Pair Character Name");
+        C.PriorityData.Draw();
 
         ImGui.Text("Resolve Position");
         ImGuiEx.EnumCombo("##Resolve Position", ref C.ResolvePosition);
@@ -349,15 +340,16 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
                 .AddUiForeground("= P2 Sancity of The Ward First self-test =", (ushort)UIColor.LightBlue).Build()
         });
         var party = FakeParty.Get();
-        var hasPairCharacter = party.Any(x => x.Name.ToString() == C.PairCharacterName);
-        if (hasPairCharacter)
+        var pairCharacter = C.PriorityData.GetPlayer(x => party.Any(p => p.Name.ToString() == x.Name));
+        if (pairCharacter != null)
             Svc.Chat.PrintChat(new XivChatEntry
                 { Message = new SeStringBuilder().AddUiForeground("Test Success!", (ushort)UIColor.Green).Build() });
         else
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
-                    .AddUiForeground($"Could not find player {C.PairCharacterName}\n", (ushort)UIColor.Red)
+                    .AddUiForeground($"Could not find player {C.PriorityData.GetFirstValidList()?.List.First().Name}\n",
+                        (ushort)UIColor.Red)
                     .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
             });
     }
@@ -389,8 +381,16 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
     {
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;
-        public string PairCharacterName = "";
+        public readonly OnePriorityData PriorityData = new();
         public ResolvePosition ResolvePosition = ResolvePosition.ZephiranFaceToFace;
         public bool ShouldCheckOnStart = true;
+    }
+
+    public class OnePriorityData : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 1;
+        }
     }
 }

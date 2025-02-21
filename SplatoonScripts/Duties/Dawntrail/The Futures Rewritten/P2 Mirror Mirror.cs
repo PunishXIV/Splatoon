@@ -88,8 +88,10 @@ public class P2_Mirror_Mirror : SplatoonScript
         var element = new Element(0)
         {
             tether = true,
-            radius = 2f,
-            thicc = 6f
+            radius = 4f,
+            Donut = 10f,
+            fillIntensity = 0.4f,
+            thicc = 6f,
         };
 
         Controller.RegisterElement("Bait", element);
@@ -139,7 +141,7 @@ public class P2_Mirror_Mirror : SplatoonScript
     {
         var angle = ((int)direction - 3) % 8 * 45f;
         var position = new Vector3(100f, 0f, 100f);
-        var radius = 18f;
+        var radius = 20f;
         position += new Vector3((float)Math.Cos(MathF.PI * angle / 180f) * radius, 0f,
             (float)Math.Sin(MathF.PI * angle / 180f) * radius);
         if (Controller.TryGetElementByName("Bait", out var element))

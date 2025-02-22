@@ -14,6 +14,23 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Mirror%20Mirror.cs
 ```
 
+## [EU & NA] [Script] Light Rampant NAUR (Lesbin) / LPDU
+Configuration:
+- Set Roles top to bottom and activate `NorthSwap`.
+```
+H1
+H2
+T1
+T2
+M2
+M1
+R2
+R1
+```
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Light%20Rampant.cs
+```
+
 ## [JP] [Beta] [Script] Light Rampant JP
 It highlights your tower.
 Configuration:

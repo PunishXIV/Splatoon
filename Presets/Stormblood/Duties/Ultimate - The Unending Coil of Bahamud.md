@@ -30,6 +30,10 @@ https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20dragon%20baits.cs
 ```
+[International] [Script] Draws spread/stack and in/out in time for Nael's quotes
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Stormblood/UCOB%20Nael%20Quotes.cs
+```
 [International] Hypernova: Draw red circles on top of Hypernovas to make them visible through VFX
 ```
 ~Lv2~{"Name":"Hypernova","Group":"UCOB","ZoneLockH":[733],"ElementsL":[{"Name":"","type":1,"radius":5.0,"refActorDataID":2003393,"refActorComparisonType":3,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}

@@ -1,9 +1,12 @@
 ﻿using Dalamud.Memory;
+using Dalamud.Plugin;
 using ECommons;
 using ECommons.Automation;
 using ECommons.Automation.LegacyTaskManager;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
+using ECommons.EzIpcManager;
+using ECommons.EzSharedDataManager;
 using ECommons.ImGuiMethods;
 using ECommons.UIHelpers;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -26,6 +29,7 @@ public unsafe class GenericTest4 : SplatoonScript
 
     public override void OnSettingsDraw()
 		{
+				
 				if (TaskManager?.IsBusy == true)
 				{
 						if (ImGui.Button("Stop")) TaskManager.Abort();

@@ -6,7 +6,7 @@
     <Platforms>x64</Platforms>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>CS1591;CS8618</NoWarn>
+    <NoWarn>CS1591;CS8618;IDE0051;IDE0052</NoWarn>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

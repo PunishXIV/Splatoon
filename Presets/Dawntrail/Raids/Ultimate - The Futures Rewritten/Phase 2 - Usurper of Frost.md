@@ -14,6 +14,23 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Mirror%20Mirror.cs
 ```
 
+## [EU & NA] [Script] Light Rampant NAUR (Lesbin) / LPDU
+Configuration:
+- Set Roles top to bottom and activate `NorthSwap`.
+```
+H1
+H2
+T1
+T2
+M2
+M1
+R2
+R1
+```
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P2%20Light%20Rampant.cs
+```
+
 ## [JP] [Beta] [Script] Light Rampant JP
 It highlights your tower.
 Configuration:
@@ -88,10 +105,10 @@ Add that will cast twin stillness/silence
 
 ## Twin stillness / Twin silence
 ```
-~Lv2~{"Name":"P2 - Twin stillness","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":4,"radius":40.0,"coneAngleMin":-145,"coneAngleMax":145,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40193],"refActorUseCastTime":true,"refActorCastTimeMax":3.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40193],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+~Lv2~{"Name":"P2 - Twin stillness","Group":"Futures Rewritten (Ultimate)","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":4,"radius":40.0,"coneAngleMin":-135,"coneAngleMax":135,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40193],"refActorUseCastTime":true,"refActorCastTimeMax":3.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40193],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 ```
-~Lv2~{"Name":"P2 - Twin silence","Group":"FRU","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":4,"radius":40.0,"coneAngleMin":-145,"coneAngleMax":145,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40194],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40194],"refActorUseCastTime":true,"refActorCastTimeMax":3.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+~Lv2~{"Name":"P2 - Twin silence","Group":"Futures Rewritten (Ultimate)","ZoneLockH":[1238],"ElementsL":[{"Name":"","type":4,"radius":40.0,"coneAngleMin":-135,"coneAngleMax":135,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40194],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.259,"refActorNPCNameID":13554,"refActorRequireCast":true,"refActorCastId":[40194],"refActorUseCastTime":true,"refActorCastTimeMax":3.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
 ## [Partially EN] Twin stillness/silence KB helper

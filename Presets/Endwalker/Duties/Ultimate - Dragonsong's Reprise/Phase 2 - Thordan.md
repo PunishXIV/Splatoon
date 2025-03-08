@@ -23,16 +23,16 @@
 
 [EN] Sequential Heavy Impact Rings: Displays the quake markers sequentially instead of all at once.
 ```
-DSR P2 Strength Quake 1~{"ZoneLockH":[968],"DCond":5,"Elements":{"1":{"type":1,"radius":6.0,"color":4278190335,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true},"2":{"type":1,"radius":0.0,"thicc":5.0,"refActorName":"Ser Guerrique","tether":true}},"UseTriggers":true,"Triggers":[{"TimeBegin":35.0,"Duration":10.0},{"Type":3,"Match":"Ser Guerrique uses Heavy Impact.","MatchDelay":1.9}],"Phase":2}
+~Lv2~{"Name":"DSR P2 Strength Quake 1","Group":"","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"1","type":1,"radius":6.0,"color":4278190335,"Filled":false,"fillIntensity":0.39215687,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"2","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"refActorName":"Ser Guerrique","tether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"TimeBegin":35.0,"Duration":10.0},{"Type":3,"Match":"Ser Guerrique uses Heavy Impact.","MatchDelay":1.9}],"Phase":2}
 ```
 ```
-[EN] DSR P2 Strength Quake 2~{"ZoneLockH":[968],"DCond":5,"Elements":{"1":{"type":1,"radius":12.0,"color":4278190335,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true}},"UseTriggers":true,"Triggers":[{"Type":2,"TimeBegin":41.0,"Duration":3.8,"Match":"Ser Guerrique readies Heavy Impact.","MatchDelay":6.0}],"Phase":2}
+~Lv2~{"Name":"[EN] DSR P2 Strength Quake 2","Group":"","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"1","type":1,"radius":12.0,"color":4278190335,"Filled":false,"fillIntensity":0.39215687,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"TimeBegin":41.0,"Duration":3.8,"Match":"Ser Guerrique readies Heavy Impact.","MatchDelay":6.0}],"Phase":2}
 ```
 ```
-[EN] DSR P2 Strength Quake 3~{"ZoneLockH":[968],"DCond":5,"Elements":{"1":{"type":1,"radius":18.0,"color":4278190335,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true}},"UseTriggers":true,"Triggers":[{"Type":2,"TimeBegin":43.5,"Duration":3.8,"Match":"Ser Guerrique readies Heavy Impact.","MatchDelay":7.9}],"Phase":2}
+~Lv2~{"Name":"[EN] DSR P2 Strength Quake 3","Group":"","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"1","type":1,"radius":18.0,"color":4278190335,"Filled":false,"fillIntensity":0.39215687,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"TimeBegin":43.5,"Duration":3.8,"Match":"Ser Guerrique readies Heavy Impact.","MatchDelay":7.9}],"Phase":2}
 ```
 ```
-[EN] DSR P2 Strength Quake 4~{"ZoneLockH":[968],"DCond":5,"Elements":{"1":{"type":1,"radius":24.0,"color":4278190335,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true}},"UseTriggers":true,"Triggers":[{"Type":2,"TimeBegin":45.5,"Duration":1.9,"Match":"Ser Guerrique readies Heavy Impact.","MatchDelay":9.8}],"Phase":2}
+~Lv2~{"Name":"[EN] DSR P2 Strength Quake 4","Group":"","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"1","type":1,"radius":24.0,"color":4278190335,"Filled":false,"fillIntensity":0.39215687,"thicc":4.0,"refActorName":"Ser Guerrique","includeRotation":true,"onlyUnTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"TimeBegin":45.5,"Duration":1.9,"Match":"Ser Guerrique readies Heavy Impact.","MatchDelay":9.8}],"Phase":2}
 ```
 
 [EN, JP] [Untested] A big line predicting Thordan location

@@ -13,6 +13,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     [EzIPC("Questionable.IsRunning", false)] Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] Func<string, bool> QuestionableStartSingleQuest;
@@ -75,6 +77,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
             if(next == null)
             {
                 DuoLog.Warning("No more quests left in queue, script disabled");
+                Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification("No more quests left in queue");
                 C.Active = false;
             }
             else

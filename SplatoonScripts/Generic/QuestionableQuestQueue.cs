@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     [EzIPC("Questionable.IsRunning", false)] Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] Func<string, bool> QuestionableStartSingleQuest;
@@ -77,7 +77,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
             if(next == null)
             {
                 DuoLog.Warning("No more quests left in queue, script disabled");
-                Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification("No more quests left in queue");
+                Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification(this.InternalData.Name, "No more quests left in queue");
                 C.Active = false;
             }
             else

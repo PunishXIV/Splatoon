@@ -17,12 +17,13 @@ using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
 
     [EzIPC("Questionable.IsRunning", false)] Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] Func<string, bool> QuestionableStartSingleQuest;
@@ -61,10 +62,14 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         if(!C.Active) return;
         if(QuestionableIsRunning())
         {
-            var allowedQuests = C.Quests.Where(x => !QuestManager.IsQuestComplete(x.ID + 65536)).Select(x => x.ID.ToString());
-            if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()))
+            var allowedQuests = C.Quests.Where(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536)).Select(x => x.ID.ToString());
+            if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()) && EzThrottler.Check(this.InternalData.FullName + "NoRestart"))
             {
                 Svc.Commands.ProcessCommand("/qst stop");
+            }
+            else
+            {
+                EzThrottler.Throttle(this.InternalData.FullName + "NoRestart", 3000, true);
             }
         }
         if(IsBusy() || TaskManager.IsBusy)
@@ -73,11 +78,12 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         }
         if(EzThrottler.Check(this.InternalData.FullName + "Busy"))
         {
-            var next = C.Quests.FirstOrDefault(x => !QuestManager.IsQuestComplete(x.ID + 65536));
+            var next = C.Quests.FirstOrDefault(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536));
             if(next == null)
             {
                 DuoLog.Warning("No more quests left in queue, script disabled");
                 Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification(this.InternalData.Name, "No more quests left in queue");
+                Splatoon.Splatoon.P.NotificationMasterApi.FlashTaskbarIcon();
                 C.Active = false;
             }
             else
@@ -101,7 +107,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
             TaskManager.Enqueue(() => !GenericHelpers.IsScreenReady(), "Wait 3");
             TaskManager.Enqueue(() => !IsBusy(), "Wait 4");
         }
-        TaskManager.Enqueue(() => QuestionableStartSingleQuest(data.ID.ToString()), "Start quest");
+        TaskManager.Enqueue(() => (data.Cont? QuestionableStartQuest: QuestionableStartSingleQuest)(data.ID.ToString()), "Start quest");
     }
 
     public bool IsBusy() => !Player.Interactable || QuestionableIsRunning() || LifestreamIsBusy() || GenericHelpers.IsOccupied() || Player.IsAnimationLocked || !GenericHelpers.IsScreenReady() || Player.Object.IsCasting;
@@ -139,6 +145,8 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
                 DragDrop.DrawButtonDummy(q, C.Quests, i);
                 ImGui.TableNextColumn();
                 ImGui.Checkbox("##enabled", ref q.Enabled);
+                ImGui.SameLine();
+                ImGuiEx.ButtonCheckbox(FontAwesomeIcon.FastForward, ref q.Cont);
 
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(100f);
@@ -195,6 +203,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         public uint ID = iD;
         public uint Aetheryte = aetheryte;
         public uint Aethernet = aethernet;
+        public bool Cont = false;
     }
 
 }

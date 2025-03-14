@@ -376,7 +376,7 @@ public class P6_Wroth_Flames : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public readonly PriorityData Priority = new();
+        public PriorityData Priority = new();
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public bool PrioritizeSecondRedBallDiagonal;

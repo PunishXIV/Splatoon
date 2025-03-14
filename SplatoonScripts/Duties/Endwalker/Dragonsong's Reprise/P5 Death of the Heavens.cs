@@ -526,7 +526,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         public readonly Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public readonly Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
 
-        public readonly PriorityData Priority = new();
+        public PriorityData Priority = new();
 
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;

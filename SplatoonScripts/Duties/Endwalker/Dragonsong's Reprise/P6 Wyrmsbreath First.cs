@@ -315,7 +315,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
     private class Config : IEzConfig
     {
-        public readonly BaitPosition[] BaitPositions = new BaitPosition[8];
+        public BaitPosition[] BaitPositions = new BaitPosition[8];
         public PriorityData Priority = new();
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

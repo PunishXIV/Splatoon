@@ -381,7 +381,7 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
     {
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;
-        public readonly OnePriorityData PriorityData = new();
+        public OnePriorityData PriorityData = new();
         public ResolvePosition ResolvePosition = ResolvePosition.ZephiranFaceToFace;
         public bool ShouldCheckOnStart = true;
     }

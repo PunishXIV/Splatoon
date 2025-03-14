@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata? Metadata => new(4, "NightmareXIV");
+    public override Metadata? Metadata => new(5, "NightmareXIV");
 
     [EzIPC("Questionable.IsRunning", false)] Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] Func<string, bool> QuestionableStartSingleQuest;
@@ -39,6 +39,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     Dictionary<uint, string> Aetherytes = [new KeyValuePair<uint, string>(0, "Disabled"), .. Svc.Data.GetExcelSheet<Aetheryte>().Where(x => x.IsAetheryte && x.PlaceName.Value.Name != "").ToDictionary(x => x.RowId, x => x.PlaceName.Value.Name.GetText())];
     Dictionary<uint, string> Aethernets = [new KeyValuePair<uint, string>(0, "Disabled"), ..Svc.Data.GetExcelSheet<Aetheryte>().Where(x => !x.IsAetheryte && x.AethernetName.Value.Name != "").ToDictionary(x => x.RowId, x => x.AethernetName.Value.Name.GetText())];
 
+    public bool IsNotified = false;
 
     public override void OnSetup()
     {
@@ -60,12 +61,17 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     public override void OnUpdate()
     {
         if(!C.Active) return;
+        if(EzThrottler.Throttle(this.InternalData.FullName + "Notify", 60000)) DuoLog.Warning($"{this.InternalData.Name} is running.");
         if(QuestionableIsRunning())
         {
+            IsNotified = false;
             var allowedQuests = C.Quests.Where(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536)).Select(x => x.ID.ToString());
-            if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()) && EzThrottler.Check(this.InternalData.FullName + "NoRestart"))
+            if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()))
             {
-                Svc.Commands.ProcessCommand("/qst stop");
+                if(EzThrottler.Check(this.InternalData.FullName + "NoRestart"))
+                {
+                    Svc.Commands.ProcessCommand("/qst stop");
+                }
             }
             else
             {
@@ -81,13 +87,18 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
             var next = C.Quests.FirstOrDefault(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536));
             if(next == null)
             {
-                DuoLog.Warning("No more quests left in queue, script disabled");
-                Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification(this.InternalData.Name, "No more quests left in queue");
-                Splatoon.Splatoon.P.NotificationMasterApi.FlashTaskbarIcon();
-                C.Active = false;
+                if(!IsNotified)
+                {
+                    DuoLog.Warning("No more quests left in queue, script disabled");
+                    Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification(this.InternalData.Name, "No more quests left in queue");
+                    Splatoon.Splatoon.P.NotificationMasterApi.FlashTaskbarIcon();
+                }
+                if(C.AutoDeactivate) C.Active = false;
+                IsNotified = true; 
             }
             else
             {
+                IsNotified = false;
                 Enqueue(next);
             }
         }
@@ -97,9 +108,13 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     {
         if(data.Aetheryte != 0)
         {
-            TaskManager.Enqueue(() => LifestreamTeleport(data.Aetheryte, 0), "Teleport");
-            TaskManager.Enqueue(() => !GenericHelpers.IsScreenReady(), "Wait 1");
-            TaskManager.Enqueue(() => !IsBusy(), "Wait 2");
+            var aetheryte = Svc.Data.GetExcelSheet<Aetheryte>().GetRowOrDefault(data.Aetheryte);
+            if(aetheryte != null && aetheryte.Value.Territory.RowId != Player.Territory)
+            {
+                TaskManager.Enqueue(() => LifestreamTeleport(data.Aetheryte, 0), "Teleport");
+                TaskManager.Enqueue(() => !GenericHelpers.IsScreenReady(), "Wait 1");
+                TaskManager.Enqueue(() => !IsBusy(), "Wait 2");
+            }
         }
         if(data.Aethernet != 0)
         {
@@ -117,6 +132,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     {
         ImGui.Checkbox("Automatically do quests", ref C.Active);
         ImGui.SameLine();
+        ImGui.Checkbox("Auto deactivate on completion", ref C.AutoDeactivate);
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new quest"))
         {
             C.Quests.Add(new());
@@ -192,6 +208,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     {
         public bool Active = false;
         public List<QuestInfo> Quests = [];
+        public bool AutoDeactivate = true;
     }
 
     public class QuestInfo(uint iD, uint aetheryte, uint aethernet = 0)

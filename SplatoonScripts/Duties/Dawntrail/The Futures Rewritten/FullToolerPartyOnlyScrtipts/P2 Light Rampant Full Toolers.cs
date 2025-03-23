@@ -116,7 +116,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(9, "redmoon");
+    public override Metadata? Metadata => new(10, "redmoon");
     #endregion
 
     #region private properties
@@ -134,6 +134,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     public override void OnSetup()
     {
         Controller.RegisterElement("Bait", new Element(0) { tether = true, radius = 3f, thicc = 6f });
+        Controller.RegisterElement("CircleFix", new Element(0) { radius = 3f, thicc = 6f });
         Controller.RegisterElement("BaitObject", new Element(1) { tether = true, refActorComparisonType = 2, radius = 0.5f, thicc = 6f });
         for (var i = 0; i < 8; i++)
         {
@@ -284,6 +285,18 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Where(x => x.Value.Enabled).Each(x => x.Value.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint());
+        if (Controller.TryGetElementByName("CircleFix", out var el))
+        {
+            el.color = 0xFF0000FF;
+        }
+        for (var i = 0; i < 8; i++)
+        {
+            if (Controller.TryGetElementByName($"Circle{i}", out el))
+            {
+                el.color = 0xFF0000FF;
+                el.fillIntensity = 0.5f;
+            }
+        }
     }
 
     public override void OnReset()
@@ -612,21 +625,29 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         }
         else
         {
-            if (pc.index is 0 or 5)
+            ApplyElement("Bait", pc.index switch
             {
-                ApplyElement("Bait", pc.index switch
-                {
-                    0 => Direction.West,
-                    1 => Direction.South,
-                    2 => Direction.SouthWest,
-                    3 => Direction.SouthEast,
-                    4 => Direction.NorthWest,
-                    5 => Direction.NorthEast,
-                    6 => Direction.North,
-                    7 => Direction.East,
-                    _ => Direction.None
-                }
-                , 8f);
+                0 => Direction.West,
+                1 => Direction.South,
+                2 => Direction.SouthWest,
+                3 => Direction.SouthEast,
+                4 => Direction.NorthWest,
+                5 => Direction.NorthEast,
+                6 => Direction.North,
+                7 => Direction.East,
+                _ => Direction.None
+            }
+            , 8f);
+
+            if (Controller.TryGetElementByName("CircleFix", out var element))
+            {
+                element.Filled = true;
+                element.radius = 4.0f;
+                element.thicc = 2f;
+                element.fillIntensity = 0.5f;
+                element.color = 0xFF0000FF;
+                element.SetRefPosition(new Vector3(100, 0, 100));
+                element.Enabled = true;
             }
         }
 
@@ -737,48 +758,48 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             {
                 case Job.WHM:
                 case Job.AST:
-                _partyDataList[0].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[0].EntityId = pc.EntityId;
+                    break;
 
                 case Job.PLD:
-                _partyDataList[1].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[1].EntityId = pc.EntityId;
+                    break;
 
                 case Job.SAM:
                 case Job.MNK:
                 case Job.DRG:
                 case Job.RPR:
-                _partyDataList[2].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[2].EntityId = pc.EntityId;
+                    break;
 
                 case Job.NIN:
                 case Job.VPR:
                 case Job.RDM:
                 case Job.BLM:
                 case Job.SMN:
-                _partyDataList[3].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[3].EntityId = pc.EntityId;
+                    break;
 
                 case Job.BRD:
                 case Job.MCH:
                 case Job.DNC:
-                _partyDataList[4].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[4].EntityId = pc.EntityId;
+                    break;
 
                 case Job.PCT:
-                _partyDataList[5].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[5].EntityId = pc.EntityId;
+                    break;
 
                 case Job.WAR:
                 case Job.DRK:
                 case Job.GNB:
-                _partyDataList[6].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[6].EntityId = pc.EntityId;
+                    break;
 
                 case Job.SCH:
                 case Job.SGE:
-                _partyDataList[7].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[7].EntityId = pc.EntityId;
+                    break;
             }
         }
     }
@@ -1051,7 +1072,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         };
     }
 
-    private void ApplyElement(string elementName, Direction direction, float radius, float elementRadius = 0.3f)
+    private void ApplyElement(string elementName, Direction direction, float radius, float elementRadius = 0.3f, bool isTether = true)
     {
         var position = new Vector3(100, 0, 100);
         var angle = GetAngle(direction);
@@ -1060,6 +1081,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         {
             element.Enabled = true;
             element.radius = elementRadius;
+            element.tether = isTether;
             element.SetRefPosition(position);
         }
     }

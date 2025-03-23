@@ -100,7 +100,7 @@ internal unsafe class P3_Apocalypse_Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(11, "redmoon");
+    public override Metadata? Metadata => new(12, "redmoon");
     #endregion
 
     #region private properties
@@ -156,14 +156,8 @@ internal unsafe class P3_Apocalypse_Full_Toolers :SplatoonScript
         if (castId == 40269)
         {
             SetListEntityIdByJob();
-            //_partyDataList[0].Mine = false;
-            //_partyDataList[1].Mine = false;
-            //_partyDataList[2].Mine = true;
-            //_partyDataList[3].Mine = false;
-            //_partyDataList[4].Mine = false;
-            //_partyDataList[5].Mine = false;
-            //_partyDataList[6].Mine = false;
-            //_partyDataList[7].Mine = false;
+            //_partyDataList.Each(x => x.Mine = false);
+            //_partyDataList[1].Mine = true;
             _state = State.GimmickStart;
         }
         if (_state == State.None) return;
@@ -644,28 +638,15 @@ internal unsafe class P3_Apocalypse_Full_Toolers :SplatoonScript
         Vector3 pos1 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7), 10.0f);
         Vector3 pos2 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1), 10.0f);
 
-        float distance1 = Vector3.Distance(_partyDataList[0].Object.Position, pos1);
-        float distance2 = Vector3.Distance(_partyDataList[0].Object.Position, pos2);
-
         int MTsClock = 0;
         int MTsClockDps = 0;
         int STsClock = 0;
         int STsClockDps = 0;
 
-        if (distance1 < distance2)
-        {
-            MTsClock = _isClockwise ? 4 : 7;
-            MTsClockDps = _isClockwise ? 3 : 9;
-            STsClock = _isClockwise ? 10 : 1;
-            STsClockDps = _isClockwise ? 9 : 3;
-        }
-        else
-        {
-            MTsClock = _isClockwise ? 10 : 1;
-            MTsClockDps = _isClockwise ? 9 : 3;
-            STsClock = _isClockwise ? 4 : 7;
-            STsClockDps = _isClockwise ? 3 : 9;
-        }
+        MTsClock = _isClockwise ? 4 : 7;
+        MTsClockDps = _isClockwise ? 3 : 9;
+        STsClock = _isClockwise ? 10 : 1;
+        STsClockDps = _isClockwise ? 9 : 3;
 
         if (isMT)
         {

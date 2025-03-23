@@ -86,10 +86,24 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     };
 
     private readonly Dictionary<DirectionCalculator.Direction, Vector3> TowerOppsitePos = new()
-        {
+    {
         {DirectionCalculator.Direction.South, new Vector3(100f, 0, 93f)},
         {DirectionCalculator.Direction.NorthWest, new Vector3(106.0622f, 0, 103.5f)},
         {DirectionCalculator.Direction.NorthEast, new Vector3(93.93782f, 0, 103.5f)},
+    };
+
+    private readonly Dictionary<DirectionCalculator.Direction, Vector3> TowerOppsitePos3f = new()
+    {
+        {DirectionCalculator.Direction.South, new Vector3(100f, 0, 97f)},
+        {DirectionCalculator.Direction.NorthWest, new Vector3(102.12132f, 0, 101.5f)},
+        {DirectionCalculator.Direction.NorthEast, new Vector3(97.87868f, 0, 101.5f)},
+    };
+
+    private readonly Dictionary<DirectionCalculator.Direction, Vector3> TowerOppsitePos13f = new()
+    {
+        {DirectionCalculator.Direction.South, new Vector3(100f, 0, 87f)},
+        {DirectionCalculator.Direction.NorthWest, new Vector3(109.19239f, 0, 106.5f)},
+        {DirectionCalculator.Direction.NorthEast, new Vector3(90.80761f, 0, 106.5f)},
     };
     #endregion
 
@@ -98,7 +112,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(5, "redmoon");
+    public override Metadata? Metadata => new(6, "redmoon");
     #endregion
 
     #region private properties
@@ -107,7 +121,6 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     /********************************************************************/
     private State _state = State.None;
     private List<PartyData> _partyDataList = new();
-    private Config C => Controller.GetConfig<Config>();
     private List<DirectionCalculator.Direction> towers = new List<DirectionCalculator.Direction>();
     private MineRoleAction? _mineRoleAction = null;
     private string _firstBladeIs = "";
@@ -145,7 +158,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
             SetListEntityIdByJob();
             // DEBUG
             //_partyDataList.Each(x => x.Mine = false);
-            //_partyDataList[4].Mine = true;
+            //_partyDataList[1].Mine = true;
 
             var npc = source.GetObject() as IBattleNpc;
             if (npc == null) return;
@@ -228,11 +241,20 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
             }
             else if (towers.Count == 2)
             {
-                SetState(State.Tower2);
-            }
-            else if (towers.Count == 3)
-            {
                 SetState(State.Tower3);
+
+                if (towers[0] == DirectionCalculator.Direction.South && towers[1] == DirectionCalculator.Direction.NorthWest)
+                    towers.Add(DirectionCalculator.Direction.NorthEast);
+                else if (towers[0] == DirectionCalculator.Direction.NorthWest && towers[1] == DirectionCalculator.Direction.South)
+                    towers.Add(DirectionCalculator.Direction.NorthEast);
+                else if (towers[0] == DirectionCalculator.Direction.NorthEast && towers[1] == DirectionCalculator.Direction.South)
+                    towers.Add(DirectionCalculator.Direction.NorthWest);
+                else if (towers[0] == DirectionCalculator.Direction.South && towers[1] == DirectionCalculator.Direction.NorthEast)
+                    towers.Add(DirectionCalculator.Direction.NorthWest);
+                else if (towers[0] == DirectionCalculator.Direction.NorthWest && towers[1] == DirectionCalculator.Direction.NorthEast)
+                    towers.Add(DirectionCalculator.Direction.South);
+                else if (towers[0] == DirectionCalculator.Direction.NorthEast && towers[1] == DirectionCalculator.Direction.NorthWest)
+                    towers.Add(DirectionCalculator.Direction.South);
             }
         }
     }
@@ -276,6 +298,14 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
             ImGui.Text($"FirstBladeIs: {_firstBladeIs}");
             ImGui.Text($"_StateProcEnded: {_StateProcEnded}");
             if (_mineRoleAction != null) ImGui.Text($"_mineRoleAction: {_mineRoleAction.Method.Name}");
+            if (_state >= State.Tower3)
+            {
+                ImGui.Text($"IsClockwise: {IsClockwise(towers[0], towers[1])}");
+            }
+            else
+            {
+                ImGui.Text($"IsClockwise: null");
+            }
             ImGui.Text("PartyDataList");
             List<ImGuiEx.EzTableEntry> Entries = [];
             foreach (var x in _partyDataList)
@@ -383,84 +413,61 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     {
         if (_StateProcEnded) return;
 
-        if (_state is State.Tower1)
+        if (_state is State.Tower1) _StateProcEnded = true;
+        if (_state is State.Tower3)
         {
-            if (_firstBladeIs == "") return;
-            var towerDirection = towers[0];
-
-            if (_firstBladeIs == "Dark")
+            DirectionCalculator.Direction towerDirection = DirectionCalculator.Direction.None;
+            if (_firstBladeIs == "Dark" && !IsClockwise(towers[0], towers[1]))
             {
-                // 0のタワーから45度のdirectionを取得
-                var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, 45);
-
-                // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 10.5f, 3f);
-
-                _ = new TimedMiddleOverlayWindow("Darkpre", 7000, () =>
-                {
-                    ImGui.SetWindowFontScale(2f);
-                    ImGuiEx.Text(ImGuiColors.DalamudYellow, "足元まで近づく");
-                }, 400);
+                towerDirection = towers[1];
             }
-            else if (_firstBladeIs == "Light")
+            else if (_firstBladeIs == "Dark" && IsClockwise(towers[0], towers[1]))
             {
-                // 0のタワーから-45度のdirectionを取得
-                var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, -45);
-
-                // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 10.5f, 9f);
-
-                _ = new TimedMiddleOverlayWindow("Lightpre", 7000, () =>
-                {
-                    ImGui.SetWindowFontScale(2f);
-                    ImGuiEx.Text(ImGuiColors.DalamudYellow, "タゲサ外まで離れる");
-                }, 400);
+                towerDirection = towers[2];
+            }
+            else if (_firstBladeIs == "Light" && !IsClockwise(towers[0], towers[1]))
+            {
+                towerDirection = towers[2];
+            }
+            else if (_firstBladeIs == "Light" && IsClockwise(towers[0], towers[1]))
+            {
+                towerDirection = towers[1];
+            }
+            else
+            {
+                return;
             }
 
-            _StateProcEnded = true;
-        }
-        if (_state is State.Tower2 or State.Tower3)
-        {
-            var towerDirection = towers[0];
-
-            if (_firstBladeIs == "Dark")
-            {
-                // 0のタワーから45度のdirectionを取得
-                var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, 45);
-
-                // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 10.5f, 3f);
-            }
-            else if (_firstBladeIs == "Light")
-            {
-                // 0のタワーから45度のdirectionを取得
-                var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, -45);
-
-                // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 10.5f, 13f);
-            }
+            ApplyElement("Bait", (_firstBladeIs == "Dark") ? TowerOppsitePos3f[towerDirection] : TowerOppsitePos13f[towerDirection]);
 
             _StateProcEnded = true;
         }
         if (_state == State.Cone1)
         {
-            var towerDirection = towers[0];
-            if (_firstBladeIs == "Dark")
+            DirectionCalculator.Direction towerDirection = DirectionCalculator.Direction.None;
+            if (_firstBladeIs == "Dark" && !IsClockwise(towers[0], towers[1]))
             {
-                // 0のタワーから45度のdirectionを取得
-                var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, 45);
-
-                // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) + 10.5f, 9f);
+                towerDirection = towers[1];
             }
-            else if (_firstBladeIs == "Light")
+            else if (_firstBladeIs == "Dark" && IsClockwise(towers[0], towers[1]))
             {
-                // 0のタワーから45度のdirectionを取得
-                var dir = DirectionCalculator.GetDirectionFromAngle(towerDirection, -45);
-
-                // その位置からさらに45度の半分オフセットして表示
-                ApplyElement("Bait", DirectionCalculator.GetAngle(dir) - 10.5f, 11f);
+                towerDirection = towers[2];
             }
+            else if (_firstBladeIs == "Light" && !IsClockwise(towers[0], towers[1]))
+            {
+                towerDirection = towers[2];
+            }
+            else if (_firstBladeIs == "Light" && IsClockwise(towers[0], towers[1]))
+            {
+                towerDirection = towers[1];
+            }
+            else
+            {
+                return;
+            }
+
+            var pos = TowerOppsitePos[towerDirection];
+            ApplyElement("Bait", pos);
 
             if (_firstBladeIs == "Dark")
             {
@@ -736,6 +743,16 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     }
 
     private PartyData? GetMinedata() => _partyDataList.Find(x => x.Mine) ?? null;
+
+    // 塔の時計反時計判断
+    private bool IsClockwise(DirectionCalculator.Direction dir1, DirectionCalculator.Direction dir2)
+    {
+        if (dir1 == DirectionCalculator.Direction.South && dir2 == DirectionCalculator.Direction.NorthWest) return true;
+        if (dir1 == DirectionCalculator.Direction.NorthWest && dir2 == DirectionCalculator.Direction.NorthEast) return true;
+        if (dir1 == DirectionCalculator.Direction.NorthEast && dir2 == DirectionCalculator.Direction.South) return true;
+        return false;
+    }
+
 
     private void SetListEntityIdByJob()
     {

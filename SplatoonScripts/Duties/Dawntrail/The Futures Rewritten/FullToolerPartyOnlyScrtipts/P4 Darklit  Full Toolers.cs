@@ -397,6 +397,8 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
         var northes = _partyDataList.Where(x => x.TowerDirection == DirectionCalculator.Direction.North && x.TetherPairId1 != 0).ToList();
         if (northes.Count() != 2) return;
 
+        DuoLog.Information($"northes[0]: {northes[0].Object?.Name}, northes[1]: {northes[1].Object?.Name}");
+
         if (northes[0].Object.Position.X < northes[1].Object.Position.X)
         {
             northes[0].SplitPos = vector3List[0].Item2;
@@ -425,6 +427,8 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
 
         var p = GetMinedata();
         if (p == null) return;
+
+        DuoLog.Information($"SplitPos: {p.SplitPos}");
 
         ApplyElement("Bait", p.SplitPos);
     }
@@ -988,6 +992,7 @@ internal class P4_Darklit__Full_Toolers :SplatoonScript
     /// </summary>
     private void InternalApplyElement(Element element, Vector3 position, float elementRadius, bool filled, bool tether)
     {
+        DuoLog.Information($"ApplyElement: {element.Name}, {position}, {elementRadius}, {filled}, {tether}");
         element.Enabled = true;
         element.radius = elementRadius;
         element.tether = tether;

@@ -1,4 +1,5 @@
-## [Untested] [Script] Fulgent blade dodge spots
+## [Script] Fulgent blade dodge spots
+Based on: https://www.youtube.com/watch?v=MSev5gAO7jU
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P5%20Fulgent%20Blade%20Dodge.cs
 ```

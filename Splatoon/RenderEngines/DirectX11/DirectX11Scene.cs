@@ -16,7 +16,7 @@ internal unsafe class DirectX11Scene : IDisposable
     {
         DirectX11Renderer = dx11renderer;
         Svc.PluginInterface.UiBuilder.Draw += Draw;
-        PictoService.Initialize(Svc.PluginInterface, () => S.VbmCamera.ViewProj);
+        PictoService.Initialize(Svc.PluginInterface);//, () => S.VbmCamera.ViewProj);
     }
 
     public void Dispose()
@@ -27,79 +27,70 @@ internal unsafe class DirectX11Scene : IDisposable
 
     private void Draw()
     {
-        if (!DirectX11Renderer.Enabled) return;
+        if(!DirectX11Renderer.Enabled) return;
+        uid = 0;
+        void Draw(PctTexture? texture)
+        {
+            // Draw pre-rendered pictomancy texture with shapes and strokes.
+            if(texture.HasValue)
+            {
+                ImGui.GetWindowDrawList().AddImage((nint)texture?.TextureId, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2((float)texture?.Width, (float)texture?.Height));
+            }
+
+            // Draw dots and text last because they are most critical to be legible.
+            foreach(var element in DirectX11Renderer.DisplayObjects)
+            {
+                if(element is DisplayObjectDot elementDot)
+                {
+                    DrawPoint(elementDot);
+                }
+                if(element is DisplayObjectText elementText)
+                {
+                    DrawTextWorld(elementText);
+                }
+            }
+        }
+
+        ImGuiHelpers.ForceNextWindowMainViewport();
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
+        ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
+        ImGui.Begin("Splatoon DirectX11 Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
+            | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing);
         try
         {
-            uid = 0;
-            try
+            var texture = PictomancyDraw();
+            if(P.Config.SplatoonLowerZ)
             {
+                CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
+            }
 
-                void Draw(PctTexture? texture)
+            if(P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
+            {
+                Draw(texture);
+            }
+            else
+            {
+                foreach(var e in P.Config.RenderableZones)
                 {
-                    // Draw pre-rendered pictomancy texture with shapes and strokes.
-                    if (texture.HasValue)
-                    {
-                        ImGui.GetWindowDrawList().AddImage((nint)texture?.TextureId, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2((float)texture?.Width, (float)texture?.Height));
-                    }
-
-                    // Draw dots and text last because they are most critical to be legible.
-                    foreach (var element in DirectX11Renderer.DisplayObjects)
-                    {
-                        if (element is DisplayObjectDot elementDot)
-                        {
-                            DrawPoint(elementDot);
-                        }
-                        if (element is DisplayObjectText elementText)
-                        {
-                            DrawTextWorld(elementText);
-                        }
-                    }
-                }
-
-                ImGuiHelpers.ForceNextWindowMainViewport();
-                ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
-                ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
-                ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-                ImGui.Begin("Splatoon DirectX11 Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar
-                    | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing);
-                var texture = PictomancyDraw();
-                if (P.Config.SplatoonLowerZ)
-                {
-                    CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
-                }
-
-                if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
-                {
+                    ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
                     Draw(texture);
-                }
-                else
-                {
-                    foreach (var e in P.Config.RenderableZones)
-                    {
-                        ImGui.PushClipRect(new Vector2(e.Rect.X, e.Rect.Y), new Vector2(e.Rect.Right, e.Rect.Bottom), false);
-                        Draw(texture);
-                        ImGui.PopClipRect();
-                    }
-                }
-                ImGui.End();
-                ImGui.PopStyleVar();
-            }
-            catch (Exception e)
-            {
-                var now = DateTime.Now;
-                if (now - lastErrorLogTime > ErrorLogFrequency)
-                {
-                    lastErrorLogTime = now;
-                    P.Log("Splatoon exception: please report it to developer", true);
-                    P.Log(e.ToStringFull(), true);
+                    ImGui.PopClipRect();
                 }
             }
         }
-        catch (Exception e)
+        catch(Exception e)
         {
-            P.Log("Caught exception: " + e.Message, true);
-            P.Log(e.ToStringFull(), true);
+            var now = DateTime.Now;
+            if(now - lastErrorLogTime > ErrorLogFrequency)
+            {
+                lastErrorLogTime = now;
+                P.Log("Splatoon exception: please report it to developer", true);
+                P.Log(e.ToStringFull(), true);
+            }
         }
+        ImGui.End();
+        ImGui.PopStyleVar();
     }
 
     private PctTexture? PictomancyDraw()
@@ -113,31 +104,31 @@ internal unsafe class DirectX11Scene : IDisposable
                 alphaBlendMode: P.Config.AlphaBlendMode,
                 clipNativeUI: P.Config.AutoClipNativeUI);
             using var drawList = PictoService.Draw(ImGui.GetWindowDrawList(), hints);
-            if (drawList == null)
+            if(drawList == null)
                 return null;
-            foreach (var element in DirectX11Renderer.DisplayObjects)
+            foreach(var element in DirectX11Renderer.DisplayObjects)
             {
-                if (element is DisplayObjectFan elementFan)
+                if(element is DisplayObjectFan elementFan)
                 {
                     DrawFan(elementFan, drawList);
                 }
-                else if (element is DisplayObjectLine elementLine)
+                else if(element is DisplayObjectLine elementLine)
                 {
                     DrawLine(elementLine, drawList);
                 }
             }
-            foreach (var zone in P.Config.ClipZones)
+            foreach(var zone in P.Config.ClipZones)
             {
                 drawList.AddClipZone(zone.Rect);
             }
             texture = drawList.DrawToTexture();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             var now = DateTime.Now;
-            if (now - lastErrorLogTime > ErrorLogFrequency)
+            if(now - lastErrorLogTime > ErrorLogFrequency)
             {
-                if (e is IndexOutOfRangeException)
+                if(e is IndexOutOfRangeException)
                 {
                     lastErrorLogTime = now;
                     P.Log("Splatoon exception: " + e.Message + " Please adjust misconfigured presets causing excessive elements, or report it to developer if you believe this limit is too low.", true);
@@ -153,7 +144,7 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawFan(DisplayObjectFan fan, PctDrawList drawList)
     {
-        if (fan.style.filled)
+        if(fan.style.filled)
             drawList.AddFanFilled(
                 fan.origin,
                 fan.innerRadius,
@@ -162,7 +153,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 fan.angleMax,
                 fan.style.originFillColor,
                 fan.style.endFillColor);
-        if (fan.style.IsStrokeVisible())
+        if(fan.style.IsStrokeVisible())
             drawList.AddFan(
                 fan.origin,
                 fan.innerRadius,
@@ -171,9 +162,9 @@ internal unsafe class DirectX11Scene : IDisposable
                 fan.angleMax,
                 fan.style.strokeColor,
                 thickness: fan.style.strokeThickness);
-        if (fan.style.castFraction > 0)
+        if(fan.style.castFraction > 0)
         {
-            if (fan.style.animation.kind is Serializables.CastAnimationKind.Pulse)
+            if(fan.style.animation.kind is Serializables.CastAnimationKind.Pulse)
             {
                 var size = fan.style.animation.size + fan.outerRadius - fan.innerRadius;
                 var pulsePosition = size * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % fan.style.animation.frequency) / fan.style.animation.frequency;
@@ -186,7 +177,7 @@ internal unsafe class DirectX11Scene : IDisposable
                     fan.style.animation.color & 0x00FFFFFF,
                     fan.style.animation.color);
             }
-            else if (fan.style.animation.kind is Serializables.CastAnimationKind.Fill)
+            else if(fan.style.animation.kind is Serializables.CastAnimationKind.Fill)
             {
                 var size = fan.outerRadius - fan.innerRadius;
                 var castRadius = size * fan.style.castFraction;
@@ -204,14 +195,14 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawLine(DisplayObjectLine line, PctDrawList drawList)
     {
-        if (line.radius == 0)
+        if(line.radius == 0)
         {
             drawList.PathLineTo(line.start);
             drawList.PathLineTo(line.stop);
             drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
 
-            float arrowScale = MathF.Max(1, line.style.strokeThickness / 7f);
-            if (line.startStyle == LineEnd.Arrow)
+            var arrowScale = MathF.Max(1, line.style.strokeThickness / 7f);
+            if(line.startStyle == LineEnd.Arrow)
             {
                 var arrowStart = line.start + arrowScale * 0.4f * line.Direction;
                 var offset = arrowScale * 0.3f * line.Perpendicular;
@@ -221,7 +212,7 @@ internal unsafe class DirectX11Scene : IDisposable
                 drawList.PathStroke(line.style.strokeColor, PctStrokeFlags.None, line.style.strokeThickness);
             }
 
-            if (line.endStyle == LineEnd.Arrow)
+            if(line.endStyle == LineEnd.Arrow)
             {
                 var arrowStart = line.stop - arrowScale * 0.4f * line.Direction;
                 var offset = arrowScale * 0.3f * line.Perpendicular;
@@ -233,23 +224,23 @@ internal unsafe class DirectX11Scene : IDisposable
         }
         else
         {
-            if (line.style.filled)
+            if(line.style.filled)
                 drawList.AddLineFilled(
                 line.start,
                 line.stop,
                 line.radius,
                 line.style.originFillColor,
                 line.style.endFillColor);
-            if (line.style.IsStrokeVisible())
+            if(line.style.IsStrokeVisible())
                 drawList.AddLine(
                 line.start,
                 line.stop,
                 line.radius,
                 line.style.strokeColor,
                 thickness: line.style.strokeThickness);
-            if (line.style.castFraction > 0)
+            if(line.style.castFraction > 0)
             {
-                if (line.style.animation.kind is Serializables.CastAnimationKind.Pulse)
+                if(line.style.animation.kind is Serializables.CastAnimationKind.Pulse)
                 {
                     var length = line.style.animation.size + line.Length;
                     var pulsePosition = length * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % line.style.animation.frequency) / line.style.animation.frequency;
@@ -260,7 +251,7 @@ internal unsafe class DirectX11Scene : IDisposable
                         line.style.animation.color & 0x00FFFFFF,
                         line.style.animation.color);
                 }
-                else if (line.style.animation.kind is Serializables.CastAnimationKind.Fill)
+                else if(line.style.animation.kind is Serializables.CastAnimationKind.Fill)
                 {
                     var castLength = line.style.castFraction * line.Length;
                     drawList.AddLineFilled(
@@ -276,7 +267,7 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawTextWorld(DisplayObjectText e)
     {
-        if (Utils.WorldToScreen(
+        if(Utils.WorldToScreen(
                         new Vector3(e.x, e.z, e.y),
                         out var pos))
         {
@@ -297,9 +288,9 @@ internal unsafe class DirectX11Scene : IDisposable
             ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
             | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
         ImGui.PushStyleColor(ImGuiCol.Text, e.fgcolor);
-        if (scaled) ImGui.SetWindowFontScale(e.fscale);
+        if(scaled) ImGui.SetWindowFontScale(e.fscale);
         ImGuiEx.Text(e.text);
-        if (scaled) ImGui.SetWindowFontScale(1f);
+        if(scaled) ImGui.SetWindowFontScale(1f);
         ImGui.PopStyleColor();
         ImGui.EndChild();
         ImGui.PopStyleColor();
@@ -308,7 +299,7 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Utils.WorldToScreen(new Vector3(e.x, e.y, e.z), out var pos))
+        if(Utils.WorldToScreen(new Vector3(e.x, e.y, e.z), out var pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,

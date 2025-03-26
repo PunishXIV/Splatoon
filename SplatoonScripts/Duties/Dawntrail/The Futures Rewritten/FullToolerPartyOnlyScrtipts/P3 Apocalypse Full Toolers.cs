@@ -638,15 +638,28 @@ internal unsafe class P3_Apocalypse_Full_Toolers :SplatoonScript
         Vector3 pos1 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 4 : 7), 10.0f);
         Vector3 pos2 = CalculatePositionFromDirection(_clockDirectionCalculator.GetDirectionFromClock(_isClockwise ? 10 : 1), 10.0f);
 
+        float distance1 = Vector3.Distance(_partyDataList[0].Object.Position, pos1);
+        float distance2 = Vector3.Distance(_partyDataList[0].Object.Position, pos2);
+
         int MTsClock = 0;
         int MTsClockDps = 0;
         int STsClock = 0;
         int STsClockDps = 0;
 
-        MTsClock = _isClockwise ? 4 : 7;
-        MTsClockDps = _isClockwise ? 3 : 9;
-        STsClock = _isClockwise ? 10 : 1;
-        STsClockDps = _isClockwise ? 9 : 3;
+        if (distance1 < distance2)
+        {
+            MTsClock = _isClockwise ? 4 : 7;
+            MTsClockDps = _isClockwise ? 3 : 9;
+            STsClock = _isClockwise ? 10 : 1;
+            STsClockDps = _isClockwise ? 9 : 3;
+        }
+        else
+        {
+            MTsClock = _isClockwise ? 10 : 1;
+            MTsClockDps = _isClockwise ? 9 : 3;
+            STsClock = _isClockwise ? 4 : 7;
+            STsClockDps = _isClockwise ? 3 : 9;
+        }
 
         if (isMT)
         {

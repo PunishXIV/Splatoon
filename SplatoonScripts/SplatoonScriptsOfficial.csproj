@@ -2,17 +2,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
     <Platforms>x64</Platforms>
     <LangVersion>latest</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <NoWarn>CS1591;CS8618</NoWarn>
+    <NoWarn>CS1591;CS8618;IDE0051;IDE0052</NoWarn>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Duties\Dawntrail\The Futures Rewritten\FullToolerPartyOnlyScrtipts\P2 Diamond Dust Full Toolers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Duties\Dawntrail\The Futures Rewritten\FullToolerPartyOnlyScrtipts\P2 Diamond Dust Full Toolers.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
@@ -64,5 +72,9 @@
       <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
       <Private>False</Private>
     </Reference>
+      <Reference Include="InteropGenerator.Runtime">
+          <HintPath>$(DalamudLibPath)InteropGenerator.Runtime.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
   </ItemGroup>
 </Project>

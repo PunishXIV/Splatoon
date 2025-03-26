@@ -63,7 +63,7 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
             if(BlackCat.CastActionId.EqualsAny(37975u, 38959u))
             {
                 CrossingStage = 1;
-                EntityPos = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.Struct()->ModelCharaId == 4223)?.Position ?? Vector3.Zero;
+                EntityPos = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.Struct()->ModelContainer.ModelCharaId == 4223)?.Position ?? Vector3.Zero;
             }
             {
                 if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsCasting && x.CastActionId.EqualsAny(38009u), out var caster))

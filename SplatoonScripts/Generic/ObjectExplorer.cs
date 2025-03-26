@@ -60,7 +60,7 @@ public unsafe class ObjectExplorer :SplatoonScript
             Entries.Add(new("Name ID", () => ImGuiEx.TextCopy(col, x.GameObjectId.ToString("x"))));
             Entries.Add(new("Name ID", () => ImGuiEx.TextCopy(col, x.NameId.ToString("x"))));
             Entries.Add(new("Data ID", () => ImGuiEx.TextCopy(col, x.DataId.ToString("x"))));
-            Entries.Add(new("Model ID", () => ImGuiEx.TextCopy(col, x.Struct()->ModelCharaId.ToString("x"))));
+            Entries.Add(new("Model ID", () => ImGuiEx.TextCopy(col, x.Struct()->ModelContainer.ModelCharaId.ToString("x"))));
             Entries.Add(new("Tar", () => ImGuiEx.Text(col, x.IsTargetable.ToString())));
             Entries.Add(new("Vis", () => ImGuiEx.Text(col, x.IsCharacterVisible().ToString())));
             Entries.Add(new("Dist", () => ImGuiEx.Text(col, $"{Vector3.Distance(Player.Position, x.Position):F1}")));

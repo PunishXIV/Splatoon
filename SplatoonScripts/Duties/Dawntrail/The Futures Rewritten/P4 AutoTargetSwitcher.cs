@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
@@ -20,21 +22,20 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private readonly List<float> _percentages = [];
     private readonly Random _random = new();
     private readonly List<IBattleChara> _targets = [];
+
+    private int _akhMornCount;
     private IBattleChara? _currentTarget;
 
     private Timings _currentTiming = Timings.Start;
     private float _lastMinPercentage;
+    private int _mornAfahCount;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(8, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
-    private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)
-        .FirstOrDefault(o => o.DataId == 0x45AB) as IBattleChara;
-
-    private IBattleChara? LightGirl => Svc.Objects
-        .Where(o => o.IsTargetable)
-        .FirstOrDefault(o => o.DataId == 0x45A9) as IBattleChara;
+    private IBattleChara? DarkGirl => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(o => (!C.LimitDistance || Player.DistanceTo(o) < 3f + o.HitboxRadius) && o.IsTargetable && o.DataId == 0x45AB);
+    private IBattleChara? LightGirl => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(o => (!C.LimitDistance || Player.DistanceTo(o) < 3f + o.HitboxRadius) && o.IsTargetable && o.DataId == 0x45A9);
 
     private bool IsActive => !C.TimingMode ||
                              (C.EnableTimings.Contains(_currentTiming) && !C.DisableTimings.Contains(_currentTiming));
@@ -69,6 +70,11 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
         ImGui.SliderFloat("Acceptable Percentage", ref C.AcceptablePercentage, 0f, 100f);
         ImGui.SliderInt("Interval", ref C.Interval, 100, 1000);
+
+        ImGui.Checkbox("Should Disable When Low Hp", ref C.ShouldDisableWhenLowHp);
+        if (C.ShouldDisableWhenLowHp) ImGui.SliderFloat("Low Hp Percentage", ref C.LowHpPercentage, 0f, 100f);
+
+        ImGui.Checkbox("Do not switch if target is not in melee range", ref C.LimitDistance);
 
         ImGui.Checkbox("Timing Mode", ref C.TimingMode);
         if (C.TimingMode)
@@ -133,12 +139,8 @@ public class P4_AutoTargetSwitcher : SplatoonScript
                 _mornAfahCount++;
                 _currentTiming = _mornAfahCount == 1 ? Timings.FirstMornAfahEnd : Timings.SecondMornAfahEnd;
                 break;
-            
         }
     }
-    
-    private int _akhMornCount = 0;
-    private int _mornAfahCount = 0;
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -152,7 +154,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     public override void OnUpdate()
     {
         if (!IsActive) return;
-        if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]) return;
+        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback]) return;
         if (EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
         {
             var darkGirl = DarkGirl;
@@ -163,6 +165,14 @@ public class P4_AutoTargetSwitcher : SplatoonScript
                 Alert("No targets found");
                 return;
             }
+
+            if (C.ShouldDisableWhenLowHp && darkGirl != null && lightGirl != null)
+                if ((float)darkGirl.CurrentHp / darkGirl.MaxHp * 100f < C.LowHpPercentage ||
+                    (float)lightGirl.CurrentHp / lightGirl.MaxHp * 100f < C.LowHpPercentage)
+                {
+                    Alert("Disabling due to low hp");
+                    return;
+                }
 
             if (darkGirl == null && lightGirl != null)
             {
@@ -236,23 +246,26 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         FirstAkhMorn,
         FirstMornAfahEnd,
         SecondAkhMorn,
-        SecondMornAfahEnd 
+        SecondMornAfahEnd
     }
 
     private class Config : IEzConfig
     {
+        public List<Timings> DisableTimings =
+        [
+        ];
+
+        public List<Timings> EnableTimings =
+        [
+        ];
+
         public float AcceptablePercentage = 3f;
         public bool DebugMode;
 
-        public readonly List<Timings> DisableTimings =
-        [
-        ];
-
-        public readonly List<Timings> EnableTimings =
-        [
-        ];
-
         public int Interval = 300;
-        public bool TimingMode = false;
+        public float LowHpPercentage = 1f;
+        public bool ShouldDisableWhenLowHp;
+        public bool TimingMode;
+        public bool LimitDistance = false;
     }
 }

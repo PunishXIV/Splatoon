@@ -617,7 +617,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     {
         var pc = GetMinedata();
         var LightDebuff = pc.Object.StatusList.Where(x => x.StatusId == 2257).First();
-        bool hasDebuff2 = LightDebuff.StackCount == 2;
+        bool hasDebuff2 = LightDebuff.Param == 2;
 
         if (hasDebuff2)
         {
@@ -654,7 +654,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         foreach (var pc2 in _partyDataList)
         {
             var LightDebuff2 = pc2.Object.StatusList.Where(x => x.StatusId == 2257).First();
-            bool hasDebuff22 = LightDebuff2.StackCount == 2;
+            bool hasDebuff22 = LightDebuff2.Param == 2;
             if (hasDebuff22)
             {
                 DuoLog.Information($"Has Debuff 2: {pc2.Object.Name.ToString()}");

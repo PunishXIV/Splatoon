@@ -408,9 +408,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         }
 
-        IBattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->Character.ModelCharaId == 3771) as IBattleChara;
+        IBattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->ModelContainer.ModelCharaId == 3771) as IBattleChara;
 
-        IBattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->Character.ModelCharaId == 3775) as IBattleChara;
+        IBattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->ModelContainer.ModelCharaId == 3775) as IBattleChara;
 
         bool HasEffect(uint id) => Player.StatusList.Any(x => x.StatusId == id);
         bool HasEffect(uint id, float remainsMin, float remainsMax) => Player.StatusList.Any(x => x.StatusId == id && x.RemainingTime.InRange(remainsMin, remainsMax));

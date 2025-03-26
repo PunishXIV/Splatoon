@@ -86,7 +86,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     };
 
     private readonly Dictionary<DirectionCalculator.Direction, Vector3> TowerOppsitePos = new()
-    {
+        {
         {DirectionCalculator.Direction.South, new Vector3(100f, 0, 93f)},
         {DirectionCalculator.Direction.NorthWest, new Vector3(106.0622f, 0, 103.5f)},
         {DirectionCalculator.Direction.NorthEast, new Vector3(93.93782f, 0, 103.5f)},
@@ -121,6 +121,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
     /********************************************************************/
     private State _state = State.None;
     private List<PartyData> _partyDataList = new();
+    private Config C => Controller.GetConfig<Config>();
     private List<DirectionCalculator.Direction> towers = new List<DirectionCalculator.Direction>();
     private MineRoleAction? _mineRoleAction = null;
     private string _firstBladeIs = "";
@@ -240,6 +241,10 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 SetState(State.Tower1);
             }
             else if (towers.Count == 2)
+            {
+                SetState(State.Tower2);
+            }
+            else if (towers.Count == 3)
             {
                 SetState(State.Tower3);
 
@@ -422,7 +427,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 towerDirection = towers[1];
             }
             else if (_firstBladeIs == "Dark" && IsClockwise(towers[0], towers[1]))
-            {
+                {
                 towerDirection = towers[2];
             }
             else if (_firstBladeIs == "Light" && !IsClockwise(towers[0], towers[1]))
@@ -434,7 +439,7 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
                 towerDirection = towers[1];
             }
             else
-            {
+                {
                 return;
             }
 
@@ -452,9 +457,9 @@ internal class P5_Paradise_Regained_Full_Toolers :SplatoonScript
             else if (_firstBladeIs == "Dark" && IsClockwise(towers[0], towers[1]))
             {
                 towerDirection = towers[2];
-            }
+        }
             else if (_firstBladeIs == "Light" && !IsClockwise(towers[0], towers[1]))
-            {
+        {
                 towerDirection = towers[2];
             }
             else if (_firstBladeIs == "Light" && IsClockwise(towers[0], towers[1]))

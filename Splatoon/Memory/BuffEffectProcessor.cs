@@ -169,7 +169,7 @@ internal unsafe class BuffEffectProcessor :IDisposable
                     }
                 }
 
-                if(_CharacterStatusInfoPtr[i].StatusPtr[j].StackCount != statusArray[j].StackCount && !isChange)
+                if(_CharacterStatusInfoPtr[i].StatusPtr[j].Param != statusArray[j].Param && !isChange)
                 {
                     // Update
                     status = statusArray[j];
@@ -207,11 +207,11 @@ internal unsafe class BuffEffectProcessor :IDisposable
 
         if(gameObjectCharactor->EntityId == Svc.ClientState.LocalPlayer?.EntityId)
         {
-            text = $"You gains the effect of {data->StatusId} Param: {data->StackCount} ([{prefix}]You:{data->StatusId}:{Svc.ClientState.LocalPlayer.GetJob().ToString()})";
+            text = $"You gains the effect of {data->StatusId} Param: {data->Param} ([{prefix}]You:{data->StatusId}:{Svc.ClientState.LocalPlayer.GetJob().ToString()})";
             P.ChatMessageQueue.Enqueue(text);
         }
 
-        text = $"{gameObjectCharactor->NameString} ({PositionString}) gains the effect of {data->StatusId} Param: {data->StackCount} ({ElementTrigger})";
+        text = $"{gameObjectCharactor->NameString} ({PositionString}) gains the effect of {data->StatusId} Param: {data->Param} ({ElementTrigger})";
 
         P.ChatMessageQueue.Enqueue(text);
     }

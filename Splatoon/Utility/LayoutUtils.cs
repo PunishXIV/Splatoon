@@ -14,7 +14,7 @@ public static unsafe class LayoutUtils
         if (e.refActorComparisonAnd)
         {
             return (e.refActorNameIntl.Get(e.refActorName) == String.Empty || IsNameMatches(e, o)) &&
-             (e.refActorModelID == 0 || (o is ICharacter c && c.Struct()->ModelCharaId == e.refActorModelID)) &&
+             (e.refActorModelID == 0 || (o is ICharacter c && c.Struct()->ModelContainer.ModelCharaId == e.refActorModelID)) &&
              (e.refActorObjectID == 0 || o.EntityId == e.refActorObjectID) &&
              (e.refActorDataID == 0 || o.DataId == e.refActorDataID) &&
              (e.refActorNPCID == 0 || o.Struct()->GetNameId() == e.refActorNPCID) &&
@@ -27,7 +27,7 @@ public static unsafe class LayoutUtils
         else
         {
             if (e.refActorComparisonType == 0 && IsNameMatches(e, o)) return true;
-            if (e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->ModelCharaId == e.refActorModelID) return true;
+            if (e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->ModelContainer.ModelCharaId == e.refActorModelID) return true;
             if (e.refActorComparisonType == 2 && o.EntityId == e.refActorObjectID) return true;
             if (e.refActorComparisonType == 3 && o.DataId == e.refActorDataID) return true;
             if (e.refActorComparisonType == 4 && o.Struct()->GetNameId() == e.refActorNPCID) return true;

@@ -95,7 +95,7 @@ public class ScriptUpdateWindow : Window
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
-                    ImGuiEx.TextWrapped($"{x.Replace(rep, "..")}");
+                    ImGuiEx.TextWrapped($"{x?.Replace(rep, "..") ?? "Unknown"}");
                     ImGui.TableNextColumn();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
                     {

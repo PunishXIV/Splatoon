@@ -15,6 +15,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Duties\Dawntrail\The Futures Rewritten\FullToolerPartyOnlyScrtipts\P2 Diamond Dust Full Toolers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Duties\Dawntrail\The Futures Rewritten\FullToolerPartyOnlyScrtipts\P2 Diamond Dust Full Toolers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
     <ProjectReference Include="..\Splatoon\Splatoon.csproj" />
   </ItemGroup>
@@ -64,5 +72,9 @@
       <HintPath>$(DalamudLibPath)ImGuiScene.dll</HintPath>
       <Private>False</Private>
     </Reference>
+      <Reference Include="InteropGenerator.Runtime">
+          <HintPath>$(DalamudLibPath)InteropGenerator.Runtime.dll</HintPath>
+          <Private>False</Private>
+      </Reference>
   </ItemGroup>
 </Project>

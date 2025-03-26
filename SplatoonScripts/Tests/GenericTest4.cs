@@ -174,7 +174,7 @@ public unsafe class GenericTest4 : SplatoonScript
 						}
 
 						public string DutyName => ReadSeString(0).ExtractText();
-						public string DutyLevel => MemoryHelper.ReadStringNullTerminated((nint)((AtkUnitBase*)unitBasePtr)->AtkValues[beginOffset+1].String);
+						public string DutyLevel => MemoryHelper.ReadStringNullTerminated((nint)((AtkUnitBase*)unitBasePtr)->AtkValues[beginOffset+1].String.Value);
 						public string DutyPF => ReadString(2);
 				}
 		}

@@ -2,11 +2,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.7.4.7</Version>
+		<Version>3.7.4.8</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net8.0-windows</TargetFramework>
+		<TargetFramework>net9.0-windows7.0</TargetFramework>
 		<Platforms>x64</Platforms>
 		<LangVersion>preview</LangVersion>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -25,6 +25,11 @@
     <ItemGroup Condition="'$(CustomCS)' != 'true'">
         <Reference Include="FFXIVClientStructs">
             <HintPath>$(DalamudLibPath)FFXIVClientStructs.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+
+        <Reference Include="InteropGenerator.Runtime">
+            <HintPath>$(DalamudLibPath)InteropGenerator.Runtime.dll</HintPath>
             <Private>False</Private>
         </Reference>
     </ItemGroup>
@@ -52,8 +57,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="DalamudPackager" Version="2.1.13" />
-	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.10.0" />
+	  <PackageReference Include="DalamudPackager" Version="12.0.0" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
 	  <PackageReference Include="NotificationMasterAPI" Version="1.0.0.1" />
 	</ItemGroup>
 

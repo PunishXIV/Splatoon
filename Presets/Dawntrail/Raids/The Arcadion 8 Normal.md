@@ -1,0 +1,14 @@
+# Howling Blade
+
+This is a mostly working preset with preliminary testing that may need some adjustments in the future. Covers the following:
+* Wolves' Reign (Line/Circles/Cone)
+* Moonlight Shadow (Right/Left)
+* Gleaming Fang
+* Wolf of Stone (Lines)
+* Falling Pillars (Lines)
+Feel free to enable/disable whatever you want.
+```
+~Lv2~{"Name":"Howling Blade","Group":"AAC Cruiserweight M4","ZoneLockH":[1262],"ElementsL":[{"Name":"Wolves' Reign (Circles)","type":1,"radius":6.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43380,43377,43376,43378,43373,43382,43381,43379,43311,43303,43304],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"mechanicType":1},{"Name":"Wolves' Reign (Line)","type":3,"refY":30.0,"offY":-4.0,"radius":5.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43379,43311],"refActorUseCastTime":true,"refActorCastTimeMin":4.0,"refActorCastTimeMax":10.0,"refActorUseOvercast":true,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Wolves' Reign (Cone)","type":4,"radius":35.0,"coneAngleMin":-60,"coneAngleMax":60,"fillIntensity":0.5,"overrideFillColor":true,"originFillColor":838861055,"endFillColor":838861055,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43386,43385,42928,41842],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"mechanicType":6},{"Name":"Moonlight Shadow (Right)","type":3,"refX":10.0,"refY":40.0,"offX":10.0,"radius":10.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43388,41846],"refActorUseCastTime":true,"refActorCastTimeMin":1.8,"refActorCastTimeMax":10.0,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"mechanicType":1},{"Name":"Moonlight Shadow (Left)","type":3,"refX":-10.0,"refY":40.0,"offX":-10.0,"radius":10.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43389,41847],"refActorUseCastTime":true,"refActorCastTimeMin":1.75,"refActorCastTimeMax":10.0,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"mechanicType":1},{"Name":"Gleaming Fang","type":3,"refY":25.0,"offY":-25.0,"radius":3.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[41861],"refActorUseCastTime":true,"refActorCastTimeMin":1.3,"refActorCastTimeMax":10.0,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"mechanicType":1},{"Name":"Wolf of Stone (Line)","type":3,"refY":25.0,"radius":3.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43400,43401],"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"mechanicType":1},{"Name":"Pillars (Lines)","type":3,"refY":25.0,"radius":3.0,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43315],"refActorCastTimeMax":315.3,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"mechanicType":1}]}
+```
+
+

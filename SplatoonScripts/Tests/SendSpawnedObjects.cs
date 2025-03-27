@@ -105,11 +105,11 @@ namespace SplatoonScriptsOfficial.Tests
                     //name|ObjectID|DataID|NPCID|ModelID|TransformID|Position.X|Position.Y|Position.Z|Angle
                     var str = new string[]
                     {
-                        $"{obj.Name.ExtractText()}",
+                        $"{obj.Name.GetText()}",
                         $"{obj.EntityId}",
                         $"{obj.DataId}",
                         $"{obj.Struct()->GetNameId()}",
-                        chr == null?"":$"{chr.Struct()->ModelCharaId}",
+                        chr == null?"":$"{chr.Struct()->ModelContainer.ModelCharaId}",
                         chr == null?"":$"{chr.GetTransformationID()}",
                         $"{obj.Position.X}",
                         $"{obj.Position.Y}",

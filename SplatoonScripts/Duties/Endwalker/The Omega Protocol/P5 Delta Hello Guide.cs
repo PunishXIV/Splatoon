@@ -284,8 +284,8 @@ internal unsafe class P5_Delta_Hello_Guide :SplatoonScript
             // Find beetle and final
             if(_beetle == null || _final == null)
             {
-                _beetle = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.ModelCharaId == beetleModelId) as IBattleNpc;
-                _final = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->Character.ModelCharaId == finalModelId) as IBattleNpc;
+                _beetle = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->ModelContainer.ModelCharaId == beetleModelId) as IBattleNpc;
+                _final = Svc.Objects.FirstOrDefault(x => x is IBattleNpc c && c.Struct()->ModelContainer.ModelCharaId == finalModelId) as IBattleNpc;
 
                 if(_beetle == null || _final == null)
                 {

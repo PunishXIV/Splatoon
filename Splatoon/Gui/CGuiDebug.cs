@@ -184,7 +184,7 @@ unsafe partial class CGui
                     ImGuiEx.Text($"{((a is ICharacter chr) ? chr.IsCharacterVisible() : "Not a char")}");
                     ImGui.SameLine();
                     ImGui.SetCursorPosX(600f);
-                    ImGuiEx.Text(a is ICharacter chr2 ? $"{chr2.Struct()->ModelCharaId.Format()}" : "Not a char");
+                    ImGuiEx.Text(a is ICharacter chr2 ? $"{chr2.Struct()->ModelContainer.ModelCharaId.Format()}" : "Not a char");
                 });
             }
         }

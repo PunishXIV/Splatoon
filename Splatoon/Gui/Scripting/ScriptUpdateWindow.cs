@@ -34,6 +34,7 @@ public class ScriptUpdateWindow : Window
 
     public override void Draw()
     {
+        int i = 0;
         if(UpdatedScripts.Count > 0)
         {
             ImGuiEx.TextWrapped($"The following scripts have been updated. Please check that your settings are intact, and if needed, reconfigure it.");
@@ -44,7 +45,7 @@ public class ScriptUpdateWindow : Window
 
                 foreach(var x in UpdatedScripts)
                 {
-                    ImGui.PushID(x.InternalData?.FullName ?? $"{x}");
+                    ImGui.PushID($"id{i++}");
                     try
                     {
                         ImGui.TableNextRow();
@@ -90,11 +91,11 @@ public class ScriptUpdateWindow : Window
                 var rep = Path.Combine(Svc.PluginInterface.ConfigDirectory.FullName, "Scripts");
                 foreach(var x in FailedScripts)
                 {
-                    ImGui.PushID(x);
+                    ImGui.PushID($"failid{i++}");
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGui.AlignTextToFramePadding();
-                    ImGuiEx.TextWrapped($"{x.Replace(rep, "..")}");
+                    ImGuiEx.TextWrapped($"{x?.Replace(rep, "..") ?? "Unknown"}");
                     ImGui.TableNextColumn();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
                     {

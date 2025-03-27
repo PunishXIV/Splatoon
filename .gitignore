@@ -367,3 +367,5 @@ FodyWeavers.xsd
 /SplatoonScripts/Duties/ARealmReborn/UnderTheArmorSchAuto.cs
 /SplatoonScripts/Tests/TestBuffHook.cs
 /SplatoonScripts/Tests/TestTradeHook.cs
+/SplatoonScripts/Generic/GlamourerFixer.cs
+/SplatoonScripts/Tests/GenericTest8.cs

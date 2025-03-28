@@ -23,7 +23,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1271];
 
-    public override Metadata? Metadata => new(5, "NightmareXIV, Redmoonwow");
+    public override Metadata? Metadata => new(6, "NightmareXIV, Redmoonwow");
 
     uint StatusCloseFar = 2970;
     uint StatusParamClose = 758;
@@ -65,8 +65,8 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         ImGuiEx.HelpMarker("Delay helps to synchronize script with attack animation. If you want to see safe movement ASAP, set it to 0.");
         if(ImGui.CollapsingHeader("Debug"))
         {
-            ImGuiEx.Text($"AdjustPhase: {AdjustPhase}");
-            ImGuiEx.Text($"THShockTargeted: {THShockTargeted}");
+            ImGui.Checkbox("AdjustPhase", ref AdjustPhase);
+            ImGui.Checkbox("THShockTargeted", ref THShockTargeted);
             ImGuiEx.Text($"SequenceIsClose: {SequenceIsClose.Print()}");
             ImGuiEx.Text($"GetMyCloses: {GetMyCloses().Print()}");
             ImGuiEx.Text($"IsSelfClose: {IsSelfClose()}");
@@ -83,6 +83,21 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
             //ForceResetAt = Environment.TickCount64 + 30000;
             SequenceIsClose.Add(this.StatusParamClose == status.Param);
             PluginLog.Debug($"Registered: {(SequenceIsClose.Last() ? "Close" : "Far")}");
+        }
+    }
+
+    float GetThickness(bool isMyClose)
+    {
+        var isBaiting = this.SequenceIsClose[this.NumSwitches] == isMyClose;
+        if(isBaiting)
+        {
+            var factor = (Environment.TickCount64 / 30) % 20;
+            if(factor > 10) factor = 20 - factor;
+            return factor;
+        }
+        else
+        {
+            return 5;
         }
     }
 
@@ -138,7 +153,9 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
             var e = Controller.GetElementByName(isMyClose ? $"In" : $"Out")!;
             e.Enabled = true;
             e.radius = GetRadius(isMyClose);
-            Controller.GetElementByName(isMyClose ? $"In{(correct ? "Correct" : "Incorrect")}" : $"Out{(correct ? "Correct" : "Incorrect")}")!.Enabled = true;
+            var e2 = Controller.GetElementByName(isMyClose ? $"In{(correct ? "Correct" : "Incorrect")}" : $"Out{(correct ? "Correct" : "Incorrect")}")!;
+            e2.Enabled = true;
+            e2.thicc = GetThickness(isMyClose);
         }
     }
 

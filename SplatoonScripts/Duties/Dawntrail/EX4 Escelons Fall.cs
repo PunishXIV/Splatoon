@@ -23,7 +23,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1271];
 
-    public override Metadata? Metadata => new(4, "NightmareXIV, Redmoonwow");
+    public override Metadata? Metadata => new(5, "NightmareXIV, Redmoonwow");
 
     uint StatusCloseFar = 2970;
     uint StatusParamClose = 758;
@@ -104,25 +104,11 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         {
             if(THShockTargeted)
             {
-                if(Player.Job is Job.DRK or Job.WAR or Job.GNB or Job.PLD or Job.WHM or Job.AST or Job.SCH or Job.SGE)
-                {
-                    myCloseFirst = false;
-                }
-                else
-                {
-                    myCloseFirst = true;
-                }
+                myCloseFirst = !(Player.Job.IsTank() || Player.Job.IsHealer());
             }
             else
             {
-                if(Player.Job is Job.DRK or Job.WAR or Job.GNB or Job.PLD or Job.WHM or Job.AST or Job.SCH or Job.SGE)
-                {
-                    myCloseFirst = true;
-                }
-                else
-                {
-                    myCloseFirst = false;
-                }
+                myCloseFirst = Player.Job.IsTank() || Player.Job.IsHealer();
             }
         }
         List<bool> seq = [SequenceIsClose.SafeSelect(0) == myCloseFirst, SequenceIsClose.SafeSelect(1) != myCloseFirst, SequenceIsClose.SafeSelect(2) == myCloseFirst, SequenceIsClose.SafeSelect(3) != myCloseFirst];

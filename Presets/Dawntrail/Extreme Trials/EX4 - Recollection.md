@@ -1,4 +1,4 @@
-[UNTESTED, WIP] [Script] Escelon's Fall
+**[UNTESTED, WIP]** [Script] Escelon's Fall
 Warning: might be incomplete/missing settings. Will be refined as more understanding is gained about this mechanic
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/EX4%20Escelons%20Fall.cs

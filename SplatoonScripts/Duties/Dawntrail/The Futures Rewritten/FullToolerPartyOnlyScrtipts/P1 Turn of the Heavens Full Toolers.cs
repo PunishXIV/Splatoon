@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -16,419 +17,150 @@ using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
-internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
+internal class P1_Turn_of_the_Heavens_Full_Toolers :SplatoonScript
 {
-    #region Enums
-    enum State
-    {
-        None,
-        Casting,
-        Soil1End,
-        Soil2End,
-        Soil3End,
-        End
-    }
-
-    enum LR
-    {
-        Left,
-        Right
-    }
-
-    enum FireThunder
-    {
-        Fire,
-        Thunder
-    }
-    #endregion
-
-    #region class
-    class PartyData
+    private class PartyData
     {
         public int Index = 0;
         public bool Mine = false;
         public uint EntityId;
-        public IPlayerCharacter? Object
-        {
-            get
-            {
-                return EntityId.GetObject() as IPlayerCharacter;
-            }
-        }
-        public LR LR;
-        public int PriorityNum = 0;
-        public int TetherNum = 0;
+        public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject()! ?? null;
+        public bool isStack = false;
+        public uint StackEntityId = 0;
+
+        public bool IsTank => TankJobs.Contains(Object?.GetJob() ?? Job.WHM);
+        public bool IsHealer => HealerJobs.Contains(Object?.GetJob() ?? Job.PLD);
+        public bool IsTH => IsTank || IsHealer;
+        public bool IsMeleeDps => MeleeDpsJobs.Contains(Object?.GetJob() ?? Job.MCH);
+        public bool IsRangedDps => RangedDpsJobs.Contains(Object?.GetJob() ?? Job.MNK);
+        public bool IsDps => IsMeleeDps || IsRangedDps;
+
         public PartyData(uint entityId, int index)
         {
             EntityId = entityId;
             Index = index;
-            LR = LR.Left;
-            PriorityNum = 0;
-            TetherNum = 0;
+            Mine = this.EntityId == Player.Object.EntityId;
         }
     }
-    #endregion
 
-    #region public Fields
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(8, "Redmoon");
-    #endregion
+    public override Metadata? Metadata => new(1, "Redmoon");
 
-    #region private Fields
-    List<PartyData> _partyDataList = [];
-    List<FireThunder> _fireThunders = [];
-    State _state = State.None;
-    int _soilEndCount = 0;
-    bool _gimmickEnded = false;
-    #endregion
+    private List<PartyData> _partyDataList = new();
+    bool _mechanicActive = false;
 
-    #region Public Methods
+    readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
+
     public override void OnSetup()
     {
-        Controller.RegisterElement("LeftTether", new Splatoon.Element(0) { refX = 94.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
-        Controller.RegisterElement("LeftTetherNext", new Splatoon.Element(0) { refX = 94.0f, refY = 98.0f, thicc = 10.0f, tether = true, radius = 0.5f });
-        Controller.RegisterElement("LeftNone1", new Splatoon.Element(0) { refX = 94.0f, refY = 102.0f, thicc = 10.0f, tether = true, radius = 0.5f });
-        Controller.RegisterElement("LeftNone2", new Splatoon.Element(0) { refX = 92.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
-        Controller.RegisterElement("RightTether", new Splatoon.Element(0) { refX = 106.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
-        Controller.RegisterElement("RightTetherNext", new Splatoon.Element(0) { refX = 106.0f, refY = 98.0f, thicc = 10.0f, tether = true, radius = 0.5f });
-        Controller.RegisterElement("RightNone1", new Splatoon.Element(0) { refX = 106.0f, refY = 102.0f, thicc = 10.0f, tether = true, radius = 0.5f });
-        Controller.RegisterElement("RightNone2", new Splatoon.Element(0) { refX = 108.0f, refY = 100.0f, thicc = 10.0f, tether = true, radius = 0.5f });
+        Controller.RegisterElement("Stack", new Splatoon.Element(1) { thicc = 15f, radius = 1.0f, Filled = false, refActorComparisonType = 2 });
+    }
+
+    public override void OnSettingsDraw()
+    {
+        if (ImGui.CollapsingHeader("Debug"))
+        {
+            ImGui.Text($"_mechanicActive : {_mechanicActive}");
+            List<ImGuiEx.EzTableEntry> Entries = [];
+            foreach (var x in _partyDataList)
+            {
+                Entries.Add(new ImGuiEx.EzTableEntry("Index", true, () => ImGui.Text(x.Index.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("EntityId", true, () => ImGui.Text(x.EntityId.ToString())));
+                if (x.Object != null)
+                {
+                    Entries.Add(new ImGuiEx.EzTableEntry("Job", true, () => ImGui.Text(x.Object.GetJob().ToString())));
+                    Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(x.Object.Name.ToString())));
+                }
+                else
+                {
+                    Entries.Add(new ImGuiEx.EzTableEntry("Job", true, () => ImGui.Text("null")));
+                    Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text("null")));
+                }
+                Entries.Add(new ImGuiEx.EzTableEntry("Mine", true, () => ImGui.Text(x.Mine.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("isStack", true, () => ImGui.Text(x.isStack.ToString())));
+                Entries.Add(new ImGuiEx.EzTableEntry("StackEntityId", true, () => ImGui.Text(x.StackEntityId.ToString())));
+            }
+            ImGuiEx.EzTable(Entries);
+        }
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (!_gimmickEnded && _state == State.None && castId is 40170) // Fall of Faith Cast Too Late
+        if (source.GetObject() is IBattleChara npc)
         {
-            SetListEntityIdByJob();
-            _state = State.Casting;
-        }
-    }
-
-    public override void OnActionEffectEvent(ActionEffectSet set)
-    {
-        if (set.Action == null) return;
-        if (_state == State.None) return;
-        if (set.Action.Value.RowId is 40156 or 40142)
-        {
-            ++_state;
-            if (_state == State.End)
+            if (castId is 40151 or 40150)
             {
-                _state = State.None;
-                _gimmickEnded = true;
-                HideAllElements();
+                SetListEntityIdByJob();
+                _mechanicActive = true;
             }
-            ShowElements();
-        }
-    }
-
-    public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
-    {
-        if (!(_state == State.Casting)) return;
-
-        var pc = _partyDataList.Find(x => x.EntityId == target);
-        if (pc == null) return;
-
-        if (data2 == 0 && data3 == 249 && data5 == 15) // fire
-        {
-            _fireThunders.Add(FireThunder.Fire);
-        }
-        else if (data2 == 0 && data3 == 287 && data5 == 15) // thunder
-        {
-            _fireThunders.Add(FireThunder.Thunder);
-        }
-
-        if (_fireThunders.Count is 1 or 3)
-        {
-            pc.LR = LR.Left;
-        }
-        else
-        {
-            pc.LR = LR.Right;
-        }
-
-        pc.TetherNum = _fireThunders.Count;
-
-        if (target == Player.Object.EntityId)
-        {
-            if (_fireThunders.Count == 1)
-            {
-                if (Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-            }
-            else if (_fireThunders.Count == 2)
-            {
-                if (Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-            }
-            else if (_fireThunders.Count == 3)
-            {
-                if (_fireThunders[0] == FireThunder.Thunder)
-                {
-                    if (Controller.TryGetElementByName("LeftTetherNext", out var el)) el.Enabled = true;
-                }
-                else
-                {
-                    if (Controller.TryGetElementByName("LeftNone2", out var el)) el.Enabled = true;
-                }
-            }
-            else
-            {
-                if (_fireThunders[1] == FireThunder.Thunder)
-                {
-                    if (Controller.TryGetElementByName("RightTetherNext", out var el)) el.Enabled = true;
-                }
-                else
-                {
-                    if (Controller.TryGetElementByName("RightNone2", out var el)) el.Enabled = true;
-                }
-            }
-        }
-
-        if (_fireThunders.Count == 4)
-        {
-            ParseData();
-            ShowElements();
         }
     }
 
     public override void OnUpdate()
     {
-        if (_state == State.None || _gimmickEnded) return;
+        if (!_mechanicActive) return;
+        if (Controller.TryGetElementByName("Stack", out var el) && el.Enabled)
+        {
+            el.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
+        }
+    }
 
-        Element? el = Controller.GetRegisteredElements().Where(Element => Element.Value.Enabled).FirstOrDefault().Value;
-        if (el == null) return;
-        el.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (!_mechanicActive || set.Action == null)
+            return;
+
+        if (set.Action.Value.RowId == 40165)
+        {
+            this.OnReset();
+            return;
+        }
+    }
+
+    public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
+    {
+        if (!_mechanicActive) return;
+        if (data2 != 0 || data3 != 249 || data5 != 15) return;
+
+        var stacker = _partyDataList.Find(x => x.EntityId == target);
+        if (stacker == null) return;
+
+        stacker.isStack = true;
+        if (_partyDataList.Where(x => x.isStack).Count() != 2) return;
+
+        var nonStackers = _partyDataList.Where(x => !x.isStack).ToList();
+        var stackers = _partyDataList.Where(x => x.isStack).ToList();
+        if (nonStackers.Count() != 6 || stackers.Count() != 2) return;
+
+        for (var i = 0; i < nonStackers.Count(); i++)
+        {
+            if (i < 3)
+            {
+                nonStackers[i].StackEntityId = stackers[0].EntityId;
+            }
+            else
+            {
+                nonStackers[i].StackEntityId = stackers[1].EntityId;
+            }
+        }
+
+        var pc = GetMinedata();
+        if (pc == null) return;
+        if (pc.isStack) return;
+
+        if (Controller.TryGetElementByName("Stack", out var el))
+        {
+            el.refActorObjectID = pc.StackEntityId;
+            el.tether = true;
+            el.Enabled = true;
+        }
     }
 
     public override void OnReset()
     {
+        HideAllElements();
         _partyDataList.Clear();
-        _fireThunders.Clear();
-        _state = State.None;
-        _soilEndCount = 0;
-        _gimmickEnded = false;
-        HideAllElements();
-    }
-
-    public override void OnSettingsDraw()
-    {
-        if (ImGuiEx.CollapsingHeader("Debug"))
-        {
-            ImGui.Text($"State: {_state}");
-            ImGui.Text($"Tether Count: {_fireThunders.Count}");
-            ImGui.Text($"Soil End Count: {_soilEndCount}");
-            ImGui.Text($"Gimmick Ended: {_gimmickEnded}");
-            if (_fireThunders.Count > 0)
-            {
-                ImGui.Text("Fire Thunders:");
-                foreach (var x in _fireThunders)
-                {
-                    ImGui.Text(x.ToString());
-                }
-            }
-            else
-            {
-                ImGui.Text($"Fire Thunders: None");
-            }
-
-            ImGui.NewLine();
-            List<ImGuiEx.EzTableEntry> Entries = [];
-            foreach (var x in _partyDataList)
-            {
-                if (!x.EntityId.TryGetObject(out var pc)) continue;
-                Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(pc.Name.ToString())));
-                Entries.Add(new ImGuiEx.EzTableEntry("ObjectId", () => ImGui.Text(x.EntityId.ToString())));
-                Entries.Add(new ImGuiEx.EzTableEntry("LR", () => ImGui.Text(x.LR.ToString())));
-                Entries.Add(new ImGuiEx.EzTableEntry("PriorityNum", () => ImGui.Text(x.PriorityNum.ToString())));
-                Entries.Add(new ImGuiEx.EzTableEntry("TetherNum", () => ImGui.Text(x.TetherNum.ToString())));
-            }
-
-            ImGuiEx.EzTable(Entries);
-        }
-    }
-    #endregion
-
-    #region Private Methods
-    private void ParseData()
-    {
-        var NoBuffers = _partyDataList.Where(x => x.Object?.StatusList.All(z => z.StatusId != 1051) == true);
-
-        int i = 0;
-        foreach (var NoBuffer in NoBuffers)
-        {
-            NoBuffer.LR = (i < 2) ? LR.Left : LR.Right;
-            ++i;
-        }
-
-        var leftNoBuffPcs = _partyDataList.Where(x => x.LR == LR.Left && x.EntityId.GetObject() is IPlayerCharacter pc && pc.StatusList.All(z => z.StatusId != 1051)).ToList();
-        var rightNoBuffPcs = _partyDataList.Where(x => x.LR == LR.Right && x.EntityId.GetObject() is IPlayerCharacter pc && pc.StatusList.All(z => z.StatusId != 1051)).ToList();
-
-        if (leftNoBuffPcs.Count != 2 || rightNoBuffPcs.Count != 2)
-        {
-            DuoLog.Error("No Buffer Priority List is not 2");
-            _state = State.End;
-            return;
-        }
-
-        leftNoBuffPcs[0].PriorityNum = 1;
-        leftNoBuffPcs[1].PriorityNum = 2;
-        rightNoBuffPcs[0].PriorityNum = 1;
-        rightNoBuffPcs[1].PriorityNum = 2;
-    }
-
-    private void ShowElements()
-    {
-        HideAllElements();
-        if (_state == State.Casting)
-        {
-            foreach (var pc in _partyDataList)
-            {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
-                {
-                    if (_fireThunders[0] == FireThunder.Fire)
-                    {
-                        if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (_fireThunders[1] == FireThunder.Fire)
-                    {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                }
-            }
-        }
-        else if (_state == State.Soil1End)
-        {
-            foreach (var pc in _partyDataList)
-            {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
-                {
-                    if (_fireThunders[2] == FireThunder.Fire)
-                    {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (_fireThunders[1] == FireThunder.Fire)
-                    {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                }
-            }
-        }
-        else if (_state == State.Soil2End)
-        {
-            foreach (var pc in _partyDataList)
-            {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
-                {
-                    if (_fireThunders[2] == FireThunder.Fire)
-                    {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                }
-                else
-                {
-                    if (_fireThunders[3] == FireThunder.Fire)
-                    {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                }
-            }
-        }
-        else if (_state == State.Soil3End)
-        {
-            foreach (var pc in _partyDataList)
-            {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
-                {
-                    if (Controller.TryGetElementByName("LeftNone2", out var el)) el.Enabled = true;
-                    break;
-                }
-                else
-                {
-                    if (_fireThunders[3] == FireThunder.Fire)
-                    {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                    else
-                    {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
-                        break;
-                    }
-                }
-            }
-        }
+        _mechanicActive = false;
     }
 
     private PartyData? GetMinedata() => _partyDataList.Find(x => x.Mine) ?? null;
@@ -456,22 +188,24 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             _partyDataList[i].Index = i;
         }
     }
-    #endregion
-
     #region API
     /********************************************************************/
     /* API                                                              */
     /********************************************************************/
     private static readonly Job[] jobOrder =
     {
+        Job.WHM,
+        Job.AST,
         Job.DRK,
         Job.WAR,
         Job.GNB,
         Job.PLD,
-        Job.WHM,
-        Job.AST,
-        Job.SCH,
-        Job.SGE,
+        Job.DRG,
+        Job.VPR,
+        Job.SAM,
+        Job.MNK,
+        Job.RPR,
+        Job.NIN,
         Job.BRD,
         Job.MCH,
         Job.DNC,
@@ -479,12 +213,8 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         Job.SMN,
         Job.PCT,
         Job.BLM,
-        Job.DRG,
-        Job.VPR,
-        Job.SAM,
-        Job.MNK,
-        Job.RPR,
-        Job.NIN,
+        Job.SCH,
+        Job.SGE,
     };
 
     private static readonly Job[] TankJobs = { Job.DRK, Job.WAR, Job.GNB, Job.PLD };

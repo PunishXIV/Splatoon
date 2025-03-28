@@ -1,14 +1,9 @@
-**[UNTESTED, WIP]** [Script] Escelon's Fall
-Warning: might be incomplete/missing settings. Will be refined as more understanding is gained about this mechanic
+**[Script]** Escelon's Fall
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/EX4%20Escelons%20Fall.cs
 ```
 
 *The following presets were translated from https://tooleroflight.blog.jp/*
-```
-~Lv2~{"Name":"Zelenia - Escelon's Fall (Inside)","Group":"DT EX4 JP","ZoneLockH":[1271],"DCond":5,"ElementsL":[{"Name":"Circle - Inside","type":1,"radius":5.0,"color":4278190335,"Filled":false,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":4.0,"thicc":0.0,"overlayText":"Inside","refActorNPCNameID":13861,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"onlyVisible":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":1.0,"Match":"vfx/common/eff/m0888_stlp08_c0t1.avfx"}],"Freezing":true,"FreezeFor":13.0,"IntervalBetweenFreezes":1.0,"FreezeDisplayDelay":10.0}
-~Lv2~{"Name":"Zelenia - Escelon's Fall (Outside)","Group":"DT EX4 JP","ZoneLockH":[1271],"DCond":5,"ElementsL":[{"Name":"Circle - Outside","type":1,"radius":5.0,"color":4278190335,"Filled":false,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":4.0,"thicc":0.0,"overlayText":"Outside","refActorNPCNameID":13861,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"onlyVisible":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":1.0,"Match":"vfx/common/eff/m0888_stlp09_c0t1.avfx"}],"Freezing":true,"FreezeFor":13.0,"IntervalBetweenFreezes":1.0,"FreezeDisplayDelay":10.0}
-```
 ```
 ~Lv2~{"Name":"Zelenia - Blessed Barricade Towers","Group":"DT EX4 JP","ZoneLockH":[1271],"ElementsL":[{"Name":"Highlight Towers","type":1,"radius":2.5,"Donut":0.5,"color":4294967040,"fillIntensity":0.5,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[43068],"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ~Lv2~{"Name":"Zelenia - Blessed Barricade Line","Group":"DT EX4 JP","ZoneLockH":[1271],"DCond":5,"ElementsL":[{"Name":"Self","type":1,"radius":1.0,"color":3355508480,"fillIntensity":0.5,"refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Line","type":1,"color":3355508480,"fillIntensity":0.5,"thicc":5.0,"refActorNPCNameID":13864,"refActorComparisonType":6,"tether":true,"refActorTether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":6.0,"refActorTetherParam1":0,"refActorTetherParam2":17,"refActorTetherParam3":15,"refActorTetherConnectedWithPlayer":["<me>"]}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"vfx/lockon/eff/lockon5_t0h.avfx spawned on me"}]}
@@ -44,4 +39,11 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 ```
 ~Lv2~{"Name":"Zelenia - Roseblood 6 Holy Hazard","Group":"DT EX4 JP","ZoneLockH":[1271],"ElementsL":[{"Name":"Holy Hazard","type":4,"radius":16.0,"coneAngleMin":-60,"coneAngleMax":60,"color":3372220160,"fillIntensity":0.5,"refActorNPCNameID":13861,"refActorRequireCast":true,"refActorCastId":[43234],"refActorUseCastTime":true,"refActorCastTimeMin":5.0,"refActorCastTimeMax":7.5,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+
+## Outdated
+These presets were replaced by scripts or other presets
+```
+~Lv2~{"Name":"Zelenia - Escelon's Fall (Inside)","Group":"DT EX4 JP","ZoneLockH":[1271],"DCond":5,"ElementsL":[{"Name":"Circle - Inside","type":1,"radius":5.0,"color":4278190335,"Filled":false,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":4.0,"thicc":0.0,"overlayText":"Inside","refActorNPCNameID":13861,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"onlyVisible":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":1.0,"Match":"vfx/common/eff/m0888_stlp08_c0t1.avfx"}],"Freezing":true,"FreezeFor":13.0,"IntervalBetweenFreezes":1.0,"FreezeDisplayDelay":10.0}
+~Lv2~{"Name":"Zelenia - Escelon's Fall (Outside)","Group":"DT EX4 JP","ZoneLockH":[1271],"DCond":5,"ElementsL":[{"Name":"Circle - Outside","type":1,"radius":5.0,"color":4278190335,"Filled":false,"fillIntensity":0.3,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":4.0,"overlayFScale":4.0,"thicc":0.0,"overlayText":"Outside","refActorNPCNameID":13861,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"onlyVisible":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":1.0,"Match":"vfx/common/eff/m0888_stlp09_c0t1.avfx"}],"Freezing":true,"FreezeFor":13.0,"IntervalBetweenFreezes":1.0,"FreezeDisplayDelay":10.0}
 ```

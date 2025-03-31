@@ -1,8 +1,10 @@
-﻿using ECommons.GameFunctions;
+﻿using Dalamud.Utility;
+using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using Splatoon.Memory;
 using Splatoon.Serializables;
+using System.Runtime.InteropServices;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
 namespace Splatoon.RenderEngines.DirectX11;
@@ -21,6 +23,10 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         try
         {
+            if(Utils.IsLinux())
+            {
+                if(!P.Config.DX11EnabledOnMacLinux && !P.ForceLoadDX11) throw new InvalidOperationException("DirectX11 renderer was disabled because Mac/Linux was detected and user has not allowed it to be loaded.");
+            }
             //throw new NotImplementedException("DirectX renderer is not updated");
             DirectX11Scene = new(this);
         }

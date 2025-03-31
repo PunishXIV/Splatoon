@@ -26,6 +26,9 @@ internal class Configuration : IEzConfig
 
     public int Version { get; set; } = 2;
 
+    public bool DX11EnabledOnMacLinux = false;
+    public bool DX11MacLinuxWarningHidden = false;
+
     public RenderEngineKind RenderEngineKind = RenderEngineKind.DirectX11;
     public HashSet<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];
 

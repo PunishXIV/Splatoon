@@ -830,8 +830,8 @@ internal unsafe class P4_Crystallize_Time_Full_Toolers :SplatoonScript
     {
         ImGui.Checkbox("ArmsLength", ref C.ArmsLength);
         ImGui.Checkbox("FastRunRedIce3", ref C.FastRunRedIce3);
-        ImGui.SliderFloat("FastCheat", ref C.FastCheat, 1.0f, 1.5f);
-        ImGui.SliderFloat("FastCheatDefault", ref C.FastCheatDefault, 1.0f, 1.5f);
+        ImGui.SliderFloat("FastCheat", ref C.FastCheat, 1.0f, 1.7f);
+        ImGui.SliderFloat("FastCheatDefault", ref C.FastCheatDefault, 1.0f, 1.7f);
         ImGui.Checkbox("IsMaster", ref C.IsMaster);
         if (ImGuiEx.CollapsingHeader("Debug"))
         {

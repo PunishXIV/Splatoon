@@ -1,16 +1,58 @@
 ﻿using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Utility;
 using ECommons.LanguageHelpers;
 using NightmareUI.PrimaryUI;
 using Pictomancy;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
+using System.Runtime.InteropServices;
 
 namespace Splatoon;
 partial class CGui
 {
+    bool Tested = false;
     void DisplayRenderers()
     {
+        if(Utils.IsLinux())
+        {
+            new NuiBuilder()
+                .Section("Mac OS/Linux detected")
+                .Widget(() =>
+                {
+                    ImGuiEx.TextWrapped($"Mac OS or Linux operating system detected.");
+                    if(P.Config.DX11EnabledOnMacLinux)
+                    {
+                        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Times, "Disable DirectX11 renderer on Mac OS/Linux"))
+                        {
+                            P.Config.DX11EnabledOnMacLinux = false;
+                        }
+                    }
+                    else
+                    {
+                        ImGuiEx.TextWrapped($"Due to issues unrelated to Splatoon or Dalamud, DirectX11 renderer often causes crashes on these systems. Please press the following button to test whether you have this issue or not:");
+                        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ExclamationTriangle, "Reload DirectX11 render engine"))
+                        {
+                            P.ForceLoadDX11 = true;
+                            S.RenderManager.ReloadEngine(RenderEngineKind.DirectX11);
+                            P.AddDynamicElements("Test", [new(1)
+                            {
+                                refActorType = 1,
+                                radius = 5f,
+                                Filled = true,
+                                RenderEngineKind = RenderEngineKind.DirectX11,
+                            }], [-1]);
+                            Tested = true;
+                        }
+                        ImGuiEx.Text($"If your game hasn't crashed and you see red circle around you, you should be safe to enable DirectX11 render engine.");
+                        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Enable DirectX11 renderer on Mac OS/Linux", enabled: Tested))
+                        {
+                            P.Config.DX11EnabledOnMacLinux = true;
+                            P.RemoveDynamicElements("Test");
+                        }
+                    }
+                }).Draw();
+        }
         new NuiBuilder()
             .Section("Common Settings".Loc())
             .Widget(() =>

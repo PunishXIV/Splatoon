@@ -1,7 +1,7 @@
 ### **[Script]** Color Riot
 
 ```
-https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Color%20Riot.cs
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Color%20Riot.cs
 ```
 
 ### [Script] [ALPHA] Target Enforcer

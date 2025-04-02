@@ -5,6 +5,14 @@ Also works for normal
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Lets%20Dance.cs
 ```
 
+### **[Script]** Disco Infernal
+
+need config
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Disco%20Infernal.cs
+```
+
+
 ### Deep cut
 ```
 ~Lv2~{"Name":"M5S Deep Cut","Group":"AAC Cruiserweight M1 Savage","ZoneLockH":[1257],"ElementsL":[{"Name":"cone 1","type":4,"radius":70.0,"coneAngleMin":-23,"coneAngleMax":22,"refActorNPCNameID":13778,"refActorRequireCast":true,"refActorCastId":[42785],"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"faceplayer":"<t2>"},{"Name":"cone 2","type":4,"radius":70.0,"coneAngleMin":-23,"coneAngleMax":22,"refActorNPCNameID":13778,"refActorRequireCast":true,"refActorCastId":[42785],"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0,"faceplayer":"<t1>"}]}

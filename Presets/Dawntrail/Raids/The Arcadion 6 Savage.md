@@ -13,7 +13,7 @@
 ~Lv2~{"Name":"M6S Pairs","Group":"ACC Cruiserweight M2 Savage","ZoneLockH":[1259],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":5.5,"Donut":0.5,"color":3355506687,"fillIntensity":0.8,"overlayTextColor":4278253567,"overlayVOffset":2.0,"thicc":3.0,"overlayText":">> Pair (2) <<","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"Match":">42637)","MatchDelay":18.0}]}
 ```
 ```
-~Lv2~{"Name":"M6S Light parties","Group":"ACC Cruiserweight M2 Savage","ZoneLockH":[1259],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":5.0,"Donut":1.0,"color":3356425984,"fillIntensity":0.8,"overlayTextColor":4278255364,"overlayVOffset":2.0,"thicc":3.0,"overlayText":">> Light party (4) <<","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":8.0,"Match":">42635)","MatchDelay":18.0}]}
+~Lv2~{"Name":"M6S Light parties","Group":"ACC Cruiserweight M2 Savage","ZoneLockH":[1259],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":5.0,"Donut":1.0,"color":3356425984,"fillIntensity":0.8,"overlayTextColor":4278255364,"overlayVOffset":2.0,"thicc":3.0,"overlayText":">> Light party (4) <<","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"Match":">42635)","MatchDelay":18.0}]}
 ```
 
 ### Sticky mousse

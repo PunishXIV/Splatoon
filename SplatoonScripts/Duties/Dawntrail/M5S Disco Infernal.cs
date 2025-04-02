@@ -14,7 +14,7 @@ using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public sealed class R5S_Disco_Infernal : SplatoonScript
+public sealed class M5S_Disco_Infernal : SplatoonScript
 {
     public enum Direction
     {

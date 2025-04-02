@@ -200,19 +200,16 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
                 SetElementFromIndex(6, 6);
             }
             else if (C.Directions.Contains(Direction.NorthEastInside))
-
             {
-                if (HasSpotLightAt(4, 2) && isShortDebuff)
-                    SetElementFromIndex(5, 3);
-                else
-                    SetElementFromIndex(4, 2);
+                var index = HasSpotLightAt(4,2) ? (4,2) : (5,3);
+                if (isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1,index.Item2);
             }
             else if (C.Directions.Contains(Direction.SouthWestInside))
             {
-                if (HasSpotLightAt(2, 4) && isShortDebuff)
-                    SetElementFromIndex(3, 5);
-                else
-                    SetElementFromIndex(2, 4);
+                var index = HasSpotLightAt(2,4) ? (2,4) : (3,5);
+                if (isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1,index.Item2);
             }
         }
         else
@@ -227,17 +224,15 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
             }
             else if (C.Directions.Contains(Direction.NorthWestInside))
             {
-                if (HasSpotLightAt(3, 2) && isShortDebuff)
-                    SetElementFromIndex(2, 3);
-                else
-                    SetElementFromIndex(3, 2);
+                var index = HasSpotLightAt(3,2) ? (3,2) : (2,3);
+                if (isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1,index.Item2);
             }
             else if (C.Directions.Contains(Direction.SouthEastInside))
             {
-                if (HasSpotLightAt(5, 4) && isShortDebuff)
-                    SetElementFromIndex(4, 5);
-                else
-                    SetElementFromIndex(5, 4);
+                var index = HasSpotLightAt(5,4) ? (5,4) : (4,5);
+                if (isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1,index.Item2);
             }
         }
     }

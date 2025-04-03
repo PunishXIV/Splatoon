@@ -93,6 +93,8 @@ public unsafe class Splatoon :IDalamudPlugin
     internal PriorityPopupWindow PriorityPopupWindow;
     internal ScriptUpdateWindow ScriptUpdateWindow;
     internal TaskManager TaskManager;
+    internal bool ForceLoadDX11 = false;
+    internal LinuxWarningPopup LinuxWarningPopup;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -207,6 +209,8 @@ public unsafe class Splatoon :IDalamudPlugin
         EzConfigGui.WindowSystem.AddWindow(PriorityPopupWindow);
         ScriptUpdateWindow = new();
         EzConfigGui.WindowSystem.AddWindow(ScriptUpdateWindow);
+        LinuxWarningPopup = new();
+        EzConfigGui.WindowSystem.AddWindow(LinuxWarningPopup);
         TaskManager = new(new(showDebug:true));
         ScriptingProcessor.TerritoryChanged();
         ScriptingProcessor.ReloadAll();

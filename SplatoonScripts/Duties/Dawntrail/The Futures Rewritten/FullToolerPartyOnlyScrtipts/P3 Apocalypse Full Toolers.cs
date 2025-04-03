@@ -100,7 +100,7 @@ internal unsafe class P3_Apocalypse_Full_Toolers :SplatoonScript
     /* public properties                                                */
     /********************************************************************/
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(11, "redmoon");
+    public override Metadata? Metadata => new(12, "redmoon");
     #endregion
 
     #region private properties
@@ -156,14 +156,8 @@ internal unsafe class P3_Apocalypse_Full_Toolers :SplatoonScript
         if (castId == 40269)
         {
             SetListEntityIdByJob();
-            //_partyDataList[0].Mine = false;
-            //_partyDataList[1].Mine = false;
-            //_partyDataList[2].Mine = true;
-            //_partyDataList[3].Mine = false;
-            //_partyDataList[4].Mine = false;
-            //_partyDataList[5].Mine = false;
-            //_partyDataList[6].Mine = false;
-            //_partyDataList[7].Mine = false;
+            //_partyDataList.Each(x => x.Mine = false);
+            //_partyDataList[1].Mine = true;
             _state = State.GimmickStart;
         }
         if (_state == State.None) return;

@@ -53,5 +53,10 @@ Warning, you must enable your designated spot!
 
 ### Arrows
 ```
-~Lv2~{"Name":"M6S Arrows","Group":"ACC Cruiserweight M2 Savage","ZoneLockH":[1259],"ElementsL":[{"Name":"","type":3,"refY":40.0,"radius":3.5,"overlayText":"18338","refActorDataID":18338,"refActorComparisonType":3,"includeRotation":true,"onlyVisible":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+~Lv2~{"Name":"M6S Arrows","Group":"ACC Cruiserweight M2 Savage","ZoneLockH":[1259],"ElementsL":[{"Name":"","type":3,"refY":50.0,"radius":3.5,"color":3372155106,"fillIntensity":0.345,"overlayText":"18338","refActorDataID":18338,"refActorRequireCast":true,"refActorCastReverse":true,"refActorCastId":[42630],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":99999.0,"refActorUseOvercast":true,"refActorComparisonType":3,"includeRotation":true,"LimitDistance":true,"LimitDistanceInvert":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":20.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+```
+
+### Cloud highlight
+```
+~Lv2~{"Name":"M6S Cloud highlight","Group":"ACC Cruiserweight M2 Savage","ZoneLockH":[1259],"ElementsL":[{"Name":"","type":1,"radius":21.0,"color":3355508719,"fillIntensity":0.2,"refActorNPCNameID":13827,"refActorRequireCast":true,"refActorCastReverse":true,"refActorCastId":[42651],"refActorComparisonType":6,"onlyVisible":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":1,"radius":21.0,"fillIntensity":0.5,"refActorNPCNameID":13827,"refActorRequireCast":true,"refActorCastId":[42651],"refActorComparisonType":6,"onlyVisible":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```

@@ -38,7 +38,7 @@ public class M6S_Color_Riot :SplatoonScript
     private bool _nearIsRed;
 
     public override HashSet<uint>? ValidTerritories => [1259];
-    public override Metadata? Metadata => new(3, "Garume, Redmoon");
+    public override Metadata? Metadata => new(4, "Garume, Redmoon");
 
     private static IBattleNpc? Enemy =>
         Svc.Objects.Where(x => x.DataId == 0x479F).OfType<IBattleNpc>().FirstOrDefault();

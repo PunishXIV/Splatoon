@@ -1,4 +1,5 @@
 ## Warning - high screen clutter/flashy colors. Be ready.
+## Warning - these presets are in active development, will be updated frequently. Check commit history on this file to see when there was last update.
 
 # Phase 1
 

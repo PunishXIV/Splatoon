@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
@@ -16,10 +12,14 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public class M6S_Color_Riot : SplatoonScript
+public class M6S_Color_Riot :SplatoonScript
 {
     public enum BaitType
     {
@@ -192,14 +192,14 @@ public class M6S_Color_Riot : SplatoonScript
                 if (hasBlueDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
-                    avoid.Donut = 25f;
+                    avoid.Donut = 0f;
                     avoid.radius = GetRadius(false);
                     text.overlayText = farPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Far!!";
                 }
                 else if (hasRedDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
-                    avoid.Donut = 0f;
+                    avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
@@ -283,11 +283,10 @@ public class M6S_Color_Riot : SplatoonScript
                 .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), z.Position.ToVector2())).ToList()
                 .SafeSelect(isIn ? 0 : 5);
         var distance = Vector2.Distance(z.Position.ToVector2(), breakpoint.Position.ToVector2());
-        //distance += isIn ? -0.5f : 0.5f;
-        return Math.Max(0.5f, distance);
+        return Math.Max(5f, distance);
     }
 
-    public class Config : IEzConfig
+    public class Config :IEzConfig
     {
         public BaitType BaitType = BaitType.None;
     }

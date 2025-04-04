@@ -81,7 +81,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         DrawText(e, go, cx, cy, z);
     }
 
-    void DrawText(Element e, IGameObject go, float cx, float cy, float z) 
+    void DrawText(Element e, IGameObject go, float cx, float cy, float z)
     {
         if(e.overlayText.Length > 0)
         {
@@ -161,7 +161,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;
 
-                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
+                var line = new DisplayObjectLine(Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(go), e.LineEndA, e.LineEndB);
                 DisplayObjects.Add(line);
             }
         }

@@ -1,5 +1,7 @@
 ## Warning - high screen clutter/flashy colors. Be ready.
 
+# Phase 1
+
 ### Stonefang/Windfang
 **Warning:** Contains configurable elements. [If you want to see your designated spot, open these presets and edit 4 elements' ADD ANGLE option as displayed in image available via this link.](https://github.com/PunishXIV/Splatoon/blob/main/Presets/Files/Dawntrail/m8sfang.png) Preset is usable without additional configuration as well, though.
 ```

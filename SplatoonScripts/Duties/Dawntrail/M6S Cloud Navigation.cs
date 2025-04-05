@@ -18,50 +18,41 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M6S_Cloud_Navigation : SplatoonScript
 {
-    private enum CloudDirection
-    {
-        NorthWest,
-        NorthEast,
-        South
-    }
-    
     private const uint CloudDataId = 18339;
-    private readonly string _basePlayerOverride = "";
-    private List<IntPtr> _aoeList = new();
+    private readonly string _basePlayerOverride = string.Empty;
+    private readonly List<IntPtr> _aoeList = [];
     private CloudDirection _currentCloudDirection;
     private Vector3 _lastPosition;
     private State _state = State.None;
     private Config C => Controller.GetConfig<Config>();
+
     public override HashSet<uint>? ValidTerritories => [1259];
 
-    private static IBattleNpc? Cloud => Svc.Objects
-        .FirstOrDefault(x => x.DataId == CloudDataId) as IBattleNpc;
+    private static IBattleNpc? Cloud =>
+        Svc.Objects.FirstOrDefault(x => x.DataId == CloudDataId) as IBattleNpc;
 
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if (_basePlayerOverride == "")
-                return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
+    private IPlayerCharacter BasePlayer =>
+        string.IsNullOrEmpty(_basePlayerOverride)
+            ? Player.Object
+            : Svc.Objects.OfType<IPlayerCharacter>()
                 .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
-        }
-    }
 
     public override void OnSettingsDraw()
     {
         ImGui.Checkbox("You are Right Side", ref C.IsRight);
-        ImGuiEx.HelpMarker("When the clouds are in the back and the bridge is in the front, should you go right or left?");
+        ImGuiEx.HelpMarker(
+            "When the clouds are in the back and the bridge is in the front, should you go right or left?");
 
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
-            ImGui.Text($"Cloud Direction {_currentCloudDirection.ToString()}");
-            ImGui.Text($"Cloud Position {Cloud?.Position.ToString() ?? "null"}");
-            ImGui.Text($"State {_state.ToString()}");
+            ImGui.Text($"Cloud Direction: {_currentCloudDirection}");
+            ImGui.Text($"Cloud Position: {Cloud?.Position.ToString() ?? "null"}");
+            ImGui.Text($"State: {_state}");
             foreach (var aoe in _aoeList)
             {
-                var name = Svc.Objects.OfType<IPlayerCharacter>().First(x => x.Address == aoe).Name;
-                ImGui.Text($"Aoe Target {name}");
+                var player = Svc.Objects.OfType<IPlayerCharacter>().FirstOrDefault(x => x.Address == aoe);
+                if (player != null)
+                    ImGui.Text($"AoE Target: {player.Name}");
             }
         }
     }
@@ -79,12 +70,12 @@ public class M6S_Cloud_Navigation : SplatoonScript
 
     private CloudDirection GetDirectionFromPosition(Vector3 position)
     {
-        if (position.Z > 100) return CloudDirection.South;
-        if (position.X < 100) return CloudDirection.NorthWest;
-        return CloudDirection.NorthEast;
+        if (position.Z > 100)
+            return CloudDirection.South;
+        return position.X < 100 ? CloudDirection.NorthWest : CloudDirection.NorthEast;
     }
 
-    private CloudDirection? ChangeDirectionFromVector(CloudDirection current, Vector3 vector)
+    private CloudDirection ChangeDirectionFromVector(CloudDirection current, Vector3 vector)
     {
         switch (current)
         {
@@ -101,47 +92,43 @@ public class M6S_Cloud_Navigation : SplatoonScript
             case CloudDirection.NorthWest:
                 return CloudDirection.South;
             default:
-                return null;
+                return current;
         }
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (_state is State.None or State.End) return;
-        if (target.GetObject() is IPlayerCharacter player && vfxPath == "vfx/lockon/eff/m0922trg_t2w.avfx")
+        if (_state is State.None or State.End)
+            return;
+
+        if (target.GetObject() is IPlayerCharacter player &&
+            vfxPath == "vfx/lockon/eff/m0922trg_t2w.avfx")
         {
-            if (_aoeList.Count >= 2) _aoeList.Clear();
+            if (_aoeList.Count >= 2)
+                _aoeList.Clear();
+
             _aoeList.Add(player.Address);
-            if (Controller.TryGetElementByName("Bait", out var baitElement))
-                baitElement.SetOffPosition(GetSafePosition());
+            UpdateBaitPosition();
         }
     }
 
     private Vector3 GetSafePosition()
     {
+        var isPlayerInAoe = _aoeList.Contains(BasePlayer.Address);
         switch (_currentCloudDirection)
         {
             case CloudDirection.NorthWest:
-            {
-                if (_aoeList.Contains(BasePlayer.Address))
-                    return C.IsRight ? new Vector3(115, 0, 85) : new Vector3(100, 0, 115);
-
-                return new Vector3(107, 0, 106);
-            }
+                return isPlayerInAoe
+                    ? C.IsRight ? new Vector3(115, 0, 85) : new Vector3(100, 0, 115)
+                    : new Vector3(107, 0, 106);
             case CloudDirection.NorthEast:
-            {
-                if (_aoeList.Contains(BasePlayer.Address))
-                    return C.IsRight ? new Vector3(100, 0, 115) : new Vector3(85, 0, 85);
-
-                return new Vector3(91, 0, 103);
-            }
+                return isPlayerInAoe
+                    ? C.IsRight ? new Vector3(100, 0, 115) : new Vector3(85, 0, 85)
+                    : new Vector3(91, 0, 103);
             case CloudDirection.South:
-            {
-                if (_aoeList.Contains(BasePlayer.Address))
-                    return C.IsRight ? new Vector3(85, 0, 85) : new Vector3(115, 0, 85);
-
-                return new Vector3(101, 0, 91);
-            }
+                return isPlayerInAoe
+                    ? C.IsRight ? new Vector3(85, 0, 85) : new Vector3(115, 0, 85)
+                    : new Vector3(101, 0, 91);
             default:
                 return Vector3.Zero;
         }
@@ -149,51 +136,47 @@ public class M6S_Cloud_Navigation : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state == State.None)
+        var cloud = Cloud;
+
+        switch (_state)
         {
-            var cloud = Cloud;
-            if (cloud != null)
-            {
-                _lastPosition = cloud.Position;
-                _currentCloudDirection = GetDirectionFromPosition(cloud.Position);
-                _state = State.Stopping;
-                PluginLog.Warning(_currentCloudDirection.ToString());
-                if (Controller.TryGetElementByName("Bait", out var baitElement))
-                    baitElement.SetOffPosition(GetSafePosition());
-            }
-        }
+            case State.None:
+                if (cloud != null)
+                {
+                    _lastPosition = cloud.Position;
+                    _currentCloudDirection = GetDirectionFromPosition(cloud.Position);
+                    _state = State.Stopping;
+                    UpdateBaitPosition();
+                }
 
-        if (_state == State.Stopping)
-        {
-            var cloud = Cloud;
-            if (cloud == null)
-            {
-                _state = State.End;
-                return;
-            }
+                break;
 
-            if (_lastPosition != cloud.Position)
-            {
-                _state = State.Moving;
-                var vector = cloud.Position - _lastPosition;
-                var normalized = Vector3.Normalize(vector);
+            case State.Stopping:
+                if (cloud == null)
+                {
+                    _state = State.End;
+                    return;
+                }
 
-                _currentCloudDirection = ChangeDirectionFromVector(_currentCloudDirection, normalized)
-                                         ?? _currentCloudDirection;
+                if (_lastPosition != cloud.Position)
+                {
+                    _state = State.Moving;
+                    var movementVector = cloud.Position - _lastPosition;
+                    var normalized = Vector3.Normalize(movementVector);
+                    _currentCloudDirection = ChangeDirectionFromVector(_currentCloudDirection, normalized);
+                    UpdateBaitPosition();
+                }
 
-                if (Controller.TryGetElementByName("Bait", out var baitElement))
-                    baitElement.SetOffPosition(GetSafePosition());
-            }
-        }
+                break;
 
-        if (_state == State.Moving)
-        {
-            var cloud = Cloud;
-            if (cloud != null && _lastPosition == cloud.Position)
-            {
-                _state = State.Stopping;
-                _currentCloudDirection = GetDirectionFromPosition(cloud.Position);
-            }
+            case State.Moving:
+                if (cloud != null && _lastPosition == cloud.Position)
+                {
+                    _state = State.Stopping;
+                    _currentCloudDirection = GetDirectionFromPosition(cloud.Position);
+                }
+
+                break;
         }
 
         if (_state is State.Moving or State.Stopping)
@@ -203,14 +186,25 @@ public class M6S_Cloud_Navigation : SplatoonScript
                 x.Value.Enabled = true;
                 x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
             });
-
-            var cloud = Cloud;
-            if (cloud != null) _lastPosition = cloud.Position;
+            if (cloud != null)
+                _lastPosition = cloud.Position;
         }
         else
         {
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            DisableRegisteredElements();
         }
+    }
+
+    private void UpdateBaitPosition()
+    {
+        if (Controller.TryGetElementByName("Bait", out var baitElement))
+            baitElement.SetOffPosition(GetSafePosition());
+    }
+    
+    private void DisableRegisteredElements()
+    {
+        foreach (var element in Controller.GetRegisteredElements())
+            element.Value.Enabled = false;
     }
 
     public override void OnReset()
@@ -220,18 +214,25 @@ public class M6S_Cloud_Navigation : SplatoonScript
         _lastPosition = Vector3.Zero;
     }
 
-    private class Config : IEzConfig
+    private enum CloudDirection
     {
-        public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
-        public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
-        public bool IsRight = true;
+        NorthWest,
+        NorthEast,
+        South
     }
-    
+
     private enum State
     {
         None,
         Stopping,
         Moving,
         End
+    }
+
+    private class Config : IEzConfig
+    {
+        public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
+        public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public bool IsRight = true;
     }
 }

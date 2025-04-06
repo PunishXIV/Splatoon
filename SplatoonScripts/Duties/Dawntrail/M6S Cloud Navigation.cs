@@ -83,11 +83,11 @@ public class M6S_Cloud_Navigation : SplatoonScript
                 return vector.X < 0 ? CloudDirection.NorthWest : CloudDirection.NorthEast;
             case CloudDirection.South:
                 return CloudDirection.South;
-            case CloudDirection.NorthEast when vector.Z == 0:
+            case CloudDirection.NorthEast when vector.Z < 0.5f:
                 return vector.X > 0 ? CloudDirection.NorthEast : CloudDirection.NorthWest;
             case CloudDirection.NorthEast:
                 return CloudDirection.South;
-            case CloudDirection.NorthWest when vector.Z == 0:
+            case CloudDirection.NorthWest when vector.Z < 0.5f:
                 return vector.X < 0 ? CloudDirection.NorthWest : CloudDirection.NorthEast;
             case CloudDirection.NorthWest:
                 return CloudDirection.South;

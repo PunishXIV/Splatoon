@@ -1,5 +1,6 @@
-## Warning - high screen clutter/flashy colors. Be ready.
+## Warning - high screen clutter/flashy colors. Be ready. 
 ## Warning - these presets are in active development, will be updated frequently. Check commit history on this file to see when there was last update.
+## Warning: due to fast paced nature of this battle, a lot of presets require configuration specifically to your position. Carefully check preset descriptions.
 
 # Phase 1
 

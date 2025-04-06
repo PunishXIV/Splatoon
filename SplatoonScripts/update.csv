@@ -8,6 +8,7 @@ SplatoonScriptsOfficial.Generic@AetherSight,2,https://github.com/PunishXIV/Splat
 SplatoonScriptsOfficial.Generic@ScriptEventLogger,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@ObjectExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ObjectExplorer.cs
 SplatoonScriptsOfficial.Generic@ShowEmote,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs
+SplatoonScriptsOfficial.Generic@TargetCircle,0,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/TargetCircle.cs
 SplatoonScriptsOfficial.Generic@Makeplace2List,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Makeplace2List.cs
 SplatoonScriptsOfficial.Generic@ArtisanCraftCommand,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ArtisanCraftCommand.cs
 SplatoonScriptsOfficial.Generic@CheckEmote,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CheckEmote.cs
@@ -18,6 +19,7 @@ SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splat
 SplatoonScriptsOfficial.Generic@ForceSetDirection,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ForceSetDirection.cs
 SplatoonScriptsOfficial.Generic@ShowTooltipOnKey,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowTooltipOnKey.cs
 SplatoonScriptsOfficial.Generic@ExportBlacklist,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ExportBlacklist.cs
+SplatoonScriptsOfficial.Generic@FateVisualiser,0,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/FateVisualiser.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
 SplatoonScriptsOfficial.Generic@AutoFateSync,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoFateSync.cs
 SplatoonScriptsOfficial.Generic@AutoTargetSwitcher,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoTargetSwitcher.cs

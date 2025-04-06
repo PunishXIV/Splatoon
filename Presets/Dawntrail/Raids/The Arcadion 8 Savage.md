@@ -96,7 +96,7 @@ The following preset indicates range of cone attack directed at healers and tank
 
 ### Fanged charge
 ```
-~Lv2~{"Name":"M8S Fanged charge","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"ElementsL":[{"Name":"","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"color":3355506687,"fillIntensity":0.1,"refActorNPCNameID":13849,"refActorRequireCast":true,"refActorCastId":[41942],"refActorUseCastTime":true,"refActorCastTimeMax":2.0,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"refActorNPCNameID":13849,"refActorRequireCast":true,"refActorCastId":[41942],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":3.69,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
+~Lv2~{"Name":"M8S Terrestrial Fanged charge","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"ElementsL":[{"Name":"Line","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"color":3355506687,"fillIntensity":0.1,"refActorNPCNameID":13849,"refActorRequireCast":true,"refActorCastId":[41942],"refActorUseCastTime":true,"refActorCastTimeMax":2.0,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Line 2","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"fillIntensity":0.5,"refActorNPCNameID":13849,"refActorRequireCast":true,"refActorCastId":[41942],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":3.69,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
 ### Terrestrial Rage - relative north finder

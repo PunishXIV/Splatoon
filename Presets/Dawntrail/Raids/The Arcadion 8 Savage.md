@@ -120,6 +120,7 @@ Extra indication that you need to spread. Present during Breath of decay and Ter
 Shows approximately where you need to spread to dodge line AOEs if you have FIRST spread marker. 
 
 > [!IMPORTANT]
+> This preset is for the strat where first spawned fang becomes relative north, melee spread into first row, ranged into second row, and stack is taken in the middle. If you are using different strat, do not import.
 > 
 > Requires configuration. Open each layout and enable TWO elements from each group, depending to where you need to go, relative when looking at first fang near to the wall that has first spawned.
 

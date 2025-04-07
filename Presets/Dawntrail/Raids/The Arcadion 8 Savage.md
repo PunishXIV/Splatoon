@@ -216,3 +216,11 @@ Early display
 ```
 ~Lv2~{"Name":"M8S green tether w/healer","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4111092992,"overlayTextColor":4280418048,"overlayVOffset":2.0,"overlayText":"> Close W/HEALER - GO TO HEALER then 3 TOWER <","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:SCH TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:AST TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:SGE TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:WHM TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:SCH"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:AST"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:SGE"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:WHM"}]}
 ```
+
+### [Script] [ALPHA] Lone Wolfs Lament
+I created this based on the following link.
+
+https://www.youtube.com/watch?v=CPpfqs0ysuM&t=621s
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Lone%20Wolfs%20Lament.cs
+```

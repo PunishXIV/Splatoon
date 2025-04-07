@@ -117,8 +117,11 @@ Extra indication that you need to spread. Present during Breath of decay and Ter
 ```
 
 ### [Beta] Terrestrial Spreads - requires configuration
-Shows approximately where you need to spread to dodge cleaves if you have spread marker.
+Shows approximately where you need to spread to dodge line AOEs if you have FIRST spread marker. 
+
 > [!IMPORTANT]
+> [This preset is designed SPECIFICALLY for this strat](https://youtu.be/MQ8ajpA5Bp8?t=813)
+> 
 > Requires configuration. Open each layout and enable TWO elements from each group, depending to where you need to go, relative when looking at first fang near to the wall that has first spawned.
 
 > [!WARNING]
@@ -151,6 +154,7 @@ Shows approximately where you need to spread to dodge cleaves if you have spread
 ### Moonlit Shadows
 > [!IMPORTANT]
 > Red - immediate danger, yellow - next piece. Darkened piece is a reference (relative north)
+> 
 > Don't want something of that? Well simply disable it.
 ```
 ~Lv2~{"Name":"M8S Beckon Moonlight 1 early","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"ElementsL":[{"Name":"left","type":4,"offY":12.0,"radius":15.0,"coneAngleMin":180,"coneAngleMax":360,"color":3355443200,"fillIntensity":1.0,"refActorNPCNameID":13845,"refActorRequireCast":true,"refActorCastId":[41923],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"right","type":4,"offY":12.0,"radius":15.0,"coneAngleMax":180,"color":3355443200,"fillIntensity":1.0,"refActorNPCNameID":13845,"refActorRequireCast":true,"refActorCastId":[41922],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"Freezing":true,"FreezeFor":4.7}

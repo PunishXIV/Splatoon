@@ -1,6 +1,9 @@
-﻿using Dalamud.Hooking;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
 using ECommons.DalamudServices.Legacy;
+using ECommons.ExcelServices;
+using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Splatoon.Modules;
@@ -68,10 +71,24 @@ internal unsafe class TetherProcessor
                 else
                 {
                     ScriptingProcessor.OnTetherCreate(a1->OwnerObject->EntityId, (uint)targetOID, a2, a3, a5);
-                    var text = $"Tether create: {(nint)a1:X16} / {a1->OwnerObject->Name.Read()} / {a1->OwnerObject->EntityId}, {targetOID}/{(uint)targetOID}, {a2}, {a3}, {a5}";
+                    var isSourceYou = (nint)a1->OwnerObject == Player.Object.Address;
+                    var isTargetYou = (uint)targetOID == Player.Object.EntityId;
+                    var sourceText = isSourceYou ? "YOU" : (a1->OwnerObject->ObjectKind == ObjectKind.Pc ? ((Job)a1->OwnerObject->ClassJob).ToString() : a1->OwnerObject->BaseId.ToString());
+                    IGameObject targetObj = null;
+                    foreach(var x in Svc.Objects) 
+                    {
+                        if(x.GameObjectId == (ulong)targetOID)
+                        {
+                            targetObj = x;
+                            break;
+                        }
+                    }
+                    var targetText = isTargetYou ? "YOU" : (targetObj is IPlayerCharacter pc ? pc.GetJob().ToString() : targetObj?.DataId.ToString() ?? targetOID.ToString());
+                    var text = $"Tether create: TetherSource:{sourceText} TetherParam:({a2}, {a3}, {a5}) TetherTarget:{targetText}";
                     PluginLog.Verbose(text);
                     Logger.Log(text);
                     P.LogWindow.Log(text);
+                    P.ChatMessageQueue.Enqueue(text);
                     AttachedInfo.GetOrCreateTetherInfo(a1->OwnerObject).Add(new(a2, a3, a5, (uint)targetOID));
                 }
             }

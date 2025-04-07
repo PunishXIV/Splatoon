@@ -7,6 +7,7 @@ using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
+using Splatoon.SplatoonScripting;
 
 namespace Splatoon;
 
@@ -1058,7 +1059,7 @@ internal unsafe partial class CGui
             ImGuiUtils.SizedText("Overlay text:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-            ImGui.InputTextWithHint("##overlaytext" + i + k, "Text to display as overlay".Loc(), ref el.overlayText, 30);
+            ImGui.InputTextWithHint("##overlaytext" + i + k, "Text to display as overlay".Loc(), ref el.overlayText, 500);
             if (el.overlayPlaceholders && el.type == 1)
             {
                 ImGuiUtils.SizedText("", WidthElement);
@@ -1083,6 +1084,8 @@ internal unsafe partial class CGui
                 ImGuiEx.TextCopy("$NAMEID");
                 ImGui.SameLine();
                 ImGuiEx.TextCopy("$DISTANCE");
+                ImGui.SameLine();
+                ImGuiEx.TextCopy("$TRANSFORM");
                 ImGui.SameLine();
                 ImGuiEx.TextCopy("\\n");
             }

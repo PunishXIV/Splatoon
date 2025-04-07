@@ -120,7 +120,6 @@ Extra indication that you need to spread. Present during Breath of decay and Ter
 Shows approximately where you need to spread to dodge line AOEs if you have FIRST spread marker. 
 
 > [!IMPORTANT]
-> [This preset is designed SPECIFICALLY for this strat](https://youtu.be/MQ8ajpA5Bp8?t=813)
 > 
 > Requires configuration. Open each layout and enable TWO elements from each group, depending to where you need to go, relative when looking at first fang near to the wall that has first spawned.
 

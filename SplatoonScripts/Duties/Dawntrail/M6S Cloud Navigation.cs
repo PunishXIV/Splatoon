@@ -27,6 +27,7 @@ public class M6S_Cloud_Navigation : SplatoonScript
     private Config C => Controller.GetConfig<Config>();
 
     public override HashSet<uint>? ValidTerritories => [1259];
+    public override Metadata? Metadata => new(2, "Garume");
 
     private static IBattleNpc? Cloud =>
         Svc.Objects.FirstOrDefault(x => x.DataId == CloudDataId) as IBattleNpc;
@@ -94,6 +95,7 @@ public class M6S_Cloud_Navigation : SplatoonScript
             default:
                 return current;
         }
+        
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)

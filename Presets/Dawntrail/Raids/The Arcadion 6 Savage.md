@@ -4,8 +4,8 @@
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Color%20Riot.cs
 ```
 
-### [Script] [ALPHA] Target Enforcer
-Will be reworked at a later point. Is not too well suitable for auto-targeting, however can be used for auto-stunning.
+### [Script] [ALPHA] Phase 2 Target Enforcer
+Will be reworked at a later point. Is not too well suitable for auto-targeting, however can be used for auto-stunning/grabbing waters.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Target%20Enforcer.cs
 ```
@@ -14,6 +14,11 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 You need to set the configuration to choose right or left when the clouds are behind and the bridge is in front.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Cloud%20Navigation.cs
+```
+
+### [Script] [Beta] Taste of Thunder (twister)
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Taste%20of%20Thunder.cs
 ```
 
 ### Double style

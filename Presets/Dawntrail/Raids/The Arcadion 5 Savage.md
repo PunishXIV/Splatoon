@@ -20,10 +20,10 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 
 ### Flip to A/B side hint
 ```
-~Lv2~{"Name":"M5S Flip to A side","Group":"AAC Cruiserweight M1 Savage","ZoneLockH":[1257],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"overlayBGColor":4278190080,"overlayTextColor":4278255611,"overlayFScale":2.0,"overlayText":"←Stored:\\nRoles (3)→","refActorNPCNameID":13778,"refActorRequireBuff":true,"refActorBuffId":[4459],"refActorComparisonType":6,"onlyTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":60.0,"Match":">42880)"},{"Type":3,"Match":"([buff-]13778:4459)"}]}
+~Lv2~{"Name":"M5S Flip to A side","Group":"AAC Cruiserweight M1 Savage","ZoneLockH":[1257],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"overlayBGColor":4278190080,"overlayTextColor":4278255611,"overlayFScale":2.0,"overlayText":"←Stored:\\nRoles (3)→","refActorNPCNameID":13778,"refActorRequireBuff":true,"refActorBuffId":[4459],"refActorComparisonType":6,"onlyTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":120.0,"Match":">42880)"},{"Type":3,"Match":"([buff-]13778:4459)"}]}
 ```
 ```
-~Lv2~{"Name":"M5S Flip to B side","Group":"AAC Cruiserweight M1 Savage","ZoneLockH":[1257],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"overlayBGColor":4278190080,"overlayTextColor":4278190335,"overlayFScale":2.0,"overlayText":"↑Stored:\\nStacks (2)↓","refActorNPCNameID":13778,"refActorRequireBuff":true,"refActorBuffId":[4459],"refActorComparisonType":6,"onlyTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":60.0,"Match":">42881)"},{"Type":3,"Match":"([buff-]13778:4459)"}]}
+~Lv2~{"Name":"M5S Flip to B side","Group":"AAC Cruiserweight M1 Savage","ZoneLockH":[1257],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"overlayBGColor":4278190080,"overlayTextColor":4278190335,"overlayFScale":2.0,"overlayText":"↑Stored:\\nStacks (2)↓","refActorNPCNameID":13778,"refActorRequireBuff":true,"refActorBuffId":[4459],"refActorComparisonType":6,"onlyTargetable":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":120.0,"Match":">42881)"},{"Type":3,"Match":"([buff-]13778:4459)"}]}
 ```
 
 ### Inside Out and Outside In

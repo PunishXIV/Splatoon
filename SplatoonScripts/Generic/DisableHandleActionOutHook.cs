@@ -12,11 +12,18 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class DisableHandleActionOutHook : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories => [9999];
+    public override HashSet<uint>? ValidTerritories => null;
 
-    public override void OnSetup()
+    public override Metadata? Metadata => new(2, "NightmareXIV");
+
+    public override void OnEnable()
     {
         Disable();
+    }
+
+    public override void OnDisable()
+    {
+        Enable();
     }
 
     void Disable()

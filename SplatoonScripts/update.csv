@@ -14,6 +14,7 @@ SplatoonScriptsOfficial.Generic@ArtisanCraftCommand,2,https://github.com/PunishX
 SplatoonScriptsOfficial.Generic@CheckEmote,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CheckEmote.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
+SplatoonScriptsOfficial.Generic@DisableHandleActionOutHook,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/DisableHandleActionOutHook.cs
 SplatoonScriptsOfficial.Generic@WorldWaiter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/WorldWaiter.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
 SplatoonScriptsOfficial.Generic@ForceSetDirection,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ForceSetDirection.cs

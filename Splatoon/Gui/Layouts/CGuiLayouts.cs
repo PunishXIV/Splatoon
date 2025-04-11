@@ -5,7 +5,7 @@ using static Splatoon.ConfigGui.CGuiLayouts.LayoutDrawSelector;
 
 namespace Splatoon;
 
-partial class CGui
+internal partial class CGui
 {
     public class LayoutFolder
     {
@@ -22,15 +22,15 @@ partial class CGui
     }
 
     internal static string layoutFilter = "";
-    string PopupRename = "";
+    private string PopupRename = "";
     //internal static string CurrentGroup = null;
     internal static string HighlightGroup = null;
-    internal static HashSet<string> OpenedGroup = new();
+    internal static HashSet<string> OpenedGroup = [];
     internal static string NewLayoytName = "";
     internal static Layout ScrollTo = null;
     internal LayoutFolder LayoutFolderStructure;
 
-    void BuildLayoutFolderStructure()
+    private void BuildLayoutFolderStructure()
     {
         LayoutFolderStructure = new("", "");
         foreach(var x in P.Config.LayoutsL)
@@ -58,26 +58,26 @@ partial class CGui
         OrderFolders(LayoutFolderStructure);
     }
 
-    void OrderFolders(LayoutFolder f)
+    private void OrderFolders(LayoutFolder f)
     {
         f.Folders.Sort((x, y) => FindOrderIndex(x.FullName).CompareTo(FindOrderIndex(y.FullName)));
         foreach(var x in f.Folders) OrderFolders(x);
     }
 
-    int FindOrderIndex(string fullPath)
+    private int FindOrderIndex(string fullPath)
     {
         var i = P.Config.GroupOrder.IndexOf(fullPath);
         return i == -1 ? int.MaxValue : i;
     }
 
-    void DislayLayouts()
+    private void DislayLayouts()
     {
         {
             var deleted = P.Config.LayoutsL.RemoveAll(x => x.Delete);
-            if (deleted > 0)
+            if(deleted > 0)
             {
                 Notify.Info($"Removed ?? layouts".Loc(deleted));
-                if (!P.Config.LayoutsL.Contains(CurrentLayout))
+                if(!P.Config.LayoutsL.Contains(CurrentLayout))
                 {
                     CurrentLayout = null;
                     CurrentElement = null;
@@ -85,9 +85,9 @@ partial class CGui
             }
         }
         ImGui.BeginChild("TableWrapper", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
-        if (ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
+        if(ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
         {
-            ImGui.TableSetupColumn("Layout list".Loc()+"###Layout id", ImGuiTableColumnFlags.None, 200);
+            ImGui.TableSetupColumn("Layout list".Loc() + "###Layout id", ImGuiTableColumnFlags.None, 200);
             ImGui.TableSetupColumn($"{(CurrentLayout == null ? "" : $"{CurrentLayout.GetName()}") + (CurrentElement == null ? "" : $" | {CurrentElement.GetName()}")}###Layout edit", ImGuiTableColumnFlags.None, 600);
 
             ImGui.TableHeadersRow();
@@ -98,13 +98,13 @@ partial class CGui
                 ImGui.InputTextWithHint("##layoutFilter", "Search layouts...".Loc(), ref layoutFilter, 100);
             }, delegate
             {
-                if (ImGuiEx.IconButton(FontAwesomeIcon.Plus))
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Plus))
                 {
                     ImGui.OpenPopup("Add layout");
                 }
                 ImGuiEx.Tooltip("Add new layout...".Loc());
                 ImGui.SameLine(0, 1);
-                if(ImGuiEx.IconButton(P.Config.FocusMode? FontAwesomeIcon.SearchMinus: FontAwesomeIcon.SearchPlus))
+                if(ImGuiEx.IconButton(P.Config.FocusMode ? FontAwesomeIcon.SearchMinus : FontAwesomeIcon.SearchPlus))
                 {
                     P.Config.FocusMode = !P.Config.FocusMode;
                 }
@@ -117,12 +117,12 @@ partial class CGui
                 ImGuiEx.Tooltip("Sorts groups alphabetically.".Loc());
             });
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            if (ImGui.Button("Import from clipboard".Loc(), new(ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("A").Y)))
+            if(ImGui.Button("Import from clipboard".Loc(), new(ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("A").Y)))
             {
                 Safe(() =>
                 {
                     var text = ImGui.GetClipboardText();
-                    if (ScriptingProcessor.IsUrlTrusted(text))
+                    if(ScriptingProcessor.IsUrlTrusted(text))
                     {
                         ScriptingProcessor.DownloadScript(text, false);
                     }
@@ -134,13 +134,13 @@ partial class CGui
 
             }
             ImGui.PopStyleVar();
-            if (ImGui.BeginPopup("Add layout"))
+            if(ImGui.BeginPopup("Add layout"))
             {
                 ImGui.InputTextWithHint("", "Layout name".Loc(), ref NewLayoytName, 100);
                 ImGui.SameLine();
-                if (ImGui.Button("Add".Loc()))
+                if(ImGui.Button("Add".Loc()))
                 {
-                    if (CGui.AddEmptyLayout(out var newLayout))
+                    if(CGui.AddEmptyLayout(out var newLayout))
                     {
                         ImGui.CloseCurrentPopup();
                         Notify.Success($"Layout created: ??".Loc(newLayout.GetName()));
@@ -241,7 +241,7 @@ partial class CGui
             }
         }
         P.Config.GroupOrder.RemoveAll(x => x.IsNullOrEmpty());
-        Layout[] takenLayouts = P.Config.LayoutsL.ToArray();
+        var takenLayouts = P.Config.LayoutsL.ToArray();
         var groupToRemove = -1;
         if(!P.Config.FocusMode || CurrentLayout == null)
         {
@@ -392,7 +392,7 @@ partial class CGui
                     ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
                     if(ImGui.Selectable("Export Group".Loc()))
                     {
-                        List<string> Export = new();
+                        List<string> Export = [];
                         foreach(var l in P.Config.LayoutsL)
                         {
                             if(l.Group == g)
@@ -440,10 +440,10 @@ partial class CGui
     {
         var ls = Utils.ImportLayouts(ImGui.GetClipboardText());
         {
-            foreach (var l in ls)
+            foreach(var l in ls)
             {
                 CurrentLayout = l;
-                if (l.Group != "")
+                if(l.Group != "")
                 {
                     OpenedGroup.Add(l.Group);
                 }

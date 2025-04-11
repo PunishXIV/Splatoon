@@ -101,20 +101,20 @@ public class Element
     [DefaultValue(0)] public uint refActorDataID = 0;
     [DefaultValue(0)] public uint refActorNPCID = 0;
     [DefaultValue(0)] public uint refActorTargetingYou = 0;
-    [DefaultValue("")] public List<string> refActorPlaceholder = new();
+    [DefaultValue("")] public List<string> refActorPlaceholder = [];
     [DefaultValue(0)] public uint refActorNPCNameID = 0;
     [DefaultValue(0)] public uint refActorNamePlateIconID = 0;
     [DefaultValue(false)] public bool refActorComparisonAnd = false;
     [DefaultValue(false)] public bool refActorRequireCast = false;
     [DefaultValue(false)] public bool refActorCastReverse = false;
-    public List<uint> refActorCastId = new();
+    public List<uint> refActorCastId = [];
     [DefaultValue(false)] public bool refActorUseCastTime = false;
     [DefaultValue(0f)] public float refActorCastTimeMin = 0f;
     [DefaultValue(0f)] public float refActorCastTimeMax = 0f;
     [DefaultValue(false)] public bool refActorUseOvercast = false;
     [DefaultValue(false)] public bool refTargetYou = false;
     [DefaultValue(false)] public bool refActorRequireBuff = false;
-    public List<uint> refActorBuffId = new();
+    public List<uint> refActorBuffId = [];
     [DefaultValue(false)] public bool refActorRequireAllBuffs = false;
     [DefaultValue(false)] public bool refActorRequireBuffsInvert = false;
     [DefaultValue(false)] public bool refActorUseBuffTime = false;
@@ -239,12 +239,12 @@ public class Element
 
     public bool ShouldSerializeRotationMax()
     {
-        return this.ShouldSerializeRotationMin();
+        return ShouldSerializeRotationMin();
     }
 
     public bool ShouldSerializeRotationMin()
     {
-        return this.LimitRotation;
+        return LimitRotation;
     }
 
     public bool ShouldSerializerefActorVFXPath()

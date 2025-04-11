@@ -22,14 +22,14 @@ internal static class TabContributors
         ImGuiEx.Text($"Exnter - presets"); Link("Github", "https://github.com/Exnter/");
     }
 
-    static void Link(string preview, string Url)
+    private static void Link(string preview, string Url)
     {
         ImGui.SameLine();
         ImGuiEx.Text(ImGuiColors.DalamudGrey, preview ?? Url);
-        if (ImGui.IsItemHovered())
+        if(ImGui.IsItemHovered())
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            if(ImGui.IsItemClicked(ImGuiMouseButton.Left))
             {
                 ShellStart(Url);
             }

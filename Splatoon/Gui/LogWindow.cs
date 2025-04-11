@@ -21,7 +21,7 @@ public class LogWindow : Window
 
     public void Log(string s)
     {
-        this.FilteredLog.PushBack(new(s, LogEventLevel.Information));
+        FilteredLog.PushBack(new(s, LogEventLevel.Information));
     }
 
     public override void Draw()
@@ -29,10 +29,10 @@ public class LogWindow : Window
         NuiTools.ButtonTabs([[new("Standard log", InternalLog.PrintImgui), new("Filtered log", PrintFiltered)]]);
     }
 
-    bool Autoscroll = true;
-    string Search = "";
+    private bool Autoscroll = true;
+    private string Search = "";
 
-    void PrintFiltered()
+    private void PrintFiltered()
     {
         ImGui.Checkbox("##Autoscroll", ref Autoscroll);
         ImGuiEx.Tooltip("Autoscroll");

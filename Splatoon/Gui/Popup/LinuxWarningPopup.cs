@@ -21,9 +21,9 @@ public class LinuxWarningPopup : Window
     public LinuxWarningPopup() : base("Splatoon - Linux/Mac OS detected - Warning", ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse)
     {
         this.SetSizeConstraints(new(500, 100), new(500, float.MaxValue));
-        this.ShowCloseButton = false;
-        this.RespectCloseHotkey = false;
-        this.IsOpen = Utils.IsLinux() && !P.Config.DX11EnabledOnMacLinux && !P.Config.DX11MacLinuxWarningHidden;
+        ShowCloseButton = false;
+        RespectCloseHotkey = false;
+        IsOpen = Utils.IsLinux() && !P.Config.DX11EnabledOnMacLinux && !P.Config.DX11MacLinuxWarningHidden;
     }
 
     public override void Draw()
@@ -40,7 +40,7 @@ public class LinuxWarningPopup : Window
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.EyeSlash, "Permanently hide this window"))
         {
             P.Config.DX11MacLinuxWarningHidden = true;
-            this.IsOpen = false;
+            IsOpen = false;
         }
     }
 }

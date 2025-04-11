@@ -5,7 +5,7 @@ namespace Splatoon.Modules;
 
 internal static class Logger
 {
-    static SimpleLogger currentLogger = null;
+    private static SimpleLogger currentLogger = null;
 
     internal static void BeginLogging()
     {
@@ -14,7 +14,7 @@ internal static class Logger
             EndLogging();
             var dirName = $"{DateTimeOffset.Now:yyyy-MM-ddzzz}".Replace(":", "_");
             var directory = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Logs", dirName);
-            if (!Directory.Exists(directory))
+            if(!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
@@ -26,10 +26,10 @@ internal static class Logger
     internal static void OnTerritoryChanged()
     {
         EndLogging();
-        if (P.Config.Logging)
+        if(P.Config.Logging)
         {
             var name = Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(Svc.ClientState.TerritoryType)?.ContentFinderCondition.ValueNullable?.Name.ToString();
-            if (name != String.Empty && name != null)
+            if(name != String.Empty && name != null)
             {
                 BeginLogging();
             }
@@ -41,13 +41,13 @@ internal static class Logger
         if(currentLogger != null)
         {
             var combatTime = Environment.TickCount64 - P.CombatStarted; ;
-            currentLogger.Log($"[{(P.CombatStarted != 0?$"Combat: {((float)combatTime / 1000f):F1}s":"Not in combat")}] {message}");
+            currentLogger.Log($"[{(P.CombatStarted != 0 ? $"Combat: {((float)combatTime / 1000f):F1}s" : "Not in combat")}] {message}");
         }
     }
 
     internal static void EndLogging()
     {
-        if (currentLogger != null)
+        if(currentLogger != null)
         {
             currentLogger.Dispose();
             currentLogger = null;

@@ -14,7 +14,7 @@ namespace Splatoon.Memory
         {
             PluginLog.Debug($"Init Scene");
             var n = (nint)EnvManager.Instance();
-            if (n == nint.Zero)
+            if(n == nint.Zero)
             {
                 PluginLog.Error($"EnvManager was zero");
             }

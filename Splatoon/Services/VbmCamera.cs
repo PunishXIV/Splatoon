@@ -57,7 +57,7 @@ internal unsafe class VbmCamera
     {
         // Read current ViewProjectionMatrix plus game window size
         var windowPos = ImGuiHelpers.MainViewport.Pos;
-        var viewProjectionMatrix = this.ViewProj;
+        var viewProjectionMatrix = ViewProj;
         var device = Device.Instance();
         float width = device->Width;
         float height = device->Height;

@@ -12,8 +12,8 @@ namespace Splatoon.SplatoonScripting;
 public unsafe class Controller
 {
     internal SplatoonScript Script;
-    internal Dictionary<string, Layout> Layouts = new();
-    internal Dictionary<string, Element> Elements = new();
+    internal Dictionary<string, Layout> Layouts = [];
+    internal Dictionary<string, Element> Elements = [];
     internal List<TickScheduler> TickSchedulers = [];
     internal IEzConfig? Configuration;
     internal long AutoResetAt = long.MaxValue;
@@ -46,7 +46,7 @@ public unsafe class Controller
     /// <summary>
     /// Amount of miliseconds that have passed since combat start. Returns -1 if not in combat.
     /// </summary>
-    public float CombatMiliseconds => InCombat? Environment.TickCount64 - P.CombatStarted : -1;
+    public float CombatMiliseconds => InCombat ? Environment.TickCount64 - P.CombatStarted : -1;
 
     public int Scene => *global::Splatoon.Memory.Scene.ActiveScene;
 
@@ -66,7 +66,7 @@ public unsafe class Controller
     /// </summary>
     public void SaveConfig()
     {
-        if (Configuration != null)
+        if(Configuration != null)
         {
             //PluginLog.Information($"Saving to {Script.InternalData.ConfigurationPath}");
             EzConfig.SaveConfiguration(Configuration, Script.InternalData.ConfigurationPath, true, false);
@@ -100,7 +100,7 @@ public unsafe class Controller
     /// <returns>Whether layout was successfully registered.</returns>
     public bool TryRegisterLayout(string UniqueName, Layout layout, bool overwrite = false)
     {
-        if (!overwrite && Layouts.ContainsKey(UniqueName))
+        if(!overwrite && Layouts.ContainsKey(UniqueName))
         {
             PluginLog.Warning($"There is a layout named {UniqueName} already.");
             return false;
@@ -124,7 +124,7 @@ public unsafe class Controller
     /// <returns>Whether element was successfully registered.</returns>
     public bool TryRegisterElement(string UniqueName, Element element, bool overwrite = false)
     {
-        if (!overwrite && Layouts.ContainsKey(UniqueName))
+        if(!overwrite && Layouts.ContainsKey(UniqueName))
         {
             PluginLog.Warning($"There is an element named {UniqueName} already.");
             return false;
@@ -188,7 +188,7 @@ public unsafe class Controller
         return Elements.Remove(name);
     }
 
-    public void RegisterElement(string UniqueName, Element element, bool overwrite = false) 
+    public void RegisterElement(string UniqueName, Element element, bool overwrite = false)
     {
         if(!TryRegisterElement(UniqueName, element, overwrite))
         {
@@ -276,7 +276,7 @@ public unsafe class Controller
     {
         foreach(var x in Script.InternalData.Overrides.Elements)
         {
-            if (Elements.ContainsKey(x.Key))
+            if(Elements.ContainsKey(x.Key))
             {
                 PluginLog.Debug($"[{Script.InternalData.FullName}] Overriding {x.Key} element with custom data");
                 Elements[x.Key] = x.Value.JSONClone();
@@ -305,8 +305,8 @@ public unsafe class Controller
     /// </summary>
     public void Reset()
     {
-        ScriptingProcessor.OnReset(this.Script);
-        this.CancelSchedulers();
+        ScriptingProcessor.OnReset(Script);
+        CancelSchedulers();
     }
 
     /// <summary>
@@ -324,7 +324,7 @@ public unsafe class Controller
             }
             catch(Exception ex)
             {
-                ScriptingProcessor.LogError(this.Script, ex, nameof(Schedule));
+                ScriptingProcessor.LogError(Script, ex, nameof(Schedule));
             }
             TickSchedulers.RemoveAll(x => x.Disposed);
         }, delayMs));
@@ -335,7 +335,7 @@ public unsafe class Controller
     /// </summary>
     public void CancelSchedulers()
     {
-        PluginLog.Debug($"CancelSchedulers called for script {this.Script.InternalData.Name}");
+        PluginLog.Debug($"CancelSchedulers called for script {Script.InternalData.Name}");
         TickSchedulers.Each(x => x.Dispose());
         TickSchedulers.Clear();
     }

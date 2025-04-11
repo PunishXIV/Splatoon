@@ -13,7 +13,7 @@ public static class Colors
 
     public static uint MultiplyAlpha(uint color, float amount)
     {
-        uint alpha = color >> 24;
+        var alpha = color >> 24;
         alpha = (uint)(alpha * amount);
         alpha = Math.Clamp(alpha, 0x00, 0xFF);
         return color & 0x00FFFFFF | (alpha << 24);
@@ -23,7 +23,7 @@ public static class Colors
     // Intended for interpolating colors
     public static uint Lerp(uint v1, uint v2, float amount)
     {
-        if (v1 == v2) return v1;
+        if(v1 == v2) return v1;
         return Vector4.Lerp(v1.ToVector4(), v2.ToVector4(), amount).ToUint();
     }
 }

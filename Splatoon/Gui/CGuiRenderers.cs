@@ -9,10 +9,10 @@ using Splatoon.Serializables;
 using System.Runtime.InteropServices;
 
 namespace Splatoon;
-partial class CGui
+internal partial class CGui
 {
-    bool Tested = false;
-    void DisplayRenderers()
+    private bool Tested = false;
+    private void DisplayRenderers()
     {
         if(Utils.IsLinux())
         {
@@ -69,7 +69,7 @@ partial class CGui
                 ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
                 ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
-                if (ImGui.Button("Edit Draw Zones".Loc()))
+                if(ImGui.Button("Edit Draw Zones".Loc()))
                 {
                     P.RenderableZoneSelector.IsOpen = true;
                 }
@@ -87,7 +87,7 @@ partial class CGui
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
                 ImGuiUtils.EnumCombo("##alphablendmode", ref p.Config.AlphaBlendMode, AlphaBlendModes.Names, AlphaBlendModes.Tooltips);
-                if (ImGui.IsItemHovered())
+                if(ImGui.IsItemHovered())
                 {
                     ImGui.SetTooltip("Change how overlapping elements' transparency is blended");
                 }
@@ -95,13 +95,13 @@ partial class CGui
                 ImGui.Checkbox("Automatically clip Splatoon's elements around native UI elements and windows".Loc(), ref P.Config.AutoClipNativeUI);
                 ImGuiComponents.HelpMarker("Some native elements are not supported, but they may be added later. Text is currently not clipped.".Loc());
 
-                if (ImGui.Button("Edit Clip Zones".Loc()))
+                if(ImGui.Button("Edit Clip Zones".Loc()))
                 {
                     P.ClipZoneSelector.IsOpen = true;
                 }
                 ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will NOT draw elements. Text is currently not clipped.".Loc());
 
-                if (ImGui.CollapsingHeader("Global Style Overrides".Loc()))
+                if(ImGui.CollapsingHeader("Global Style Overrides".Loc()))
                 {
                     ImGui.Indent();
                     ImGuiUtils.SizedText("Minimum Fill Alpha:".Loc(), CGui.WidthElement);
@@ -125,15 +125,15 @@ partial class CGui
                     P.Config.MaxAlpha = Math.Clamp(P.Config.MaxAlpha, P.Config.ElementMaxFillAlpha, 255);
 
                     ImGui.Separator();
-                    foreach (MechanicType mech in MechanicTypes.Values)
+                    foreach(var mech in MechanicTypes.Values)
                     {
-                        if (!MechanicTypes.CanOverride(mech)) continue;
-                        string name = MechanicTypes.Names[(int)mech];
-                        bool hasOverride = P.Config.StyleOverrides.ContainsKey(mech);
+                        if(!MechanicTypes.CanOverride(mech)) continue;
+                        var name = MechanicTypes.Names[(int)mech];
+                        var hasOverride = P.Config.StyleOverrides.ContainsKey(mech);
 
-                        bool enableOverride = false;
-                        DisplayStyle style = MechanicTypes.DefaultMechanicColors[mech];
-                        if (hasOverride)
+                        var enableOverride = false;
+                        var style = MechanicTypes.DefaultMechanicColors[mech];
+                        if(hasOverride)
                         {
                             (enableOverride, style) = P.Config.StyleOverrides[mech];
                         }
@@ -146,7 +146,7 @@ partial class CGui
                         ImGui.Checkbox("Override##" + name, ref enableOverride);
                         ImGui.SameLine();
                         ImGui.PushStyleColor(ImGuiCol.Text, style.strokeColor);
-                        if (ImGui.Button("Reset To Default##" + name))
+                        if(ImGui.Button("Reset To Default##" + name))
                         {
                             style = MechanicTypes.DefaultMechanicColors[mech];
                         }
@@ -182,11 +182,11 @@ partial class CGui
                 ImGui.DragInt("##linesegments", ref p.Config.lineSegments, 0.1f, 10, 50);
                 p.Config.lineSegments.ValidateRange(10, 100);
                 ImGuiComponents.HelpMarker("Increase this if your lines stop drawing too far from the screen edges or if line disappears when you are zoomed in and near it's edge. Increasing this setting hurts performance EXTRAORDINARILY.".Loc());
-                if (p.Config.lineSegments > 10)
+                if(p.Config.lineSegments > 10)
                 {
                     ImGuiEx.TextWrapped(ImGuiColors.DalamudOrange, "Non-standard line segment setting. Performance of your game may be impacted. Please CAREFULLY increase this setting until everything works as intended and do not increase it further. \nConsider increasing minimal rectangle fill line thickness to mitigate performance loss, if you will experience it.".Loc());
                 }
-                if (p.Config.lineSegments > 25)
+                if(p.Config.lineSegments > 25)
                 {
                     ImGuiEx.TextWrapped(Environment.TickCount % 1000 > 500 ? ImGuiColors.DalamudRed : ImGuiColors.DalamudYellow,
                         "Your line segment setting IS EXTREMELY HIGH AND MAY SIGNIFICANTLY IMPACT PERFORMANCE.\nIf you really have to set it to this value to make it work, please contact developer and provide details.".Loc());
@@ -197,7 +197,7 @@ partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.Text("            Screwed up?".Loc());
                 ImGui.SameLine();
-                if (ImGui.SmallButton("Reset this section".Loc()))
+                if(ImGui.SmallButton("Reset this section".Loc()))
                 {
                     var def = new Configuration();
                     P.Config.AltConeStep = def.AltConeStep;

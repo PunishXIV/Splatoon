@@ -5,15 +5,15 @@ using Splatoon.Structures;
 
 namespace Splatoon.Modules;
 
-class Commands : IDisposable
+internal class Commands : IDisposable
 {
-    Splatoon p;
+    private Splatoon p;
     internal unsafe Commands(Splatoon P)
     {
-        this.p = P;
+        p = P;
         Svc.Commands.AddHandler("/splatoon", new CommandInfo(delegate (string command, string arguments)
         {
-            if (arguments == "")
+            if(arguments == "")
             {
                 P.ConfigGui.Open = !P.ConfigGui.Open;
             }
@@ -30,53 +30,53 @@ class Commands : IDisposable
                 var phase = Splatoon.P.Phase;
                 Splatoon.P.TerritoryChangedEvent(0);
                 Notify.Success("Reset");
-                if (Splatoon.P.Phase != phase)
+                if(Splatoon.P.Phase != phase)
                 {
                     Splatoon.P.Phase = phase;
                     Notify.Info($"Returned to phase {phase}");
                 }
             }
-            else if (arguments.StartsWith("enable "))
+            else if(arguments.StartsWith("enable "))
             {
                 try
                 {
                     var name = arguments.Substring(arguments.IndexOf("enable ") + 7);
                     SwitchState(name, true);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     P.Log(e.ToStringFull());
                 }
             }
-            else if (arguments.StartsWith("disable "))
+            else if(arguments.StartsWith("disable "))
             {
                 try
                 {
                     var name = arguments.Substring(arguments.IndexOf("disable ") + 8);
                     SwitchState(name, false);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     P.Log(e.ToStringFull());
                 }
             }
-            else if (arguments.StartsWith("toggle "))
+            else if(arguments.StartsWith("toggle "))
             {
                 try
                 {
                     var name = arguments.Substring(arguments.IndexOf("toggle ") + 7);
                     SwitchState(name, null);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     P.Log(e.ToStringFull());
                 }
             }
-            else if (arguments.StartsWith("settarget "))
+            else if(arguments.StartsWith("settarget "))
             {
                 try
                 {
-                    if (Svc.Targets.Target == null)
+                    if(Svc.Targets.Target == null)
                     {
                         Notify.Error("Target not selected");
                     }
@@ -87,20 +87,20 @@ class Commands : IDisposable
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;
                         el.refActorObjectID = Svc.Targets.Target.EntityId;
-                        if (Svc.Targets.Target is ICharacter c) el.refActorModelID = (uint)c.Struct()->ModelContainer.ModelCharaId;
+                        if(Svc.Targets.Target is ICharacter c) el.refActorModelID = (uint)c.Struct()->ModelContainer.ModelCharaId;
                         Notify.Success("Successfully set target");
                     }
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     P.Log(e.ToStringFull());
                 }
             }
-            else if (arguments.StartsWith("floodchat "))
+            else if(arguments.StartsWith("floodchat "))
             {
                 Safe(delegate
                 {
-                    for (var i = 0; i < uint.Parse(arguments.Replace("floodchat ", "")); i++)
+                    for(var i = 0; i < uint.Parse(arguments.Replace("floodchat ", "")); i++)
                     {
                         Svc.Chat.Print(new string(Enumerable.Repeat("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 30).Select(s => s[new Random().Next(30)]).ToArray()));
                     }
@@ -119,9 +119,9 @@ class Commands : IDisposable
 
         Svc.Commands.AddHandler("/sf", new CommandInfo(delegate (string command, string args)
         {
-            if (args == "")
+            if(args == "")
             {
-                if (P.SFind.Count > 0)
+                if(P.SFind.Count > 0)
                 {
                     Notify.Info("Search stopped");
                     P.SFind.Clear();
@@ -183,13 +183,13 @@ class Commands : IDisposable
     {
         try
         {
-            if (name.Contains("~"))
+            if(name.Contains("~"))
             {
                 var aname = name.Split('~');
-                foreach (var x in P.Config.LayoutsL.Where(x => x.Name == aname[0]))
+                foreach(var x in P.Config.LayoutsL.Where(x => x.Name == aname[0]))
                 {
-                    if (web && x.DisableDisabling) continue;
-                    foreach (var z in x.ElementsL.Where(z => z.Name == aname[1]))
+                    if(web && x.DisableDisabling) continue;
+                    foreach(var z in x.ElementsL.Where(z => z.Name == aname[1]))
                     {
                         z.Enabled = enable ?? !z.Enabled;
                     }
@@ -197,14 +197,14 @@ class Commands : IDisposable
             }
             else
             {
-                foreach (var x in P.Config.LayoutsL.Where(x => x.Name == name))
+                foreach(var x in P.Config.LayoutsL.Where(x => x.Name == name))
                 {
-                    if (web && x.DisableDisabling) continue;
+                    if(web && x.DisableDisabling) continue;
                     x.Enabled = enable ?? !x.Enabled;
                 }
             }
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             p.Log(e.Message, true);
             p.Log(e.ToStringFull());

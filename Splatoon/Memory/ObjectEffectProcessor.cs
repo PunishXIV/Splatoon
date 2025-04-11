@@ -17,14 +17,14 @@ internal unsafe class ObjectEffectProcessor
     {
         try
         {
-            if (P.Config.Logging)
+            if(P.Config.Logging)
             {
                 var text = $"ObjectEffect: on {a1->Name.Read()} {a1->EntityId.Format()}/{a1->BaseId.Format()} data {a2}, {a3}";
                 Logger.Log(text);
                 if(a1->ObjectKind != FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Pc) P.LogWindow.Log(text);
             }
             var ptr = (nint)a1;
-            if (!AttachedInfo.ObjectEffectInfos.ContainsKey(ptr))
+            if(!AttachedInfo.ObjectEffectInfos.ContainsKey(ptr))
             {
                 AttachedInfo.ObjectEffectInfos[ptr] = [];
             }
@@ -36,7 +36,7 @@ internal unsafe class ObjectEffectProcessor
             });
             ScriptingProcessor.OnObjectEffect(a1->EntityId, a2, a3);
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.Log();
         }
@@ -50,7 +50,7 @@ internal unsafe class ObjectEffectProcessor
             SignatureHelper.Initialise(this);
             Enable();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.LogWarning();
         }
@@ -60,10 +60,10 @@ internal unsafe class ObjectEffectProcessor
     {
         try
         {
-            if (!ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Enable();
+            if(!ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Enable();
         }
 
-        catch (Exception e)
+        catch(Exception e)
         {
             e.LogWarning();
         }
@@ -73,9 +73,9 @@ internal unsafe class ObjectEffectProcessor
     {
         try
         {
-            if (ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Disable();
+            if(ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Disable();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.LogWarning();
         }
@@ -88,7 +88,7 @@ internal unsafe class ObjectEffectProcessor
             Disable();
             ProcessObjectEffectHook.Dispose();
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.LogWarning();
         }

@@ -14,7 +14,7 @@ namespace Splatoon.RenderEngines;
 /// <summary>
 /// This class contains render utils that are commonly used across all engines
 /// </summary>
-public unsafe static class CommonRenderUtils
+public static unsafe class CommonRenderUtils
 {
     internal static string ProcessPlaceholders(this string s, IGameObject go)
     {

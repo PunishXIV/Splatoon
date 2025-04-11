@@ -1,5 +1,5 @@
-﻿using System.ComponentModel;
-using Splatoon.Structures;
+﻿using Splatoon.Structures;
+using System.ComponentModel;
 
 namespace Splatoon;
 
@@ -7,14 +7,14 @@ namespace Splatoon;
 public class Layout
 {
     [NonSerialized]
-    public static string[] DisplayConditions = {};
+    public static string[] DisplayConditions = { };
     [DefaultValue(true)] public bool Enabled = true;
     public string Name = "";
     public string Group = "";
     [NonSerialized] internal string GUID = Guid.NewGuid().ToString();
     [NonSerialized] internal bool Delete = false;
-    public HashSet<ushort> ZoneLockH = new();
-    public HashSet<int> Scenes = new();
+    public HashSet<ushort> ZoneLockH = [];
+    public HashSet<int> Scenes = [];
     [DefaultValue(false)] public bool IsZoneBlacklist = false;
 
     /// <summary>
@@ -26,13 +26,13 @@ public class Layout
     /// 5: Never
     /// </summary>
     [DefaultValue(0)] public int DCond = 0;
-    [Obsolete] public Dictionary<string, Element> Elements = new(); //never delete
-    public List<Element> ElementsL = new();
+    [Obsolete] public Dictionary<string, Element> Elements = []; //never delete
+    public List<Element> ElementsL = [];
     [DefaultValue(false)] public bool DisableDisabling = false;
     [DefaultValue(0)] public ulong JobLock = 0;
     [DefaultValue(false)] public bool DisableInDuty = false;
     [DefaultValue(false)] public bool UseTriggers = false;
-    public List<Trigger> Triggers = new();
+    public List<Trigger> Triggers = [];
     /// <summary>
     /// 0: Unchanged |
     /// -1: Hidden |
@@ -114,7 +114,7 @@ public class Layout
 
     public bool ShouldSerializeTriggers()
     {
-        return this.UseTriggers && Triggers.Count > 0;
+        return UseTriggers && Triggers.Count > 0;
     }
 
     public bool ShouldSerializeElements()

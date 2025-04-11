@@ -32,7 +32,7 @@ public class Metadata
     /// <summary>
     /// Blacklist will be checked before script is loaded; if script's name and it's version are present in it, script will be automatically disabled. An user can still choose to manually reenable it, however. 
     /// </summary>
-    [Obsolete("This function has not been implemented yet")] 
+    [Obsolete("This function has not been implemented yet")]
     public string BlacklistURL { get; set; } = "https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/blacklist.csv";
 
     public Metadata(uint version, string? author, string? description, string? website)

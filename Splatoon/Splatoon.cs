@@ -35,7 +35,7 @@ using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
 
 namespace Splatoon;
-public unsafe class Splatoon :IDalamudPlugin
+public unsafe class Splatoon : IDalamudPlugin
 {
     public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
     public string Name => "Splatoon";
@@ -47,22 +47,22 @@ public unsafe class Splatoon :IDalamudPlugin
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
     internal long CombatStarted = 0;
-    internal HashSet<Element> InjectedElements = new();
-    internal Dictionary<int, string> Jobs = new();
+    internal HashSet<Element> InjectedElements = [];
+    internal Dictionary<int, string> Jobs = [];
     //internal HashSet<(float x, float y, float z, float r, float angle)> draw = new HashSet<(float x, float y, float z, float r, float angle)>();
     internal bool prevMouseState = false;
-    internal List<SearchInfo> SFind = new();
+    internal List<SearchInfo> SFind = [];
     internal ConcurrentQueue<System.Action> tickScheduler;
     internal List<DynamicElement> dynamicElements;
     internal HTTPServer HttpServer;
     internal bool prevCombatState = false;
-    static internal Vector3? PlayerPosCache = null;
+    internal static Vector3? PlayerPosCache = null;
     //internal Profiling Profiler;
     internal Queue<string> ChatMessageQueue;
-    internal HashSet<string> CurrentChatMessages = new();
+    internal HashSet<string> CurrentChatMessages = [];
     internal Element Clipboard = null;
     internal int dequeueConcurrency = 1;
-    internal Dictionary<(string Name, uint EntityId, ulong GameObjectId, uint DataID, int ModelID, uint NPCID, uint NameID, ObjectKind type), ObjectInfo> loggedObjectList = new();
+    internal Dictionary<(string Name, uint EntityId, ulong GameObjectId, uint DataID, int ModelID, uint NPCID, uint NameID, ObjectKind type), ObjectInfo> loggedObjectList = [];
     internal bool LogObjects = false;
     internal bool DisableLineFix = false;
     private int phase = 1;
@@ -75,9 +75,9 @@ public unsafe class Splatoon :IDalamudPlugin
     public bool Loaded = false;
     public bool Disposed = false;
     internal static (Vector2 X, Vector2 Y) Transform = default;
-    internal static Dictionary<string, nint> PlaceholderCache = new();
-    internal static Dictionary<string, uint> NameNpcIDsAll = new();
-    internal static Dictionary<string, uint> NameNpcIDs = new();
+    internal static Dictionary<string, nint> PlaceholderCache = [];
+    internal static Dictionary<string, uint> NameNpcIDsAll = [];
+    internal static Dictionary<string, uint> NameNpcIDs = [];
     internal MapEffectProcessor mapEffectProcessor;
     internal TetherProcessor TetherProcessor;
     internal ObjectEffectProcessor ObjectEffectProcessor;
@@ -115,7 +115,7 @@ public unsafe class Splatoon :IDalamudPlugin
         Zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
         Jobs = Svc.Data.GetExcelSheet<ClassJob>().ToDictionary(row => (int)row.RowId, row => row.Name.ToString());
         tickScheduler = new ConcurrentQueue<System.Action>();
-        dynamicElements = new List<DynamicElement>();
+        dynamicElements = [];
         SetupShutdownHttp(Config.UseHttpServer);
 
         ConfigGui = new CGui(this);
@@ -211,7 +211,7 @@ public unsafe class Splatoon :IDalamudPlugin
         EzConfigGui.WindowSystem.AddWindow(ScriptUpdateWindow);
         LinuxWarningPopup = new();
         EzConfigGui.WindowSystem.AddWindow(LinuxWarningPopup);
-        TaskManager = new(new(showDebug:true));
+        TaskManager = new(new(showDebug: true));
         ScriptingProcessor.TerritoryChanged();
         ScriptingProcessor.ReloadAll();
         Init = true;
@@ -307,7 +307,7 @@ public unsafe class Splatoon :IDalamudPlugin
         {
             Phase++;
             CombatStarted = Environment.TickCount64;
-            Svc.PluginInterface.UiBuilder.AddNotification($"Phase transition to Phase ??".Loc(Phase), this.Name, NotificationType.Info, 10000);
+            Svc.PluginInterface.UiBuilder.AddNotification($"Phase transition to Phase ??".Loc(Phase), Name, NotificationType.Info, 10000);
         }
         if(!type.EqualsAny(ECommons.Constants.NormalChatTypes))
         {
@@ -391,7 +391,7 @@ public unsafe class Splatoon :IDalamudPlugin
         S.InfoBar.Update(true);
     }
 
-    static void ResetLayout(Layout l)
+    private static void ResetLayout(Layout l)
     {
         if(l.UseTriggers)
         {
@@ -426,7 +426,7 @@ public unsafe class Splatoon :IDalamudPlugin
                 foreach(var t in Svc.Objects)
                 {
                     var ischar = t is ICharacter;
-                    var obj = (t.Name.ToString(), t.EntityId, (ulong)t.Struct()->GetGameObjectId(), t.DataId, ischar ?  ((ICharacter)t).Struct()->ModelContainer.ModelCharaId : 0, t.Struct()->GetNameId(), ischar ? ((ICharacter)t).NameId : 0, t.ObjectKind);
+                    var obj = (t.Name.ToString(), t.EntityId, (ulong)t.Struct()->GetGameObjectId(), t.DataId, ischar ? ((ICharacter)t).Struct()->ModelContainer.ModelCharaId : 0, t.Struct()->GetNameId(), ischar ? ((ICharacter)t).NameId : 0, t.ObjectKind);
                     loggedObjectList.TryAdd(obj, new ObjectInfo());
                     loggedObjectList[obj].ExistenceTicks++;
                     loggedObjectList[obj].IsChar = ischar;
@@ -525,7 +525,7 @@ public unsafe class Splatoon :IDalamudPlugin
                     foreach(var obj in SFind)
                     {
                         var col = GradientColor.Get(Colors.Red.ToVector4(), Colors.Yellow.ToVector4(), 750);
-                        var findEl = new Element(obj.Coords == null? 1:0)
+                        var findEl = new Element(obj.Coords == null ? 1 : 0)
                         {
                             Filled = false,
                             thicc = 3f,
@@ -533,7 +533,7 @@ public unsafe class Splatoon :IDalamudPlugin
                             refActorName = obj.Name,
                             refActorObjectID = obj.ObjectID,
                             refActorComparisonType = obj.SearchAttribute,
-                            overlayText = obj.Coords == null?"$NAME":"",
+                            overlayText = obj.Coords == null ? "$NAME" : "",
                             overlayVOffset = 1.7f,
                             overlayPlaceholders = true,
                             overlayTextColor = col.ToUint(),

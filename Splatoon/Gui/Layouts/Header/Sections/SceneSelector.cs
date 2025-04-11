@@ -8,16 +8,16 @@ namespace Splatoon.Gui.Layouts.Header.Sections
 {
     internal static class SceneSelector
     {
-        static int NewScene = 0;
+        private static int NewScene = 0;
         internal static void DrawSceneSelector(this Layout l)
         {
             ImGuiEx.SetNextItemFullWidth();
-            if (ImGui.BeginCombo("##SceneSelector", l.Scenes.Count > 0 ? l.Scenes.Print() : "Any scene"))
+            if(ImGui.BeginCombo("##SceneSelector", l.Scenes.Count > 0 ? l.Scenes.Print() : "Any scene"))
             {
                 ImGui.SetNextItemWidth(150f);
                 ImGui.InputInt("##scenenum", ref NewScene, 1, 1);
                 ImGui.SameLine();
-                if (ImGui.Button("Add"))
+                if(ImGui.Button("Add"))
                 {
                     l.Scenes.Add(NewScene);
                 }
@@ -26,12 +26,12 @@ namespace Splatoon.Gui.Layouts.Header.Sections
                 {
                     ImGuiEx.Text($"{sc}");
                     ImGui.SameLine();
-                    if (ImGui.SmallButton("Delete##scdel"+sc))
+                    if(ImGui.SmallButton("Delete##scdel" + sc))
                     {
                         toRem = sc;
                     }
                 }
-                if (toRem > -1)
+                if(toRem > -1)
                 {
                     l.Scenes.Remove(toRem);
                 }

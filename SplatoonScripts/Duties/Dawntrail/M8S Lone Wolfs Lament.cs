@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M8S_Lone_Wolfs_Lament : SplatoonScript
 {
-    private enum Direction
+    public enum Direction
     {
         NorthEast = 306,
         East = 18,
@@ -59,7 +59,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
         }
     }
 
-    private Config C => Controller.GetConfig<Config>();
+    public Config C => Controller.GetConfig<Config>();
 
     public override void OnSetup()
     {
@@ -116,6 +116,8 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
                    If the party's role setup is different from normal, it may not work correctly.
                    """);
 
+        ImGui.Checkbox("X Mirror", ref C.XMirror);
+        
         ImGui.Text("Bait Color:");
         ImGuiComponents.HelpMarker(
             "Change the color of the bait and the text that will be displayed on your bait.\nSetting different values makes it rainbow.");
@@ -212,13 +214,13 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
             if (Controller.TryGetElementByName("Bait", out var bait) && player != null)
             {
                 bait.Enabled = true;
-                bait.SetRefPosition(player.Position);
+                bait.SetRefPosition(player.Position(C.XMirror));
                 bait.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
             }
         }
     }
 
-    private class PlayerData
+    public class PlayerData
     {
         public IntPtr Address;
         public Direction Direction;
@@ -227,17 +229,28 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
         public CombatRole TargetRole;
         public TetherColor? TetherColor;
 
-        public Vector3 Position
+        public Vector3 Position(bool xMirror = false)
         {
-            get
-            {
                 const float radius = 17f;
-                var angle = (int)Direction;
+                var direction = Direction;
+                if (xMirror)
+                {
+                    direction = Direction switch
+                    {
+                        Direction.NorthEast => Direction.NorthEast,
+                        Direction.East => Direction.West,
+                        Direction.South => Direction.South,
+                        Direction.West => Direction.East,
+                        Direction.NorthWest => Direction.NorthWest,
+                        _ => direction
+                    };
+                }
+                
+                var angle = (int)direction;
                 var center = new Vector2(100f, 100f);
                 var x = center.X + radius * MathF.Cos(angle * MathF.PI / 180);
                 var y = center.Y + radius * MathF.Sin(angle * MathF.PI / 180);
                 return new Vector3(x, -150f, y);
-            }
         }
     }
 
@@ -247,9 +260,10 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
         Blue
     }
 
-    private class Config : IEzConfig
+    public class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public bool XMirror = false;
     }
 }

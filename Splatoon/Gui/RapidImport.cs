@@ -7,28 +7,28 @@ namespace Splatoon.Gui;
 internal static class RapidImport
 {
     internal static bool RapidImportEnabled = false;
-    internal static void Draw() 
+    internal static void Draw()
     {
         if(ImGui.Checkbox("Enable Rapid Import", ref RapidImportEnabled))
         {
             ImGui.SetClipboardText("");
         }
         ImGuiEx.TextWrapped("Import multiple presets with ease by simply copying them. Splatoon will read your clipboard and attempt to import whatever you copy. Your clipboard will be cleared upon enabling.".Loc());
-        if (RapidImportEnabled)
+        if(RapidImportEnabled)
         {
             try
             {
                 var text = ImGui.GetClipboardText();
-                if (text != "")
+                if(text != "")
                 {
-                    if (ScriptingProcessor.IsUrlTrusted(text))
+                    if(ScriptingProcessor.IsUrlTrusted(text))
                     {
                         TryNotify("Downloading script from trusted URL".Loc());
                         ScriptingProcessor.DownloadScript(text, false);
                     }
                     else
                     {
-                        if (CGui.ImportFromClipboard())
+                        if(CGui.ImportFromClipboard())
                         {
                             TryNotify("Import success".Loc());
                         }
@@ -47,7 +47,7 @@ internal static class RapidImport
         }
     }
 
-    static void TryNotify(string s)
+    private static void TryNotify(string s)
     {
         P.NotificationMasterApi.DisplayTrayNotification("Splatoon", s);
     }

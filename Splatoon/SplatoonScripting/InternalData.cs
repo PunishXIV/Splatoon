@@ -8,7 +8,7 @@ namespace Splatoon.SplatoonScripting;
 
 public class InternalData
 {
-    internal static char[] IdentifierLetters = ['q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','1','2','3','4','5','6','7','8','9','0'];
+    internal static char[] IdentifierLetters = ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'z', 'x', 'c', 'v', 'b', 'n', 'm', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
 
     public string Path { get; internal set; }
     public string Namespace { get; internal set; }
@@ -32,8 +32,8 @@ public class InternalData
     internal string ConfigurationPath => GetConfigPathForConfigurationKey(CurrentConfigurationKey);
 
     internal bool UnconditionalDraw = false;
-    internal HashSet<string> UnconditionalDrawElements = new();
-    internal HashSet<string> ElementsResets = new();
+    internal HashSet<string> UnconditionalDrawElements = [];
+    internal HashSet<string> ElementsResets = [];
 
     public InternalData(string path, SplatoonScript instance)
     {
@@ -77,10 +77,10 @@ public class InternalData
 
     internal string GetFreeConfigurationKey()
     {
-        for(int i = 0; i < 1000000; i++)
+        for(var i = 0; i < 1000000; i++)
         {
             var id = new StringBuilder();
-            for(int x = 0; x < 8; x++)
+            for(var x = 0; x < 8; x++)
             {
                 id.Append(IdentifierLetters.GetRandom());
             }
@@ -95,9 +95,9 @@ public class InternalData
 
     internal void InitializeConfiguration()
     {
-        if(P.Config.ActiveScriptConfigurations.TryGetValue(this.FullName, out var config))
+        if(P.Config.ActiveScriptConfigurations.TryGetValue(FullName, out var config))
         {
-            this.CurrentConfigurationKey = config;
+            CurrentConfigurationKey = config;
             PluginLog.Information($"For script {FullName}, switched configuration to {config} / {Utils.GetScriptConfigurationName(FullName, config)}");
         }
     }

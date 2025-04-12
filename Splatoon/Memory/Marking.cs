@@ -7,20 +7,20 @@ namespace Splatoon.Memory;
 
 public class Marking
 {
-    public unsafe static ulong GetMarker(uint index) => MarkingController.Instance()->Markers[(int)index];
+    public static unsafe ulong GetMarker(uint index) => MarkingController.Instance()->Markers[(int)index];
 
-    public unsafe static bool HaveMark(ICharacter obj, uint index)
+    public static unsafe bool HaveMark(ICharacter obj, uint index)
     {
-        if (obj.Struct()->ModelContainer.ModelCharaId != 0)
+        if(obj.Struct()->ModelContainer.ModelCharaId != 0)
         {
-            if (Svc.ClientState.LocalPlayer.EntityId == GetMarker(index))
+            if(Svc.ClientState.LocalPlayer.EntityId == GetMarker(index))
             {
                 return true;
             }
         }
         else
         {
-            if (obj.EntityId == GetMarker(index))
+            if(obj.EntityId == GetMarker(index))
             {
                 return true;
             }
@@ -28,7 +28,7 @@ public class Marking
 
         return false;
     }
-    private Dictionary<ulong, string> markers = new Dictionary<ulong, string>()
+    private Dictionary<ulong, string> markers = new()
     {
         { GetMarker(0), "attack1" },
         { GetMarker(1), "attack2" },
@@ -52,7 +52,7 @@ public class Marking
 
     public string Mark(uint objectid)
     {
-        if (markers.TryGetValue(objectid, out string attack))
+        if(markers.TryGetValue(objectid, out var attack))
         {
             return attack;
         }
@@ -65,7 +65,7 @@ public class Marking
     public static unsafe IGameObject GetPlayer(string x)
     {
         var ph = FakePronoun.Resolve(x);
-        if (ph != null)
+        if(ph != null)
         {
             var obj = Svc.Objects.CreateObjectReference((nint)ph);
             return obj;

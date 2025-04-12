@@ -6,7 +6,7 @@ using Splatoon.Memory;
 
 namespace Splatoon.Gui;
 
-internal unsafe static class Explorer
+internal static unsafe class Explorer
 {
     internal static nint Ptr = nint.Zero;
     internal static void Draw()
@@ -14,24 +14,24 @@ internal unsafe static class Explorer
         ImGui.BeginChild("##exch");
         var x = Svc.Objects.FirstOrDefault(x => x.Address == Ptr);
         ImGuiEx.Text(ImGuiColors.DalamudOrange, "Beta");
-        if(ImGui.BeginCombo("##selector", $"{(Ptr == nint.Zero?"Target".Loc() : $"{(x == null?$"{Ptr:X16} - "+"invalid pointer".Loc() : $"{x}")}")}"))
+        if(ImGui.BeginCombo("##selector", $"{(Ptr == nint.Zero ? "Target".Loc() : $"{(x == null ? $"{Ptr:X16} - " + "invalid pointer".Loc() : $"{x}")}")}"))
         {
-            if (ImGui.Selectable("Target".Loc()))
+            if(ImGui.Selectable("Target".Loc()))
             {
                 Ptr = nint.Zero;
             }
             foreach(var o in Svc.Objects)
             {
-                if (ImGui.Selectable($"{o}"))
+                if(ImGui.Selectable($"{o}"))
                 {
                     Ptr = o.Address;
                 }
             }
             ImGui.EndCombo();
         }
-        if (Ptr == nint.Zero)
+        if(Ptr == nint.Zero)
         {
-            if (Svc.Targets.Target != null && Svc.ClientState.LocalPlayer != null)
+            if(Svc.Targets.Target != null && Svc.ClientState.LocalPlayer != null)
             {
                 DrawGameObject(Svc.Targets.Target);
             }
@@ -66,7 +66,7 @@ internal unsafe static class Explorer
         ImGuiEx.TextCopy($"{"Is hostile".Loc()}: {ObjectFunctions.IsHostile(obj)}");
         ImGuiEx.TextCopy($"{"VfxScale".Loc()}: {obj.Struct()->VfxScale}");
         ImGui.SameLine();
-        if (ImGui.Button("++"))
+        if(ImGui.Button("++"))
         {
             obj.Struct()->VfxScale = obj.Struct()->VfxScale + 0.5f;
         }
@@ -77,7 +77,7 @@ internal unsafe static class Explorer
         ImGuiEx.TextCopy($"NamePlateIconId:  {obj.Struct()->NamePlateIconId}");
         ImGuiEx.TextCopy($"DrawObject:  {(nint)obj.Struct()->DrawObject:X16}");
         ImGuiEx.TextCopy($"LayoutID:  {obj.Struct()->LayoutId}");
-        if (obj is ICharacter c)
+        if(obj is ICharacter c)
         {
             ImGuiEx.TextCopy("---------- Character ----------");
             ImGuiEx.TextCopy($"{"HP".Loc()}: {c.CurrentHp} / {c.MaxHp}");
@@ -93,20 +93,20 @@ internal unsafe static class Explorer
             ImGuiEx.TextCopy($"EventState:  {c.Struct()->EventState}");
             ImGuiEx.TextCopy($"VFX Container:  {(nint)(&c.Struct()->Vfx):X16}");
             ImGuiEx.Text("VFX");
-            if (c.TryGetVfx(out var fx))
+            if(c.TryGetVfx(out var fx))
             {
-                foreach (var x in fx)
+                foreach(var x in fx)
                 {
                     ImGuiEx.TextCopy($"{x.Key}, {"Age".Loc()} = {x.Value.AgeF:F1}");
                 }
             }
             ImGuiEx.Text("ObjectEffect");
-            foreach (var x in AttachedInfo.ObjectEffectInfos)
+            foreach(var x in AttachedInfo.ObjectEffectInfos)
             {
-                if (x.Key == c.Address)
+                if(x.Key == c.Address)
                 {
                     ImGuiEx.Text($"{((long)x.Key).Format()}");
-                    foreach (var z in x.Value)
+                    foreach(var z in x.Value)
                     {
                         ImGuiEx.TextCopy($"    {z.data1}, {z.data2} / {z.AgeF}");
                     }
@@ -118,7 +118,7 @@ internal unsafe static class Explorer
         {
             ImGuiEx.TextCopy("---------- Battle chara ----------");
             ImGuiEx.TextCopy($"{"Casting".Loc()}: {b.IsCasting}, {"Action ID".Loc()} = {b.CastActionId.Format()}, {"Type".Loc()} = {b.CastActionType}, {"Cast time".Loc()}: {b.CurrentCastTime:F1}/{b.TotalCastTime:F1}");
-            if (AttachedInfo.CastInfos.TryGetValue(b.Address, out var info)) 
+            if(AttachedInfo.CastInfos.TryGetValue(b.Address, out var info))
             {
                 ImGuiEx.TextCopy($"{"Overcast".Loc()}: ID={info.ID}, StartTime={info.StartTime}, Age={info.AgeF:F1}");
             }

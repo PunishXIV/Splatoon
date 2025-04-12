@@ -5,8 +5,14 @@ Also works for normal
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Lets%20Dance.cs
 ```
 
+### **[Script]** Conga Line for Arcady Night Fever + Let's Dance
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S_Lets_Dance_NavigateStandPosition.cs
+```
+
 ### **[Script]** **[JP Only]** Disco Infernal
 
+The script only works with ranged unless you use JP strats.
 Need configuration. NA/EU version coming later!
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Disco%20Infernal.cs

@@ -9,6 +9,6 @@ namespace Splatoon.SplatoonScripting
 {
     public class OverrideData : IEzConfig
     {
-        public Dictionary<string, Element> Elements = new();
+        public Dictionary<string, Element> Elements = [];
     }
 }

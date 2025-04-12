@@ -12,7 +12,7 @@ internal static class TabFind
             $"- Substitute name with * to include all objects.");
         ImGuiEx.Text("Here is current list of searched objects:");
         var toRem = -1;
-        for (int i = 0; i < P.SFind.Count; i++)
+        for(var i = 0; i < P.SFind.Count; i++)
         {
             var e = P.SFind[i];
             ImGui.PushID($"sfind{i}");
@@ -21,7 +21,7 @@ internal static class TabFind
             ImGui.SameLine();
             ImGui.Checkbox($"Include untargetable", ref e.IncludeUntargetable);
             ImGui.SameLine();
-            if (ImGui.Button("Remove"))
+            if(ImGui.Button("Remove"))
             {
                 toRem = i;
             }
@@ -31,7 +31,7 @@ internal static class TabFind
         {
             P.SFind.RemoveAt(toRem);
         }
-        if (ImGui.Button("Add object"))
+        if(ImGui.Button("Add object"))
         {
             P.SFind.Add(new());
         }

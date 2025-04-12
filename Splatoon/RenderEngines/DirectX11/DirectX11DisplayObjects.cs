@@ -70,10 +70,10 @@ public class DirectX11DisplayObjects
 
         public DisplayObjectLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
         {
-            this.start = new Vector3(ax, az, ay);
-            this.stop = new Vector3(bx, bz, by);
-            this.radius = 0;
-            this.style = new DisplayStyle(color, thickness, 0f, 0, 0);
+            start = new Vector3(ax, az, ay);
+            stop = new Vector3(bx, bz, by);
+            radius = 0;
+            style = new DisplayStyle(color, thickness, 0f, 0, 0);
             this.startStyle = startStyle;
             this.endStyle = endStyle;
         }

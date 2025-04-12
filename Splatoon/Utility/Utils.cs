@@ -16,7 +16,20 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
-    static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
+    private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
+
+    public static void Migrate(this Layout l)
+    {
+        DataMigrator.MigrateJobs(l);
+#pragma warning disable CS0612 // Type or member is obsolete
+        foreach(var x in l.Elements)
+        {
+            x.Value.Name = x.Key;
+            l.ElementsL.Add(x.Value);
+        }
+        l.Elements.Clear();
+#pragma warning restore CS0612 // Type or member is obsolete
+    }
 
     public static bool IsLinux()
     {
@@ -132,9 +145,9 @@ public static unsafe class Utils
         var Parts = new List<byte[]>();
         var Index = 0;
         byte[] Part;
-        for (var I = 0; I < source.Length; ++I)
+        for(var I = 0; I < source.Length; ++I)
         {
-            if (Equals(source, separator, I))
+            if(Equals(source, separator, I))
             {
                 Part = new byte[I - Index];
                 Array.Copy(source, Index, Part, 0, Part.Length);
@@ -150,8 +163,8 @@ public static unsafe class Utils
 
         static bool Equals(byte[] source, byte[] separator, int index)
         {
-            for (int i = 0; i < separator.Length; ++i)
-                if (index + i >= source.Length || source[index + i] != separator[i])
+            for(var i = 0; i < separator.Length; ++i)
+                if(index + i >= source.Length || source[index + i] != separator[i])
                     return false;
             return true;
         }
@@ -159,7 +172,7 @@ public static unsafe class Utils
 
     public static bool IsCastInRange(this IBattleChara c, float min, float max)
     {
-        if (c.CurrentCastTime.InRange(min, max))
+        if(c.CurrentCastTime.InRange(min, max))
         {
             return true;
         }
@@ -168,7 +181,7 @@ public static unsafe class Utils
 
     public static bool IsInRange(this Status buff, float min, float max)
     {
-        if (buff.RemainingTime.InRange(min, max))
+        if(buff.RemainingTime.InRange(min, max))
         {
             return true;
         }
@@ -184,37 +197,37 @@ public static unsafe class Utils
     {
         var layouts = new List<Layout>();
         var strings = ss.Split("\n", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-        foreach (var str in strings)
+        foreach(var str in strings)
         {
             try
             {
-                if (str.StartsWith("~Lv2~"))
+                if(str.StartsWith("~Lv2~"))
                 {
                     var s = str[5..];
                     var l = JsonConvert.DeserializeObject<Layout>(s);
                     l.Name = l.Name.SanitizeName();
                     var lname = l.Name;
-                    if (P.Config.LayoutsL.Any(x => x.Name == lname) && !ImGui.GetIO().KeyCtrl)
+                    if(P.Config.LayoutsL.Any(x => x.Name == lname) && !ImGui.GetIO().KeyCtrl)
                     {
                         throw new Exception("Error: this name already exists.\nTo override, hold CTRL.");
                     }
                     P.Config.LayoutsL.Add(l);
                     CGui.ScrollTo = l;
-                    if (!silent) Notify.Success($"Layout version 2\n{l.GetName()}");
+                    if(!silent) Notify.Success($"Layout version 2\n{l.GetName()}");
                     layouts.Add(l);
                 }
                 else
                 {
-                    if (!silent) Notify.Info("Attempting to perform legacy import");
+                    if(!silent) Notify.Info("Attempting to perform legacy import");
                     var l = DeserializeLegacyLayout(str);
                     P.Config.LayoutsL.Add(l);
                     CGui.ScrollTo = l;
                     layouts.Add(l);
                 }
             }
-            catch (Exception e)
+            catch(Exception e)
             {
-                if (!silent) Notify.Error($"Error parsing layout: {e.Message}");
+                if(!silent) Notify.Error($"Error parsing layout: {e.Message}");
             }
         }
         if(layouts.Count > 0)
@@ -230,7 +243,7 @@ public static unsafe class Utils
 
     public static Layout DeserializeLegacyLayout(string import)
     {
-        if (import.Contains('~'))
+        if(import.Contains('~'))
         {
             var name = import.Split('~')[0];
             var json = import.Substring(name.Length + 1);
@@ -239,19 +252,19 @@ public static unsafe class Utils
                 json = Encoding.UTF8.GetString(Convert.FromBase64String(json));
                 Notify.Info("Import type: Base64");
             }
-            catch (Exception)
+            catch(Exception)
             {
                 Notify.Info("Import type: JSON");
             }
-            if (P.Config.LayoutsL.Any(x => x.Name == name) && !ImGui.GetIO().KeyCtrl)
+            if(P.Config.LayoutsL.Any(x => x.Name == name) && !ImGui.GetIO().KeyCtrl)
             {
                 throw new Exception("Error: this name already exists.\nTo override, hold CTRL.");
             }
-            else if (name.Length == 0 && !ImGui.GetIO().KeyCtrl)
+            else if(name.Length == 0 && !ImGui.GetIO().KeyCtrl)
             {
                 throw new Exception("Error: name not present.\nTo override, hold CTRL.");
             }
-            else if (name.Contains(","))
+            else if(name.Contains(","))
             {
                 throw new Exception("Name can't contain reserved characters: ,");
             }
@@ -259,14 +272,7 @@ public static unsafe class Utils
             {
                 var layout = JsonConvert.DeserializeObject<Layout>(json);
                 layout.Name = name;
-#pragma warning disable CS0612 // Type or member is obsolete
-                foreach (var x in layout.Elements)
-                {
-                    x.Value.Name = x.Key;
-                    layout.ElementsL.Add(x.Value);
-                }
-                layout.Elements.Clear();
-#pragma warning restore CS0612 // Type or member is obsolete
+                layout.Migrate();
                 return layout;
             }
         }
@@ -274,17 +280,17 @@ public static unsafe class Utils
         {
             Notify.Info("Import type: Legacy/Paisley Park/Waymark preset plugin");
             var lp = JsonConvert.DeserializeObject<LegacyPreset>(import);
-            if (lp.Name == null || lp.Name == "") lp.Name = DateTimeOffset.Now.ToLocalTime().ToString().Replace(",", ".");
-            if (lp.A == null && lp.B == null && lp.C == null && lp.D == null &&
+            if(lp.Name == null || lp.Name == "") lp.Name = DateTimeOffset.Now.ToLocalTime().ToString().Replace(",", ".");
+            if(lp.A == null && lp.B == null && lp.C == null && lp.D == null &&
                 lp.One == null && lp.Two == null && lp.Three == null && lp.Four == null)
             {
                 throw new Exception("Error importing: invalid data");
             }
-            else if (P.Config.LayoutsL.Any(x => x.Name == "Legacy preset: " + lp.Name))
+            else if(P.Config.LayoutsL.Any(x => x.Name == "Legacy preset: " + lp.Name))
             {
                 throw new Exception("Error: this name already exists");
             }
-            else if (lp.Name.Contains(",") || lp.Name.Contains("~"))
+            else if(lp.Name.Contains(",") || lp.Name.Contains("~"))
             {
                 throw new Exception("Name can't contain reserved characters: , and ~");
             }
@@ -297,17 +303,17 @@ public static unsafe class Utils
                 }
                 Layout l = new()
                 {
-                    ZoneLockH = new HashSet<ushort>() { Svc.ClientState.TerritoryType },
+                    ZoneLockH = [Svc.ClientState.TerritoryType],
                     Name = "Legacy preset: " + lp.Name
                 };
-                if (lp.A != null && lp.A.Active) AddLegacyElement(l, "A", lp.A.ToElement("A", 0xff00ff00));
-                if (lp.B != null && lp.B.Active) AddLegacyElement(l, "B", lp.B.ToElement("B", 0xff00ffff));
-                if (lp.C != null && lp.C.Active) AddLegacyElement(l, "C", lp.C.ToElement("C", 0xffffff00));
-                if (lp.D != null && lp.D.Active) AddLegacyElement(l, "D", lp.D.ToElement("D", 0xffff00ff));
-                if (lp.One != null && lp.One.Active) AddLegacyElement(l, "1", lp.One.ToElement("1", 0xff00ff00));
-                if (lp.Two != null && lp.Two.Active) AddLegacyElement(l, "2", lp.Two.ToElement("2", 0xff00ffff));
-                if (lp.Three != null && lp.Three.Active) AddLegacyElement(l, "3", lp.Three.ToElement("3", 0xffffff00));
-                if (lp.Four != null && lp.Four.Active) AddLegacyElement(l, "4", lp.Four.ToElement("4", 0xffff00ff));
+                if(lp.A != null && lp.A.Active) AddLegacyElement(l, "A", lp.A.ToElement("A", 0xff00ff00));
+                if(lp.B != null && lp.B.Active) AddLegacyElement(l, "B", lp.B.ToElement("B", 0xff00ffff));
+                if(lp.C != null && lp.C.Active) AddLegacyElement(l, "C", lp.C.ToElement("C", 0xffffff00));
+                if(lp.D != null && lp.D.Active) AddLegacyElement(l, "D", lp.D.ToElement("D", 0xffff00ff));
+                if(lp.One != null && lp.One.Active) AddLegacyElement(l, "1", lp.One.ToElement("1", 0xff00ff00));
+                if(lp.Two != null && lp.Two.Active) AddLegacyElement(l, "2", lp.Two.ToElement("2", 0xff00ffff));
+                if(lp.Three != null && lp.Three.Active) AddLegacyElement(l, "3", lp.Three.ToElement("3", 0xffffff00));
+                if(lp.Four != null && lp.Four.Active) AddLegacyElement(l, "4", lp.Four.ToElement("4", 0xffff00ff));
                 return l;
             }
         }
@@ -337,10 +343,10 @@ public static unsafe class Utils
 
     public static string GetName(this Layout l)
     {
-        if (l.Name.IsNullOrEmpty())
+        if(l.InternationalName.Get(l.Name).IsNullOrEmpty())
         {
             var index = P.Config.LayoutsL.IndexOf(l);
-            if (index >= 0)
+            if(index >= 0)
             {
                 return $"Unnamed layout {index}";
             }
@@ -351,18 +357,18 @@ public static unsafe class Utils
         }
         else
         {
-            return l.Name;
+            return l.InternationalName.Get(l.Name);
         }
     }
 
     public static string GetName(this Element e)
     {
-        if (e.Name.IsNullOrEmpty())
+        if(e.InternationalName.Get(e.Name).IsNullOrEmpty())
         {
-            if (P.Config.LayoutsL.TryGetFirst(x => x.ElementsL.Contains(e), out var l))
+            if(P.Config.LayoutsL.TryGetFirst(x => x.ElementsL.Contains(e), out var l))
             {
                 var index = l.ElementsL.IndexOf(e);
-                if (index >= 0)
+                if(index >= 0)
                 {
                     return $"Unnamed element {index}";
                 }
@@ -371,23 +377,23 @@ public static unsafe class Utils
         }
         else
         {
-            return e.Name;
+            return e.InternationalName.Get(e.Name);
         }
     }
 
     public static IPlayerCharacter GetRolePlaceholder(CombatRole role, int num)
     {
-        int curIndex = 1;
-        for (var i = 1; i <= 8; i++)
+        var curIndex = 1;
+        for(var i = 1; i <= 8; i++)
         {
             var result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder($"<{i}>", 0, 0);
-            if (result == nint.Zero) return null;
+            if(result == nint.Zero) return null;
             var go = Svc.Objects.CreateObjectReference(result);
-            if (go is IPlayerCharacter pc)
+            if(go is IPlayerCharacter pc)
             {
-                if (pc.GetRole() == role)
+                if(pc.GetRole() == role)
                 {
-                    if (num == curIndex)
+                    if(num == curIndex)
                     {
                         return pc;
                     }
@@ -425,7 +431,7 @@ public static unsafe class Utils
 
     public static float GetAdditionalRotation(this Element e, float cx, float cy, float angle)
     {
-        if (!e.FaceMe) return e.AdditionalRotation + angle;
+        if(!e.FaceMe) return e.AdditionalRotation + angle;
         return (e.AdditionalRotation.RadiansToDegrees() + MathHelper.GetRelativeAngle(new Vector2(cx, cy), Svc.ClientState.LocalPlayer.Position.ToVector2())).DegreesToRadians();
     }
 
@@ -442,10 +448,10 @@ public static unsafe class Utils
     public static string Compress(this string s)
     {
         var bytes = Encoding.Unicode.GetBytes(s);
-        using (var msi = new MemoryStream(bytes))
-        using (var mso = new MemoryStream())
+        using(var msi = new MemoryStream(bytes))
+        using(var mso = new MemoryStream())
         {
-            using (var gs = new GZipStream(mso, CompressionLevel.Optimal))
+            using(var gs = new GZipStream(mso, CompressionLevel.Optimal))
             {
                 msi.CopyTo(gs);
             }
@@ -466,10 +472,10 @@ public static unsafe class Utils
     public static string Decompress(this string s)
     {
         var bytes = Convert.FromBase64String(s.Replace('-', '+').Replace('_', '/'));
-        using (var msi = new MemoryStream(bytes))
-        using (var mso = new MemoryStream())
+        using(var msi = new MemoryStream(bytes))
+        using(var mso = new MemoryStream())
         {
-            using (var gs = new GZipStream(msi, CompressionMode.Decompress))
+            using(var gs = new GZipStream(msi, CompressionMode.Decompress))
             {
                 gs.CopyTo(mso);
             }
@@ -480,9 +486,9 @@ public static unsafe class Utils
     //because Dalamud changed Y and Z in actor positions I have to do emulate old behavior to not break old presets
     public static Vector3 GetPlayerPositionXZY()
     {
-        if (Svc.ClientState.LocalPlayer != null)
+        if(Svc.ClientState.LocalPlayer != null)
         {
-            if (PlayerPosCache == null)
+            if(PlayerPosCache == null)
             {
                 PlayerPosCache = XZY(Svc.ClientState.LocalPlayer.Position);
             }
@@ -516,7 +522,7 @@ public static unsafe class Utils
                 FileName = s
             });
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             Svc.Chat.Print("Error: " + e.ToStringFull());
         }
@@ -540,7 +546,7 @@ public static unsafe class Utils
         {
             var angleA = MathF.Atan2(a.Y, a.X);
             var angleB = MathF.Atan2(b.Y, b.X);
-            if (angleA == angleB)
+            if(angleA == angleB)
             {
                 var radiusA = MathF.Sqrt(a.X * a.X + a.Y * a.Y);
                 var radiusB = MathF.Sqrt(b.X * b.X + b.Y * b.Y);
@@ -548,7 +554,7 @@ public static unsafe class Utils
             }
             return angleA > angleB ? 1 : -1;
         });
-        foreach (var x in array) yield return (x + medium, MathF.Atan2(x.Y, x.X));
+        foreach(var x in array) yield return (x + medium, MathF.Atan2(x.Y, x.X));
     }
 
     public static float Square(float x)
@@ -570,7 +576,7 @@ public static unsafe class Utils
     /// <returns></returns>
     public static Vector3 RotatePoint(Vector3 origin, float angle, Vector3 point)
     {
-        if (angle == 0f) return point;
+        if(angle == 0f) return point;
         var s = (float)Math.Sin(angle);
         var c = (float)Math.Cos(angle);
 
@@ -578,8 +584,8 @@ public static unsafe class Utils
         point -= origin;
 
         // rotate point
-        float xnew = point.X * c - point.Y * s;
-        float ynew = point.X * s + point.Y * c;
+        var xnew = point.X * c - point.Y * s;
+        var ynew = point.X * s + point.Y * c;
         point.X = xnew;
         point.Y = ynew;
 
@@ -598,7 +604,7 @@ public static unsafe class Utils
     /// <returns></returns>
     public static Vector3 RotatePoint(float cx, float cy, float angle, Vector3 p)
     {
-        if (angle == 0f) return p;
+        if(angle == 0f) return p;
         var s = (float)Math.Sin(angle);
         var c = (float)Math.Cos(angle);
 
@@ -607,8 +613,8 @@ public static unsafe class Utils
         p.Y -= cy;
 
         // rotate point
-        float xnew = p.X * c - p.Y * s;
-        float ynew = p.X * s + p.Y * c;
+        var xnew = p.X * c - p.Y * s;
+        var ynew = p.X * s + p.Y * c;
 
         // translate point back:
         p.X = xnew + cx;
@@ -667,13 +673,13 @@ public static unsafe class Utils
 
     public static string RemoveSymbols(this string s, IEnumerable<string> deletions)
     {
-        foreach (var r in deletions) s = s.Replace(r, "");
+        foreach(var r in deletions) s = s.Replace(r, "");
         return s;
     }
 
     public static void RemoveSymbols(this InternationalString s, IEnumerable<string> deletions)
     {
-        foreach (var r in deletions)
+        foreach(var r in deletions)
         {
             s.En = s.En.Replace(r, "");
             s.Jp = s.Jp.Replace(r, "");
@@ -692,7 +698,7 @@ public static unsafe class Utils
     /// <param name="offset">Distance from position at 90degrees to p1 and p2- non-percetange based.</param>
     /// <param name="c">Output of the calculated point along p1 and p2. might not be necessary for the ultimate output.</param>
     /// <param name="d">Output of the calculated offset point.</param>
-    static public void PerpOffset(Vector2 a, Vector2 b, float position, float offset, out Vector2 c, out Vector2 d)
+    public static void PerpOffset(Vector2 a, Vector2 b, float position, float offset, out Vector2 c, out Vector2 d)
     {
         //p3 is located at the x or y delta * position + p1x or p1y original.
         var p3 = new Vector2((b.X - a.X) * position + a.X, (b.Y - a.Y) * position + a.Y);

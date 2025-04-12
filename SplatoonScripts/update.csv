@@ -14,6 +14,7 @@ SplatoonScriptsOfficial.Generic@ArtisanCraftCommand,2,https://github.com/PunishX
 SplatoonScriptsOfficial.Generic@CheckEmote,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CheckEmote.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
+SplatoonScriptsOfficial.Generic@DisableHandleActionOutHook,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/DisableHandleActionOutHook.cs
 SplatoonScriptsOfficial.Generic@WorldWaiter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/WorldWaiter.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
 SplatoonScriptsOfficial.Generic@ForceSetDirection,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ForceSetDirection.cs
@@ -42,6 +43,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Midnight_Sabbath,2,https://github.c
 SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S Protean Highlight.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Sunrise_Sabbath,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Sunrise Sabbath.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@EX4_Escelons_Fall,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX4 Escelons Fall.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Lets_Dance_NavigateStandPosition,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M5S_Lets_Dance_NavigateStandPosition.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Chain_Lightning,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Chain Lightning.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Lets_Dance,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M5S Lets Dance.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Unsafe_Cannon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Unsafe Cannon.cs

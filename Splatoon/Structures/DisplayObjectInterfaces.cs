@@ -6,7 +6,7 @@ using Splatoon.Serializables;
 
 namespace Splatoon.Structures;
 
-public abstract class DisplayObject 
+public abstract class DisplayObject
 {
     public RenderEngineKind RenderEngineKind;
 }

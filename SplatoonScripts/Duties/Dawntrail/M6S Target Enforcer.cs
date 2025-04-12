@@ -61,9 +61,12 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         {
             if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] && C.Switch)
             {
-                if(!Svc.Targets.Target.AddressEquals(suggestedTarget) && EzThrottler.Throttle("M6SSwitchTarget", 200))
+                if(suggestedTarget.NameId == (uint)Mob.Jabberwock)
                 {
-                    Svc.Targets.Target = suggestedTarget;
+                    if(!Svc.Targets.Target.AddressEquals(suggestedTarget) && EzThrottler.Throttle("M6SSwitchTarget", 200))
+                    {
+                        Svc.Targets.Target = suggestedTarget;
+                    }
                 }
             }
             if(Controller.TryGetElementByName("Attack", out var e))
@@ -80,7 +83,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                 {
                     if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
                     {
-                        Chat.Instance.SendMessage($"/action \"{ExcelActionHelper.GetActionName(useAction)}\"");
+                        Chat.Instance.ExecuteAction(useAction);
                     }
                     else
                     {

@@ -15,11 +15,18 @@ public abstract class RenderEngine : IDisposable
     internal List<DisplayObject> DisplayObjects { get; private set; } = [];
     private List<DisplayObject> TempObjects = null;
     internal virtual bool CanBeDisabled { get; } = true;
-    internal bool Enabled => P.Config.EnabledRenderers.Contains(this.RenderEngineKind);
+    internal bool Enabled => P.Config.EnabledRenderers.Contains(RenderEngineKind);
 
     internal abstract void AddLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None);
 
-    internal abstract void ProcessElement(Element e, Layout i = null, bool forceEnable = false);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="e"></param>
+    /// <param name="i"></param>
+    /// <param name="forceEnable"></param>
+    /// <returns>Whether anything was drawn</returns>
+    internal abstract bool ProcessElement(Element e, Layout i = null, bool forceEnable = false);
 
     internal void StoreDisplayObjects()
     {
@@ -35,12 +42,12 @@ public abstract class RenderEngine : IDisposable
 
     internal void DrawSettings()
     {
-        ImGui.PushID(this.RenderEngineKind.ToString());
-        if (CanBeDisabled)
+        ImGui.PushID(RenderEngineKind.ToString());
+        if(CanBeDisabled)
         {
-            if (ImGuiEx.CollectionCheckbox("Enable", this.RenderEngineKind, P.Config.EnabledRenderers))
+            if(ImGuiEx.CollectionCheckbox("Enable", RenderEngineKind, P.Config.EnabledRenderers))
             {
-                if(!P.Config.EnabledRenderers.Contains(this.RenderEngineKind) && P.Config.RenderEngineKind == this.RenderEngineKind)
+                if(!P.Config.EnabledRenderers.Contains(RenderEngineKind) && P.Config.RenderEngineKind == RenderEngineKind)
                 {
                     DuoLog.Warning($"Because you have disabled active render engine, active render engine was set to ImGui Legacy.");
                     P.Config.RenderEngineKind = RenderEngineKind.ImGui_Legacy;
@@ -56,15 +63,15 @@ public abstract class RenderEngine : IDisposable
             ImGuiEx.HelpMarker("This render engine can not be disabled.");
         }
         ImGui.SameLine();
-        if (ImGui.RadioButton("Default", P.Config.RenderEngineKind == this.RenderEngineKind))
+        if(ImGui.RadioButton("Default", P.Config.RenderEngineKind == RenderEngineKind))
         {
-            P.Config.RenderEngineKind = this.RenderEngineKind;
+            P.Config.RenderEngineKind = RenderEngineKind;
         }
         ImGuiEx.HelpMarker($"All drawings, unless overriden per element, will be drawn using this render engine.");
-        if (LoadError == null)
+        if(LoadError == null)
         {
             ImGuiEx.Text(EColor.GreenBright, $"Render engine loaded successfully.".Loc());
-            if(!this.Enabled)
+            if(!Enabled)
             {
                 ImGuiEx.TextWrapped(EColor.OrangeBright, $"You have disabled this render engine. However, until you restart Splatoon or game, it will remain loaded but inactive.");
             }
@@ -72,7 +79,7 @@ public abstract class RenderEngine : IDisposable
         else
         {
             ImGui.NewLine();
-            if(this.LoadError is RenderEngineDisabledException)
+            if(LoadError is RenderEngineDisabledException)
             {
                 ImGuiEx.HelpMarker(LoadError.ToString(), EColor.OrangeBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
                 ImGui.SameLine();

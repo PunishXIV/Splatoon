@@ -14,7 +14,7 @@ public class ScriptingEngine
     {
         try
         {
-            if (s.StartsWith("~Lv2~"))
+            if(s.StartsWith("~Lv2~"))
             {
                 s = s[5..];
                 l = JsonConvert.DeserializeObject<Layout>(s);
@@ -27,7 +27,7 @@ public class ScriptingEngine
                 return true;
             }
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.LogWarning();
             l = null;
@@ -49,7 +49,7 @@ public class ScriptingEngine
             element = JsonConvert.DeserializeObject<Element>(s);
             return true;
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             e.LogWarning();
             element = null;

@@ -22,7 +22,7 @@ internal class MapEffectProcessor
 
     public void Dispose()
     {
-        
+
     }
 
 }

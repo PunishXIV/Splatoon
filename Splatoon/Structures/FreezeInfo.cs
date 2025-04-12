@@ -2,7 +2,7 @@
 
 public class FreezeInfo
 {
-    public List<FreezeState> States = new();
+    public List<FreezeState> States = [];
     public long AllowRefreezeAt;
 
     public bool CanDisplay()

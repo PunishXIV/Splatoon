@@ -13,14 +13,14 @@ internal class ActorControlProcessor
     private delegate void ProcessPacketActorControlDelegate(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying);
     private EzHook<ProcessPacketActorControlDelegate> ProcessPacketActorControlHook;
 
-    internal ActorControlProcessor() 
+    internal ActorControlProcessor()
     {
         try
         {
             ProcessPacketActorControlHook = new EzHook<ProcessPacketActorControlDelegate>("E8 ?? ?? ?? ?? 0F B7 0B 83 E9 64", ProcessPacketActorControlDetour);
             ProcessPacketActorControlHook?.Enable();
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             PluginLog.Error($"Could not create ActorControl hook.");
             ex.Log();

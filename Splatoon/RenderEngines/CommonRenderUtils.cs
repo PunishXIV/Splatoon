@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -13,25 +14,45 @@ namespace Splatoon.RenderEngines;
 /// <summary>
 /// This class contains render utils that are commonly used across all engines
 /// </summary>
-public unsafe static class CommonRenderUtils
+public static unsafe class CommonRenderUtils
 {
     internal static string ProcessPlaceholders(this string s, IGameObject go)
     {
-        return s
-        .Replace("$NAMEID", $"{(go is ICharacter chr2 ? chr2.NameId : 0).Format()}")
+        var ret = s
         .Replace("$NAME", go.Name.ToString())
         .Replace("$OBJECTID", $"{go.EntityId.Format()}")
         .Replace("$DATAID", $"{go.DataId.Format()}")
-        .Replace("$MODELID", $"{(go is ICharacter chr ? chr.Struct()->ModelContainer.ModelCharaId : 0).Format()}")
         .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
         .Replace("$KIND", $"{go.ObjectKind}")
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
         .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
         .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
-        .Replace("$CAST", go is IBattleChara chr3 && chr3.Struct()->GetCastInfo() != null ? $"[{chr3.CastActionId.Format()}] {chr3.CurrentCastTime}/{chr3.TotalCastTime}" : "")
         .Replace("\\n", "\n")
-        .Replace("$TRANSFORM", $"{(go is ICharacter chr5 ? chr5.GetTransformationID() : 0).Format()}")
         .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
+        if(go is IBattleChara chr)
+        {
+            ret = ret
+            .Replace("$MODELID", $"{chr.Struct()->ModelContainer.ModelCharaId.Format()}")
+            .Replace("$NAMEID", $"{chr.NameId.Format()}")
+            .Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "")
+            .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
+            if(ret.Contains("$STREM:"))
+            {
+                try
+                {
+                    var match = Regex.Match(ret, @"\$STREM:(\d+):(.*?)\$");
+                    if(match.Success && int.TryParse(match.Groups[1].Value, out var statusId) && chr.StatusList.TryGetFirst(s => s.StatusId == statusId, out var status))
+                    {
+                        ret = ret.Replace(match.Groups[0].Value, $"{status.RemainingTime.ToString(match.Groups[2].Value)}");
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.Log();
+                }
+            }
+        }
+        return ret;
     }
 
     /// <summary>

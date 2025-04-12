@@ -7,14 +7,14 @@ public static class ElementExtensions
     internal static float GetDefaultFillIntensity(this Element e)
     {
         // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
-        uint strokeAlpha = (e.color >> 24);
+        var strokeAlpha = (e.color >> 24);
         const uint defaultStrokeAlpha = 0xC8;
-        float transparencyFromStroke = (float)strokeAlpha / defaultStrokeAlpha;
-        float transparencyFromFillStep = 0.5f / e.FillStep;
-        if (e.type.EqualsAny(0, 1))
+        var transparencyFromStroke = (float)strokeAlpha / defaultStrokeAlpha;
+        var transparencyFromFillStep = 0.5f / e.FillStep;
+        if(e.type.EqualsAny(0, 1))
         {
             // Donut
-            if (e.Donut > 0)
+            if(e.Donut > 0)
             {
                 transparencyFromFillStep /= 2;
             }
@@ -25,12 +25,12 @@ public static class ElementExtensions
             }
         }
         // Cone
-        if (e.type.EqualsAny(4, 5))
+        if(e.type.EqualsAny(4, 5))
         {
             transparencyFromFillStep *= 4;
         }
-        uint fillAlpha = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
-        float fillIntensity = (float)fillAlpha / strokeAlpha;
+        var fillAlpha = Math.Clamp((uint)(0x45 * transparencyFromFillStep * transparencyFromStroke), 0x19, 0x64);
+        var fillIntensity = (float)fillAlpha / strokeAlpha;
         return Math.Clamp(fillIntensity, 0, 1);
     }
 
@@ -48,20 +48,20 @@ public static class ElementExtensions
     public static DisplayStyle GetDisplayStyle(this Element e)
     {
         // Most elements used line fill with Filled = false and need fill migration.
-        bool needsPolygonalFillMigration = e.fillIntensity == null;
-        float fillIntensity = e.fillIntensity ?? e.GetDefaultFillIntensity();
-        if (needsPolygonalFillMigration)
+        var needsPolygonalFillMigration = e.fillIntensity == null;
+        var fillIntensity = e.fillIntensity ?? e.GetDefaultFillIntensity();
+        if(needsPolygonalFillMigration)
         {
             // Non-donut circles are the only shapes that don't need fill migration because they had functioning Fill.
-            bool isCircle = e.type.EqualsAny(0, 1) && e.Donut == 0;
-            if (!isCircle)
+            var isCircle = e.type.EqualsAny(0, 1) && e.Donut == 0;
+            if(!isCircle)
             {
                 e.Filled = true;
             }
         }
 
-        uint originFillColor = e.originFillColor ?? Colors.MultiplyAlpha(e.color, fillIntensity);
-        uint endFillColor = e.endFillColor ?? Colors.MultiplyAlpha(e.color, fillIntensity);
+        var originFillColor = e.originFillColor ?? Colors.MultiplyAlpha(e.color, fillIntensity);
+        var endFillColor = e.endFillColor ?? Colors.MultiplyAlpha(e.color, fillIntensity);
 
         return new DisplayStyle(e.color, e.thicc, fillIntensity, originFillColor, endFillColor, e.Filled, e.overrideFillColor, 0, e.GetAnimationStyle());
     }
@@ -69,25 +69,25 @@ public static class ElementExtensions
 
     public static DisplayStyle GetDisplayStyleWithOverride(this Element e, IGameObject go = null)
     {
-        DisplayStyle style = e.GetDisplayStyle();
+        var style = e.GetDisplayStyle();
 
-        if (P.Config.StyleOverrides.TryGetValue(e.mechanicType, out var value))
+        if(P.Config.StyleOverrides.TryGetValue(e.mechanicType, out var value))
         {
             (var overrideEnabled, var overrideStyle) = value;
-            if (overrideEnabled)
+            if(overrideEnabled)
             {
                 style = overrideStyle;
             }
         }
-        if (!style.overrideFillColor)
+        if(!style.overrideFillColor)
         {
-            uint defaultColor = Colors.MultiplyAlpha(style.strokeColor, style.fillIntensity);
+            var defaultColor = Colors.MultiplyAlpha(style.strokeColor, style.fillIntensity);
             style.originFillColor = defaultColor;
             style.endFillColor = defaultColor;
         }
         style.animation = e.GetAnimationStyle();
         style.castFraction = e.refActorRequireCast ? LayoutUtils.CastFraction(e, go) : 0f;
-        if (style.animation.kind is CastAnimationKind.ColorShift)
+        if(style.animation.kind is CastAnimationKind.ColorShift)
         {
             style.originFillColor = P.Config.ClampFillColorAlpha(Colors.Lerp(style.originFillColor, style.animation.color, style.castFraction));
             style.endFillColor = P.Config.ClampFillColorAlpha(Colors.Lerp(style.endFillColor, style.animation.color, style.castFraction));
@@ -117,17 +117,17 @@ public static class ElementExtensions
 
     public static float EffectiveLength(this Element e)
     {
-        if (e.type.EqualsAny(0, 1))
+        if(e.type.EqualsAny(0, 1))
         {
-            if (e.Donut > 0)
+            if(e.Donut > 0)
                 return e.Donut;
             return e.radius;
         }
-        if (e.type.EqualsAny(2, 3))
+        if(e.type.EqualsAny(2, 3))
         {
             return (new Vector3(e.refX, e.refY, e.refZ) - new Vector3(e.offX, e.offY, e.offZ)).Length();
         }
-        if (e.type.EqualsAny(4, 5))
+        if(e.type.EqualsAny(4, 5))
         {
             return e.radius;
         }
@@ -136,9 +136,9 @@ public static class ElementExtensions
 
     public static RenderEngineKind ConfiguredRenderEngineKind(this Element e)
     {
-        if (e.RenderEngineKind != RenderEngineKind.Unspecified)
+        if(e.RenderEngineKind != RenderEngineKind.Unspecified)
             return e.RenderEngineKind;
-        if (P.Config.RenderEngineKind != RenderEngineKind.Unspecified)
+        if(P.Config.RenderEngineKind != RenderEngineKind.Unspecified)
             return P.Config.RenderEngineKind;
         return RenderEngineKind.DirectX11;
     }

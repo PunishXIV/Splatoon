@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -15,19 +12,33 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public class M6S_Color_Riot : SplatoonScript
+public class M6S_Color_Riot :SplatoonScript
 {
+    public enum BaitType
+    {
+        None,
+        Near,
+        Far
+    }
+
     private const uint RedDebuff = 0x1163;
     private const uint BlueDebuff = 0x1164;
+
     private string _basePlayerOverride = "";
+
     private bool _isActive = true;
+
     private bool _nearIsRed;
 
     public override HashSet<uint>? ValidTerritories => [1259];
-    public override Metadata? Metadata => new(2, "Garume,Redmoon");
+    public override Metadata? Metadata => new(4, "Garume, Redmoon");
 
     private static IBattleNpc? Enemy =>
         Svc.Objects.Where(x => x.DataId == 0x479F).OfType<IBattleNpc>().FirstOrDefault();
@@ -42,6 +53,16 @@ public class M6S_Color_Riot : SplatoonScript
                 .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
         }
     }
+
+    private Config C => Controller.GetConfig<Config>();
+
+    public override Dictionary<int, string> Changelog => new()
+    {
+        {
+            3,
+            "At the start, you can choose whether to move closer to or away from the enemy. If you're a tank, you need to change your settings."
+        }
+    };
 
     public override void OnSetup()
     {
@@ -75,6 +96,15 @@ public class M6S_Color_Riot : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        ImGuiEx.EnumCombo("First Bait Type", ref C.BaitType);
+        ImGuiEx.HelpMarker("""
+                           If you need to lure enemy attacks on the very first occasion, you must choose either "Near" or "Far." For subsequent occurrences, your positioning will be automatically navigated by a script according to the debuff.
+
+                           Near: You will be instructed to move closer in order to lure enemy attacks.
+                           Far: You will be instructed to move farther away in order to lure enemy attacks.
+                           None: No luring will be performed.
+                           """);
+
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.SetNextItemWidth(200);
@@ -142,14 +172,14 @@ public class M6S_Color_Riot : SplatoonScript
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (BasePlayer.GetJob().IsTank() && BasePlayer.GetJob() == Job.DRK)
+                else if (C.BaitType == BaitType.Near)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (BasePlayer.GetJob().IsTank() && BasePlayer.GetJob() == Job.PLD)
+                else if (C.BaitType == BaitType.Far)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 0f;
@@ -162,25 +192,25 @@ public class M6S_Color_Riot : SplatoonScript
                 if (hasBlueDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
-                    avoid.Donut = 25f;
+                    avoid.Donut = 0f;
                     avoid.radius = GetRadius(false);
                     text.overlayText = farPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Far!!";
                 }
                 else if (hasRedDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
-                    avoid.Donut = 0f;
+                    avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (BasePlayer.GetJob().IsTank() && BasePlayer.GetJob() == Job.DRK)
+                else if (C.BaitType == BaitType.Near)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (BasePlayer.GetJob().IsTank() && BasePlayer.GetJob() == Job.PLD)
+                else if (C.BaitType == BaitType.Far)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 0f;
@@ -189,7 +219,7 @@ public class M6S_Color_Riot : SplatoonScript
                 }
             }
 
-            if (hasRedDebuff || hasBlueDebuff || BasePlayer.GetJob().IsTank())
+            if (hasRedDebuff || hasBlueDebuff || C.BaitType != BaitType.None)
             {
                 avoid.Enabled = true;
                 text.Enabled = true;
@@ -219,6 +249,7 @@ public class M6S_Color_Riot : SplatoonScript
     public override void OnReset()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        _nearIsRed = false;
         _isActive = false;
     }
 
@@ -251,9 +282,12 @@ public class M6S_Color_Riot : SplatoonScript
                 .Where(x => !x.GetJob().IsTank())
                 .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), z.Position.ToVector2())).ToList()
                 .SafeSelect(isIn ? 0 : 5);
-        if (breakpoint == null) return 5f;
         var distance = Vector2.Distance(z.Position.ToVector2(), breakpoint.Position.ToVector2());
-        //distance += isIn ? -0.5f : 0.5f;
-        return Math.Max(0.5f, distance);
+        return Math.Max(5f, distance);
+    }
+
+    public class Config :IEzConfig
+    {
+        public BaitType BaitType = BaitType.None;
     }
 }

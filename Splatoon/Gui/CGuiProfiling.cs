@@ -2,7 +2,7 @@
 
 namespace Splatoon;
 
-partial class CGui
+internal partial class CGui
 {
     /*void DisplayProfiling()
     {

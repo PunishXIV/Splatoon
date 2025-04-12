@@ -7,22 +7,22 @@ namespace Splatoon.Modules;
 
 internal static class StreamDetector
 {
-    static bool started = false;
+    private static bool started = false;
     internal static void Start()
     {
-        if (P.Config.NoStreamWarning) return;
-        if (started) return;
+        if(P.Config.NoStreamWarning) return;
+        if(started) return;
         started = true;
         new Thread(() =>
         {
             try
             {
-                while (P != null && !P.Disposed)
+                while(P != null && !P.Disposed)
                 {
-                    if (!Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
+                    if(!Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
                     {
                         var processes = Process.GetProcesses();
-                        if (processes.Any(x => x.ProcessName.EqualsIgnoreCaseAny("obs32", "obs64") || x.ProcessName.StartsWithIgnoreCase("XSplit")))
+                        if(processes.Any(x => x.ProcessName.EqualsIgnoreCaseAny("obs32", "obs64") || x.ProcessName.StartsWithIgnoreCase("XSplit")))
                         {
                             Svc.PluginInterface.UiBuilder.Draw += Draw;
                             break;
@@ -38,9 +38,9 @@ internal static class StreamDetector
         }).Start();
     }
 
-    static void Draw()
+    private static void Draw()
     {
-        if (ImGui.Begin("Splatoon - Hold on!".Loc(), ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse))
+        if(ImGui.Begin("Splatoon - Hold on!".Loc(), ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse))
         {
             ImGui.SetWindowFontScale(2f);
             ImGuiEx.Text(Environment.TickCount % 1000 > 500 ? ImGuiColors.DalamudRed : ImGuiColors.DalamudYellow, "Please do not stream with third party tools visible.".Loc());
@@ -53,13 +53,13 @@ internal static class StreamDetector
             ImGuiEx.Text(ImGuiColors.DalamudYellow, "If you intended to stream your game, absolutely make sure that your plugins\nand other third party tools are NOT VISIBLE ON STREAM.".Loc());
             ImGui.SetWindowFontScale(1f);
             ImGuiEx.Text("And it does not matters how many viewers you have - even just one is already enough.".Loc());
-            if (ImGui.Button("I understand and will not stream with third party tools visible".Loc()))
+            if(ImGui.Button("I understand and will not stream with third party tools visible".Loc()))
             {
                 Svc.PluginInterface.UiBuilder.Draw -= Draw;
             }
             ImGuiEx.Text(ImGuiColors.DalamudGrey, "You are seeing this message because a streaming software has been detected.\nYou will not see it again in your current game session.".Loc());
             ImGui.SameLine();
-            if (ImGui.SmallButton("contact the developer.".Loc()))
+            if(ImGui.SmallButton("contact the developer.".Loc()))
             {
                 ShellStart(Splatoon.DiscordURL);
             }

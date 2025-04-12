@@ -11,47 +11,47 @@ namespace Splatoon.SplatoonScripting
 {
     internal static class ReferenceCache
     {
-        static ImmutableList<MetadataReference> referenceList = null;
-        internal static ImmutableList<MetadataReference> ReferenceList 
-        { 
+        private static ImmutableList<MetadataReference> referenceList = null;
+        internal static ImmutableList<MetadataReference> ReferenceList
+        {
             get
             {
                 referenceList ??= BuildReferenceList();
                 return referenceList;
-            } 
+            }
         }
 
-        static ImmutableList<MetadataReference> BuildReferenceList()
+        private static ImmutableList<MetadataReference> BuildReferenceList()
         {
             PluginLog.Debug("Rebuilding references");
             var references = new List<MetadataReference>();
-            foreach (var f in Directory.GetFiles(Path.GetDirectoryName(typeof(object).Assembly.Location), "*", SearchOption.TopDirectoryOnly))
+            foreach(var f in Directory.GetFiles(Path.GetDirectoryName(typeof(object).Assembly.Location), "*", SearchOption.TopDirectoryOnly))
             {
-                if (IsValidAssembly(f))
+                if(IsValidAssembly(f))
                 {
                     PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
                 }
             }
-            foreach (var f in Directory.GetFiles(Path.GetDirectoryName(typeof(System.Windows.Forms.Form).Assembly.Location), "*", SearchOption.TopDirectoryOnly))
+            foreach(var f in Directory.GetFiles(Path.GetDirectoryName(typeof(System.Windows.Forms.Form).Assembly.Location), "*", SearchOption.TopDirectoryOnly))
             {
-                if (IsValidAssembly(f))
+                if(IsValidAssembly(f))
                 {
                     PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
                 }
             }
-            foreach (var f in Directory.GetFiles(Svc.PluginInterface.AssemblyLocation.DirectoryName, "*", SearchOption.AllDirectories))
+            foreach(var f in Directory.GetFiles(Svc.PluginInterface.AssemblyLocation.DirectoryName, "*", SearchOption.AllDirectories))
             {
-                if (IsValidAssembly(f))
+                if(IsValidAssembly(f))
                 {
                     PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
                 }
             }
-            foreach (var f in Directory.GetFiles(Path.GetDirectoryName(Svc.PluginInterface.GetType().Assembly.Location), "*", SearchOption.AllDirectories))
+            foreach(var f in Directory.GetFiles(Path.GetDirectoryName(Svc.PluginInterface.GetType().Assembly.Location), "*", SearchOption.AllDirectories))
             {
-                if (IsValidAssembly(f))
+                if(IsValidAssembly(f))
                 {
                     PluginLog.Verbose($"Adding reference: {f}");
                     references.Add(MetadataReference.CreateFromFile(f));
@@ -60,14 +60,14 @@ namespace Splatoon.SplatoonScripting
             return references.ToImmutableList();
         }
 
-        static bool IsValidAssembly(string path)
+        private static bool IsValidAssembly(string path)
         {
             try
             {
                 var assembly = AssemblyName.GetAssemblyName(path);
                 return true;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
                 return false;
             }

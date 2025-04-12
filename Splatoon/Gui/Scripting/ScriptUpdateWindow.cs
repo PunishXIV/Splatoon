@@ -18,7 +18,7 @@ public class ScriptUpdateWindow : Window
     public ScriptUpdateWindow() : base("Splatoon Scripting - load results", ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoCollapse)
     {
         this.SetSizeConstraints(new(500, 100), new(float.MaxValue, float.MaxValue));
-        this.RespectCloseHotkey = false;
+        RespectCloseHotkey = false;
     }
 
     private volatile ImmutableList<SplatoonScript> UpdatedScripts = [];
@@ -34,7 +34,7 @@ public class ScriptUpdateWindow : Window
 
     public override void Draw()
     {
-        int i = 0;
+        var i = 0;
         if(UpdatedScripts.Count > 0)
         {
             ImGuiEx.TextWrapped($"The following scripts have been updated. Please check that your settings are intact, and if needed, reconfigure it.");
@@ -78,7 +78,7 @@ public class ScriptUpdateWindow : Window
                 }
                 ImGui.EndTable();
             }
-            
+
         }
         if(FailedScripts.Count > 0)
         {
@@ -115,7 +115,7 @@ public class ScriptUpdateWindow : Window
 
     public void Open()
     {
-        this.IsOpen = true;
+        IsOpen = true;
     }
 
     public void Reset()

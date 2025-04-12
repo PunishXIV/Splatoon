@@ -8,7 +8,7 @@ public record struct CachedObjectEffectInfo
 
     public CachedObjectEffectInfo(long startTime, ushort data1, ushort data2)
     {
-        this.StartTime = startTime;
+        StartTime = startTime;
         this.data1 = data1;
         this.data2 = data2;
     }

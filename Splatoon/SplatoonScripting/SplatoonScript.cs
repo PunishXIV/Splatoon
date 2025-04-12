@@ -56,7 +56,7 @@ public abstract class SplatoonScript
     /// </summary>
     public bool IsEnabled { get; private set; } = false;
 
-    internal bool IsDisabledByUser => P.Config.DisabledScripts.Contains(this.InternalData.FullName);
+    internal bool IsDisabledByUser => P.Config.DisabledScripts.Contains(InternalData.FullName);
 
     /// <summary>
     /// Executed once after script is compiled and loaded into memory. Setup your layouts, elements and other static data that is not supposed to change within a game session. You should not setup any hooks or direct Dalamud events here, as method to cleanup is not provided (by design). Such things are to be done in OnEnable method.
@@ -253,7 +253,7 @@ public abstract class SplatoonScript
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new configuration".Loc()))
             {
                 var newKey = InternalData.GetFreeConfigurationKey();
-                P.Config.ScriptConfigurationNames.GetOrCreate(this.InternalData.FullName)[newKey] = "New configuration".Loc();
+                P.Config.ScriptConfigurationNames.GetOrCreate(InternalData.FullName)[newKey] = "New configuration".Loc();
             }
             ImGui.SameLine();
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste from clipboard".Loc()))
@@ -273,7 +273,7 @@ public abstract class SplatoonScript
                 }
             }
         });
-        var current = this.InternalData.CurrentConfigurationKey;
+        var current = InternalData.CurrentConfigurationKey;
         if(ImGui.BeginTable("ConfTable", 2, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders))
         {
             ImGui.TableSetupColumn("Name".Loc(), ImGuiTableColumnFlags.WidthStretch);
@@ -282,7 +282,7 @@ public abstract class SplatoonScript
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGuiEx.TextV(current == ""?ImGuiColors.ParsedGreen:null, $"Default configuration".Loc());
+            ImGuiEx.TextV(current == "" ? ImGuiColors.ParsedGreen : null, $"Default configuration".Loc());
             if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it.".Loc()))
             {
                 ApplyDefaultConfiguration();
@@ -350,17 +350,17 @@ public abstract class SplatoonScript
                             confList.Remove(confKey);
                             try
                             {
-                                DeleteFileToRecycleBin(this.InternalData.GetConfigPathForConfigurationKey(confKey));
+                                DeleteFileToRecycleBin(InternalData.GetConfigPathForConfigurationKey(confKey));
                             }
                             catch(Exception e) { e.Log(); }
                             try
                             {
-                                DeleteFileToRecycleBin(this.InternalData.GetOverridesPathForConfigurationKey(confKey));
+                                DeleteFileToRecycleBin(InternalData.GetOverridesPathForConfigurationKey(confKey));
                             }
                             catch(Exception e) { e.Log(); }
                             if(InternalData.CurrentConfigurationKey == confKey)
                             {
-                                this.ApplyDefaultConfiguration();
+                                ApplyDefaultConfiguration();
                             }
                         });
                     }
@@ -385,7 +385,7 @@ public abstract class SplatoonScript
                 var m = GetExportedConfiguration(confKey)?.JSONClone() ?? throw new NullReferenceException();
                 var name = $"Copy of {confList.SafeSelect(confKey) ?? "Default configuration".Loc()}";
                 var name2 = name;
-                int i = 0;
+                var i = 0;
                 while(confList.ContainsValue(name2))
                 {
                     name2 = $"{name} ({++i})";
@@ -407,7 +407,7 @@ public abstract class SplatoonScript
     {
         try
         {
-            var conf = this.GetExportedConfiguration(confKey);
+            var conf = GetExportedConfiguration(confKey);
             if(conf != null)
             {
                 Copy(JsonConvert.SerializeObject(conf));
@@ -425,23 +425,23 @@ public abstract class SplatoonScript
 
     internal ExportedScriptConfiguration? GetExportedConfiguration(string? key)
     {
-        key ??= this.InternalData.CurrentConfigurationKey;
-        this.Controller.SaveConfig();
-        this.Controller.SaveOverrides();
+        key ??= InternalData.CurrentConfigurationKey;
+        Controller.SaveConfig();
+        Controller.SaveOverrides();
         try
         {
             var ec = new ExportedScriptConfiguration()
             {
-                TargetScriptName = this.InternalData.FullName,
-                ConfigurationName = Utils.GetScriptConfigurationName(this.InternalData.FullName, key).NullWhenEmpty() ?? "",
+                TargetScriptName = InternalData.FullName,
+                ConfigurationName = Utils.GetScriptConfigurationName(InternalData.FullName, key).NullWhenEmpty() ?? "",
             };
-            if(File.Exists(this.InternalData.GetConfigPathForConfigurationKey(key)))
+            if(File.Exists(InternalData.GetConfigPathForConfigurationKey(key)))
             {
-                ec.Configuration = Utils.BrotliCompress(File.ReadAllBytes(this.InternalData.GetConfigPathForConfigurationKey(key)));
+                ec.Configuration = Utils.BrotliCompress(File.ReadAllBytes(InternalData.GetConfigPathForConfigurationKey(key)));
             }
-            if(File.Exists(this.InternalData.GetOverridesPathForConfigurationKey(key)))
+            if(File.Exists(InternalData.GetOverridesPathForConfigurationKey(key)))
             {
-                ec.Overrides = Utils.BrotliCompress(File.ReadAllBytes(this.InternalData.GetOverridesPathForConfigurationKey(key)));
+                ec.Overrides = Utils.BrotliCompress(File.ReadAllBytes(InternalData.GetOverridesPathForConfigurationKey(key)));
             }
             return ec;
         }
@@ -452,11 +452,11 @@ public abstract class SplatoonScript
         }
     }
 
-    internal bool ApplyExportedConfiguration(ExportedScriptConfiguration configuration, [NotNullWhen(false)]out string? error, string? nameOverride = null)
+    internal bool ApplyExportedConfiguration(ExportedScriptConfiguration configuration, [NotNullWhen(false)] out string? error, string? nameOverride = null)
     {
-        if(configuration.TargetScriptName != this.InternalData.FullName)
+        if(configuration.TargetScriptName != InternalData.FullName)
         {
-            error = "You are attempting to import configuration for another script. \nCurrent script: ??\nYour configuration is for: ??".Loc(this.InternalData.FullName, configuration.TargetScriptName);
+            error = "You are attempting to import configuration for another script. \nCurrent script: ??\nYour configuration is for: ??".Loc(InternalData.FullName, configuration.TargetScriptName);
             return false;
         }
         if(configuration.ConfigurationName.IsNullOrEmpty()) configuration.ConfigurationName = "Imported configuration".Loc();
@@ -469,7 +469,7 @@ public abstract class SplatoonScript
         {
             try
             {
-                File.WriteAllBytes(this.InternalData.GetConfigPathForConfigurationKey(newKey), Utils.BrotliDecompress(configuration.Configuration));
+                File.WriteAllBytes(InternalData.GetConfigPathForConfigurationKey(newKey), Utils.BrotliDecompress(configuration.Configuration));
             }
             catch(Exception e)
             {
@@ -482,7 +482,7 @@ public abstract class SplatoonScript
         {
             try
             {
-                File.WriteAllBytes(this.InternalData.GetOverridesPathForConfigurationKey(newKey), Utils.BrotliDecompress(configuration.Overrides));
+                File.WriteAllBytes(InternalData.GetOverridesPathForConfigurationKey(newKey), Utils.BrotliDecompress(configuration.Overrides));
             }
             catch(Exception e)
             {
@@ -491,14 +491,14 @@ public abstract class SplatoonScript
                 return false;
             }
         }
-        P.Config.ScriptConfigurationNames.GetOrCreate(this.InternalData.FullName)[newKey] = configuration.ConfigurationName;
+        P.Config.ScriptConfigurationNames.GetOrCreate(InternalData.FullName)[newKey] = configuration.ConfigurationName;
         error = null;
         return true;
     }
 
-    internal bool TryGetAvailableConfigurations([NotNullWhen(true)]out Dictionary<string, string>? confList)
+    internal bool TryGetAvailableConfigurations([NotNullWhen(true)] out Dictionary<string, string>? confList)
     {
-        return P.Config.ScriptConfigurationNames.TryGetValue(this.InternalData.FullName, out confList);
+        return P.Config.ScriptConfigurationNames.TryGetValue(InternalData.FullName, out confList);
     }
 
     internal void ApplyDefaultConfiguration()
@@ -509,9 +509,9 @@ public abstract class SplatoonScript
 
     internal void ApplyDefaultConfiguration(out Action? reloadAction)
     {
-        P.Config.ActiveScriptConfigurations.Remove(this.InternalData.FullName);
-        if(this.InternalData.ConfigOpen) TabScripting.RequestOpen = this.InternalData.FullName;
-        if(this.InternalData.CurrentConfigurationKey != "")
+        P.Config.ActiveScriptConfigurations.Remove(InternalData.FullName);
+        if(InternalData.ConfigOpen) TabScripting.RequestOpen = InternalData.FullName;
+        if(InternalData.CurrentConfigurationKey != "")
         {
             reloadAction = () => ScriptingProcessor.ReloadScript(this);
         }
@@ -530,8 +530,8 @@ public abstract class SplatoonScript
     internal void ApplyConfiguration(string confKey, out Action? reloadAction)
     {
         P.Config.ActiveScriptConfigurations[InternalData.FullName] = confKey;
-        if(this.InternalData.ConfigOpen) TabScripting.RequestOpen = this.InternalData.FullName;
-        if(this.InternalData.CurrentConfigurationKey != confKey)
+        if(InternalData.ConfigOpen) TabScripting.RequestOpen = InternalData.FullName;
+        if(InternalData.CurrentConfigurationKey != confKey)
         {
             reloadAction = () => ScriptingProcessor.ReloadScript(this);
         }
@@ -636,31 +636,31 @@ public abstract class SplatoonScript
         }
     }
 
-    public bool DoSettingsDraw => this.GetType().GetMethod(nameof(OnSettingsDraw))?.DeclaringType != typeof(SplatoonScript);
+    public bool DoSettingsDraw => GetType().GetMethod(nameof(OnSettingsDraw))?.DeclaringType != typeof(SplatoonScript);
 
     internal bool Enable()
     {
-        if(IsEnabled || IsDisabledByUser || !this.InternalData.Allowed || this.InternalData.Blacklisted)
+        if(IsEnabled || IsDisabledByUser || !InternalData.Allowed || InternalData.Blacklisted)
         {
             return false;
         }
         try
         {
-            PluginLog.Information($"Enabling script {this.InternalData.Name}");
-            this.OnEnable();
+            PluginLog.Information($"Enabling script {InternalData.Name}");
+            OnEnable();
         }
         catch(Exception ex)
         {
             ScriptingProcessor.LogError(this, ex, nameof(Enable));
         }
-        this.IsEnabled = true;
+        IsEnabled = true;
         ScriptingProcessor.OnReset(this);
         return true;
     }
 
     internal bool Disable()
     {
-        this.Controller.SaveConfig();
+        Controller.SaveConfig();
         if(!IsEnabled)
         {
             return false;
@@ -669,13 +669,13 @@ public abstract class SplatoonScript
         try
         {
             PluginLog.Information($"Disabling script {this}");
-            this.OnDisable();
+            OnDisable();
         }
         catch(Exception ex)
         {
             ScriptingProcessor.LogError(this, ex, nameof(Disable));
         }
-        this.IsEnabled = false;
+        IsEnabled = false;
         return true;
     }
 }

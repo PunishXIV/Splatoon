@@ -21,10 +21,10 @@ internal class ImGuiLegacyScene : IDisposable
 
     private void Update(object _)
     {
-        if (Svc.ClientState.LocalPlayer != null)
+        if(Svc.ClientState.LocalPlayer != null)
         {
             CamAngleX = Camera.GetAngleX() + Math.PI;
-            if (CamAngleX > Math.PI) CamAngleX -= 2 * Math.PI;
+            if(CamAngleX > Math.PI) CamAngleX -= 2 * Math.PI;
             CamAngleY = Camera.GetAngleY();
             CamZoom = Math.Min(Camera.GetZoom(), 20);
             /*Range conversion https://stackoverflow.com/questions/5731863/mapping-a-numeric-range-onto-another
@@ -39,15 +39,15 @@ internal class ImGuiLegacyScene : IDisposable
         uid = 0;
         try
         {
-            if (!Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]
+            if(!Svc.Condition[ConditionFlag.OccupiedInCutSceneEvent]
                 && !Svc.Condition[ConditionFlag.WatchingCutscene78])
             {
-                if (P.Config.segments > 1000 || P.Config.segments < 4)
+                if(P.Config.segments > 1000 || P.Config.segments < 4)
                 {
                     P.Config.segments = 100;
                     P.Log("Your smoothness setting was unsafe. It was reset to 100.");
                 }
-                if (P.Config.lineSegments > 50 || P.Config.lineSegments < 4)
+                if(P.Config.lineSegments > 50 || P.Config.lineSegments < 4)
                 {
                     P.Config.lineSegments = 20;
                     P.Log("Your line segment setting was unsafe. It was reset to 20.");
@@ -56,33 +56,33 @@ internal class ImGuiLegacyScene : IDisposable
                 {
                     void Draw()
                     {
-                        foreach (var element in ImGuiLegacyRenderer.DisplayObjects)
+                        foreach(var element in ImGuiLegacyRenderer.DisplayObjects)
                         {
-                            if (element is DisplayObjectCircle elementCircle)
+                            if(element is DisplayObjectCircle elementCircle)
                             {
                                 DrawRingWorld(elementCircle);
                             }
-                            else if (element is DisplayObjectDot elementDot)
+                            else if(element is DisplayObjectDot elementDot)
                             {
                                 DrawPoint(elementDot);
                             }
-                            else if (element is DisplayObjectText elementText)
+                            else if(element is DisplayObjectText elementText)
                             {
                                 DrawTextWorld(elementText);
                             }
-                            else if (element is DisplayObjectLine elementLine)
+                            else if(element is DisplayObjectLine elementLine)
                             {
                                 DrawLineWorld(elementLine);
                             }
-                            else if (element is DisplayObjectRect elementRect)
+                            else if(element is DisplayObjectRect elementRect)
                             {
                                 DrawRectWorld(elementRect);
                             }
-                            else if (element is DisplayObjectDonut elementDonut)
+                            else if(element is DisplayObjectDonut elementDonut)
                             {
                                 DrawDonutWorld(elementDonut);
                             }
-                            else if (element is DisplayObjectCone elementCone)
+                            else if(element is DisplayObjectCone elementCone)
                             {
                                 DrawConeWorld(elementCone);
                             }
@@ -94,17 +94,17 @@ internal class ImGuiLegacyScene : IDisposable
                     ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
                     ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
                     ImGui.Begin("Splatoon Legacy Renderer Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings);
-                    if (P.Config.SplatoonLowerZ)
+                    if(P.Config.SplatoonLowerZ)
                     {
                         CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
                     }
-                    if (P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
+                    if(P.Config.RenderableZones.Count == 0 || !P.Config.RenderableZonesValid)
                     {
                         Draw();
                     }
                     else
                     {
-                        foreach (var e in P.Config.RenderableZones)
+                        foreach(var e in P.Config.RenderableZones)
                         {
                             //var trans = e.Trans != 1.0f;
                             //if (trans) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, e.Trans);
@@ -117,14 +117,14 @@ internal class ImGuiLegacyScene : IDisposable
                     ImGui.End();
                     ImGui.PopStyleVar();
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     P.Log("Splatoon exception: please report it to developer", true);
                     P.Log(e.ToStringFull(), true);
                 }
             }
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             P.Log("Caught exception: " + e.ToStringFull(), true);
         }
@@ -154,7 +154,7 @@ internal class ImGuiLegacyScene : IDisposable
             elementDonut.z,
             elementDonut.y + (outerradiuschonk * Math.Cos((Math.PI / 24.0) * 0))
         );
-        for (var i = 0; i <= 47; i++)
+        for(var i = 0; i <= 47; i++)
         {
             v2 = TranslateToScreen(
                 elementDonut.x + (elementDonut.radius * Math.Sin((Math.PI / 24.0) * (i + 1))),
@@ -182,7 +182,7 @@ internal class ImGuiLegacyScene : IDisposable
     private void DrawLineWorld(DisplayObjectLine e)
     {
         var result = GetAdjustedLine(new Vector3(e.ax, e.ay, e.az), new Vector3(e.bx, e.by, e.bz));
-        if (result.posA == null) return;
+        if(result.posA == null) return;
         ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posA.Value.X, result.posA.Value.Y));
         ImGui.GetWindowDrawList().PathLineTo(new Vector2(result.posB.Value.X, result.posB.Value.Y));
         ImGui.GetWindowDrawList().PathStroke(e.color, ImDrawFlags.None, e.thickness);
@@ -191,11 +191,11 @@ internal class ImGuiLegacyScene : IDisposable
     private (Vector2? posA, Vector2? posB) GetAdjustedLine(Vector3 pointA, Vector3 pointB)
     {
         var resultA = Utils.WorldToScreen(new Vector3(pointA.X, pointA.Z, pointA.Y), out var posA);
-        if (!resultA && !P.DisableLineFix)
+        if(!resultA && !P.DisableLineFix)
         {
             var posA2 = GetLineClosestToVisiblePoint(pointA,
             (pointB - pointA) / CurrentLineSegments, 0, CurrentLineSegments);
-            if (posA2 == null)
+            if(posA2 == null)
             {
                 return (null, null);
             }
@@ -205,11 +205,11 @@ internal class ImGuiLegacyScene : IDisposable
             }
         }
         var resultB = Utils.WorldToScreen(new Vector3(pointB.X, pointB.Z, pointB.Y), out var posB);
-        if (!resultB && !P.DisableLineFix)
+        if(!resultB && !P.DisableLineFix)
         {
             var posB2 = GetLineClosestToVisiblePoint(pointB,
             (pointA - pointB) / CurrentLineSegments, 0, CurrentLineSegments);
-            if (posB2 == null)
+            if(posB2 == null)
             {
                 return (null, null);
             }
@@ -225,15 +225,15 @@ internal class ImGuiLegacyScene : IDisposable
     private void DrawRectWorld(DisplayObjectRect e) //oof
     {
         var result1 = GetAdjustedLine(new Vector3(e.l1.ax, e.l1.ay, e.l1.az), new Vector3(e.l1.bx, e.l1.by, e.l1.bz));
-        if (result1.posA == null) goto Alternative;
+        if(result1.posA == null) goto Alternative;
         var result2 = GetAdjustedLine(new Vector3(e.l2.ax, e.l2.ay, e.l2.az), new Vector3(e.l2.bx, e.l2.by, e.l2.bz));
-        if (result2.posA == null) goto Alternative;
+        if(result2.posA == null) goto Alternative;
         goto Build;
     Alternative:
         result1 = GetAdjustedLine(new Vector3(e.l1.ax, e.l1.ay, e.l1.az), new Vector3(e.l2.ax, e.l2.ay, e.l2.az));
-        if (result1.posA == null) goto Quit;
+        if(result1.posA == null) goto Quit;
         result2 = GetAdjustedLine(new Vector3(e.l1.bx, e.l1.by, e.l1.bz), new Vector3(e.l2.bx, e.l2.by, e.l2.bz));
-        if (result2.posA == null) goto Quit;
+        if(result2.posA == null) goto Quit;
         Build:
         ImGui.GetWindowDrawList().AddQuadFilled(
             new Vector2(result1.posA.Value.X, result1.posA.Value.Y),
@@ -247,14 +247,14 @@ internal class ImGuiLegacyScene : IDisposable
 
     private Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 targetPos, float eps)
     {
-        if (!Utils.WorldToScreen(targetPos, out var res)) return null;
+        if(!Utils.WorldToScreen(targetPos, out var res)) return null;
 
-        while (true)
+        while(true)
         {
             var mid = (currentPos + targetPos) / 2;
-            if (Utils.WorldToScreen(mid, out var pos))
+            if(Utils.WorldToScreen(mid, out var pos))
             {
-                if ((res - pos).Length() < eps) return res;
+                if((res - pos).Length() < eps) return res;
                 targetPos = mid;
                 res = pos;
             }
@@ -264,9 +264,9 @@ internal class ImGuiLegacyScene : IDisposable
 
     private Vector2? GetLineClosestToVisiblePoint(Vector3 currentPos, Vector3 delta, int curSegment, int numSegments)
     {
-        if (curSegment > numSegments) return null;
+        if(curSegment > numSegments) return null;
         var nextPos = currentPos + delta;
-        if (Utils.WorldToScreen(new Vector3(nextPos.X, nextPos.Z, nextPos.Y), out var pos))
+        if(Utils.WorldToScreen(new Vector3(nextPos.X, nextPos.Z, nextPos.Y), out var pos))
         {
             var preciseVector = GetLineClosestToVisiblePoint(currentPos, (nextPos - currentPos) / P.Config.lineSegments, 0, P.Config.lineSegments);
             return preciseVector.HasValue ? preciseVector.Value : pos;
@@ -279,7 +279,7 @@ internal class ImGuiLegacyScene : IDisposable
 
     public void DrawTextWorld(DisplayObjectText e)
     {
-        if (Utils.WorldToScreen(
+        if(Utils.WorldToScreen(
                         new Vector3(e.x, e.z, e.y),
                         out var pos))
         {
@@ -300,9 +300,9 @@ internal class ImGuiLegacyScene : IDisposable
             ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
             | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
         ImGui.PushStyleColor(ImGuiCol.Text, e.fgcolor);
-        if (scaled) ImGui.SetWindowFontScale(e.fscale);
+        if(scaled) ImGui.SetWindowFontScale(e.fscale);
         ImGuiEx.Text(e.text);
-        if (scaled) ImGui.SetWindowFontScale(1f);
+        if(scaled) ImGui.SetWindowFontScale(1f);
         ImGui.PopStyleColor();
         ImGui.EndChild();
         ImGui.PopStyleColor();
@@ -319,7 +319,7 @@ internal class ImGuiLegacyScene : IDisposable
             ), out var refpos);
         var visible = false;
         var elements = new Vector2?[P.Config.segments];
-        for (var i = 0; i < P.Config.segments; i++)
+        for(var i = 0; i < P.Config.segments; i++)
         {
             visible = Utils.WorldToScreen(
                 new Vector3(e.x + e.radius * (float)Math.Sin(Math.PI / seg * i),
@@ -328,17 +328,17 @@ internal class ImGuiLegacyScene : IDisposable
                 ),
                 out var pos)
                 || visible;
-            if (pos.Y > refpos.Y || P.Config.NoCircleFix) elements[i] = new Vector2(pos.X, pos.Y);
+            if(pos.Y > refpos.Y || P.Config.NoCircleFix) elements[i] = new Vector2(pos.X, pos.Y);
         }
-        if (visible)
+        if(visible)
         {
-            foreach (var pos in elements)
+            foreach(var pos in elements)
             {
-                if (pos == null) continue;
+                if(pos == null) continue;
                 ImGui.GetWindowDrawList().PathLineTo(pos.Value);
             }
 
-            if (e.filled)
+            if(e.filled)
             {
                 ImGui.GetWindowDrawList().PathFillConvex(e.color);
             }
@@ -361,7 +361,7 @@ internal class ImGuiLegacyScene : IDisposable
         Utils.WorldToScreen(new Vector3(e.x + e.radius * MathF.Cos(e.startRad), e.y, e.z + e.radius * MathF.Sin(e.startRad)), out v);
         drawList.PathLineTo(v);
 
-        for (var i = e.startRad; i < e.endRad; i += MathF.PI / 2)
+        for(var i = e.startRad; i < e.endRad; i += MathF.PI / 2)
         {
             var theta = MathF.Min(e.endRad - i, MathF.PI / 2);
             var h = 1.3f * (1 - MathF.Cos(theta / 2)) / MathF.Sin(theta / 2);
@@ -383,7 +383,7 @@ internal class ImGuiLegacyScene : IDisposable
             drawList.PathBezierCubicCurveTo(v1, v2, v);
         }
 
-        if (e.filled)
+        if(e.filled)
         {
             drawList.PathFillConvex(e.color);
         }
@@ -395,7 +395,7 @@ internal class ImGuiLegacyScene : IDisposable
 
     public void DrawPoint(DisplayObjectDot e)
     {
-        if (Utils.WorldToScreen(new Vector3(e.x, e.z, e.y), out var pos))
+        if(Utils.WorldToScreen(new Vector3(e.x, e.z, e.y), out var pos))
             ImGui.GetWindowDrawList().AddCircleFilled(
             new Vector2(pos.X, pos.Y),
             e.thickness,

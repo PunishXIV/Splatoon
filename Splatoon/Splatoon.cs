@@ -663,6 +663,7 @@ public unsafe class Splatoon : IDalamudPlugin
         for(var i = 0; i < l.ElementsL.Count; i++)
         {
             var element = l.ElementsL[i];
+            if(element.Conditional && element.ConditionalReset) l.ConditionalStatus = null;
             var shouldSkip = l.ConditionalStatus == false && (l.ConditionalAnd || (!l.ConditionalAnd && l.ConditionalStatus == false && !element.Conditional));
             if(shouldSkip) continue;
             var result = S.RenderManager.GetRenderer(element).ProcessElement(element, l);

@@ -29,6 +29,10 @@ internal class Commands : IDisposable
             {
                 var phase = Splatoon.P.Phase;
                 Splatoon.P.TerritoryChangedEvent(0);
+                foreach(var x in P.Config.LayoutsL)
+                {
+                    x.FreezeInfo = new();
+                }
                 Notify.Success("Reset");
                 if(Splatoon.P.Phase != phase)
                 {

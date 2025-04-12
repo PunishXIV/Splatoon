@@ -476,10 +476,17 @@ internal static partial class ScriptingProcessor
 
     internal static void OpenUpdatePopupIfNeeded()
     {
-        PluginLog.Information($"Script updates now finished {P.ScriptUpdateWindow.FailedScripts_Count()}/{P.ScriptUpdateWindow.UpdatedScripts_Count()}");
-        if(P.ScriptUpdateWindow.FailedScripts_Count() > 0 || P.ScriptUpdateWindow.UpdatedScripts_Count() > 0)
+        try
         {
-            P.ScriptUpdateWindow.Open();
+            PluginLog.Information($"Script updates now finished {P.ScriptUpdateWindow.FailedScripts_Count()}/{P.ScriptUpdateWindow.UpdatedScripts_Count()}");
+            if(P.ScriptUpdateWindow.FailedScripts_Count() > 0 || P.ScriptUpdateWindow.UpdatedScripts_Count() > 0)
+            {
+                P.ScriptUpdateWindow.Open();
+            }
+        }
+        catch(Exception e)
+        {
+            e.Log();
         }
     }
 

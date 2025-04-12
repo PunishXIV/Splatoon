@@ -208,9 +208,11 @@ public class Element
     [DefaultValue(RenderEngineKind.Unspecified)] public RenderEngineKind RenderEngineKind = RenderEngineKind.Unspecified;
     [DefaultValue(false)] public bool Conditional = false;
     [DefaultValue(false)] public bool ConditionalInvert = false;
+    [DefaultValue(false)] public bool ConditionalReset = false;
 
     public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();
     public bool ShouldSerializeConditionalInvert() => Conditional;
+    public bool ShouldSerializeConditionalReset() => Conditional;
     public bool ShouldSerializerefActorTransformationID() => refActorUseTransformation;
     public bool ShouldSerializerefActorObjectEffectLastOnly() => refActorComparisonType == 8 || refActorComparisonAnd;
     public bool ShouldSerializerefActorObjectEffectMax() => refActorComparisonType == 8 || refActorComparisonAnd;

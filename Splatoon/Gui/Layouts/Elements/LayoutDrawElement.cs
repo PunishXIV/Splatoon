@@ -184,6 +184,9 @@ internal unsafe partial class CGui
             """);
         ImGui.SameLine();
         ImGui.Checkbox("Invert condition", ref el.ConditionalInvert);
+        ImGui.SameLine();
+        ImGui.Checkbox("Reset condition", ref el.ConditionalReset);
+        ImGuiEx.HelpMarker("Upon reaching this element, previous conditions will be reset");
 
         ImGuiUtils.SizedText("Name:".Loc(), WidthElement);
         ImGui.SameLine();

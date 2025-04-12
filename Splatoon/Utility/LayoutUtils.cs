@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using ECommons.MathHelpers;
 using Splatoon.Memory;
 using Splatoon.Structures;
@@ -262,33 +263,33 @@ public static unsafe class LayoutUtils
         }
     }
 
-    public static bool IsLayoutVisible(Layout i)
+    public static bool IsLayoutVisible(Layout layout)
     {
-        if(!i.Enabled) return false;
-        if(i.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if((i.ZoneLockH.Count > 0 && !i.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(i.IsZoneBlacklist)) return false;
-        if(i.Scenes.Count > 0 && !i.Scenes.Contains(*Scene.ActiveScene)) return false;
-        if(i.Phase != 0 && i.Phase != P.Phase) return false;
-        if(i.JobLock != 0 && !Bitmask.IsBitSet(i.JobLock, (int)Svc.ClientState.LocalPlayer.ClassJob.RowId)) return false;
-        if((i.DCond == 1 || i.DCond == 3) && !Svc.Condition[ConditionFlag.InCombat]) return false;
-        if((i.DCond == 2 || i.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if(i.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]
+        if(!layout.Enabled) return false;
+        if(layout.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty]) return false;
+        if((layout.ZoneLockH.Count > 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)) return false;
+        if(layout.Scenes.Count > 0 && !layout.Scenes.Contains(*Scene.ActiveScene)) return false;
+        if(layout.Phase != 0 && layout.Phase != P.Phase) return false;
+        if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(Player.Job)) return false;
+        if((layout.DCond == 1 || layout.DCond == 3) && !Svc.Condition[ConditionFlag.InCombat]) return false;
+        if((layout.DCond == 2 || layout.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
+        if(layout.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]
             || Svc.Condition[ConditionFlag.BoundByDuty])) return false;
-        if(i.UseDistanceLimit && i.DistanceLimitType == 0)
+        if(layout.UseDistanceLimit && layout.DistanceLimitType == 0)
         {
             if(Svc.Targets.Target != null)
             {
-                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (i.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (i.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
-                if(!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
+                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (layout.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (layout.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
+                if(!(dist >= layout.MinDistance && dist < layout.MaxDistance)) return false;
             }
             else
             {
                 return false;
             }
         }
-        if(i.UseTriggers)
+        if(layout.UseTriggers)
         {
-            foreach(var t in i.Triggers)
+            foreach(var t in layout.Triggers)
             {
                 if(t.FiredState == 2) continue;
                 if((t.Type == 2 || t.Type == 3) && !t.Disabled)
@@ -315,7 +316,7 @@ public static unsafe class LayoutUtils
                             }
                             else
                             {
-                                i.TriggerCondition = t.Type == 2 ? 1 : -1;
+                                layout.TriggerCondition = t.Type == 2 ? 1 : -1;
                             }
                             if(t.FireOnce)
                             {
@@ -337,14 +338,14 @@ public static unsafe class LayoutUtils
                             t.FiredState = 1;
                             t.DisableAt.Add(Environment.TickCount64 + (int)(t.Duration * 1000));
                         }
-                        i.TriggerCondition = t.Type == 0 ? 1 : -1;
+                        layout.TriggerCondition = t.Type == 0 ? 1 : -1;
                     }
                 }
                 for(var e = 0; e < t.EnableAt.Count; e++)
                 {
                     if(Environment.TickCount64 > t.EnableAt[e])
                     {
-                        i.TriggerCondition = t.Type == 2 ? 1 : -1;
+                        layout.TriggerCondition = t.Type == 2 ? 1 : -1;
                         t.EnableAt.RemoveAt(e);
                         break;
                     }
@@ -355,13 +356,13 @@ public static unsafe class LayoutUtils
                     {
                         t.FiredState = (t.Type == 2 || t.Type == 3) ? 0 : 2;
                         t.DisableAt.RemoveAt(e);
-                        i.TriggerCondition = 0;
+                        layout.TriggerCondition = 0;
                         break;
                     }
                 }
 
             }
-            if(i.TriggerCondition == -1 || (i.TriggerCondition == 0 && i.DCond == 5)) return false;
+            if(layout.TriggerCondition == -1 || (layout.TriggerCondition == 0 && layout.DCond == 5)) return false;
         }
         return true;
     }

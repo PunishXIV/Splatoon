@@ -48,7 +48,6 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Dictionary<ushort, TerritoryType> Zones;
     internal long CombatStarted = 0;
     internal HashSet<Element> InjectedElements = [];
-    internal Dictionary<int, string> Jobs = [];
     //internal HashSet<(float x, float y, float z, float r, float angle)> draw = new HashSet<(float x, float y, float z, float r, float angle)>();
     internal bool prevMouseState = false;
     internal List<SearchInfo> SFind = [];
@@ -95,6 +94,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal TaskManager TaskManager;
     internal bool ForceLoadDX11 = false;
     internal LinuxWarningPopup LinuxWarningPopup;
+    internal uint FrameCounter = 1000;
 
     internal void Load(IDalamudPluginInterface pluginInterface)
     {
@@ -113,7 +113,6 @@ public unsafe class Splatoon : IDalamudPlugin
         //Profiler = new Profiling(this);
         CommandManager = new Commands(this);
         Zones = Svc.Data.GetExcelSheet<TerritoryType>().ToDictionary(row => (ushort)row.RowId, row => row);
-        Jobs = Svc.Data.GetExcelSheet<ClassJob>().ToDictionary(row => (int)row.RowId, row => row.Name.ToString());
         tickScheduler = new ConcurrentQueue<System.Action>();
         dynamicElements = [];
         SetupShutdownHttp(Config.UseHttpServer);
@@ -307,7 +306,6 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             Phase++;
             CombatStarted = Environment.TickCount64;
-            Svc.PluginInterface.UiBuilder.AddNotification($"Phase transition to Phase ??".Loc(Phase), Name, NotificationType.Info, 10000);
         }
         if(!type.EqualsAny(ECommons.Constants.NormalChatTypes))
         {
@@ -418,6 +416,7 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         try
         {
+            FrameCounter++;
             PlaceholderCache.Clear();
             LayoutAmount = 0;
             ElementAmount = 0;
@@ -624,7 +623,11 @@ public unsafe class Splatoon : IDalamudPlugin
                     for(var i = 0; i < l.ElementsL.Count; i++)
                     {
                         var element = l.ElementsL[i];
-                        S.RenderManager.GetRenderer(element).ProcessElement(element, l);
+                        if(S.RenderManager.GetRenderer(element).ProcessElement(element, l))
+                        {
+                            l.LastDisplayFrame = P.FrameCounter;
+                            element.LastDisplayFrame = P.FrameCounter;
+                        }
                     }
                     var union = S.RenderManager.GetUnifiedDisplayObjects();
                     if(union.Count > 0)
@@ -645,7 +648,11 @@ public unsafe class Splatoon : IDalamudPlugin
                 for(var i = 0; i < l.ElementsL.Count; i++)
                 {
                     var element = l.ElementsL[i];
-                    S.RenderManager.GetRenderer(element).ProcessElement(element, l);
+                    if(S.RenderManager.GetRenderer(element).ProcessElement(element, l))
+                    {
+                        l.LastDisplayFrame = P.FrameCounter;
+                        element.LastDisplayFrame = P.FrameCounter;
+                    }
                 }
             }
         }

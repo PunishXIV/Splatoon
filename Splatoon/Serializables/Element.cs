@@ -8,10 +8,11 @@ namespace Splatoon;
 [Serializable]
 public class Element
 {
-    [NonSerialized]
-    public static string[] ElementTypes = Array.Empty<string>();
+    [NonSerialized] public static string[] ElementTypes = Array.Empty<string>();
     [NonSerialized] public static string[] ActorTypes = Array.Empty<string>();
     [NonSerialized] public static string[] ComparisonTypes = Array.Empty<string>();
+    [NonSerialized] internal uint LastDisplayFrame = 0;
+    public bool IsVisible() => LastDisplayFrame == P.FrameCounter;
     public static void Init()
     {
         ElementTypes = new string[]{
@@ -43,6 +44,7 @@ public class Element
 
 
     public string Name = "";
+    public InternationalString InternationalName = new();
     [NonSerialized] internal string GUID = Guid.NewGuid().ToString();
     [NonSerialized] internal bool Delete = false;
     /// <summary>
@@ -204,179 +206,49 @@ public class Element
     [DefaultValue(0.5f)] public float FillStep = 0.5f;
     [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(RenderEngineKind.Unspecified)] public RenderEngineKind RenderEngineKind = RenderEngineKind.Unspecified;
+    [DefaultValue(false)] public bool Conditional = false;
+    [DefaultValue(false)] public bool ConditionalInvert = false;
 
-    public bool ShouldSerializerefActorTransformationID()
-    {
-        return refActorUseTransformation;
-    }
-
-    public bool ShouldSerializerefActorObjectEffectLastOnly()
-    {
-        return refActorComparisonType == 8 || refActorComparisonAnd;
-    }
-    public bool ShouldSerializerefActorObjectEffectMax()
-    {
-        return refActorComparisonType == 8 || refActorComparisonAnd;
-    }
-    public bool ShouldSerializerefActorObjectEffectMin()
-    {
-        return refActorComparisonType == 8 || refActorComparisonAnd;
-    }
-    public bool ShouldSerializerefActorObjectEffectData2()
-    {
-        return refActorComparisonType == 8 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorObjectEffectData1()
-    {
-        return refActorComparisonType == 8 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorNamePlateIconId()
-    {
-        return refActorComparisonType == 9 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializeRotationMax()
-    {
-        return ShouldSerializeRotationMin();
-    }
-
-    public bool ShouldSerializeRotationMin()
-    {
-        return LimitRotation;
-    }
-
-    public bool ShouldSerializerefActorVFXPath()
-    {
-        return refActorComparisonType == 7 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorVFXMin()
-    {
-        return refActorComparisonType == 7 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorVFXMax()
-    {
-        return refActorComparisonType == 7 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorNameIntl()
-    {
-        return ShouldSerializerefActorName() && !refActorNameIntl.IsEmpty();
-    }
-
-    public bool ShouldSerializeconeAngleMax()
-    {
-        return ShouldSerializeconeAngleMin();
-    }
-
-    public bool ShouldSerializeconeAngleMin()
-    {
-        return type == 4 || type == 5;
-    }
-
-    public bool ShouldSerializerefActorLifetimeMax()
-    {
-        return ShouldSerializerefActorLifetimeMin();
-    }
-
-    public bool ShouldSerializerefActorLifetimeMin()
-    {
-        return refActorObjectLife;
-    }
-
-    public bool ShouldSerializerefActorCastId()
-    {
-        return refActorRequireCast && refActorCastId.Count > 0;
-    }
-
-    public bool ShouldSerializerefActorBuffId()
-    {
-        return refActorRequireBuff && refActorBuffId.Count > 0;
-    }
-
-    public bool ShouldSerializerefActorBuffParam()
-    {
-        return refActorRequireBuff && refActorUseBuffParam;
-    }
-
-    public bool ShouldSerializerefActorName()
-    {
-        return refActorComparisonType == 0 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorModelID()
-    {
-        return refActorComparisonType == 1 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorObjectID()
-    {
-        return refActorComparisonType == 2 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorDataID()
-    {
-        return refActorComparisonType == 3 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorNPCID()
-    {
-        return refActorComparisonType == 4 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorPlaceholder()
-    {
-        return refActorComparisonType == 5 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefActorNPCNameID()
-    {
-        return refActorComparisonType == 6 || refActorComparisonAnd;
-    }
-
-    public bool ShouldSerializerefX()
-    {
-        return type != 1;
-    }
-    public bool ShouldSerializerefY() { return ShouldSerializerefX(); }
-    public bool ShouldSerializerefZ() { return ShouldSerializerefX(); }
-
-    public bool ShouldSerializeDonut()
-    {
-        return type.EqualsAny(0, 1, 4, 5) && Donut > 0;
-    }
-    public bool ShouldSerializeoverrideFillColor()
-    {
-        return Filled && overrideFillColor;
-    }
-    public bool ShouldSerializeoriginFillColor()
-    {
-        return ShouldSerializeoverrideFillColor();
-    }
-    public bool ShouldSerializeendFillColor()
-    {
-        return ShouldSerializeoverrideFillColor();
-    }
-    public bool ShouldSerializecastAnimation()
-    {
-        return refActorRequireCast && castAnimation is not CastAnimationKind.Unspecified;
-    }
-    public bool ShouldSerializeanimationColor()
-    {
-        return ShouldSerializecastAnimation();
-    }
-    public bool ShouldSerializepulseSize()
-    {
-        return ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
-    }
-    public bool ShouldSerializepulseFrequency()
-    {
-        return ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
-    }
-
+    public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();
+    public bool ShouldSerializeConditionalInvert() => Conditional;
+    public bool ShouldSerializerefActorTransformationID() => refActorUseTransformation;
+    public bool ShouldSerializerefActorObjectEffectLastOnly() => refActorComparisonType == 8 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorObjectEffectMax() => refActorComparisonType == 8 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorObjectEffectMin() => refActorComparisonType == 8 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorObjectEffectData2() => refActorComparisonType == 8 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorObjectEffectData1() => refActorComparisonType == 8 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorNamePlateIconId() => refActorComparisonType == 9 || refActorComparisonAnd;
+    public bool ShouldSerializeRotationMax() => ShouldSerializeRotationMin();
+    public bool ShouldSerializeRotationMin() => LimitRotation;
+    public bool ShouldSerializerefActorVFXPath() => refActorComparisonType == 7 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorVFXMin() => refActorComparisonType == 7 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorVFXMax() => refActorComparisonType == 7 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorNameIntl() => ShouldSerializerefActorName() && !refActorNameIntl.IsEmpty();
+    public bool ShouldSerializeconeAngleMax() => ShouldSerializeconeAngleMin();
+    public bool ShouldSerializeconeAngleMin() => type == 4 || type == 5;
+    public bool ShouldSerializerefActorLifetimeMax() => ShouldSerializerefActorLifetimeMin();
+    public bool ShouldSerializerefActorLifetimeMin() => refActorObjectLife;
+    public bool ShouldSerializerefActorCastId() => refActorRequireCast && refActorCastId.Count > 0;
+    public bool ShouldSerializerefActorBuffId() => refActorRequireBuff && refActorBuffId.Count > 0;
+    public bool ShouldSerializerefActorBuffParam() => refActorRequireBuff && refActorUseBuffParam;
+    public bool ShouldSerializerefActorName() => refActorComparisonType == 0 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorModelID() => refActorComparisonType == 1 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorObjectID() => refActorComparisonType == 2 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorDataID() => refActorComparisonType == 3 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorNPCID() => refActorComparisonType == 4 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorPlaceholder() => refActorComparisonType == 5 || refActorComparisonAnd;
+    public bool ShouldSerializerefActorNPCNameID() => refActorComparisonType == 6 || refActorComparisonAnd;
+    public bool ShouldSerializerefX() => type != 1;
+    public bool ShouldSerializerefY() => ShouldSerializerefX();
+    public bool ShouldSerializerefZ() => ShouldSerializerefX();
+    public bool ShouldSerializeDonut() => type.EqualsAny(0, 1, 4, 5) && Donut > 0;
+    public bool ShouldSerializeoverrideFillColor() => Filled && overrideFillColor;
+    public bool ShouldSerializeoriginFillColor() => ShouldSerializeoverrideFillColor();
+    public bool ShouldSerializeendFillColor() => ShouldSerializeoverrideFillColor();
+    public bool ShouldSerializecastAnimation() => refActorRequireCast && castAnimation is not CastAnimationKind.Unspecified;
+    public bool ShouldSerializeanimationColor() => ShouldSerializecastAnimation();
+    public bool ShouldSerializepulseSize() => ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
+    public bool ShouldSerializepulseFrequency() => ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
     public bool ShouldSerializerefActorTetherConnectedWithPlayer() => refActorTether;
 
 }

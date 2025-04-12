@@ -176,15 +176,17 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
     }
 
-    internal override void ProcessElement(Element e, Layout i = null, bool forceEnable = false)
+    internal override bool ProcessElement(Element e, Layout i = null, bool forceEnable = false)
     {
-        if(!e.Enabled && !forceEnable) return;
+        var ret = false;
+        if(!e.Enabled && !forceEnable) return ret;
         P.ElementAmount++;
         var radius = e.radius;
         if(e.type == 0)
         {
             if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, e.refX, e.refY, e.refZ))
             {
+                ret = true;
                 DrawCircle(e, e.refX, e.refY, e.refZ, radius, 0f);
             }
         }
@@ -193,6 +195,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             if(e.includeOwnHitbox) radius += Svc.ClientState.LocalPlayer.HitboxRadius;
             if(e.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(e, Svc.ClientState.LocalPlayer, true))
             {
+                ret = true;
                 if(e.type == 1)
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
@@ -213,6 +216,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             {
                 if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, Svc.Targets.Target.GetPositionXZY()))
                 {
+                    ret = true;
                     if(e.includeHitbox) radius += Svc.Targets.Target.HitboxRadius;
                     if(e.type == 1)
                     {
@@ -244,6 +248,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     {
                         if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, a.GetPositionXZY()))
                         {
+                            ret = true;
                             var aradius = radius;
                             if(e.includeHitbox) aradius += a.HitboxRadius;
                             if(e.type == 1)
@@ -277,18 +282,21 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(i, e))
             {
                 if(!LayoutUtils.ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
-    && !LayoutUtils.ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)) return;
+    && !LayoutUtils.ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)) return ret;
+                ret = true;
                 AddLine(new Vector3(e.refX, e.refZ, e.refY), new Vector3(e.offX, e.offZ, e.offY), e.radius, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB);
             }
         }
         else if(e.type == 5)
         {
+            ret = true;
             var baseAngle = e.FaceMe ?
                 (180 - (MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()))).DegreesToRadians()
                 : 0;
             var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
             DrawCone(e, pos, radius, baseAngle);
         }
+        return ret;
     }
 
     internal override void AddLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)

@@ -18,6 +18,19 @@ public static unsafe class Utils
 {
     private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
 
+    public static void Migrate(this Layout l)
+    {
+        DataMigrator.MigrateJobs(l);
+#pragma warning disable CS0612 // Type or member is obsolete
+        foreach(var x in l.Elements)
+        {
+            x.Value.Name = x.Key;
+            l.ElementsL.Add(x.Value);
+        }
+        l.Elements.Clear();
+#pragma warning restore CS0612 // Type or member is obsolete
+    }
+
     public static bool IsLinux()
     {
         //return true;
@@ -259,14 +272,7 @@ public static unsafe class Utils
             {
                 var layout = JsonConvert.DeserializeObject<Layout>(json);
                 layout.Name = name;
-#pragma warning disable CS0612 // Type or member is obsolete
-                foreach(var x in layout.Elements)
-                {
-                    x.Value.Name = x.Key;
-                    layout.ElementsL.Add(x.Value);
-                }
-                layout.Elements.Clear();
-#pragma warning restore CS0612 // Type or member is obsolete
+                layout.Migrate();
                 return layout;
             }
         }

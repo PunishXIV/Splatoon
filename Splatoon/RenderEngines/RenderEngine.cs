@@ -19,7 +19,14 @@ public abstract class RenderEngine : IDisposable
 
     internal abstract void AddLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None);
 
-    internal abstract void ProcessElement(Element e, Layout i = null, bool forceEnable = false);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="e"></param>
+    /// <param name="i"></param>
+    /// <param name="forceEnable"></param>
+    /// <returns>Whether anything was drawn</returns>
+    internal abstract bool ProcessElement(Element e, Layout i = null, bool forceEnable = false);
 
     internal void StoreDisplayObjects()
     {

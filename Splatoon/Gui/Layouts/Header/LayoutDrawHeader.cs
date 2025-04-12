@@ -157,6 +157,11 @@ internal partial class CGui
             layout.DrawDistanceLimit();
 
             ImGui.TableNextColumn();
+            ImGui.Checkbox("Conditional element behavior".Loc(), ref layout.UseDistanceLimit);
+            ImGui.TableNextColumn();
+            ImGuiEx.RadioButtonBool("AND", "OR", ref layout.ConditionalAnd, true);
+
+            ImGui.TableNextColumn();
             ImGui.Checkbox("Freeze".Loc(), ref layout.Freezing);
             ImGuiComponents.HelpMarker(
 @"Freeze is an advanced setting that can have negative side effects.
@@ -170,15 +175,15 @@ New frozen elements are created every refreeze interval.".Loc());
             ImGui.Checkbox("Enable triggers".Loc(), ref layout.UseTriggers);
             if(layout.UseTriggers)
             {
-                if(ImGui.Button("Add new trigger".Loc()))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add".Loc()))
                 {
                     layout.Triggers.Add(new Trigger());
                 }
-                if(ImGui.Button("Copy triggers".Loc()))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy".Loc()))
                 {
                     ImGui.SetClipboardText(JsonConvert.SerializeObject(layout.Triggers));
                 }
-                if(ImGui.Button("Paste triggers".Loc()) && (ImGui.GetIO().KeyCtrl || layout.Triggers.Count == 0))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste Replace".Loc(), ImGui.GetIO().KeyCtrl || layout.Triggers.Count == 0))
                 {
                     try
                     {
@@ -192,6 +197,21 @@ New frozen elements are created every refreeze interval.".Loc());
                 if(layout.Triggers.Count != 0)
                 {
                     ImGuiEx.Tooltip("Hold CTRL and click. Existing triggers will be overwritten.".Loc());
+                }
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste Add".Loc()))
+                {
+                    try
+                    {
+                        var newTriggers = JsonConvert.DeserializeObject<List<Trigger>>(ImGui.GetClipboardText());
+                        foreach(var t in newTriggers)
+                        {
+                            layout.Triggers.Add(t);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        Notify.Error(e.Message);
+                    }
                 }
             }
             ImGui.TableNextColumn();

@@ -58,7 +58,7 @@ internal unsafe partial class CGui : IDisposable
             {
                 p.Config.Save();
                 WasOpen = false;
-                Notify.Success("Configuration saved".Loc());
+                //Notify.Success("Configuration saved".Loc());
                 if(p.Config.verboselog) p.Log("Configuration saved");
                 P.SaveArchive();
                 ScriptingProcessor.Scripts.Each(x => x.InternalData.UnconditionalDraw = false);

@@ -46,15 +46,17 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         DisplayObjects.Add(new DisplayObjectLine(ax, ay, az, bx, by, bz, thickness, color));
     }
 
-    internal override void ProcessElement(Element e, Layout i = null, bool forceEnable = false)
+    internal override bool ProcessElement(Element e, Layout layout = null, bool forceEnable = false)
     {
-        if(!e.Enabled && !forceEnable) return;
+        var ret = false;
+        if(!e.Enabled && !forceEnable) return ret;
         P.ElementAmount++;
         var radius = e.radius;
         if(e.type == 0)
         {
-            if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, e.refX, e.refY, e.refZ))
+            if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, e.refX, e.refY, e.refZ))
             {
+                ret = true;
                 DrawCircle(e, e.refX, e.refY, e.refZ, radius, 0f);
             }
         }
@@ -63,6 +65,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             if(e.includeOwnHitbox) radius += Svc.ClientState.LocalPlayer.HitboxRadius;
             if(e.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(e, Svc.ClientState.LocalPlayer, true))
             {
+                ret = true;
                 if(e.type == 1)
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
@@ -89,8 +92,9 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             else if(e.refActorType == 2 && Svc.Targets.Target != null
                 && Svc.Targets.Target is IBattleNpc && LayoutUtils.CheckCharacterAttributes(e, Svc.Targets.Target, true))
             {
-                if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, Svc.Targets.Target.GetPositionXZY()))
+                if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, Svc.Targets.Target.GetPositionXZY()))
                 {
+                    ret = true;
                     if(e.includeHitbox) radius += Svc.Targets.Target.HitboxRadius;
                     if(e.type == 1)
                     {
@@ -141,8 +145,9 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     if(LayoutUtils.IsAttributeMatches(e, a)
                             && CommonRenderUtils.IsElementObjectMatches(e, targetable, a))
                     {
-                        if(i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(i, a.GetPositionXZY()))
+                        if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, a.GetPositionXZY()))
                         {
+                            ret = true;
                             var aradius = radius;
                             if(e.includeHitbox) aradius += a.HitboxRadius;
                             if(e.type == 1)
@@ -195,7 +200,8 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             if(e.radius > 0)
             {
                 if(!LayoutUtils.ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
-                    && !LayoutUtils.ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)) return;
+                    && !LayoutUtils.ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)) return ret;
+                ret = true;
                 Utils.PerpOffset(new Vector2(e.refX, e.refY), new Vector2(e.offX, e.offY), 0f, e.radius, out _, out var p1);
                 Utils.PerpOffset(new Vector2(e.refX, e.refY), new Vector2(e.offX, e.offY), 0f, -e.radius, out _, out var p2);
                 Utils.PerpOffset(new Vector2(e.refX, e.refY), new Vector2(e.offX, e.offY), 1f, e.radius, out _, out var p3);
@@ -218,14 +224,17 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             {
                 if(
                     (
-                        i == null || !i.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(i, e)
+                        layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(layout, e)
                     ) &&
                     (
                 LayoutUtils.ShouldDraw(e.offX, Utils.GetPlayerPositionXZY().X, e.offY, Utils.GetPlayerPositionXZY().Y)
                     || LayoutUtils.ShouldDraw(e.refX, Utils.GetPlayerPositionXZY().X, e.refY, Utils.GetPlayerPositionXZY().Y)
                     )
                     )
+                {
+                    ret = true;
                     DisplayObjects.Add(new DisplayObjectLine(e.refX, e.refY, e.refZ, e.offX, e.offY, e.offZ, e.thicc, e.color));
+                }
             }
         }
         else if(e.type == 5)
@@ -233,7 +242,8 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             if(e.coneAngleMax > e.coneAngleMin)
             {
                 var pos = new Vector3(e.refX + e.offX, e.refY + e.offY, e.refZ + e.offZ);
-                if(!LayoutUtils.ShouldDraw(pos.X, Utils.GetPlayerPositionXZY().X, pos.Y, Utils.GetPlayerPositionXZY().Y)) return;
+                if(!LayoutUtils.ShouldDraw(pos.X, Utils.GetPlayerPositionXZY().X, pos.Y, Utils.GetPlayerPositionXZY().Y)) return ret;
+                ret = true;
                 if(P.Config.FillCone)
                 {
                     var baseAngle = e.FaceMe ? MathHelper.GetRelativeAngle(new Vector2(e.refX + e.offX, e.refY + e.offY), Marking.GetPlayer(e.faceplayer).Position.ToVector2()).DegreesToRadians() + MathF.PI : 0;
@@ -265,6 +275,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 }
             }
         }
+        return ret;
     }
 
     private void DrawCircle(Element e, float x, float y, float z, float r, float angle, IGameObject go = null)

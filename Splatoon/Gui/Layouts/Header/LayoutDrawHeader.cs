@@ -92,6 +92,15 @@ internal partial class CGui
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Enabled".Loc(), ref layout.Enabled);
+
+            if(layout.IsVisible())
+            {
+                ImGuiEx.HelpMarker("This layout is currently being rendered".Loc(), EColor.GreenBright, FontAwesomeIcon.Eye.ToIconString());
+            }
+            else
+            {
+                ImGuiEx.HelpMarker("This layout is currently not being rendered".Loc(), EColor.White, FontAwesomeIcon.EyeSlash.ToIconString());
+            }
             ImGui.TableNextColumn();
             ImGui.SetNextItemWidth(150f.Scale());
             if(ImGui.BeginCombo("##phaseSelectorL", $"{(layout.Phase == 0 ? "Any phase".Loc() : $"Phase ??".Loc(layout.Phase))}"))
@@ -116,6 +125,12 @@ internal partial class CGui
             {
                 layout.Name = layout.Name.SanitizeName();
             }
+
+            ImGui.TableNextColumn();
+            ImGuiEx.TextV("Intl. Name:".Loc());
+            ImGui.TableNextColumn();
+            ImGuiEx.SetNextItemFullWidth();
+            layout.InternationalName.ImGuiEdit(ref layout.Name);
 
             ImGui.TableNextColumn();
             ImGuiEx.TextV("Display conditions:".Loc());
@@ -157,9 +172,9 @@ internal partial class CGui
             layout.DrawDistanceLimit();
 
             ImGui.TableNextColumn();
-            ImGui.Checkbox("Conditional element behavior".Loc(), ref layout.UseDistanceLimit);
+            ImGuiEx.TextV("Multiple Conditions".Loc());
             ImGui.TableNextColumn();
-            ImGuiEx.RadioButtonBool("AND", "OR", ref layout.ConditionalAnd, true);
+            ImGuiEx.RadioButtonBool("AND##mcc", "OR##mcc", ref layout.ConditionalAnd, true);
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Freeze".Loc(), ref layout.Freezing);

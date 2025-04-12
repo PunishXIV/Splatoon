@@ -1,4 +1,5 @@
 ﻿using ECommons.ExcelServices;
+using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.ComponentModel;
 
@@ -9,6 +10,7 @@ public class Layout
 {
     [NonSerialized] public static string[] DisplayConditions = { };
     [NonSerialized] public uint LastDisplayFrame = 0;
+    [NonSerialized] public bool? ConditionalStatus = null;
     [DefaultValue(true)] public bool Enabled = true;
     public string Name = "";
     public InternationalString InternationalName = new();

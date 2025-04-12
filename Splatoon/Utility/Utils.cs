@@ -343,7 +343,7 @@ public static unsafe class Utils
 
     public static string GetName(this Layout l)
     {
-        if(l.Name.IsNullOrEmpty())
+        if(l.InternationalName.Get(l.Name).IsNullOrEmpty())
         {
             var index = P.Config.LayoutsL.IndexOf(l);
             if(index >= 0)
@@ -357,13 +357,13 @@ public static unsafe class Utils
         }
         else
         {
-            return l.Name;
+            return l.InternationalName.Get(l.Name);
         }
     }
 
     public static string GetName(this Element e)
     {
-        if(e.Name.IsNullOrEmpty())
+        if(e.InternationalName.Get(e.Name).IsNullOrEmpty())
         {
             if(P.Config.LayoutsL.TryGetFirst(x => x.ElementsL.Contains(e), out var l))
             {
@@ -377,7 +377,7 @@ public static unsafe class Utils
         }
         else
         {
-            return e.Name;
+            return e.InternationalName.Get(e.Name);
         }
     }
 

@@ -44,6 +44,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.Transparent);
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.Transparent);
         var s = ImGui.CalcTextSize(text);
+        ImGui.AlignTextToFramePadding();
         ImGuiEx.Text(text);
         if(width > s.X)
         {

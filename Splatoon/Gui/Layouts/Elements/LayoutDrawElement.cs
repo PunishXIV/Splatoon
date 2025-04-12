@@ -19,9 +19,17 @@ internal unsafe partial class CGui
     {
         var i = l.Name;
         var k = el.Name;
-        ImGui.Checkbox("Enabled".Loc() + "##" + i + k, ref el.Enabled);
+        ImGui.Checkbox("Enabled".Loc(), ref el.Enabled);
+        if(el.IsVisible())
+        {
+            ImGuiEx.HelpMarker("This element is currently being rendered".Loc(), EColor.GreenBright, FontAwesomeIcon.Eye.ToIconString());
+        }
+        else
+        {
+            ImGuiEx.HelpMarker("This element is currently not being rendered".Loc(), EColor.White, FontAwesomeIcon.EyeSlash.ToIconString());
+        }
         ImGui.SameLine();
-        if(ImGui.Button("Copy as HTTP param".Loc() + "##" + i + k))
+        if(ImGui.Button("Copy as HTTP param".Loc()))
         {
             HTTPExportToClipboard(el);
         }
@@ -30,21 +38,21 @@ internal unsafe partial class CGui
             ImGui.SetTooltip("Hold ALT to copy raw JSON (for usage with post body or you'll have to urlencode it yourself)\nHold CTRL and click to copy urlencoded raw".Loc());
         }
         ImGui.SameLine();
-        if(ImGui.Button("Copy to clipboard".Loc() + "##" + i + k))
+        if(ImGui.Button("Copy to clipboard".Loc()))
         {
             ImGui.SetClipboardText(JsonConvert.SerializeObject(el, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
             Notify.Success("Copied to clipboard".Loc());
         }
 
         ImGui.SameLine();
-        if(ImGui.Button("Copy style".Loc() + "##" + i + k))
+        if(ImGui.Button("Copy style".Loc()))
         {
             p.Clipboard = JsonConvert.DeserializeObject<Element>(JsonConvert.SerializeObject(el));
         }
         if(p.Clipboard != null)
         {
             ImGui.SameLine();
-            if(ImGui.Button("Paste style".Loc() + "##" + i + k))
+            if(ImGui.Button("Paste style".Loc()))
             {
                 el.color = p.Clipboard.color;
                 el.thicc = p.Clipboard.thicc;
@@ -155,10 +163,37 @@ internal unsafe partial class CGui
         }
 
 
+        ImGuiUtils.SizedText("Conditional:".Loc(), WidthElement);
+        ImGui.SameLine();
+
+        ImGui.SameLine();
+        ImGui.Checkbox("##Conditional", ref el.Conditional);
+        ImGuiEx.HelpMarker("""
+            Conditional element will serve as conditional trigger for any elements lower than this in current layout. 
+            If this element is visible, elements below will also be shown. If there are multiple sequential conditional elements, they will be merged using rules defined in the layout. This is advanced feature that allows displaying elements, for example, when a certain buff is present on a player, boss, allows drawing elements around players when boss is casting something, etc.
+            
+            If another conditional element is encountered after normal element, it will be processed together with the rules defined in the layout. For example:
+            - if element structure is A1B2, where A and B - conditional elements, 1 and 2 - normal elements:
+            - - in OR mode if A is shown but B is hidden, both 1 and 2 will be shown; 
+            - - in AND mode - only 1 will be shown. 
+            - If A is hidden but B is shown:
+            - - OR mode will display only 2;
+            - - AND mode will display nothing at all. 
+
+            Conditional elements may serve as normal elements and display information on their own, or simply be hidden service elements.
+            """);
+        ImGui.SameLine();
+        ImGui.Checkbox("Invert condition", ref el.ConditionalInvert);
+
         ImGuiUtils.SizedText("Name:".Loc(), WidthElement);
         ImGui.SameLine();
         ImGuiEx.SetNextItemFullWidth();
         ImGui.InputText("##Name", ref el.Name, 100);
+
+        ImGuiUtils.SizedText("Intl. Name:".Loc(), WidthElement);
+        ImGui.SameLine();
+        ImGuiEx.SetNextItemFullWidth();
+        el.InternationalName.ImGuiEdit(ref el.Name);
 
         ImGuiUtils.SizedText("Element type:".Loc(), WidthElement);
         ImGui.SameLine();
@@ -194,7 +229,7 @@ internal unsafe partial class CGui
             if(el.refActorType == 0)
             {
                 ImGui.SameLine();
-                if(ImGui.Button("Copy settarget command".Loc() + "##" + i + k))
+                if(ImGui.Button("Copy settarget command".Loc()))
                 {
                     ImGui.SetClipboardText("/splatoon settarget " + i + "~" + k);
                 }
@@ -397,7 +432,7 @@ internal unsafe partial class CGui
                     ImGui.EndCombo();
                 }
                 ImGui.SameLine();
-                ImGui.Checkbox("Visible characters only".Loc() + "##" + i + k, ref el.onlyVisible);
+                ImGui.Checkbox("Visible characters only".Loc(), ref el.onlyVisible);
                 if(ImGui.IsItemHovered())
                 {
                     ImGui.SetTooltip("Setting this checkbox will also restrict search to characters ONLY. \n(character - is a player, companion or friendly/hostile NPC that can fight and have HP)".Loc());
@@ -520,7 +555,7 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGui.Checkbox((el.refActorRequireBuffsInvert ? "Require ANY status to be missing".Loc() + "##" : "Require ALL listed statuses to be present".Loc() + "##") + i + k, ref el.refActorRequireAllBuffs);
                 ImGui.SameLine();
-                ImGui.Checkbox("Invert behavior".Loc() + "##" + i + k, ref el.refActorRequireBuffsInvert);
+                ImGui.Checkbox("Invert behavior".Loc(), ref el.refActorRequireBuffsInvert);
             }
 
             ImGuiUtils.SizedText("Distance limit".Loc(), WidthElement);
@@ -990,10 +1025,10 @@ internal unsafe partial class CGui
                     if(el.refActorType != 1)
                     {
                         ImGui.SameLine();
-                        ImGui.Checkbox("+target hitbox".Loc() + "##" + i + k, ref el.includeHitbox);
+                        ImGui.Checkbox("+target hitbox".Loc(), ref el.includeHitbox);
                     }
                     ImGui.SameLine();
-                    ImGui.Checkbox("+your hitbox".Loc() + "##" + i + k, ref el.includeOwnHitbox);
+                    ImGui.Checkbox("+your hitbox".Loc(), ref el.includeOwnHitbox);
                     ImGui.SameLine();
                     ImGuiEx.Text("(?)");
                     if(ImGui.IsItemHovered())
@@ -1127,7 +1162,7 @@ internal unsafe partial class CGui
             {
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
-                ImGui.Checkbox("Enable placeholders".Loc() + "##" + i + k, ref el.overlayPlaceholders);
+                ImGui.Checkbox("Enable placeholders".Loc(), ref el.overlayPlaceholders);
             }
         }
 

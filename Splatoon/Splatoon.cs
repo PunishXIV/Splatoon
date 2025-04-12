@@ -612,6 +612,7 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal void ProcessLayout(Layout l)
     {
+        l.ConditionalStatus = null;
         if(LayoutUtils.IsLayoutVisible(l))
         {
             LayoutAmount++;
@@ -620,15 +621,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 if(l.FreezeInfo.CanDisplay())
                 {
                     S.RenderManager.StoreDisplayObjects();
-                    for(var i = 0; i < l.ElementsL.Count; i++)
-                    {
-                        var element = l.ElementsL[i];
-                        if(S.RenderManager.GetRenderer(element).ProcessElement(element, l))
-                        {
-                            l.LastDisplayFrame = P.FrameCounter;
-                            element.LastDisplayFrame = P.FrameCounter;
-                        }
-                    }
+                    ProcessElementsOfLayout(l);
                     var union = S.RenderManager.GetUnifiedDisplayObjects();
                     if(union.Count > 0)
                     {
@@ -645,15 +638,7 @@ public unsafe class Splatoon : IDalamudPlugin
             }
             else
             {
-                for(var i = 0; i < l.ElementsL.Count; i++)
-                {
-                    var element = l.ElementsL[i];
-                    if(S.RenderManager.GetRenderer(element).ProcessElement(element, l))
-                    {
-                        l.LastDisplayFrame = P.FrameCounter;
-                        element.LastDisplayFrame = P.FrameCounter;
-                    }
-                }
+                ProcessElementsOfLayout(l);
             }
         }
         for(var i = l.FreezeInfo.States.Count - 1; i >= 0; i--)
@@ -668,6 +653,47 @@ public unsafe class Splatoon : IDalamudPlugin
                 if(x.IsExpired())
                 {
                     l.FreezeInfo.States.RemoveAt(i);
+                }
+            }
+        }
+    }
+
+    internal static void ProcessElementsOfLayout(Layout l)
+    {
+        for(var i = 0; i < l.ElementsL.Count; i++)
+        {
+            var element = l.ElementsL[i];
+            var shouldSkip = l.ConditionalStatus == false && (l.ConditionalAnd || (!l.ConditionalAnd && l.ConditionalStatus == false && !element.Conditional));
+            if(shouldSkip) continue;
+            var result = S.RenderManager.GetRenderer(element).ProcessElement(element, l);
+            if(result)
+            {
+                l.LastDisplayFrame = P.FrameCounter;
+                element.LastDisplayFrame = P.FrameCounter;
+            }
+            if(element.Enabled && element.Conditional)
+            {
+                var correctedResult = element.ConditionalInvert ? !result : result;
+                if(l.ConditionalStatus == null)
+                {
+                    l.ConditionalStatus = correctedResult;
+                }
+                else
+                {
+                    if(l.ConditionalAnd)
+                    {
+                        if(!correctedResult)
+                        {
+                            l.ConditionalStatus = false;
+                        }
+                    }
+                    else
+                    {
+                        if(correctedResult)
+                        {
+                            l.ConditionalStatus = true;
+                        }
+                    }
                 }
             }
         }

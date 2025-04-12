@@ -21,12 +21,7 @@ internal static class LayoutDrawSelector
         }
         ImGui.PushID(layout.GUID);
         {
-            var col = false;
-            if(!layout.Enabled)
-            {
-                col = true;
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey3);
-            }
+            var col = layout.PushTextColors();
             ImGui.SetCursorPosX(group == null ? 0 : 10);
             var curpos = ImGui.GetCursorScreenPos();
             var contRegion = ImGui.GetContentRegionAvail().X;
@@ -52,9 +47,9 @@ internal static class LayoutDrawSelector
                     CurrentElement = null;
                 }
             }
-            if(col)
+            if(col > 0)
             {
-                ImGui.PopStyleColor();
+                ImGui.PopStyleColor(col);
             }
             if(ImGui.IsItemClicked(ImGuiMouseButton.Middle))
             {
@@ -64,7 +59,7 @@ internal static class LayoutDrawSelector
             {
                 ImGui.OpenPopup("LayoutContext");
             }
-            Safe(delegate
+            try
             {
                 if(ImGui.BeginDragDropSource())
                 {
@@ -89,7 +84,11 @@ internal static class LayoutDrawSelector
                     }
                     ImGui.EndDragDropTarget();
                 }
-            });
+            }
+            catch(Exception e)
+            {
+                e.Log();
+            }
             if(ImGui.BeginPopup("LayoutContext"))
             {
                 ImGuiEx.Text($"Layout ??".Loc(layout.GetName()));
@@ -114,20 +113,10 @@ internal static class LayoutDrawSelector
                 var e = CurrentLayout.ElementsL[i];
                 ImGui.PushID(e.GUID);
                 ImGui.SetCursorPosX(group == null ? 10 : 20);
-                var col = false;
-                if(!e.Enabled)
-                {
-                    col = true;
-                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey3);
-                }
-                else if(!layout.Enabled)
-                {
-                    col = true;
-                    ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey);
-                }
+                var col = layout.PushTextColors(e);
                 var curpos = ImGui.GetCursorScreenPos();
                 var contRegion = ImGui.GetContentRegionAvail().X;
-                if(ImGui.Selectable($"{e.GetName()}", CurrentElement == e))
+                if(ImGui.Selectable($"{(layout.Enabled && e.Enabled && e.Conditional && e.IsVisible() == !e.ConditionalInvert?"↓":null)}{e.GetName()}", CurrentElement == e))
                 {
                     if(CurrentElement == e)
                     {
@@ -139,9 +128,9 @@ internal static class LayoutDrawSelector
                         CurrentElement = e;
                     }
                 }
-                if(col)
+                if(col > 0)
                 {
-                    ImGui.PopStyleColor();
+                    ImGui.PopStyleColor(col);
                 }
                 if(ImGui.IsItemClicked(ImGuiMouseButton.Middle))
                 {
@@ -205,5 +194,59 @@ internal static class LayoutDrawSelector
             });
         }
         ImGui.PopID();
+    }
+
+    static int PushTextColors(this Layout l)
+    {
+        var ret = 0;
+        if(l.Enabled)
+        {
+            if(l.IsVisible())
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, Colors.ElementLayoutIsVisible);
+                ret++;
+            }
+        }
+        else
+        {
+            var col = ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+            ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.5f });
+            ret++;
+        }
+        return ret;
+    }
+
+    static int PushTextColors(this Layout l, Element e)
+    {
+        var ret = 0;
+        if(e.Enabled)
+        {
+            if(l.Enabled)
+            {
+                if(e.IsVisible())
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, e.Conditional?Colors.ElementIsConditionalVisible: Colors.ElementLayoutIsVisible);
+                    ret++;
+                }
+                else if(e.Conditional)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, Colors.ElementIsConditional);
+                    ret++;
+                }
+            }
+            else
+            {
+                var col = e.Conditional?Colors.ElementIsConditional:ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+                ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled?1f:0.5f) });
+                ret++;
+            }
+        }
+        else
+        {
+            var col = e.Conditional ? Colors.ElementIsConditional : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+            ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled? 0.5f:0.25f) });
+            ret++;
+        }
+        return ret;
     }
 }

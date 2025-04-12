@@ -28,8 +28,8 @@ public class Trigger
     /// 2: fired and ended
     /// </summary>
     [NonSerialized] public int FiredState = 0;
-    [NonSerialized] public List<long> EnableAt = new();
-    [NonSerialized] public List<long> DisableAt = new();
+    [NonSerialized] public List<long> EnableAt = [];
+    [NonSerialized] public List<long> DisableAt = [];
     [NonSerialized] internal bool Disabled = false;
     [DefaultValue(false)] public bool IsRegex = false;
 

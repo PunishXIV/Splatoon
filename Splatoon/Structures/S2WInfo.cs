@@ -4,10 +4,10 @@ namespace Splatoon.Structures;
 
 internal class S2WInfo
 {
-    string x;
-    string y;
-    string z;
-    object cls;
+    private string x;
+    private string y;
+    private string z;
+    private object cls;
 
     internal S2WInfo(object cls, string x, string y, string z)
     {

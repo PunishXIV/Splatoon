@@ -60,7 +60,7 @@ public class JobbedPlayer
 
     public bool IsPlayerEmpty()
     {
-        return this.Name == "" && this.Jobs.Count == 0;
+        return Name == "" && Jobs.Count == 0;
     }
 
     public UniversalPartyMember? ResolveByRole(RolePosition role)
@@ -78,7 +78,7 @@ public class JobbedPlayer
     {
         if(byRole)
         {
-            member = ResolveByRole(this.Role);
+            member = ResolveByRole(Role);
             return member != null;
         }
         foreach(var x in UniversalParty.MembersPlayback)
@@ -109,6 +109,6 @@ public class JobbedPlayer
 
     public string GetNameAndJob()
     {
-        return $"{this.Name} - {(this.Jobs.Count > 0?Jobs.Print():"Any job")}";
+        return $"{Name} - {(Jobs.Count > 0 ? Jobs.Print() : "Any job")}";
     }
 }

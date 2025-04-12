@@ -20,7 +20,7 @@ public class PriorityList
     {
         ImGuiEx.TextV("List mode:");
         ImGui.SameLine();
-        ImGuiEx.RadioButtonBool("Roles", "Names and/or jobs", ref this.IsRole, true);
+        ImGuiEx.RadioButtonBool("Roles", "Names and/or jobs", ref IsRole, true);
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy to Clipboard"))
         {
             var copy = this.JSONClone();
@@ -38,8 +38,8 @@ public class PriorityList
             {
                 var item = EzConfig.DefaultSerializationFactory.Deserialize<PriorityList>(Paste()!);
                 if(item == null || item.List == null || item.List.Any(x => x.Name == null)) throw new NullReferenceException();
-                this.List = item.List;
-                this.IsRole = item.IsRole;
+                List = item.List;
+                IsRole = item.IsRole;
             }
             catch(Exception e)
             {
@@ -48,7 +48,7 @@ public class PriorityList
             }
         }
         ImGuiEx.Tooltip("Hold CTRL and click");
-        if(this.IsRole)
+        if(IsRole)
         {
             ImGui.SameLine();
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Users, "Edit Roles"))
@@ -124,7 +124,7 @@ public class PriorityList
         var exist = new List<UniversalPartyMember>();
         foreach(var x in List)
         {
-            if(x.IsInParty(this.IsRole, out var member))
+            if(x.IsInParty(IsRole, out var member))
             {
                 if(exist.Contains(member))
                 {

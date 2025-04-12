@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 #nullable enable
 namespace Splatoon.SplatoonScripting;
 
-public unsafe static class Extensions
+public static unsafe class Extensions
 {
     /// <summary>
     /// Gets object by it's object ID.
@@ -21,7 +21,7 @@ public unsafe static class Extensions
     /// <param name="objectID">Object ID to search.</param>
     /// <param name="obj">Resulting GameObject if found; null otherwise.</param>
     /// <returns>Whether object was found.</returns>
-    public static bool TryGetObject(this uint objectID, [NotNullWhen(true)]out IGameObject? obj)
+    public static bool TryGetObject(this uint objectID, [NotNullWhen(true)] out IGameObject? obj)
     {
         obj = objectID.GetObject();
         return obj != null;

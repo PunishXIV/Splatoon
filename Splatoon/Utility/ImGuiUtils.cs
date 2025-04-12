@@ -16,13 +16,13 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
 
     public static void InputUintDynamic(string id, ref uint u)
     {
-        if (P.Config.Hexadecimal)
+        if(P.Config.Hexadecimal)
         {
             ImGuiEx.Text("0x");
             ImGui.SameLine(0, 1);
             ImGui.SetNextItemWidth(200f);
             ImGuiEx.InputHex(id, ref u);
-            if (ImGui.IsItemHovered())
+            if(ImGui.IsItemHovered())
             {
                 ImGui.SetTooltip("Hexadecimal input");
             }
@@ -31,7 +31,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
         {
             ImGui.SetNextItemWidth(200f);
             ImGuiEx.InputUint(id, ref u);
-            if (ImGui.IsItemHovered())
+            if(ImGui.IsItemHovered())
             {
                 ImGui.SetTooltip("Decimal input");
             }
@@ -44,8 +44,9 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
         ImGui.PushStyleColor(ImGuiCol.ButtonHovered, Colors.Transparent);
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.Transparent);
         var s = ImGui.CalcTextSize(text);
+        ImGui.AlignTextToFramePadding();
         ImGuiEx.Text(text);
-        if (width > s.X)
+        if(width > s.X)
         {
             ImGui.SameLine();
             ImGui.Button("", new Vector2(width - s.X, 1f));
@@ -66,7 +67,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
         ImGuiEx.Text(text);
     }
 
-    static int StyleColors = 0;
+    private static int StyleColors = 0;
     public static void ColorButton(uint color)
     {
         ImGui.PushStyleColor(ImGuiCol.Button, color);
@@ -77,7 +78,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
 
     public static void UncolorButton()
     {
-        if (StyleColors == 0) return;
+        if(StyleColors == 0) return;
         ImGui.PopStyleColor(StyleColors);
         StyleColors = 0;
     }
@@ -92,7 +93,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
     {
         var upperTextCursor = ImGui.GetCursorPos();
         a();
-        if (!end)
+        if(!end)
         {
             ImGui.SameLine();
             upperTextCursor.X = ImGui.GetCursorPosX();
@@ -106,21 +107,21 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
     {
         var values = overrideNames ?? Enum.GetValues(typeof(T)).Cast<T>().Select(x => x.ToString().Replace("_", " ")).ToArray();
         var selectedNum = Convert.ToInt32(refConfigField);
-        if (ImGui.BeginCombo(name, values[selectedNum]))
+        if(ImGui.BeginCombo(name, values[selectedNum]))
         {
-            for (int i = 0; i < values.Length; i++)
+            for(var i = 0; i < values.Length; i++)
             {
-                if (ImGui.Selectable(values[i], i == selectedNum))
+                if(ImGui.Selectable(values[i], i == selectedNum))
                 {
                     selectedNum = i;
                 }
-                if (i == selectedNum)
+                if(i == selectedNum)
                 {
                     ImGui.SetItemDefaultFocus();
                 }
-                if (tooltips != null)
+                if(tooltips != null)
                 {
-                    if (ImGui.IsItemHovered())
+                    if(ImGui.IsItemHovered())
                     {
                         ImGui.SetTooltip(tooltips[i]);
                     }
@@ -133,11 +134,11 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
 
     public static bool StyleEdit(string name, ref DisplayStyle style)
     {
-        bool edited = false;
+        var edited = false;
         ImGuiUtils.SizedText("Stroke:".Loc(), CGui.WidthElement);
         ImGui.SameLine();
         var v4 = ImGui.ColorConvertU32ToFloat4(style.strokeColor);
-        if (ImGui.ColorEdit4("##strokecolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+        if(ImGui.ColorEdit4("##strokecolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
         {
             style.strokeColor = ImGui.ColorConvertFloat4ToU32(v4);
             edited = true;
@@ -146,43 +147,43 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
         ImGuiEx.Text("Thickness:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(60f);
-        if (ImGui.DragFloat("##strokeThiccness" + name, ref style.strokeThickness, 0.1f, 0f, float.MaxValue))
+        if(ImGui.DragFloat("##strokeThiccness" + name, ref style.strokeThickness, 0.1f, 0f, float.MaxValue))
         {
             edited = true;
         }
 
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip("This value is also used for tether".Loc());
+        if(ImGui.IsItemHovered()) ImGui.SetTooltip("This value is also used for tether".Loc());
 
         ImGuiUtils.SizedText("Fill:".Loc(), CGui.WidthElement);
         ImGui.SameLine();
-        if (ImGui.Checkbox("Enabled".Loc() + "##name" + name, ref style.filled))
+        if(ImGui.Checkbox("Enabled".Loc() + "##name" + name, ref style.filled))
         {
             edited = true;
         }
-        if (!style.filled) ImGui.BeginDisabled();
+        if(!style.filled) ImGui.BeginDisabled();
         {
             ImGui.SameLine();
-            if (style.overrideFillColor) ImGui.BeginDisabled();
+            if(style.overrideFillColor) ImGui.BeginDisabled();
             ImGuiEx.Text("Intensity:".Loc());
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200f);
-            if (ImGui.SliderFloat("##fillintensity" + name, ref style.fillIntensity, 0f, 1f))
+            if(ImGui.SliderFloat("##fillintensity" + name, ref style.fillIntensity, 0f, 1f))
             {
                 edited = true;
             }
-            if (style.overrideFillColor) ImGui.EndDisabled();
+            if(style.overrideFillColor) ImGui.EndDisabled();
             ImGui.Indent(CGui.WidthElement + 15f);
             {
-                if (ImGui.Checkbox("Override Colors".Loc() + "##name" + name, ref style.overrideFillColor))
+                if(ImGui.Checkbox("Override Colors".Loc() + "##name" + name, ref style.overrideFillColor))
                 {
                     edited = true;
                 }
-                if (!style.overrideFillColor) ImGui.BeginDisabled();
+                if(!style.overrideFillColor) ImGui.BeginDisabled();
                 ImGui.SameLine();
                 ImGuiEx.Text("Origin:".Loc());
                 ImGui.SameLine();
                 v4 = ImGui.ColorConvertU32ToFloat4(style.originFillColor);
-                if (ImGui.ColorEdit4("##fillorigincolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+                if(ImGui.ColorEdit4("##fillorigincolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
                 {
                     style.originFillColor = ImGui.ColorConvertFloat4ToU32(v4);
                     edited = true;
@@ -191,17 +192,17 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
                 ImGuiEx.Text("End:".Loc());
                 ImGui.SameLine();
                 v4 = ImGui.ColorConvertU32ToFloat4(style.endFillColor);
-                if (ImGui.ColorEdit4("##fillendcolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
+                if(ImGui.ColorEdit4("##fillendcolorbutton" + name, ref v4, ImGuiColorEditFlags.NoInputs))
                 {
                     style.endFillColor = ImGui.ColorConvertFloat4ToU32(v4);
                     edited = true;
                 }
-                if (!style.overrideFillColor) ImGui.EndDisabled();
+                if(!style.overrideFillColor) ImGui.EndDisabled();
                 ImGuiEx.HelpMarker("Unsupported in ImGui Legacy renderer");
             }
             ImGui.Unindent(CGui.WidthElement + 15f);
         }
-        if (!style.filled) ImGui.EndDisabled();
+        if(!style.filled) ImGui.EndDisabled();
         return edited;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.Command;
 using ECommons;
 using ECommons.GameFunctions;
+using Splatoon.Memory;
 using Splatoon.Structures;
 
 namespace Splatoon.Modules;
@@ -39,6 +40,9 @@ internal class Commands : IDisposable
                     Splatoon.P.Phase = phase;
                     Notify.Info($"Returned to phase {phase}");
                 }
+                AttachedInfo.CastInfos.Clear();
+                AttachedInfo.VFXInfos.Clear();
+                AttachedInfo.TetherInfos.Clear();
             }
             else if(arguments.StartsWith("enable "))
             {

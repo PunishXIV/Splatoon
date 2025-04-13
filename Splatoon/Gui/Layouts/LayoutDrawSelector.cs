@@ -116,7 +116,8 @@ internal static class LayoutDrawSelector
                 var col = layout.PushTextColors(e);
                 var curpos = ImGui.GetCursorScreenPos();
                 var contRegion = ImGui.GetContentRegionAvail().X;
-                if(ImGui.Selectable($"{(layout.Enabled && e.Enabled && e.Conditional && e.IsVisible() == !e.ConditionalInvert?"↓":null)}{e.GetName()}", CurrentElement == e))
+                var cond = layout.Enabled && e.Enabled && e.Conditional;
+                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert?"↓":null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert?"×":null)}{(cond && e.ConditionalReset? "§" : null)}{e.GetName()}", CurrentElement == e))
                 {
                     if(CurrentElement == e)
                     {

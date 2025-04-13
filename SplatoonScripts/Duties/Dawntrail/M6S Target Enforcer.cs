@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Automation;
 using ECommons.Configuration;
@@ -7,53 +8,82 @@ using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using ImGuiNET;
-using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Numerics;
 using Action = Lumina.Excel.Sheets.Action;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    ImGuiEx.RealtimeDragDrop<Mob> DragDrop = new("Mob", x => x.ToString());
+    ImGuiEx.RealtimeDragDrop<MobKind> DragDrop = new("Mob", x => x.ToString());
     Dictionary<uint, long> EntityAgeTracker = [];
+    Dictionary<uint, MobKind> Classifier = [];
     int JabberCount = 0;
     int FeatherRayCount = 0;
 
-    public enum Mob : uint
+    public enum MobName : uint
     {
         GimmeCat = 13835,
         Yan = 13832, //goat
         Mu = 13831, //squirrel
         FeatherRay = 13834, //bait water
-        SugarRiot = 13822, //boss
         Jabberwock = 13833, //stun him
+    }
+
+    public enum MobKind
+    {
+        GimmeCat_Wave_1,
+        Yan_Wave_1,
+        Mu_Wave_1, //there's 2 of them
+        West_Feather_Ray_Wave_2, //there's 2 of them
+        East_Feather_Ray_Wave_2, //there's 2 of them
+        Mu_Wave_2, //there's 2 of them
+        GimmeCat_Wave_3,
+        Yan_Wave_3,
+        Jabberwock_Wave_3,
+        Gimme_Cat_Wave_4,
+        West_Feather_Ray_Wave_4, //there's 2 of them
+        East_Feather_Ray_Wave_4, //there's 2 of them
+        Yan_Wave_4,
+        Mu_Wave_4, //there's 2 of them,
+        Jabberwock_Wave_4,
     }
 
     public override void OnSetup()
     {
         Controller.RegisterElementFromCode("Attack", "{\"Name\":\"\",\"radius\":0.5,\"color\":3372155106,\"fillIntensity\":0.5,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        for(int i = 0; i < 20; i++)
+        {
+            Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"radius\":0.0,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":0.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        }
     }
 
     public override void OnUpdate()
     {
+        int i = 0;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         foreach(var x in Svc.Objects)
         {
-            if(x.IsTargetable && x is IBattleNpc npc && Enum.GetValues<Mob>().Contains((Mob)npc.NameId) && !EntityAgeTracker.ContainsKey(x.EntityId))
+            if(x.IsTargetable && x is IBattleNpc npc && Enum.GetValues<MobName>().Contains((MobName)npc.NameId))
             {
-                EntityAgeTracker[x.EntityId] = Environment.TickCount64;
-                if((Mob)npc.NameId == Mob.Jabberwock) JabberCount++;
-                if((Mob)npc.NameId == Mob.FeatherRay) FeatherRayCount++;
+                if(!EntityAgeTracker.ContainsKey(npc.EntityId))
+                {
+                    EntityAgeTracker[npc.EntityId] = Environment.TickCount64;
+                }
+                ClassifyMob(npc);
+                if(Classifier.TryGetValue(npc.EntityId, out var value) && Controller.TryGetElementByName($"Debug{i++}", out var e))
+                {
+                    e.Enabled = true;
+                    e.SetRefPosition(npc.Position);
+                    e.overlayText = $"{value} : {GetMobAge(npc):F1}";
+                }
             } 
         }
         var suggestedTarget = GetSuggestedTarget(out var useAction);
@@ -61,7 +91,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         {
             if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] && C.Switch)
             {
-                if(suggestedTarget.NameId == (uint)Mob.Jabberwock)
+                if(suggestedTarget.NameId == (uint)MobName.Jabberwock)
                 {
                     if(!Svc.Targets.Target.AddressEquals(suggestedTarget) && EzThrottler.Throttle("M6SSwitchTarget", 200))
                     {
@@ -75,7 +105,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                 e.SetRefPosition(suggestedTarget.Position);
             }
         }
-        if(Svc.Targets.Target is IBattleNpc n && n.NameId == (uint)Mob.Jabberwock)
+        if(Svc.Targets.Target is IBattleNpc n && n.NameId == (uint)MobName.Jabberwock)
         {
             if(useAction != 0)
             {
@@ -94,55 +124,90 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
     }
 
+    void ClassifyMob(IBattleNpc mob)
+    {
+        if(Classifier.ContainsKey(mob.EntityId)) return;
+        if(mob.NameId == (uint)MobName.GimmeCat)
+        {
+            MobKind[] values = [MobKind.GimmeCat_Wave_1, MobKind.GimmeCat_Wave_3, MobKind.Gimme_Cat_Wave_4];
+            Classifier[mob.EntityId] = values[Classifier.Values.Count(values.Contains)];
+        }
+        else if(mob.NameId == (uint)MobName.Jabberwock)
+        {
+            Classifier[mob.EntityId] = !Classifier.ContainsValue(MobKind.Jabberwock_Wave_3) ? MobKind.Jabberwock_Wave_3 : MobKind.Jabberwock_Wave_4;
+        }
+        else if(mob.NameId == (uint)MobName.Mu)
+        {
+            MobKind[] values = [MobKind.Mu_Wave_1, MobKind.Mu_Wave_2, MobKind.Mu_Wave_4];
+            Classifier[mob.EntityId] = values[Classifier.Values.Count(values.Contains) / 2];
+        }
+        else if(mob.NameId == (uint)MobName.Yan)
+        {
+            MobKind[] values = [MobKind.Yan_Wave_1, MobKind.Yan_Wave_3, MobKind.Yan_Wave_4];
+            Classifier[mob.EntityId] = values[Classifier.Values.Count(values.Contains)];
+        }
+        else if(mob.NameId == (uint)MobName.FeatherRay && mob.Position.X < 100)
+        {
+            Classifier[mob.EntityId] = !Classifier.ContainsValue(MobKind.West_Feather_Ray_Wave_2) ? MobKind.West_Feather_Ray_Wave_2 : MobKind.West_Feather_Ray_Wave_4;
+        }
+        else if(mob.NameId == (uint)MobName.FeatherRay && mob.Position.X > 100)
+        {
+            Classifier[mob.EntityId] = !Classifier.ContainsValue(MobKind.East_Feather_Ray_Wave_2) ? MobKind.East_Feather_Ray_Wave_2 : MobKind.East_Feather_Ray_Wave_4;
+        }
+    }
+
     public override void OnReset()
     {
         EntityAgeTracker.Clear();
         JabberCount = 0;
         FeatherRayCount = 0;
+        Classifier.Clear();
     }
 
     public override void OnSettingsDraw()
     {
+        C.Priority.RemoveAll(x => !Enum.GetValues<MobKind>().Contains(x));
+        foreach(var x in Enum.GetValues<MobKind>())
+        {
+            if(C.Priority.Count(v => v == x) > 1) C.Priority.RemoveAll(v => v == x);
+            if(!C.Priority.Contains(x)) C.Priority.Add(x);
+        }
         ImGui.Checkbox("Automatically switch targets", ref C.Switch);
         ImGuiEx.Text($"Lockin priority:");
         DragDrop.Begin();
-        for(int i = 0; i < C.Prio.Count; i++)
+        if(ImGuiEx.BeginDefaultTable(["##drag", "Mob Kind", "~Action"]))
         {
-            DragDrop.NextRow();
-            DragDrop.DrawButtonDummy(C.Prio[i].ToString(), C.Prio, i);
-            ImGui.SameLine();
-            ImGuiEx.Text(C.Prio[i].ToString());
+            for(int i = 0; i < C.Priority.Count; i++)
+            {
+                var n = C.Priority[i].ToString();
+                ImGui.PushID(n);
+                ImGui.TableNextRow();
+                DragDrop.SetRowColor(n);
+                ImGui.TableNextColumn();
+                DragDrop.NextRow();
+                DragDrop.DrawButtonDummy(n, C.Priority, i);
+                ImGui.TableNextColumn();
+                Vector4? col = n.Contains('2') ? ImGuiColors.ParsedGold : (n.Contains('3') ? ImGuiColors.ParsedGreen : (n.Contains('4') ? ImGuiColors.ParsedOrange : null));
+                ImGuiEx.TextV(col, n.Replace("_", " "));
+                ImGui.TableNextColumn();
+                if(C.Priority[i].EqualsAny(MobKind.Jabberwock_Wave_3, MobKind.Jabberwock_Wave_4))
+                {
+                    var data = C.Stuns.GetOrCreate(C.Priority[i]);
+                    DrawStun(ref data.Action, ref data.Delay);
+                }
+                ImGui.PopID();
+            }
+            ImGui.EndTable();
         }
         DragDrop.End();
         ImGui.SetNextItemWidth(150f);
         ImGui.SliderFloat("Max range", ref C.MaxRadius, 0, 25f);
         ImGui.Separator();
-        ImGuiEx.Text("Bait Feather Ray:");
-        ImGui.Checkbox("1st", ref C.BaitWater1);
-        ImGui.SameLine();
-        ImGui.Checkbox("2nd", ref C.BaitWater2);
-        ImGuiEx.RadioButtonBool("West", "East", ref C.BaitWaterWest, true);
-        ImGui.Separator();
-        ImGuiEx.Text("First Jabberwock control action:");
-        DrawJabber(ref C.FirstJabberAction, ref C.FirstJabberDelay);
-        ImGuiEx.Text("Second Jabberwock control action:");
-        ImGui.PushID("2ndj");
-        DrawJabber(ref C.SecondJabberAction, ref C.SecondJabberDelay);
         ImGui.PopID();
 
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"Suggested target: {GetSuggestedTarget(out var useAction)} / use action: {ExcelActionHelper.GetActionName(useAction, true)}");
-            ImGui.InputInt("Num jabbers", ref JabberCount);
-            ImGui.InputInt("Num feather rays", ref FeatherRayCount);
-            if(C.FirstJabberAction != 0)
-            {
-                ImGuiEx.Text($"CD1: {ExcelActionHelper.GetActionCooldown(C.FirstJabberAction)}");
-            }
-            if(C.SecondJabberAction != 0)
-            {
-                ImGuiEx.Text($"CD2: {ExcelActionHelper.GetActionCooldown(C.SecondJabberAction)}");
-            }
             ImGuiEx.Text($"Mob age:");
             ImGui.Indent();
             foreach(var x in EntityAgeTracker)
@@ -150,52 +215,20 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                 ImGuiEx.Text($"{x.Key}/{x.Key.GetObject()}: {GetMobAge(x.Key.GetObject() is IBattleNpc i? i:null):F1}");
             }
             ImGui.Unindent();
+            ImGui.Separator();
+            foreach(var x in Classifier)
+            {
+                ImGuiEx.Text($"Mob {x.Key}/{x.Key.GetObject()}: {x.Value}");
+            }
         }
     }
 
     IBattleNpc? GetSuggestedTarget(out uint useAction)
     {
         useAction = 0;
-        var objects = Svc.Objects.OfType<IBattleNpc>().Where(x => !x.IsDead && x.IsTargetable && Enum.GetValues<Mob>().Contains((Mob)x.NameId)).Where(x => Player.DistanceTo(x) < C.MaxRadius).OrderBy(Player.DistanceTo).ToArray();
+        var objects = Svc.Objects.OfType<IBattleNpc>().Where(x => !x.IsDead && x.IsTargetable && Enum.GetValues<MobName>().Contains((MobName)x.NameId)).Where(x => Player.DistanceTo(x) < C.MaxRadius).OrderBy(Player.DistanceTo).ToArray();
         if(objects.Length <= 1) return null;
-        IBattleNpc? processJabber(uint action, int count, int delay, out uint useAction)
-        {
-            useAction = 0;
-            if(action != 0 && JabberCount == count)
-            {
-                var cd = ExcelActionHelper.GetActionCooldown(action);
-                if(cd == 0 && objects.TryGetFirst(x => x.NameId == (uint)Mob.Jabberwock && GetMobAge(x) >= delay, out var ret))
-                {
-                    useAction = action;
-                    return ret;
-                }
-            }
-            return null;
-        }
-        IBattleNpc? processFeatherRay(bool doBait, int[] count)
-        {
-            if(doBait && this.FeatherRayCount.EqualsAny(count))
-            {
-                if(objects.TryGetFirst(x => x.NameId == (uint)Mob.FeatherRay && GetHPPercent(x) >= 0.99f && (C.BaitWaterWest?x.Position.X<100:x.Position.X>100), out var result))
-                {
-                    return result;
-                }
-            }
-            return null;
-        }
-        var forced = processFeatherRay(C.BaitWater1, [1, 2]) 
-            ?? processFeatherRay(C.BaitWater2, [3, 4]) 
-            ?? processJabber(C.FirstJabberAction, 1, C.FirstJabberDelay, out useAction) 
-            ?? processJabber(C.SecondJabberAction, 2, C.SecondJabberDelay, out useAction);
-        if(forced != null) return forced;
-        foreach(var m in C.Prio)
-        {
-            if(objects.TryGetFirst(x => x.NameId == (uint)m, out var ret))
-            {
-                if(m == Mob.FeatherRay && GetHPPercent(ret) > 99f) continue;
-                return ret;
-            }
-        }
+        
         return null;
     }
 
@@ -218,15 +251,16 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     public class Config: IEzConfig
     {
         public bool Switch = false;
-        public List<Mob> Prio = [.. Enum.GetValues<Mob>()];
+        public List<MobKind> Priority = [.. Enum.GetValues<MobKind>()];
         public float MaxRadius = 25f;
-        public bool BaitWater1 = false;
-        public bool BaitWater2 = false;
-        public bool BaitWaterWest = true;
-        public uint FirstJabberAction = 0;
-        public int FirstJabberDelay = 0;
-        public uint SecondJabberAction = 0;
-        public int SecondJabberDelay = 0;
+        public Dictionary<MobKind, StunInfo> Stuns = [];
+        public HashSet<MobKind> BaitRay = [];
+    }
+
+    public class StunInfo()
+    {
+        public uint Action = 0;
+        public int Delay = 0;
     }
 
     Dictionary<uint, string> StunActions = [new KeyValuePair<uint, string>(0, "Disabled") ,
@@ -236,14 +270,13 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         .Where(x => x.ClassJobCategory.ValueNullable != null)
         .Where(x => Enum.GetValues<Job>().Where(x => x.IsCombat()).Any(s => x.ClassJobCategory.Value.IsJobInCategory(s)))
         .ToDictionary(x => x.RowId, x=> ExcelActionHelper.GetActionName(x, true) + "##" + x.RowId.ToString())];
-    void DrawJabber(ref uint action, ref int delay)
+    void DrawStun(ref uint action, ref int delay)
     {
-        ImGui.SetNextItemWidth(150f);
+        ImGui.SetNextItemWidth(100f.Scale());
         var name = action == 0 ? "Disabled" : ExcelActionHelper.GetActionName(action);
         ImGuiEx.Combo("Select control action", ref action, StunActions.Keys, names: StunActions);
-        ImGui.Indent();
-        ImGui.SetNextItemWidth(150f);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(100f.Scale());
         ImGuiEx.SliderIntAsFloat("Delay, seconds", ref delay, 0, 30000);
-        ImGui.Unindent();
     }
 }

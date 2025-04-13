@@ -222,6 +222,27 @@ internal unsafe partial class CGui
             }
             ImGuiUtils.SizedText("Override rotation:".Loc(), WidthElement);
             ImGui.SameLine();
+            ImGui.Checkbox("##rotaOverride", ref el.RotationOverride);
+            if(el.RotationOverride)
+            {
+                ImGui.SameLine();
+                ImGuiEx.TextV("Rotate towards:");
+                ImGui.SameLine();
+                ImGuiEx.Text($"X:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##rotateTowardsX", ref el.RotationOverridePoint.X, 0.1f);
+                ImGui.SameLine();
+                ImGuiEx.Text($"Y:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##rotateTowardsY", ref el.RotationOverridePoint.Y, 0.1f);
+                ImGui.SameLine();
+                ImGuiEx.Text($"Add angle:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##rotationOverrideAddAngle", ref el.RotationOverrideAddAngle, 0.1f);
+            }
         }
         if(el.type.EqualsAny(1, 3, 4))
         {

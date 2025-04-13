@@ -212,10 +212,10 @@ public class Element
     [DefaultValue(false)] public bool ConditionalReset = false;
     [DefaultValue(false)] public bool RotationOverride = false;
     public Point2 RotationOverridePoint = new();
-    [DefaultValue(false)] public bool RotationOverrideInvert = false;
+    [DefaultValue(0f)] public float RotationOverrideAddAngle = 0f;
 
     public bool ShouldSerializeRotationOverridePoint() => RotationOverride;
-    public bool ShouldSerializeRotationOverrideInvert() => RotationOverride;
+    public bool ShouldSerializeRotationOverrideAddAngle() => RotationOverride;
     public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();
     public bool ShouldSerializeConditionalInvert() => Conditional;
     public bool ShouldSerializeConditionalReset() => Conditional;

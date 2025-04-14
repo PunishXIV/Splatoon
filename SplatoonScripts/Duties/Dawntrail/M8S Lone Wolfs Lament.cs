@@ -29,24 +29,21 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
         NorthWest = 234
     }
 
-    private enum State
+    public enum TetherColor
     {
-        None,
-        Casting,
-        Split,
-        Tower,
-        End
+        Green,
+        Blue
     }
 
     private readonly string _basePlayerOverride = "";
 
+    private readonly List<PlayerData> _players = [];
+
     private bool _northEastTowerIsOne;
 
     private State _state = State.None;
-
-    private readonly List<PlayerData> _players = [];
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     private IPlayerCharacter BasePlayer
     {
@@ -91,7 +88,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
                 }
                 else
                 {
-                    if (playerData is { TetherColor: TetherColor.Green, Direction: Direction.NorthEast })
+                    if (playerData is { TetherColor: TetherColor.Blue, Direction: Direction.NorthEast })
                         playerData.Direction = Direction.NorthWest;
                 }
         }
@@ -117,7 +114,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
                    """);
 
         ImGui.Checkbox("X Mirror", ref C.XMirror);
-        
+
         ImGui.Text("Bait Color:");
         ImGuiComponents.HelpMarker(
             "Change the color of the bait and the text that will be displayed on your bait.\nSetting different values makes it rainbow.");
@@ -127,7 +124,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
         ImGui.ColorEdit4("Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
         ImGui.Unindent();
 
-        
+
         if (ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
@@ -166,7 +163,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
                 CombatRole.DPS => Direction.NorthEast,
                 _ => Direction.South
             };
-            
+
             var direction2 = targetRole switch
             {
                 CombatRole.Tank when color == TetherColor.Blue => Direction.West,
@@ -220,6 +217,15 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
         }
     }
 
+    private enum State
+    {
+        None,
+        Casting,
+        Split,
+        Tower,
+        End
+    }
+
     public class PlayerData
     {
         public IntPtr Address;
@@ -231,39 +237,31 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
 
         public Vector3 Position(bool xMirror = false)
         {
-                const float radius = 17f;
-                var direction = Direction;
-                if (xMirror)
+            const float radius = 17f;
+            var direction = Direction;
+            if (xMirror)
+                direction = Direction switch
                 {
-                    direction = Direction switch
-                    {
-                        Direction.NorthEast => Direction.NorthEast,
-                        Direction.East => Direction.West,
-                        Direction.South => Direction.South,
-                        Direction.West => Direction.East,
-                        Direction.NorthWest => Direction.NorthWest,
-                        _ => direction
-                    };
-                }
-                
-                var angle = (int)direction;
-                var center = new Vector2(100f, 100f);
-                var x = center.X + radius * MathF.Cos(angle * MathF.PI / 180);
-                var y = center.Y + radius * MathF.Sin(angle * MathF.PI / 180);
-                return new Vector3(x, -150f, y);
-        }
-    }
+                    Direction.NorthEast => Direction.NorthEast,
+                    Direction.East => Direction.West,
+                    Direction.South => Direction.South,
+                    Direction.West => Direction.East,
+                    Direction.NorthWest => Direction.NorthWest,
+                    _ => direction
+                };
 
-    private enum TetherColor
-    {
-        Green,
-        Blue
+            var angle = (int)direction;
+            var center = new Vector2(100f, 100f);
+            var x = center.X + radius * MathF.Cos(angle * MathF.PI / 180);
+            var y = center.Y + radius * MathF.Sin(angle * MathF.PI / 180);
+            return new Vector3(x, -150f, y);
+        }
     }
 
     public class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
-        public bool XMirror = false;
+        public bool XMirror;
     }
 }

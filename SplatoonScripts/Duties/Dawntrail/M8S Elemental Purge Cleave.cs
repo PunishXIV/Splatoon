@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using Splatoon.SplatoonScripting;
@@ -10,7 +12,7 @@ public class M8S_Elemental_Purge_Cleave : SplatoonScript
 {
     private bool _isActive;
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     public override void OnSetup()
     {
@@ -27,6 +29,19 @@ public class M8S_Elemental_Purge_Cleave : SplatoonScript
             {
                 e.Enabled = true;
                 e.faceplayer = $"<{GetPlayerOrder(npc.TargetObject)}>";
+            }
+        }
+    }
+
+    public override void OnUpdate()
+    {
+        if (_isActive)
+        {
+            var npc = Svc.Objects.OfType<IBattleNpc>().First(x => x.CastActionId == 42087);
+            if (Controller.TryGetElementByName("Cone", out var e))
+            {
+                e.Enabled = true;
+                if (npc.TargetObject != null) e.faceplayer = $"<{GetPlayerOrder(npc.TargetObject)}>";
             }
         }
     }

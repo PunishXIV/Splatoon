@@ -21,10 +21,12 @@ public class M8S_Ultraviolent_Ray : SplatoonScript
     private const string MarkerVfxPath = "vfx/lockon/eff/m0005sp_19o0t.avfx";
     private const uint UltraviolentRayCastId = 42076;
 
+    private int _activeCount;
+
     private List<IntPtr> _aoeList = [];
     private string _basePlayerOverride = "";
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private IPlayerCharacter BasePlayer
     {
@@ -43,6 +45,7 @@ public class M8S_Ultraviolent_Ray : SplatoonScript
     public override void OnSettingsDraw()
     {
         C.PriorityData.Draw();
+        ImGui.Checkbox("Skip forth active", ref C.SkipForthActive);
 
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
@@ -72,6 +75,7 @@ public class M8S_Ultraviolent_Ray : SplatoonScript
     public override void OnReset()
     {
         _aoeList.Clear();
+        _activeCount = 0;
         if (Controller.TryGetElementByName("Bait", out var e)) e.Enabled = false;
     }
 
@@ -82,6 +86,8 @@ public class M8S_Ultraviolent_Ray : SplatoonScript
             _aoeList.Add(player.Address);
             if (_aoeList.Count == 5 && Controller.TryGetElementByName("Bait", out var e))
             {
+                _activeCount++;
+                if (_activeCount > 3 && C.SkipForthActive) return;
                 var ownIndex = C.PriorityData.GetPlayers(x => _aoeList.Contains(x.IGameObject.Address))?
                     .IndexOf(x => x.IGameObject.Address == BasePlayer.Address);
                 var noPredicateOwnIndex = C.PriorityData.GetPlayers(_ => true)?
@@ -147,5 +153,6 @@ public class M8S_Ultraviolent_Ray : SplatoonScript
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public PriorityData PriorityData = new();
+        public bool SkipForthActive = true;
     }
 }

@@ -4,8 +4,9 @@
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Color%20Riot.cs
 ```
 
-### [Script] [ALPHA] Phase 2 Target Enforcer
-Will be reworked at a later point. Is not too well suitable for auto-targeting, however can be used for auto-stunning/grabbing waters.
+### [Script] [Beta] Phase 2 Target Enforcer
+> [!WARNING]
+> M6S Target Enforcer script has been completely remade to allow significantly more precise operation. Please configure it again.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Target%20Enforcer.cs
 ```

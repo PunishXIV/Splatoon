@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Automation;
@@ -24,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(4, "NightmareXIV");
+    public override Metadata? Metadata => new(5, "NightmareXIV");
 
     public override Dictionary<int, string> Changelog => new()
     {
@@ -127,9 +128,12 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         {
             if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] && C.Switch && !inRangeTarget.AddressEquals(Svc.Targets.Target))
             {
-                if(EzThrottler.Throttle(this.InternalData.FullName + "Retarget", 200))
+                if(!C.SoftTargetMobs.Contains(Classifier[inRangeTarget.EntityId]) || Svc.Targets.Target == null)
                 {
-                    Svc.Targets.Target = inRangeTarget;
+                    if(EzThrottler.Throttle(this.InternalData.FullName + "Retarget", 200))
+                    {
+                        Svc.Targets.Target = inRangeTarget;
+                    }
                 }
             }
             DrawAttackInRange(inRangeTarget);
@@ -203,14 +207,17 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
             if(!C.Priority.Contains(x)) C.Priority.Add(x);
         }
         ImGui.Checkbox("Automatically switch targets", ref C.Switch);
-        ImGuiEx.Text($"Lockin priority:");
+        ImGuiEx.TextV($"Lockin priority:");
         ImGui.SameLine();
         if(ImGuiEx.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.ArrowAltCircleLeft, "Restore Defaults (hold ctrl)", ImGuiEx.Ctrl))
         {
             C.Priority = new Config().Priority;
         }
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(150f);
+        ImGui.SliderFloat("Max range", ref C.MaxRadius, 0, 25f);
         DragDrop.Begin();
-        if(ImGuiEx.BeginDefaultTable(["##drag", "Mob Kind", "~Action"]))
+        if(ImGuiEx.BeginDefaultTable(["##drag", "Mob Kind", "##control", "~Action"]))
         {
             for(int i = 0; i < C.Priority.Count; i++)
             {
@@ -224,6 +231,18 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                 ImGui.TableNextColumn();
                 Vector4? col = n.Contains('2') ? ImGuiColors.ParsedGold : (n.Contains('3') ? ImGuiColors.ParsedGreen : (n.Contains('4') ? ImGuiColors.ParsedOrange : null));
                 ImGuiEx.TextV(col, n.Replace("_", " "));
+
+                ImGui.TableNextColumn();
+                ImGui.PushFont(UiBuilder.IconFont);
+                ImGuiEx.CollectionButtonCheckbox(FontAwesomeIcon.UserSlash.ToIconString(), C.Priority[i], C.DisabledMobs);
+                ImGui.PopFont();
+                ImGuiEx.Tooltip($"Completely ignore this mob (except jabberwock stuns and feather ray baits)");
+                ImGui.SameLine();
+                ImGui.PushFont(UiBuilder.IconFont);
+                ImGuiEx.CollectionButtonCheckbox(FontAwesomeIcon.PaintBrush.ToIconString(), C.Priority[i], C.SoftTargetMobs);
+                ImGui.PopFont();
+                ImGuiEx.Tooltip($"Only highlight this mob, but do not auto-switch target to it unless you do not have target at all");
+
                 ImGui.TableNextColumn();
                 if(C.Priority[i].EqualsAny(MobKind.Jabberwock_Wave_3, MobKind.Jabberwock_Wave_4))
                 {
@@ -239,8 +258,6 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
             ImGui.EndTable();
         }
         DragDrop.End();
-        ImGui.SetNextItemWidth(150f);
-        ImGui.SliderFloat("Max range", ref C.MaxRadius, 0, 25f);
         ImGui.Separator();
 
         if(ImGui.CollapsingHeader("Debug"))
@@ -309,6 +326,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
         foreach(var x in enemies)
         {
+            if(C.DisabledMobs.Contains(Classifier[x.EntityId])) continue;
             if(Classifier[x.EntityId].EqualsAny(MobKind.West_Feather_Ray_Wave_2, MobKind.East_Feather_Ray_Wave_2, MobKind.West_Feather_Ray_Wave_4, MobKind.East_Feather_Ray_Wave_4) && GetHPPercent(x) >= 0.99f) continue;
             return x;
         }
@@ -372,6 +390,8 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         public float MaxRadius = 25f;
         public Dictionary<MobKind, StunInfo> Stuns = [];
         public HashSet<MobKind> BaitRay = [];
+        public HashSet<MobKind> DisabledMobs = [];
+        public HashSet<MobKind> SoftTargetMobs = [];
     }
 
     public class StunInfo()

@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
 
     public override Dictionary<int, string> Changelog => new()
     {
@@ -112,7 +112,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                             Svc.Targets.Target = sugarRiot;
                         }
                     }
-                    else
+                    else if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback])
                     {
                         DuoLog.Information("Would switch to Sugar Riot");
                     }
@@ -147,7 +147,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                 {
                     Chat.Instance.ExecuteAction(useAction);
                 }
-                else
+                else if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback])
                 {
                     DuoLog.Information($"Would use action \"{ExcelActionHelper.GetActionName(useAction)}\" ({Framework.Instance()->FrameCounter})");
                 }

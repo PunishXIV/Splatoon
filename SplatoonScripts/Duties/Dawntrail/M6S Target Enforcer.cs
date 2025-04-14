@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿##dontuse
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Automation;
@@ -174,6 +175,11 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
         ImGui.Checkbox("Automatically switch targets", ref C.Switch);
         ImGuiEx.Text($"Lockin priority:");
+        ImGui.SameLine();
+        if(ImGuiEx.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.ArrowAltCircleLeft, "Restore Defaults (hold ctrl)", ImGuiEx.Ctrl))
+        {
+            C.Priority = new Config().Priority;
+        }
         DragDrop.Begin();
         if(ImGuiEx.BeginDefaultTable(["##drag", "Mob Kind", "~Action"]))
         {
@@ -251,7 +257,23 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     public class Config: IEzConfig
     {
         public bool Switch = false;
-        public List<MobKind> Priority = [.. Enum.GetValues<MobKind>()];
+        public List<MobKind> Priority = [
+            MobKind.Jabberwock_Wave_3,
+            MobKind.Jabberwock_Wave_4,
+            MobKind.East_Feather_Ray_Wave_2,
+            MobKind.West_Feather_Ray_Wave_2,
+            MobKind.GimmeCat_Wave_1,
+            MobKind.GimmeCat_Wave_3,
+            MobKind.East_Feather_Ray_Wave_4,
+            MobKind.Gimme_Cat_Wave_4,
+            MobKind.West_Feather_Ray_Wave_4,
+            MobKind.Yan_Wave_1,
+            MobKind.Yan_Wave_3,
+            MobKind.Mu_Wave_1,
+            MobKind.Mu_Wave_2,
+            MobKind.Mu_Wave_4,
+            MobKind.Yan_Wave_4,
+            ];
         public float MaxRadius = 25f;
         public Dictionary<MobKind, StunInfo> Stuns = [];
         public HashSet<MobKind> BaitRay = [];

@@ -24,11 +24,11 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     public override Dictionary<int, string> Changelog => new()
     {
-        [2] = """
+        [3] = """
         M6S Target Enforcer script has been completely remade to allow significantly more precise operation. Please configure it again.
         """
     };
@@ -242,7 +242,6 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGui.SliderFloat("Max range", ref C.MaxRadius, 0, 25f);
         ImGui.Separator();
-        ImGui.PopID();
 
         if(ImGui.CollapsingHeader("Debug"))
         {

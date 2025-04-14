@@ -355,7 +355,7 @@ internal static class TabScripting
                 ImGuiEx.Text(ImGuiColors.DalamudYellow, $"{openConfig.InternalData.FullName} configuration");
             });
             ImGui.Separator();
-            ImGuiEx.EzTabBar("##scriptConfig",
+            ImGuiEx.EzTabBar($"##scriptConfig",
                 (openConfig.InternalData.SettingsPresent ? "Configuration" : null, () =>
                 {
                     try

@@ -1,5 +1,4 @@
-﻿##dontuse
-using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Automation;
@@ -12,9 +11,11 @@ using ECommons.Logging;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using ImGuiNET;
+using SharpDX.DXGI;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Numerics;
 using Action = Lumina.Excel.Sheets.Action;
@@ -23,11 +24,19 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
+    public override Metadata? Metadata => new(2, "NightmareXIV");
+
+    public override Dictionary<int, string> Changelog => new()
+    {
+        [2] = """
+        M6S Target Enforcer script has been completely remade to allow significantly more precise operation. Please configure it again.
+        """
+    };
+
     ImGuiEx.RealtimeDragDrop<MobKind> DragDrop = new("Mob", x => x.ToString());
     Dictionary<uint, long> EntityAgeTracker = [];
     Dictionary<uint, MobKind> Classifier = [];
-    int JabberCount = 0;
-    int FeatherRayCount = 0;
+    bool Switched = false;
 
     public enum MobName : uint
     {
@@ -59,7 +68,8 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
 
     public override void OnSetup()
     {
-        Controller.RegisterElementFromCode("Attack", "{\"Name\":\"\",\"radius\":0.5,\"color\":3372155106,\"fillIntensity\":0.5,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("AttackInRange", "{\"Name\":\"\",\"radius\":0.5,\"Filled\":false,\"color\":3372155106,\"fillIntensity\":0.5,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+        Controller.RegisterElementFromCode("Attack", "{\"Name\":\"\",\"thicc\":4,\"radius\":0.5,\"Filled\":false,\"color\":3372155106,\"fillIntensity\":0.5,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         for(int i = 0; i < 20; i++)
         {
             Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"radius\":0.0,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":0.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
@@ -79,7 +89,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                     EntityAgeTracker[npc.EntityId] = Environment.TickCount64;
                 }
                 ClassifyMob(npc);
-                if(Classifier.TryGetValue(npc.EntityId, out var value) && Controller.TryGetElementByName($"Debug{i++}", out var e))
+                if(C.Debug && Classifier.TryGetValue(npc.EntityId, out var value) && Controller.TryGetElementByName($"Debug{i++}", out var e))
                 {
                     e.Enabled = true;
                     e.SetRefPosition(npc.Position);
@@ -87,39 +97,59 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                 }
             } 
         }
-        var suggestedTarget = GetSuggestedTarget(out var useAction);
-        if(suggestedTarget != null)
+
+        GetSuggestedTarget(out var inRangeTarget, out var target);
+        if(C.Switch && inRangeTarget == null && target == null && Classifier.Count > 0 && !Switched)
         {
-            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] && C.Switch)
+            if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.NameId == 13822 && x.IsTargetable, out var sugarRiot))
             {
-                if(suggestedTarget.NameId == (uint)MobName.Jabberwock)
-                {
-                    if(!Svc.Targets.Target.AddressEquals(suggestedTarget) && EzThrottler.Throttle("M6SSwitchTarget", 200))
-                    {
-                        Svc.Targets.Target = suggestedTarget;
-                    }
-                }
-            }
-            if(Controller.TryGetElementByName("Attack", out var e))
-            {
-                e.Enabled = true;
-                e.SetRefPosition(suggestedTarget.Position);
-            }
-        }
-        if(Svc.Targets.Target is IBattleNpc n && n.NameId == (uint)MobName.Jabberwock)
-        {
-            if(useAction != 0)
-            {
-                if(EzThrottler.Throttle("M6SUseAction", 100))
+                if(EzThrottler.Throttle(this.InternalData.FullName + "Retarget", 200))
                 {
                     if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
                     {
-                        Chat.Instance.ExecuteAction(useAction);
+                        if(!Svc.Targets.Target.AddressEquals(sugarRiot))
+                        {
+                            Svc.Targets.Target = sugarRiot;
+                        }
                     }
                     else
                     {
-                        DuoLog.Information($"Would use action \"{ExcelActionHelper.GetActionName(useAction)}\" ({Framework.Instance()->FrameCounter})");
+                        DuoLog.Information("Would switch to Sugar Riot");
                     }
+                    if(Classifier.ContainsValue(MobKind.Yan_Wave_4) || Controller.Scene != 1)
+                    {
+                        Switched = true;
+                    }
+                }
+            }
+        }
+        if(inRangeTarget != null)
+        {
+            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] && C.Switch && !inRangeTarget.AddressEquals(Svc.Targets.Target))
+            {
+                if(EzThrottler.Throttle(this.InternalData.FullName + "Retarget", 200))
+                {
+                    Svc.Targets.Target = inRangeTarget;
+                }
+            }
+            DrawAttackInRange(inRangeTarget);
+        }
+        if(target != null && !inRangeTarget.AddressEquals(target))
+        {
+            DrawAttack(target);
+        }
+        var useAction = GetSuggestedActionOnTarget();
+        if(useAction != 0)
+        {
+            if(EzThrottler.Throttle("M6SUseAction", 100))
+            {
+                if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
+                {
+                    Chat.Instance.ExecuteAction(useAction);
+                }
+                else
+                {
+                    DuoLog.Information($"Would use action \"{ExcelActionHelper.GetActionName(useAction)}\" ({Framework.Instance()->FrameCounter})");
                 }
             }
         }
@@ -160,9 +190,8 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     public override void OnReset()
     {
         EntityAgeTracker.Clear();
-        JabberCount = 0;
-        FeatherRayCount = 0;
         Classifier.Clear();
+        Switched = false;
     }
 
     public override void OnSettingsDraw()
@@ -201,6 +230,10 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                     var data = C.Stuns.GetOrCreate(C.Priority[i]);
                     DrawStun(ref data.Action, ref data.Delay);
                 }
+                if(C.Priority[i].EqualsAny(MobKind.West_Feather_Ray_Wave_4, MobKind.West_Feather_Ray_Wave_2, MobKind.East_Feather_Ray_Wave_4, MobKind.East_Feather_Ray_Wave_2))
+                {
+                    ImGuiEx.CollectionCheckbox("Bait", C.Priority[i], C.BaitRay);
+                }
                 ImGui.PopID();
             }
             ImGui.EndTable();
@@ -213,7 +246,12 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
 
         if(ImGui.CollapsingHeader("Debug"))
         {
-            ImGuiEx.Text($"Suggested target: {GetSuggestedTarget(out var useAction)} / use action: {ExcelActionHelper.GetActionName(useAction, true)}");
+            GetSuggestedTarget(out var inRange, out var target);
+            ImGuiEx.Text($"""
+                Suggested target in range: {inRange}
+                Suggested target in range: {target}
+                Suggested action: {ExcelActionHelper.GetActionName(GetSuggestedActionOnTarget(), true)}
+                """);
             ImGuiEx.Text($"Mob age:");
             ImGui.Indent();
             foreach(var x in EntityAgeTracker)
@@ -226,16 +264,73 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
             {
                 ImGuiEx.Text($"Mob {x.Key}/{x.Key.GetObject()}: {x.Value}");
             }
+            ImGui.Separator();
+            ImGuiEx.Text($"""
+                Enemy order list:
+                {GetOrderedPotentialTargets().Print("\n")}
+                """);
+            ImGui.Checkbox("Draw debug information", ref C.Debug);
         }
     }
 
-    IBattleNpc? GetSuggestedTarget(out uint useAction)
+    void DrawAttackInRange(IBattleNpc mob)
     {
-        useAction = 0;
-        var objects = Svc.Objects.OfType<IBattleNpc>().Where(x => !x.IsDead && x.IsTargetable && Enum.GetValues<MobName>().Contains((MobName)x.NameId)).Where(x => Player.DistanceTo(x) < C.MaxRadius).OrderBy(Player.DistanceTo).ToArray();
-        if(objects.Length <= 1) return null;
-        
+        if(Controller.TryGetElementByName("AttackInRange", out var e))
+        {
+            e.Enabled = true;
+            e.SetRefPosition(mob.Position);
+            e.color = GradientColor.Get(EColor.RedBright, EColor.YellowBright).ToUint();
+            e.overlayText = Classifier[mob.EntityId].ToString().Replace("_", " ");
+        }
+    }
+
+    void DrawAttack(IBattleNpc mob)
+    {
+        if(Controller.TryGetElementByName("Attack", out var e))
+        {
+            e.Enabled = true;
+            e.SetRefPosition(mob.Position);
+            e.overlayText = Classifier[mob.EntityId].ToString().Replace("_", " ");
+        }
+    }
+
+    void GetSuggestedTarget(out IBattleNpc? inRangeTarget, out IBattleNpc? uncheckedRangeTarget)
+    {
+        inRangeTarget = GetSuggestedTargetWithRangeLimit(C.MaxRadius);
+        uncheckedRangeTarget = GetSuggestedTargetWithRangeLimit(100f);
+    }
+
+    IBattleNpc? GetSuggestedTargetWithRangeLimit(float rangeLimit)
+    {
+        var enemies = GetOrderedPotentialTargets().Where(x => Player.DistanceTo(x) < rangeLimit + x.HitboxRadius);
+        var rayBaits = enemies.Where(x => GetHPPercent(x) >= 0.99f && C.BaitRay.Contains(Classifier[x.EntityId]));
+        if(rayBaits.Any())
+        {
+            return rayBaits.First();
+        }
+        foreach(var x in enemies)
+        {
+            if(Classifier[x.EntityId].EqualsAny(MobKind.West_Feather_Ray_Wave_2, MobKind.East_Feather_Ray_Wave_2, MobKind.West_Feather_Ray_Wave_4, MobKind.East_Feather_Ray_Wave_4) && GetHPPercent(x) >= 0.99f) continue;
+            return x;
+        }
         return null;
+    }
+
+    IEnumerable<IBattleNpc> GetOrderedPotentialTargets()
+    {
+        return Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsTargetable && x.CurrentHp > 0 && Classifier.ContainsKey(x.EntityId)).OrderBy(x => C.Priority.IndexOf(Classifier[x.EntityId]));
+    }
+
+    uint GetSuggestedActionOnTarget()
+    {
+        if(Svc.Targets.Target is IBattleNpc b)
+        {
+            if(Classifier.TryGetValue(b.EntityId, out var value) && C.Stuns.TryGetValue(value, out var stunInfo))
+            {
+                return stunInfo.Action;
+            }
+        }
+        return 0;
     }
 
     float GetHPPercent(IBattleNpc mob)
@@ -256,6 +351,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     Config C => this.Controller.GetConfig<Config>();
     public class Config: IEzConfig
     {
+        public bool Debug = false;
         public bool Switch = false;
         public List<MobKind> Priority = [
             MobKind.Jabberwock_Wave_3,
@@ -268,10 +364,10 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
             MobKind.Gimme_Cat_Wave_4,
             MobKind.West_Feather_Ray_Wave_4,
             MobKind.Yan_Wave_1,
-            MobKind.Yan_Wave_3,
             MobKind.Mu_Wave_1,
             MobKind.Mu_Wave_2,
             MobKind.Mu_Wave_4,
+            MobKind.Yan_Wave_3,
             MobKind.Yan_Wave_4,
             ];
         public float MaxRadius = 25f;

@@ -286,7 +286,8 @@ internal unsafe class DirectX11Scene : IDisposable
         ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(e.bgcolor));
         ImGui.BeginChild("##child" + e.text + ++uid, size, false,
             ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
-            | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
+            | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding
+            | ImGuiWindowFlags.NoFocusOnAppearing);
         ImGui.PushStyleColor(ImGuiCol.Text, e.fgcolor);
         if(scaled) ImGui.SetWindowFontScale(e.fscale);
         ImGuiEx.Text(e.text);

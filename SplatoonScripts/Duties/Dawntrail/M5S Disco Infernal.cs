@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
 using ECommons;
@@ -11,6 +8,9 @@ using ECommons.ImGuiMethods;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -35,7 +35,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
 
     private (int x, int y) _targetIndex = (0, 0);
     public override HashSet<uint>? ValidTerritories => [1257];
-    public override Metadata? Metadata => new Metadata(1, "Garume");
+    public override Metadata? Metadata => new(1, "Garume");
     private static IBattleNpc[] SpotLights => [.. Svc.Objects.Where(x => x.DataId == 0x47BB).OfType<IBattleNpc>()];
 
     private Config C => Controller.GetConfig<Config>();
@@ -60,7 +60,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
         ImGui.ColorEdit4("Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
         ImGui.Unindent();
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"isSafeOutSideNorthWest: {_isSafeOutSideNorthWest}");
@@ -71,19 +71,21 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (_state == State.None && castId == 42838) _state = State.Casting;
+        if(_state == State.None && castId == 42838) _state = State.Casting;
     }
 
     public override void OnSetup()
     {
-        for (var x = 0; x < 5; x++)
-        for (var y = 0; y < 5; y++)
-        {
-            var pos = new Vector3(0, 0, 0);
-            pos.X = 0.5f * x - 1.0f;
-            pos.Z = 0.5f * y - 1.0f;
-            // Controller.RegisterElement($"aoe{x}{y}", new Element(0));
-        }
+        for(var x = 0; x < 5; x++)
+            for(var y = 0; y < 5; y++)
+            {
+                var pos = new Vector3(0, 0, 0)
+                {
+                    X = 0.5f * x - 1.0f,
+                    Z = 0.5f * y - 1.0f
+                };
+                // Controller.RegisterElement($"aoe{x}{y}", new Element(0));
+            }
 
         var baitElement = new Element(0)
         {
@@ -111,9 +113,9 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state is not (State.None or State.End))
+        if(_state is not (State.None or State.End))
         {
-            if (Controller.TryGetElementByName("Bait", out var baitElement))
+            if(Controller.TryGetElementByName("Bait", out var baitElement))
                 baitElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
         }
         else
@@ -124,115 +126,115 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        switch (_state)
+        switch(_state)
         {
             case State.Casting:
-            {
-                if (position == 3 && data1 == 1 && data2 == 2)
                 {
-                    _state = State.Aoe;
-                    _isSafeOutSideNorthWest = true;
-                }
+                    if(position == 3 && data1 == 1 && data2 == 2)
+                    {
+                        _state = State.Aoe;
+                        _isSafeOutSideNorthWest = true;
+                    }
 
-                if (position == 3 && data1 == 16 && data2 == 32)
-                {
-                    _state = State.Aoe;
-                    _isSafeOutSideNorthWest = false;
-                }
+                    if(position == 3 && data1 == 16 && data2 == 32)
+                    {
+                        _state = State.Aoe;
+                        _isSafeOutSideNorthWest = false;
+                    }
 
-                break;
-            }
+                    break;
+                }
             case State.Aoe:
-            {
-                if ((position == 3 && data1 == 1 && data2 == 2) ||
-                    (position == 3 && data1 == 16 && data2 == 32) ||
-                    (position == 3 && data1 == 4 && data2 == 8) ||
-                    (position == 3 && data1 == 4 && data2 == 128)
-                   )
                 {
-                    _aoeCount++;
-                    var isShortDebuff =
-                        Player.Status.Any(x => x is { StatusId: SpotLightDebuffId, RemainingTime: < 10f });
-                    if (_aoeCount == 6)
+                    if((position == 3 && data1 == 1 && data2 == 2) ||
+                        (position == 3 && data1 == 16 && data2 == 32) ||
+                        (position == 3 && data1 == 4 && data2 == 8) ||
+                        (position == 3 && data1 == 4 && data2 == 128)
+                       )
                     {
-                        SetBait(isShortDebuff);
-                        if (isShortDebuff) EnableElement("PredictBait");
+                        _aoeCount++;
+                        var isShortDebuff =
+                            Player.Status.Any(x => x is { StatusId: SpotLightDebuffId, RemainingTime: < 10f });
+                        if(_aoeCount == 6)
+                        {
+                            SetBait(isShortDebuff);
+                            if(isShortDebuff) EnableElement("PredictBait");
+                        }
+                        else if(_aoeCount == 9 && isShortDebuff)
+                        {
+                            DisableElement("PredictBait");
+                            EnableElement("Bait");
+                        }
+                        else if(_aoeCount == 9)
+                        {
+                            EnableElement("PredictBait");
+                        }
+                        else if(_aoeCount == 13 && isShortDebuff)
+                        {
+                            DisableElement("PredictBait");
+                            EnableElement("Bait");
+                        }
+                        else if(_aoeCount is 12 or 16)
+                        {
+                            DisableElement("Bait");
+                        }
+                        else if(_aoeCount > 17)
+                        {
+                            _state = State.End;
+                        }
                     }
-                    else if (_aoeCount == 9 && isShortDebuff)
-                    {
-                        DisableElement("PredictBait");
-                        EnableElement("Bait");
-                    }
-                    else if (_aoeCount == 9)
-                    {
-                        EnableElement("PredictBait");
-                    }
-                    else if (_aoeCount == 13 && isShortDebuff)
-                    {
-                        DisableElement("PredictBait");
-                        EnableElement("Bait");
-                    }
-                    else if (_aoeCount is 12 or 16)
-                    {
-                        DisableElement("Bait");
-                    }
-                    else if (_aoeCount > 17)
-                    {
-                        _state = State.End;
-                    }
-                }
 
-                break;
-            }
+                    break;
+                }
         }
     }
 
     private void SetBait(bool isShortDebuff)
     {
-        if (_isSafeOutSideNorthWest)
+        if(_isSafeOutSideNorthWest)
         {
-            if (C.Directions.Contains(Direction.NorthWestOutside))
+            if(C.Directions.Contains(Direction.NorthWestOutside))
             {
                 SetElementFromIndex(1, 1);
             }
-            else if (C.Directions.Contains(Direction.SouthEastOutside))
+            else if(C.Directions.Contains(Direction.SouthEastOutside))
             {
                 SetElementFromIndex(6, 6);
             }
-            else if (C.Directions.Contains(Direction.NorthEastInside))
+            else if(C.Directions.Contains(Direction.NorthEastInside))
             {
-                var index = HasSpotLightAt(4,2) ? (4,2) : (5,3);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var index = HasSpotLightAt(4, 2) ? (4, 2) : (5, 3);
+                if(isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
-            else if (C.Directions.Contains(Direction.SouthWestInside))
+            else if(C.Directions.Contains(Direction.SouthWestInside))
             {
-                var index = HasSpotLightAt(2,4) ? (2,4) : (3,5);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var index = HasSpotLightAt(2, 4) ? (2, 4) : (3, 5);
+                if(isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
         }
         else
         {
-            if (C.Directions.Contains(Direction.NorthEastOutside))
+            if(C.Directions.Contains(Direction.NorthEastOutside))
             {
                 SetElementFromIndex(6, 1);
             }
-            else if (C.Directions.Contains(Direction.SouthWestOutside))
+            else if(C.Directions.Contains(Direction.SouthWestOutside))
             {
                 SetElementFromIndex(1, 6);
             }
-            else if (C.Directions.Contains(Direction.NorthWestInside))
+            else if(C.Directions.Contains(Direction.NorthWestInside))
             {
-                var index = HasSpotLightAt(3,2) ? (3,2) : (2,3);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var index = HasSpotLightAt(3, 2) ? (3, 2) : (2, 3);
+                if(isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
-            else if (C.Directions.Contains(Direction.SouthEastInside))
+            else if(C.Directions.Contains(Direction.SouthEastInside))
             {
-                var index = HasSpotLightAt(5,4) ? (5,4) : (4,5);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var index = HasSpotLightAt(5, 4) ? (5, 4) : (4, 5);
+                if(isShortDebuff) index = (index.Item2, index.Item1);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
         }
     }
@@ -241,18 +243,18 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
     {
         _targetIndex = (x, y);
         var pos = ToPosition(x, y);
-        if (Controller.TryGetElementByName("Bait", out var baitElement)) baitElement.SetOffPosition(pos);
-        if (Controller.TryGetElementByName("PredictBait", out var predictElement)) predictElement.SetOffPosition(pos);
+        if(Controller.TryGetElementByName("Bait", out var baitElement)) baitElement.SetOffPosition(pos);
+        if(Controller.TryGetElementByName("PredictBait", out var predictElement)) predictElement.SetOffPosition(pos);
     }
 
     private void EnableElement(string name)
     {
-        if (Controller.TryGetElementByName(name, out var element)) element.Enabled = true;
+        if(Controller.TryGetElementByName(name, out var element)) element.Enabled = true;
     }
 
     private void DisableElement(string name)
     {
-        if (Controller.TryGetElementByName(name, out var element)) element.Enabled = false;
+        if(Controller.TryGetElementByName(name, out var element)) element.Enabled = false;
     }
 
     private static Vector3 ToPosition(int x, int y)

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
@@ -8,6 +6,8 @@ using ECommons.GameHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
@@ -27,7 +27,7 @@ public class TEA_P2_Nisi : SplatoonScript
 
     private const uint JusticeId = 9216;
 
-    private readonly Dictionary<uint, List<uint>> _firstNisiPlayerPairs = new();
+    private readonly Dictionary<uint, List<uint>> _firstNisiPlayerPairs = [];
 
     private bool _isJudgmentNisi;
     private bool _isOpeningLastJudgment;
@@ -47,7 +47,7 @@ public class TEA_P2_Nisi : SplatoonScript
 
     public override void OnSetup()
     {
-        foreach (var nisiId in NisiIds) _firstNisiPlayerPairs[nisiId] = [];
+        foreach(var nisiId in NisiIds) _firstNisiPlayerPairs[nisiId] = [];
 
         var nisiPassElement = new Element(0)
         {
@@ -62,39 +62,39 @@ public class TEA_P2_Nisi : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
         var justice = Justice;
-        if (justice == null)
+        if(justice == null)
         {
             _isJudgmentNisi = false;
             _isOpeningLastJudgment = false;
             return;
         }
 
-        if (justice is { IsCasting: true, CastActionId: JudgmentNisiCastId })
+        if(justice is { IsCasting: true, CastActionId: JudgmentNisiCastId })
         {
             _isJudgmentNisi = true;
             _isOpeningLastJudgment = false;
         }
 
-        if (justice is { IsCasting: true, CastActionId: OpeningLastJudgmentCastId })
+        if(justice is { IsCasting: true, CastActionId: OpeningLastJudgmentCastId })
         {
             _isJudgmentNisi = false;
             _isOpeningLastJudgment = true;
         }
 
-        if (_isJudgmentNisi && !_isOpeningLastJudgment && !justice.IsCasting)
+        if(_isJudgmentNisi && !_isOpeningLastJudgment && !justice.IsCasting)
         {
             var nisiPlayers = Svc.Objects.OfType<IBattleChara>()
                 .Where(x => x.StatusList.Any(y => NisiIds.Contains(y.StatusId)))
                 .ToArray();
 
-            if (_firstNisiPlayerPairs.First().Value.Count == 0)
+            if(_firstNisiPlayerPairs.First().Value.Count == 0)
             {
-                if (nisiPlayers.Length == 8)
-                    foreach (var player in nisiPlayers)
+                if(nisiPlayers.Length == 8)
+                    foreach(var player in nisiPlayers)
                     {
                         var nisi = player.StatusList.First(x => NisiIds.Contains(x.StatusId));
                         _firstNisiPlayerPairs[nisi.StatusId].Add(player.EntityId);
-                        if (player == Player.Object)
+                        if(player == Player.Object)
                             _myFirstNisiId = nisi.StatusId;
                     }
             }
@@ -107,22 +107,22 @@ public class TEA_P2_Nisi : SplatoonScript
                 var anotherPlayerNisi = anotherPlayer.StatusList.FirstOrDefault(x => NisiIds.Contains(x.StatusId));
 
                 //2nd Nisi
-                if (myNisi == null && anotherPlayerNisi != null && anotherPlayerNisi.RemainingTime < C.FirstNisiTime)
+                if(myNisi == null && anotherPlayerNisi != null && anotherPlayerNisi.RemainingTime < C.FirstNisiTime)
                     SetPositionElement(anotherPlayer, "NisiPass");
 
                 //2nd Nisi
-                if (anotherPlayerNisi == null && myNisi != null && myNisi.RemainingTime < C.FirstNisiTime)
+                if(anotherPlayerNisi == null && myNisi != null && myNisi.RemainingTime < C.FirstNisiTime)
                     SetPositionElement(anotherPlayer, "NisiPass");
             }
         }
 
-        if (_isOpeningLastJudgment && !justice.IsCasting)
+        if(_isOpeningLastJudgment && !justice.IsCasting)
         {
             var myMisi = Player.Object.StatusList.FirstOrDefault(x => NisiIds.Contains(x.StatusId));
             var myNisi2 = Player.Object.StatusList.FirstOrDefault(x => NisiIds2.Contains(x.StatusId));
 
             // 3rd Nisi
-            if (myMisi != null && myMisi.RemainingTime < C.SecondNisiTime)
+            if(myMisi != null && myMisi.RemainingTime < C.SecondNisiTime)
             {
                 var matchingNisiId = GetMatchingNisiId(myMisi.StatusId);
                 var player = Svc.Objects.OfType<IBattleChara>()
@@ -133,7 +133,7 @@ public class TEA_P2_Nisi : SplatoonScript
             }
 
             // 3rd Nisi or 4th Nisi
-            if (myMisi == null && myNisi2 != null)
+            if(myMisi == null && myNisi2 != null)
             {
                 var matchingNisiId = GetMatchingNisiId(myNisi2.StatusId);
                 var player = Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x =>
@@ -143,7 +143,7 @@ public class TEA_P2_Nisi : SplatoonScript
 
             // 4th Nisi
             // probably not needed
-            if (myMisi != null && myNisi2 != null && myMisi.RemainingTime < C.SecondNisiTime)
+            if(myMisi != null && myNisi2 != null && myMisi.RemainingTime < C.SecondNisiTime)
             {
                 var matchingNisiId = GetMatchingNisiId(myMisi.StatusId);
                 var player = Svc.Objects.OfType<IBattleChara>()
@@ -179,8 +179,8 @@ public class TEA_P2_Nisi : SplatoonScript
 
     private void SetPositionElement(IGameObject? player, string elementName)
     {
-        if (player == null) return;
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(player == null) return;
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             element.Enabled = true;
             element.refX = player.Position.X;
@@ -191,10 +191,10 @@ public class TEA_P2_Nisi : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.Text("1 ~ 2 Nisi");
-        foreach (var pair in _firstNisiPlayerPairs) ImGui.Text($"{pair.Key.GetObject()}: {string.Join(", ", pair.Value)}");
+        foreach(var pair in _firstNisiPlayerPairs) ImGui.Text($"{pair.Key.GetObject()}: {string.Join(", ", pair.Value)}");
         ImGui.Spacing();
         ImGui.Text("Current Nisi");
-        foreach (var nisi in Svc.Objects.OfType<IBattleChara>()
+        foreach(var nisi in Svc.Objects.OfType<IBattleChara>()
                      .SelectMany(x => x.StatusList)
                      .Where(x => NisiIds.Contains(x.StatusId))
                 )

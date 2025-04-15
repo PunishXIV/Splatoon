@@ -11,7 +11,7 @@ namespace SplatoonScriptsOfficial.Generic
 {
     public class Toast2Log : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
 
         public override void OnEnable()
         {

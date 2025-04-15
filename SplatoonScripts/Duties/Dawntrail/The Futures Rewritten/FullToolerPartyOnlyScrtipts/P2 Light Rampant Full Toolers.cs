@@ -19,7 +19,7 @@ using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
-internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
+internal class P2_Light_Rampant_Full_Toolers : SplatoonScript
 {
     #region enums
     private enum State
@@ -47,7 +47,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     #endregion
 
     #region class
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public bool NorthSwap = false;
         public PriorityData Priority = new();
@@ -56,9 +56,9 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     private class PartyData
     {
         public int index = 0;
-        public bool Mine => this.EntityId == Player.Object.EntityId;
+        public bool Mine => EntityId == Player.Object.EntityId;
         public uint EntityId = 0;
-        public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject() ?? null;
+        public IPlayerCharacter? Object => (IPlayerCharacter)EntityId.GetObject() ?? null;
         public uint TetherPairId1 = 0;
         public uint TetherPairId2 = 0;
         public Direction TowerDirection = Direction.None;
@@ -83,8 +83,8 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     #endregion
 
     #region const
-    private readonly List<(Direction, Vector3)> TowerPos = new()
-    {
+    private readonly List<(Direction, Vector3)> TowerPos =
+    [
         new (Direction.NorthWest, new Vector3(86, 0, 92)),
         new (Direction.North, new Vector3(100, 0, 84)),
         new (Direction.NorthEast, new Vector3(114, 0, 92)),
@@ -93,24 +93,24 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         new (Direction.South, new Vector3(100, 0, 116)),
         new (Direction.SouthWest, new Vector3(86, 0, 108)),
         new (Direction.West, new Vector3(80, 0, 100)),
-    };
+    ];
 
     private readonly Vector3[] WestNeetSetReminderPos =
     {
-        new Vector3(120f, 0f, 100f),
-        new Vector3(113.740f, 0f, 100f),
-        new Vector3(107.460f, 0f, 100f),
-        new Vector3(100f, 0f, 103.000f),
-        new Vector3(103.940f, 0f, 109.320f),
+        new(120f, 0f, 100f),
+        new(113.740f, 0f, 100f),
+        new(107.460f, 0f, 100f),
+        new(100f, 0f, 103.000f),
+        new(103.940f, 0f, 109.320f),
     };
 
     private readonly Vector3[] EastNeetSetReminderPos =
     {
-        new Vector3(80f, 0f, 100f),
-        new Vector3(86.260f, 0f, 100f),
-        new Vector3(92.540f, 0f, 100f),
-        new Vector3(100f, 0f, 96.000f),
-        new Vector3(96.040f, 0f, 90.260f),
+        new(80f, 0f, 100f),
+        new(86.260f, 0f, 100f),
+        new(92.540f, 0f, 100f),
+        new(100f, 0f, 96.000f),
+        new(96.040f, 0f, 90.260f),
     };
     #endregion
 
@@ -121,9 +121,9 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     #region private properties
     private State _state = State.None;
-    private List<PartyData> _partyDataList = new();
+    private List<PartyData> _partyDataList = [];
     private int _onTetherCount = 0;
-    private List<SphereData> _sphereDataList = new();
+    private List<SphereData> _sphereDataList = [];
     private int _luminusCount = 0;
     private bool _northSpawn = false;
     private bool _transLock = false;
@@ -136,18 +136,18 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         Controller.RegisterElement("Bait", new Element(0) { tether = true, radius = 3f, thicc = 6f });
         Controller.RegisterElement("CircleFix", new Element(0) { radius = 3f, thicc = 6f });
         Controller.RegisterElement("BaitObject", new Element(1) { tether = true, refActorComparisonType = 2, radius = 0.5f, thicc = 6f });
-        for (var i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             Controller.RegisterElement($"Circle{i}", new Element(1) { radius = 5.0f, refActorComparisonType = 2, thicc = 2f, fillIntensity = 0.2f });
         }
-        for (var i = 0; i < 5; i++)
+        for(var i = 0; i < 5; i++)
         {
             Controller.RegisterElement($"WestDropSpot{i}", new Element(0) { radius = 0.2f, thicc = 2f, Filled = true, fillIntensity = 1f });
             Controller.GetElementByName($"WestDropSpot{i}").SetRefPosition(WestNeetSetReminderPos[i]);
             Controller.RegisterElement($"EastDropSpot{i}", new Element(0) { radius = 0.2f, thicc = 2f, Filled = true, fillIntensity = 1f });
             Controller.GetElementByName($"EastDropSpot{i}").SetRefPosition(EastNeetSetReminderPos[i]);
         }
-        for (var i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             Controller.RegisterElement($"WestDropLine{i}", new Element(2) { radius = 0f, thicc = 3f, Filled = true, fillIntensity = 1f });
             Controller.GetElementByName($"WestDropLine{i}").SetRefPosition(WestNeetSetReminderPos[i]);
@@ -160,13 +160,13 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40212)
+        if(castId == 40212)
         {
             SetListEntityIdByJob();
 
             _state = State.LightRampantCasting;
         }
-        if (castId is 40220 or 40221)
+        if(castId is 40220 or 40221)
         {
             _bashId = castId;
         }
@@ -174,13 +174,13 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if (_state != State.TetherSpawned) return;
-        if (position == 9 && data1 == 1 && data2 == 2)
+        if(_state != State.TetherSpawned) return;
+        if(position == 9 && data1 == 1 && data2 == 2)
         {
             HideAllElements();
             var pc = GetMinedata();
 
-            if (pc.TetherPairId1 != 0)
+            if(pc.TetherPairId1 != 0)
             {
                 Controller.GetElementByName("Bait").SetRefPosition(TowerPos.Find(x => x.Item1 == pc.TowerDirection).Item2);
                 Controller.GetElementByName("Bait").radius = 4f;
@@ -198,9 +198,9 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ = new TickScheduler(delegate
                 {
                     var pc = GetMinedata();
-                    if (pc.TowerDirection == Direction.None) return;
-                    if (pc.TowerDirection == Direction.West) ShowEastDrops();
-                    if (pc.TowerDirection == Direction.East) ShowWestDrops();
+                    if(pc.TowerDirection == Direction.None) return;
+                    if(pc.TowerDirection == Direction.West) ShowEastDrops();
+                    if(pc.TowerDirection == Direction.East) ShowWestDrops();
                 }, 3500);
             }
         }
@@ -208,19 +208,19 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action == null) return;
+        if(set.Action == null) return;
         var castId = set.Action.Value.RowId;
-        if (castId == 40218)
+        if(castId == 40218)
         {
             _luminusCount++;
-            if (_luminusCount == 1 && (GetMinedata().TowerDirection == Direction.East || GetMinedata().TowerDirection == Direction.West))
+            if(_luminusCount == 1 && (GetMinedata().TowerDirection == Direction.East || GetMinedata().TowerDirection == Direction.West))
             {
                 Controller.GetElementByName("Bait").Enabled = false;
             }
-            if (_luminusCount == 10)
+            if(_luminusCount == 10)
             {
                 HideAllElements();
-                if (_sphereDataList.Count >= 3)
+                if(_sphereDataList.Count >= 3)
                 {
                     _state = State.SphereSpawn1;
                     ShowSphereAoeAndGuide1();
@@ -233,7 +233,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 }
             }
         }
-        if (castId == 40219 && _state == State.SphereSpawn1)
+        if(castId == 40219 && _state == State.SphereSpawn1)
         {
             HideAllElements();
             _state = State.SphereSpawn2;
@@ -244,34 +244,34 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _transLock = false;
             }, 1000);
         }
-        if (castId == 40219 && _state == State.SphereSpawn2 && !_transLock)
+        if(castId == 40219 && _state == State.SphereSpawn2 && !_transLock)
         {
             HideAllElements();
             _state = State.TowerIn;
             ShowTowerIn();
         }
-        if (castId is 40213 && _state == State.TowerIn)
+        if(castId is 40213 && _state == State.TowerIn)
         {
             HideAllElements();
             _state = State.Banish;
             ShowBanish(_bashId);
         }
-        if (castId is 40220 or 40221)
+        if(castId is 40220 or 40221)
         {
-            this.OnReset();
+            OnReset();
         }
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (vfxPath.Contains("vfx/common/eff/mon_pop1t.avfx") && _state is State.TetherSpawned or State.SphereSpawn1)
+        if(vfxPath.Contains("vfx/common/eff/mon_pop1t.avfx") && _state is State.TetherSpawned or State.SphereSpawn1)
         {
             var closestDirection = Direction.North;
             var closestDistance = float.MaxValue;
-            foreach (var towerData in TowerPos)
+            foreach(var towerData in TowerPos)
             {
                 var distance = Vector3.Distance(target.GetObject().Position, towerData.Item2);
-                if (distance < closestDistance)
+                if(distance < closestDistance)
                 {
                     closestDistance = distance;
                     closestDirection = towerData.Item1;
@@ -285,13 +285,13 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Where(x => x.Value.Enabled).Each(x => x.Value.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint());
-        if (Controller.TryGetElementByName("CircleFix", out var el))
+        if(Controller.TryGetElementByName("CircleFix", out var el))
         {
             el.color = 0xFF0000FF;
         }
-        for (var i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
-            if (Controller.TryGetElementByName($"Circle{i}", out el))
+            if(Controller.TryGetElementByName($"Circle{i}", out el))
             {
                 el.color = 0xFF0000FF;
                 el.fillIntensity = 0.5f;
@@ -313,17 +313,17 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state != State.LightRampantCasting) return;
-        if (data2 == 0 && data3 == 110 && data5 == 15)
+        if(_state != State.LightRampantCasting) return;
+        if(data2 == 0 && data3 == 110 && data5 == 15)
         {
             var partyData = _partyDataList.Find(x => x.EntityId == source);
-            if (partyData == null) return;
+            if(partyData == null) return;
             partyData.TetherPairId1 = target;
             _onTetherCount++;
 
-            if (_onTetherCount == 6)
+            if(_onTetherCount == 6)
             {
-                if (ParseTether())
+                if(ParseTether())
                 {
                     _state = State.TetherSpawned;
                 }
@@ -337,15 +337,15 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"OnTetherCount: {_onTetherCount}");
             ImGui.Text($"LuminusCount: {_luminusCount}");
             ImGui.Text($"PartyDataList.Count: {_partyDataList.Count}");
-            if (_partyDataList.Count <= 0) return;
+            if(_partyDataList.Count <= 0) return;
             List<ImGuiEx.EzTableEntry> Entries = [];
-            foreach (var x in _partyDataList)
+            foreach(var x in _partyDataList)
             {
                 Entries.Add(new ImGuiEx.EzTableEntry("Index", true, () => ImGui.Text(x.index.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("EntityId", true, () => ImGui.Text(x.EntityId.ToString())));
@@ -364,54 +364,54 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     #region private methods
     private bool ParseTether()
     {
-        foreach (var pc in _partyDataList)
+        foreach(var pc in _partyDataList)
         {
-            if (pc.TetherPairId1 == 0) continue;
+            if(pc.TetherPairId1 == 0) continue;
 
             var pair2 = _partyDataList.Find(x => x.TetherPairId1 == pc.EntityId);
-            if (pair2 == null) continue;
+            if(pair2 == null) continue;
             pc.TetherPairId2 = pair2.EntityId;
         }
 
-        if (_partyDataList.Where(x => x.TetherPairId1 != 0 && x.TetherPairId2 != 0).Count() != 6) return false;
+        if(_partyDataList.Where(x => x.TetherPairId1 != 0 && x.TetherPairId2 != 0).Count() != 6) return false;
 
-        List<PartyData> neetPc = _partyDataList.Where(x => x.TetherPairId1 == 0 && x.TetherPairId2 == 0).ToList();
-        bool allHealer = neetPc.All(x => x.index == 0 || x.index == 7);
-        bool nonHealer = neetPc.All(x => x.index != 0 && x.index != 7);
+        var neetPc = _partyDataList.Where(x => x.TetherPairId1 == 0 && x.TetherPairId2 == 0).ToList();
+        var allHealer = neetPc.All(x => x.index == 0 || x.index == 7);
+        var nonHealer = neetPc.All(x => x.index != 0 && x.index != 7);
 
 
         DuoLog.Information($"neetPc: {neetPc.Count}, allHealer: {allHealer}, nonHealer: {nonHealer}");
         DuoLog.Information($"neetPc0: {neetPc[0].Object.Name}, neetPc1: {neetPc[1].Object.Name}");
 
         // ヒラはどちらも線付き
-        if (nonHealer)
+        if(nonHealer)
         {
             DuoLog.Information("Healer is not all neet");
             var h1 = _partyDataList.Find(x => x.index == 0);
             var h2 = _partyDataList.Find(x => x.index == 7);
-            if (h1 == null) return false;
+            if(h1 == null) return false;
 
             h1.TowerDirection = Direction.North;
             h2.TowerDirection = Direction.SouthEast;
 
             var pc = (h2.TetherPairId1 == h1.EntityId) ? _partyDataList.Find(x => x.EntityId == h2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == h2.TetherPairId1);
             DuoLog.Information($"pc: {pc.Object.Name}");
-            if (pc == null) return false;
+            if(pc == null) return false;
             pc.TowerDirection = Direction.NorthWest;
 
             var pc2 = (pc.TetherPairId1 == h2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc.TetherPairId1);
             DuoLog.Information($"pc2: {pc2.Object.Name}");
-            if (pc2 == null) return false;
+            if(pc2 == null) return false;
             pc2.TowerDirection = Direction.South;
 
             var pc3 = (pc2.TetherPairId1 == pc.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
             DuoLog.Information($"pc3: {pc3.Object.Name}");
-            if (pc3 == null) return false;
+            if(pc3 == null) return false;
             pc3.TowerDirection = Direction.NorthEast;
 
             var pc4 = (pc3.TetherPairId1 == pc2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
             DuoLog.Information($"pc4: {pc4.Object.Name}");
-            if (pc4 == null) return false;
+            if(pc4 == null) return false;
             pc4.TowerDirection = Direction.SouthWest;
 
             // NEETは適当
@@ -419,32 +419,32 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             neetPc[1].TowerDirection = Direction.East;
         }
         // ヒラはどちらも線なし
-        else if (allHealer)
+        else if(allHealer)
         {
             DuoLog.Information("Healer is all neet");
             // index = 1から始める
             var mt = _partyDataList.Find(x => x.index == 1);
-            if (mt == null) return false;
+            if(mt == null) return false;
             var pc = _partyDataList.Find(x => x.EntityId == mt.TetherPairId1);
-            if (pc == null) return false;
+            if(pc == null) return false;
 
             mt.TowerDirection = Direction.North;
             pc.TowerDirection = Direction.SouthEast;
 
             var pc2 = (pc.TetherPairId1 == mt.EntityId) ? _partyDataList.Find(x => x.EntityId == pc.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc.TetherPairId1);
-            if (pc2 == null) return false;
+            if(pc2 == null) return false;
             pc2.TowerDirection = Direction.NorthWest;
 
             var pc3 = (pc2.TetherPairId1 == pc.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
-            if (pc3 == null) return false;
+            if(pc3 == null) return false;
             pc3.TowerDirection = Direction.South;
 
             var pc4 = (pc3.TetherPairId1 == pc2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
-            if (pc4 == null) return false;
+            if(pc4 == null) return false;
             pc4.TowerDirection = Direction.NorthEast;
 
             var pc5 = (pc4.TetherPairId1 == pc3.EntityId) ? _partyDataList.Find(x => x.EntityId == pc4.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc4.TetherPairId1);
-            if (pc5 == null) return false;
+            if(pc5 == null) return false;
             pc5.TowerDirection = Direction.SouthWest;
 
             // NEETは適当
@@ -456,33 +456,33 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         {
             DuoLog.Information("Healer is atleast Healer");
             var h = _partyDataList.Find(x => (x.index == 0 || x.index == 7) && x.TetherPairId1 != 0 && x.TetherPairId2 != 0);
-            if (h == null) return false;
+            if(h == null) return false;
 
             h.TowerDirection = Direction.North;
 
             var pc = (h.TetherPairId1 == h.EntityId) ? _partyDataList.Find(x => x.EntityId == h.TetherPairId2) : _partyDataList.Find(x => x.EntityId == h.TetherPairId1);
-            if (pc == null) return false;
+            if(pc == null) return false;
             pc.TowerDirection = Direction.SouthEast;
 
             var pc2 = (pc.TetherPairId1 == h.EntityId) ? _partyDataList.Find(x => x.EntityId == pc.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc.TetherPairId1);
-            if (pc2 == null) return false;
+            if(pc2 == null) return false;
             pc2.TowerDirection = Direction.NorthWest;
 
             var pc3 = (pc2.TetherPairId1 == pc.EntityId) ? _partyDataList.Find(x => x.EntityId == pc2.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc2.TetherPairId1);
-            if (pc3 == null) return false;
+            if(pc3 == null) return false;
             pc3.TowerDirection = Direction.South;
 
             var pc4 = (pc3.TetherPairId1 == pc2.EntityId) ? _partyDataList.Find(x => x.EntityId == pc3.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc3.TetherPairId1);
-            if (pc4 == null) return false;
+            if(pc4 == null) return false;
             pc4.TowerDirection = Direction.NorthEast;
 
             var pc5 = (pc4.TetherPairId1 == pc3.EntityId) ? _partyDataList.Find(x => x.EntityId == pc4.TetherPairId2) : _partyDataList.Find(x => x.EntityId == pc4.TetherPairId1);
-            if (pc5 == null) return false;
+            if(pc5 == null) return false;
             pc5.TowerDirection = Direction.SouthWest;
 
             // NEETはヒラはWest
             var neetHealer = neetPc.Find(x => x.index == 0 || x.index == 7);
-            if (neetHealer == null)
+            if(neetHealer == null)
             {
                 DuoLog.Information("Not Found Healer");
             }
@@ -494,18 +494,18 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             neet.TowerDirection = Direction.West;
         }
 
-        if (_partyDataList.Where(x => x.TowerDirection != Direction.None).Count() != 8) return false;
+        if(_partyDataList.Where(x => x.TowerDirection != Direction.None).Count() != 8) return false;
 
         return true;
     }
 
     private void ShowEastDrops()
     {
-        for (var i = 0; i < 5; i++)
+        for(var i = 0; i < 5; i++)
         {
             Controller.GetElementByName($"EastDropSpot{i}").Enabled = true;
         }
-        for (var i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             Controller.GetElementByName($"EastDropLine{i}").Enabled = true;
         }
@@ -513,11 +513,11 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
 
     private void ShowWestDrops()
     {
-        for (var i = 0; i < 5; i++)
+        for(var i = 0; i < 5; i++)
         {
             Controller.GetElementByName($"WestDropSpot{i}").Enabled = true;
         }
-        for (var i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             Controller.GetElementByName($"WestDropLine{i}").Enabled = true;
         }
@@ -526,9 +526,9 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     private void ShowSphereAoeAndGuide1()
     {
         // サークル表示
-        for (var i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
-            if (_sphereDataList[i].TowerDirection == Direction.North)
+            if(_sphereDataList[i].TowerDirection == Direction.North)
             {
                 _northSpawn = true;
             }
@@ -539,15 +539,15 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             Controller.GetElementByName($"Circle{i}").Enabled = true;
         }
 
-        if (Controller.TryGetElementByName("Bait", out var element))
+        if(Controller.TryGetElementByName("Bait", out var element))
         {
             element.Enabled = true;
             element.radius = 0.3f;
 
             var pc = GetMinedata();
-            if (pc.Object.Position.Z < 100) // North
+            if(pc.Object.Position.Z < 100) // North
             {
-                if (_northSpawn)
+                if(_northSpawn)
                 {
                     element.SetRefPosition(new Vector3(111.280f, 0, 88.640f));
                 }
@@ -558,7 +558,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             }
             else // South
             {
-                if (_northSpawn)
+                if(_northSpawn)
                 {
                     element.SetRefPosition(new Vector3(95.680f, 0, 115.480f));
                 }
@@ -573,7 +573,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     private void ShowSphereAoeAndGuide2()
     {
         // サークル表示
-        for (var i = 3; i < 6; i++)
+        for(var i = 3; i < 6; i++)
         {
             Controller.GetElementByName($"Circle{i}").refActorObjectID = _sphereDataList[i].EntityId;
             Controller.GetElementByName($"Circle{i}").Filled = true;
@@ -582,12 +582,12 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             Controller.GetElementByName($"Circle{i}").Enabled = true;
         }
 
-        if (Controller.TryGetElementByName("Bait", out var element))
+        if(Controller.TryGetElementByName("Bait", out var element))
         {
             var pc = GetMinedata();
-            if (pc.Object.Position.Z > 100) // North
+            if(pc.Object.Position.Z > 100) // North
             {
-                if (!_northSpawn)
+                if(!_northSpawn)
                 {
                     element.SetRefPosition(new Vector3(112, 0, 85));
                 }
@@ -598,7 +598,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             }
             else // South
             {
-                if (!_northSpawn)
+                if(!_northSpawn)
                 {
                     element.SetRefPosition(new Vector3(93, 0, 118));
                 }
@@ -617,9 +617,9 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     {
         var pc = GetMinedata();
         var LightDebuff = pc.Object.StatusList.Where(x => x.StatusId == 2257).First();
-        bool hasDebuff2 = LightDebuff.Param == 2;
+        var hasDebuff2 = LightDebuff.Param == 2;
 
-        if (hasDebuff2)
+        if(hasDebuff2)
         {
             ApplyElement("Bait", Direction.North, 0f);
         }
@@ -639,7 +639,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             }
             , 8f);
 
-            if (Controller.TryGetElementByName("CircleFix", out var element))
+            if(Controller.TryGetElementByName("CircleFix", out var element))
             {
                 element.Filled = true;
                 element.radius = 4.0f;
@@ -651,11 +651,11 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             }
         }
 
-        foreach (var pc2 in _partyDataList)
+        foreach(var pc2 in _partyDataList)
         {
             var LightDebuff2 = pc2.Object.StatusList.Where(x => x.StatusId == 2257).First();
-            bool hasDebuff22 = LightDebuff2.Param == 2;
-            if (hasDebuff22)
+            var hasDebuff22 = LightDebuff2.Param == 2;
+            if(hasDebuff22)
             {
                 DuoLog.Information($"Has Debuff 2: {pc2.Object.Name.ToString()}");
             }
@@ -666,7 +666,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     {
         var pc = GetMinedata();
 
-        if (castId == 40220) // Stack
+        if(castId == 40220) // Stack
         {
             ApplyElement("Bait", pc.index switch
             {
@@ -682,7 +682,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             }
             , 8f);
         }
-        else if (castId == 40221) // No Stack
+        else if(castId == 40221) // No Stack
         {
             ApplyElement("Bait", pc.index switch
             {
@@ -745,16 +745,16 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         _partyDataList.Clear();
 
         // リストに８人分の初期インスタンス生成
-        for (var i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             _partyDataList.Add(new PartyData(0));
             _partyDataList[i].index = i;
         }
 
-        foreach (var pc in FakeParty.Get())
+        foreach(var pc in FakeParty.Get())
         {
             var job = pc.GetJob();
-            switch (job)
+            switch(job)
             {
                 case Job.WHM:
                 case Job.AST:
@@ -812,10 +812,10 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         // ８方向の内、最も近い方向ベクトルを取得
         var closestDirection = Direction.North;
         var closestDistance = float.MaxValue;
-        foreach (var directionalVector in directionalVectors)
+        foreach(var directionalVector in directionalVectors)
         {
             var distance = Vector3.Distance(Position, directionalVector.Position);
-            if (distance < closestDistance)
+            if(distance < closestDistance)
             {
                 closestDistance = distance;
                 closestDirection = directionalVector.Direction;
@@ -830,11 +830,11 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         var directionalVectors = new List<DirectionalVector>();
 
         // 各方向のオフセット計算
-        foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+        foreach(Direction direction in Enum.GetValues(typeof(Direction)))
         {
-            if (direction == Direction.None) continue; // Noneはスキップ
+            if(direction == Direction.None) continue; // Noneはスキップ
 
-            Vector3 offset = direction switch
+            var offset = direction switch
             {
                 Direction.North => new Vector3(0, 0, -1),
                 Direction.NorthEast => Vector3.Normalize(new Vector3(1, 0, -1)),
@@ -848,7 +848,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
             };
 
             // 距離を適用して座標を計算
-            Vector3 position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
+            var position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
 
             // リストに追加
             directionalVectors.Add(new DirectionalVector(direction, position));
@@ -861,14 +861,14 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     private int GetTwoPointAngle(Direction direction1, Direction direction2)
     {
         // enumの値を数値に変換
-        int angle1 = (int)direction1;
-        int angle2 = (int)direction2;
+        var angle1 = (int)direction1;
+        var angle2 = (int)direction2;
 
         // 環状の差分を計算
-        int diff = (angle2 - angle1 + 8) % 8; // 環状に補正して差分を取得
+        var diff = (angle2 - angle1 + 8) % 8; // 環状に補正して差分を取得
 
         // 差分に応じた角度を計算（時計回りで正、反時計回りで負）
-        int angle = diff switch
+        var angle = diff switch
         {
             0 => 0,
             1 => 45,
@@ -887,7 +887,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     // Directionと45倍数の角度から角度を算出してDirectionを返す
     private Direction GetDirectionFromAngle(Direction direction, int angle)
     {
-        if (angle == 45)
+        if(angle == 45)
         {
             return direction switch
             {
@@ -902,7 +902,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ => Direction.None
             };
         }
-        else if (angle == 90)
+        else if(angle == 90)
         {
             return direction switch
             {
@@ -917,7 +917,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ => Direction.None
             };
         }
-        else if (angle == 135)
+        else if(angle == 135)
         {
             return direction switch
             {
@@ -932,7 +932,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ => Direction.None
             };
         }
-        else if (angle == 180)
+        else if(angle == 180)
         {
             return direction switch
             {
@@ -947,7 +947,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ => Direction.None
             };
         }
-        else if (angle == -45)
+        else if(angle == -45)
         {
             return direction switch
             {
@@ -962,7 +962,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ => Direction.None
             };
         }
-        else if (angle == -90)
+        else if(angle == -90)
         {
             return direction switch
             {
@@ -977,7 +977,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ => Direction.None
             };
         }
-        else if (angle == -135)
+        else if(angle == -135)
         {
             return direction switch
             {
@@ -992,7 +992,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
                 _ => Direction.None
             };
         }
-        else if (angle == -180)
+        else if(angle == -180)
         {
             return direction switch
             {
@@ -1013,28 +1013,28 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     // 2つのDirectionを比較して、左右どちらかを返す。左なら-1、右なら1、同じまたは逆なら0を返す
     private LR GetTwoPointLeftRight(Direction direction1, Direction direction2)
     {
-        if (direction1 == Direction.North && direction2 == Direction.NorthEast) return LR.Right;
-        if (direction1 == Direction.NorthEast && direction2 == Direction.East) return LR.Right;
-        if (direction1 == Direction.East && direction2 == Direction.SouthEast) return LR.Right;
-        if (direction1 == Direction.SouthEast && direction2 == Direction.South) return LR.Right;
-        if (direction1 == Direction.South && direction2 == Direction.SouthWest) return LR.Right;
-        if (direction1 == Direction.SouthWest && direction2 == Direction.West) return LR.Right;
-        if (direction1 == Direction.West && direction2 == Direction.NorthWest) return LR.Right;
-        if (direction1 == Direction.NorthWest && direction2 == Direction.North) return LR.Right;
+        if(direction1 == Direction.North && direction2 == Direction.NorthEast) return LR.Right;
+        if(direction1 == Direction.NorthEast && direction2 == Direction.East) return LR.Right;
+        if(direction1 == Direction.East && direction2 == Direction.SouthEast) return LR.Right;
+        if(direction1 == Direction.SouthEast && direction2 == Direction.South) return LR.Right;
+        if(direction1 == Direction.South && direction2 == Direction.SouthWest) return LR.Right;
+        if(direction1 == Direction.SouthWest && direction2 == Direction.West) return LR.Right;
+        if(direction1 == Direction.West && direction2 == Direction.NorthWest) return LR.Right;
+        if(direction1 == Direction.NorthWest && direction2 == Direction.North) return LR.Right;
 
-        if (direction1 == Direction.North && direction2 == Direction.West) return LR.Left;
-        if (direction1 == Direction.West && direction2 == Direction.South) return LR.Left;
-        if (direction1 == Direction.South && direction2 == Direction.East) return LR.Left;
-        if (direction1 == Direction.East && direction2 == Direction.North) return LR.Left;
+        if(direction1 == Direction.North && direction2 == Direction.West) return LR.Left;
+        if(direction1 == Direction.West && direction2 == Direction.South) return LR.Left;
+        if(direction1 == Direction.South && direction2 == Direction.East) return LR.Left;
+        if(direction1 == Direction.East && direction2 == Direction.North) return LR.Left;
 
-        if (direction1 == Direction.North && direction2 == Direction.SouthEast) return LR.Right;
-        if (direction1 == Direction.NorthEast && direction2 == Direction.South) return LR.Right;
-        if (direction1 == Direction.East && direction2 == Direction.SouthWest) return LR.Right;
-        if (direction1 == Direction.SouthEast && direction2 == Direction.West) return LR.Right;
-        if (direction1 == Direction.South && direction2 == Direction.NorthWest) return LR.Right;
-        if (direction1 == Direction.SouthWest && direction2 == Direction.North) return LR.Right;
-        if (direction1 == Direction.West && direction2 == Direction.NorthEast) return LR.Right;
-        if (direction1 == Direction.NorthWest && direction2 == Direction.East) return LR.Right;
+        if(direction1 == Direction.North && direction2 == Direction.SouthEast) return LR.Right;
+        if(direction1 == Direction.NorthEast && direction2 == Direction.South) return LR.Right;
+        if(direction1 == Direction.East && direction2 == Direction.SouthWest) return LR.Right;
+        if(direction1 == Direction.SouthEast && direction2 == Direction.West) return LR.Right;
+        if(direction1 == Direction.South && direction2 == Direction.NorthWest) return LR.Right;
+        if(direction1 == Direction.SouthWest && direction2 == Direction.North) return LR.Right;
+        if(direction1 == Direction.West && direction2 == Direction.NorthEast) return LR.Right;
+        if(direction1 == Direction.NorthWest && direction2 == Direction.East) return LR.Right;
 
         return LR.Left;
     }
@@ -1077,7 +1077,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
         var position = new Vector3(100, 0, 100);
         var angle = GetAngle(direction);
         position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             element.Enabled = true;
             element.radius = elementRadius;
@@ -1114,17 +1114,17 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     public static float GetCorrectionAngle(Vector2 origin, Vector2 target, float rotation)
     {
         // Calculate the relative angle to the target
-        Vector2 direction = target - origin;
-        float relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
+        var direction = target - origin;
+        var relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
 
         // Normalize relative angle to 0-360 range
         relativeAngle = (relativeAngle + 360) % 360;
 
         // Calculate the correction angle
-        float correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
+        var correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
 
         // Adjust correction angle to range -180 to 180 for shortest rotation
-        if (correctionAngle > 180)
+        if(correctionAngle > 180)
             correctionAngle -= 360;
 
         return correctionAngle;
@@ -1141,7 +1141,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     public static float ConvertRotationRadiansToDegrees(float radians)
     {
         // Convert radians to degrees with coordinate system adjustment
-        float degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
+        var degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
 
         // Ensure the result is within the 0° to 360° range
         return degrees < 0 ? degrees + 360 : degrees;
@@ -1158,7 +1158,7 @@ internal class P2_Light_Rampant_Full_Toolers :SplatoonScript
     public static float ConvertDegreesToRotationRadians(float degrees)
     {
         // Convert degrees to radians with coordinate system adjustment
-        float radians = -(degrees - 180) * (MathF.PI / 180);
+        var radians = -(degrees - 180) * (MathF.PI / 180);
 
         // Normalize the result to the range -π to π
         radians = ((radians + MathF.PI) % (2 * MathF.PI)) - MathF.PI;

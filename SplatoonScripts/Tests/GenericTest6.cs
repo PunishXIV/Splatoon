@@ -24,7 +24,7 @@ public class GenericTest6 : SplatoonScript
             {
                 ImGuiEx.Text($"""
                     Warning: Splatoon Script 
-                    {this.InternalData.Name}
+                    {InternalData.Name}
                     was updated.
                     If you were using Sidewise Spark related functions,
                     you must reconfigure the script.

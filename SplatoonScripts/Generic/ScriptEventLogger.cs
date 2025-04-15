@@ -12,7 +12,7 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
 namespace SplatoonScriptsOfficial.Generic;
-internal unsafe class ScriptEventLogger :SplatoonScript
+internal unsafe class ScriptEventLogger : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
     public override Metadata? Metadata => new(6, "Redmoon");
@@ -21,58 +21,58 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnSetup()
     {
-        if (!Conf.FilterOnSetup) return;
+        if(!Conf.FilterOnSetup) return;
         PluginLog.Information("OnSetup Called");
     }
 
     public override void OnEnable()
     {
-        if (!Conf.FilterOnEnable)
+        if(!Conf.FilterOnEnable)
             return;
         PluginLog.Information("OnEnable Called");
     }
 
     public override void OnDisable()
     {
-        if (!Conf.FilterOnDisable)
+        if(!Conf.FilterOnDisable)
             return;
         PluginLog.Information("OnDisable Called");
     }
 
     public override void OnCombatStart()
     {
-        if (!Conf.FilterOnCombatStart)
+        if(!Conf.FilterOnCombatStart)
             return;
         PluginLog.Information("OnCombatStart Called");
     }
 
     public override void OnCombatEnd()
     {
-        if (!Conf.FilterOnCombatEnd)
+        if(!Conf.FilterOnCombatEnd)
             return;
         PluginLog.Information("OnCombatEnd Called");
     }
 
     public override void OnPhaseChange(int newPhase)
     {
-        if (!Conf.FilterOnPhaseChange)
+        if(!Conf.FilterOnPhaseChange)
             return;
         PluginLog.Information($"OnPhaseChange: {newPhase}");
     }
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if (!Conf.FilterOnMapEffect)
+        if(!Conf.FilterOnMapEffect)
             return;
         PluginLog.Information($"OnMapEffect: {position} - {data1} - {data2}");
     }
 
     public override void OnObjectEffect(uint target, ushort data1, ushort data2)
     {
-        if (!Conf.FilterOnObjectEffect)
+        if(!Conf.FilterOnObjectEffect)
             return;
         var targetObj = target.GetObject();
-        if (targetObj == null || targetObj.DataId == 0)
+        if(targetObj == null || targetObj.DataId == 0)
             return;
 
         PluginLog.Information($"OnObjectEffect: {targetObj.Name}{targetObj.Position}(GID: {targetObj.GameObjectId} DID: {targetObj.DataId}) - {data1} - {data2}");
@@ -80,23 +80,23 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (!Conf.FilterOnTetherCreate)
+        if(!Conf.FilterOnTetherCreate)
             return;
 
         var sourceObj = source.GetObject();
         var targetObj = target.GetObject();
-        if (sourceObj != null && targetObj != null)
+        if(sourceObj != null && targetObj != null)
         {
             PluginLog.Information($"OnTetherCreate: - {data2} - {data3} - {data5}");
             PluginLog.Information($"    Source: {sourceObj.Name}{sourceObj.Position}(GID: {sourceObj.GameObjectId} DID: {sourceObj.DataId})");
             PluginLog.Information($"    Target: {targetObj.Name}{targetObj.Position}(GID: {targetObj.GameObjectId} DID: {targetObj.DataId})");
         }
-        else if (sourceObj != null && targetObj == null)
+        else if(sourceObj != null && targetObj == null)
         {
             PluginLog.Information($"OnTetherCreate: - {data2} - {data3} - {data5}");
             PluginLog.Information($"    Source: {sourceObj.Name}{sourceObj.Position}(GID: {sourceObj.GameObjectId} DID: {sourceObj.DataId})");
         }
-        else if (sourceObj == null && targetObj != null)
+        else if(sourceObj == null && targetObj != null)
         {
             PluginLog.Information($"OnTetherCreate: - {data2} - {data3} - {data5}");
             PluginLog.Information($"    Target: {targetObj.Name}{targetObj.Position}(GID: {targetObj.GameObjectId} DID: {targetObj.DataId})");
@@ -109,12 +109,12 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
     {
-        if (!Conf.FilterOnTetherRemoval)
+        if(!Conf.FilterOnTetherRemoval)
             return;
 
         var sourceObj = source.GetObject();
 
-        if (sourceObj == null)
+        if(sourceObj == null)
         {
             PluginLog.Information($"OnTetherRemoval: - {data2} - {data3} - {data5}");
         }
@@ -126,16 +126,16 @@ internal unsafe class ScriptEventLogger :SplatoonScript
     }
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (!Conf.FilterOnVFXSpawn) return;
+        if(!Conf.FilterOnVFXSpawn) return;
         var targetObj = target.GetObject();
 
-        if (target.GetObject() is IBattleNpc npc && (npc.BattleNpcKind == BattleNpcSubKind.Pet ||
+        if(target.GetObject() is IBattleNpc npc && (npc.BattleNpcKind == BattleNpcSubKind.Pet ||
             npc.BattleNpcKind == BattleNpcSubKind.None || npc.BattleNpcKind == BattleNpcSubKind.Chocobo)) return;
 
-        if (Conf.FilterOnVFXSpawnSubFilterPlayers && targetObj is IPlayerCharacter) return;
-        if (Conf.FilterOnVFXSpawnSubFilterEnemies && targetObj is IBattleNpc) return;
+        if(Conf.FilterOnVFXSpawnSubFilterPlayers && targetObj is IPlayerCharacter) return;
+        if(Conf.FilterOnVFXSpawnSubFilterEnemies && targetObj is IBattleNpc) return;
 
-        if (targetObj == null)
+        if(targetObj == null)
             PluginLog.Information($"OnVFXSpawn: {vfxPath}");
         else
             PluginLog.Information($"OnVFXSpawn: {vfxPath} - {targetObj.Name}{targetObj.Position}(GID: {targetObj.GameObjectId} DID: {targetObj.DataId})");
@@ -143,16 +143,16 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (!Conf.FilterOnStartingCast) return;
-        if (source.GetObject() is not IBattleNpc npc ||
+        if(!Conf.FilterOnStartingCast) return;
+        if(source.GetObject() is not IBattleNpc npc ||
             npc.BattleNpcKind == BattleNpcSubKind.Pet ||
             npc.BattleNpcKind == BattleNpcSubKind.None ||
             npc.BattleNpcKind == BattleNpcSubKind.Chocobo) return;
-        if (npc == null || npc.DataId == 0) return;
+        if(npc == null || npc.DataId == 0) return;
 
         var actionName = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>().GetRowOrDefault(castId)?.Name.ToString();
 
-        if (actionName == null)
+        if(actionName == null)
         {
             PluginLog.Information($"OnStartingCast: Cast: {actionName}({castId}) - source: {npc.Name}{npc.Position}(GID: {npc.GameObjectId} DID: {npc.DataId})");
         }
@@ -164,46 +164,46 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnMessage(string Message)
     {
-        if (!Conf.FilterOnMessage) return;
+        if(!Conf.FilterOnMessage) return;
         PluginLog.Information($"OnMessage: {Message}");
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (!Conf.FilterOnDirectorUpdate) return;
-        if (category == DirectorUpdateCategory.Commence)
+        if(!Conf.FilterOnDirectorUpdate) return;
+        if(category == DirectorUpdateCategory.Commence)
             PluginLog.Information("OnDirectorUpdate: Commence");
-        else if (category == DirectorUpdateCategory.Recommence)
+        else if(category == DirectorUpdateCategory.Recommence)
             PluginLog.Information("OnDirectorUpdate: Recommence");
-        else if (category == DirectorUpdateCategory.Complete)
+        else if(category == DirectorUpdateCategory.Complete)
             PluginLog.Information("OnDirectorUpdate: Complete");
-        else if (category == DirectorUpdateCategory.Wipe)
+        else if(category == DirectorUpdateCategory.Wipe)
             PluginLog.Information("OnDirectorUpdate: Wipe");
     }
 
     public override void OnObjectCreation(nint newObjectPtr)
     {
-        if (!Conf.FilterOnObjectCreation) return;
+        if(!Conf.FilterOnObjectCreation) return;
         PluginLog.Information($"OnObjectCreation: {newObjectPtr}");
     }
 
     public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
     {
-        if (!Conf.FilterOnActorControl) return;
+        if(!Conf.FilterOnActorControl) return;
         PluginLog.Information($"OnActorControl: {sourceId} - {command} - {p1} - {p2} - {p3} - {p4} - {p5} - {p6} - {targetId} - {replaying}");
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (!Conf.FilterOnActionEffectEvent) return;
-        if (set.Action == null || set.Source == null || set.Source.DataId == 0) return;
+        if(!Conf.FilterOnActionEffectEvent) return;
+        if(set.Action == null || set.Source == null || set.Source.DataId == 0) return;
 
-        if (set.Source is not IBattleNpc npc ||
+        if(set.Source is not IBattleNpc npc ||
             npc.BattleNpcKind == BattleNpcSubKind.Pet ||
             npc.BattleNpcKind == BattleNpcSubKind.None ||
             npc.BattleNpcKind == BattleNpcSubKind.Chocobo) return;
 
-        if (set.Target == null)
+        if(set.Target == null)
             PluginLog.Information($"OnActionEffectEvent: {set.Action.Value.Name}({set.Action.Value.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId})");
         else
             PluginLog.Information($"OnActionEffectEvent: {set.Action.Value.Name}({set.Action.Value.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId}) - Target: {set.Target.Name}{set.Target.Position}(GID: {set.Target.GameObjectId} DID: {set.Target.DataId})");
@@ -211,15 +211,15 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        if (!Conf.FilterOnGainBuffEffect) return;
-        if (!sourceId.TryGetObject(out var gameObject)) return;
-        if (gameObject == null) return;
-        if (Conf.FilterOnGainBuffEffectSubFilterPlayers && gameObject is IPlayerCharacter) return;
-        if (Conf.FilterOnGainBuffEffectSubFilterEnemies && gameObject is IBattleNpc) return;
+        if(!Conf.FilterOnGainBuffEffect) return;
+        if(!sourceId.TryGetObject(out var gameObject)) return;
+        if(gameObject == null) return;
+        if(Conf.FilterOnGainBuffEffectSubFilterPlayers && gameObject is IPlayerCharacter) return;
+        if(Conf.FilterOnGainBuffEffectSubFilterEnemies && gameObject is IBattleNpc) return;
 
         var BuffName = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Status>().GetRowOrDefault(Status.StatusId)?.Name.ToString();
 
-        if (BuffName == null)
+        if(BuffName == null)
         {
             PluginLog.Information($"OnGainBuffEffect: [{gameObject.Name}] ({Status.StatusId})");
         }
@@ -231,14 +231,14 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnRemoveBuffEffect(uint sourceId, Status Status)
     {
-        if (!Conf.FilterOnRemoveBuffEffect) return;
-        if (!sourceId.TryGetObject(out var gameObject)) return;
-        if (Conf.FilterOnRemoveBuffEffectSubFilterPlayers && gameObject is IPlayerCharacter) return;
-        if (Conf.FilterOnRemoveBuffEffectSubFilterEnemies && gameObject is IBattleNpc) return;
+        if(!Conf.FilterOnRemoveBuffEffect) return;
+        if(!sourceId.TryGetObject(out var gameObject)) return;
+        if(Conf.FilterOnRemoveBuffEffectSubFilterPlayers && gameObject is IPlayerCharacter) return;
+        if(Conf.FilterOnRemoveBuffEffectSubFilterEnemies && gameObject is IBattleNpc) return;
 
         var BuffName = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Status>().GetRowOrDefault(Status.StatusId)?.Name.ToString();
 
-        if (BuffName == null)
+        if(BuffName == null)
         {
             PluginLog.Information($"OnRemoveBuffEffect: [{gameObject.Name}({sourceId})] ({Status.StatusId})");
         }
@@ -250,14 +250,14 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnUpdateBuffEffect(uint sourceId, Status status)
     {
-        if (!Conf.FilterOnUpdateBuffEffect) return;
-        if (!sourceId.TryGetObject(out var gameObject)) return;
-        if (Conf.FilterOnUpdateBuffEffectSubFilterPlayers && gameObject is IPlayerCharacter) return;
-        if (Conf.FilterOnUpdateBuffEffectSubFilterEnemies && gameObject is IBattleNpc) return;
+        if(!Conf.FilterOnUpdateBuffEffect) return;
+        if(!sourceId.TryGetObject(out var gameObject)) return;
+        if(Conf.FilterOnUpdateBuffEffectSubFilterPlayers && gameObject is IPlayerCharacter) return;
+        if(Conf.FilterOnUpdateBuffEffectSubFilterEnemies && gameObject is IBattleNpc) return;
 
         var BuffName = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Status>().GetRowOrDefault(status.StatusId)?.Name.ToString();
 
-        if (BuffName == null)
+        if(BuffName == null)
         {
             PluginLog.Information($"OnUpdateBuffEffect: [{gameObject.Name}({sourceId})] ({status.StatusId})");
         }
@@ -270,7 +270,7 @@ internal unsafe class ScriptEventLogger :SplatoonScript
 
     public override void OnReset()
     {
-        if (!Conf.FilterOnReset)
+        if(!Conf.FilterOnReset)
             return;
         PluginLog.Information("OnReset Called");
     }
@@ -278,7 +278,7 @@ internal unsafe class ScriptEventLogger :SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.Text("Filter Events");
-        if (ImGui.Button("Reset Filters")) Conf.Reset();
+        if(ImGui.Button("Reset Filters")) Conf.Reset();
 
         ImGui.Checkbox($"OnSetup()##{nameof(Conf.FilterOnSetup)}", ref Conf.FilterOnSetup);
         ImGui.Checkbox($"OnEnable()##{nameof(Conf.FilterOnEnable)}", ref Conf.FilterOnEnable);
@@ -320,7 +320,7 @@ internal unsafe class ScriptEventLogger :SplatoonScript
     }
 
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public bool FilterOnSetup = false;
         public bool FilterOnEnable = false;

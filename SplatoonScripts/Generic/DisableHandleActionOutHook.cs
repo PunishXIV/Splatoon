@@ -32,11 +32,11 @@ public unsafe class DisableHandleActionOutHook : SplatoonScript
         Enable();
     }
 
-    void Disable()
+    private void Disable()
     {
         DalamudReflector.GetService("Dalamud.Game.Gui.GameGui").GetFoP("handleActionOutHook").Call("Disable", []);
     }
-    void Enable()
+    private void Enable()
     {
         DalamudReflector.GetService("Dalamud.Game.Gui.GameGui").GetFoP("handleActionOutHook").Call("Enable", []);
     }
@@ -65,6 +65,6 @@ public unsafe class DisableHandleActionOutHook : SplatoonScript
             }
         }
         ImGuiEx.TextCopy($"Delegate: {((nint)AgentActionDetail.StaticVirtualTablePointer->ReceiveEvent) - Process.GetCurrentProcess().MainModule.BaseAddress:X16}");
-        ImGuiEx.TextCopy($"ptr: {*(nint*)((nint)AgentActionDetail.Addresses.StaticVirtualTable.Value +24) - Process.GetCurrentProcess().MainModule.BaseAddress:X16}");
+        ImGuiEx.TextCopy($"ptr: {*(nint*)((nint)AgentActionDetail.Addresses.StaticVirtualTable.Value + 24) - Process.GetCurrentProcess().MainModule.BaseAddress:X16}");
     }
 }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
@@ -26,6 +22,10 @@ using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -111,7 +111,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             _ => default
         };
 
-        if (C.OrientationBase == Direction.South)
+        if(C.OrientationBase == Direction.South)
             position = new Vector2(position.X, -position.Y);
 
         return position;
@@ -119,25 +119,25 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     private bool DrawPriorityList()
     {
-        if (C.Priority.Length != 8)
+        if(C.Priority.Length != 8)
             C.Priority = ["", "", "", "", "", "", "", ""];
 
         ImGuiEx.Text("Priority list");
         ImGui.SameLine();
         ImGuiEx.Spacing();
-        if (ImGui.Button("Perform test")) SelfTest();
+        if(ImGui.Button("Perform test")) SelfTest();
         ImGui.SameLine();
-        if (ImGui.Button("Fill by job"))
+        if(ImGui.Button("Fill by job"))
         {
             HashSet<(string, Job)> party = [];
-            foreach (var x in FakeParty.Get())
+            foreach(var x in FakeParty.Get())
                 party.Add((x.Name.ToString(), x.GetJob()));
 
             var proxy = InfoProxyCrossRealm.Instance();
-            for (var i = 0; i < proxy->GroupCount; i++)
+            for(var i = 0; i < proxy->GroupCount; i++)
             {
                 var group = proxy->CrossRealmGroups[i];
-                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
                 {
                     var x = group.GroupMembers[c];
                     party.Add((x.Name.Read(), (Job)x.ClassJobId));
@@ -145,19 +145,19 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             }
 
             var index = 0;
-            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            foreach(var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
             {
                 C.Priority[index] = party.First(x => x.Item2 == job).Item1;
                 index++;
             }
 
-            for (var i = index; i < C.Priority.Length; i++)
+            for(var i = index; i < C.Priority.Length; i++)
                 C.Priority[i] = "";
         }
         ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
 
         ImGui.PushID("prio");
-        for (var i = 0; i < C.Priority.Length; i++)
+        for(var i = 0; i < C.Priority.Length; i++)
         {
             ImGui.PushID($"prioelement{i}");
             ImGui.Text($"Character {i + 1}");
@@ -166,11 +166,11 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             ImGui.InputText($"##Character{i}", ref C.Priority[i], 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
+            if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
                              .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if (ImGui.Selectable(x))
+                    if(ImGui.Selectable(x))
                         C.Priority[i] = x;
                 ImGui.EndCombo();
             }
@@ -208,7 +208,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             "This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.\n\n自動で視線を調整します。ストリーミング中は使用しないでください。他のソフトウェアが同様の機能を実装していないことを確認してください。",
             EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
 
-        if (C.LockFace)
+        if(C.LockFace)
         {
             ImGui.Indent();
             ImGui.Checkbox("Lock Face Enable When Not Moving", ref C.LockFaceEnableWhenNotMoving);
@@ -223,16 +223,16 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
         ImGui.Unindent();
 
-        if (ImGuiEx.CollapsingHeader("Option"))
+        if(ImGuiEx.CollapsingHeader("Option"))
         {
             DragDrop.Begin();
-            foreach (var job in C.Jobs)
+            foreach(var job in C.Jobs)
             {
                 DragDrop.NextRow();
                 ImGui.Text(job.ToString());
                 ImGui.SameLine();
 
-                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
                 {
                     ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
                     ImGui.SameLine();
@@ -244,8 +244,8 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
             DragDrop.End();
         }
-        
-        if (ImGui.CollapsingHeader("Debug"))
+
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("Show Debug Message", ref C.ShowDebug);
             ImGui.Text($"Current State: {_currentState}");
@@ -260,26 +260,26 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         var party = FakeParty.Get().ToArray();
         var isCorrect = C.Priority.All(x => !string.IsNullOrEmpty(x));
 
-        if (!isCorrect)
+        if(!isCorrect)
         {
             Print("Priority list is not filled correctly.", UIColor.Red);
             return;
         }
 
-        if (party.Length != 8)
+        if(party.Length != 8)
         {
             isCorrect = false;
             Print("Can only be tested in content.", UIColor.Red);
         }
 
-        foreach (var player in party)
-            if (C.Priority.All(x => x != player.Name.ToString()))
+        foreach(var player in party)
+            if(C.Priority.All(x => x != player.Name.ToString()))
             {
                 isCorrect = false;
                 Print($"Player {player.Name} is not in the priority list.", UIColor.Red);
             }
 
-        if (isCorrect)
+        if(isCorrect)
             Print("Test Success!", UIColor.Green);
         else
             Print("!!! Test failed !!!", UIColor.Red);
@@ -297,14 +297,14 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 27538) _currentState = State.Start;
+        if(castId == 27538) _currentState = State.Start;
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (_currentState != State.SecondSplit)
+        if(_currentState != State.SecondSplit)
             return;
-        if (target == Player.Object.EntityId && vfxPath.StartsWith("vfx/lockon/eff/r1fz_firechain"))
+        if(target == Player.Object.EntityId && vfxPath.StartsWith("vfx/lockon/eff/r1fz_firechain"))
         {
             _currentState = State.PlayStationSplit;
             _myMarker = vfxPath switch
@@ -336,15 +336,15 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if (_currentState == State.None) return;
-        switch (data1)
+        if(_currentState == State.None) return;
+        switch(data1)
         {
             case 1:
-            {
-                if (_eyesPositions.TryGetValue(position, out var eyesPosition))
-                    _eyesPosition = eyesPosition;
-                break;
-            }
+                {
+                    if(_eyesPositions.TryGetValue(position, out var eyesPosition))
+                        _eyesPosition = eyesPosition;
+                    break;
+                }
             case 32:
                 _eyesPosition = Vector2.Zero;
                 _currentState = State.PostPlaystationSplit;
@@ -355,74 +355,74 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        switch (_currentState)
+        switch(_currentState)
         {
             case State.FirstSplit:
             case State.SecondSplit:
-            {
-                var pos = GetBaitPosition(_currentState, _myBait);
-                if (Controller.TryGetElementByName("Bait1", out var bait))
                 {
-                    bait.Enabled = true;
-                    bait.tether = true;
-                    bait.SetOffPosition(pos.ToVector3(0));
-                }
-
-                break;
-            }
-            case State.PlayStationSplit:
-            {
-                var pos = GetBaitPosition(_currentState, _myBait);
-                if (pos != Vector2.Zero)
-                {
-                    if (Controller.TryGetElementByName("Bait1", out var bait))
+                    var pos = GetBaitPosition(_currentState, _myBait);
+                    if(Controller.TryGetElementByName("Bait1", out var bait))
                     {
                         bait.Enabled = true;
                         bait.tether = true;
                         bait.SetOffPosition(pos.ToVector3(0));
                     }
-                }
 
-                else
+                    break;
+                }
+            case State.PlayStationSplit:
                 {
-                    var baits = PlaystationMarkerBaitPositions(_myMarker);
-                    for (var i = 0; i < baits.Length; i++)
-                        if (Controller.TryGetElementByName($"Bait{i + 1}", out var bait))
+                    var pos = GetBaitPosition(_currentState, _myBait);
+                    if(pos != Vector2.Zero)
+                    {
+                        if(Controller.TryGetElementByName("Bait1", out var bait))
                         {
                             bait.Enabled = true;
                             bait.tether = true;
-                            bait.SetOffPosition(baits[i].ToVector3(0));
+                            bait.SetOffPosition(pos.ToVector3(0));
                         }
-                }
-
-                if (C.LockFace)
-                {
-                    ApplyLockFace();
-                    _lastPlayerPosition = Player.Position;
-                }
-
-                break;
-            }
-
-            case State.PostPlaystationSplit:
-            {
-                if (Player.Status.All(x => x.StatusId != 2976))
-                {
-                    _currentState = State.End;
-                    return;
-                }
-
-                var deathSentence = DeathSentence.MinBy(x => Vector3.Distance(x.Position, Player.Position));
-                if (deathSentence != null)
-                    if (Controller.TryGetElementByName("DeathSentence", out var bait))
-                    {
-                        bait.Enabled = true;
-                        bait.tether = true;
-                        bait.SetRefPosition(deathSentence.Position);
                     }
 
-                break;
-            }
+                    else
+                    {
+                        var baits = PlaystationMarkerBaitPositions(_myMarker);
+                        for(var i = 0; i < baits.Length; i++)
+                            if(Controller.TryGetElementByName($"Bait{i + 1}", out var bait))
+                            {
+                                bait.Enabled = true;
+                                bait.tether = true;
+                                bait.SetOffPosition(baits[i].ToVector3(0));
+                            }
+                    }
+
+                    if(C.LockFace)
+                    {
+                        ApplyLockFace();
+                        _lastPlayerPosition = Player.Position;
+                    }
+
+                    break;
+                }
+
+            case State.PostPlaystationSplit:
+                {
+                    if(Player.Status.All(x => x.StatusId != 2976))
+                    {
+                        _currentState = State.End;
+                        return;
+                    }
+
+                    var deathSentence = DeathSentence.MinBy(x => Vector3.Distance(x.Position, Player.Position));
+                    if(deathSentence != null)
+                        if(Controller.TryGetElementByName("DeathSentence", out var bait))
+                        {
+                            bait.Enabled = true;
+                            bait.tether = true;
+                            bait.SetRefPosition(deathSentence.Position);
+                        }
+
+                    break;
+                }
             case State.Start:
             case State.End:
             case State.None:
@@ -461,16 +461,16 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     private void ApplyLockFace()
     {
-        if (Player.Position != _lastPlayerPosition && C.LockFaceEnableWhenNotMoving) return;
+        if(Player.Position != _lastPlayerPosition && C.LockFaceEnableWhenNotMoving) return;
         var targetPosition = Vector3.Zero;
 
         var thordan = Thordan;
-        if (thordan != null && _eyesPosition != Vector2.Zero)
+        if(thordan != null && _eyesPosition != Vector2.Zero)
             targetPosition = CalculateExtendedBisectorPoint(thordan.Position.ToVector2(), _eyesPosition).ToVector3(0f);
 
-        if (targetPosition == Vector3.Zero) return;
+        if(targetPosition == Vector3.Zero) return;
 
-        if (C.ShowDebug)
+        if(C.ShowDebug)
             DuoLog.Warning($"Facing target at {targetPosition}");
 
         FaceTarget(targetPosition);
@@ -511,39 +511,39 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_currentState != State.Start)
+        if(_currentState != State.Start)
             return;
-        if (set.Action is null)
+        if(set.Action is null)
             return;
 
-        switch (set.Action.Value.RowId)
+        switch(set.Action.Value.RowId)
         {
             case 27540:
                 Controller.Schedule(() =>
                 {
                     var players = FakeParty.Get().ToArray();
-                    if (players.Length == 0)
+                    if(players.Length == 0)
                         return;
 
                     var red = 0;
                     var blue = 0;
-                    foreach (var player in C.Priority)
+                    foreach(var player in C.Priority)
                     {
                         var p = players.FirstOrDefault(x => x.Name.ToString() == player);
-                        if (p == null)
+                        if(p == null)
                         {
                             DuoLog.Error($"Player {player} not found in party.");
                             return;
                         }
 
-                        if (p.HasDoom())
+                        if(p.HasDoom())
                             red++;
                         else
                             blue++;
 
-                        if (p.Name.ToString() == Player.Object.Name.ToString())
+                        if(p.Name.ToString() == Player.Object.Name.ToString())
                         {
-                            if (p.HasDoom())
+                            if(p.HasDoom())
                                 _myBait = red switch
                                 {
                                     1 => BaitType.Red1,
@@ -573,9 +573,9 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (!C.ShouldCheckOnStart)
+        if(!C.ShouldCheckOnStart)
             return;
-        if (category == DirectorUpdateCategory.Commence ||
+        if(category == DirectorUpdateCategory.Commence ||
             (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
             SelfTest();
     }

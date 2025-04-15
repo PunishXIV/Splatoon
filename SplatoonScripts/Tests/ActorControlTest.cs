@@ -1,17 +1,17 @@
-﻿using Dalamud.Hooking;
-using ECommons.Logging;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
+using ECommons.Commands;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
+using ECommons.GameFunctions;
+using ECommons.Logging;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ECommons.GameFunctions;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using ECommons.DalamudServices.Legacy;
-using ECommons.Commands;
 
 namespace SplatoonScriptsOfficial.Tests
 {

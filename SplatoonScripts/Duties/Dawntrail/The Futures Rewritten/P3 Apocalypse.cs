@@ -43,7 +43,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
 
     private List<Vector2> Spreads = [new(106, 81.5f), new(100, 90.5f), new(96, 81), new(93, 93.5f)];
-    private List<Vector2> SpreadsInverted = [new(100-6, 81.5f), new(100, 90.5f), new(100+4, 81), new(100+7, 93.5f)];
+    private List<Vector2> SpreadsInverted = [new(100 - 6, 81.5f), new(100, 90.5f), new(100 + 4, 81), new(100 + 7, 93.5f)];
     private Dictionary<int, Vector2> Positions = new()
     {
         [0] = new(100, 100),
@@ -58,7 +58,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
     };
 
     public override void OnSetup()
-    { 
+    {
         for(var i = 0; i < 6; i++)
         {
             Controller.RegisterElementFromCode($"Circle{i}", "{\"Name\":\"Circle\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":9.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
@@ -244,7 +244,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
                                 if(Controller.TryGetElementByName($"Spreads{s}", out var e))
                                 {
                                     e.Enabled = true;
-                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (IsClockwise? Spreads: SpreadsInverted)[s].ToVector3(0));
+                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (IsClockwise ? Spreads : SpreadsInverted)[s].ToVector3(0));
                                     e.SetRefPosition(adjPos);
                                 }
                             }

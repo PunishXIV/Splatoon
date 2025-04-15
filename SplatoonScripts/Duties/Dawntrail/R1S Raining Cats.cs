@@ -1,12 +1,12 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -16,7 +16,7 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
     private readonly uint[] RainingCatsCastActionIds = [39611, 39612, 39613];
     private readonly List<IPlayerCharacter> TetheredPlayers = new(2);
 
-    public override HashSet<uint>? ValidTerritories { get; } = new() { 1226 };
+    public override HashSet<uint>? ValidTerritories { get; } = [1226];
     public override Metadata Metadata => new(2, "Garume");
 
     private IBattleNpc? BlackCat => Svc.Objects.OfType<IBattleNpc>()
@@ -37,12 +37,12 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (source.GetObject() is IPlayerCharacter player) TetheredPlayers.Add(player);
+        if(source.GetObject() is IPlayerCharacter player) TetheredPlayers.Add(player);
     }
 
     public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
     {
-        if (source.GetObject() is IPlayerCharacter player) TetheredPlayers.Remove(player);
+        if(source.GetObject() is IPlayerCharacter player) TetheredPlayers.Remove(player);
     }
 
 
@@ -50,9 +50,9 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-        if (BlackCat == null) return;
+        if(BlackCat == null) return;
 
-        if (!BlackCat.IsCasting || !BlackCat.CastActionId.EqualsAny(RainingCatsCastActionIds)) return;
+        if(!BlackCat.IsCasting || !BlackCat.CastActionId.EqualsAny(RainingCatsCastActionIds)) return;
 
         var players = Svc.Objects
             .OfType<IPlayerCharacter>()
@@ -60,7 +60,7 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
             .OrderBy(x => Vector3.Distance(x.Position, BlackCat.Position))
             .ToList();
 
-        if (players.Count > 0)
+        if(players.Count > 0)
         {
             var nearestElement = Controller.GetElementByName("Nearest");
             nearestElement!.Enabled = true;
@@ -71,7 +71,7 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
             farthestElement!.refActorPlaceholder = [$"<{GetPlayerOrder(players[^1])}>"];
         }
 
-        for (var i = 0; i < TetheredPlayers.Count; i++)
+        for(var i = 0; i < TetheredPlayers.Count; i++)
         {
             var element = Controller.GetElementByName($"Cone{i + 1}");
             element!.Enabled = true;
@@ -86,8 +86,8 @@ public unsafe class R1S_Raining_Cats : SplatoonScript
 
     private int GetPlayerOrder(IGameObject c)
     {
-        for (var i = 1; i <= 8; i++)
-            if ((nint)FakePronoun.Resolve($"<{i}>") == c.Address)
+        for(var i = 1; i <= 8; i++)
+            if((nint)FakePronoun.Resolve($"<{i}>") == c.Address)
                 return i;
 
         return 0;

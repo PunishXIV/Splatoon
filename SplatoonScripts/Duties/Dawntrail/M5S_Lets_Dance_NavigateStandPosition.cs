@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
@@ -12,10 +9,13 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
+public sealed class M5S_Lets_Dance_NavigateStandPosition : SplatoonScript
 {
     private enum State
     {
@@ -26,8 +26,8 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
 
     private const ushort AlphaDebuff = 0x116E;
     private const ushort BetaDebuff = 0x116F;
-    Vector3[] Positions = [new Vector3(100, 0, 106), new Vector3(100, 0, 102), new Vector3(100, 0, 98), new Vector3(100, 0, 94)];
-    Vector3[] ReversePositions => Positions.Reverse().ToArray();
+    private Vector3[] Positions = [new Vector3(100, 0, 106), new Vector3(100, 0, 102), new Vector3(100, 0, 98), new Vector3(100, 0, 94)];
+    private Vector3[] ReversePositions => Positions.Reverse().ToArray();
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1257];
@@ -79,13 +79,13 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 42858 && _state == State.None)
+        if(castId == 42858 && _state == State.None)
         {
             _state = State.Casting;
             var remainingTime = -1f;
-            if (Player.Status.Any(x => x.StatusId == AlphaDebuff))
+            if(Player.Status.Any(x => x.StatusId == AlphaDebuff))
                 remainingTime = Player.Status.First(x => x.StatusId == AlphaDebuff).RemainingTime;
-            else if (Player.Status.Any(x => x.StatusId == BetaDebuff))
+            else if(Player.Status.Any(x => x.StatusId == BetaDebuff))
                 remainingTime = Player.Status.First(x => x.StatusId == BetaDebuff).RemainingTime;
 
             PluginLog.Warning($"Remaining time: {remainingTime}");
@@ -94,13 +94,13 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
                 PluginLog.Warning($"Player is dead");
                 return;
             }
-            
-            if (!Controller.TryGetElementByName("Bait", out var baitElement))
+
+            if(!Controller.TryGetElementByName("Bait", out var baitElement))
                 return;
 
             var positions = C.IsReversed ? ReversePositions : Positions;
 
-            switch (remainingTime)
+            switch(remainingTime)
             {
                 case > 20:
                     baitElement.SetOffPosition(positions[0]);

@@ -18,7 +18,7 @@ using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
-internal unsafe class P6_MultiScript :SplatoonScript
+internal unsafe class P6_MultiScript : SplatoonScript
 {
     #region privateTypes
     private class DistanceCheck
@@ -82,7 +82,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
 
     #region publicDefine
     public override Metadata Metadata => new(5, "Redmoon");
-    public override HashSet<uint>? ValidTerritories => new() { 1122 };
+    public override HashSet<uint>? ValidTerritories => [1122];
     #endregion
 
     #region privateDefine
@@ -268,29 +268,29 @@ internal unsafe class P6_MultiScript :SplatoonScript
         switch(_currentGimmick)
         {
             case Gimmick.CosmoDive:
-            ShowCosmoDive();
-            break;
+                ShowCosmoDive();
+                break;
             case Gimmick.LimiterCut:
-            ShowLimiterCut();
-            break;
+                ShowLimiterCut();
+                break;
             case Gimmick.FlashWind:
-            ShowFlashWind();
-            break;
+                ShowFlashWind();
+                break;
             case Gimmick.WaveCannonSpread1:
             case Gimmick.WaveCannonSpread2:
-            ShowWaveCannonSpread();
-            break;
+                ShowWaveCannonSpread();
+                break;
             case Gimmick.WaveCannonStack:
-            ShowWaveCannonStack();
-            break;
+                ShowWaveCannonStack();
+                break;
             case Gimmick.CosmoMeteor:
-            ShowCosmoMeteor();
-            break;
+                ShowCosmoMeteor();
+                break;
             case Gimmick.MagicNumber:
-            ShowMagicNumber();
-            break;
+                ShowMagicNumber();
+                break;
             default:
-            break;
+                break;
         }
     }
 
@@ -313,7 +313,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
         EzThrottler.Reset("LimiterCutWaveCannon");
     }
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public bool Debug = false;
         public bool isTankFirst = false;
@@ -328,9 +328,9 @@ internal unsafe class P6_MultiScript :SplatoonScript
         ImGui.Text("#Wave Cannon Spread Marker");
         if(ImGui.BeginCombo("##SpreadPos", ConvertSpreadMarker(C.spreadMarker)))
         {
-            for(int i = 0; i < 9; i++)
+            for(var i = 0; i < 9; i++)
             {
-                SpreadMarker marker = (SpreadMarker)i;
+                var marker = (SpreadMarker)i;
                 if(ImGui.Selectable(ConvertSpreadMarker(marker), C.spreadMarker == marker))
                 {
                     C.spreadMarker = marker;
@@ -341,9 +341,9 @@ internal unsafe class P6_MultiScript :SplatoonScript
         ImGui.Text("#Cosmo Dive Spread Marker");
         if(ImGui.BeginCombo("##CosmoSpreadPos", ConvertSpreadMarker(C.cosmoSpreadMarker)))
         {
-            for(int i = 0; i < 9; i++)
+            for(var i = 0; i < 9; i++)
             {
-                SpreadMarker marker = (SpreadMarker)i;
+                var marker = (SpreadMarker)i;
                 if(ImGui.Selectable(ConvertSpreadMarker(marker), C.cosmoSpreadMarker == marker))
                 {
                     C.cosmoSpreadMarker = marker;
@@ -469,7 +469,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
 
         // Most 2 Closest Player from AlphaOmega
         var playerCharacters = FakeParty.Get();
-        List<DistanceCheck> distanceCheckList = new List<DistanceCheck>();
+        List<DistanceCheck> distanceCheckList = [];
 
         foreach(var character in playerCharacters)
         {
@@ -485,7 +485,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
             });
         }
 
-        List<DistanceCheck> SortedList = distanceCheckList.OrderBy(x => x.Distance).ToList();
+        var SortedList = distanceCheckList.OrderBy(x => x.Distance).ToList();
 
         Controller.GetElementByName("CosmoDiveTank1").refActorObjectID = SortedList[0].Player.EntityId;
         Controller.GetElementByName("CosmoDiveTank1").Enabled = true;
@@ -530,7 +530,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     {
         // This Gimmick Always Update Element
         var playerCharacters = FakeParty.Get();
-        List<DistanceCheck> distanceCheckList = new List<DistanceCheck>();
+        List<DistanceCheck> distanceCheckList = [];
 
         foreach(var character in playerCharacters)
         {
@@ -546,7 +546,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
             });
         }
 
-        List<DistanceCheck> SortedList = distanceCheckList.OrderByDescending(x => x.Distance).ToList();
+        var SortedList = distanceCheckList.OrderByDescending(x => x.Distance).ToList();
 
         // MT
         Controller.GetElementByName("FlashWind1").refActorObjectID = _targetableNpc.TargetObject.EntityId;
@@ -565,7 +565,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     {
         // This Gimmick Always Update Element
         var playerCharacters = FakeParty.Get();
-        int i = 1;
+        var i = 1;
         foreach(var character in playerCharacters)
         {
             if(character == null)
@@ -606,7 +606,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     {
         // This Gimmick Always Update Element
         var playerCharacters = FakeParty.Get();
-        List<DistanceCheck> distanceCheckList = new List<DistanceCheck>();
+        List<DistanceCheck> distanceCheckList = [];
 
         foreach(var character in playerCharacters)
         {
@@ -622,7 +622,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
             });
         }
 
-        List<DistanceCheck> sortedList = distanceCheckList.OrderBy(x => x.Distance).ToList();
+        var sortedList = distanceCheckList.OrderBy(x => x.Distance).ToList();
 
         var extendPos = GetExtendedAndClampedPosition(_targetableNpc.Position, sortedList[0].Player.Position, 30f, 20f);
 
@@ -638,7 +638,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
     private void ShowCosmoMeteor()
     {
         var playerCharacters = FakeParty.Get();
-        int i = 1;
+        var i = 1;
         foreach(var character in playerCharacters)
         {
             if(character == null)
@@ -711,23 +711,23 @@ internal unsafe class P6_MultiScript :SplatoonScript
         switch(marker)
         {
             case SpreadMarker.North:
-            return "North";
+                return "North";
             case SpreadMarker.NorthEast:
-            return "NorthEast";
+                return "NorthEast";
             case SpreadMarker.East:
-            return "East";
+                return "East";
             case SpreadMarker.EastSouth:
-            return "EastSouth";
+                return "EastSouth";
             case SpreadMarker.South:
-            return "South";
+                return "South";
             case SpreadMarker.SouthWest:
-            return "SouthWest";
+                return "SouthWest";
             case SpreadMarker.West:
-            return "West";
+                return "West";
             case SpreadMarker.NorthWest:
-            return "NorthWest";
+                return "NorthWest";
             default:
-            return "NotUse";
+                return "NotUse";
         }
     }
 
@@ -742,13 +742,13 @@ internal unsafe class P6_MultiScript :SplatoonScript
     /// <param name="extensionLength">The distance to extend the vector</param>
     /// <param name="limit">The maximum allowable distance from the center (if null, no clamping is applied)</param>
     /// <returns>The new extended and optionally clamped position</returns>
-    static Vector3 GetExtendedAndClampedPosition(Vector3 center, Vector3 currentPos, float extensionLength, float? limit)
+    private static Vector3 GetExtendedAndClampedPosition(Vector3 center, Vector3 currentPos, float extensionLength, float? limit)
     {
         // Calculate the normalized direction vector from the center to the current position
-        Vector3 direction = Vector3.Normalize(currentPos - center);
+        var direction = Vector3.Normalize(currentPos - center);
 
         // Extend the position by the specified length
-        Vector3 extendedPos = currentPos + (direction * extensionLength);
+        var extendedPos = currentPos + (direction * extensionLength);
 
         // If limit is null, return the extended position without clamping
         if(!limit.HasValue)
@@ -757,7 +757,7 @@ internal unsafe class P6_MultiScript :SplatoonScript
         }
 
         // Calculate the distance from the center to the extended position
-        float distanceFromCenter = Vector3.Distance(center, extendedPos);
+        var distanceFromCenter = Vector3.Distance(center, extendedPos);
 
         // If the extended position exceeds the limit, clamp it within the limit
         if(distanceFromCenter > limit.Value)

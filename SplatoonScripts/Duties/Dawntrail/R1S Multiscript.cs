@@ -1,21 +1,20 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
+using ECommons;
 using ECommons.DalamudServices;
 using ECommons.Logging;
+using ECommons.Schedulers;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-using ECommons.Schedulers;
-using ECommons;
-
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R1S_Multiscript : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories { get; } = new HashSet<uint> { 1226 };
+    public override HashSet<uint>? ValidTerritories { get; } = [1226];
 
-    private List<Vector3> clonePositions = new List<Vector3>();
+    private List<Vector3> clonePositions = [];
 
     public override Metadata? Metadata => new(3, "damolitionn");
 
@@ -28,7 +27,7 @@ public class R1S_Multiscript : SplatoonScript
     private TickScheduler? sched = null;
     private Vector3 jumpTargetPosition;
 
-    IBattleNpc? BlackCat => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17193 && b.IsTargetable) as IBattleNpc;
+    private IBattleNpc? BlackCat => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 17193 && b.IsTargetable) as IBattleNpc;
 
     public override void OnSetup()
     {
@@ -39,7 +38,7 @@ public class R1S_Multiscript : SplatoonScript
         Controller.RegisterElementFromCode("NArrowLeft", "{\"Name\":\"NArrowLeft\",\"enabled\": false,\"type\":2,\"refX\":110.0,\"refY\":95,\"refZ\":0,\"offX\":100.0,\"offY\":95,\"radius\":0.0,\"color\":3355507455,\"thicc\":3.0,\"LineEndA\":1,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
         //Cleaves
-        if (!Controller.TryRegisterElement("Cleave", new(0)
+        if(!Controller.TryRegisterElement("Cleave", new(0)
         {
             Name = "Cleave",
             Enabled = false,
@@ -55,7 +54,7 @@ public class R1S_Multiscript : SplatoonScript
         }
 
         //Clone Cleaves
-        if (!Controller.TryRegisterElement("CloneCleave", new(0)
+        if(!Controller.TryRegisterElement("CloneCleave", new(0)
         {
             Name = "CloneCleave",
             Enabled = false,
@@ -71,21 +70,21 @@ public class R1S_Multiscript : SplatoonScript
     {
         var obj = target.GetObject();
 
-        if (obj?.DataId == 17193)
+        if(obj?.DataId == 17193)
         {
-            if (clonePositions.Count >= 6)
+            if(clonePositions.Count >= 6)
             {
                 IsLeapingCleave = true;
             }
             //Left Cleave First
-            if (vfxPath.Contains("vfx/common/eff/m0884_cast_twin02p1.avfx"))
+            if(vfxPath.Contains("vfx/common/eff/m0884_cast_twin02p1.avfx"))
             {
                 RightFirst = false;
                 LeftFirst = true;
                 HandleCleaveSequence();
             }
             //Right Cleave First
-            else if (vfxPath.Contains("vfx/common/eff/m0884_cast_twin01p1.avfx"))
+            else if(vfxPath.Contains("vfx/common/eff/m0884_cast_twin01p1.avfx"))
             {
                 LeftFirst = false;
                 RightFirst = true;
@@ -93,18 +92,18 @@ public class R1S_Multiscript : SplatoonScript
             }
         }
 
-        if (obj?.DataId == 17196 && clonePositions.Count == 9)
+        if(obj?.DataId == 17196 && clonePositions.Count == 9)
         {
-            if (vfxPath.Contains("vfx/common/eff/m0884_cast_dbl01p1.avfx"))
+            if(vfxPath.Contains("vfx/common/eff/m0884_cast_dbl01p1.avfx"))
             {
                 GetJumpPositions(8);
                 HandleCloneCleaves();
             }
         }
 
-        if (obj?.DataId == 17196 && clonePositions.Count == 10)
+        if(obj?.DataId == 17196 && clonePositions.Count == 10)
         {
-            if (vfxPath.Contains("vfx/common/eff/m0884_cast_dbl01p1.avfx"))
+            if(vfxPath.Contains("vfx/common/eff/m0884_cast_dbl01p1.avfx"))
             {
                 GetJumpPositions(9);
                 HandleCloneCleaves();
@@ -114,24 +113,24 @@ public class R1S_Multiscript : SplatoonScript
 
     private void GetJumpPositions(int cloneNumber)
     {
-        if (clonePositions[cloneNumber].Z > 100)
+        if(clonePositions[cloneNumber].Z > 100)
         {
-            if (Controller.TryGetElementByName($"SArrowLeft", out var arrow1) && arrow1.Enabled)
+            if(Controller.TryGetElementByName($"SArrowLeft", out var arrow1) && arrow1.Enabled)
             {
                 jumpTargetPosition = new Vector3(arrow1.refX, arrow1.refZ, arrow1.refY);
             }
-            if (Controller.TryGetElementByName($"SArrowRight", out var arrow2) && arrow2.Enabled)
+            if(Controller.TryGetElementByName($"SArrowRight", out var arrow2) && arrow2.Enabled)
             {
                 jumpTargetPosition = new Vector3(arrow2.refX, arrow2.refZ, arrow2.refY);
             }
         }
-        else if (clonePositions[cloneNumber].Z < 100)
+        else if(clonePositions[cloneNumber].Z < 100)
         {
-            if (Controller.TryGetElementByName($"NArrowLeft", out var arrow1) && arrow1.Enabled)
+            if(Controller.TryGetElementByName($"NArrowLeft", out var arrow1) && arrow1.Enabled)
             {
                 jumpTargetPosition = new Vector3(arrow1.refX, arrow1.refZ, arrow1.refY);
             }
-            if (Controller.TryGetElementByName($"NArrowRight", out var arrow2) && arrow2.Enabled)
+            if(Controller.TryGetElementByName($"NArrowRight", out var arrow2) && arrow2.Enabled)
             {
                 jumpTargetPosition = new Vector3(arrow2.refX, arrow2.refZ, arrow2.refY);
             }
@@ -140,7 +139,7 @@ public class R1S_Multiscript : SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (source.GetObject().DataId == 17196 && target.GetObject().DataId == 17193)
+        if(source.GetObject().DataId == 17196 && target.GetObject().DataId == 17193)
         {
             var position = source.GetObject().Position;
             clonePositions.Add(position);
@@ -150,9 +149,9 @@ public class R1S_Multiscript : SplatoonScript
 
     private void HandleCloneAttacks()
     {
-        if (clonePositions.Count <= 2)
+        if(clonePositions.Count <= 2)
         {
-            if (LeftFirst)
+            if(LeftFirst)
             {
                 LeftCleaveFirst(20000, 4000, 17196, 17196);
             }
@@ -165,9 +164,9 @@ public class R1S_Multiscript : SplatoonScript
 
     private void HandleCleaveSequence()
     {
-        if (IsLeapingCleave == true)
+        if(IsLeapingCleave == true)
         {
-            if (LeftFirst)
+            if(LeftFirst)
             {
                 LeftCleaveFirst(7000, 3000, 17195, 17193);
             }
@@ -179,7 +178,7 @@ public class R1S_Multiscript : SplatoonScript
         }
         else
         {
-            if (LeftFirst)
+            if(LeftFirst)
             {
                 LeftCleaveFirst(6000, 3000, 17193, 17193);
             }
@@ -192,9 +191,9 @@ public class R1S_Multiscript : SplatoonScript
 
     private void HandleCloneCleaves()
     {
-        if (jumpTargetPosition.Z > 100)
+        if(jumpTargetPosition.Z > 100)
         {
-            if (LeftFirst)
+            if(LeftFirst)
             {
                 LeftCloneCleave();
             }
@@ -205,7 +204,7 @@ public class R1S_Multiscript : SplatoonScript
         }
         else
         {
-            if (LeftFirst)
+            if(LeftFirst)
             {
                 RightCloneCleave();
             }
@@ -218,7 +217,7 @@ public class R1S_Multiscript : SplatoonScript
 
     private void LeftCleaveFirst(uint t1, uint t2, uint dataID1, uint dataID2)
     {
-        if (Controller.TryGetElementByName("Cleave", out var leftCleave))
+        if(Controller.TryGetElementByName("Cleave", out var leftCleave))
         {
             leftCleave.Enabled = true;
             leftCleave.refActorDataID = dataID1;
@@ -228,11 +227,11 @@ public class R1S_Multiscript : SplatoonScript
 
         sched = new TickScheduler(() =>
         {
-            if (Controller.TryGetElementByName("Cleave", out var leftCleave))
+            if(Controller.TryGetElementByName("Cleave", out var leftCleave))
             {
                 leftCleave.Enabled = false;
             }
-            if (Controller.TryGetElementByName("Cleave", out var rightCleave))
+            if(Controller.TryGetElementByName("Cleave", out var rightCleave))
             {
                 rightCleave.Enabled = true;
                 rightCleave.refActorDataID = dataID2;
@@ -242,7 +241,7 @@ public class R1S_Multiscript : SplatoonScript
 
             sched = new TickScheduler(() =>
             {
-                if (Controller.TryGetElementByName("Cleave", out var rightCleave))
+                if(Controller.TryGetElementByName("Cleave", out var rightCleave))
                 {
                     rightCleave.Enabled = false;
                 }
@@ -252,7 +251,7 @@ public class R1S_Multiscript : SplatoonScript
 
     private void RightCleaveFirst(uint t1, uint t2, uint dataID1, uint dataID2)
     {
-        if (Controller.TryGetElementByName("Cleave", out var rightCleave))
+        if(Controller.TryGetElementByName("Cleave", out var rightCleave))
         {
             rightCleave.Enabled = true;
             rightCleave.refActorDataID = dataID1;
@@ -262,11 +261,11 @@ public class R1S_Multiscript : SplatoonScript
 
         sched = new TickScheduler(() =>
         {
-            if (Controller.TryGetElementByName("Cleave", out var rightCleave))
+            if(Controller.TryGetElementByName("Cleave", out var rightCleave))
             {
                 rightCleave.Enabled = false;
             }
-            if (Controller.TryGetElementByName("Cleave", out var leftCleave))
+            if(Controller.TryGetElementByName("Cleave", out var leftCleave))
             {
                 leftCleave.Enabled = true;
                 leftCleave.refActorDataID = dataID2;
@@ -276,7 +275,7 @@ public class R1S_Multiscript : SplatoonScript
 
             sched = new TickScheduler(() =>
             {
-                if (Controller.TryGetElementByName("Cleave", out var leftCleave))
+                if(Controller.TryGetElementByName("Cleave", out var leftCleave))
                 {
                     leftCleave.Enabled = false;
                 }
@@ -286,7 +285,7 @@ public class R1S_Multiscript : SplatoonScript
 
     private void LeftCloneCleave()
     {
-        if (Controller.TryGetElementByName("CloneCleave", out var leftCleave))
+        if(Controller.TryGetElementByName("CloneCleave", out var leftCleave))
         {
             leftCleave.Enabled = true;
             leftCleave.refX = jumpTargetPosition.X;
@@ -297,11 +296,11 @@ public class R1S_Multiscript : SplatoonScript
 
         sched = new TickScheduler(() =>
         {
-            if (Controller.TryGetElementByName("CloneCleave", out var leftCleave))
+            if(Controller.TryGetElementByName("CloneCleave", out var leftCleave))
             {
                 leftCleave.Enabled = false;
             }
-            if (Controller.TryGetElementByName("CloneCleave", out var rightCleave))
+            if(Controller.TryGetElementByName("CloneCleave", out var rightCleave))
             {
                 rightCleave.Enabled = true;
                 rightCleave.refX = jumpTargetPosition.X;
@@ -312,7 +311,7 @@ public class R1S_Multiscript : SplatoonScript
 
             sched = new TickScheduler(() =>
             {
-                if (Controller.TryGetElementByName("CloneCleave", out var rightCleave))
+                if(Controller.TryGetElementByName("CloneCleave", out var rightCleave))
                 {
                     rightCleave.Enabled = false;
                 }
@@ -322,7 +321,7 @@ public class R1S_Multiscript : SplatoonScript
 
     private void RightCloneCleave()
     {
-        if (Controller.TryGetElementByName("CloneCleave", out var rightCleave))
+        if(Controller.TryGetElementByName("CloneCleave", out var rightCleave))
         {
             rightCleave.Enabled = true;
             rightCleave.refX = jumpTargetPosition.X;
@@ -333,11 +332,11 @@ public class R1S_Multiscript : SplatoonScript
 
         sched = new TickScheduler(() =>
         {
-            if (Controller.TryGetElementByName("CloneCleave", out var rightCleave))
+            if(Controller.TryGetElementByName("CloneCleave", out var rightCleave))
             {
                 rightCleave.Enabled = false;
             }
-            if (Controller.TryGetElementByName("CloneCleave", out var leftCleave))
+            if(Controller.TryGetElementByName("CloneCleave", out var leftCleave))
             {
                 leftCleave.Enabled = true;
                 leftCleave.refX = jumpTargetPosition.X;
@@ -348,7 +347,7 @@ public class R1S_Multiscript : SplatoonScript
 
             sched = new TickScheduler(() =>
             {
-                if (Controller.TryGetElementByName("CloneCleave", out var leftCleave))
+                if(Controller.TryGetElementByName("CloneCleave", out var leftCleave))
                 {
                     leftCleave.Enabled = false;
                 }
@@ -359,34 +358,34 @@ public class R1S_Multiscript : SplatoonScript
     private void CheckBossBuffs()
     {
         var boss = BlackCat;
-        if (boss == null) { return; }
+        if(boss == null) { return; }
 
-        if (boss.StatusList.Any(status => status.StatusId == 4050))
+        if(boss.StatusList.Any(status => status.StatusId == 4050))
         {
             movement = "Right";
         }
-        else if (boss.StatusList.Any(status => status.StatusId == 4051))
+        else if(boss.StatusList.Any(status => status.StatusId == 4051))
         {
             movement = "Left";
         }
-        if (boss.StatusList.Any(status => status.StatusId == 4048))
+        if(boss.StatusList.Any(status => status.StatusId == 4048))
         {
             attack = "Cleave";
         }
-        if (!string.IsNullOrEmpty(movement) && !string.IsNullOrEmpty(attack))
+        if(!string.IsNullOrEmpty(movement) && !string.IsNullOrEmpty(attack))
         {
-            if (clonePositions.Count == 7)
+            if(clonePositions.Count == 7)
             {
                 ShowArrows(6);
             }
-            else if (clonePositions.Count == 8)
+            else if(clonePositions.Count == 8)
             {
                 ShowArrows(7);
             }
         }
-        if (string.IsNullOrEmpty(movement) && !string.IsNullOrEmpty(attack))
+        if(string.IsNullOrEmpty(movement) && !string.IsNullOrEmpty(attack))
         {
-            if (movement == "" && attack == "Cleave")
+            if(movement == "" && attack == "Cleave")
             {
                 HandleCloneAttacks();
             }
@@ -395,18 +394,18 @@ public class R1S_Multiscript : SplatoonScript
 
     private void ShowArrows(int cloneNumber)
     {
-        if (clonePositions[cloneNumber].Z > 100)
+        if(clonePositions[cloneNumber].Z > 100)
         {
-            if (movement == "Left")
+            if(movement == "Left")
             {
-                if (Controller.TryGetElementByName($"SArrowLeft", out var arrow))
+                if(Controller.TryGetElementByName($"SArrowLeft", out var arrow))
                 {
                     arrow.Enabled = true;
                 }
             }
-            else if (movement == "Right")
+            else if(movement == "Right")
             {
-                if (Controller.TryGetElementByName($"SArrowRight", out var arrow))
+                if(Controller.TryGetElementByName($"SArrowRight", out var arrow))
                 {
                     arrow.Enabled = true;
                 }
@@ -414,16 +413,16 @@ public class R1S_Multiscript : SplatoonScript
         }
         else
         {
-            if (movement == "Left")
+            if(movement == "Left")
             {
-                if (Controller.TryGetElementByName($"NArrowLeft", out var arrow))
+                if(Controller.TryGetElementByName($"NArrowLeft", out var arrow))
                 {
                     arrow.Enabled = true;
                 }
             }
-            else if (movement == "Right")
+            else if(movement == "Right")
             {
-                if (Controller.TryGetElementByName($"NArrowRight", out var arrow))
+                if(Controller.TryGetElementByName($"NArrowRight", out var arrow))
                 {
                     arrow.Enabled = true;
                 }
@@ -433,24 +432,24 @@ public class R1S_Multiscript : SplatoonScript
 
     private void HideArrows(int cloneNumber)
     {
-        if (clonePositions[cloneNumber].Z > 100)
+        if(clonePositions[cloneNumber].Z > 100)
         {
-            if (Controller.TryGetElementByName($"SArrowLeft", out var arrow1))
+            if(Controller.TryGetElementByName($"SArrowLeft", out var arrow1))
             {
                 arrow1.Enabled = false;
             }
-            if (Controller.TryGetElementByName($"SArrowRight", out var arrow2))
+            if(Controller.TryGetElementByName($"SArrowRight", out var arrow2))
             {
                 arrow2.Enabled = false;
             }
         }
         else
         {
-            if (Controller.TryGetElementByName($"NArrowLeft", out var arrow1))
+            if(Controller.TryGetElementByName($"NArrowLeft", out var arrow1))
             {
                 arrow1.Enabled = false;
             }
-            if (Controller.TryGetElementByName($"NArrowRight", out var arrow2))
+            if(Controller.TryGetElementByName($"NArrowRight", out var arrow2))
             {
                 arrow2.Enabled = false;
             }
@@ -459,9 +458,9 @@ public class R1S_Multiscript : SplatoonScript
 
     private void ShowCleaves()
     {
-        if (LeftFirst)
+        if(LeftFirst)
         {
-            if (Controller.TryGetElementByName("Cleave", out var e))
+            if(Controller.TryGetElementByName("Cleave", out var e))
             {
                 e.Enabled = true;
                 e.refActorDataID = 17193;
@@ -470,7 +469,7 @@ public class R1S_Multiscript : SplatoonScript
         }
         else
         {
-            if (Controller.TryGetElementByName("Cleave", out var e))
+            if(Controller.TryGetElementByName("Cleave", out var e))
             {
                 e.Enabled = true;
                 e.refActorDataID = 17193;
@@ -482,42 +481,42 @@ public class R1S_Multiscript : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (clonePositions.Count == 5)
+        if(clonePositions.Count == 5)
         {
             LeftFirst = false;
             RightFirst = false;
         }
-        if (clonePositions.Count == 9)
+        if(clonePositions.Count == 9)
         {
             sched = new TickScheduler(() =>
             {
                 HideArrows(8);
             }, 16000);
         }
-        if (clonePositions.Count == 10)
+        if(clonePositions.Count == 10)
         {
             sched = new TickScheduler(() =>
             {
                 HideArrows(9);
             }, 16000);
         }
-        if (clonePositions.Count == 0)
+        if(clonePositions.Count == 0)
         {
             clonePositions.Clear();
             jumpTargetPosition = new Vector3(0, 0, 0);
-            if (Controller.TryGetElementByName($"SArrowLeft", out var arrow1))
+            if(Controller.TryGetElementByName($"SArrowLeft", out var arrow1))
             {
                 arrow1.Enabled = false;
             }
-            if (Controller.TryGetElementByName($"SArrowRight", out var arrow2))
+            if(Controller.TryGetElementByName($"SArrowRight", out var arrow2))
             {
                 arrow2.Enabled = false;
             }
-            if (Controller.TryGetElementByName($"NArrowLeft", out var arrow3))
+            if(Controller.TryGetElementByName($"NArrowLeft", out var arrow3))
             {
                 arrow3.Enabled = false;
             }
-            if (Controller.TryGetElementByName($"NArrowRight", out var arrow4))
+            if(Controller.TryGetElementByName($"NArrowRight", out var arrow4))
             {
                 arrow4.Enabled = false;
             }

@@ -18,11 +18,11 @@ public unsafe class M6S_Taste_of_Thunder : SplatoonScript
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             Controller.RegisterElementFromCode($"Twister{i}", "{\"Name\":\"\",\"refX\":86.37486,\"refY\":92.822395,\"radius\":4.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
-        this.OnReset();
+        OnReset();
     }
 
     public override void OnReset()
@@ -35,7 +35,7 @@ public unsafe class M6S_Taste_of_Thunder : SplatoonScript
         if(set.Action?.RowId == 42652)
         {
             var obj = Svc.Objects.OfType<IPlayerCharacter>().ToArray();
-            for(int i = 0; i < obj.Length; i++)
+            for(var i = 0; i < obj.Length; i++)
             {
                 if(Controller.TryGetElementByName($"Twister{i}", out var e))
                 {
@@ -43,11 +43,11 @@ public unsafe class M6S_Taste_of_Thunder : SplatoonScript
                     e.SetRefPosition(obj[i].Position);
                 }
             }
-            this.Controller.ScheduleReset(5000);
+            Controller.ScheduleReset(5000);
         }
         if(set.Action?.RowId == 42653)
         {
-            this.Controller.Reset();
+            Controller.Reset();
         }
     }
 }

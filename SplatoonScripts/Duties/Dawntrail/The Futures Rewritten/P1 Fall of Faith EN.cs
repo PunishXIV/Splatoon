@@ -23,7 +23,7 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
     private List<TetherInfo> Tethers = [];
     private int PlayersRemaining => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 1051));
     private bool Active = false;
-    bool IsBossCasting => Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsTargetable && x.CastActionId.EqualsAny<uint>(40137, 40140));
+    private bool IsBossCasting => Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsTargetable && x.CastActionId.EqualsAny<uint>(40137, 40140));
 
     public override void OnSetup()
     {
@@ -33,7 +33,7 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
         Controller.RegisterElementFromCode("TSouth2", "{\"Name\":\"South\",\"refX\":100.0,\"refY\":107.0,\"refZ\":9.536743E-07,\"color\":3355508503,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":3.0,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("Active0", "{\"Name\":\"\",\"type\":1,\"radius\":0.0,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4278190335,\"overlayVOffset\":1.0,\"thicc\":10.0,\"overlayText\":\"Fire\",\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("Active1", "{\"Name\":\"\",\"type\":1,\"radius\":0.0,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4278190335,\"overlayVOffset\":1.0,\"thicc\":10.0,\"overlayText\":\"Fire\",\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
-        for(int i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
             Controller.RegisterElementFromCode($"Line{i}", "{\"Name\":\"Line\",\"type\":3,\"refY\":10.0,\"radius\":0.0,\"color\":3372220160,\"fillIntensity\":0.345,\"refActorComparisonType\":2,\"includeRotation\":true,\"FaceMe\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"faceplayer\":\"<2>\"}");
         }
@@ -67,7 +67,7 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
             }
             if(Tethers.TryGetFirst(x => x.ObjectID == Player.Object.EntityId, out var player))
             {
-                if(!EzThrottler.Check(this.InternalData.FullName + "OnStartCast"))
+                if(!EzThrottler.Check(InternalData.FullName + "OnStartCast"))
                 {
                     var index = Tethers.IndexOf(player);
                     var elem = index switch
@@ -123,7 +123,7 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
         if(source.GetObject()?.IsTargetable != true) return;
         if(castId == 40137 || castId == 40140)
         {
-            EzThrottler.Throttle(this.InternalData.FullName + "OnStartCast", 15000, true);
+            EzThrottler.Throttle(InternalData.FullName + "OnStartCast", 15000, true);
             Active = true;
             Tethers = [Tethers[^1]];
         }

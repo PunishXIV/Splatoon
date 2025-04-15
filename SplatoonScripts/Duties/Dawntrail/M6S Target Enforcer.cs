@@ -34,10 +34,10 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         """
     };
 
-    ImGuiEx.RealtimeDragDrop<MobKind> DragDrop = new("Mob", x => x.ToString());
-    Dictionary<uint, long> EntityAgeTracker = [];
-    Dictionary<uint, MobKind> Classifier = [];
-    bool Switched = false;
+    private ImGuiEx.RealtimeDragDrop<MobKind> DragDrop = new("Mob", x => x.ToString());
+    private Dictionary<uint, long> EntityAgeTracker = [];
+    private Dictionary<uint, MobKind> Classifier = [];
+    private bool Switched = false;
 
     public enum MobName : uint
     {
@@ -71,7 +71,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     {
         Controller.RegisterElementFromCode("AttackInRange", "{\"Name\":\"\",\"radius\":0.5,\"Filled\":false,\"color\":3372155106,\"fillIntensity\":0.5,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("Attack", "{\"Name\":\"\",\"thicc\":4,\"radius\":0.5,\"Filled\":false,\"color\":3372155106,\"fillIntensity\":0.5,\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
-        for(int i = 0; i < 20; i++)
+        for(var i = 0; i < 20; i++)
         {
             Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"radius\":0.0,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":0.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
@@ -79,7 +79,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
 
     public override void OnUpdate()
     {
-        int i = 0;
+        var i = 0;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         foreach(var x in Svc.Objects)
         {
@@ -96,7 +96,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
                     e.SetRefPosition(npc.Position);
                     e.overlayText = $"{value} : {GetMobAge(npc):F1}";
                 }
-            } 
+            }
         }
 
         GetSuggestedTarget(out var inRangeTarget, out var target);
@@ -104,7 +104,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         {
             if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.NameId == 13822 && x.IsTargetable, out var sugarRiot))
             {
-                if(EzThrottler.Throttle(this.InternalData.FullName + "Retarget", 200))
+                if(EzThrottler.Throttle(InternalData.FullName + "Retarget", 200))
                 {
                     if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
                     {
@@ -130,7 +130,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
             {
                 if(!C.SoftTargetMobs.Contains(Classifier[inRangeTarget.EntityId]) || Svc.Targets.Target == null)
                 {
-                    if(EzThrottler.Throttle(this.InternalData.FullName + "Retarget", 200))
+                    if(EzThrottler.Throttle(InternalData.FullName + "Retarget", 200))
                     {
                         Svc.Targets.Target = inRangeTarget;
                     }
@@ -159,7 +159,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
     }
 
-    void ClassifyMob(IBattleNpc mob)
+    private void ClassifyMob(IBattleNpc mob)
     {
         if(Classifier.ContainsKey(mob.EntityId)) return;
         if(mob.NameId == (uint)MobName.GimmeCat)
@@ -219,7 +219,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         DragDrop.Begin();
         if(ImGuiEx.BeginDefaultTable(["##drag", "Mob Kind", "##control", "~Action"]))
         {
-            for(int i = 0; i < C.Priority.Count; i++)
+            for(var i = 0; i < C.Priority.Count; i++)
             {
                 var n = C.Priority[i].ToString();
                 ImGui.PushID(n);
@@ -272,7 +272,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
             ImGui.Indent();
             foreach(var x in EntityAgeTracker)
             {
-                ImGuiEx.Text($"{x.Key}/{x.Key.GetObject()}: {GetMobAge(x.Key.GetObject() is IBattleNpc i? i:null):F1}");
+                ImGuiEx.Text($"{x.Key}/{x.Key.GetObject()}: {GetMobAge(x.Key.GetObject() is IBattleNpc i ? i : null):F1}");
             }
             ImGui.Unindent();
             ImGui.Separator();
@@ -289,7 +289,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
     }
 
-    void DrawAttackInRange(IBattleNpc mob)
+    private void DrawAttackInRange(IBattleNpc mob)
     {
         if(Controller.TryGetElementByName("AttackInRange", out var e))
         {
@@ -300,7 +300,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
     }
 
-    void DrawAttack(IBattleNpc mob)
+    private void DrawAttack(IBattleNpc mob)
     {
         if(Controller.TryGetElementByName("Attack", out var e))
         {
@@ -310,13 +310,13 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
     }
 
-    void GetSuggestedTarget(out IBattleNpc? inRangeTarget, out IBattleNpc? uncheckedRangeTarget)
+    private void GetSuggestedTarget(out IBattleNpc? inRangeTarget, out IBattleNpc? uncheckedRangeTarget)
     {
         inRangeTarget = GetSuggestedTargetWithRangeLimit(C.MaxRadius);
         uncheckedRangeTarget = GetSuggestedTargetWithRangeLimit(100f);
     }
 
-    IBattleNpc? GetSuggestedTargetWithRangeLimit(float rangeLimit)
+    private IBattleNpc? GetSuggestedTargetWithRangeLimit(float rangeLimit)
     {
         var enemies = GetOrderedPotentialTargets().Where(x => Player.DistanceTo(x) < rangeLimit + x.HitboxRadius);
         var rayBaits = enemies.Where(x => GetHPPercent(x) >= 0.99f && C.BaitRay.Contains(Classifier[x.EntityId]));
@@ -333,12 +333,12 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         return null;
     }
 
-    IEnumerable<IBattleNpc> GetOrderedPotentialTargets()
+    private IEnumerable<IBattleNpc> GetOrderedPotentialTargets()
     {
         return Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsTargetable && x.CurrentHp > 0 && Classifier.ContainsKey(x.EntityId)).OrderBy(x => C.Priority.IndexOf(Classifier[x.EntityId]));
     }
 
-    uint GetSuggestedActionOnTarget()
+    private uint GetSuggestedActionOnTarget()
     {
         if(Svc.Targets.Target is IBattleNpc b)
         {
@@ -350,23 +350,23 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         return 0;
     }
 
-    float GetHPPercent(IBattleNpc mob)
+    private float GetHPPercent(IBattleNpc mob)
     {
         return (float)mob.CurrentHp / (float)mob.MaxHp;
     }
 
-    float GetMobAge(IBattleNpc? mob)
+    private float GetMobAge(IBattleNpc? mob)
     {
         if(mob == null) return -1;
-        if(this.EntityAgeTracker.TryGetValue(mob.EntityId, out var x))
+        if(EntityAgeTracker.TryGetValue(mob.EntityId, out var x))
         {
             return (float)((double)(Environment.TickCount64 - x) / 1000.0);
         }
         return -1;
     }
 
-    Config C => this.Controller.GetConfig<Config>();
-    public class Config: IEzConfig
+    private Config C => Controller.GetConfig<Config>();
+    public class Config : IEzConfig
     {
         public bool Debug = false;
         public bool Switch = false;
@@ -400,14 +400,14 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         public int Delay = 0;
     }
 
-    Dictionary<uint, string> StunActions = [new KeyValuePair<uint, string>(0, "Disabled") ,
+    private Dictionary<uint, string> StunActions = [new KeyValuePair<uint, string>(0, "Disabled") ,
         ..Svc.Data.GetExcelSheet<Action>()
         .Where(x => (x.CooldownGroup == 58 && x.AdditionalCooldownGroup != 0) || x.CooldownGroup != 58)
         .Where(x => x.IsPlayerAction)
         .Where(x => x.ClassJobCategory.ValueNullable != null)
         .Where(x => Enum.GetValues<Job>().Where(x => x.IsCombat()).Any(s => x.ClassJobCategory.Value.IsJobInCategory(s)))
         .ToDictionary(x => x.RowId, x=> ExcelActionHelper.GetActionName(x, true) + "##" + x.RowId.ToString())];
-    void DrawStun(ref uint action, ref int delay)
+    private void DrawStun(ref uint action, ref int delay)
     {
         ImGui.SetNextItemWidth(100f.Scale());
         var name = action == 0 ? "Disabled" : ExcelActionHelper.GetActionName(action);

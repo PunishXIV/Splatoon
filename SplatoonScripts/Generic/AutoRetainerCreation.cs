@@ -17,12 +17,12 @@ public unsafe class AutoRetainerCreation : SplatoonScript
     public string SymbolsA = "qwrtpsdfghjklzxcvbnm";
     public string SymbolsB = "eyuioa";
 
-    string GenerateRandomName()
+    private string GenerateRandomName()
     {
         var len = Random.Shared.Next(4, 21);
         StringBuilder sb = new();
         var start = Random.Shared.Next(0, 2);
-        for(int i = 0; i < len; i++)
+        for(var i = 0; i < len; i++)
         {
             sb.Append((i % 2 == start ? SymbolsA : SymbolsB).GetRandom());
         }
@@ -37,25 +37,25 @@ public unsafe class AutoRetainerCreation : SplatoonScript
         Process("_CharaMakeFeature", 37);
         if(GenericHelpers.TryGetAddonMaster<AddonMaster.SelectString>(out var m) && m.IsAddonReady)
         {
-            if(m.EntryCount > 0 && m.Entries[0].Text.Equals("Polite.") && EzThrottler.Throttle(this.InternalData.FullName + "SelectString"))
+            if(m.EntryCount > 0 && m.Entries[0].Text.Equals("Polite.") && EzThrottler.Throttle(InternalData.FullName + "SelectString"))
             {
                 m.Entries[0].Select();
                 var name = GenerateRandomName();
                 Svc.Toasts.ShowQuest($"Suggested name: \"{name}\" copied to clipboard");
                 GenericHelpers.Copy(name);
-            } 
+            }
         }
-        if(EzThrottler.Throttle(this.InternalData.FullName + "PeriodicNotify", 60000))
+        if(EzThrottler.Throttle(InternalData.FullName + "PeriodicNotify", 60000))
         {
-            DuoLog.Warning($"{this.InternalData.Name} is running. Disable the script if you don't need it anymore.");
+            DuoLog.Warning($"{InternalData.Name} is running. Disable the script if you don't need it anymore.");
         }
     }
 
-    void Process(string addonName, uint buttonId)
+    private void Process(string addonName, uint buttonId)
     {
         if(GenericHelpers.TryGetAddonByName<AtkUnitBase>(addonName, out var addon) && addon->IsReady())
         {
-            if(EzThrottler.Throttle(this.InternalData.FullName + addonName))
+            if(EzThrottler.Throttle(InternalData.FullName + addonName))
             {
                 if(addon->GetButtonNodeById(buttonId)->IsEnabled && addon->GetButtonNodeById(buttonId)->AtkResNode->IsVisible())
                     addon->GetButtonNodeById(buttonId)->ClickAddonButton(addon);

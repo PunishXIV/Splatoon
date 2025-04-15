@@ -1,6 +1,7 @@
 ﻿using Dalamud.Utility.Signatures;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.DalamudServices.Legacy;
 using ECommons.Logging;
 using Splatoon.SplatoonScripting;
 using System;
@@ -9,13 +10,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class GenericTest2 : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
 
         public override void OnEnable()
         {

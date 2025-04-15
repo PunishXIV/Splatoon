@@ -19,7 +19,7 @@ using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
-internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
+internal class P5_Fulgent_Blade_Full_Toolers : SplatoonScript
 {
     #region types
     /********************************************************************/
@@ -43,7 +43,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     /********************************************************************/
     /* class                                                            */
     /********************************************************************/
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public float FastCheatDefault = 1.0f;
         public float FastCheat = 1.5f;
@@ -58,9 +58,9 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     private class PartyData
     {
         public int Index = 0;
-        public bool Mine => this.EntityId == Player.Object.EntityId;
+        public bool Mine => EntityId == Player.Object.EntityId;
         public uint EntityId;
-        public IPlayerCharacter? Object => (IPlayerCharacter)this.EntityId.GetObject()! ?? null;
+        public IPlayerCharacter? Object => (IPlayerCharacter)EntityId.GetObject()! ?? null;
         public DirectionCalculator.Direction AssignDirection = DirectionCalculator.Direction.None;
 
         public bool IsTank => TankJobs.Contains(Object?.GetJob() ?? Job.WHM);
@@ -108,7 +108,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     /* private properties                                               */
     /********************************************************************/
     private State _state = State.None;
-    private List<PartyData> _partyDataList = new();
+    private List<PartyData> _partyDataList = [];
     private Config C => Controller.GetConfig<Config>();
     private ClockDirectionCalculator _clockDirectionCalculator = new();
     private int _firstLightPcIndex = 0;
@@ -126,39 +126,39 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40316)
+        if(castId == 40316)
         {
             SetListEntityIdByJob();
-            if (!source.TryGetObject(out var obj)) return;
+            if(!source.TryGetObject(out var obj)) return;
             var angle = ConvertRotationRadiansToDegrees(obj.Rotation);
             var dir = DirectionCalculator.GetDirectionFromAngle(DirectionCalculator.Direction.North, (int)angle);
             _clockDirectionCalculator._12ClockDirection = dir;
             _firstLightPcIndex = 0;
             _firstDarkPcIndex = 1;
             var pc = GetMinedata();
-            if (pc == null) return;
+            if(pc == null) return;
             // BaitListの中から、自分のIndexに対応するものを取得
             var bait = BaitList[pc?.Index ?? 0];
-            string bait1 = bait.Item1;
-            float range = (pc.Index == _firstLightPcIndex || pc.Index == _firstDarkPcIndex) ? 5f : 10f;
+            var bait1 = bait.Item1;
+            var range = (pc.Index == _firstLightPcIndex || pc.Index == _firstDarkPcIndex) ? 5f : 10f;
             DuoLog.Information($"bait1: {bait1} range: {range}");
-            if (bait1 == "L") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(7)) - 15, range);
-            if (bait1 == "R") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(4)) + 15, range);
+            if(bait1 == "L") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(7)) - 15, range);
+            if(bait1 == "R") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(4)) + 15, range);
             _state = State.Stack1;
 
             Chat.Instance.ExecuteCommand($"/pdrspeed {C.FastCheat}");
         }
 
-        if (_state == State.None) return;
+        if(_state == State.None) return;
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_state == State.None) return;
-        if (set.Action == null) return;
+        if(_state == State.None) return;
+        if(set.Action == null) return;
         var castId = set.Action.Value.RowId;
 
-        if (castId is 40317) // Light
+        if(castId is 40317) // Light
         {
             var pc = _partyDataList[_firstLightPcIndex].Object;
             //if (pc != null && Controller.TryGetElementByName("Line", out var el))
@@ -176,7 +176,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
             _state++;
         }
 
-        if (castId is 40318) // Dark
+        if(castId is 40318) // Dark
         {
             var pc = _partyDataList[_firstDarkPcIndex].Object;
             //if (pc != null && Controller.TryGetElementByName("Line2", out var el))
@@ -190,31 +190,31 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
             //}
         }
 
-        if (castId is 40119)
+        if(castId is 40119)
         {
-            if (Controller.TryGetElementByName("Line", out var el)) el.Enabled = false;
-            if (_state == State.Dodge4)
+            if(Controller.TryGetElementByName("Line", out var el)) el.Enabled = false;
+            if(_state == State.Dodge4)
             {
-                this.OnReset();
+                OnReset();
                 return;
             }
             _state++;
             ChengeStatus();
             Show();
         }
-        if (castId is 40120)
+        if(castId is 40120)
         {
-            if (Controller.TryGetElementByName("Line2", out var el)) el.Enabled = false;
+            if(Controller.TryGetElementByName("Line2", out var el)) el.Enabled = false;
         }
     }
 
     public override void OnUpdate()
     {
-        if (_state == State.None) return;
+        if(_state == State.None) return;
 
-        if (Controller.TryGetElementByName("Bait", out var el))
+        if(Controller.TryGetElementByName("Bait", out var el))
         {
-            if (el.Enabled) el.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
+            if(el.Enabled) el.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
         }
     }
 
@@ -232,18 +232,18 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     {
         ImGui.SliderFloat("FastCheat", ref C.FastCheat, 1.0f, 1.5f);
         ImGui.SliderFloat("FastCheatDefault", ref C.FastCheatDefault, 1.0f, 1.5f);
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"FirstLightPcIndex: {_firstLightPcIndex}");
             ImGui.Text($"FirstDarkPcIndex: {_firstDarkPcIndex}");
             ImGui.Text("PartyDataList");
             List<ImGuiEx.EzTableEntry> Entries = [];
-            foreach (var x in _partyDataList)
+            foreach(var x in _partyDataList)
             {
                 Entries.Add(new ImGuiEx.EzTableEntry("Index", true, () => ImGui.Text(x.Index.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("EntityId", true, () => ImGui.Text(x.EntityId.ToString())));
-                if (x.Object != null)
+                if(x.Object != null)
                 {
                     Entries.Add(new ImGuiEx.EzTableEntry("Job", true, () => ImGui.Text(x.Object.GetJob().ToString())));
                     Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(x.Object.Name.ToString())));
@@ -286,10 +286,10 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     private void Show()
     {
         var pc = GetMinedata();
-        if (pc == null) return;
+        if(pc == null) return;
         // BaitListの中から、自分のIndexに対応するものを取得
         var bait = BaitList[pc?.Index ?? 0];
-        string bait1 = _state switch
+        var bait1 = _state switch
         {
             State.Stack1 => bait.Item1,
             State.Stack2 => bait.Item2,
@@ -298,10 +298,10 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
             _ => "L"
         };
         DuoLog.Information($"_firstLightPcIndex: {_firstLightPcIndex} _firstDarkPcIndex: {_firstDarkPcIndex}");
-        float range = (pc.Index == _firstLightPcIndex || pc.Index == _firstDarkPcIndex) ? 5f : 10f;
+        var range = (pc.Index == _firstLightPcIndex || pc.Index == _firstDarkPcIndex) ? 5f : 10f;
         DuoLog.Information($"bait1: {bait1} range: {range}");
-        if (bait1 == "L") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(7)) - 15, range);
-        if (bait1 == "R") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(4)) + 15, range);
+        if(bait1 == "L") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(7)) - 15, range);
+        if(bait1 == "R") ApplyElement("Bait", DirectionCalculator.GetAngle(_clockDirectionCalculator.GetDirectionFromClock(4)) + 15, range);
     }
 
     private PartyData? GetMinedata() => _partyDataList.Find(x => x.Mine) ?? null;
@@ -311,20 +311,20 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         _partyDataList.Clear();
         var tmpList = new List<PartyData>();
 
-        foreach (var pc in FakeParty.Get())
+        foreach(var pc in FakeParty.Get())
         {
             tmpList.Add(new PartyData(pc.EntityId, Array.IndexOf(jobOrder, pc.GetJob())));
         }
 
         // Sort by job order
         tmpList.Sort((a, b) => a.Index.CompareTo(b.Index));
-        foreach (var data in tmpList)
+        foreach(var data in tmpList)
         {
             _partyDataList.Add(data);
         }
 
         // Set index
-        for (var i = 0; i < _partyDataList.Count; i++)
+        for(var i = 0; i < _partyDataList.Count; i++)
         {
             _partyDataList[i].Index = i;
         }
@@ -378,7 +378,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
     public class DirectionCalculator
     {
-        public enum Direction :int
+        public enum Direction : int
         {
             None = -1,
             East = 0,
@@ -391,7 +391,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
             NorthEast = 7,
         }
 
-        public enum LR :int
+        public enum LR : int
         {
             Left = -1,
             SameOrOpposite = 0,
@@ -426,10 +426,10 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
             // ８方向の内、最も近い方向ベクトルを取得
             var closestDirection = Direction.North;
             var closestDistance = float.MaxValue;
-            foreach (var directionalVector in directionalVectors)
+            foreach(var directionalVector in directionalVectors)
             {
                 var distance = Vector3.Distance(Position, directionalVector.Position);
-                if (distance < closestDistance)
+                if(distance < closestDistance)
                 {
                     closestDistance = distance;
                     closestDirection = directionalVector.Direction;
@@ -441,21 +441,21 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
         public static Direction GetDirectionFromAngle(Direction direction, int angle)
         {
-            if (direction == Direction.None) return Direction.None; // 無効な方向の場合
+            if(direction == Direction.None) return Direction.None; // 無効な方向の場合
 
             // 方向数（8方向: North ~ NorthWest）
             const int directionCount = 8;
 
             // 角度を45度単位に丸め、-180～180の範囲に正規化
             angle = ((Round45(angle) % 360) + 360) % 360; // 正の値に変換して360で正規化
-            if (angle > 180) angle -= 360;
+            if(angle > 180) angle -= 360;
 
             // 現在の方向のインデックス
-            int currentIndex = (int)direction;
+            var currentIndex = (int)direction;
 
             // 45度ごとのステップ計算と新しい方向の計算
-            int step = angle / 45;
-            int newIndex = (currentIndex + step + directionCount) % directionCount;
+            var step = angle / 45;
+            var newIndex = (currentIndex + step + directionCount) % directionCount;
 
             return (Direction)newIndex;
         }
@@ -463,14 +463,14 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         public static LR GetTwoPointLeftRight(Direction direction1, Direction direction2)
         {
             // 不正な方向の場合（None）
-            if (direction1 == Direction.None || direction2 == Direction.None)
+            if(direction1 == Direction.None || direction2 == Direction.None)
                 return LR.SameOrOpposite;
 
             // 方向数（8つ: North ~ NorthWest）
-            int directionCount = 8;
+            var directionCount = 8;
 
             // 差分を循環的に計算
-            int difference = ((int)direction2 - (int)direction1 + directionCount) % directionCount;
+            var difference = ((int)direction2 - (int)direction1 + directionCount) % directionCount;
 
             // LRを直接返す
             return difference == 0 || difference == directionCount / 2
@@ -481,11 +481,11 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         public static int GetTwoPointAngle(Direction direction1, Direction direction2)
         {
             // 不正な方向を考慮
-            if (direction1 == Direction.None || direction2 == Direction.None)
+            if(direction1 == Direction.None || direction2 == Direction.None)
                 return 0;
 
             // enum の値を数値として扱い、環状の差分を計算
-            int diff = ((int)direction2 - (int)direction1 + 8) % 8;
+            var diff = ((int)direction2 - (int)direction1 + 8) % 8;
 
             // 差分から角度を計算
             return diff <= 4 ? diff * 45 : (diff - 8) * 45;
@@ -493,7 +493,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
         public static float GetAngle(Direction direction)
         {
-            if (direction == Direction.None) return 0; // 無効な方向の場合
+            if(direction == Direction.None) return 0; // 無効な方向の場合
 
             // 45度単位で計算し、0度から始まる時計回りの角度を返す
             return (int)direction * 45 % 360;
@@ -504,11 +504,11 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
             var directionalVectors = new List<DirectionalVector>();
 
             // 各方向のオフセット計算
-            foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+            foreach(Direction direction in Enum.GetValues(typeof(Direction)))
             {
-                if (direction == Direction.None) continue; // Noneはスキップ
+                if(direction == Direction.None) continue; // Noneはスキップ
 
-                Vector3 offset = direction switch
+                var offset = direction switch
                 {
                     Direction.North => new Vector3(0, 0, -1),
                     Direction.NorthEast => Vector3.Normalize(new Vector3(1, 0, -1)),
@@ -522,7 +522,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
                 };
 
                 // 距離を適用して座標を計算
-                Vector3 position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
+                var position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
 
                 // リストに追加
                 directionalVectors.Add(new DirectionalVector(direction, position));
@@ -541,11 +541,11 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         // _12ClockDirectionを0時方向として、指定時計からの方向を取得
         public DirectionCalculator.Direction GetDirectionFromClock(int clock)
         {
-            if (!isValid)
+            if(!isValid)
                 return DirectionCalculator.Direction.None;
 
             // 特別ケース: clock = 0 の場合、_12ClockDirection をそのまま返す
-            if (clock == 0)
+            if(clock == 0)
                 return _12ClockDirection;
 
             // 12時計位置を8方向にマッピング
@@ -562,13 +562,13 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         };
 
             // 現在の12時方向をインデックスとして取得
-            int baseIndex = (int)_12ClockDirection;
+            var baseIndex = (int)_12ClockDirection;
 
             // 時計位置に基づくステップを取得
-            int step = clockToDirectionMapping[clock];
+            var step = clockToDirectionMapping[clock];
 
             // 新しい方向を計算し、範囲を正規化
-            int targetIndex = (baseIndex + step + 8) % 8;
+            var targetIndex = (baseIndex + step + 8) % 8;
 
             // 対応する方向を返す
             return (DirectionCalculator.Direction)targetIndex;
@@ -576,10 +576,10 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
 
         public int GetClockFromDirection(DirectionCalculator.Direction direction)
         {
-            if (!isValid)
+            if(!isValid)
                 throw new InvalidOperationException("Invalid state: _12ClockDirection is not set.");
 
-            if (direction == DirectionCalculator.Direction.None)
+            if(direction == DirectionCalculator.Direction.None)
                 throw new ArgumentException("Direction cannot be None.", nameof(direction));
 
             // 各方向に対応する最小の clock 値を定義
@@ -596,13 +596,13 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
             };
 
             // 現在の12時方向をインデックスとして取得
-            int baseIndex = (int)_12ClockDirection;
+            var baseIndex = (int)_12ClockDirection;
 
             // 指定された方向のインデックス
-            int targetIndex = (int)direction;
+            var targetIndex = (int)direction;
 
             // 差分を計算し、時計方向に正規化
-            int step = (targetIndex - baseIndex + 8) % 8;
+            var step = (targetIndex - baseIndex + 8) % 8;
 
             // 該当する clock を取得
             return directionToClockMapping[step];
@@ -636,7 +636,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         bool Filled = true,
         bool tether = true)
     {
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             ApplyElement(element, position, elementRadius, Filled, tether);
         }
@@ -676,7 +676,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         bool Filled = true,
         bool tether = true)
     {
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             var angle = DirectionCalculator.GetAngle(direction);
             ApplyElement(element, angle, radius, elementRadius, Filled, tether);
@@ -691,7 +691,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         bool Filled = true,
         bool tether = true)
     {
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             ApplyElement(element, angle, radius, elementRadius, Filled, tether);
         }
@@ -703,17 +703,17 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     private static float GetCorrectionAngle(Vector2 origin, Vector2 target, float rotation)
     {
         // Calculate the relative angle to the target
-        Vector2 direction = target - origin;
-        float relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
+        var direction = target - origin;
+        var relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
 
         // Normalize relative angle to 0-360 range
         relativeAngle = (relativeAngle + 360) % 360;
 
         // Calculate the correction angle
-        float correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
+        var correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
 
         // Adjust correction angle to range -180 to 180 for shortest rotation
-        if (correctionAngle > 180)
+        if(correctionAngle > 180)
             correctionAngle -= 360;
 
         return correctionAngle;
@@ -722,7 +722,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     private static float ConvertRotationRadiansToDegrees(float radians)
     {
         // Convert radians to degrees with coordinate system adjustment
-        float degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
+        var degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
 
         // Ensure the result is within the 0° to 360° range
         return degrees < 0 ? degrees + 360 : degrees;
@@ -731,7 +731,7 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
     private static float ConvertDegreesToRotationRadians(float degrees)
     {
         // Convert degrees to radians with coordinate system adjustment
-        float radians = -(degrees - 180) * (MathF.PI / 180);
+        var radians = -(degrees - 180) * (MathF.PI / 180);
 
         // Normalize the result to the range -π to π
         radians = ((radians + MathF.PI) % (2 * MathF.PI)) - MathF.PI;
@@ -743,22 +743,22 @@ internal class P5_Fulgent_Blade_Full_Toolers :SplatoonScript
         Vector3 center, Vector3 currentPos, float extensionLength, float? limit = null)
     {
         // Calculate the normalized direction vector from the center to the current position
-        Vector3 direction = Vector3.Normalize(currentPos - center);
+        var direction = Vector3.Normalize(currentPos - center);
 
         // Extend the position by the specified length
-        Vector3 extendedPos = currentPos + (direction * extensionLength);
+        var extendedPos = currentPos + (direction * extensionLength);
 
         // If limit is null, return the extended position without clamping
-        if (!limit.HasValue)
+        if(!limit.HasValue)
         {
             return extendedPos;
         }
 
         // Calculate the distance from the center to the extended position
-        float distanceFromCenter = Vector3.Distance(center, extendedPos);
+        var distanceFromCenter = Vector3.Distance(center, extendedPos);
 
         // If the extended position exceeds the limit, clamp it within the limit
-        if (distanceFromCenter > limit.Value)
+        if(distanceFromCenter > limit.Value)
         {
             return center + (direction * limit.Value);
         }

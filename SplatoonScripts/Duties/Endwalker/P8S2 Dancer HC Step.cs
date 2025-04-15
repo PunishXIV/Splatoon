@@ -14,9 +14,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     internal class P8S2_Dancer_HC_Step : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1088 };
+        public override HashSet<uint> ValidTerritories => [1088];
         public override Metadata? Metadata => new(1, "NightmareXIV");
-        long castAt = long.MaxValue;
+        private long castAt = long.MaxValue;
 
         public override void OnSetup()
         {
@@ -25,9 +25,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnUpdate()
         {
-            if (this.Controller.InCombat && !Svc.Gauges.Get<DNCGauge>().IsDancing)
+            if(Controller.InCombat && !Svc.Gauges.Get<DNCGauge>().IsDancing)
             {
-                if (Environment.TickCount64 > castAt)
+                if(Environment.TickCount64 > castAt)
                 {
                     DuoLog.Information($"Casting standard step");
                     castAt = long.MaxValue;
@@ -40,11 +40,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             if(Message.Contains("Hephaistos casts High Concept."))
             {
-                if(this.Controller.CombatSeconds < 150)
+                if(Controller.CombatSeconds < 150)
                 {
                     //hc1 duration: 42 seconds, step at 42-14=28
                     castAt = Environment.TickCount64 + 27 * 1000;
-                    DuoLog.Information($"Enqueued step cast in {(float)(castAt - Environment.TickCount64)/1000f} seconds");
+                    DuoLog.Information($"Enqueued step cast in {(float)(castAt - Environment.TickCount64) / 1000f} seconds");
                 }
                 else
                 {

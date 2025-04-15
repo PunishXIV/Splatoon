@@ -3,10 +3,14 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
+using ECommons.PartyFunctions;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using System;
@@ -15,15 +19,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using ECommons.ExcelServices;
-using ECommons.GameHelpers;
-using ECommons.PartyFunctions;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
-internal class BSOD_Adjuster :SplatoonScript
+internal class BSOD_Adjuster : SplatoonScript
 {
-    public override HashSet<uint> ValidTerritories => new() { 1122 };
+    public override HashSet<uint> ValidTerritories => [1122];
     public override Metadata? Metadata => new(3, "Redmoon");
 
     public class CastID
@@ -36,11 +36,11 @@ internal class BSOD_Adjuster :SplatoonScript
 
     private Config Conf => Controller.GetConfig<Config>();
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public bool DebugPrint = false;
-        public List<string[]> LeftRightPriorities = new();
-        
+        public List<string[]> LeftRightPriorities = [];
+
         public List<Job> Jobs =
         [
             Job.PLD,
@@ -69,8 +69,8 @@ internal class BSOD_Adjuster :SplatoonScript
 
     private const bool _debug = false;
 
-    private List<IPlayerCharacter> _sortedList = new();
-    private List<IPlayerCharacter> _stackedList = new();
+    private List<IPlayerCharacter> _sortedList = [];
+    private List<IPlayerCharacter> _stackedList = [];
     private bool _mechanicActive = false;
     private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
 
@@ -91,7 +91,7 @@ internal class BSOD_Adjuster :SplatoonScript
             }
         }
         var toRem = -1;
-        for(int i = 0; i < Conf.LeftRightPriorities.Count; i++)
+        for(var i = 0; i < Conf.LeftRightPriorities.Count; i++)
         {
             if(DrawPrioList(i))
             {
@@ -106,17 +106,17 @@ internal class BSOD_Adjuster :SplatoonScript
         {
             Conf.LeftRightPriorities.Add(new string[] { "", "", "", "", "", "", "", "" });
         }
-        
-        if (ImGuiEx.CollapsingHeader("Option"))
+
+        if(ImGuiEx.CollapsingHeader("Option"))
         {
             DragDrop.Begin();
-            foreach (var job in Conf.Jobs)
+            foreach(var job in Conf.Jobs)
             {
                 DragDrop.NextRow();
                 ImGui.Text(job.ToString());
                 ImGui.SameLine();
 
-                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
                 {
                     ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
                     ImGui.SameLine();
@@ -157,7 +157,7 @@ internal class BSOD_Adjuster :SplatoonScript
             }
             else if(castId == CastID.BSOD)
             {
-                this.OnReset();
+                OnReset();
             }
         }
     }
@@ -183,26 +183,26 @@ internal class BSOD_Adjuster :SplatoonScript
                     {
                         DebugLog("Stacker");
                         // stacker show element
-                        IPlayerCharacter myStacker = _stackedList.Where(x => x.Address == Svc.ClientState.LocalPlayer.Address).First();
-                        IPlayerCharacter otherStacker = _stackedList.Where(x => x.Address != Svc.ClientState.LocalPlayer.Address).First();
+                        var myStacker = _stackedList.Where(x => x.Address == Svc.ClientState.LocalPlayer.Address).First();
+                        var otherStacker = _stackedList.Where(x => x.Address != Svc.ClientState.LocalPlayer.Address).First();
                         DebugLog($"myStacker: {myStacker.Name}, otherStacker: {otherStacker.Name}");
-                        int myIndex = _sortedList.IndexOf(myStacker);
-                        int otherIndex = _sortedList.IndexOf(otherStacker);
+                        var myIndex = _sortedList.IndexOf(myStacker);
+                        var otherIndex = _sortedList.IndexOf(otherStacker);
                         if(myIndex == -1 || otherIndex == -1)
                         {
                             DuoLog.Warning($"Could not find player in priority list");
                             _mechanicActive = false;
-                            this.OnReset();
+                            OnReset();
                             return;
                         }
-                        string myPos = myIndex < otherIndex ? "Left" : "Right";
-                        string otherPos = myIndex < otherIndex ? "Right" : "Left";
+                        var myPos = myIndex < otherIndex ? "Left" : "Right";
+                        var otherPos = myIndex < otherIndex ? "Right" : "Left";
 
                         Controller.GetElementByName($"Stack{myPos}").Enabled = true;
                         Controller.GetElementByName($"Stack{myPos}").tether = true;
 
                         DebugLog($"myStacker: {myStacker.Name} {myPos}, otherStacker: {otherStacker.Name} {otherPos}");
-                        List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
+                        var noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
                         foreach(var x in noneStackers)
                         {
                             var dpos = noneStackers.IndexOf(x) < 3 ? "Left" : "Right";
@@ -213,34 +213,34 @@ internal class BSOD_Adjuster :SplatoonScript
                     {
                         DebugLog("Non stacker");
                         // non stacker show element
-                        List<IPlayerCharacter> noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
-                        int myIndex = noneStackers.IndexOf(Svc.ClientState.LocalPlayer);
+                        var noneStackers = _sortedList.Where(x => !_stackedList.Contains(x)).ToList();
+                        var myIndex = noneStackers.IndexOf(Svc.ClientState.LocalPlayer);
                         if(myIndex == -1)
                         {
                             DuoLog.Warning($"Could not find player in priority list");
                             _mechanicActive = false;
-                            this.OnReset();
+                            OnReset();
                             return;
                         }
-                        string myPos = myIndex < 3 ? "Left" : "Right";
+                        var myPos = myIndex < 3 ? "Left" : "Right";
 
                         Controller.GetElementByName($"Stack{myPos}").Enabled = true;
                         Controller.GetElementByName($"Stack{myPos}").tether = true;
 
                         //Debug
-                        IPlayerCharacter myStacker = _stackedList.First();
-                        IPlayerCharacter otherStacker = _stackedList.Last();
+                        var myStacker = _stackedList.First();
+                        var otherStacker = _stackedList.Last();
                         myIndex = _sortedList.IndexOf(myStacker);
-                        int otherIndex = _sortedList.IndexOf(otherStacker);
+                        var otherIndex = _sortedList.IndexOf(otherStacker);
                         if(myIndex == -1 || otherIndex == -1)
                         {
                             DuoLog.Warning($"Could not find player in priority list");
                             _mechanicActive = false;
-                            this.OnReset();
+                            OnReset();
                             return;
                         }
                         myPos = myIndex < otherIndex ? "Left" : "Right";
-                        string otherPos = myIndex < otherIndex ? "Right" : "Left";
+                        var otherPos = myIndex < otherIndex ? "Right" : "Left";
                         DebugLog($"FirstStacker: {myStacker.Name} {myPos}, LastStacker: {otherStacker.Name} {otherPos}");
 
                         foreach(var x in noneStackers)
@@ -294,7 +294,7 @@ internal class BSOD_Adjuster :SplatoonScript
                 return true;
             }
         }
-        values = new();
+        values = [];
         return false;
     }
 
@@ -304,7 +304,7 @@ internal class BSOD_Adjuster :SplatoonScript
         ImGuiEx.Text($"# Priority list {num + 1}");
         ImGui.PushID($"prio{num}");
         ImGuiEx.Text($"    NorthWest");
-        for(int i = 0; i < prio.Length; i++)
+        for(var i = 0; i < prio.Length; i++)
         {
             ImGui.PushID($"prio{num}element{i}");
             ImGui.SetNextItemWidth(200);
@@ -313,9 +313,9 @@ internal class BSOD_Adjuster :SplatoonScript
             ImGui.SetNextItemWidth(150);
             if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
                              .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if (ImGui.Selectable(x))
+                    if(ImGui.Selectable(x))
                         prio[i] = x;
                 ImGui.EndCombo();
             }
@@ -326,19 +326,19 @@ internal class BSOD_Adjuster :SplatoonScript
         {
             return true;
         }
-        
+
         ImGui.SameLine();
-        if (ImGui.Button("Fill by job"))
+        if(ImGui.Button("Fill by job"))
         {
             HashSet<(string, Job)> party = [];
-            foreach (var x in FakeParty.Get())
+            foreach(var x in FakeParty.Get())
                 party.Add((x.Name.ToString(), x.GetJob()));
 
             var proxy = InfoProxyCrossRealm.Instance();
-            for (var i = 0; i < proxy->GroupCount; i++)
+            for(var i = 0; i < proxy->GroupCount; i++)
             {
                 var group = proxy->CrossRealmGroups[i];
-                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
                 {
                     var x = group.GroupMembers[c];
                     party.Add((x.Name.Read(), (Job)x.ClassJobId));
@@ -346,13 +346,13 @@ internal class BSOD_Adjuster :SplatoonScript
             }
 
             var index = 0;
-            foreach (var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            foreach(var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
             {
                 prio[index] = party.First(x => x.Item2 == job).Item1;
                 index++;
             }
 
-            for (var i = index; i < prio.Length; i++)
+            for(var i = index; i < prio.Length; i++)
                 prio[i] = "";
         }
         ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");

@@ -15,17 +15,17 @@ public unsafe class FRU_Tether_Visualiser : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
     public override Metadata? Metadata => new(1, "NightmareXIV");
-    List<(uint P1, uint P2, long Time)> Tethers = [];
+    private List<(uint P1, uint P2, long Time)> Tethers = [];
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 6; i++)
+        for(var i = 0; i < 6; i++)
         {
             Controller.RegisterElementFromCode($"Tether{i}", "{\"Name\":\"\",\"type\":2,\"radius\":0.0,\"color\":3357277952,\"fillIntensity\":0.345,\"thicc\":8.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
     }
 
-    bool IsPhase2 => WeatherManager.Instance()->WeatherId == 35;
+    private bool IsPhase2 => WeatherManager.Instance()->WeatherId == 35;
 
     public override void OnUpdate()
     {
@@ -33,7 +33,7 @@ public unsafe class FRU_Tether_Visualiser : SplatoonScript
         var i = 0;
         foreach(var x in Tethers)
         {
-            if(Environment.TickCount64 >  x.Time + (IsPhase2?C.TimeP2:C.TimeP4))
+            if(Environment.TickCount64 > x.Time + (IsPhase2 ? C.TimeP2 : C.TimeP4))
             {
                 new TickScheduler(() => Tethers.Remove(x));
             }

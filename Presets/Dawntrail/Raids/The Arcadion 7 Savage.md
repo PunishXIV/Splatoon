@@ -1,24 +1,24 @@
-### Stoneringer (in/out/party in/party out)
+### P1 - Stoneringer (in/out/party in/party out)
 ```
 ~Lv2~{"Name":"M7S Stoneringer","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"ElementsL":[{"Name":"in","type":1,"radius":8.9,"Donut":25.0,"fillIntensity":0.5,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42338],"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"smash here (non-tank)","type":1,"radius":0.0,"color":3355506687,"Filled":false,"fillIntensity":0.2,"overlayTextColor":4278190335,"overlayFScale":3.0,"overlayText":"↓PARTY OUT↓","refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42335],"refActorUseCastTime":true,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"out","type":1,"radius":12.0,"fillIntensity":0.5,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42337],"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"smash there (non-tank)","type":1,"radius":0.0,"color":3355506687,"Filled":false,"fillIntensity":0.2,"overlayTextColor":4278255376,"overlayFScale":3.0,"overlayText":"↑PARTY IN↑","refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42336],"refActorUseCastTime":true,"refActorCastTimeMax":6.0,"refActorUseOvercast":true,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
-### Spore sac mechanics (phase 1, 2 and 3)
+### P1, P2, P3 - Spore sac mechanics (phase 1, 2 and 3)
 ```
 ~Lv2~{"Name":"M7S Spore sac","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"ElementsL":[{"Name":"Pollen","type":1,"radius":8.0,"fillIntensity":0.3,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42347],"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Tendril of terror","type":3,"refY":40.0,"offY":-40.0,"radius":2.0,"color":3355476735,"fillIntensity":0.345,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42351,42393,42396],"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Tendril of terror","type":3,"refY":40.0,"offY":-40.0,"radius":2.0,"color":3355476735,"fillIntensity":0.345,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42351,42393,42396],"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":0.7853982,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Tendril of terror","type":3,"refY":40.0,"offY":-40.0,"radius":2.0,"color":3355476735,"fillIntensity":0.345,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42351,42393,42396],"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Tendril of terror","type":3,"refY":40.0,"offY":-40.0,"radius":2.0,"color":3355476735,"fillIntensity":0.345,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42351,42393,42396],"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":2.3561945,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Roots of evil","type":1,"radius":12.0,"color":3355506687,"fillIntensity":0.15,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42354],"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
-### Comets
+### P1 - Comets
 ```
 ~Lv2~{"Name":"M7S Comets","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"ElementsL":[{"Name":"","type":1,"radius":25.0,"color":3355506687,"fillIntensity":0.15,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42358],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":5.0,"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"","type":1,"radius":25.0,"fillIntensity":0.15,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42358],"refActorUseCastTime":true,"refActorCastTimeMin":5.0,"refActorCastTimeMax":9.0,"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
-### [Beta] Quarry swamp (hide behind adds)
+### [Beta] P1, P3 - Quarry swamp (hide behind adds)
 ```
 ~Lv2~{"Name":"M7S Hide behind adds","Description":"","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"DCond":5,"UseTriggers":true,"Triggers":[{"TimeBegin":79.5,"Duration":14.0},{"TimeBegin":500.0,"Duration":14.0}],"ElementsL":[{"Name":"","type":1,"radius":0.0,"color":3372217088,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4294959104,"overlayFScale":4.0,"thicc":6.0,"overlayText":"hide","refActorNPCNameID":13756,"refActorComparisonType":6,"onlyTargetable":true,"tether":true},{"Name":"","type":1,"radius":0.0,"color":3355508503,"fillIntensity":0.2,"refActorNPCNameID":13755,"refActorComparisonType":6,"includeHitbox":true,"onlyUnTargetable":true,"onlyVisible":true}]}
 ```
 
-### Pulp Smash (protean spreads)
+### P1, P3 - Pulp Smash (protean spreads)
 >[!IMPORTANT]
 >Configuration required.
 >Assumes true north spreads.
@@ -33,27 +33,32 @@ Actual mechanic, enable one
 ```
 
 
-### Neo bombardian special
+### P1 - Neo bombardian special
 ```
 ~Lv2~{"Name":"M7S Neo bombardian special","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"ElementsL":[{"Name":"","type":1,"offY":17.64,"radius":2.0,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42364],"refActorComparisonType":6,"includeRotation":true,"tether":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
-### Stoneringer phase 2/3 (blink + in/out/line)
+### P2, P3 - Stoneringer phase 2/3 (blink + in/out/line)
 ```
 ~Lv2~{"Name":"M7S Stoneringer phase 2/3","Description":"","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"ElementsL":[{"Name":"Out","type":1,"radius":25.0,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42386,42403],"refActorComparisonType":6},{"Name":"Line","type":3,"refY":80.0,"radius":7.0,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[43340,43358],"refActorComparisonType":6,"includeRotation":true},{"Name":"In","type":1,"radius":22.0,"Donut":50.0,"fillIntensity":0.5,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42387,42405],"refActorCastTimeMax":999.0,"refActorComparisonType":6},{"Name":"In tether","type":1,"offY":17.5,"radius":0.0,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":7.0,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42387,42405],"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1}]}
 ```
 
-### Glower power spreads
+### P2, P3 - Glower power spreads
 ```
 ~Lv2~{"Name":"M7S Glower power spreads","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"DCond":5,"ElementsL":[{"Name":"self","type":1,"radius":6.0,"color":3355506687,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"others","type":1,"radius":6.0,"fillIntensity":0.2,"thicc":4.0,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorComparisonType":5,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":4.0,"Match":">43340)"},{"Type":2,"Duration":2.0,"Match":">43358)"}],"MaxDistance":6.1,"UseDistanceLimit":true,"DistanceLimitType":1}
 ```
 
-### Sporesplosion phase 2
+### P2 - Sporesplosion phase 2
 ```
 ~Lv2~{"Name":"M7S Sporesplosion","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"ElementsL":[{"Name":"Warmup","type":1,"radius":8.0,"color":3355508719,"fillIntensity":0.5,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42379],"refActorUseCastTime":true,"refActorCastTimeMin":2.0,"refActorCastTimeMax":3.5,"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Hot","type":1,"radius":8.0,"fillIntensity":0.6,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42379],"refActorUseCastTime":true,"refActorCastTimeMin":3.5,"refActorCastTimeMax":5.0,"refActorComparisonType":6,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```
 
-### Lashing lariat
+### [Beta] Phase 2 uptime positions according to raidplan https://raidplan.io/plan/-lZai2v34Y8bC15S
+```
+~Lv2~{"Name":"M7S P2 Uptime positions","Description":"","Group":"","ZoneLockH":[1261],"ElementsL":[{"Name":"M1","refX":95.619,"refY":15.0,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":" M1","includeRotation":true},{"Name":"M2","refX":92.75,"refY":7.9,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":"M2","includeRotation":true},{"Name":"MT","refX":90.3,"refY":18.13,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":"MT","includeRotation":true},{"Name":"OT","refX":87.82,"refY":29.69,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":"OT","includeRotation":true},{"Name":"H1","refX":98.74,"refY":-2.49,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":"H1","includeRotation":true},{"Name":"H2","refX":101.22,"refY":-8.9,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":"H2","includeRotation":true},{"Name":"M1","refX":103.679,"refY":-5.0,"radius":0.25,"fillIntensity":0.5,"overlayText":"M1","includeRotation":true},{"Name":"M2","refX":108.5,"refY":0.95,"radius":0.25,"fillIntensity":0.5,"overlayText":"M2","includeRotation":true},{"Name":"MT","refX":109.7,"refY":-8.25,"radius":0.25,"fillIntensity":0.5,"overlayText":"MT","includeRotation":true},{"Name":"OT","refX":112.2,"refY":-19.67,"radius":0.25,"fillIntensity":0.5,"overlayText":"OT","includeRotation":true},{"Name":"H1","refX":101.26,"refY":12.21,"radius":0.25,"fillIntensity":0.5,"overlayText":"H1","includeRotation":true},{"Name":"H2","refX":98.82,"refY":18.83,"radius":0.25,"fillIntensity":0.5,"overlayText":"H2","includeRotation":true},{"Name":"R1","refX":90.56,"refY":14.99,"radius":0.25,"fillIntensity":0.5,"overlayText":"R1","includeRotation":true},{"Name":"R2","refX":96.26,"refY":24.87,"radius":0.25,"fillIntensity":0.5,"overlayText":"R2","includeRotation":true},{"Name":"R1","refX":109.5,"refY":-4.87,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":"R1","includeRotation":true},{"Name":"R2","refX":103.9,"refY":-14.85,"radius":0.25,"color":3372154880,"fillIntensity":0.5,"overlayText":"R2","includeRotation":true}]}
+```
+
+### P3 - Lashing lariat
 ```
 ~Lv2~{"Name":"M7S Lashing lariat","Group":"AAC Cruiserweight M3 Savage","ZoneLockH":[1261],"ElementsL":[{"Name":"Right","type":3,"refX":9.0,"refY":60.0,"offX":9.0,"radius":16.0,"fillIntensity":0.5,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42408],"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Left","type":3,"refX":-9.0,"refY":60.0,"offX":-9.0,"radius":16.0,"fillIntensity":0.5,"refActorNPCNameID":13756,"refActorRequireCast":true,"refActorCastId":[42409],"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}]}
 ```

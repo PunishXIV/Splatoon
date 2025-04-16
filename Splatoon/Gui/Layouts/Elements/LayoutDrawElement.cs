@@ -627,13 +627,7 @@ internal unsafe partial class CGui
                 }
                 ImGuiEx.Tooltip("Select on screen".Loc());
                 ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Hashtag))
-                {
-                    el.DistanceSourceX = MathF.Round(el.DistanceSourceX);
-                    el.DistanceSourceY = MathF.Round(el.DistanceSourceY);
-                    el.DistanceSourceZ = MathF.Round(el.DistanceSourceZ);
-                }
-                ImGuiEx.Tooltip("Round coordinates to an integer");
+                DrawRounding(ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ);
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
@@ -841,7 +835,7 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w1"))
                 {
-                    if(LayoutUtils.IsLayoutVisible(l) && (el.Enabled || forceEnable))
+                    if(el.IsVisible())
                     {
                         SetCursorTo(el.refX, el.refZ, el.refY);
                         p.BeginS2W(el, "refX", "refY", "refZ");
@@ -852,6 +846,8 @@ internal unsafe partial class CGui
                     }
                 }
                 ImGuiEx.Tooltip("Select on screen".Loc());
+                ImGui.SameLine();
+                DrawRounding(ref el.refX, ref el.refY, ref el.refZ);
             }
 
             if(el.type.EqualsAny(1, 3) && el.includeRotation)
@@ -973,6 +969,8 @@ internal unsafe partial class CGui
                 }
             }
             ImGuiEx.Tooltip("Select on screen".Loc());
+            ImGui.SameLine();
+            DrawRounding(ref el.offX, ref el.offY, ref el.offZ);
         }
 
         var style = el.GetDisplayStyle();

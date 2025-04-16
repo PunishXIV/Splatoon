@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata? Metadata => new(6, "NightmareXIV");
 
     public override Dictionary<int, string> Changelog => new()
     {
@@ -207,6 +207,8 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
             if(!C.Priority.Contains(x)) C.Priority.Add(x);
         }
         ImGui.Checkbox("Automatically switch targets", ref C.Switch);
+        ImGuiEx.CollectionCheckbox("Don't switch targets if you have other target already", Enum.GetValues<MobKind>(), C.SoftTargetMobs);
+        ImGuiEx.HelpMarker($"Enabling this setting will make it so that targets will not be switched unless you have no target (you deselected it or it died). You can enable/disable this setting per mob by using brush indicator (usually useful for cats). Feather rays will still be selected if they are baited by you.");
         ImGuiEx.TextV($"Lockin priority:");
         ImGui.SameLine();
         if(ImGuiEx.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.ArrowAltCircleLeft, "Restore Defaults (hold ctrl)", ImGuiEx.Ctrl))

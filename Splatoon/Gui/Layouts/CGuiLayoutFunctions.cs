@@ -5,6 +5,17 @@ namespace Splatoon;
 
 internal partial class CGui
 {
+    internal static void DrawRounding(ref float x, ref float y, ref float z)
+    {
+        if(ImGuiEx.IconButton(FontAwesomeIcon.Hashtag))
+        {
+            x = MathF.Round(x);
+            y = MathF.Round(y);
+            z = MathF.Round(z);
+        }
+        ImGuiEx.Tooltip("Round coordinates to an integer");
+    }
+
     internal static bool AddEmptyLayout(out Layout l)
     {
         if(NewLayoytName.Contains("~"))

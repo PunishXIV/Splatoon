@@ -36,6 +36,7 @@ internal class ImGuiLegacyScene : IDisposable
 
     private void Draw()
     {
+        if (ImGuiLegacyRenderer.DisplayObjects.Count == 0) return;
         uid = 0;
         try
         {
@@ -93,7 +94,7 @@ internal class ImGuiLegacyScene : IDisposable
                     ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
                     ImGuiHelpers.SetNextWindowPosRelativeMainViewport(Vector2.Zero);
                     ImGui.SetNextWindowSize(ImGuiHelpers.MainViewport.Size);
-                    ImGui.Begin("Splatoon Legacy Renderer Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings);
+                    ImGui.Begin("Splatoon Legacy Renderer Scene", ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.NoFocusOnAppearing);
                     if(P.Config.SplatoonLowerZ)
                     {
                         CImGui.igBringWindowToDisplayBack(CImGui.igGetCurrentWindow());
@@ -298,7 +299,8 @@ internal class ImGuiLegacyScene : IDisposable
         ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(e.bgcolor));
         ImGui.BeginChild("##child" + e.text + ++uid, size, false,
             ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
-            | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding);
+            | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding
+            | ImGuiWindowFlags.NoFocusOnAppearing);
         ImGui.PushStyleColor(ImGuiCol.Text, e.fgcolor);
         if(scaled) ImGui.SetWindowFontScale(e.fscale);
         ImGuiEx.Text(e.text);

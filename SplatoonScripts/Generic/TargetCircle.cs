@@ -12,7 +12,7 @@ using System.Linq;
 namespace SplatoonScriptsOfficial.Generic;
 internal class TargetCircle : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories => new();
+    public override HashSet<uint>? ValidTerritories => [];
 
     public override Metadata? Metadata => new(0, "sourpuh");
 
@@ -89,20 +89,20 @@ internal class TargetCircle : SplatoonScript
 
     public static bool TargetNeedsPositionals(IGameObject? obj)
     {
-        if (obj == null) return false;
-        if (TargetHasEffect(obj, 3808)) return false; // Directional Disregard Effect (Patch 7.01)
-        if (Svc.Data.GetExcelSheet<BNpcBase>().TryGetFirst(x => x.RowId == obj.DataId, out var bnpc))
+        if(obj == null) return false;
+        if(TargetHasEffect(obj, 3808)) return false; // Directional Disregard Effect (Patch 7.01)
+        if(Svc.Data.GetExcelSheet<BNpcBase>().TryGetFirst(x => x.RowId == obj.DataId, out var bnpc))
             return !bnpc.IsOmnidirectional;
         return true;
     }
     public static bool TargetHasEffect(IGameObject obj, uint effectId)
     {
-        if (obj is not IBattleChara chara) return false;
+        if(obj is not IBattleChara chara) return false;
         return chara.StatusList.Where(status => status.StatusId == effectId).Any();
     }
     public static uint MultiplyAlpha(uint color, float alphaMultiplier)
     {
-        uint alpha = (uint)(((color & 0xFF000000) >> 24) * alphaMultiplier);
+        var alpha = (uint)(((color & 0xFF000000) >> 24) * alphaMultiplier);
         return color & 0x00FFFFFF | alpha << 24;
     }
 }

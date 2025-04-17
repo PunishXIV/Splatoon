@@ -7,7 +7,7 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
 namespace SplatoonScriptsOfficial.Tests;
-internal class StatusListMonitoring :SplatoonScript
+internal class StatusListMonitoring : SplatoonScript
 {
     #region types
     private enum StatusChangeType
@@ -39,7 +39,7 @@ internal class StatusListMonitoring :SplatoonScript
 
     public override HashSet<uint>? ValidTerritories => null;
 
-    private Dictionary<uint, CharactorStatusInfo> _charactorStatusInfos = new Dictionary<uint, CharactorStatusInfo>();
+    private Dictionary<uint, CharactorStatusInfo> _charactorStatusInfos = [];
 
     #region public
     public override void OnUpdate()
@@ -100,7 +100,7 @@ internal class StatusListMonitoring :SplatoonScript
     private void RemoveInactiveObjects()
     {
         // Add objects with NoUpdateCount >= 10 to the removal list
-        List<uint> toRemove = new List<uint>();
+        List<uint> toRemove = [];
         foreach(var kvp in _charactorStatusInfos)
         {
             if(kvp.Value.NoUpdateCount >= 10)
@@ -146,7 +146,7 @@ internal class StatusListMonitoring :SplatoonScript
 
     private StatusChangeResult CompareStatusList(uint objectID, StatusList statuses, out List<CharactorStatusDiffResult> changeStatuses)
     {
-        changeStatuses = new List<CharactorStatusDiffResult>();
+        changeStatuses = [];
 
         if(!_charactorStatusInfos.TryGetValue(objectID, out var existingInfo))
         {
@@ -164,7 +164,7 @@ internal class StatusListMonitoring :SplatoonScript
     private uint[] GetStatusIds(StatusList statuses)
     {
         var statusIds = new uint[statuses.Length];
-        for(int i = 0; i < statuses.Length; i++)
+        for(var i = 0; i < statuses.Length; i++)
         {
             statusIds[i] = statuses[i]?.StatusId ?? 0;
         }
@@ -173,7 +173,7 @@ internal class StatusListMonitoring :SplatoonScript
 
     private void CheckGains(uint[] currentStatusIds, uint[] oldStatusIds, List<CharactorStatusDiffResult> changeStatuses)
     {
-        for(int i = 0; i < currentStatusIds.Length; i++)
+        for(var i = 0; i < currentStatusIds.Length; i++)
         {
             if(System.Array.IndexOf(oldStatusIds, currentStatusIds[i]) < 0)
             {
@@ -188,7 +188,7 @@ internal class StatusListMonitoring :SplatoonScript
 
     private void CheckRemovals(uint[] currentStatusIds, uint[] oldStatusIds, List<CharactorStatusDiffResult> changeStatuses)
     {
-        for(int i = 0; i < oldStatusIds.Length; i++)
+        for(var i = 0; i < oldStatusIds.Length; i++)
         {
             if(System.Array.IndexOf(currentStatusIds, oldStatusIds[i]) < 0)
             {
@@ -206,7 +206,7 @@ internal class StatusListMonitoring :SplatoonScript
         if(array1.Length != array2.Length)
             return false;
 
-        for(int i = 0; i < array1.Length; i++)
+        for(var i = 0; i < array1.Length; i++)
         {
             if(array1[i] != array2[i])
                 return false;
@@ -217,19 +217,19 @@ internal class StatusListMonitoring :SplatoonScript
     // Updated LogChanges method
     private void LogChanges(IGameObject gameObject, List<CharactorStatusDiffResult> changeStatuses)
     {
-        List<uint> gainStatusIds = new List<uint>();
-        List<uint> removeStatusIds = new List<uint>();
+        List<uint> gainStatusIds = [];
+        List<uint> removeStatusIds = [];
 
         foreach(var changeStatus in changeStatuses)
         {
             switch(changeStatus.ChangeType)
             {
                 case StatusChangeType.Gain:
-                gainStatusIds.Add(changeStatus.StatusId);
-                break;
+                    gainStatusIds.Add(changeStatus.StatusId);
+                    break;
                 case StatusChangeType.Remove:
-                removeStatusIds.Add(changeStatus.StatusId);
-                break;
+                    removeStatusIds.Add(changeStatus.StatusId);
+                    break;
             }
         }
 

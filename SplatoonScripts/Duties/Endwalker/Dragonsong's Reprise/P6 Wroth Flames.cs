@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -24,6 +20,10 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -65,17 +65,17 @@ public class P6_Wroth_Flames : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_state != State.None) return;
-        if (set.Action is null) return;
-        if (set.Action.Value.RowId == WrothFlamesCastId) _state = State.Start;
+        if(_state != State.None) return;
+        if(set.Action is null) return;
+        if(set.Action.Value.RowId == WrothFlamesCastId) _state = State.Start;
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (_state != State.Stack) return;
+        if(_state != State.Stack) return;
         var isHeatTail = _heatTailCastIds.Contains(castId);
         var isHeatWing = _heatWingCastIds.Contains(castId);
-        if (isHeatTail || isHeatWing)
+        if(isHeatTail || isHeatWing)
         {
             _state = State.Split;
             _safeSpreadDirection = isHeatWing
@@ -89,7 +89,7 @@ public class P6_Wroth_Flames : SplatoonScript
                     _ => SafeSpreadDirection.None
                 };
             var baitPosition = GetBaitPosition(Player.Object.EntityId, _safeSpreadDirection);
-            if (Controller.TryGetElementByName("Bait", out var element))
+            if(Controller.TryGetElementByName("Bait", out var element))
             {
                 element.Enabled = true;
                 element.SetOffPosition(baitPosition.ToVector3(0));
@@ -99,9 +99,9 @@ public class P6_Wroth_Flames : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (!C.ShouldCheckOnStart)
+        if(!C.ShouldCheckOnStart)
             return;
-        if (category == DirectorUpdateCategory.Commence ||
+        if(category == DirectorUpdateCategory.Commence ||
             (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
             SelfTest();
     }
@@ -116,7 +116,7 @@ public class P6_Wroth_Flames : SplatoonScript
         var party = FakeParty.Get().ToArray();
         var isCorrect = C.Priority.All(x => !string.IsNullOrEmpty(x));
 
-        if (!isCorrect)
+        if(!isCorrect)
         {
             Svc.Chat.PrintChat(new XivChatEntry
             {
@@ -126,7 +126,7 @@ public class P6_Wroth_Flames : SplatoonScript
             return;
         }
 
-        if (party.Length != 8)
+        if(party.Length != 8)
         {
             isCorrect = false;
             Svc.Chat.PrintChat(new XivChatEntry
@@ -136,8 +136,8 @@ public class P6_Wroth_Flames : SplatoonScript
             });
         }
 
-        foreach (var player in party)
-            if (C.Priority.All(x => x != player.Name.ToString()))
+        foreach(var player in party)
+            if(C.Priority.All(x => x != player.Name.ToString()))
             {
                 isCorrect = false;
                 Svc.Chat.PrintChat(new XivChatEntry
@@ -148,7 +148,7 @@ public class P6_Wroth_Flames : SplatoonScript
                 });
             }
 
-        if (isCorrect)
+        if(isCorrect)
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
@@ -164,11 +164,11 @@ public class P6_Wroth_Flames : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (_state != State.DebuffGained) return;
-        if (vfxPath != "vfx/common/eff/mon_pop1t.avfx") return;
-        if (target.GetObject() is not IBattleChara redSphere) return;
+        if(_state != State.DebuffGained) return;
+        if(vfxPath != "vfx/common/eff/mon_pop1t.avfx") return;
+        if(target.GetObject() is not IBattleChara redSphere) return;
         _redSphereCount++;
-        if (_redSphereCount == 6)
+        if(_redSphereCount == 6)
         {
             _state = State.Stack;
             var isNorth = redSphere.Position.Z < 100f;
@@ -182,9 +182,9 @@ public class P6_Wroth_Flames : SplatoonScript
                 (false, false) => [StackSafeDirection.NorthWest, StackSafeDirection.NorthEast]
             };
 
-            if (C.PrioritizeSecondRedBallDiagonal) redSphereSafeDirection = redSphereSafeDirection.Reverse().ToArray();
-            if (C.PrioritizeWest)
-                if (redSphereSafeDirection[1].ToString().Contains("West"))
+            if(C.PrioritizeSecondRedBallDiagonal) redSphereSafeDirection = redSphereSafeDirection.Reverse().ToArray();
+            if(C.PrioritizeWest)
+                if(redSphereSafeDirection[1].ToString().Contains("West"))
                     redSphereSafeDirection = redSphereSafeDirection.Reverse().ToArray();
 
             var hraesvelgrPositionX = Hraesvelgr?.Position.X ?? 100f;
@@ -201,7 +201,7 @@ public class P6_Wroth_Flames : SplatoonScript
             _stackSafeDirection = redSphereSafeDirection.Intersect(hraesvelgrSafeDirection).First();
 
             var stackPosition = GetStackPosition(_stackSafeDirection);
-            if (Controller.TryGetElementByName("Bait", out var element))
+            if(Controller.TryGetElementByName("Bait", out var element))
             {
                 element.Enabled = true;
                 element.SetOffPosition(stackPosition.ToVector3(0));
@@ -211,7 +211,7 @@ public class P6_Wroth_Flames : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state is State.None or State.End)
+        if(_state is State.None or State.End)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
@@ -245,7 +245,7 @@ public class P6_Wroth_Flames : SplatoonScript
 
     private float GetDebuffPositionX(Debuff debuff, int index)
     {
-        switch (debuff, index)
+        switch(debuff, index)
         {
             case (Debuff.Stack, 0):
             case (Debuff.None, 0):
@@ -300,15 +300,15 @@ public class P6_Wroth_Flames : SplatoonScript
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        if (_state != State.Start) return;
-        if (_debuffs.TryGetValue(Status.StatusId, out var list)) list.Add(sourceId);
-        if (_debuffs[SpreadDebuffId].Count == 4 && _debuffs[StackDebuffId].Count == 2)
+        if(_state != State.Start) return;
+        if(_debuffs.TryGetValue(Status.StatusId, out var list)) list.Add(sourceId);
+        if(_debuffs[SpreadDebuffId].Count == 4 && _debuffs[StackDebuffId].Count == 2)
         {
-            foreach (var player in FakeParty.Get())
+            foreach(var player in FakeParty.Get())
             {
-                if (_debuffs[SpreadDebuffId].Contains(player.EntityId))
+                if(_debuffs[SpreadDebuffId].Contains(player.EntityId))
                     continue;
-                if (_debuffs[StackDebuffId].Contains(player.EntityId))
+                if(_debuffs[StackDebuffId].Contains(player.EntityId))
                     continue;
                 _debuffs[NoDebuffId].Add(player.EntityId);
             }
@@ -319,31 +319,31 @@ public class P6_Wroth_Flames : SplatoonScript
 
     public override void OnRemoveBuffEffect(uint sourceId, Status Status)
     {
-        if (_state != State.Split) return;
-        if (Status.StatusId == StackDebuffId) _state = State.End;
+        if(_state != State.Split) return;
+        if(Status.StatusId == StackDebuffId) _state = State.End;
     }
 
     private unsafe bool DrawPriorityList()
     {
-        if (C.Priority.Length != 8)
+        if(C.Priority.Length != 8)
             C.Priority = ["", "", "", "", "", "", "", ""];
 
         ImGuiEx.Text("Priority list");
         ImGui.SameLine();
         ImGuiEx.Spacing();
-        if (ImGui.Button("Perform test")) SelfTest();
+        if(ImGui.Button("Perform test")) SelfTest();
         ImGui.SameLine();
-        if (ImGui.Button("Fill by job"))
+        if(ImGui.Button("Fill by job"))
         {
             HashSet<(string, Job)> party = [];
-            foreach (var x in FakeParty.Get())
+            foreach(var x in FakeParty.Get())
                 party.Add((x.Name.ToString(), x.GetJob()));
 
             var proxy = InfoProxyCrossRealm.Instance();
-            for (var i = 0; i < proxy->GroupCount; i++)
+            for(var i = 0; i < proxy->GroupCount; i++)
             {
                 var group = proxy->CrossRealmGroups[i];
-                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
                 {
                     var x = group.GroupMembers[c];
                     party.Add((x.Name.Read(), (Job)x.ClassJobId));
@@ -351,19 +351,19 @@ public class P6_Wroth_Flames : SplatoonScript
             }
 
             var index = 0;
-            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            foreach(var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
             {
                 C.Priority[index] = party.First(x => x.Item2 == job).Item1;
                 index++;
             }
 
-            for (var i = index; i < C.Priority.Length; i++)
+            for(var i = index; i < C.Priority.Length; i++)
                 C.Priority[i] = "";
         }
         ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
-        
+
         ImGui.PushID("prio");
-        for (var i = 0; i < C.Priority.Length; i++)
+        for(var i = 0; i < C.Priority.Length; i++)
         {
             ImGui.PushID($"prioelement{i}");
             ImGui.Text($"Character {i + 1}");
@@ -372,11 +372,11 @@ public class P6_Wroth_Flames : SplatoonScript
             ImGui.InputText($"##Character{i}", ref C.Priority[i], 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
+            if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
                              .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if (ImGui.Selectable(x))
+                    if(ImGui.Selectable(x))
                         C.Priority[i] = x;
                 ImGui.EndCombo();
             }
@@ -400,10 +400,10 @@ public class P6_Wroth_Flames : SplatoonScript
         ImGui.Text("Stack Settings");
         ImGui.Indent();
         ImGui.Checkbox("Prioritize Second Red Ball Diagonal", ref C.PrioritizeSecondRedBallDiagonal);
-        if (C.PrioritizeSecondRedBallDiagonal)
+        if(C.PrioritizeSecondRedBallDiagonal)
             C.PrioritizeWest = false;
         ImGui.Checkbox("Prioritize West", ref C.PrioritizeWest);
-        if (C.PrioritizeWest)
+        if(C.PrioritizeWest)
             C.PrioritizeSecondRedBallDiagonal = false;
         ImGui.Unindent();
 
@@ -411,16 +411,16 @@ public class P6_Wroth_Flames : SplatoonScript
         ImGui.Indent();
         DrawPriorityList();
         ImGui.Unindent();
-        if (ImGuiEx.CollapsingHeader("Option"))
+        if(ImGuiEx.CollapsingHeader("Option"))
         {
             DragDrop.Begin();
-            foreach (var job in C.Jobs)
+            foreach(var job in C.Jobs)
             {
                 DragDrop.NextRow();
                 ImGui.Text(job.ToString());
                 ImGui.SameLine();
 
-                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
                 {
                     ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
                     ImGui.SameLine();
@@ -432,16 +432,16 @@ public class P6_Wroth_Flames : SplatoonScript
 
             DragDrop.End();
         }
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text("Debuffs");
             ImGui.Indent();
-            foreach (var debuff in _debuffs)
+            foreach(var debuff in _debuffs)
             {
                 ImGui.Text($"Debuff: {debuff.Key}");
                 ImGui.Indent();
-                foreach (var entityId in debuff.Value)
+                foreach(var entityId in debuff.Value)
                 {
                     var player = FakeParty.Get().First(x => x.EntityId == entityId);
                     ImGui.Text($"{player.Name}");
@@ -500,7 +500,7 @@ public class P6_Wroth_Flames : SplatoonScript
         public bool PrioritizeWest;
         public string[] Priority = ["", "", "", "", "", "", "", ""];
         public bool ShouldCheckOnStart;
-        
+
         public List<Job> Jobs =
         [
             Job.PLD,

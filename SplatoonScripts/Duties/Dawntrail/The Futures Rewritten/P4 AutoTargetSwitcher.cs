@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
@@ -14,6 +11,9 @@ using ECommons.Logging;
 using ECommons.Throttlers;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -44,20 +44,20 @@ public class P4_AutoTargetSwitcher : SplatoonScript
     private static void DrawReorderableList<T>(IList<T> list) where T : struct, Enum
     {
         var toRemoveIndex = -1;
-        for (var i = 0; i < list.Count; i++)
+        for(var i = 0; i < list.Count; i++)
         {
             ImGui.Text($"Item: {list[i]}");
             ImGui.SameLine();
-            if (ImGui.SmallButton($"Remove##{i}")) toRemoveIndex = i;
+            if(ImGui.SmallButton($"Remove##{i}")) toRemoveIndex = i;
         }
 
-        if (toRemoveIndex != -1) list.RemoveAt(toRemoveIndex);
+        if(toRemoveIndex != -1) list.RemoveAt(toRemoveIndex);
 
-        if (ImGui.BeginCombo("##partysel", "Add Item"))
+        if(ImGui.BeginCombo("##partysel", "Add Item"))
         {
             Enum.GetValues<T>().Each(x =>
             {
-                if (ImGui.Selectable(x.ToString())) list.Add(x);
+                if(ImGui.Selectable(x.ToString())) list.Add(x);
             });
             ImGui.EndCombo();
         }
@@ -72,12 +72,12 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         ImGui.SliderInt("Interval", ref C.Interval, 100, 1000);
 
         ImGui.Checkbox("Should Disable When Low Hp", ref C.ShouldDisableWhenLowHp);
-        if (C.ShouldDisableWhenLowHp) ImGui.SliderFloat("Low Hp Percentage", ref C.LowHpPercentage, 0f, 100f);
+        if(C.ShouldDisableWhenLowHp) ImGui.SliderFloat("Low Hp Percentage", ref C.LowHpPercentage, 0f, 100f);
 
         ImGui.Checkbox("Do not switch if target is not in melee range", ref C.LimitDistance);
 
         ImGui.Checkbox("Timing Mode", ref C.TimingMode);
-        if (C.TimingMode)
+        if(C.TimingMode)
         {
             ImGui.Indent();
             ImGui.PushID("EnableTimings");
@@ -99,7 +99,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
         }
 
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("DebugMode", ref C.DebugMode);
             ImGui.Text($"Timings: {C.TimingMode}");
@@ -110,7 +110,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
             ImGui.Separator();
             var darkGirl = DarkGirl;
             var lightGirl = LightGirl;
-            if (darkGirl == null || lightGirl == null) return;
+            if(darkGirl == null || lightGirl == null) return;
             var darkGirlHpPercent = (float)darkGirl.CurrentHp / darkGirl.MaxHp * 100f;
             var lightGirlHpPercent = (float)lightGirl.CurrentHp / lightGirl.MaxHp * 100f;
             ImGui.Text($"DarkGirl Hp Percent: {darkGirlHpPercent}");
@@ -121,16 +121,16 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
     private void Alert(string message)
     {
-        if (C.DebugMode)
+        if(C.DebugMode)
             DuoLog.Information(message);
     }
 
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is null) return;
+        if(set.Action is null) return;
 
-        switch (set.Action.Value.RowId)
+        switch(set.Action.Value.RowId)
         {
             case 40285:
                 _currentTiming = Timings.SomberDanceEnd;
@@ -144,7 +144,7 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40247)
+        if(castId == 40247)
         {
             _akhMornCount++;
             _currentTiming = _akhMornCount == 1 ? Timings.FirstAkhMorn : Timings.SecondAkhMorn;
@@ -153,35 +153,35 @@ public class P4_AutoTargetSwitcher : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (!IsActive) return;
-        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback]) return;
-        if (EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
+        if(!IsActive) return;
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback]) return;
+        if(EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
         {
             var darkGirl = DarkGirl;
             var lightGirl = LightGirl;
 
-            if (darkGirl == null && lightGirl == null)
+            if(darkGirl == null && lightGirl == null)
             {
                 Alert("No targets found");
                 return;
             }
 
-            if (C.ShouldDisableWhenLowHp && darkGirl != null && lightGirl != null)
-                if ((float)darkGirl.CurrentHp / darkGirl.MaxHp * 100f < C.LowHpPercentage ||
+            if(C.ShouldDisableWhenLowHp && darkGirl != null && lightGirl != null)
+                if((float)darkGirl.CurrentHp / darkGirl.MaxHp * 100f < C.LowHpPercentage ||
                     (float)lightGirl.CurrentHp / lightGirl.MaxHp * 100f < C.LowHpPercentage)
                 {
                     Alert("Disabling due to low hp");
                     return;
                 }
 
-            if (darkGirl == null && lightGirl != null)
+            if(darkGirl == null && lightGirl != null)
             {
                 Svc.Targets.SetTarget(lightGirl);
                 _currentTarget = lightGirl;
                 return;
             }
 
-            if (darkGirl != null && lightGirl == null)
+            if(darkGirl != null && lightGirl == null)
             {
                 Svc.Targets.SetTarget(darkGirl);
                 _currentTarget = darkGirl;
@@ -189,22 +189,22 @@ public class P4_AutoTargetSwitcher : SplatoonScript
             }
 
             _targets.Clear();
-            if (darkGirl != null) _targets.Add(darkGirl);
-            if (lightGirl != null) _targets.Add(lightGirl);
+            if(darkGirl != null) _targets.Add(darkGirl);
+            if(lightGirl != null) _targets.Add(lightGirl);
 
             _percentages.Clear();
-            foreach (var percentage in _targets.Select(target => (float)target.CurrentHp / target.MaxHp * 100f))
+            foreach(var percentage in _targets.Select(target => (float)target.CurrentHp / target.MaxHp * 100f))
                 _percentages.Add(percentage);
 
             var minPercentage = _percentages.Min();
             var maxPercentage = _percentages.Max();
 
-            if (_currentTarget == null || maxPercentage - minPercentage > C.AcceptablePercentage ||
+            if(_currentTarget == null || maxPercentage - minPercentage > C.AcceptablePercentage ||
                 Math.Abs(minPercentage - _lastMinPercentage) > 0.1f)
             {
                 _lastMinPercentage = minPercentage;
 
-                if (maxPercentage - minPercentage > C.AcceptablePercentage)
+                if(maxPercentage - minPercentage > C.AcceptablePercentage)
                 {
                     var maxTarget = _targets[_percentages.IndexOf(maxPercentage)];
                     Alert($"Switching to target with max percentage: {maxTarget.Name}");

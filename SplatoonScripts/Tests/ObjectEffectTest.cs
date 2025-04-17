@@ -13,7 +13,7 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public class ObjectEffectTest : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
 
         public override void OnObjectEffect(uint target, ushort data1, ushort data2)
         {

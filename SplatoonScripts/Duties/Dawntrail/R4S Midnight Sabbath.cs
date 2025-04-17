@@ -11,17 +11,17 @@ using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-internal class R4S_Midnight_Sabbath: SplatoonScript
+internal class R4S_Midnight_Sabbath : SplatoonScript
 {
-    public override HashSet<uint> ValidTerritories => new() { 1232 };
+    public override HashSet<uint> ValidTerritories => [1232];
     public override Metadata? Metadata => new(2, "Fragile");
 
     public override void OnActorControl(uint actorID, uint category, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
     {
-        if (category == 407)
+        if(category == 407)
         {
             var obj = Svc.Objects.SearchById(actorID);
-            switch (p1)
+            switch(p1)
             {
                 case 4561:
                     FirstLine(obj);

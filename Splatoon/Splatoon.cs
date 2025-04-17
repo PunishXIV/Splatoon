@@ -6,6 +6,7 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
+using ECommons.Automation;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.CircularBuffers;
 using ECommons.Configuration;
@@ -31,6 +32,7 @@ using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using System.Net.Http;
+using System.Windows.Forms;
 using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
 
@@ -715,7 +717,14 @@ public unsafe class Splatoon : IDalamudPlugin
             var mousePos = ImGui.GetIO().MousePos;
             if(Svc.GameGui.ScreenToWorld(new Vector2(mousePos.X, mousePos.Y), out var worldPos, Config.maxdistance * 5))
             {
-                s2wInfo.Apply(worldPos.X, worldPos.Z, worldPos.Y);
+                if(IsKeyPressed(Keys.LShiftKey) || IsKeyPressed(Keys.RShiftKey))
+                {
+                    s2wInfo.Apply(MathF.Round(worldPos.X), MathF.Round(worldPos.Z), MathF.Round(worldPos.Y));
+                }
+                else
+                {
+                    s2wInfo.Apply(worldPos.X, worldPos.Z, worldPos.Y);
+                }
             }
             if(!lmbdown && prevMouseState)
             {

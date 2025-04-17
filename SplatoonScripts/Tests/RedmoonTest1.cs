@@ -10,14 +10,14 @@ using System.Collections.Generic;
 
 
 namespace SplatoonScriptsOfficial.Tests;
-internal unsafe class RedmoonTest1 :SplatoonScript
+internal unsafe class RedmoonTest1 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => null;
 
     public override void OnSettingsDraw()
     {
         var gom = GameObjectManager.Instance();
-        EventFramework* eventFrameworkPtr = EventFramework.Instance();
+        var eventFrameworkPtr = EventFramework.Instance();
 
         if(eventFrameworkPtr == null)
         {
@@ -32,7 +32,7 @@ internal unsafe class RedmoonTest1 :SplatoonScript
 
         if(ImGuiEx.CollapsingHeader("Sorted list"))
         {
-            for(int objectIndex = 0; objectIndex < gom->Objects.IndexSorted.Length; ++objectIndex)
+            for(var objectIndex = 0; objectIndex < gom->Objects.IndexSorted.Length; ++objectIndex)
             {
                 var obj = gom->Objects.IndexSorted[objectIndex].Value;
                 if(obj == null)
@@ -45,7 +45,7 @@ internal unsafe class RedmoonTest1 :SplatoonScript
         }
         if(ImGuiEx.CollapsingHeader("SortEntityId list"))
         {
-            for(int objectIndex = 0; objectIndex < gom->Objects.EntityIdSorted.Length; ++objectIndex)
+            for(var objectIndex = 0; objectIndex < gom->Objects.EntityIdSorted.Length; ++objectIndex)
             {
                 var obj = gom->Objects.EntityIdSorted[objectIndex].Value;
                 if(obj == null)
@@ -58,8 +58,8 @@ internal unsafe class RedmoonTest1 :SplatoonScript
         }
         if(ImGuiEx.CollapsingHeader("MyStatusList"))
         {
-            StatusManager* sm = (StatusManager*)Svc.ClientState.LocalPlayer.StatusList.Address;
-            Status* statusArray = (Status*)((byte*)sm + 0x08);
+            var sm = (StatusManager*)Svc.ClientState.LocalPlayer.StatusList.Address;
+            var statusArray = (Status*)((byte*)sm + 0x08);
             if(sm == null)
             {
                 ImGui.Text("StatusManager is null");
@@ -70,7 +70,7 @@ internal unsafe class RedmoonTest1 :SplatoonScript
                 ImGui.Text("StatusArray is null");
                 return;
             }
-            for(int statusIndex = 0; statusIndex < sm->NumValidStatuses; ++statusIndex)
+            for(var statusIndex = 0; statusIndex < sm->NumValidStatuses; ++statusIndex)
             {
                 ImGui.Text($"Status {statusIndex}: 0x{Conversion.Hex((&statusArray[statusIndex])->StatusId)}");
             }

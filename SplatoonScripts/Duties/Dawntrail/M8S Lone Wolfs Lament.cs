@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
@@ -15,6 +11,10 @@ using ECommons.ImGuiMethods;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -49,7 +49,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
     {
         get
         {
-            if (_basePlayerOverride == "")
+            if(_basePlayerOverride == "")
                 return Player.Object;
             return Svc.Objects.OfType<IPlayerCharacter>()
                 .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
@@ -72,18 +72,18 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (_state == State.None && castId == 43052) _state = State.Casting;
+        if(_state == State.None && castId == 43052) _state = State.Casting;
 
-        if (_state == State.Split && source.GetObject() is IBattleNpc tower &&
+        if(_state == State.Split && source.GetObject() is IBattleNpc tower &&
             Vector3.Distance(tower.Position, new Vector3(110.3f, -150f, 85.8f)) < 1f)
         {
             _northEastTowerIsOne = castId == 42118;
             _state = State.Tower;
 
-            foreach (var playerData in _players)
-                if (_northEastTowerIsOne)
+            foreach(var playerData in _players)
+                if(_northEastTowerIsOne)
                 {
-                    if (playerData is { TetherColor: TetherColor.Green, Direction: Direction.NorthEast })
+                    if(playerData is { TetherColor: TetherColor.Green, Direction: Direction.NorthEast })
                         playerData.Direction = Direction.NorthWest;
                 }
                 else
@@ -96,7 +96,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_state is State.Tower && set.Action is { RowId: 42118 }) _state = State.End;
+        if(_state is State.Tower && set.Action is { RowId: 42118 }) _state = State.End;
     }
 
     public override void OnReset()
@@ -124,7 +124,6 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
         ImGui.ColorEdit4("Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
         ImGui.Unindent();
 
-
         if (ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
@@ -145,7 +144,7 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state == State.Casting &&
+        if(_state == State.Casting &&
             source.GetObject() is IPlayerCharacter sourcePlayer &&
             target.GetObject() is IPlayerCharacter targetPlayer &&
             data2 == 0 && data5 == 15)
@@ -195,20 +194,20 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
             _players.Add(playerData1);
             _players.Add(playerData2);
 
-            if (_players.Count == 8) _state = State.Split;
+            if(_players.Count == 8) _state = State.Split;
         }
     }
 
     public override void OnUpdate()
     {
-        if (_state is State.None or State.Casting or State.End)
+        if(_state is State.None or State.Casting or State.End)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         }
         else
         {
             var player = _players.FirstOrDefault(x => x.Address == BasePlayer.Address);
-            if (Controller.TryGetElementByName("Bait", out var bait) && player != null)
+            if(Controller.TryGetElementByName("Bait", out var bait) && player != null)
             {
                 bait.Enabled = true;
                 bait.SetRefPosition(player.Position(C.XMirror));

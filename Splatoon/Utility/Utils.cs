@@ -18,6 +18,12 @@ public static unsafe class Utils
 {
     private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
 
+    public static float GetRotationWithOverride(this IGameObject obj, Element e)
+    {
+        if(!e.RotationOverride) return obj.Rotation;
+        return (180f - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), e.RotationOverridePoint.ToVector2()) + e.RotationOverrideAddAngle).DegToRad();
+    }
+
     public static void Migrate(this Layout l)
     {
         DataMigrator.MigrateJobs(l);

@@ -11,15 +11,15 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
-    public class Beyond_Defense :SplatoonScript
+    public class Beyond_Defense : SplatoonScript
     {
         public override Metadata? Metadata => new(3, "NightmareXIV");
-        public override HashSet<uint> ValidTerritories => new() { 1122 };
+        public override HashSet<uint> ValidTerritories => [1122];
 
-        bool isRunning = false;
+        private bool isRunning = false;
 
-        List<uint> ProximityMap = new();
-        HashSet<uint> ExclMap = new();
+        private List<uint> ProximityMap = [];
+        private HashSet<uint> ExclMap = [];
 
         public override void OnSetup()
         {
@@ -29,7 +29,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         public override void OnVFXSpawn(uint target, string vfxPath)
         {
             //PluginLog.Verbose($"VFX {vfxPath}");
-            if (vfxPath == "vfx/lockon/eff/all_at8s_0v.avfx")
+            if(vfxPath == "vfx/lockon/eff/all_at8s_0v.avfx")
             {
                 //DuoLog.Information($"Excluded: {target.GetObject()}");
                 isRunning = false;
@@ -40,9 +40,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         public override void OnUpdate()
         {
-            if (Svc.Objects.Any(x => x is IBattleChara c && c.CastActionId == 31527))
+            if(Svc.Objects.Any(x => x is IBattleChara c && c.CastActionId == 31527))
             {
-                if (!isRunning && Controller.Scene != 6)
+                if(!isRunning && Controller.Scene != 6)
                 {
                     var omegaM = (IBattleChara)Svc.Objects.Where(x => x is IBattleChara c && c.CastActionId == 31527).First();
                     ProximityMap = Svc.Objects.Where(x => x is IPlayerCharacter pc && !pc.IsDead).OrderBy(z => Vector3.Distance(omegaM.Position, z.Position)).Select(x => x.EntityId).ToList();
@@ -55,7 +55,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
             else
             {
-                if (isRunning)
+                if(isRunning)
                 {
                     Reset();
                 }
@@ -64,13 +64,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
         {
-            if (category.EqualsAny(DirectorUpdateCategory.Wipe, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Commence))
+            if(category.EqualsAny(DirectorUpdateCategory.Wipe, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Commence))
             {
                 Reset();
             }
         }
 
-        void Reset()
+        private void Reset()
         {
             ProximityMap.Clear();
             ExclMap.Clear();

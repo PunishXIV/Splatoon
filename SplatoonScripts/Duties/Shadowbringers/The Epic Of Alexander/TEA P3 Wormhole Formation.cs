@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
@@ -12,6 +9,9 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
@@ -55,7 +55,7 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
 
     public override void OnSetup()
     {
-        for (var i = 1; i <= 8; i++)
+        for(var i = 1; i <= 8; i++)
         {
             var element = new Element(0)
             {
@@ -70,16 +70,16 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == WormholeFormationCastId) _isStartWormholeFormation = true;
-        if (!_isStartWormholeFormation) return;
-        if (castId == ChakramCastId) _chakramScheduler ??= new TickScheduler(() => _currentPhase = 1, 5700);
+        if(castId == WormholeFormationCastId) _isStartWormholeFormation = true;
+        if(!_isStartWormholeFormation) return;
+        if(castId == ChakramCastId) _chakramScheduler ??= new TickScheduler(() => _currentPhase = 1, 5700);
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (!vfxPath.StartsWith("vfx/lockon/eff/m0361trg_a")) return;
-        if (!AttachedInfo.VFXInfos.TryGetValue(Svc.ClientState.LocalPlayer.Address, out var info)) return;
-        if (info.OrderBy(x => x.Value.Age)
+        if(!vfxPath.StartsWith("vfx/lockon/eff/m0361trg_a")) return;
+        if(!AttachedInfo.VFXInfos.TryGetValue(Svc.ClientState.LocalPlayer.Address, out var info)) return;
+        if(info.OrderBy(x => x.Value.Age)
             .TryGetFirst(x => x.Key.StartsWith("vfx/lockon/eff/m0361trg_a"), out var effect))
             _myNumber = int.Parse(effect.Key.Replace("vfx/lockon/eff/m0361trg_a", "")[0].ToString());
     }
@@ -88,18 +88,18 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
     {
         var targetObject = target.GetObject();
         // PluginLog.Warning($"Name:{targetObject.Name} DataID: {targetObject.DataId} Data1: {data1}, Data2: {data2}");
-        if (WormholeDataIds.All(x => x != targetObject?.DataId)) return;
-        if (data1 == 4 && data2 == 8 && _wormholeChangedCount > 5)
+        if(WormholeDataIds.All(x => x != targetObject?.DataId)) return;
+        if(data1 == 4 && data2 == 8 && _wormholeChangedCount > 5)
         {
             _isStartWormholeFormation = false;
             return;
         }
 
-        if (data1 != 1 && data2 != 2) return;
+        if(data1 != 1 && data2 != 2) return;
         var wormholePosition = targetObject.Position.ToVector2();
-        if (wormholePosition is { X: > 100, Y: < 100 } or { X: < 100, Y: > 100 }) _shouldInvert = true;
+        if(wormholePosition is { X: > 100, Y: < 100 } or { X: < 100, Y: > 100 }) _shouldInvert = true;
         _wormholeChangedCount++;
-        if (_wormholeChangedCount is 3 or 5 or 7) _currentPhase++;
+        if(_wormholeChangedCount is 3 or 5 or 7) _currentPhase++;
     }
 
     public override void OnReset()
@@ -115,18 +115,18 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (!_isStartWormholeFormation)
+        if(!_isStartWormholeFormation)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
         }
 
-        for (var i = 1; i <= 8; i++)
-            if (Controller.TryGetElementByName($"Bait{i}", out var element))
+        for(var i = 1; i <= 8; i++)
+            if(Controller.TryGetElementByName($"Bait{i}", out var element))
             {
                 var position = _baitPositions[i][_currentPhase];
                 var number = i;
-                if (_shouldInvert && _invertApplyIndex[_currentPhase].Contains(i))
+                if(_shouldInvert && _invertApplyIndex[_currentPhase].Contains(i))
                 {
                     position = position with { X = 200 - position.X };
                     number = number % 2 == 0 ? number - 1 : number + 1;
@@ -134,14 +134,14 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
 
                 element.SetOffPosition(position.ToVector3());
                 element.Enabled = true;
-                if (number == _myNumber)
+                if(number == _myNumber)
                 {
                     element.overlayText = C.BaitText;
                     element.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
                     element.tether = true;
                     element.thicc = 10f;
                 }
-                else if (C.ShouldDisplayOtherBait)
+                else if(C.ShouldDisplayOtherBait)
                 {
                     element.overlayText = number.ToString();
                     element.color = C.OtherBaitColor.ToUint();
@@ -157,7 +157,7 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGui.CollapsingHeader("My Bait Settings:"))
+        if(ImGui.CollapsingHeader("My Bait Settings:"))
         {
             ImGui.Indent();
             ImGui.Text("Bait Text:");
@@ -173,7 +173,7 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
             ImGui.Unindent();
         }
 
-        if (ImGui.CollapsingHeader("Other Bait Settings:"))
+        if(ImGui.CollapsingHeader("Other Bait Settings:"))
         {
             ImGui.Indent();
             ImGui.Checkbox("Display Other Bait", ref C.ShouldDisplayOtherBait);

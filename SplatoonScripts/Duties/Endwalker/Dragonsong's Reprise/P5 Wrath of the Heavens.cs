@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Threading.Tasks;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
@@ -12,6 +8,10 @@ using ECommons.Hooks;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -87,17 +87,17 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 27529) _active = true;
-        if (castId == 27538) _active = false;
+        if(castId == 27529) _active = true;
+        if(castId == 27538) _active = false;
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (vfxPath == "vfx/lockon/eff/m0005sp_19o0t.avfx")
-            if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+        if(vfxPath == "vfx/lockon/eff/m0005sp_19o0t.avfx")
+            if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
             {
                 //DuoLog.Information($"Local player is {PC.Name}");
-                if (PC == pvc)
+                if(PC == pvc)
                 {
                     //DuoLog.Information($"Skyward Leap is on me, tether other side");
                     _skydiveTargetElement.Enabled = true;
@@ -105,7 +105,7 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
                 else
                 {
                     //DuoLog.Information($"Skyward Leap is on someone else tether side");
-                    if (_gottether)
+                    if(_gottether)
                         return;
                     _noSkydiveTargetElement.Enabled = true;
                 }
@@ -117,8 +117,8 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
                 });
             }
 
-        if (vfxPath == "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx")
-            if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc && pvc == PC)
+        if(vfxPath == "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx")
+            if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc && pvc == PC)
             {
                 //DuoLog.Information($"Oh no BahamutWYVNGLIDER on {pvc}");
                 _bahamutDiveTargetElement.Enabled = true;
@@ -129,13 +129,13 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
         // Look for tethers only in p5 wrath (see OnMessage)
-        if (!_active) return;
-        if (source.TryGetObject(out var ignasse) && ignasse is IBattleChara ig && ig.NameId == 3638 &&
+        if(!_active) return;
+        if(source.TryGetObject(out var ignasse) && ignasse is IBattleChara ig && ig.NameId == 3638 &&
             target.TryGetObject(out var pi) && pi is IPlayerCharacter pic)
         {
             _ignassePlayer = pic;
             //DuoLog.Information($"Ignasse tether from {ignasse.Name} to {IgnassePlayer.Name} data {data2} || {data3} || {data5}");
-            if (PC == pic)
+            if(PC == pic)
             {
                 _gottether = true;
                 _noSkydiveTargetElement.Enabled = false;
@@ -151,12 +151,12 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
                 Task.Delay(7000).ContinueWith(_ => { _ignasseHitboxElement.Enabled = false; });
             }
         }
-        else if (source.TryGetObject(out var vellguine) && vellguine is IBattleChara vg && vg.NameId == 3636 &&
+        else if(source.TryGetObject(out var vellguine) && vellguine is IBattleChara vg && vg.NameId == 3636 &&
                  target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
         {
             _vellguinePlayer = pvc;
             //DuoLog.Information($"Vellguine tether from {vellguine.Name} to {VellguinePlayer.Name} data {data2} || {data3} || {data5}");
-            if (PC == pvc)
+            if(PC == pvc)
             {
                 _gottether = true;
                 _noSkydiveTargetElement.Enabled = false;
@@ -179,31 +179,31 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
     {
         _active = false;
         _gottether = false;
-        if (_skydiveTargetElement != null)
+        if(_skydiveTargetElement != null)
             _skydiveTargetElement.Enabled = false;
-        if (_noSkydiveTargetElement != null)
+        if(_noSkydiveTargetElement != null)
             _noSkydiveTargetElement.Enabled = false;
-        if (_bahamutDiveTargetElement != null)
+        if(_bahamutDiveTargetElement != null)
             _bahamutDiveTargetElement.Enabled = false;
-        if (_ignasseTargetElement != null)
+        if(_ignasseTargetElement != null)
             _ignasseTargetElement.Enabled = false;
-        if (_vellguineTargetElement != null)
+        if(_vellguineTargetElement != null)
             _vellguineTargetElement.Enabled = false;
-        if (_ignasseHitboxElement != null)
+        if(_ignasseHitboxElement != null)
             _ignasseHitboxElement.Enabled = false;
-        if (_vellguineHitboxElement != null)
+        if(_vellguineHitboxElement != null)
             _vellguineHitboxElement.Enabled = false;
     }
 
     public override void OnUpdate()
     {
-        if (_ignasseHitboxElement.Enabled)
+        if(_ignasseHitboxElement.Enabled)
         {
             _ignasseHitboxElement.SetRefPosition(Ignasse.Position);
             _ignasseHitboxElement.SetOffPosition(_ignassePlayer.Position);
         }
 
-        if (_vellguineHitboxElement.Enabled)
+        if(_vellguineHitboxElement.Enabled)
         {
             _vellguineHitboxElement.SetRefPosition(Vellguine.Position);
             _vellguineHitboxElement.SetOffPosition(_vellguinePlayer.Position);
@@ -212,7 +212,7 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
+        if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
                 DirectorUpdateCategory.Wipe)) Off();
     }
 

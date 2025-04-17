@@ -22,15 +22,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public class Pantokrator : SplatoonScript
     {
         public override Metadata? Metadata => new(4, "NightmareXIV");
-        public override HashSet<uint> ValidTerritories => new() { 1122 };
-        IBattleChara? Omega => Svc.Objects.FirstOrDefault(x => x is IBattleChara o && o.NameId == 7695 && o.IsTargetable()) as IBattleChara;
+        public override HashSet<uint> ValidTerritories => [1122];
+        private IBattleChara? Omega => Svc.Objects.FirstOrDefault(x => x is IBattleChara o && o.NameId == 7695 && o.IsTargetable()) as IBattleChara;
 
         //  Condensed Wave Cannon Kyrios (3508), Remains = 9.6, Param = 0, Count = 0
         //  Guided Missile Kyrios Incoming (3497), Remains = 21.6, Param = 0, Count = 0
-        const uint FirstInLine = 3004;
+        private const uint FirstInLine = 3004;
 
-        IGameObject[] Lasers => Svc.Objects.Where(x => x is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3507, 3508, 3509, 3510) && z.RemainingTime <= 6f)).ToArray();
-        IGameObject[] Rockets => Svc.Objects.Where(x => x is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3424, 3495, 3496, 3497) && (z.RemainingTime <= 6f || pc.StatusList.Any(c => c.StatusId == FirstInLine)))).ToArray();
+        private IGameObject[] Lasers => Svc.Objects.Where(x => x is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3507, 3508, 3509, 3510) && z.RemainingTime <= 6f)).ToArray();
+        private IGameObject[] Rockets => Svc.Objects.Where(x => x is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId.EqualsAny<uint>(3424, 3495, 3496, 3497) && (z.RemainingTime <= 6f || pc.StatusList.Any(c => c.StatusId == FirstInLine)))).ToArray();
 
         public override void OnSetup()
         {
@@ -44,17 +44,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         public override void OnUpdate()
         {
-            if (Omega == null || !ProperOnLogin.PlayerPresent) return;
-            
+            if(Omega == null || !ProperOnLogin.PlayerPresent) return;
+
             if(Lasers.Length == 2)
             {
                 void EnableLaser(int which)
                 {
-                    var e = Controller.GetElementByName($"Laser{which+1}");
+                    var e = Controller.GetElementByName($"Laser{which + 1}");
                     var angle = GetRelativeAngleRad(new(100f, 100f), Lasers[which].Position.ToVector2());
                     var point = RotatePoint(100f, 100f, angle, new(100f, 130f, 0f));
                     e.Enabled = true;
-                    if (Lasers[which].Address == Svc.ClientState.LocalPlayer.Address)
+                    if(Lasers[which].Address == Svc.ClientState.LocalPlayer.Address)
                     {
                         e.color = Controller.GetConfig<Config>().LaserColSelf.ToUint();
                     }
@@ -74,15 +74,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 Controller.GetElementByName("Laser2").Enabled = false;
             }
 
-            if (Rockets.Length == 2)
+            if(Rockets.Length == 2)
             {
                 void EnableRocket(int which)
                 {
                     var e = Controller.GetElementByName($"Rocket{which + 1}");
                     e.Enabled = true;
-                    if (Rockets[which].Address == Svc.ClientState.LocalPlayer.Address)
+                    if(Rockets[which].Address == Svc.ClientState.LocalPlayer.Address)
                     {
-                        if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3424, 3495, 3496, 3497) && x.RemainingTime < 3f))
+                        if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId.EqualsAny<uint>(3424, 3495, 3496, 3497) && x.RemainingTime < 3f))
                         {
                             e.color = GradientColor.Get(Controller.GetConfig<Config>().RocketColSelf, Controller.GetConfig<Config>().RocketColSelf2, 250).ToUint();
                         }
@@ -110,7 +110,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             if(Controller.GetConfig<Config>().DisplayDirection && secondcasters.Count() >= 2)
             {
                 var firstcasters = Svc.Objects.Where(x => x is IBattleChara c && c.CastActionId == 31501).Cast<IBattleChara>();
-                if (firstcasters.Count() >= 2)
+                if(firstcasters.Count() >= 2)
                 {
                     foreach(var x in firstcasters)
                     {
@@ -146,7 +146,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         public static Vector3 RotatePoint(float cx, float cy, float angle, Vector3 p)
         {
-            if (angle == 0f) return p;
+            if(angle == 0f) return p;
             var s = (float)Math.Sin(angle);
             var c = (float)Math.Cos(angle);
 
@@ -155,8 +155,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             p.Y -= cy;
 
             // rotate point
-            float xnew = p.X * c - p.Y * s;
-            float ynew = p.X * s + p.Y * c;
+            var xnew = p.X * c - p.Y * s;
+            var ynew = p.X * s + p.Y * c;
 
             // translate point back:
             p.X = xnew + cx;
@@ -164,7 +164,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             return p;
         }
 
-        float GetRelativeAngleRad(Vector2 origin, Vector2 target)
+        private float GetRelativeAngleRad(Vector2 origin, Vector2 target)
         {
             var vector2 = target - origin;
             var vector1 = new Vector2(0, 1);
@@ -182,9 +182,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             if(ImGui.Button("Apply settings"))
             {
                 Controller.Clear();
-                this.OnSetup();
+                OnSetup();
             }
-            if (ImGui.CollapsingHeader("Debug"))
+            if(ImGui.CollapsingHeader("Debug"))
             {
                 foreach(var x in Svc.Objects)
                 {

@@ -14,7 +14,7 @@ public class ArtisanCraftCommand : SplatoonScript
     public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = null;
 #nullable disable
-    [EzIPC] Action<ushort, int> CraftItem;
+    [EzIPC] private Action<ushort, int> CraftItem;
     public override void OnSetup()
     {
         EzIPC.Init(this, "Artisan");

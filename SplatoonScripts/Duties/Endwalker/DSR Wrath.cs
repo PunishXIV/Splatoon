@@ -18,32 +18,32 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class DSR_Wrath : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 968 };
+        public override HashSet<uint> ValidTerritories => [968];
         public override Metadata? Metadata => new(3, "Enthusiastus");
 
-        Element? SkydiveTargetElement;
-        Element? NoSkydiveTargetElement;
-        Element? BahamutDiveTargetElement;
-        Element? IgnasseTargetElement;
-        Element? IgnasseHitboxElement;
-        IPlayerCharacter? IgnassePlayer;
-        Element? VellguineTargetElement;
-        Element? VellguineHitboxElement;
-        IPlayerCharacter? VellguinePlayer;
+        private Element? SkydiveTargetElement;
+        private Element? NoSkydiveTargetElement;
+        private Element? BahamutDiveTargetElement;
+        private Element? IgnasseTargetElement;
+        private Element? IgnasseHitboxElement;
+        private IPlayerCharacter? IgnassePlayer;
+        private Element? VellguineTargetElement;
+        private Element? VellguineHitboxElement;
+        private IPlayerCharacter? VellguinePlayer;
 
-        bool active = false;
-        bool gottether = false;
+        private bool active = false;
+        private bool gottether = false;
 
-        uint IgnasseDataId = 12635;
-        IBattleNpc? Ignasse => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == IgnasseDataId) as IBattleNpc;
-        uint VellguineDataId = 12633;
-        IBattleNpc? Vellguine => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == VellguineDataId) as IBattleNpc;
+        private uint IgnasseDataId = 12635;
+        private IBattleNpc? Ignasse => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == IgnasseDataId) as IBattleNpc;
+        private uint VellguineDataId = 12633;
+        private IBattleNpc? Vellguine => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == VellguineDataId) as IBattleNpc;
 
-        string TestOverride = "";
+        private string TestOverride = "";
 
-        IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+        private IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
 
-        Vector2 Center = new(100, 100);
+        private Vector2 Center = new(100, 100);
 
         public override void OnSetup()
         {
@@ -77,11 +77,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnMessage(string Message)
         {
-            if (Message.Contains("King Thordan readies Wrath of the Heavens"))
+            if(Message.Contains("King Thordan readies Wrath of the Heavens"))
             {
                 active = true;
             }
-            if (Message.Contains("King Thordan readies Death of the Heavens"))
+            if(Message.Contains("King Thordan readies Death of the Heavens"))
             {
                 active = false;
             }
@@ -89,12 +89,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnVFXSpawn(uint target, string vfxPath)
         {
-            if (vfxPath == "vfx/lockon/eff/m0005sp_19o0t.avfx")
+            if(vfxPath == "vfx/lockon/eff/m0005sp_19o0t.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+                if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"Local player is {PC.Name}");
-                    if (PC == pvc)
+                    if(PC == pvc)
                     {
                         //DuoLog.Information($"Skyward Leap is on me, tether other side");
                         SkydiveTargetElement.Enabled = true;
@@ -102,7 +102,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     else
                     {
                         //DuoLog.Information($"Skyward Leap is on someone else tether side");
-                        if (gottether)
+                        if(gottether)
                             return;
                         NoSkydiveTargetElement.Enabled = true;
                     }
@@ -113,9 +113,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     });
                 }
             }
-            if (vfxPath == "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx")
+            if(vfxPath == "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc && pvc == PC)
+                if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc && pvc == PC)
                 {
                     //DuoLog.Information($"Oh no BahamutWYVNGLIDER on {pvc}");
                     BahamutDiveTargetElement.Enabled = true;
@@ -130,12 +130,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
             // Look for tethers only in p5 wrath (see OnMessage)
-            if (!active) return;
-            if (source.TryGetObject(out var ignasse) && ignasse is IBattleChara ig && ig.NameId == 3638 && target.TryGetObject(out var pi) && pi is IPlayerCharacter pic)
+            if(!active) return;
+            if(source.TryGetObject(out var ignasse) && ignasse is IBattleChara ig && ig.NameId == 3638 && target.TryGetObject(out var pi) && pi is IPlayerCharacter pic)
             {
                 IgnassePlayer = pic;
                 //DuoLog.Information($"Ignasse tether from {ignasse.Name} to {IgnassePlayer.Name} data {data2} || {data3} || {data5}");
-                if (PC == pic)
+                if(PC == pic)
                 {
                     gottether = true;
                     NoSkydiveTargetElement.Enabled = false;
@@ -145,7 +145,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     {
                         IgnasseTargetElement.Enabled = false;
                     });
-                } else
+                }
+                else
                 {
                     IgnasseHitboxElement.SetRefPosition(ignasse.Position);
                     IgnasseHitboxElement.SetOffPosition(IgnassePlayer.Position);
@@ -157,11 +158,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     });
                 }
             }
-            else if (source.TryGetObject(out var vellguine) && vellguine is IBattleChara vg && vg.NameId == 3636 && target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+            else if(source.TryGetObject(out var vellguine) && vellguine is IBattleChara vg && vg.NameId == 3636 && target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
             {
                 VellguinePlayer = pvc;
                 //DuoLog.Information($"Vellguine tether from {vellguine.Name} to {VellguinePlayer.Name} data {data2} || {data3} || {data5}");
-                if (PC == pvc)
+                if(PC == pvc)
                 {
                     gottether = true;
                     NoSkydiveTargetElement.Enabled = false;
@@ -171,7 +172,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     {
                         VellguineTargetElement.Enabled = false;
                     });
-                } else
+                }
+                else
                 {
                     VellguineHitboxElement.SetRefPosition(vellguine.Position);
                     VellguineHitboxElement.SetOffPosition(VellguinePlayer.Position);
@@ -182,7 +184,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
                     });
                 }
-                
+
             }
         }
 
@@ -210,27 +212,27 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ActionEffect.ActionEffectEvent -= ActionEffect_ActionEffectEvent;
         }
 
-        void Hide()
+        private void Hide()
         {
         }
 
-        void Off()
+        private void Off()
         {
             active = false;
             gottether = false;
-            if (SkydiveTargetElement != null)
+            if(SkydiveTargetElement != null)
                 SkydiveTargetElement.Enabled = false;
-            if (NoSkydiveTargetElement != null)
+            if(NoSkydiveTargetElement != null)
                 NoSkydiveTargetElement.Enabled = false;
-            if (BahamutDiveTargetElement != null)
+            if(BahamutDiveTargetElement != null)
                 BahamutDiveTargetElement.Enabled = false;
-            if (IgnasseTargetElement != null)
+            if(IgnasseTargetElement != null)
                 IgnasseTargetElement.Enabled = false;
-            if (VellguineTargetElement != null)
+            if(VellguineTargetElement != null)
                 VellguineTargetElement.Enabled = false;
-            if (IgnasseHitboxElement != null)
+            if(IgnasseHitboxElement != null)
                 IgnasseHitboxElement.Enabled = false;
-            if (VellguineHitboxElement != null)
+            if(VellguineHitboxElement != null)
                 VellguineHitboxElement.Enabled = false;
         }
 
@@ -250,13 +252,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
         {
-            if (category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
+            if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
             {
                 Off();
             }
         }
 
-        Config Conf => Controller.GetConfig<Config>();
+        private Config Conf => Controller.GetConfig<Config>();
         public class Config : IEzConfig
         {
             public Vector4 ColNoDoom = Vector4FromRGBA(0xFF0000C8);
@@ -276,9 +278,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.DragFloat("Number scale", ref Conf.tScale.ValidateRange(0.1f, 10f), 0.1f);
         }
 
-        public unsafe static Vector4 Vector4FromRGBA(uint col)
+        public static unsafe Vector4 Vector4FromRGBA(uint col)
         {
-            byte* bytes = (byte*)&col;
+            var bytes = (byte*)&col;
             return new Vector4((float)bytes[3] / 255f, (float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f);
         }
     }

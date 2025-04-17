@@ -8,13 +8,13 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public class GenericTest3 : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
 
-        Class1 C1;
-        Class2 C2;
+        private Class1 C1;
+        private Class2 C2;
 
-        WeakReference<Class1> C1w;
-        WeakReference<Class2> C2w;
+        private WeakReference<Class1> C1w;
+        private WeakReference<Class2> C2w;
 
         public override void OnEnable()
         {
@@ -32,19 +32,19 @@ namespace SplatoonScriptsOfficial.Tests
 
         public override void OnSettingsDraw()
         {
-            if (ImGui.Button("Nullify"))
+            if(ImGui.Button("Nullify"))
             {
                 C1 = null;
                 C2 = null;
             }
         }
 
-        class Class1
+        private class Class1
         {
             public event Action? Event;
         }
 
-        class Class2
+        private class Class2
         {
             public void Handler() { }
         }

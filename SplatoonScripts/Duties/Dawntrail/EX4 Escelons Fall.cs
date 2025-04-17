@@ -25,20 +25,20 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
 
     public override Metadata? Metadata => new(6, "NightmareXIV, Redmoonwow");
 
-    uint StatusCloseFar = 2970;
-    uint StatusParamClose = 758;
-    uint StatusParamFar = 759;
-    uint[] CastSwitcher = [43182, 43181];
-    uint CastStandard = 43181;
-    uint RoseBloom3rd = 43541;
-    uint NpcNameId = 13861;//Name NPC ID: 13861
-    int NumSwitches = 0;
-    long ForceResetAt = long.MaxValue;
-    List<bool> SequenceIsClose = [];
-    bool AdjustPhase = false;
-    bool THShockTargeted = false;
+    private uint StatusCloseFar = 2970;
+    private uint StatusParamClose = 758;
+    private uint StatusParamFar = 759;
+    private uint[] CastSwitcher = [43182, 43181];
+    private uint CastStandard = 43181;
+    private uint RoseBloom3rd = 43541;
+    private uint NpcNameId = 13861;//Name NPC ID: 13861
+    private int NumSwitches = 0;
+    private long ForceResetAt = long.MaxValue;
+    private List<bool> SequenceIsClose = [];
+    private bool AdjustPhase = false;
+    private bool THShockTargeted = false;
 
-    IBattleNpc? Zelenia => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == this.NpcNameId && x.IsTargetable);
+    private IBattleNpc? Zelenia => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == NpcNameId && x.IsTargetable);
 
     public override void OnSetup()
     {
@@ -78,17 +78,17 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
 
     public override void OnGainBuffEffect(uint sourceId, Status status)
     {
-        if(sourceId == Zelenia?.EntityId && status.StatusId == this.StatusCloseFar)
+        if(sourceId == Zelenia?.EntityId && status.StatusId == StatusCloseFar)
         {
             //ForceResetAt = Environment.TickCount64 + 30000;
-            SequenceIsClose.Add(this.StatusParamClose == status.Param);
+            SequenceIsClose.Add(StatusParamClose == status.Param);
             PluginLog.Debug($"Registered: {(SequenceIsClose.Last() ? "Close" : "Far")}");
         }
     }
 
-    float GetThickness(bool isMyClose)
+    private float GetThickness(bool isMyClose)
     {
-        var isBaiting = this.SequenceIsClose[this.NumSwitches] == isMyClose;
+        var isBaiting = SequenceIsClose[NumSwitches] == isMyClose;
         if(isBaiting)
         {
             var factor = (Environment.TickCount64 / 30) % 20;
@@ -101,21 +101,21 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         }
     }
 
-    float GetRadius(bool isIn)
+    private float GetRadius(bool isIn)
     {
         var z = Zelenia;
         if(z == null) return 5f;
-        var breakpoint = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector2.Distance(x.Position.ToVector2(), z.Position.ToVector2())).ToList().SafeSelect(isIn?4:3);
+        var breakpoint = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector2.Distance(x.Position.ToVector2(), z.Position.ToVector2())).ToList().SafeSelect(isIn ? 4 : 3);
         if(breakpoint == null) return 5f;
         var distance = Vector2.Distance(z.Position.ToVector2(), breakpoint.Position.ToVector2());
         //distance += isIn ? -0.5f : 0.5f;
         return Math.Max(0.5f, distance);
     }
 
-    List<bool> GetMyCloses()
+    private List<bool> GetMyCloses()
     {
-        var myCloseFirst = this.SequenceIsClose[0] ? C.TakeFirstIfClose : C.TakeFirstIfFar;
-        if(this.AdjustPhase)
+        var myCloseFirst = SequenceIsClose[0] ? C.TakeFirstIfClose : C.TakeFirstIfFar;
+        if(AdjustPhase)
         {
             if(THShockTargeted)
             {
@@ -130,7 +130,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         return seq;
     }
 
-    bool IsSelfClose()
+    private bool IsSelfClose()
     {
         if(Zelenia == null) return false;
         return Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector2.Distance(x.Position.ToVector2(), Zelenia.Position.ToVector2())).Take(4).Any(x => x.AddressEquals(Player.Object));
@@ -146,9 +146,9 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
             return;
         }
 
-        if(this.SequenceIsClose.Count >= 1)
+        if(SequenceIsClose.Count >= 1)
         {
-            var isMyClose = GetMyCloses()[this.NumSwitches];
+            var isMyClose = GetMyCloses()[NumSwitches];
             var correct = IsSelfClose() == isMyClose;
             var e = Controller.GetElementByName(isMyClose ? $"In" : $"Out")!;
             e.Enabled = true;
@@ -162,12 +162,12 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if(set.Action == null) return;
-        if(set.Action.Value.RowId.EqualsAny(this.CastSwitcher))
+        if(set.Action.Value.RowId.EqualsAny(CastSwitcher))
         {
             PluginLog.Information($"Switch");
             if(C.Delay > 0)
             {
-                this.Controller.Schedule(() => NumSwitches++, C.Delay);
+                Controller.Schedule(() => NumSwitches++, C.Delay);
             }
             else
             {
@@ -183,7 +183,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if(castId == this.RoseBloom3rd)
+        if(castId == RoseBloom3rd)
         {
             PluginLog.Information($"Next Escelons Need Adjust");
             AdjustPhase = true;
@@ -205,16 +205,16 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         }
     }
 
-    void Reset()
+    private void Reset()
     {
-        this.SequenceIsClose.Clear();
+        SequenceIsClose.Clear();
         NumSwitches = 0;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         AdjustPhase = false;
         THShockTargeted = false;
     }
 
-    Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
     {
         public bool TakeFirstIfClose = false;

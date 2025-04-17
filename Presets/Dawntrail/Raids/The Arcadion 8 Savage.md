@@ -88,6 +88,16 @@ Displays second upcoming AOE in faint yellow:
 ~Lv2~{"Name":"M8S Towerfall Fangs","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"DCond":5,"ElementsL":[{"Name":"Fangs","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"color":3355506687,"fillIntensity":0.3,"refActorNPCNameID":13850,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Fangs","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"color":3355508731,"fillIntensity":0.3,"refActorNPCNameID":13850,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle","refX":100.0,"refY":100.0,"radius":12.0,"Donut":3.0,"fillIntensity":0.5,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"YOU","type":1,"radius":0.5,"color":3355508503,"fillIntensity":1.0,"refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"Match":">41926)","MatchDelay":2.2}]}
 ```
 
+### [Script] [WIP] Millennial Decay
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Millennial%20Decay.cs
+```
+
+### [Script] [WIP] Tactical Pack
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Tactical%20Pack.cs
+```
+
 ## Add phase
 
 ### Cleanse countdown
@@ -240,6 +250,31 @@ Early display
 ```
 ```
 ~Lv2~{"Name":"M8S green tether w/healer","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4111092992,"overlayTextColor":4280418048,"overlayVOffset":2.0,"overlayText":"> Close W/HEALER - GO TO HEALER then 3 TOWER <","refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:SCH TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:AST TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:SGE TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:WHM TetherParam:(0, 317, 15) TetherTarget:YOU"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:SCH"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:AST"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:SGE"},{"Type":2,"Duration":10.0,"Match":"Tether create: TetherSource:YOU TetherParam:(0, 317, 15) TetherTarget:WHM"}]}
+```
+
+### [Script] Ultraviolent Ray
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Ultraviolent%20Ray.cs
+```
+
+### [Script] [JP] Ultraviolent Ray 4th
+
+strat: https://x.com/ff14_pylene99/status/1911753489111536086?s=46&t=AWI1YtCv6epom9nJ0OpNgw
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Ultraviolent%20Ray.cs
+```
+
+### [Script] Elemental Purge Cleave
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Elemental%20Purge%20Cleave.cs
+```
+
+
+### [Script] Rise of the Howling Wind
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Rise%20of%20the%20Howling%20Wind.cs
 ```
 
 ### [Script] [ALPHA] Lone Wolfs Lament

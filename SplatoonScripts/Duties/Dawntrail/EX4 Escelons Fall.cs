@@ -23,7 +23,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1271];
 
-    public override Metadata? Metadata => new(6, "NightmareXIV, Redmoonwow");
+    public override Metadata? Metadata => new(7, "NightmareXIV, Redmoonwow");
 
     private uint StatusCloseFar = 2970;
     private uint StatusParamClose = 758;
@@ -63,6 +63,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderInt("Delay, ms", ref C.Delay, 0, 1000);
         ImGuiEx.HelpMarker("Delay helps to synchronize script with attack animation. If you want to see safe movement ASAP, set it to 0.");
+        ImGui.Checkbox("Do not resolve second mechanic at all (enable for \"braindead\" strat)", ref C.IgnoreSecond);
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("AdjustPhase", ref AdjustPhase);
@@ -145,7 +146,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
             Reset();
             return;
         }
-
+        if(C.IgnoreSecond && AdjustPhase) return;
         if(SequenceIsClose.Count >= 1)
         {
             var isMyClose = GetMyCloses()[NumSwitches];
@@ -220,5 +221,6 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         public bool TakeFirstIfClose = false;
         public bool TakeFirstIfFar = false;
         public int Delay = 800;
+        public bool IgnoreSecond = false;
     }
 }

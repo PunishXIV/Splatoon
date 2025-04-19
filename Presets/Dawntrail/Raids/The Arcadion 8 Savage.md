@@ -259,10 +259,11 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 
 ### [Script] [JP] Ultraviolent Ray 4th
 
-strat: https://x.com/ff14_pylene99/status/1911753489111536086?s=46&t=AWI1YtCv6epom9nJ0OpNgw
+It is based on a strategy that has fallen out of use in JP
+In most cases, there is no need to use it
 
 ```
-https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Ultraviolent%20Ray.cs
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Ultraviolent%20Ray%204th.cs
 ```
 
 ### [Script] Elemental Purge Cleave

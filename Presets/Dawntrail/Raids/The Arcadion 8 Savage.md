@@ -131,12 +131,10 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ~Lv2~{"Name":"M8S Terrestrial true north marker","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"DCond":5,"ElementsL":[{"Name":"North","type":2,"refX":100.0,"refY":85.0,"offX":100.0,"offY":85.0,"offZ":30.0,"radius":0.0,"Filled":false,"fillIntensity":0.1,"thicc":20.0,"refActorNPCNameID":13849,"refActorRequireCast":true,"refActorCastReverse":true,"refActorCastId":[41942],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":99.0,"refActorUseOvercast":true,"refActorComparisonType":6,"onlyVisible":true,"LimitDistance":true,"LimitDistanceInvert":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":7.0,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"(13843>41918)","MatchDelay":8.5,"FireOnce":true}]}
 ```
 
-### [Beta] Terrestrial Rage Spreads - normal (clock) strat - requires configuration
+### [Beta] Terrestrial Rage Spreads - normal (relative north) strat - requires configuration
 Shows approximately where you need to spread to dodge line AOEs if you have FIRST spread marker. 
 
 > [!IMPORTANT]
-> Requires Splatoon 3.8.0.4 or higher.
-> 
 > This preset is for the strat where first spawned fang becomes relative north, melee spread into first row, ranged into second row, and stack is taken in the middle. If you are using different strat, do not import.
 > 
 > Requires configuration. Open each layout and enable ONE element from each group, depending to where you need to go, relative when looking at first fang near to the wall that has first spawned.
@@ -149,8 +147,6 @@ Shows approximately where you need to spread to dodge line AOEs if you have FIRS
 Shows approximately where you need to spread to dodge line AOEs if you have FIRST spread marker. 
 
 > [!IMPORTANT]
-> Requires Splatoon 3.8.0.4 or higher.
-> 
 > This preset is for the strat where first spawned fang becomes relative north, DPS spread in the first row, and stack is taken in the back in 2nd row. If you are using different strat, do not import.
 > 
 > Requires configuration. Open each layout and enable ONE element from each group, depending to where you need to go, relative when looking at first fang near to the wall that has first spawned.

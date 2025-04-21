@@ -13,7 +13,7 @@ using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
-internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
+internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
 {
     /*
      * Constants and Types
@@ -105,7 +105,7 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
      */
     #region Public Fields
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
     #endregion
 
     /*
@@ -113,7 +113,7 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
      */
     #region Private Fields
     private State _state = State.Inactive;
-    private List<AssignedPlayer> _assignedPlayers = new();
+    private List<AssignedPlayer> _assignedPlayers = [];
     private WindState[,]? _currentWindState = null;
     private AssignedPlayer? _hasTetherPlayer = null;
     private bool _start1stLand = false;
@@ -167,90 +167,90 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == kProwlingGale)
+        if(castId == kProwlingGale)
         {
-            foreach (var pc in FakeParty.Get())
+            foreach(var pc in FakeParty.Get())
             {
                 _assignedPlayers.Add(new AssignedPlayer(pc.EntityId, 0, pc.GetJob()));
             }
 
-            if (_assignedPlayers.Count != 8) return;
+            if(_assignedPlayers.Count != 8) return;
             _state = State.Active;
         }
-        if (castId == kBareFangs)
+        if(castId == kBareFangs)
         {
-            this.OnReset();
+            OnReset();
         }
 
-        if (_state == State.Inactive) return;
+        if(_state == State.Inactive) return;
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if ((_state == State.Inactive) || !set.Action.HasValue) return;
-        if (set.Source == null) return;
+        if((_state == State.Inactive) || !set.Action.HasValue) return;
+        if(set.Source == null) return;
 
-        if (set.Action.Value.RowId == kProwlingGaleTower)
+        if(set.Action.Value.RowId == kProwlingGaleTower)
         {
             // Get Tower Number
-            int towerNumber = 0;
-            Vector2 towerPos = RoundVector2(ConvertVector(set.Source.Position));
-            for (int i = 0; i < kTowerPos.Count; i++)
+            var towerNumber = 0;
+            var towerPos = RoundVector2(ConvertVector(set.Source.Position));
+            for(var i = 0; i < kTowerPos.Count; i++)
             {
-                if (RoundVector2(ConvertVector(set.Source.Position)) == kTowerPos[i].Position)
+                if(RoundVector2(ConvertVector(set.Source.Position)) == kTowerPos[i].Position)
                 {
                     towerNumber = kTowerPos[i].LandNumber;
                     break;
                 }
             }
-            if (towerNumber == 0) return;
+            if(towerNumber == 0) return;
 
 
             // 最も近いプレイヤーを取得
-            float minDistance = float.MaxValue;
+            var minDistance = float.MaxValue;
             AssignedPlayer? closestPlayer = null;
-            foreach (var player in _assignedPlayers)
+            foreach(var player in _assignedPlayers)
             {
-                if (player.LandNumber != 0) continue;
-                if (!(player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)) continue;
+                if(player.LandNumber != 0) continue;
+                if(!(player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)) continue;
                 var playerPos = RoundVector2(ConvertVector(pc.Position));
-                float distance = Vector2.DistanceSquared(towerPos, playerPos);
-                if (distance < minDistance)
+                var distance = Vector2.DistanceSquared(towerPos, playerPos);
+                if(distance < minDistance)
                 {
                     minDistance = distance;
                     closestPlayer = player;
                 }
             }
-            if (closestPlayer == null) return;
+            if(closestPlayer == null) return;
             closestPlayer.LandNumber = towerNumber;
 
             // その次に近いプレイヤーを取得
             minDistance = float.MaxValue;
             AssignedPlayer? secondClosestPlayer = null;
-            foreach (var player in _assignedPlayers)
+            foreach(var player in _assignedPlayers)
             {
-                if (player.LandNumber != 0 || player.Id == closestPlayer.Id) continue;
-                if (!(player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)) continue;
+                if(player.LandNumber != 0 || player.Id == closestPlayer.Id) continue;
+                if(!(player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)) continue;
                 var playerPos = RoundVector2(ConvertVector(pc.Position));
-                float distance = Vector2.DistanceSquared(towerPos, playerPos);
-                if (distance < minDistance)
+                var distance = Vector2.DistanceSquared(towerPos, playerPos);
+                if(distance < minDistance)
                 {
                     minDistance = distance;
                     secondClosestPlayer = player;
                 }
             }
-            if (secondClosestPlayer == null) return;
+            if(secondClosestPlayer == null) return;
             secondClosestPlayer.LandNumber = towerNumber;
 
-            if (_assignedPlayers.Where(x => x.LandNumber != 0).Count() == 8)
+            if(_assignedPlayers.Where(x => x.LandNumber != 0).Count() == 8)
             {
                 _state = State.Confirmed;
             }
         }
 
-        if (set.Action.Value.RowId == kTwofoldTempest)
+        if(set.Action.Value.RowId == kTwofoldTempest)
         {
-            switch (_state)
+            switch(_state)
             {
                 case State.Phase1:
                     _state = State.Phase2Ready;
@@ -274,32 +274,32 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state == State.Inactive) return;
-        if (_isDelay) return;
-        if (data2 == 0 && data3 == 84 && data5 == 15)
+        if(_state == State.Inactive) return;
+        if(_isDelay) return;
+        if(data2 == 0 && data3 == 84 && data5 == 15)
         {
             // 別島のプレイヤーにTetherが付与された場合のみ有効
-            if (_hasTetherPlayer != null)
+            if(_hasTetherPlayer != null)
             {
-                if (_hasTetherPlayer.Id == target) return;
+                if(_hasTetherPlayer.Id == target) return;
                 var getTetherPlayer = _assignedPlayers.Where(x => x.Id == target).First();
-                if (_hasTetherPlayer.LandNumber == getTetherPlayer.LandNumber) return;
+                if(_hasTetherPlayer.LandNumber == getTetherPlayer.LandNumber) return;
             }
 
             _hasTetherPlayer = _assignedPlayers.Where(x => x.Id == target).First();
 
-            switch (_state)
+            switch(_state)
             {
                 case State.Confirmed:
                     // 1島か４島どっちからか判定
-                    int i = _assignedPlayers.Where(x => x.Id == target).First().LandNumber;
-                    if (i == 0) return;
-                    if (i == 1)
+                    var i = _assignedPlayers.Where(x => x.Id == target).First().LandNumber;
+                    if(i == 0) return;
+                    if(i == 1)
                     {
                         _start1stLand = true;
                         _currentWindState = kWindState1stStart;
                     }
-                    else if (i == 4)
+                    else if(i == 4)
                     {
                         _start1stLand = false;
                         _currentWindState = kWindState4thStart;
@@ -333,44 +333,44 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state == State.Inactive) return;
-        if (_showIsDone) return;
+        if(_state == State.Inactive) return;
+        if(_showIsDone) return;
 
         var pc = Mine();
-        if (pc == null) return;
-        int landNumber = _assignedPlayers.Where(x => x.Id == pc.EntityId).First().LandNumber;
-        if (landNumber == 0) return;
+        if(pc == null) return;
+        var landNumber = _assignedPlayers.Where(x => x.Id == pc.EntityId).First().LandNumber;
+        if(landNumber == 0) return;
 
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-        switch (_state)
+        switch(_state)
         {
             case State.Confirmed:
                 var mine = _assignedPlayers.Where(x => x.Id == pc.EntityId).First();
-                if (mine.LandNumber == 1)
+                if(mine.LandNumber == 1)
                 {
-                    if (Controller.TryGetElementByName("Close1Land", out var element))
+                    if(Controller.TryGetElementByName("Close1Land", out var element))
                     {
                         element.Enabled = true;
                     }
                 }
-                else if (mine.LandNumber == 2)
+                else if(mine.LandNumber == 2)
                 {
-                    if (Controller.TryGetElementByName("Nop1Land", out var element))
+                    if(Controller.TryGetElementByName("Nop1Land", out var element))
                     {
                         element.Enabled = true;
                     }
                 }
-                else if (mine.LandNumber == 3)
+                else if(mine.LandNumber == 3)
                 {
-                    if (Controller.TryGetElementByName("Nop4Land", out var element))
+                    if(Controller.TryGetElementByName("Nop4Land", out var element))
                     {
                         element.Enabled = true;
                     }
                 }
-                else if (mine.LandNumber == 4)
+                else if(mine.LandNumber == 4)
                 {
-                    if (Controller.TryGetElementByName("Close4Land", out var element))
+                    if(Controller.TryGetElementByName("Close4Land", out var element))
                     {
                         element.Enabled = true;
                     }
@@ -399,7 +399,7 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
                 PhaseProc(landNumber, 4);
                 break;
             case State.Phase5:
-                if (Controller.TryGetElementByName("Phase5", out var element2))
+                if(Controller.TryGetElementByName("Phase5", out var element2))
                 {
                     element2.Enabled = true;
                 }
@@ -411,20 +411,20 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
                 break;
             default:
                 // Invalid state
-                this.OnReset();
+                OnReset();
                 break;
         }
     }
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"State: {_state}");
             ImGuiEx.Text($"Assigned Players: {_assignedPlayers.Count}");
-            foreach (var player in _assignedPlayers)
+            foreach(var player in _assignedPlayers)
             {
-                if (player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)
+                if(player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)
                 {
                     ImGuiEx.Text($"LandNum: {player.LandNumber} Player: {player.Id} JOB: {pc.GetJob()} Position: {RoundVector2(ConvertVector(pc.Position))}");
                 }
@@ -432,17 +432,17 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
             ImGuiEx.Text($"Start 1st Land: {_start1stLand}");
             ImGuiEx.Text($"Show Is Done: {_showIsDone}");
             ImGuiEx.Text($"Is Delay: {_isDelay}");
-            if (_state == State.Phase1 || _state == State.Phase2 || _state == State.Phase3 || _state == State.Phase4)
+            if(_state == State.Phase1 || _state == State.Phase2 || _state == State.Phase3 || _state == State.Phase4)
             {
                 ImGui.Text("Now Proc");
                 var pc2 = Mine();
-                if (pc2 == null) return;
-                int landNumber = _assignedPlayers.Where(x => x.Id == pc2.EntityId).First().LandNumber;
-                if (landNumber == 0) return;
+                if(pc2 == null) return;
+                var landNumber = _assignedPlayers.Where(x => x.Id == pc2.EntityId).First().LandNumber;
+                if(landNumber == 0) return;
                 var phase = _state == State.Phase1 ? 1 : _state == State.Phase2Ready ? 2 : _state == State.Phase2 ? 2 : _state == State.Phase3Ready ? 3 : _state == State.Phase3 ? 3 : _state == State.Phase4Ready ? 4 : _state == State.Phase4 ? 4 : _state == State.Phase5 ? 5 : -1;
-                if (phase == -1) return;
-                if (_currentWindState == null) return;
-                WindState windState = _currentWindState[landNumber - 1, phase - 1];
+                if(phase == -1) return;
+                if(_currentWindState == null) return;
+                var windState = _currentWindState[landNumber - 1, phase - 1];
                 ImGuiEx.Text($"LandNum: {landNumber} Phase: {phase} WindState: {windState}");
             }
         }
@@ -465,29 +465,29 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
      * Private Methods
      */
     #region Private Methods
-    private static Vector2 ConvertVector(Vector3 vec) => new Vector2(vec.X, vec.Z);
-    private static Vector2 RoundVector2(Vector2 vec) => new Vector2((float)(int)vec.X, (float)(int)vec.Y);
+    private static Vector2 ConvertVector(Vector3 vec) => new(vec.X, vec.Z);
+    private static Vector2 RoundVector2(Vector2 vec) => new((float)(int)vec.X, (float)(int)vec.Y);
 
     private void PhaseProc(int landNumber, int phase)
     {
-        if (_currentWindState == null) return;
+        if(_currentWindState == null) return;
         // Phaseでの処理を確認
-        WindState windState = _currentWindState[landNumber - 1, phase - 1];
-        switch (windState)
+        var windState = _currentWindState[landNumber - 1, phase - 1];
+        switch(windState)
         {
             case WindState.GetTether:
                 // GetTether
-                if (Controller.TryGetElementByName($"GetTether{landNumber}LandAfter", out var element))
+                if(Controller.TryGetElementByName($"GetTether{landNumber}LandAfter", out var element))
                 {
                     element.Enabled = true;
                 }
                 break;
             case WindState.PassTether:
                 // PassTether
-                string RLprefix = string.Empty;
-                if (landNumber == 2 || landNumber == 3)
+                var RLprefix = string.Empty;
+                if(landNumber == 2 || landNumber == 3)
                 {
-                    if (_start1stLand)
+                    if(_start1stLand)
                     {
                         RLprefix = "L";
                     }
@@ -497,45 +497,45 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
                     }
                 }
 
-                if (Controller.TryGetElementByName($"PassTether{landNumber}Land{RLprefix}", out var element2))
+                if(Controller.TryGetElementByName($"PassTether{landNumber}Land{RLprefix}", out var element2))
                 {
                     element2.Enabled = true;
                 }
                 break;
             case WindState.Close:
                 // Close
-                if (Controller.TryGetElementByName($"Close{landNumber}Land", out var element3))
+                if(Controller.TryGetElementByName($"Close{landNumber}Land", out var element3))
                 {
                     element3.Enabled = true;
                 }
                 break;
             case WindState.Nop:
                 // Nop
-                if (Controller.TryGetElementByName($"Nop{landNumber}Land", out var element4))
+                if(Controller.TryGetElementByName($"Nop{landNumber}Land", out var element4))
                 {
                     element4.Enabled = true;
                 }
                 break;
             default:
                 // Invalid state
-                this.OnReset();
+                OnReset();
                 break;
         }
     }
 
     private void PhaseReadyProc(int landNumber, int phase)
     {
-        if (_currentWindState == null) return;
+        if(_currentWindState == null) return;
         // Phaseでの処理を確認
-        WindState windState = _currentWindState[landNumber - 1, phase - 1];
-        switch (windState)
+        var windState = _currentWindState[landNumber - 1, phase - 1];
+        switch(windState)
         {
             case WindState.GetTether:
                 // GetTether
-                string RLprefix = string.Empty;
-                if (landNumber == 2 || landNumber == 3)
+                var RLprefix = string.Empty;
+                if(landNumber == 2 || landNumber == 3)
                 {
-                    if (_start1stLand)
+                    if(_start1stLand)
                     {
                         RLprefix = "R";
                     }
@@ -544,17 +544,17 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
                         RLprefix = "L";
                     }
                 }
-                if (Controller.TryGetElementByName($"GetTether{landNumber}Land{RLprefix}", out var element))
+                if(Controller.TryGetElementByName($"GetTether{landNumber}Land{RLprefix}", out var element))
                 {
                     element.Enabled = true;
                 }
                 break;
             case WindState.PassTether:
                 // PassTether
-                string RLprefix2 = string.Empty;
-                if (landNumber == 2 || landNumber == 3)
+                var RLprefix2 = string.Empty;
+                if(landNumber == 2 || landNumber == 3)
                 {
-                    if (_start1stLand)
+                    if(_start1stLand)
                     {
                         RLprefix2 = "L";
                     }
@@ -563,46 +563,44 @@ internal class M8S_Rise_of_the_Howling_Wind :SplatoonScript
                         RLprefix2 = "R";
                     }
                 }
-                if (Controller.TryGetElementByName($"PassTether{landNumber}Land{RLprefix2}", out var element2))
+                if(Controller.TryGetElementByName($"PassTether{landNumber}Land{RLprefix2}", out var element2))
                 {
                     element2.Enabled = true;
                 }
                 break;
             case WindState.Close:
                 // Close
-                if (Controller.TryGetElementByName($"Close{landNumber}Land", out var element3))
+                if(Controller.TryGetElementByName($"Close{landNumber}Land", out var element3))
                 {
                     element3.Enabled = true;
                 }
                 break;
             case WindState.Nop:
                 // Nop
-                if (Controller.TryGetElementByName($"Nop{landNumber}Land", out var element4))
+                if(Controller.TryGetElementByName($"Nop{landNumber}Land", out var element4))
                 {
                     element4.Enabled = true;
                 }
                 break;
             default:
                 // Invalid state
-                this.OnReset();
+                OnReset();
                 break;
         }
     }
 
     private IPlayerCharacter? Mine()
     {
-        //uint id = Player.Object.EntityId;
-        uint id = FakeParty.Get().Where(x => x.GetJob() == Job.PLD).First().EntityId;
-        if (_assignedPlayers.Count == 0) return null;
+        var id = Player.Object.EntityId;
+        //uint id = FakeParty.Get().Where(x => x.GetJob() == Job.PLD).First().EntityId;
+        if(_assignedPlayers.Count == 0) return null;
         var player = _assignedPlayers.Where(x => x.Id == id).FirstOrDefault();
-        if (player == null) return null;
-        if (player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)
+        if(player == null) return null;
+        if(player.Id.TryGetObject(out var obj) && obj is IPlayerCharacter pc)
         {
             return pc;
         }
         return null;
     }
     #endregion
-
-
 }

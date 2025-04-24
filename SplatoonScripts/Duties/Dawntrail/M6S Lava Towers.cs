@@ -1,5 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface.Textures;
+using Dalamud.Interface.Textures.TextureWraps;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -12,6 +14,7 @@ using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -21,10 +24,11 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Lava_Towers : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     bool ReadyToSoak = false;
-    bool IsSecondTowers => Svc.Objects.OfType<IPlayerCharacter>().Any(x => x.StatusList.Any(s => s.StatusId == 4450));
+    bool IsSecondTowers = false;
+    bool WingsActive => Svc.Objects.OfType<IPlayerCharacter>().Any(x => x.StatusList.Any(s => s.StatusId == 4450));
 
     Dictionary<int, Vector2> Towers = new()
     {
@@ -86,6 +90,7 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+
         if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsTargetable && x.DataId == 18335, out var result)
             && result.Struct()->GetCastInfo() != null && ((result.CastActionId == 42649 && result.CurrentCastTime <= 6.6f) || result.IsCasting(42679)))
         {
@@ -96,35 +101,80 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
             }
         }
 
+        if(Controller.Scene == 5)
+        {
+            if(WingsActive)
+            {
+                IsSecondTowers = true;
+            }
+        }
+        else
+        {
+            OnReset();
+            return;
+        }
+
         if(this.ActiveTowers.Count > 0)
         {
-            var myTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.StartingPosition).OrderBy(x => Vector2.Distance(x, new(100, 100)));
+            if(WingsActive)
+            {
+                this.ReadyToSoak = false;
+            }
+            var myTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.StartingPosition).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray().ToArray();
             if(!IsSecondTowers)
             {
                 if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
                 {
+                    e.SetRefPosition((C.TwoTowerCloserToMiddle ? myTowers[0] : myTowers[1]).ToVector3(0));
                     e.Enabled = true;
-                    e.SetRefPosition((C.TwoTowerCloserToMiddle ? myTowers.First() : myTowers.Last()).ToVector3(0));
                 }
             }
             else
             {
-                return;
-                if(myTowers.Count() == 4)
+                if(myTowers.Length == 4)
                 {
-                    var adjTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.EscapeFrom4Towers).OrderBy(x => Vector2.Distance(x, new(100, 100)));
+                    var adjTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.EscapeFrom4Towers).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray().ToArray();
                     if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
                     {
-                        e.Enabled = true;
-                        e.SetRefPosition((C.TwoTowerCloserToMiddle ? adjTowers.First() : adjTowers.Last()).ToVector3(0));
+                        e.Enabled = true; 
+                        e.SetRefPosition((C.TwoTowerCloserToMiddle ? adjTowers[0] : adjTowers[1]).ToVector3(0));
                     }
                 }
                 else
                 {
-                    
+                    foreach(var x in Enum.GetValues<TowerPosition>())
+                    {
+                        if(x == TowerPosition.Undefined || x == C.StartingPosition) continue;
+                        var is8towers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == TowerPosition.Bottom).Count() == 8;
+                        if(is8towers)
+                        {
+                            var adjTowers = this.ActiveTowers.Select(x => Towers[x]).ToArray();
+                            if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e) && Towers.TryGetValue(C.Position8, out var pos))
+                            {
+                                e.Enabled = true;
+                                e.SetRefPosition(pos.ToVector3(0));
+                            };
+                        }
+                        else
+                        {
+                            var adjTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.EscapeFrom4Towers).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray();
+                            if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
+                            {
+                                e.Enabled = true;
+                                e.SetRefPosition((C.TwoTowerCloserToMiddle ? adjTowers[0] : adjTowers[1]).ToVector3(0));
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+
+    public override void OnReset()
+    {
+        this.IsSecondTowers = false;
+        this.ReadyToSoak = false;
+        this.ActiveTowers.Clear();
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
@@ -158,8 +208,14 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         {
             ImGui.Checkbox("Bait stack", ref C.BaitStack);
             ImGuiEx.Text($"Tower to take:");
-            ImGuiEx.RadioButtonBool("Closer to Middle of the arena", "Further from Middle of the arena", ref C.TwoTowerCloserToMiddle);
+            ImGuiEx.RadioButtonBool("Closer to middle", "Further from middle", ref C.TwoTowerCloserToMiddle);
             ImGuiEx.EnumCombo("Flying from 4 towers to", ref C.EscapeFrom4Towers);
+        }
+        ImGui.SetNextItemWidth(100f);
+        ImGuiEx.Combo("8 towers position", ref C.Position8, Towers.Keys.Where(x => x >= 89));
+        if(ThreadLoadImageHandler.TryGetTextureWrap("https://github.com/PunishXIV/Splatoon/blob/main/Presets/Files/Dawntrail/image_230.png?raw=true", out var w))
+        {
+            ImGui.Image(w.ImGuiHandle, w.Size);
         }
     }
     Config C => Controller.GetConfig<Config>();
@@ -169,5 +225,14 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         public bool BaitStack = false;
         public bool TwoTowerCloserToMiddle = true;
         public TowerPosition EscapeFrom4Towers = TowerPosition.Undefined;
+        public int Position8 = 90;
+    }
+
+    public enum Wall
+    {
+        Left,
+        Right,
+        Top,
+        Bottom
     }
 }

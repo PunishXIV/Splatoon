@@ -1,19 +1,20 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
+public sealed class M5S_Lets_Dance_NavigateStandPosition :SplatoonScript
 {
     private enum State
     {
@@ -22,11 +23,29 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
         End
     }
 
+    private class PartyData
+    {
+        public uint Id;
+        public Job Job;
+        public uint StatusId;
+        public float OriginalRemainingTime;
+        public uint RemainingTime;
+        public PartyData(uint id, Job job, uint statusId, float originalRemainingTime)
+        {
+            Id = id;
+            Job = job;
+            StatusId = statusId;
+            OriginalRemainingTime = originalRemainingTime;
+        }
+    }
+
+    public override HashSet<uint>? ValidTerritories => [1257];
+
     private const ushort AlphaDebuff = 0x116E;
     private const ushort BetaDebuff = 0x116F;
 
     private State _state = State.None;
-    public override HashSet<uint>? ValidTerritories => [1257];
+    private List<PartyData> _partyData = new();
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -44,7 +63,28 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Text($"State: {_state}");
+        if (ImGui.CollapsingHeader("Debug"))
+        {
+            ImGui.Text($"State: {_state}");
+            ImGui.Text($"Party Data: {_partyData.Count}");
+            if (_partyData.Count > 0)
+            {
+                foreach (var data in _partyData.OrderBy(x => x.OriginalRemainingTime).ToList())
+                {
+                    string statusName = data.StatusId switch
+                    {
+                        AlphaDebuff => "Alpha",
+                        BetaDebuff => "Beta",
+                        _ => "Unknown"
+                    };
+                    ImGui.Text($"ID: {data.Id}, Job: {data.Job}, Status: {statusName}, Remaining Time: {data.RemainingTime}, Original Remaining Time: {data.OriginalRemainingTime}");
+                }
+            }
+            else
+            {
+                ImGui.Text("No party data available.");
+            }
+        }
     }
 
     public override void OnUpdate()
@@ -66,43 +106,65 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition: SplatoonScript
         if (castId == 42858 && _state == State.None)
         {
             _state = State.Casting;
-            var remainingTime = 0f;
-            if (Player.Status.Any(x => x.StatusId == AlphaDebuff))
-                remainingTime = Player.Status.First(x => x.StatusId == AlphaDebuff).RemainingTime;
-            else if (Player.Status.Any(x => x.StatusId == BetaDebuff))
-                remainingTime = Player.Status.First(x => x.StatusId == BetaDebuff).RemainingTime;
-
-            PluginLog.Warning($"Remaining time: {remainingTime}");
-            
-            if (!Controller.TryGetElementByName("Bait", out var baitElement))
-                return;
-
-            switch (remainingTime)
+            _partyData.Clear();
+            foreach (var pc in FakeParty.Get())
             {
-                case > 20:
-                    baitElement.SetOffPosition(new Vector3(100, 0, 106));
-                    break;
-                case > 15:
-                    baitElement.SetOffPosition(new Vector3(100, 0, 102));
-                    break;
-                case > 10:
-                    baitElement.SetOffPosition(new Vector3(100, 0, 98));
-                    break;
-                case > 5:
-                    baitElement.SetOffPosition(new Vector3(100, 0, 94));
-                    break;
-            }
+                var status = pc.StatusList.FirstOrDefault(x => x.StatusId is AlphaDebuff or BetaDebuff);
+                if (status != null)
+                {
+                    var partyData = new PartyData(pc.EntityId, pc.GetJob(), status.StatusId, status.RemainingTime);
+                    _partyData.Add(partyData);
+                }
 
-            baitElement.Enabled = true;
+                if (_partyData.Count < 8) continue;
+
+                var sortedPartyData = _partyData.OrderBy(x => x.OriginalRemainingTime).ToList();
+                int assignedCount = 0;
+                uint currentSec = 10u;
+                foreach (var partyData in sortedPartyData)
+                {
+                    partyData.RemainingTime = currentSec;
+                    assignedCount++;
+                    if (assignedCount >= 2)
+                    {
+                        assignedCount = 0;
+                        currentSec += 5;
+                    }
+                }
+
+                if (!Controller.TryGetElementByName("Bait", out var baitElement))
+                    return;
+
+                var mine = _partyData.FirstOrDefault(x => x.Id == Player.Object.EntityId);
+                if (mine == null) return;
+
+                switch (mine.RemainingTime)
+                {
+                    case 25:
+                        baitElement.SetOffPosition(new Vector3(100, 0, 106));
+                        break;
+                    case 20:
+                        baitElement.SetOffPosition(new Vector3(100, 0, 102));
+                        break;
+                    case 15:
+                        baitElement.SetOffPosition(new Vector3(100, 0, 98));
+                        break;
+                    case 10:
+                        baitElement.SetOffPosition(new Vector3(100, 0, 94));
+                        break;
+                }
+
+                baitElement.Enabled = true;
+            }
         }
     }
 
     public override void OnRemoveBuffEffect(uint sourceId, Status status)
     {
-        if (_state is State.Casting && status.StatusId is (AlphaDebuff or BetaDebuff)) _state = State.End;
+        if (_state is State.Casting && status.StatusId is AlphaDebuff or BetaDebuff) _state = State.End;
     }
 
-    private class Config : IEzConfig
+    private class Config :IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

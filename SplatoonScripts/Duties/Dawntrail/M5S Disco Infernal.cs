@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
 using ECommons;
@@ -11,10 +8,13 @@ using ECommons.ImGuiMethods;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public sealed class M5S_Disco_Infernal : SplatoonScript
+public sealed class M5S_Disco_Infernal :SplatoonScript
 {
     public enum Direction
     {
@@ -35,7 +35,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
 
     private (int x, int y) _targetIndex = (0, 0);
     public override HashSet<uint>? ValidTerritories => [1257];
-    public override Metadata? Metadata => new Metadata(1, "Garume");
+    public override Metadata? Metadata => new Metadata(2, "Garume, Redmoon");
     private static IBattleNpc[] SpotLights => [.. Svc.Objects.Where(x => x.DataId == 0x47BB).OfType<IBattleNpc>()];
 
     private Config C => Controller.GetConfig<Config>();
@@ -77,13 +77,13 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
     public override void OnSetup()
     {
         for (var x = 0; x < 5; x++)
-        for (var y = 0; y < 5; y++)
-        {
-            var pos = new Vector3(0, 0, 0);
-            pos.X = 0.5f * x - 1.0f;
-            pos.Z = 0.5f * y - 1.0f;
-            // Controller.RegisterElement($"aoe{x}{y}", new Element(0));
-        }
+            for (var y = 0; y < 5; y++)
+            {
+                var pos = new Vector3(0, 0, 0);
+                pos.X = (0.5f * x) - 1.0f;
+                pos.Z = (0.5f * y) - 1.0f;
+                // Controller.RegisterElement($"aoe{x}{y}", new Element(0));
+            }
 
         var baitElement = new Element(0)
         {
@@ -201,15 +201,15 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
             }
             else if (C.Directions.Contains(Direction.NorthEastInside))
             {
-                var index = HasSpotLightAt(4,2) ? (4,2) : (5,3);
+                var index = HasSpotLightAt(4, 2) ? (4, 2) : (5, 3);
                 if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
             else if (C.Directions.Contains(Direction.SouthWestInside))
             {
-                var index = HasSpotLightAt(2,4) ? (2,4) : (3,5);
+                var index = HasSpotLightAt(2, 4) ? (2, 4) : (3, 5);
                 if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
         }
         else
@@ -224,15 +224,15 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
             }
             else if (C.Directions.Contains(Direction.NorthWestInside))
             {
-                var index = HasSpotLightAt(3,2) ? (3,2) : (2,3);
+                var index = HasSpotLightAt(3, 2) ? (3, 2) : (2, 3);
                 if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
             else if (C.Directions.Contains(Direction.SouthEastInside))
             {
-                var index = HasSpotLightAt(5,4) ? (5,4) : (4,5);
+                var index = HasSpotLightAt(5, 4) ? (5, 4) : (4, 5);
                 if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                SetElementFromIndex(index.Item1, index.Item2);
             }
         }
     }
@@ -257,7 +257,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
 
     private static Vector3 ToPosition(int x, int y)
     {
-        return new Vector3(82.5f + 5f * x, 0, 82.5f + 5f * y);
+        return new Vector3(82.5f + (5f * x), 0, 82.5f + (5f * y));
     }
 
     private bool HasSpotLightAt(int x, int y)
@@ -273,7 +273,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
         End
     }
 
-    private class Config : IEzConfig
+    private class Config :IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

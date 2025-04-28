@@ -7,29 +7,27 @@ using ECommons.ExcelServices;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using ImGuiNET;
-using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Action = Lumina.Excel.Sheets.Action;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
-public unsafe class M6S_Target_Enforcer : SplatoonScript
+public unsafe class M6S_Target_Enforcer :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
     ImGuiEx.RealtimeDragDrop<Mob> DragDrop = new("Mob", x => x.ToString());
     Dictionary<uint, long> EntityAgeTracker = [];
     int JabberCount = 0;
     int FeatherRayCount = 0;
+    uint Jabber1 = 0;
+    uint Jabber2 = 0;
 
-    public enum Mob : uint
+    public enum Mob :uint
     {
         GimmeCat = 13835,
         Yan = 13832, //goat
@@ -47,38 +45,38 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        foreach(var x in Svc.Objects)
+        foreach (var x in Svc.Objects)
         {
-            if(x.IsTargetable && x is IBattleNpc npc && Enum.GetValues<Mob>().Contains((Mob)npc.NameId) && !EntityAgeTracker.ContainsKey(x.EntityId))
+            if (x.IsTargetable && x is IBattleNpc npc && Enum.GetValues<Mob>().Contains((Mob)npc.NameId) && !EntityAgeTracker.ContainsKey(x.EntityId))
             {
                 EntityAgeTracker[x.EntityId] = Environment.TickCount64;
-                if((Mob)npc.NameId == Mob.Jabberwock) JabberCount++;
-                if((Mob)npc.NameId == Mob.FeatherRay) FeatherRayCount++;
-            } 
+                if ((Mob)npc.NameId == Mob.Jabberwock) JabberCount++;
+                if ((Mob)npc.NameId == Mob.FeatherRay) FeatherRayCount++;
+            }
         }
         var suggestedTarget = GetSuggestedTarget(out var useAction);
-        if(suggestedTarget != null)
+        if (suggestedTarget != null)
         {
-            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] && C.Switch)
+            if (Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat] && C.Switch)
             {
-                if(!Svc.Targets.Target.AddressEquals(suggestedTarget) && EzThrottler.Throttle("M6SSwitchTarget", 200))
+                if (!Svc.Targets.Target.AddressEquals(suggestedTarget) && EzThrottler.Throttle("M6SSwitchTarget", 200))
                 {
                     Svc.Targets.Target = suggestedTarget;
                 }
             }
-            if(Controller.TryGetElementByName("Attack", out var e))
+            if (Controller.TryGetElementByName("Attack", out var e))
             {
                 e.Enabled = true;
                 e.SetRefPosition(suggestedTarget.Position);
             }
         }
-        if(Svc.Targets.Target is IBattleNpc n && n.NameId == (uint)Mob.Jabberwock)
+        if (Svc.Targets.Target is IBattleNpc n && n.NameId == (uint)Mob.Jabberwock)
         {
-            if(useAction != 0)
+            if (useAction != 0)
             {
-                if(EzThrottler.Throttle("M6SUseAction", 100))
+                if (EzThrottler.Throttle("M6SUseAction", 100))
                 {
-                    if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
+                    if (Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
                     {
                         Chat.Instance.SendMessage($"/action \"{ExcelActionHelper.GetActionName(useAction)}\"");
                     }
@@ -103,7 +101,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         ImGui.Checkbox("Automatically switch targets", ref C.Switch);
         ImGuiEx.Text($"Lockin priority:");
         DragDrop.Begin();
-        for(int i = 0; i < C.Prio.Count; i++)
+        for (int i = 0; i < C.Prio.Count; i++)
         {
             DragDrop.NextRow();
             DragDrop.DrawButtonDummy(C.Prio[i].ToString(), C.Prio, i);
@@ -113,6 +111,15 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         DragDrop.End();
         ImGui.SetNextItemWidth(150f);
         ImGui.SliderFloat("Max range", ref C.MaxRadius, 0, 25f);
+        ImGui.Separator();
+        ImGuiEx.Text("Jabberwock Targeting Control:");
+        ImGuiEx.HelpMarker("""
+                            When there are two Jabberwocks present, you can select which one to target by checking the corresponding checkbox below. If only one checkbox is         selected, the bot will exclusively target that Jabberwock. However, if both checkboxes are either checked or unchecked, it will target both Jabberwocks.\r\nPlease note that the \"Lock-in Priority\" settings always take precedence over this targeting behavior.
+                            """);
+        ImGui.PushID("2ndjc");
+        ImGui.Checkbox("1st", ref C.TargetJabber1);
+        ImGui.SameLine();
+        ImGui.Checkbox("2nd", ref C.TargetJabber2);
         ImGui.Separator();
         ImGuiEx.Text("Bait Feather Ray:");
         ImGui.Checkbox("1st", ref C.BaitWater1);
@@ -126,25 +133,29 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         ImGui.PushID("2ndj");
         DrawJabber(ref C.SecondJabberAction, ref C.SecondJabberDelay);
         ImGui.PopID();
+        ImGui.Separator();
+        ImGuiEx.Text("Options");
+        ImGui.Checkbox("Enable Jabberwock target start timer", ref C.EnableJabberTargetStartTimer);
 
-        if(ImGui.CollapsingHeader("Debug"))
+
+        if (ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"Suggested target: {GetSuggestedTarget(out var useAction)} / use action: {ExcelActionHelper.GetActionName(useAction, true)}");
             ImGui.InputInt("Num jabbers", ref JabberCount);
             ImGui.InputInt("Num feather rays", ref FeatherRayCount);
-            if(C.FirstJabberAction != 0)
+            if (C.FirstJabberAction != 0)
             {
                 ImGuiEx.Text($"CD1: {ExcelActionHelper.GetActionCooldown(C.FirstJabberAction)}");
             }
-            if(C.SecondJabberAction != 0)
+            if (C.SecondJabberAction != 0)
             {
                 ImGuiEx.Text($"CD2: {ExcelActionHelper.GetActionCooldown(C.SecondJabberAction)}");
             }
             ImGuiEx.Text($"Mob age:");
             ImGui.Indent();
-            foreach(var x in EntityAgeTracker)
+            foreach (var x in EntityAgeTracker)
             {
-                ImGuiEx.Text($"{x.Key}/{x.Key.GetObject()}: {GetMobAge(x.Key.GetObject() is IBattleNpc i? i:null):F1}");
+                ImGuiEx.Text($"{x.Key}/{x.Key.GetObject()}: {GetMobAge(x.Key.GetObject() is IBattleNpc i ? i : null):F1}");
             }
             ImGui.Unindent();
         }
@@ -154,14 +165,14 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     {
         useAction = 0;
         var objects = Svc.Objects.OfType<IBattleNpc>().Where(x => !x.IsDead && x.IsTargetable && Enum.GetValues<Mob>().Contains((Mob)x.NameId)).Where(x => Player.DistanceTo(x) < C.MaxRadius).OrderBy(Player.DistanceTo).ToArray();
-        if(objects.Length <= 1) return null;
+        if (objects.Length <= 1) return null;
         IBattleNpc? processJabber(uint action, int count, int delay, out uint useAction)
         {
             useAction = 0;
-            if(action != 0 && JabberCount == count)
+            if (action != 0 && JabberCount == count)
             {
                 var cd = ExcelActionHelper.GetActionCooldown(action);
-                if(cd == 0 && objects.TryGetFirst(x => x.NameId == (uint)Mob.Jabberwock && GetMobAge(x) >= delay, out var ret))
+                if (cd == 0 && objects.TryGetFirst(x => x.NameId == (uint)Mob.Jabberwock && GetMobAge(x) >= delay, out var ret))
                 {
                     useAction = action;
                     return ret;
@@ -171,25 +182,44 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         }
         IBattleNpc? processFeatherRay(bool doBait, int[] count)
         {
-            if(doBait && this.FeatherRayCount.EqualsAny(count))
+            if (doBait && this.FeatherRayCount.EqualsAny(count))
             {
-                if(objects.TryGetFirst(x => x.NameId == (uint)Mob.FeatherRay && GetHPPercent(x) >= 0.99f && (C.BaitWaterWest?x.Position.X<100:x.Position.X>100), out var result))
+                if (objects.TryGetFirst(x => x.NameId == (uint)Mob.FeatherRay && GetHPPercent(x) >= 0.99f && (C.BaitWaterWest ? x.Position.X < 100 : x.Position.X > 100), out var result))
                 {
                     return result;
                 }
             }
             return null;
         }
-        var forced = processFeatherRay(C.BaitWater1, [1, 2]) 
-            ?? processFeatherRay(C.BaitWater2, [3, 4]) 
-            ?? processJabber(C.FirstJabberAction, 1, C.FirstJabberDelay, out useAction) 
+        var forced = processFeatherRay(C.BaitWater1, [1, 2])
+            ?? processFeatherRay(C.BaitWater2, [3, 4])
+            ?? processJabber(C.FirstJabberAction, 1, C.FirstJabberDelay, out useAction)
             ?? processJabber(C.SecondJabberAction, 2, C.SecondJabberDelay, out useAction);
-        if(forced != null) return forced;
-        foreach(var m in C.Prio)
+        if (forced != null) return forced;
+        bool jabber1 = false;
+        bool jabber2 = false;
+        if ((C.TargetJabber1 && C.TargetJabber2) ||
+            (!C.TargetJabber1 && !C.TargetJabber2))
         {
-            if(objects.TryGetFirst(x => x.NameId == (uint)m, out var ret))
+            jabber1 = true;
+            jabber2 = true;
+        }
+        else if (C.TargetJabber1)
+        {
+            jabber1 = true;
+        }
+        else if (C.TargetJabber2)
+        {
+            jabber2 = true;
+        }
+
+        foreach (var m in C.Prio)
+        {
+            if (objects.TryGetFirst(x => x.NameId == (uint)m, out var ret))
             {
-                if(m == Mob.FeatherRay && GetHPPercent(ret) > 99f) continue;
+                if (m == Mob.Jabberwock && jabber1 && JabberCount == 1) return ret;
+                if (m == Mob.Jabberwock && jabber2 && JabberCount == 2) return ret;
+                if (m == Mob.FeatherRay && GetHPPercent(ret) > 99f) continue;
                 return ret;
             }
         }
@@ -203,8 +233,8 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
 
     float GetMobAge(IBattleNpc? mob)
     {
-        if(mob == null) return -1;
-        if(this.EntityAgeTracker.TryGetValue(mob.EntityId, out var x))
+        if (mob == null) return -1;
+        if (this.EntityAgeTracker.TryGetValue(mob.EntityId, out var x))
         {
             return (float)((double)(Environment.TickCount64 - x) / 1000.0);
         }
@@ -212,7 +242,7 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
     }
 
     Config C => this.Controller.GetConfig<Config>();
-    public class Config: IEzConfig
+    public class Config :IEzConfig
     {
         public bool Switch = false;
         public List<Mob> Prio = [.. Enum.GetValues<Mob>()];
@@ -224,6 +254,9 @@ public unsafe class M6S_Target_Enforcer : SplatoonScript
         public int FirstJabberDelay = 0;
         public uint SecondJabberAction = 0;
         public int SecondJabberDelay = 0;
+        public bool TargetJabber1 = false;
+        public bool TargetJabber2 = false;
+        public bool EnableJabberTargetStartTimer = false;
     }
 
     Dictionary<uint, string> StunActions = [new KeyValuePair<uint, string>(0, "Disabled") ,

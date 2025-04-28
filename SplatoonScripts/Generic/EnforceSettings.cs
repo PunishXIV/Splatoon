@@ -19,7 +19,7 @@ public unsafe class EnforceSettings : SplatoonScript
         EnforceOption(Svc.GameConfig.UiConfig, "TelepoTicketGilSetting", 999);
     }
 
-    void EnforceOption(GameConfigSection section, string option, uint value)
+    private void EnforceOption(GameConfigSection section, string option, uint value)
     {
         if(section.GetUInt(option) != value)
         {

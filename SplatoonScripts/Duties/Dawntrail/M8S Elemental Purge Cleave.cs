@@ -1,33 +1,18 @@
-using Dalamud.Game.ClientState.Objects.Types;
-using ECommons.Automation;
-using ECommons.Configuration;
-using ECommons.GameFunctions;
-using ECommons.GameHelpers;
-using ECommons.Hooks.ActionEffectTypes;
-using ECommons.ImGuiMethods;
-using ImGuiNET;
-using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.DalamudServices;
+using ECommons.GameFunctions;
+using ECommons.Hooks.ActionEffectTypes;
+using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public class M8S_Elemental_Purge_Cleave :SplatoonScript
+public class M8S_Elemental_Purge_Cleave : SplatoonScript
 {
-    public class Config :IEzConfig
-    {
-        public bool OutputCommand = false;
-    }
-
-    private bool _isActive = false;
-    private bool _isLock = false;
-    private bool _isTank => Player.Object.GetRole() == CombatRole.Tank;
-    private uint _tankId1 = 0u;
-    private uint _tankId2 = 0u;
-    private Config C => Controller.GetConfig<Config>();
-
+    private bool _isActive;
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(2, "Garume");
 
     public override void OnSetup()
     {
@@ -37,40 +22,26 @@ public class M8S_Elemental_Purge_Cleave :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 42085 && !_isActive)
+        if (castId == 42087 && !_isActive && source.GetObject() is IBattleNpc { TargetObject: not null } npc)
         {
-            FakeParty.Get().Where(x => x.GetRole() == CombatRole.Tank).ToList().ForEach(x =>
-            {
-                if (_tankId1 == 0) _tankId1 = x.EntityId;
-                else if (_tankId2 == 0) _tankId2 = x.EntityId;
-            });
-            if (_tankId1 == 0 || _tankId2 == 0) return;
             _isActive = true;
+            if (Controller.TryGetElementByName("Cone", out var e))
+            {
+                e.Enabled = true;
+                e.faceplayer = $"<{GetPlayerOrder(npc.TargetObject)}>";
+            }
         }
     }
 
-    public override void OnVFXSpawn(uint target, string vfxPath)
+    public override void OnUpdate()
     {
-        if (!_isActive) return;
-        if (vfxPath == "vfx/lockon/eff/lockon5_t0h.avfx")
+        if (_isActive)
         {
-            if (target != _tankId1 && target != _tankId2) return;
-            var notTargetTankId = target == _tankId1 ? _tankId2 : _tankId1;
-            if (Controller.TryGetElementByName("Cone", out var e) && notTargetTankId.TryGetObject(out var moonTank))
+            var npc = Svc.Objects.OfType<IBattleNpc>().First(x => x.CastActionId == 42087);
+            if (Controller.TryGetElementByName("Cone", out var e))
             {
                 e.Enabled = true;
-                e.faceplayer = $"<{GetPlayerOrder(moonTank)}>";
-            }
-
-            if (!_isTank && !C.OutputCommand) return;
-            // moon tank
-            if (notTargetTankId == Player.Object.EntityId)
-            {
-                Chat.Instance.ExecuteCommand("/e ComProvoke");
-            }
-            else
-            {
-                Chat.Instance.ExecuteCommand("/e ComShark");
+                if (npc.TargetObject != null) e.faceplayer = $"<{GetPlayerOrder(npc.TargetObject)}>";
             }
         }
     }
@@ -81,32 +52,10 @@ public class M8S_Elemental_Purge_Cleave :SplatoonScript
         {
             _isActive = false;
             if (Controller.TryGetElementByName("Cone", out var e)) e.Enabled = false;
-            _isLock = false;
         }
     }
 
     public override void OnReset()
-    {
-        _isActive = false;
-        _tankId1 = 0;
-        _tankId2 = 0;
-        if (Controller.TryGetElementByName("Cone", out var e)) e.Enabled = false;
-    }
-
-    public override void OnSettingsDraw()
-    {
-        ImGui.Checkbox("Output command", ref C.OutputCommand);
-        if (ImGuiEx.CollapsingHeader("Debug"))
-        {
-            ImGui.Text($"_active: {_isActive}");
-            ImGui.Text($"_tankId1: {_tankId1}");
-            ImGui.Text($"_tankId2: {_tankId2}");
-            ImGui.Text($"_isTank: {_isTank}");
-            ImGui.Text($"_isLock: {_isLock}");
-        }
-    }
-
-    private void WormReset()
     {
         _isActive = false;
         if (Controller.TryGetElementByName("Cone", out var e)) e.Enabled = false;
@@ -120,6 +69,4 @@ public class M8S_Elemental_Purge_Cleave :SplatoonScript
 
         return 0;
     }
-
-
 }

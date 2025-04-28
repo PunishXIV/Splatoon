@@ -28,7 +28,7 @@ public unsafe class ExportBlacklist : SplatoonScript
         }
     }
 
-    string BlockedCharaToString(InfoProxyBlacklist.BlockedCharacter c)
+    private string BlockedCharaToString(InfoProxyBlacklist.BlockedCharacter c)
     {
         return $"""
             Name: {MemoryHelper.ReadStringNullTerminated((nint)c.Name.Value)},

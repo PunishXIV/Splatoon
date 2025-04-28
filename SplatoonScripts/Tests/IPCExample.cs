@@ -13,7 +13,7 @@ using Moodle = (Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter Playe
 namespace SplatoonScriptsOfficial.Tests;
 public class IPCExample : SplatoonScript
 {
-    [EzIPC] Action<Moodle> AddOrUpdateMoodle = null!;
+    [EzIPC] private Action<Moodle> AddOrUpdateMoodle = null!;
     public override HashSet<uint>? ValidTerritories { get; } = [];
     public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override void OnSetup()

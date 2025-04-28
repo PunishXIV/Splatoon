@@ -25,7 +25,7 @@ internal class Contribute
         ImGui.Separator();
         ImGuiEx.Text("- Contributing combat data of new battles".Loc());
         ImGuiEx.Text("When a new battle comes, I would greatly benefit from obtaining it's combat data. If you are doing these battles early and wish to contribute combat data, please contact me via Discord to receive instructions on how to do so.".Loc());
-        if (ImGui.Button("Open Discord server##2".Loc()))
+        if(ImGui.Button("Open Discord server##2".Loc()))
         {
             OpenDiscordLink();
         }
@@ -38,7 +38,7 @@ internal class Contribute
             OpenGithubPresetSubmit();
         }
         ImGui.SameLine();
-        if (ImGui.Button("Open Discord server".Loc()))
+        if(ImGui.Button("Open Discord server".Loc()))
         {
             OpenDiscordLink();
         }
@@ -46,7 +46,7 @@ internal class Contribute
         ImGuiEx.Text("- Adding a star to the repo".Loc());
         ImGuiEx.Text("Don't have any presets to send? You may still help by simply adding a star to Splatoon and my plugins' repo!".Loc());
         ImGuiEx.Text("To do so, all you need is Github account. After logging in, proceed to the links below and click \"Star\" button in top right corner of the page.".Loc());
-        if (ImGui.Button("Open Splatoon repo".Loc()))
+        if(ImGui.Button("Open Splatoon repo".Loc()))
         {
             var url = "https://github.com/PunishXIV/Splatoon";
             Svc.Chat.Print("[Splatoon] Splatoon repo: ".Loc() + url);
@@ -63,17 +63,17 @@ internal class Contribute
         ImGuiEx.Text("- Financial".Loc());
         ImGuiEx.Text("If you would like to financially support me, you may use Patreon, Ko-Fi or cryptocurrency. Financial support allows me to put extra time into plugin!".Loc());
 
-        if (ImGui.Button("Patreon"))
+        if(ImGui.Button("Patreon"))
         {
             ShellStart("https://subscribe.nightmarexiv.com/");
         }
         ImGui.SameLine();
-        if (ImGui.Button("Ko-Fi"))
+        if(ImGui.Button("Ko-Fi"))
         {
             ShellStart("https://donate.nightmarexiv.com/");
         }
         ImGui.SameLine();
-        if (ImGui.Button("Crypto"))
+        if(ImGui.Button("Crypto"))
         {
             ShellStart("https://crypto.nightmarexiv.com/");
         }

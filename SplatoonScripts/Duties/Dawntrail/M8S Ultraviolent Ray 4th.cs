@@ -1,4 +1,7 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -12,26 +15,24 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public class M8S_Ultraviolent_Ray_4th :SplatoonScript
+public class M8S_Ultraviolent_Ray_4th : SplatoonScript
 {
     /*
      * Constants and Types
      */
+
     #region Constants
+
     private enum State
     {
         Inactive = 0,
         Active,
         Wait,
         PrePosition,
-        Show,
+        Show
     }
 
     private enum LandPosition
@@ -41,26 +42,26 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
         UpRight,
         Left,
         Right,
-        Down,
+        Down
     }
 
     private enum NearFar
     {
         None = 0,
         Near,
-        Far,
+        Far
     }
 
     private class PartyData
     {
-        public uint EntityId = 0u;
-        public NearFar NearFar = NearFar.None;
-        public Job Job = 0;
-        public CombatRole Role = CombatRole.NonCombat;
-        public CombatRole PairJob = CombatRole.NonCombat;
-        public LandPosition LandPosition = LandPosition.None;
-        public bool IsTargeted = false;
+        public uint EntityId;
         public LandPosition GotoPosition = LandPosition.None;
+        public bool IsTargeted;
+        public Job Job = 0;
+        public LandPosition LandPosition = LandPosition.None;
+        public NearFar NearFar = NearFar.None;
+        public CombatRole PairJob = CombatRole.NonCombat;
+        public CombatRole Role = CombatRole.NonCombat;
     }
 
     private const string MarkerVfxPath = "vfx/lockon/eff/m0005sp_19o0t.avfx";
@@ -76,30 +77,39 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
         { LandPosition.Right, new Vector3(116.6435f, -150f, 105.4078f) },
         { LandPosition.Down, new Vector3(100f, -150f, 117.5f) }
     };
+
     #endregion
 
     /*
      * Public values
      */
+
     #region public values
+
     public override HashSet<uint>? ValidTerritories => [1263];
     public override Metadata? Metadata => new(1, "Redmoon");
+
     #endregion
 
     /*
      * Private values
      */
+
     #region private values
+
     private Config C => Controller.GetConfig<Config>();
     private List<PartyData> _partyDatas = new();
     private string _basePlayerOverride = "";
     private State _state = State.Inactive;
+
     #endregion
 
     /*
      * Public values
      */
+
     #region public values
+
     public override void OnSetup()
     {
         var element = new Element(0)
@@ -122,10 +132,11 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
                 {
                     EntityId = pc.EntityId,
                     Role = pc.GetRole(),
-                    Job = pc.GetJob(),
+                    Job = pc.GetJob()
                 };
                 _partyDatas.Add(partyData);
             }
+
             _state = State.Active;
         }
     }
@@ -140,10 +151,7 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
             GotoPrePosition();
         }
 
-        if (set.Action.Value.RowId == kUltraviolentRayCastId)
-        {
-            this.OnReset();
-        }
+        if (set.Action.Value.RowId == kUltraviolentRayCastId) OnReset();
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
@@ -194,9 +202,8 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
             }
             else
             {
-                this.OnReset();
+                OnReset();
                 PluginLog.Debug("Lone Wolf Gimmick failed");
-                return;
             }
         }
     }
@@ -210,13 +217,11 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
             if (pcData == null)
             {
                 PluginLog.Debug($"VFX spawn: {target} not found");
-                this.OnReset();
+                OnReset();
                 return;
             }
-            else
-            {
-                pcData.IsTargeted = true;
-            }
+
+            pcData.IsTargeted = true;
 
             if (_partyDatas.Where(x => x.IsTargeted).Count() >= 5)
             {
@@ -231,7 +236,7 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
     {
         if (_state == State.Inactive) return;
         Controller.GetRegisteredElements().Where(x => x.Value.Enabled)
-                .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
+            .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
     }
 
     public override void OnReset()
@@ -258,7 +263,7 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
                 ImGui.Text($"LandPosition: {pc.LandPosition}");
                 ImGui.Text($"IsTargeted: {pc.IsTargeted}");
                 ImGui.Text($"GotoPosition: {pc.GotoPosition}");
-                ImGui.Text($"==================================");
+                ImGui.Text("==================================");
             }
 
             ImGui.SetNextItemWidth(200);
@@ -274,26 +279,24 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
             }
         }
     }
+
     #endregion
 
     /*
      * Private methods
      */
+
     #region private methods
+
     private bool CheckLoneWolfGimmickPosition()
     {
         foreach (var pc in _partyDatas)
-        {
             if (pc.Role == CombatRole.Tank)
             {
                 if (pc.NearFar == NearFar.Near)
-                {
                     pc.LandPosition = LandPosition.UpLeft;
-                }
                 else
-                {
                     pc.LandPosition = LandPosition.Left;
-                }
             }
             else if (pc.Role == CombatRole.Healer)
             {
@@ -303,26 +306,17 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
             {
                 if (pc.NearFar == NearFar.Near &&
                     pc.PairJob == CombatRole.Tank)
-                {
                     pc.LandPosition = LandPosition.UpRight;
-                }
                 else if (pc.NearFar == NearFar.Near &&
                          pc.PairJob == CombatRole.Healer)
-                {
                     pc.LandPosition = LandPosition.Right;
-                }
                 else if (pc.NearFar == NearFar.Far &&
                          pc.PairJob == CombatRole.Tank)
-                {
                     pc.LandPosition = LandPosition.Right;
-                }
                 else // (pc.NearFar == NearFar.Far &&
-                     //  pc.PairJob == CombatRole.Healer)
-                {
+                    //  pc.PairJob == CombatRole.Healer)
                     pc.LandPosition = LandPosition.UpRight;
-                }
             }
-        }
 
         if (_partyDatas.All(x => x.LandPosition != LandPosition.None)) return true;
 
@@ -336,17 +330,15 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
         if (pc == null)
         {
             PluginLog.Debug($"GotoPrePosition: {BasePlayer.EntityId} not found");
-            this.OnReset();
+            OnReset();
             return;
         }
-        else
+
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        if (Controller.TryGetElementByName("Bait", out var element))
         {
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-            if (Controller.TryGetElementByName("Bait", out var element))
-            {
-                element.SetRefPosition(LandPositionData[pc.LandPosition]);
-                element.Enabled = true;
-            }
+            element.SetRefPosition(LandPositionData[pc.LandPosition]);
+            element.Enabled = true;
         }
     }
 
@@ -362,7 +354,8 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
 
             // DPS
             // UpRight
-            var dps = _partyDatas.Where(x => x.IsTargeted && x.Role == CombatRole.DPS && x.LandPosition == LandPosition.UpRight);
+            var dps = _partyDatas.Where(x =>
+                x.IsTargeted && x.Role == CombatRole.DPS && x.LandPosition == LandPosition.UpRight);
             if (dps.Count() != 2) return;
             var dps1 = dps.First();
             var dps2 = dps.Last();
@@ -381,7 +374,8 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
             }
 
             // Right
-            dps = _partyDatas.Where(x => x.IsTargeted && x.Role == CombatRole.DPS && x.LandPosition == LandPosition.Right);
+            dps = _partyDatas.Where(x =>
+                x.IsTargeted && x.Role == CombatRole.DPS && x.LandPosition == LandPosition.Right);
             if (dps.Count() != 2) return;
             dps1 = dps.First();
             dps2 = dps.Last();
@@ -401,7 +395,7 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
         }
         // Healer/Tank 4
         else if (_partyDatas.Where(x => x.IsTargeted &&
-                (x.Role is CombatRole.Healer or CombatRole.Tank)).Count() == 4)
+                                        x.Role is CombatRole.Healer or CombatRole.Tank).Count() == 4)
         {
             // Tank
             var pc = _partyDatas.FirstOrDefault(x => x.LandPosition == LandPosition.UpLeft);
@@ -455,18 +449,14 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
         else
         {
             PluginLog.Debug("CheckGotoPosition: No DPS or Healer/Tank found");
-            this.OnReset();
+            OnReset();
             return;
         }
 
         // No IsTargeted
         foreach (var pc in _partyDatas)
-        {
             if (!pc.IsTargeted)
-            {
                 pc.GotoPosition = pc.LandPosition;
-            }
-        }
     }
 
     private void ShowGotoPosition()
@@ -486,23 +476,12 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
     private Job AdjustJob(Job job1, Job job2)
     {
         // Melee DPS is High Priority
-        if (job1 is Job.MNK or Job.NIN or Job.DRG or Job.RPR or Job.SAM or Job.VPR)
-        {
-            return job1;
-        }
-        if (job2 is Job.MNK or Job.NIN or Job.DRG or Job.RPR or Job.SAM or Job.VPR)
-        {
-            return job2;
-        }
+        if (job1 is Job.MNK or Job.NIN or Job.DRG or Job.RPR or Job.SAM or Job.VPR) return job1;
+        if (job2 is Job.MNK or Job.NIN or Job.DRG or Job.RPR or Job.SAM or Job.VPR) return job2;
         // Ranged Physical DPS is Next Highest
         if (job1 is Job.BRD or Job.DNC or Job.MCH)
-        {
             return job1;
-        }
-        else
-        {
-            return job2;
-        }
+        return job2;
     }
 
     private IPlayerCharacter BasePlayer
@@ -516,12 +495,13 @@ public class M8S_Ultraviolent_Ray_4th :SplatoonScript
         }
     }
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public bool movePureHealer;
         public PriorityData PriorityData = new();
-        public bool movePureHealer = false;
     }
-    #endregion 
+
+    #endregion
 }

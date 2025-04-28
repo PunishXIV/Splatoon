@@ -5,7 +5,7 @@ using Splatoon.SplatoonScripting;
 
 namespace Splatoon.Memory
 {
-    internal unsafe static class DirectorUpdateProcessor
+    internal static unsafe class DirectorUpdateProcessor
     {
         internal static void ProcessDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7)
         {

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
@@ -16,6 +13,9 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -39,11 +39,11 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     private static readonly Vector2 OuterWest = new(80, 100);
     private static readonly Vector2 Center = new(100, 100);
 
-    private readonly List<IGameObject> _innerTowers = new();
-    private readonly List<IGameObject> _outerEastTowers = new();
-    private readonly List<IGameObject> _outerNorthTowers = new();
-    private readonly List<IGameObject> _outerSouthTowers = new();
-    private readonly List<IGameObject> _outerWestTowers = new();
+    private readonly List<IGameObject> _innerTowers = [];
+    private readonly List<IGameObject> _outerEastTowers = [];
+    private readonly List<IGameObject> _outerNorthTowers = [];
+    private readonly List<IGameObject> _outerSouthTowers = [];
+    private readonly List<IGameObject> _outerWestTowers = [];
 
     private SpreadDirection _fixedSpreadDirection;
 
@@ -58,7 +58,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     private bool _shouldPrioritizeOuterTower;
 
-    public List<IGameObject> MyTowers = new();
+    public List<IGameObject> MyTowers = [];
     public override HashSet<uint>? ValidTerritories => [968];
 
     public override Metadata? Metadata => new(3, "Garume");
@@ -67,7 +67,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 29563)
+        if(castId == 29563)
         {
             PluginLog.Log("Starting cast: " + source);
             _isStart = true;
@@ -75,7 +75,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                 .OrderBy(x => x.Position.X)
                 .ThenBy(y => y.Position.Z);
 
-            foreach (var tower in towers)
+            foreach(var tower in towers)
             {
                 var centerDistance = Vector2.Distance(tower.Position.ToVector2(), Center);
                 var northDistance = Vector2.Distance(tower.Position.ToVector2(), OuterNorth);
@@ -83,15 +83,15 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                 var southDistance = Vector2.Distance(tower.Position.ToVector2(), OuterSouth);
                 var westDistance = Vector2.Distance(tower.Position.ToVector2(), OuterWest);
 
-                if (centerDistance < 8f)
+                if(centerDistance < 8f)
                     _innerTowers.Add(tower);
-                else if (northDistance < 12f)
+                else if(northDistance < 12f)
                     _outerNorthTowers.Add(tower);
-                else if (eastDistance < 12f)
+                else if(eastDistance < 12f)
                     _outerEastTowers.Add(tower);
-                else if (southDistance < 12f)
+                else if(southDistance < 12f)
                     _outerSouthTowers.Add(tower);
-                else if (westDistance < 12f) _outerWestTowers.Add(tower);
+                else if(westDistance < 12f) _outerWestTowers.Add(tower);
             }
 
             Controller.Schedule(() =>
@@ -104,15 +104,15 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (vfxPath == "vfx/lockon/eff/r1fz_holymeteo_s12x.avfx")
+        if(vfxPath == "vfx/lockon/eff/r1fz_holymeteo_s12x.avfx")
         {
-            if (target.GetObject().Name.ToString() == Player.Name) _shouldInduceCommet = true;
+            if(target.GetObject().Name.ToString() == Player.Name) _shouldInduceCommet = true;
 
-            if (target.GetObject() is IPlayerCharacter character)
+            if(target.GetObject() is IPlayerCharacter character)
             {
-                if (character.GetRole() == CombatRole.DPS && Player.Object.GetRole() == CombatRole.DPS)
+                if(character.GetRole() == CombatRole.DPS && Player.Object.GetRole() == CombatRole.DPS)
                     _shouldPrioritizeOuterTower = true;
-                else if ((character.GetRole() == CombatRole.Healer || character.GetRole() == CombatRole.Tank) &&
+                else if((character.GetRole() == CombatRole.Healer || character.GetRole() == CombatRole.Tank) &&
                          (Player.Object.GetRole() == CombatRole.Healer || Player.Object.GetRole() == CombatRole.Tank))
                     _shouldPrioritizeOuterTower = true;
             }
@@ -137,7 +137,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     public override void OnSetup()
     {
-        for (var i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
             var element = new Element(0);
             Controller.TryRegisterElement($"bait{i + 1}", element, true);
@@ -146,40 +146,40 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     private void SetTowers(Vector2 playerPosition)
     {
-        if (Vector2.Distance(playerPosition, InnerNorth) < 10f)
+        if(Vector2.Distance(playerPosition, InnerNorth) < 10f)
             _fixedSpreadDirection = SpreadDirection.North;
-        else if (Vector2.Distance(playerPosition, InnerEast) < 10f)
+        else if(Vector2.Distance(playerPosition, InnerEast) < 10f)
             _fixedSpreadDirection = SpreadDirection.East;
-        else if (Vector2.Distance(playerPosition, InnerSouth) < 10f)
+        else if(Vector2.Distance(playerPosition, InnerSouth) < 10f)
             _fixedSpreadDirection = SpreadDirection.South;
-        else if (Vector2.Distance(playerPosition, InnerWest) < 10f) _fixedSpreadDirection = SpreadDirection.West;
+        else if(Vector2.Distance(playerPosition, InnerWest) < 10f) _fixedSpreadDirection = SpreadDirection.West;
 
 
-        if (_shouldPrioritizeOuterTower)
-            switch (_fixedSpreadDirection)
+        if(_shouldPrioritizeOuterTower)
+            switch(_fixedSpreadDirection)
             {
                 case SpreadDirection.North:
                     MyTowers = _outerNorthTowers
                         .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterNorth) < 3f).ToList();
-                    if (MyTowers.Count == 0)
+                    if(MyTowers.Count == 0)
                         MyTowers = _outerNorthTowers.ToList();
                     break;
                 case SpreadDirection.East:
                     MyTowers = _outerEastTowers.Where(x => Vector2.Distance(x.Position.ToVector2(), OuterEast) < 3f)
                         .ToList();
-                    if (MyTowers.Count == 0)
+                    if(MyTowers.Count == 0)
                         MyTowers = _outerEastTowers.ToList();
                     break;
                 case SpreadDirection.South:
                     MyTowers = _outerSouthTowers
                         .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterSouth) < 3f).ToList();
-                    if (MyTowers.Count == 0)
+                    if(MyTowers.Count == 0)
                         MyTowers = _outerSouthTowers.ToList();
                     break;
                 case SpreadDirection.West:
                     MyTowers = _outerWestTowers.Where(x => Vector2.Distance(x.Position.ToVector2(), OuterWest) < 3f)
                         .ToList();
-                    if (MyTowers.Count == 0)
+                    if(MyTowers.Count == 0)
                         MyTowers = _outerWestTowers.ToList();
                     break;
                 default:
@@ -187,31 +187,31 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                     break;
             }
         else
-            switch (_fixedSpreadDirection)
+            switch(_fixedSpreadDirection)
             {
                 case SpreadDirection.North:
-                    if (_outerNorthTowers.Count > 1)
+                    if(_outerNorthTowers.Count > 1)
                         MyTowers = _outerNorthTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterNorth) > 5f).ToList();
                     else
                         MyTowers = _innerTowers.ToList();
                     break;
                 case SpreadDirection.East:
-                    if (_outerEastTowers.Count > 1)
+                    if(_outerEastTowers.Count > 1)
                         MyTowers = _outerEastTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterEast) > 5f).ToList();
                     else
                         MyTowers = _innerTowers.ToList();
                     break;
                 case SpreadDirection.South:
-                    if (_outerSouthTowers.Count > 1)
+                    if(_outerSouthTowers.Count > 1)
                         MyTowers = _outerSouthTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterSouth) > 5f).ToList();
                     else
                         MyTowers = _innerTowers.ToList();
                     break;
                 case SpreadDirection.West:
-                    if (_outerWestTowers.Count > 1)
+                    if(_outerWestTowers.Count > 1)
                         MyTowers = _outerWestTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterWest) > 5f).ToList();
                     else
@@ -226,17 +226,17 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (!_isStart)
+        if(!_isStart)
             return;
-        if (!_isFirstTowerPhase && !_isSecondTowerPhase)
+        if(!_isFirstTowerPhase && !_isSecondTowerPhase)
         {
             var playerPosition = Player.Position.ToVector2();
-            if (playerPosition != _lastPlayerPosition)
+            if(playerPosition != _lastPlayerPosition)
             {
                 SetTowers(playerPosition);
                 Controller.GetRegisteredElements().Each(x => { x.Value.Enabled = false; });
-                for (var i = 0; i < MyTowers.Count; i++)
-                    if (Controller.TryGetElementByName($"bait{i + 1}", out var element))
+                for(var i = 0; i < MyTowers.Count; i++)
+                    if(Controller.TryGetElementByName($"bait{i + 1}", out var element))
                     {
                         element.Enabled = true;
                         element.color = C.PredictBaitColor.ToUint();
@@ -249,34 +249,34 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             _lastPlayerPosition = playerPosition;
         }
 
-        if (_isFirstTowerPhase || _isSecondTowerPhase)
+        if(_isFirstTowerPhase || _isSecondTowerPhase)
             Controller.GetRegisteredElements()
                 .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (!_isStart)
+        if(!_isStart)
             return;
 
-        if (set.Action == null) return;
+        if(set.Action == null) return;
 
-        if (set.Action.Value.RowId == 25575)
+        if(set.Action.Value.RowId == 25575)
         {
             _isFirstTowerPhase = true;
             var position = Player.Position.ToVector2();
             SetTowers(position);
 
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-            for (var i = 0; i < MyTowers.Count; i++) SetOffPosition($"bait{i + 1}", MyTowers[i].Position);
+            for(var i = 0; i < MyTowers.Count; i++) SetOffPosition($"bait{i + 1}", MyTowers[i].Position);
         }
 
-        if (set.Action.Value.RowId == 29564)
+        if(set.Action.Value.RowId == 29564)
         {
             _isFirstTowerPhase = false;
             _isSecondTowerPhase = true;
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-            if (!_shouldPrioritizeOuterTower)
+            if(!_shouldPrioritizeOuterTower)
             {
                 const float innerOffset = 3f;
                 const float outerOffset = 14f;
@@ -320,7 +320,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     private Element? SetOffPosition(string name, Vector3 position)
     {
-        if (Controller.TryGetElementByName(name, out var element))
+        if(Controller.TryGetElementByName(name, out var element))
         {
             element.Enabled = true;
             element.tether = true;
@@ -347,10 +347,10 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         ImGui.ColorEdit4("Color", ref C.PredictBaitColor, ImGuiColorEditFlags.NoInputs);
         ImGui.Unindent();
 
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Text("Inner");
-            foreach (var tower in _innerTowers)
+            foreach(var tower in _innerTowers)
             {
                 ImGui.Text(tower.Name.ToString());
                 ImGui.SameLine();
@@ -358,7 +358,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             }
 
             ImGui.Text("Outer North");
-            foreach (var tower in _outerNorthTowers)
+            foreach(var tower in _outerNorthTowers)
             {
                 ImGui.Text(tower.Name.ToString());
                 ImGui.SameLine();
@@ -366,7 +366,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             }
 
             ImGui.Text("Outer East");
-            foreach (var tower in _outerEastTowers)
+            foreach(var tower in _outerEastTowers)
             {
                 ImGui.Text(tower.Name.ToString());
                 ImGui.SameLine();
@@ -374,7 +374,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             }
 
             ImGui.Text("Outer South");
-            foreach (var tower in _outerSouthTowers)
+            foreach(var tower in _outerSouthTowers)
             {
                 ImGui.Text(tower.Name.ToString());
                 ImGui.SameLine();
@@ -382,7 +382,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             }
 
             ImGui.Text("Outer West");
-            foreach (var tower in _outerWestTowers)
+            foreach(var tower in _outerWestTowers)
             {
                 ImGui.Text(tower.Name.ToString());
                 ImGui.SameLine();
@@ -392,7 +392,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             ImGui.Spacing();
             ImGui.Spacing();
             ImGui.Text("My Towers");
-            foreach (var tower in MyTowers)
+            foreach(var tower in MyTowers)
             {
                 ImGui.Text(tower.Name.ToString());
                 ImGui.SameLine();

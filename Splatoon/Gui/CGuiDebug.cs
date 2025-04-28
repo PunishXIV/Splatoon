@@ -11,21 +11,21 @@ using System.Globalization;
 
 namespace Splatoon;
 
-unsafe partial class CGui
+internal unsafe partial class CGui
 {
-    bool autoscrollLog = true;
-    float s2wx, s2wy, s2wz, s2wrx, s2wry;
-    bool s2wb = false;
-    string[] Placeholders = new string[] { "<1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>", "<8>", "<d1>", "<d2>", "<d3>", "<d4>", "<t1>", "<t2>", "<h1>", "<h2>", "<me>", "<t>", "<mo>", "<t2t>" };
+    private bool autoscrollLog = true;
+    private float s2wx, s2wy, s2wz, s2wrx, s2wry;
+    private bool s2wb = false;
+    private string[] Placeholders = new string[] { "<1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>", "<8>", "<d1>", "<d2>", "<d3>", "<d4>", "<t1>", "<t2>", "<h1>", "<h2>", "<me>", "<t>", "<mo>", "<t2t>" };
 
-    uint obj1 = 0;
-    uint obj2 = 0;
-    int off1 = 0;
-    uint rep1 = 0;
-    string txt = "";
-    Vector4 col = Vector4.Zero;
+    private uint obj1 = 0;
+    private uint obj2 = 0;
+    private int off1 = 0;
+    private uint rep1 = 0;
+    private string txt = "";
+    private Vector4 col = Vector4.Zero;
 
-    void DisplayDebug()
+    private void DisplayDebug()
     {
         if(ImGui.CollapsingHeader("Scripts w/prio list"))
         {
@@ -49,7 +49,7 @@ unsafe partial class CGui
             }
         }
         ImGui.BeginChild("##splatoonmaindbg");
-        if (ImGui.CollapsingHeader("VFX"))
+        if(ImGui.CollapsingHeader("VFX"))
         {
             ImGui.ColorEdit4("col", ref col);
             if(ImGui.Button("Generate donut"))
@@ -57,7 +57,7 @@ unsafe partial class CGui
                 //DuoLog.Information($"{FXDonut.Get(col.ToUint())}");
             }
         }
-        if (ImGui.CollapsingHeader("EnvManager"))
+        if(ImGui.CollapsingHeader("EnvManager"))
         {
             var e = (nint)EnvManager.Instance();
             ImGuiEx.TextCopy($"Inst: {e:X16}");
@@ -70,7 +70,7 @@ unsafe partial class CGui
                 foreach(var x in Svc.Data.GetExcelSheet<TerritoryType>())
                 {
                     var n = x.ContentFinderCondition.ValueNullable?.Name.ToString();
-                    if (!n.IsNullOrEmpty())
+                    if(!n.IsNullOrEmpty())
                     {
                         ImGuiEx.Text($"{n}");
                         ImGui.SameLine();
@@ -89,13 +89,13 @@ unsafe partial class CGui
         ImGui.SetNextItemWidth(60f);
         ImGui.DragInt($"Message concurrency", ref p.dequeueConcurrency, float.Epsilon);
         ImGui.Separator();
-        if (Svc.ClientState.LocalPlayer != null)
+        if(Svc.ClientState.LocalPlayer != null)
         {
             var mypos = Utils.GetPlayerPositionXZY();
             ImGuiEx.Text("My pos XYZ: \n" + mypos.X + "\n" + mypos.Y + "\n" + mypos.Z);
             ImGuiEx.Text("Rotation: " + Svc.ClientState.LocalPlayer.Rotation);
             var tar = Svc.Targets.Target;
-            if (tar != null)
+            if(tar != null)
             {
                 ImGuiEx.Text("Target pos XYZ: \n" + tar.GetPositionXZY().X + "\n" + tar.GetPositionXZY().Y + "\n" + tar.GetPositionXZY().Z);
                 ImGuiEx.Text("Rotation: " + tar.Rotation.ToString());
@@ -111,7 +111,7 @@ unsafe partial class CGui
         ImGui.SameLine();
         ImGui.DragFloat("##qs2wz", ref s2wz);
         ImGui.PopItemWidth();
-        if (ImGui.Button("To my pos"))
+        if(ImGui.Button("To my pos"))
         {
             var mypos = Utils.GetPlayerPositionXZY();
             s2wx = mypos.X;
@@ -119,18 +119,18 @@ unsafe partial class CGui
             s2wz = mypos.Z;
         }
         ImGui.SameLine();
-        if (ImGui.Button("Query"))
+        if(ImGui.Button("Query"))
         {
             Safe(delegate
             {
-                s2wb = Utils.WorldToScreen(new Vector3(s2wx, s2wz, s2wy), out Vector2 pos);
+                s2wb = Utils.WorldToScreen(new Vector3(s2wx, s2wz, s2wy), out var pos);
                 s2wrx = pos.X;
                 s2wry = pos.Y;
             });
         }
         ImGui.TextColored(ImGui.ColorConvertU32ToFloat4(s2wb ? Colors.Green : Colors.Red), "X:" + s2wrx + "\nY:" + s2wry);
         ImGui.Separator();
-        if (Svc.ClientState.LocalPlayer != null)
+        if(Svc.ClientState.LocalPlayer != null)
         {
             ImGuiEx.Text($"Player+1 distance: {Vector3.Distance(Svc.ClientState.LocalPlayer.Position, Svc.ClientState.LocalPlayer.Position + new Vector3(1, 0, 0))}");
             ImGuiEx.Text($"Player+1+1 distance: {Vector3.Distance(Svc.ClientState.LocalPlayer.Position + new Vector3(1, 0, 0), Svc.ClientState.LocalPlayer.Position + new Vector3(2, 0, 0))}");
@@ -146,7 +146,7 @@ unsafe partial class CGui
         ImGuiEx.Text("Camera angle Y:" + S.RenderManager.ImGuiLegacyRenderer.Scene.CamAngleY);
         ImGuiEx.Text("Camera zoom:" + S.RenderManager.ImGuiLegacyRenderer.Scene.CamZoom);
 
-        if (ImGui.CollapsingHeader("Object table"))
+        if(ImGui.CollapsingHeader("Object table"))
         {
             ImGuiEx.Text("Object table:");
             ImGuiEx.Text("Name");
@@ -165,7 +165,7 @@ unsafe partial class CGui
             ImGui.SameLine();
             ImGui.SetCursorPosX(600f);
             ImGuiEx.Text($"Model ID");
-            foreach (var a in Svc.Objects)
+            foreach(var a in Svc.Objects)
             {
                 Safe(delegate
                 {
@@ -188,21 +188,21 @@ unsafe partial class CGui
                 });
             }
         }
-        if (ImGui.CollapsingHeader("NameNpcID"))
+        if(ImGui.CollapsingHeader("NameNpcID"))
         {
             foreach(var x in NameNpcIDs)
             {
                 ImGuiEx.Text($"{x.Key} = {x.Value}");
             }
         }
-        if (ImGui.CollapsingHeader("CastInfos"))
+        if(ImGui.CollapsingHeader("CastInfos"))
         {
             foreach(var x in AttachedInfo.CastInfos)
             {
                 ImGuiEx.Text($"{x.Key} = {x.Value.ID}, {x.Value.StartTime}");
             }
         }
-        if (ImGui.CollapsingHeader("Placeholders"))
+        if(ImGui.CollapsingHeader("Placeholders"))
         {
             foreach(var x in Placeholders)
             {
@@ -210,7 +210,7 @@ unsafe partial class CGui
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(60f);
                 var ph = FakePronoun.Resolve(x);
-                if (ph != null)
+                if(ph != null)
                 {
                     var obj = Svc.Objects.CreateObjectReference((nint)ph);
                     ImGuiEx.Text($"{obj}");
@@ -221,9 +221,9 @@ unsafe partial class CGui
                 }
             }
         }
-        if (ImGui.CollapsingHeader("Distance"))
+        if(ImGui.CollapsingHeader("Distance"))
         {
-            if (Svc.Targets.Target.NotNull(out var t))
+            if(Svc.Targets.Target.NotNull(out var t))
             {
                 ImGuiEx.Text($"Distance c2c 3d: {Vector3.Distance(Svc.ClientState.LocalPlayer.Position, t.Position)}");
                 ImGuiEx.Text($"Distance c2c 2d: {Vector2.Distance(Svc.ClientState.LocalPlayer.Position.ToVector2(), t.Position.ToVector2())}");
@@ -253,7 +253,7 @@ unsafe partial class CGui
         ImGui.SetNextItemWidth(100f);
         ImGuiEx.InputUint("value", ref rep1);
         ImGui.SameLine();
-        if (ImGui.Button("Do (dangerous)"))
+        if(ImGui.Button("Do (dangerous)"))
         {
             var o1 = Svc.Objects.First(x => x.EntityId == obj1);
             var addr = o1.Address + off1;
@@ -268,11 +268,11 @@ unsafe partial class CGui
                 var o1 = Svc.Objects.First(x => x.EntityId == obj1);
                 var o2 = Svc.Objects.First(x => x.EntityId == obj2);
                 var result = new List<string>();
-                for(var i = 0;i<= 0x1A0; i++)
+                for(var i = 0; i <= 0x1A0; i++)
                 {
                     var x1 = *(byte*)(o1.Address + i);
                     var x2 = *(byte*)(o2.Address + i);
-                    if (x1 != x2)
+                    if(x1 != x2)
                     {
                         result.Add($"+{i:X}: {x1}, {x2}");
                     }
@@ -285,6 +285,6 @@ unsafe partial class CGui
             }
         }
         ImGui.EndChild();
-        
+
     }
 }

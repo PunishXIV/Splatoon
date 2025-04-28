@@ -1,9 +1,9 @@
-﻿using System.Reflection;
-using System.Runtime.Loader;
-using ECommons.Reflection;
+﻿using ECommons.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
+using System.Reflection;
+using System.Runtime.Loader;
 
 
 namespace Splatoon.SplatoonScripting;
@@ -30,7 +30,7 @@ internal class Compiler
             }
         }
         return null;
-    } 
+    }
 
     internal static (byte[] Assembly, byte[] Pdb)? Compile(string sourceCode, string identity, string path = null)
     {

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
@@ -13,6 +9,10 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -156,7 +156,7 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public void SetElementPosition(string name, Vector3 position)
     {
-        if (Controller.TryGetElementByName(name, out var element))
+        if(Controller.TryGetElementByName(name, out var element))
         {
             element.Enabled = true;
             element.SetRefPosition(position);
@@ -170,7 +170,7 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public void HideBait()
     {
-        if (Controller.TryGetElementByName("Bait", out var bait)) bait.Enabled = false;
+        if(Controller.TryGetElementByName("Bait", out var bait)) bait.Enabled = false;
     }
 
     public void SetPredictBaitPosition(Vector3 position)
@@ -180,7 +180,7 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public void HidePredictBait()
     {
-        if (Controller.TryGetElementByName("PredictBait", out var predictBait)) predictBait.Enabled = false;
+        if(Controller.TryGetElementByName("PredictBait", out var predictBait)) predictBait.Enabled = false;
     }
 
     public void SetTowerPosition(Vector3 position)
@@ -190,7 +190,7 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public void HideTower()
     {
-        if (Controller.TryGetElementByName("Tower", out var tower)) tower.Enabled = false;
+        if(Controller.TryGetElementByName("Tower", out var tower)) tower.Enabled = false;
     }
 
     public void SetPredictTowerPosition(Vector3 position)
@@ -200,7 +200,7 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public void HidePredictTower()
     {
-        if (Controller.TryGetElementByName("PredictTower", out var predictTower)) predictTower.Enabled = false;
+        if(Controller.TryGetElementByName("PredictTower", out var predictTower)) predictTower.Enabled = false;
     }
 
     public void SetAoe(Vector3 position)
@@ -210,12 +210,12 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public void HideAoe()
     {
-        if (Controller.TryGetElementByName("TankAOE", out var aoe)) aoe.Enabled = false;
+        if(Controller.TryGetElementByName("TankAOE", out var aoe)) aoe.Enabled = false;
     }
 
     public override void OnUpdate()
     {
-        if (_state is State.None or State.Start or State.End)
+        if(_state is State.None or State.Start or State.End)
         {
             Controller.GetRegisteredElements().Each(e => e.Value.Enabled = false);
             return;
@@ -225,12 +225,12 @@ public class P5_Paradise_Regained : SplatoonScript
             e.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
 
 
-        if (_state == State.FirstTower)
+        if(_state == State.FirstTower)
         {
-            if (C.ShowAOE)
+            if(C.ShowAOE)
             {
                 Vector3 aoePosition;
-                if (_firstAttack == AttackType.Light)
+                if(_firstAttack == AttackType.Light)
                     aoePosition = FakeParty.Get().Select(x => x.Position)
                         .MaxBy(x => Vector3.Distance(x, new Vector3(100, 0, 100)));
                 else
@@ -241,168 +241,168 @@ public class P5_Paradise_Regained : SplatoonScript
             }
 
             var firstTower = _towers[0];
-            if (C.MoveType == MoveType.FirstBait)
-                switch (C.FirstBaitType)
+            if(C.MoveType == MoveType.FirstBait)
+                switch(C.FirstBaitType)
                 {
                     case FirstBaitType.GoToSecondOrThirdTower:
-                    {
-                        var tankDirection = firstTower.RealAngle + (_firstAttack == AttackType.Light ? -120 : 120);
-                        if (tankDirection >= 360) tankDirection -= 360;
-                        if (tankDirection < 0) tankDirection += 360;
-                        var position = new Vector3(100, 0, 92f);
-                        _firstBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
-                                position);
-                        SetBaitPosition(_firstBaitPosition);
+                        {
+                            var tankDirection = firstTower.RealAngle + (_firstAttack == AttackType.Light ? -120 : 120);
+                            if(tankDirection >= 360) tankDirection -= 360;
+                            if(tankDirection < 0) tankDirection += 360;
+                            var position = new Vector3(100, 0, 92f);
+                            _firstBaitPosition =
+                                MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                    position);
+                            SetBaitPosition(_firstBaitPosition);
 
-                        tankDirection = firstTower.OppositeRealAngle;
-                        position = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 2f : 14f));
-                        _secondBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
-                                position);
-                        SetPredictBaitPosition(_secondBaitPosition);
-                        break;
-                    }
+                            tankDirection = firstTower.OppositeRealAngle;
+                            position = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 2f : 14f));
+                            _secondBaitPosition =
+                                MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                    position);
+                            SetPredictBaitPosition(_secondBaitPosition);
+                            break;
+                        }
                     case FirstBaitType.GoToOppositeFirstTower:
-                    {
-                        var tankDirection = firstTower.OppositeRealAngle;
-                        var position = new Vector3(100, 0, 92f);
-                        _firstBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
-                                position);
-                        SetBaitPosition(_firstBaitPosition);
+                        {
+                            var tankDirection = firstTower.OppositeRealAngle;
+                            var position = new Vector3(100, 0, 92f);
+                            _firstBaitPosition =
+                                MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                    position);
+                            SetBaitPosition(_firstBaitPosition);
 
-                        position = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 2f : 14f));
-                        _secondBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
-                                position);
-                        SetPredictBaitPosition(_secondBaitPosition);
-                        break;
-                    }
+                            position = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 2f : 14f));
+                            _secondBaitPosition =
+                                MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                    position);
+                            SetPredictBaitPosition(_secondBaitPosition);
+                            break;
+                        }
                 }
 
-            if (C.MoveType == MoveType.SecondBait)
-                switch (C.SecondBaitType)
+            if(C.MoveType == MoveType.SecondBait)
+                switch(C.SecondBaitType)
                 {
                     case SecondBaitType.GoToFirstTower:
-                    {
-                        var tankDirection = firstTower.RealAngle;
+                        {
+                            var tankDirection = firstTower.RealAngle;
 
-                        var position = new Vector3(100, 0, 100f - (_firstAttack == AttackType.Light ? 14f : 2f));
-                        _firstBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
-                                position);
-                        SetBaitPosition(_firstBaitPosition);
+                            var position = new Vector3(100, 0, 100f - (_firstAttack == AttackType.Light ? 14f : 2f));
+                            _firstBaitPosition =
+                                MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                    position);
+                            SetBaitPosition(_firstBaitPosition);
 
-                        tankDirection += _firstAttack == AttackType.Light ? -60 : 60;
-                        position = new Vector3(100, 0, 92f);
-                        _secondBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
-                                position);
-                        SetPredictBaitPosition(_secondBaitPosition);
-                        break;
-                    }
+                            tankDirection += _firstAttack == AttackType.Light ? -60 : 60;
+                            position = new Vector3(100, 0, 92f);
+                            _secondBaitPosition =
+                                MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                    position);
+                            SetPredictBaitPosition(_secondBaitPosition);
+                            break;
+                        }
                     case SecondBaitType.GoToSafe:
-                    {
-                        var tankDirection = firstTower.RealAngle + (_firstAttack == AttackType.Light ? -60 : 60);
-                        if (tankDirection >= 360) tankDirection -= 360;
-                        if (tankDirection < 0) tankDirection += 360;
+                        {
+                            var tankDirection = firstTower.RealAngle + (_firstAttack == AttackType.Light ? -60 : 60);
+                            if(tankDirection >= 360) tankDirection -= 360;
+                            if(tankDirection < 0) tankDirection += 360;
 
-                        var radius = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 14f : 2f));
-                        _firstBaitPosition =
-                            MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
-                                radius);
-                        SetBaitPosition(_firstBaitPosition);
+                            var radius = new Vector3(100, 0, 100 - (_firstAttack == AttackType.Light ? 14f : 2f));
+                            _firstBaitPosition =
+                                MathHelper.RotateWorldPoint(new Vector3(100, 0, 100), tankDirection.DegreesToRadians(),
+                                    radius);
+                            SetBaitPosition(_firstBaitPosition);
 
-                        var position = new Vector3(100, 0, 92f);
-                        _secondBaitPosition = MathHelper.RotateWorldPoint(new Vector3(100, 0, 100),
-                            tankDirection.DegreesToRadians(), position);
-                        SetPredictBaitPosition(_secondBaitPosition);
-                        break;
-                    }
+                            var position = new Vector3(100, 0, 92f);
+                            _secondBaitPosition = MathHelper.RotateWorldPoint(new Vector3(100, 0, 100),
+                                tankDirection.DegreesToRadians(), position);
+                            SetPredictBaitPosition(_secondBaitPosition);
+                            break;
+                        }
                 }
 
-            if (C.MoveType == MoveType.Tower)
-                switch (C.TowerType)
+            if(C.MoveType == MoveType.Tower)
+                switch(C.TowerType)
                 {
                     case TowerType.First:
                         SetTowerPosition(firstTower.Position.ToVector3(0));
                         break;
                     case TowerType.Second:
-                    {
-                        if (_towers.Count == 2)
-                            SetTowerPosition(_towers[1].Position.ToVector3(0));
-                        break;
-                    }
+                        {
+                            if(_towers.Count == 2)
+                                SetTowerPosition(_towers[1].Position.ToVector3(0));
+                            break;
+                        }
                     case TowerType.Third:
-                    {
-                        if (_towers.Count == 3)
-                            SetPredictTowerPosition(_towers[2].Position.ToVector3(0));
-                        break;
-                    }
+                        {
+                            if(_towers.Count == 3)
+                                SetPredictTowerPosition(_towers[2].Position.ToVector3(0));
+                            break;
+                        }
                     case TowerType.Left:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
                         {
-                            if (_towers.IndexOf(tower) == 1 && _firstAttack == AttackType.Dark)
-                                SetTowerPosition(tower.Position.ToVector3(0));
-                            else
-                                SetPredictTowerPosition(tower.Position.ToVector3(0));
-                        }
+                            if(_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
+                            {
+                                if(_towers.IndexOf(tower) == 1 && _firstAttack == AttackType.Dark)
+                                    SetTowerPosition(tower.Position.ToVector3(0));
+                                else
+                                    SetPredictTowerPosition(tower.Position.ToVector3(0));
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                     case TowerType.Right:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
                         {
-                            if (_towers.IndexOf(tower) == 1 && _firstAttack == AttackType.Light)
-                                SetTowerPosition(tower.Position.ToVector3(0));
-                            else
-                                SetPredictTowerPosition(tower.Position.ToVector3(0));
+                            if(_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                            {
+                                if(_towers.IndexOf(tower) == 1 && _firstAttack == AttackType.Light)
+                                    SetTowerPosition(tower.Position.ToVector3(0));
+                                else
+                                    SetPredictTowerPosition(tower.Position.ToVector3(0));
+                            }
+
+                            break;
                         }
-
-                        break;
-                    }
                     case TowerType.FirstSafe:
-                    {
-                        var isLeft = _firstAttack == AttackType.Dark;
-                        if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
-                            SetTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            var isLeft = _firstAttack == AttackType.Dark;
+                            if(_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                                SetTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                     case TowerType.SecondSafe:
-                    {
-                        var isLeft = _firstAttack == AttackType.Light;
-                        if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
-                            SetPredictTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            var isLeft = _firstAttack == AttackType.Light;
+                            if(_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                                SetPredictTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                     case TowerType.LeftWhenSecondCleave:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
-                            SetPredictTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            if(_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
+                                SetPredictTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                     case TowerType.RightWhenSecondCleave:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
-                            SetPredictTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            if(_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                                SetPredictTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                 }
         }
 
-        if (_state == State.SecondTower)
+        if(_state == State.SecondTower)
         {
-            if (C.ShowAOE)
+            if(C.ShowAOE)
             {
                 Vector3 aoePosition;
-                if (_firstAttack == AttackType.Light)
+                if(_firstAttack == AttackType.Light)
                     aoePosition = FakeParty.Get().Select(x => x.Position)
                         .MinBy(x => Vector3.Distance(x, new Vector3(100, 0, 100)));
                 else
@@ -412,22 +412,22 @@ public class P5_Paradise_Regained : SplatoonScript
                 SetAoe(aoePosition);
             }
 
-            if (C.MoveType == MoveType.FirstBait)
+            if(C.MoveType == MoveType.FirstBait)
             {
                 SetBaitPosition(_secondBaitPosition);
                 HidePredictBait();
             }
 
-            if (C.MoveType == MoveType.SecondBait)
+            if(C.MoveType == MoveType.SecondBait)
             {
                 SetBaitPosition(_secondBaitPosition);
                 HidePredictBait();
             }
 
-            if (C.MoveType == MoveType.Tower)
+            if(C.MoveType == MoveType.Tower)
             {
                 HidePredictTower();
-                switch (C.TowerType)
+                switch(C.TowerType)
                 {
                     case TowerType.First:
                         HideTower();
@@ -436,109 +436,109 @@ public class P5_Paradise_Regained : SplatoonScript
                         SetTowerPosition(_towers[1].Position.ToVector3(0));
                         break;
                     case TowerType.Third:
-                    {
-                        if (_towers.Count == 3) SetTowerPosition(_towers[2].Position.ToVector3(0));
-                        break;
-                    }
+                        {
+                            if(_towers.Count == 3) SetTowerPosition(_towers[2].Position.ToVector3(0));
+                            break;
+                        }
                     case TowerType.Left:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
-                            SetTowerPosition(tower.Position.ToVector3(0));
-                        break;
-                    }
+                        {
+                            if(_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
+                                SetTowerPosition(tower.Position.ToVector3(0));
+                            break;
+                        }
                     case TowerType.Right:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
-                            SetTowerPosition(tower.Position.ToVector3(0));
-                        break;
-                    }
+                        {
+                            if(_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                                SetTowerPosition(tower.Position.ToVector3(0));
+                            break;
+                        }
                     case TowerType.FirstSafe:
-                    {
-                        var isLeft = _firstAttack == AttackType.Dark;
-                        if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
-                            SetTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            var isLeft = _firstAttack == AttackType.Dark;
+                            if(_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                                SetTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                     case TowerType.SecondSafe:
-                    {
-                        var isLeft = _firstAttack == AttackType.Light;
-                        if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
-                            SetTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            var isLeft = _firstAttack == AttackType.Light;
+                            if(_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                                SetTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                     case TowerType.LeftWhenSecondCleave:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
-                            SetTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            if(_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
+                                SetTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                     case TowerType.RightWhenSecondCleave:
-                    {
-                        if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
-                            SetTowerPosition(tower.Position.ToVector3(0));
+                        {
+                            if(_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                                SetTowerPosition(tower.Position.ToVector3(0));
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
         }
 
-        if (_state == State.ThirdTower)
+        if(_state == State.ThirdTower)
         {
             HideAoe();
-            if (C.MoveType == MoveType.FirstBait)
+            if(C.MoveType == MoveType.FirstBait)
             {
                 SetBaitPosition(_secondBaitPosition);
                 HidePredictBait();
             }
 
-            if (C.MoveType == MoveType.SecondBait)
+            if(C.MoveType == MoveType.SecondBait)
             {
                 SetBaitPosition(_secondBaitPosition);
                 HidePredictBait();
             }
 
-            if (C.MoveType == MoveType.Tower)
+            if(C.MoveType == MoveType.Tower)
             {
                 HideTower();
                 HidePredictTower();
 
-                if (C.TowerType == TowerType.Third)
+                if(C.TowerType == TowerType.Third)
                 {
                     SetTowerPosition(_towers[2].Position.ToVector3(0));
                 }
-                else if (C.TowerType == TowerType.Left)
+                else if(C.TowerType == TowerType.Left)
                 {
-                    if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower)) ShowTowerIfThird(tower);
+                    if(_towers.TryGetFirst(x => x.IsLeft == true, out var tower)) ShowTowerIfThird(tower);
                 }
-                else if (C.TowerType == TowerType.Right)
+                else if(C.TowerType == TowerType.Right)
                 {
-                    if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                    if(_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
                         ShowTowerIfThird(tower);
                 }
-                else if (C.TowerType == TowerType.LeftWhenSecondCleave)
+                else if(C.TowerType == TowerType.LeftWhenSecondCleave)
                 {
-                    if (_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
+                    if(_towers.TryGetFirst(x => x.IsLeft == true, out var tower))
                         ShowTowerIfThird(tower);
                 }
-                else if (C.TowerType == TowerType.RightWhenSecondCleave)
+                else if(C.TowerType == TowerType.RightWhenSecondCleave)
                 {
-                    if (_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
+                    if(_towers.TryGetFirst(x => x.IsLeft == false, out var tower))
                         ShowTowerIfThird(tower);
                 }
-                else if (C.TowerType == TowerType.FirstSafe)
+                else if(C.TowerType == TowerType.FirstSafe)
                 {
                     var isLeft = _firstAttack == AttackType.Dark;
-                    if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                    if(_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
                         ShowTowerIfThird(tower);
                 }
-                else if (C.TowerType == TowerType.SecondSafe)
+                else if(C.TowerType == TowerType.SecondSafe)
                 {
                     var isLeft = _firstAttack == AttackType.Light;
-                    if (_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
+                    if(_towers.TryGetFirst(x => x.IsLeft == isLeft, out var tower))
                         ShowTowerIfThird(tower);
                 }
             }
@@ -547,21 +547,21 @@ public class P5_Paradise_Regained : SplatoonScript
 
     private void ShowTowerIfThird(TowerData tower)
     {
-        if (_towers.IndexOf(tower) == 2)
+        if(_towers.IndexOf(tower) == 2)
             SetTowerPosition(_towers[2].Position.ToVector3(0));
     }
 
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40319)
+        if(castId == 40319)
         {
             Reset();
             _state = State.Start;
         }
 
-        if (_state != State.None && _firstAttack == null && castId == 40233) _firstAttack = AttackType.Dark;
-        if (_state != State.None && _firstAttack == null && castId == 40313) _firstAttack = AttackType.Light;
+        if(_state != State.None && _firstAttack == null && castId == 40233) _firstAttack = AttackType.Dark;
+        if(_state != State.None && _firstAttack == null && castId == 40313) _firstAttack = AttackType.Light;
     }
 
     public override void OnReset()
@@ -575,8 +575,8 @@ public class P5_Paradise_Regained : SplatoonScript
         _firstAttack = null;
         _towers.Clear();
     }
-    
-    private readonly Dictionary<Direction,Vector2> _towerPositions = new()
+
+    private readonly Dictionary<Direction, Vector2> _towerPositions = new()
     {
         {Direction.NorthWest, new Vector2(93.93782f, 96.5f)},
         {Direction.NorthEast, new Vector2(106.0622f, 96.5f)},
@@ -585,10 +585,10 @@ public class P5_Paradise_Regained : SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if (_state is State.None or State.End) return;
-        if (data1 == 1 && data2 == 2)
+        if(_state is State.None or State.End) return;
+        if(data1 == 1 && data2 == 2)
         {
-            switch (position)
+            switch(position)
             {
                 case 51:
                     _towers.Add(
@@ -604,31 +604,31 @@ public class P5_Paradise_Regained : SplatoonScript
                     break;
             }
 
-            switch (_towers.Count)
+            switch(_towers.Count)
             {
                 case 1:
                     _state = State.FirstTower;
                     break;
                 case 2:
-                {
-                    var diff = _towers[0].AngleDifference(_towers[1]);
-                    _towers[1].IsLeft = diff <= 180;
-                    
-                    var lastTowerPosition = _towerPositions.First(x => x.Key != _towers[0].Direction && x.Key != _towers[1].Direction);
-                    _towers.Add(new TowerData {Position = lastTowerPosition.Value, Direction = lastTowerPosition.Key});
-                    
-                    _towers[2].IsLeft = !_towers[1].IsLeft;
-                    break;
-                }
+                    {
+                        var diff = _towers[0].AngleDifference(_towers[1]);
+                        _towers[1].IsLeft = diff <= 180;
+
+                        var lastTowerPosition = _towerPositions.First(x => x.Key != _towers[0].Direction && x.Key != _towers[1].Direction);
+                        _towers.Add(new TowerData { Position = lastTowerPosition.Value, Direction = lastTowerPosition.Key });
+
+                        _towers[2].IsLeft = !_towers[1].IsLeft;
+                        break;
+                    }
             }
         }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is null) return;
+        if(set.Action is null) return;
 
-        if (set.Action.Value.RowId == 40320)
+        if(set.Action.Value.RowId == 40320)
             _state = _state switch
             {
                 State.FirstTower => State.SecondTower,
@@ -641,11 +641,11 @@ public class P5_Paradise_Regained : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGuiEx.EnumCombo("Move Type", ref C.MoveType);
-        if (C.MoveType == MoveType.FirstBait)
+        if(C.MoveType == MoveType.FirstBait)
             ImGuiEx.EnumCombo("First Bait Type", ref C.FirstBaitType);
-        if (C.MoveType == MoveType.SecondBait)
+        if(C.MoveType == MoveType.SecondBait)
             ImGuiEx.EnumCombo("Second Bait Type", ref C.SecondBaitType);
-        if (C.MoveType == MoveType.Tower)
+        if(C.MoveType == MoveType.Tower)
             ImGuiEx.EnumCombo("Tower Type", ref C.TowerType);
 
         ImGui.Text("Bait Color:");
@@ -660,14 +660,14 @@ public class P5_Paradise_Regained : SplatoonScript
         ImGui.Checkbox("Show Predict", ref C.ShowPredict);
         ImGui.ColorEdit4("Predict Color", ref C.PredictColor, ImGuiColorEditFlags.NoInputs);
         ImGui.Checkbox("Show Tank AOE", ref C.ShowAOE);
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"Attack: {_firstAttack}");
             ImGui.Text($"First Bait: {_firstBaitPosition}");
             ImGui.Text($"Second Bait: {_secondBaitPosition}");
             ImGui.Text($"Towers: {_towers.Count}");
-            for (var i = 0; i < _towers.Count; i++)
+            for(var i = 0; i < _towers.Count; i++)
             {
                 var tower = _towers[i];
                 ImGui.Text($"Tower {i + 1}: {tower.Position} {tower.Direction} {tower.RealAngle} {tower.IsLeft}");
@@ -688,7 +688,7 @@ public class P5_Paradise_Regained : SplatoonScript
             get
             {
                 var angle = (int)Direction;
-                if (angle < 0) angle += 360;
+                if(angle < 0) angle += 360;
                 return angle;
             }
         }
@@ -700,7 +700,7 @@ public class P5_Paradise_Regained : SplatoonScript
                 var center = new Vector2(100, 100);
                 var angle = Math.Atan2(Position.Y - center.Y, Position.X - center.X) * 180 / Math.PI;
                 angle += 90;
-                if (angle < 0) angle += 360;
+                if(angle < 0) angle += 360;
                 angle %= 360;
                 return (int)angle;
             }
@@ -713,7 +713,7 @@ public class P5_Paradise_Regained : SplatoonScript
                 var center = new Vector2(100, 100);
                 var angle = Math.Atan2(center.Y - Position.Y, center.X - Position.X) * 180 / Math.PI;
                 angle += 90;
-                if (angle < 0) angle += 360;
+                if(angle < 0) angle += 360;
                 angle %= 360;
                 return (int)angle;
             }
@@ -724,7 +724,7 @@ public class P5_Paradise_Regained : SplatoonScript
             var angle = NormalizeAngle;
             var otherAngle = other.NormalizeAngle;
             var diff = otherAngle - angle;
-            if (diff < 0) diff += 360;
+            if(diff < 0) diff += 360;
             return diff;
         }
     }

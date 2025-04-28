@@ -13,8 +13,8 @@ public class R4S_Unsafe_Cannon : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
     public override Metadata? Metadata => new(2, "NightmareXIV");
-    uint DebuffYellow = 4000;
-    uint DebuffBlue = 4001;
+    private uint DebuffYellow = 4000;
+    private uint DebuffBlue = 4001;
 
     public override void OnSetup()
     {

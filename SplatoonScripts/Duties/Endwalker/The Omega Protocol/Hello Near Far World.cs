@@ -14,14 +14,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public class Hello_Near_Far_World : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1122 };
+        public override HashSet<uint> ValidTerritories => [1122];
 
         public override Metadata? Metadata => new(3, "NightmareXIV");
 
         //  _rsv_3442_-1_1_0_0_S74CFC3B0_E74CFC3B0 (3442), Remains = 21.7, Param = 0, Count = 0
-        const uint EffectNear = 3442;
+        private const uint EffectNear = 3442;
         //  _rsv_3443_-1_1_0_0_S74CFC3B0_E74CFC3B0 (3443), Remains = 21.7, Param = 0, Count = 0
-        const uint EffectFar = 3443;
+        private const uint EffectFar = 3443;
 
         public override void OnSetup()
         {
@@ -70,12 +70,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        const uint FirstInLine = 3004;
-        const uint SecondInLine = 3005;
-        static bool HasNFDebuff(IPlayerCharacter pc, uint debuff)
+        private const uint FirstInLine = 3004;
+        private const uint SecondInLine = 3005;
+        private static bool HasNFDebuff(IPlayerCharacter pc, uint debuff)
         {
             var isFirst = FakeParty.Get().Any(x => x.StatusList.Any(z => z.StatusId == FirstInLine) && x.StatusList.Any(z => z.StatusId == EffectFar));
-            if (isFirst)
+            if(isFirst)
             {
                 return pc.StatusList.Any(x => x.StatusId == debuff) && pc.StatusList.Any(x => x.StatusId == FirstInLine);
             }

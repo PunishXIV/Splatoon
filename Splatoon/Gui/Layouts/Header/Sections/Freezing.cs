@@ -7,7 +7,7 @@ internal static class Freezing
 {
     internal static void DrawFreezing(this Layout layout)
     {
-        if (layout.Freezing)
+        if(layout.Freezing)
         {
             ImGuiEx.Text("Freeze for:".Loc());
             ImGui.SameLine();

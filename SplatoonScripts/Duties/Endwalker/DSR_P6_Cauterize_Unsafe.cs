@@ -10,7 +10,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
 public class DSR_P6_Cauterize_Unsafe : SplatoonScript
 {
-    public override HashSet<uint> ValidTerritories => new() { Raids.Dragonsongs_Reprise_Ultimate };
+    public override HashSet<uint> ValidTerritories => [Raids.Dragonsongs_Reprise_Ultimate];
 
     public override Metadata? Metadata => new(2, "NightmareXIV");
 
@@ -25,14 +25,14 @@ public class DSR_P6_Cauterize_Unsafe : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         {
             //  Freezing (2899), Remains = 3.0, Param = 0, Count = 0
-            if (Player.Object.StatusList.Any(x => x.StatusId == 2899) && Controller.TryGetElementByName("Hraesvelgr", out var e))
+            if(Player.Object.StatusList.Any(x => x.StatusId == 2899) && Controller.TryGetElementByName("Hraesvelgr", out var e))
             {
                 e.Enabled = true;
             }
         }
         {
             //  Boiling (2898), Remains = 3.0, Param = 0, Count = 0
-            if (Player.Object.StatusList.Any(x => x.StatusId == 2898) && Controller.TryGetElementByName("Nidhogg", out var e))
+            if(Player.Object.StatusList.Any(x => x.StatusId == 2898) && Controller.TryGetElementByName("Nidhogg", out var e))
             {
                 e.Enabled = true;
             }

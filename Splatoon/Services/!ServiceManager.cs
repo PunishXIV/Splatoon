@@ -14,4 +14,5 @@ public static class S
     internal static ScriptFileWatcher ScriptFileWatcher { get; private set; }
     internal static InfoBar InfoBar { get; private set; }
     //internal static StatusEffectManager StatusEffectManager { get; private set; }
+    internal static DataMigrator DataMigrator { get; private set; }
 }

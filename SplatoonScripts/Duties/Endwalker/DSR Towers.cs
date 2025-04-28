@@ -25,26 +25,26 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class DSR_Towers : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 968 };
+        public override HashSet<uint> ValidTerritories => [968];
         public override Metadata? Metadata => new(3, "Enthusiastus");
 
-        Element? SolutionElement;
+        private Element? SolutionElement;
 
-        List<Element> TowerElements = new();
-        List<Element> NorthTowers = new();
-        List<Element> EastTowers = new();
-        List<Element> SouthTowers = new();
-        List<Element> WestTowers = new();
+        private List<Element> TowerElements = [];
+        private List<Element> NorthTowers = [];
+        private List<Element> EastTowers = [];
+        private List<Element> SouthTowers = [];
+        private List<Element> WestTowers = [];
 
-        bool takeMeteorTower=false;
+        private bool takeMeteorTower = false;
 
-        string solutionText = "";
- 
+        private string solutionText = "";
+
         //IBattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == ThordanDataId) as IBattleNpc;
-        string TestOverride = "";
+        private string TestOverride = "";
 
-        IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
-        Vector2 Center = new(100, 100);
+        private IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+        private Vector2 Center = new(100, 100);
 
         public override void OnSetup()
         {
@@ -54,7 +54,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             SolutionElement.overlayFScale = Conf.tScale;
             SolutionElement.Enabled = false;
             var tower = "{\"Name\":\"tower\",\"refX\":100,\"refY\":100,\"radius\":3.0,\"color\":3355508735,\"thicc\":5.0,\"Filled\":true}";
-            for (var i = 0; i < 8; i++)
+            for(var i = 0; i < 8; i++)
             {
                 var e = Controller.RegisterElementFromCode($"tower{i}", tower);
                 e.color = Conf.ColNoMeteorTower.ToUint();
@@ -69,15 +69,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         }
         public override void OnVFXSpawn(uint target, string vfxPath)
         {
-            if (vfxPath == "vfx/lockon/eff/r1fz_holymeteo_s12x.avfx")
+            if(vfxPath == "vfx/lockon/eff/r1fz_holymeteo_s12x.avfx")
             {
 
-                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+                if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     if(pvc.GetRole().ToString() == "Tank" || pvc.GetRole().ToString() == "Healer")
                     {
                         solutionText = $"Supp Met,";
-                    } else
+                    }
+                    else
                     {
                         solutionText = $"{pvc.GetRole().ToString()} Met,";
                     }
@@ -87,22 +88,22 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     }
                 }
             }
-           
+
         }
 
         public override void OnMessage(string Message)
         {
-            if (Message.Contains("(3640>29563)"))
+            if(Message.Contains("(3640>29563)"))
             {
                 var towers = Svc.Objects.Where(x => x is IBattleNpc b && b.NameId == 3640 && b.DataId == 9020).OrderBy(x => x.Position.X).ThenBy(y => y.Position.Z);
-                int i = 0;
-                foreach (var x in towers)
+                var i = 0;
+                foreach(var x in towers)
                 {
                     var cur = i;
                     i++;
                     TowerElements[cur].SetRefPosition(x.Position);
                     TowerElements[cur].Enabled = true;
-                    if (x.Position.Z < 107 && x.Position.Z > 93 && x.Position.X > 93 && x.Position.X < 107)
+                    if(x.Position.Z < 107 && x.Position.Z > 93 && x.Position.X > 93 && x.Position.X < 107)
                     {
                         //DuoLog.Information($"Skip inner Tower @{x.Position}");
                         TowerElements[cur].color = Conf.ColInnerTower.ToUint();
@@ -135,9 +136,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 //DuoLog.Information($"Towers: {towers.Count()} | North: {NorthTowers.Count()} | East: {EastTowers.Count()} | South: {SouthTowers.Count()} | West: {WestTowers.Count()}");
                 findTowerStrategy();
             }
-            if(Message.Contains("Ser Noudenet casts Holy Comet")) {
+            if(Message.Contains("Ser Noudenet casts Holy Comet"))
+            {
                 SolutionElement.Enabled = false;
-                foreach (var e in TowerElements)
+                foreach(var e in TowerElements)
                 {
                     e.Enabled = false;
                 }
@@ -163,79 +165,97 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Element? st = null;
 
             // Try straight towers first
-            if(NorthTowers.Any(n => n.refX > 99 && n.refX < 101) && SouthTowers.Any(n => n.refX > 99 && n.refX < 101)) {
+            if(NorthTowers.Any(n => n.refX > 99 && n.refX < 101) && SouthTowers.Any(n => n.refX > 99 && n.refX < 101))
+            {
                 solutionText += " Both straight, perfect";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
 
-            } else if (NorthTowers.Any(n => n.refX < 99) && SouthTowers.Any(n => n.refX > 101)) {
+            }
+            else if(NorthTowers.Any(n => n.refX < 99) && SouthTowers.Any(n => n.refX > 101))
+            {
                 solutionText += " Both CCW, perfect";
                 nt = NorthTowers.FirstOrDefault(n => n.refX < 99);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 101);
 
-            } else if (NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX < 99)) {
+            }
+            else if(NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX < 99))
+            {
                 solutionText += " Both CW, perfect";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX < 99);
 
-            // no perfect solution, prefer north short
-            } else if (NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX > 99 && n.refX < 101)) {
+                // no perfect solution, prefer north short
+            }
+            else if(NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX > 99 && n.refX < 101))
+            {
                 solutionText += " North CW, South straight, North short";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
 
-            } else if(NorthTowers.Any(n => n.refX > 99 && n.refX < 101) && SouthTowers.Any(n => n.refX > 101)) {
+            }
+            else if(NorthTowers.Any(n => n.refX > 99 && n.refX < 101) && SouthTowers.Any(n => n.refX > 101))
+            {
                 solutionText += " North straight, South CCW, North short";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 101);
 
-            } else if(SouthTowers.Any(n => n.refX < 99) && NorthTowers.Any(n => n.refX > 99 && n.refX < 101)) {
+            }
+            else if(SouthTowers.Any(n => n.refX < 99) && NorthTowers.Any(n => n.refX > 99 && n.refX < 101))
+            {
                 solutionText += " North straight, South CW, South short";
                 st = SouthTowers.FirstOrDefault(n => n.refX < 99);
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
 
-            } else if(SouthTowers.Any(n => n.refX > 99 && n.refX < 101) && NorthTowers.Any(n => n.refX < 99)) {
+            }
+            else if(SouthTowers.Any(n => n.refX > 99 && n.refX < 101) && NorthTowers.Any(n => n.refX < 99))
+            {
                 solutionText += " North CCW, South straight, South short";
                 st = SouthTowers.FirstOrDefault(n => n.refX > 99 && n.refX < 101);
                 nt = NorthTowers.FirstOrDefault(n => n.refX < 99);
 
-            // no short solution either... switch to e/w?
-            } else if (NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX > 101)) {
+                // no short solution either... switch to e/w?
+            }
+            else if(NorthTowers.Any(n => n.refX > 101) && SouthTowers.Any(n => n.refX > 101))
+            {
                 solutionText += " North CW, South CCW, North dbl short";
                 nt = NorthTowers.FirstOrDefault(n => n.refX > 101);
                 st = SouthTowers.FirstOrDefault(n => n.refX > 101);
 
-            } else if(SouthTowers.Any(n => n.refX < 99) && NorthTowers.Any(n => n.refX < 99)) {
+            }
+            else if(SouthTowers.Any(n => n.refX < 99) && NorthTowers.Any(n => n.refX < 99))
+            {
                 solutionText += " North CCW, South CCW, South dbl short";
                 st = SouthTowers.FirstOrDefault(n => n.refX < 99);
                 nt = NorthTowers.FirstOrDefault(n => n.refX < 99);
             }
             if(takeMeteorTower)
             {
-                if (nt != null)
+                if(nt != null)
                 {
                     nt.color = Conf.ColMeteorTower.ToUint();
                     nt.Enabled = true;
                 }
-                if (st != null)
+                if(st != null)
                 {
                     st.color = Conf.ColMeteorTower.ToUint();
                     st.Enabled = true;
                 }
-            } else
+            }
+            else
             {
-                if (nt != null)
+                if(nt != null)
                 {
                     nt.color = Conf.ColDontMeteorTower.ToUint();
                     nt.Enabled = true;
                 }
-                if (st != null)
+                if(st != null)
                 {
                     st.color = Conf.ColDontMeteorTower.ToUint();
                     st.Enabled = true;
                 }
             }
-            
+
             SolutionElement.overlayText = solutionText;
             solutionText = "";
             if(Conf.raidCaller)
@@ -251,11 +271,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ActionEffect.ActionEffectEvent -= ActionEffect_ActionEffectEvent;
         }
 
-        void Hide()
+        private void Hide()
         {
         }
 
-        void Off()
+        private void Off()
         {
             SolutionElement.Enabled = false;
             takeMeteorTower = false;
@@ -277,13 +297,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
         {
-            if (category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
+            if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
             {
                 Off();
             }
         }
 
-        Config Conf => Controller.GetConfig<Config>();
+        private Config Conf => Controller.GetConfig<Config>();
         public class Config : IEzConfig
         {
             public bool raidCaller = false;
@@ -310,9 +330,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.DragFloat("Solution text scale", ref Conf.tScale.ValidateRange(0.1f, 10f), 0.1f);
         }
 
-        public unsafe static Vector4 Vector4FromRGBA(uint col)
+        public static unsafe Vector4 Vector4FromRGBA(uint col)
         {
-            byte* bytes = (byte*)&col;
+            var bytes = (byte*)&col;
             return new Vector4((float)bytes[3] / 255f, (float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f);
         }
     }

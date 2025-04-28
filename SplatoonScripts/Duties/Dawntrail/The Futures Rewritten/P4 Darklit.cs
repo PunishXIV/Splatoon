@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
@@ -15,6 +11,10 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -46,7 +46,7 @@ public class P4_Darklit : SplatoonScript
 
     private MoveType? _moveType;
 
-    private Dictionary<ulong, PlayerData> _players = new();
+    private Dictionary<ulong, PlayerData> _players = [];
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
@@ -58,16 +58,16 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40239) _state = State.Start;
-        if (_holyWingIds.Contains(castId))
+        if(castId == 40239) _state = State.Start;
+        if(_holyWingIds.Contains(castId))
         {
             var x = castId == _holyWingIds[0] ? 106.5f : 93.5f;
 
-            if (Controller.TryGetElementByName("StackBaitNorth", out var northElement)) northElement.refX = x;
-            if (Controller.TryGetElementByName("StackBaitSouth", out var southElement)) southElement.refX = x;
-            if (Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = false;
+            if(Controller.TryGetElementByName("StackBaitNorth", out var northElement)) northElement.refX = x;
+            if(Controller.TryGetElementByName("StackBaitSouth", out var southElement)) southElement.refX = x;
+            if(Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = false;
             x = castId == _holyWingIds[0] ? 118f : 82f;
-            if (Controller.TryGetElementByName("TankBait", out var tankBaitElement))
+            if(Controller.TryGetElementByName("TankBait", out var tankBaitElement))
             {
                 tankBaitElement.refX = x;
                 tankBaitElement.refY = 100f;
@@ -77,7 +77,7 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnSetup()
     {
-        foreach (var direction in Enum.GetValues<Direction>())
+        foreach(var direction in Enum.GetValues<Direction>())
         {
             Vector3? position = direction switch
             {
@@ -90,7 +90,7 @@ public class P4_Darklit : SplatoonScript
                 _ => null
             };
 
-            if (position == null) continue;
+            if(position == null) continue;
 
             Controller.RegisterElement(direction.ToString(), new Element(0)
             {
@@ -150,32 +150,32 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is not { } action) return;
-        if (_state == State.Tower && action.RowId == 40190)
+        if(set.Action is not { } action) return;
+        if(_state == State.Tower && action.RowId == 40190)
         {
-            foreach (var direction in Enum.GetValues<Direction>())
-                if (Controller.TryGetElementByName(direction.ToString(), out var element))
+            foreach(var direction in Enum.GetValues<Direction>())
+                if(Controller.TryGetElementByName(direction.ToString(), out var element))
                     element.Enabled = false;
-            if (Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = true;
+            if(Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = true;
             _state = State.Split;
         }
 
-        if (_state == State.Split && action.RowId == 40289)
+        if(_state == State.Split && action.RowId == 40289)
         {
-            if (Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = false;
-            if (Controller.TryGetElementByName("Stack", out var stackElement)) stackElement.Enabled = true;
+            if(Controller.TryGetElementByName("Split", out var splitElement)) splitElement.Enabled = false;
+            if(Controller.TryGetElementByName("Stack", out var stackElement)) stackElement.Enabled = true;
             _state = State.Stack;
         }
 
-        if (_state == State.Stack && _holyWingIds.Contains(action.RowId)) _state = State.FirstBait;
+        if(_state == State.Stack && _holyWingIds.Contains(action.RowId)) _state = State.FirstBait;
 
-        if (_state == State.FirstBait && action.RowId == 40284) _state = State.SecondBait;
-        if (_state == State.SecondBait && action.RowId == 40285) _state = State.End;
+        if(_state == State.FirstBait && action.RowId == 40284) _state = State.SecondBait;
+        if(_state == State.SecondBait && action.RowId == 40285) _state = State.End;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state != State.Start || source.GetObject() is not IPlayerCharacter sourcePlayer ||
+        if(_state != State.Start || source.GetObject() is not IPlayerCharacter sourcePlayer ||
             target.GetObject() is not IPlayerCharacter targetPlayer) return;
         var priority = C.PriorityData.GetPlayers(x => true).IndexOf(x => x.Name == sourcePlayer.Name.ToString());
         _players[source] = new PlayerData
@@ -190,10 +190,10 @@ public class P4_Darklit : SplatoonScript
             HasWater = sourcePlayer.StatusList.Any(x => x.StatusId == WaterId)
         };
 
-        if (_players.Count == 4)
+        if(_players.Count == 4)
         {
             var otherPlayers = FakeParty.Get().Where(x => !_players.ContainsKey(x.GameObjectId)).ToList();
-            foreach (var otherPlayer in otherPlayers)
+            foreach(var otherPlayer in otherPlayers)
                 _players[otherPlayer.GameObjectId] = new PlayerData
                 {
                     Name = otherPlayer.Name.ToString(),
@@ -205,7 +205,7 @@ public class P4_Darklit : SplatoonScript
                         .IndexOf(x => x.Name == otherPlayer.Name.ToString()),
                     HasWater = otherPlayer.StatusList.Any(x => x.StatusId == WaterId)
                 };
-            if (C.Mode == Mode.Vertical)
+            if(C.Mode == Mode.Vertical)
             {
                 var left = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
                     .OrderBy(x => x.Priority).ToList();
@@ -214,16 +214,16 @@ public class P4_Darklit : SplatoonScript
                 var isSameRole = _players.Where(x => x.Value.IsInkling)
                     .Any(player => player.Value.Role == player.Value.LinkToRole);
 
-                if ((_players[left[0].LinkTo].Name == right[0].Name ||
+                if((_players[left[0].LinkTo].Name == right[0].Name ||
                      _players[right[0].LinkTo].Name == left[0].Name) && isSameRole)
                     _moveType = MoveType.Box;
-                else if (!isSameRole)
+                else if(!isSameRole)
                     _moveType = MoveType.Hourglass;
                 else
                     _moveType = MoveType.Straight;
 
 
-                switch (_moveType)
+                switch(_moveType)
                 {
                     case MoveType.Straight:
                         _players[left[0].Id].Direction = Direction.North;
@@ -279,16 +279,16 @@ public class P4_Darklit : SplatoonScript
                 var isSameRole = _players.Where(x => x.Value.IsInkling)
                     .Any(player => player.Value.Role == player.Value.LinkToRole);
 
-                if ((_players[up[0].LinkTo].Name == down[0].Name ||
+                if((_players[up[0].LinkTo].Name == down[0].Name ||
                      _players[down[0].LinkTo].Name == up[0].Name) && isSameRole)
                     _moveType = MoveType.Box;
-                else if (isSameRole)
+                else if(isSameRole)
                     _moveType = MoveType.Hourglass;
                 else
                     _moveType = MoveType.Straight;
 
 
-                switch (_moveType)
+                switch(_moveType)
                 {
                     case MoveType.Straight:
                         _players[up[0].Id].Direction = Direction.North;
@@ -339,7 +339,7 @@ public class P4_Darklit : SplatoonScript
 
             var noTetherAndHasWater =
                 _players.Values.Where(x => x is { IsInkling: false, HasWater: true }).ToList();
-            if (noTetherAndHasWater.Count == 1)
+            if(noTetherAndHasWater.Count == 1)
             {
                 var player = noTetherAndHasWater.First();
                 var otherPlayer = _players.Values.First(x => x is { IsInkling: true, HasWater: true });
@@ -354,7 +354,7 @@ public class P4_Darklit : SplatoonScript
                     _ => throw new ArgumentOutOfRangeException()
                 };
 
-                if (playerAboutDirection == otherPlayer.Direction)
+                if(playerAboutDirection == otherPlayer.Direction)
                 {
                     var otherPlayerDirection = player.Direction switch
                     {
@@ -377,19 +377,19 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state is State.None or State.End)
+        if(_state is State.None or State.End)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
         }
 
-        if (_state == State.Tower)
+        if(_state == State.Tower)
         {
             var myDirection = _players.Values.First(x => x.Name == Player.Name).Direction;
-            foreach (var direction in Enum.GetValues<Direction>())
-                if (Controller.TryGetElementByName(direction.ToString(), out var element))
+            foreach(var direction in Enum.GetValues<Direction>())
+                if(Controller.TryGetElementByName(direction.ToString(), out var element))
                 {
-                    if (myDirection == direction)
+                    if(myDirection == direction)
                     {
                         element.Enabled = true;
                         element.tether = true;
@@ -403,7 +403,7 @@ public class P4_Darklit : SplatoonScript
                     }
                 }
         }
-        else if (_state == State.Stack)
+        else if(_state == State.Stack)
         {
             var myDirection = _players.Values.First(x => x.Name == Player.Name).Direction;
             var elementName = myDirection switch
@@ -416,16 +416,16 @@ public class P4_Darklit : SplatoonScript
                 Direction.SouthWest => "StackBaitSouth",
                 _ => throw new ArgumentOutOfRangeException()
             };
-            if (Controller.TryGetElementByName(elementName, out var northElement))
+            if(Controller.TryGetElementByName(elementName, out var northElement))
             {
                 northElement.Enabled = true;
                 northElement.tether = true;
                 northElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
             }
         }
-        else if (_state is State.FirstBait)
+        else if(_state is State.FirstBait)
         {
-            if (Controller.TryGetElementByName("TankBait", out var tankBaitElement))
+            if(Controller.TryGetElementByName("TankBait", out var tankBaitElement))
             {
                 tankBaitElement.Enabled = C.ShowTank1stBait;
                 tankBaitElement.tether = true;
@@ -433,10 +433,10 @@ public class P4_Darklit : SplatoonScript
             }
         }
 
-        else if (_state is State.SecondBait)
+        else if(_state is State.SecondBait)
         {
             var dirkGirl = DarkGirl;
-            if (Controller.TryGetElementByName("TankBait", out var tankBaitElement) && dirkGirl != null)
+            if(Controller.TryGetElementByName("TankBait", out var tankBaitElement) && dirkGirl != null)
             {
                 tankBaitElement.Enabled = C.ShowTank2ndBait;
                 tankBaitElement.tether = true;
@@ -458,7 +458,7 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("General"))
+        if(ImGuiEx.CollapsingHeader("General"))
         {
             ImGuiEx.EnumCombo("Mode", ref C.Mode);
             ImGuiEx.Text("Priority");
@@ -477,7 +477,7 @@ public class P4_Darklit : SplatoonScript
             ImGui.Unindent();
         }
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"Move Type: {_moveType}");

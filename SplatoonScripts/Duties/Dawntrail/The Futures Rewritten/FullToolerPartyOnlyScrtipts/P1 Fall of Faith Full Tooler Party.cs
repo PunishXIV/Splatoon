@@ -16,10 +16,10 @@ using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
-internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
+internal class P1_Fall_of_Faith_Full_Tooler_Party : SplatoonScript
 {
     #region Enums
-    enum State
+    private enum State
     {
         None,
         Casting,
@@ -29,13 +29,13 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         End
     }
 
-    enum LR
+    private enum LR
     {
         Left,
         Right
     }
 
-    enum FireThunder
+    private enum FireThunder
     {
         Fire,
         Thunder
@@ -43,7 +43,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     #endregion
 
     #region class
-    class PartyData
+    private class PartyData
     {
         public int Index = 0;
         public bool Mine = false;
@@ -75,11 +75,11 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     #endregion
 
     #region private Fields
-    List<PartyData> _partyDataList = [];
-    List<FireThunder> _fireThunders = [];
-    State _state = State.None;
-    int _soilEndCount = 0;
-    bool _gimmickEnded = false;
+    private List<PartyData> _partyDataList = [];
+    private List<FireThunder> _fireThunders = [];
+    private State _state = State.None;
+    private int _soilEndCount = 0;
+    private bool _gimmickEnded = false;
     #endregion
 
     #region Public Methods
@@ -97,7 +97,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (!_gimmickEnded && _state == State.None && castId is 40170) // Fall of Faith Cast Too Late
+        if(!_gimmickEnded && _state == State.None && castId is 40170) // Fall of Faith Cast Too Late
         {
             SetListEntityIdByJob();
             _state = State.Casting;
@@ -106,12 +106,12 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action == null) return;
-        if (_state == State.None) return;
-        if (set.Action.Value.RowId is 40156 or 40142)
+        if(set.Action == null) return;
+        if(_state == State.None) return;
+        if(set.Action.Value.RowId is 40156 or 40142)
         {
             ++_state;
-            if (_state == State.End)
+            if(_state == State.End)
             {
                 _state = State.None;
                 _gimmickEnded = true;
@@ -123,21 +123,21 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (!(_state == State.Casting)) return;
+        if(!(_state == State.Casting)) return;
 
         var pc = _partyDataList.Find(x => x.EntityId == target);
-        if (pc == null) return;
+        if(pc == null) return;
 
-        if (data2 == 0 && data3 == 249 && data5 == 15) // fire
+        if(data2 == 0 && data3 == 249 && data5 == 15) // fire
         {
             _fireThunders.Add(FireThunder.Fire);
         }
-        else if (data2 == 0 && data3 == 287 && data5 == 15) // thunder
+        else if(data2 == 0 && data3 == 287 && data5 == 15) // thunder
         {
             _fireThunders.Add(FireThunder.Thunder);
         }
 
-        if (_fireThunders.Count is 1 or 3)
+        if(_fireThunders.Count is 1 or 3)
         {
             pc.LR = LR.Left;
         }
@@ -148,41 +148,41 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
         pc.TetherNum = _fireThunders.Count;
 
-        if (target == Player.Object.EntityId)
+        if(target == Player.Object.EntityId)
         {
-            if (_fireThunders.Count == 1)
+            if(_fireThunders.Count == 1)
             {
-                if (Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
+                if(Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
             }
-            else if (_fireThunders.Count == 2)
+            else if(_fireThunders.Count == 2)
             {
-                if (Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                if(Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
             }
-            else if (_fireThunders.Count == 3)
+            else if(_fireThunders.Count == 3)
             {
-                if (_fireThunders[0] == FireThunder.Thunder)
+                if(_fireThunders[0] == FireThunder.Thunder)
                 {
-                    if (Controller.TryGetElementByName("LeftTetherNext", out var el)) el.Enabled = true;
+                    if(Controller.TryGetElementByName("LeftTetherNext", out var el)) el.Enabled = true;
                 }
                 else
                 {
-                    if (Controller.TryGetElementByName("LeftNone2", out var el)) el.Enabled = true;
+                    if(Controller.TryGetElementByName("LeftNone2", out var el)) el.Enabled = true;
                 }
             }
             else
             {
-                if (_fireThunders[1] == FireThunder.Thunder)
+                if(_fireThunders[1] == FireThunder.Thunder)
                 {
-                    if (Controller.TryGetElementByName("RightTetherNext", out var el)) el.Enabled = true;
+                    if(Controller.TryGetElementByName("RightTetherNext", out var el)) el.Enabled = true;
                 }
                 else
                 {
-                    if (Controller.TryGetElementByName("RightNone2", out var el)) el.Enabled = true;
+                    if(Controller.TryGetElementByName("RightNone2", out var el)) el.Enabled = true;
                 }
             }
         }
 
-        if (_fireThunders.Count == 4)
+        if(_fireThunders.Count == 4)
         {
             ParseData();
             ShowElements();
@@ -191,10 +191,10 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state == State.None || _gimmickEnded) return;
+        if(_state == State.None || _gimmickEnded) return;
 
-        Element? el = Controller.GetRegisteredElements().Where(Element => Element.Value.Enabled).FirstOrDefault().Value;
-        if (el == null) return;
+        var el = Controller.GetRegisteredElements().Where(Element => Element.Value.Enabled).FirstOrDefault().Value;
+        if(el == null) return;
         el.color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
     }
 
@@ -210,16 +210,16 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"Tether Count: {_fireThunders.Count}");
             ImGui.Text($"Soil End Count: {_soilEndCount}");
             ImGui.Text($"Gimmick Ended: {_gimmickEnded}");
-            if (_fireThunders.Count > 0)
+            if(_fireThunders.Count > 0)
             {
                 ImGui.Text("Fire Thunders:");
-                foreach (var x in _fireThunders)
+                foreach(var x in _fireThunders)
                 {
                     ImGui.Text(x.ToString());
                 }
@@ -231,9 +231,9 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
             ImGui.NewLine();
             List<ImGuiEx.EzTableEntry> Entries = [];
-            foreach (var x in _partyDataList)
+            foreach(var x in _partyDataList)
             {
-                if (!x.EntityId.TryGetObject(out var pc)) continue;
+                if(!x.EntityId.TryGetObject(out var pc)) continue;
                 Entries.Add(new ImGuiEx.EzTableEntry("Name", true, () => ImGui.Text(pc.Name.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("ObjectId", () => ImGui.Text(x.EntityId.ToString())));
                 Entries.Add(new ImGuiEx.EzTableEntry("LR", () => ImGui.Text(x.LR.ToString())));
@@ -251,8 +251,8 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     {
         var NoBuffers = _partyDataList.Where(x => x.Object?.StatusList.All(z => z.StatusId != 1051) == true);
 
-        int i = 0;
-        foreach (var NoBuffer in NoBuffers)
+        var i = 0;
+        foreach(var NoBuffer in NoBuffers)
         {
             NoBuffer.LR = (i < 2) ? LR.Left : LR.Right;
             ++i;
@@ -261,7 +261,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         var leftNoBuffPcs = _partyDataList.Where(x => x.LR == LR.Left && x.EntityId.GetObject() is IPlayerCharacter pc && pc.StatusList.All(z => z.StatusId != 1051)).ToList();
         var rightNoBuffPcs = _partyDataList.Where(x => x.LR == LR.Right && x.EntityId.GetObject() is IPlayerCharacter pc && pc.StatusList.All(z => z.StatusId != 1051)).ToList();
 
-        if (leftNoBuffPcs.Count != 2 || rightNoBuffPcs.Count != 2)
+        if(leftNoBuffPcs.Count != 2 || rightNoBuffPcs.Count != 2)
         {
             DuoLog.Error("No Buffer Priority List is not 2");
             _state = State.End;
@@ -277,153 +277,153 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     private void ShowElements()
     {
         HideAllElements();
-        if (_state == State.Casting)
+        if(_state == State.Casting)
         {
-            foreach (var pc in _partyDataList)
+            foreach(var pc in _partyDataList)
             {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
+                if(pc.EntityId != Player.Object.EntityId) continue;
+                if(pc.LR == LR.Left)
                 {
-                    if (_fireThunders[0] == FireThunder.Fire)
+                    if(_fireThunders[0] == FireThunder.Fire)
                     {
-                        if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
                         break;
                     }
                     else
                     {
-                        if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
+                        else if(pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
+                        else if(pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
                         break;
                     }
                 }
                 else
                 {
-                    if (_fireThunders[1] == FireThunder.Fire)
+                    if(_fireThunders[1] == FireThunder.Fire)
                     {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                     else
                     {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(pc.TetherNum == 4 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
+                        else if(pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                 }
             }
         }
-        else if (_state == State.Soil1End)
+        else if(_state == State.Soil1End)
         {
-            foreach (var pc in _partyDataList)
+            foreach(var pc in _partyDataList)
             {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
+                if(pc.EntityId != Player.Object.EntityId) continue;
+                if(pc.LR == LR.Left)
                 {
-                    if (_fireThunders[2] == FireThunder.Fire)
+                    if(_fireThunders[2] == FireThunder.Fire)
                     {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
                         break;
                     }
                     else
                     {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
+                        else if(pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
+                        else if(pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
                         break;
                     }
                 }
                 else
                 {
-                    if (_fireThunders[1] == FireThunder.Fire)
+                    if(_fireThunders[1] == FireThunder.Fire)
                     {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                     else
                     {
-                        if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 2 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(pc.TetherNum == 4 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
+                        else if(pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                 }
             }
         }
-        else if (_state == State.Soil2End)
+        else if(_state == State.Soil2End)
         {
-            foreach (var pc in _partyDataList)
+            foreach(var pc in _partyDataList)
             {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
+                if(pc.EntityId != Player.Object.EntityId) continue;
+                if(pc.LR == LR.Left)
                 {
-                    if (_fireThunders[2] == FireThunder.Fire)
+                    if(_fireThunders[2] == FireThunder.Fire)
                     {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
                         break;
                     }
                     else
                     {
-                        if (pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 3 && Controller.TryGetElementByName("LeftTether", out var el)) el.Enabled = true;
+                        else if(pc.TetherNum == 1 && Controller.TryGetElementByName("LeftTetherNext", out el)) el.Enabled = true;
+                        else if(pc.PriorityNum == 1 && Controller.TryGetElementByName("LeftNone1", out el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("LeftNone2", out el)) el.Enabled = true;
                         break;
                     }
                 }
                 else
                 {
-                    if (_fireThunders[3] == FireThunder.Fire)
+                    if(_fireThunders[3] == FireThunder.Fire)
                     {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                     else
                     {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(pc.TetherNum == 2 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
+                        else if(pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                 }
             }
         }
-        else if (_state == State.Soil3End)
+        else if(_state == State.Soil3End)
         {
-            foreach (var pc in _partyDataList)
+            foreach(var pc in _partyDataList)
             {
-                if (pc.EntityId != Player.Object.EntityId) continue;
-                if (pc.LR == LR.Left)
+                if(pc.EntityId != Player.Object.EntityId) continue;
+                if(pc.LR == LR.Left)
                 {
-                    if (Controller.TryGetElementByName("LeftNone2", out var el)) el.Enabled = true;
+                    if(Controller.TryGetElementByName("LeftNone2", out var el)) el.Enabled = true;
                     break;
                 }
                 else
                 {
-                    if (_fireThunders[3] == FireThunder.Fire)
+                    if(_fireThunders[3] == FireThunder.Fire)
                     {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                     else
                     {
-                        if (pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
-                        else if (pc.TetherNum == 2 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
-                        else if (pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
-                        else if (Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
+                        if(pc.TetherNum == 4 && Controller.TryGetElementByName("RightTether", out var el)) el.Enabled = true;
+                        else if(pc.TetherNum == 2 && Controller.TryGetElementByName("RightTetherNext", out el)) el.Enabled = true;
+                        else if(pc.PriorityNum == 1 && Controller.TryGetElementByName("RightNone1", out el)) el.Enabled = true;
+                        else if(Controller.TryGetElementByName("RightNone2", out el)) el.Enabled = true;
                         break;
                     }
                 }
@@ -438,20 +438,20 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         _partyDataList.Clear();
         var tmpList = new List<PartyData>();
 
-        foreach (var pc in FakeParty.Get())
+        foreach(var pc in FakeParty.Get())
         {
             tmpList.Add(new PartyData(pc.EntityId, Array.IndexOf(jobOrder, pc.GetJob())));
         }
 
         // Sort by job order
         tmpList.Sort((a, b) => a.Index.CompareTo(b.Index));
-        foreach (var data in tmpList)
+        foreach(var data in tmpList)
         {
             _partyDataList.Add(data);
         }
 
         // Set index
-        for (var i = 0; i < _partyDataList.Count; i++)
+        for(var i = 0; i < _partyDataList.Count; i++)
         {
             _partyDataList[i].Index = i;
         }
@@ -504,7 +504,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     public class DirectionCalculator
     {
-        public enum Direction :int
+        public enum Direction : int
         {
             None = -1,
             East = 0,
@@ -517,7 +517,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             NorthEast = 7,
         }
 
-        public enum DirectionRelative :int
+        public enum DirectionRelative : int
         {
             None = -1,
             East = 4,
@@ -530,7 +530,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             NorthEast = 5,
         }
 
-        public enum LR :int
+        public enum LR : int
         {
             Left = -1,
             SameOrOpposite = 0,
@@ -565,10 +565,10 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             // ８方向の内、最も近い方向ベクトルを取得
             var closestDirection = Direction.North;
             var closestDistance = float.MaxValue;
-            foreach (var directionalVector in directionalVectors)
+            foreach(var directionalVector in directionalVectors)
             {
                 var distance = Vector3.Distance(Position, directionalVector.Position);
-                if (distance < closestDistance)
+                if(distance < closestDistance)
                 {
                     closestDistance = distance;
                     closestDirection = directionalVector.Direction;
@@ -580,21 +580,21 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
         public static Direction GetDirectionFromAngle(Direction direction, int angle)
         {
-            if (direction == Direction.None) return Direction.None; // 無効な方向の場合
+            if(direction == Direction.None) return Direction.None; // 無効な方向の場合
 
             // 方向数（8方向: North ~ NorthWest）
             const int directionCount = 8;
 
             // 角度を45度単位に丸め、-180～180の範囲に正規化
             angle = ((Round45(angle) % 360) + 360) % 360; // 正の値に変換して360で正規化
-            if (angle > 180) angle -= 360;
+            if(angle > 180) angle -= 360;
 
             // 現在の方向のインデックス
-            int currentIndex = (int)direction;
+            var currentIndex = (int)direction;
 
             // 45度ごとのステップ計算と新しい方向の計算
-            int step = angle / 45;
-            int newIndex = (currentIndex + step + directionCount) % directionCount;
+            var step = angle / 45;
+            var newIndex = (currentIndex + step + directionCount) % directionCount;
 
             return (Direction)newIndex;
         }
@@ -602,14 +602,14 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         public static LR GetTwoPointLeftRight(Direction direction1, Direction direction2)
         {
             // 不正な方向の場合（None）
-            if (direction1 == Direction.None || direction2 == Direction.None)
+            if(direction1 == Direction.None || direction2 == Direction.None)
                 return LR.SameOrOpposite;
 
             // 方向数（8つ: North ~ NorthWest）
-            int directionCount = 8;
+            var directionCount = 8;
 
             // 差分を循環的に計算
-            int difference = ((int)direction2 - (int)direction1 + directionCount) % directionCount;
+            var difference = ((int)direction2 - (int)direction1 + directionCount) % directionCount;
 
             // LRを直接返す
             return difference == 0 || difference == directionCount / 2
@@ -620,11 +620,11 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         public static int GetTwoPointAngle(Direction direction1, Direction direction2)
         {
             // 不正な方向を考慮
-            if (direction1 == Direction.None || direction2 == Direction.None)
+            if(direction1 == Direction.None || direction2 == Direction.None)
                 return 0;
 
             // enum の値を数値として扱い、環状の差分を計算
-            int diff = ((int)direction2 - (int)direction1 + 8) % 8;
+            var diff = ((int)direction2 - (int)direction1 + 8) % 8;
 
             // 差分から角度を計算
             return diff <= 4 ? diff * 45 : (diff - 8) * 45;
@@ -632,7 +632,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
         public static float GetAngle(Direction direction)
         {
-            if (direction == Direction.None) return 0; // 無効な方向の場合
+            if(direction == Direction.None) return 0; // 無効な方向の場合
 
             // 45度単位で計算し、0度から始まる時計回りの角度を返す
             return (int)direction * 45 % 360;
@@ -643,11 +643,11 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             var directionalVectors = new List<DirectionalVector>();
 
             // 各方向のオフセット計算
-            foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+            foreach(Direction direction in Enum.GetValues(typeof(Direction)))
             {
-                if (direction == Direction.None) continue; // Noneはスキップ
+                if(direction == Direction.None) continue; // Noneはスキップ
 
-                Vector3 offset = direction switch
+                var offset = direction switch
                 {
                     Direction.North => new Vector3(0, 0, -1),
                     Direction.NorthEast => Vector3.Normalize(new Vector3(1, 0, -1)),
@@ -661,7 +661,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
                 };
 
                 // 距離を適用して座標を計算
-                Vector3 position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
+                var position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
 
                 // リストに追加
                 directionalVectors.Add(new DirectionalVector(direction, position));
@@ -685,11 +685,11 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         // _12ClockDirectionを0時方向として、指定時計からの方向を取得
         public DirectionCalculator.Direction GetDirectionFromClock(int clock)
         {
-            if (!isValid)
+            if(!isValid)
                 return DirectionCalculator.Direction.None;
 
             // 特別ケース: clock = 0 の場合、_12ClockDirection をそのまま返す
-            if (clock == 0)
+            if(clock == 0)
                 return _12ClockDirection;
 
             // 12時計位置を8方向にマッピング
@@ -706,13 +706,13 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         };
 
             // 現在の12時方向をインデックスとして取得
-            int baseIndex = (int)_12ClockDirection;
+            var baseIndex = (int)_12ClockDirection;
 
             // 時計位置に基づくステップを取得
-            int step = clockToDirectionMapping[clock];
+            var step = clockToDirectionMapping[clock];
 
             // 新しい方向を計算し、範囲を正規化
-            int targetIndex = (baseIndex + step + 8) % 8;
+            var targetIndex = (baseIndex + step + 8) % 8;
 
             // 対応する方向を返す
             return (DirectionCalculator.Direction)targetIndex;
@@ -720,10 +720,10 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
         public int GetClockFromDirection(DirectionCalculator.Direction direction)
         {
-            if (!isValid)
+            if(!isValid)
                 throw new InvalidOperationException("Invalid state: _12ClockDirection is not set.");
 
-            if (direction == DirectionCalculator.Direction.None)
+            if(direction == DirectionCalculator.Direction.None)
                 throw new ArgumentException("Direction cannot be None.", nameof(direction));
 
             // 各方向に対応する最小の clock 値を定義
@@ -740,13 +740,13 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
             };
 
             // 現在の12時方向をインデックスとして取得
-            int baseIndex = (int)_12ClockDirection;
+            var baseIndex = (int)_12ClockDirection;
 
             // 指定された方向のインデックス
-            int targetIndex = (int)direction;
+            var targetIndex = (int)direction;
 
             // 差分を計算し、時計方向に正規化
-            int step = (targetIndex - baseIndex + 8) % 8;
+            var step = (targetIndex - baseIndex + 8) % 8;
 
             // 該当する clock を取得
             return directionToClockMapping[step];
@@ -757,7 +757,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
 
     private void HideAllElements() => Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-    private Vector3 BasePosition => new Vector3(100, 0, 100);
+    private Vector3 BasePosition => new(100, 0, 100);
 
     private Vector3 CalculatePositionFromAngle(float angle, float radius = 0f)
     {
@@ -811,7 +811,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     // Element名と直接的な座標指定
     public void ApplyElement(string elementName, Vector3 position, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             InternalApplyElement(element, position, elementRadius, filled, tether);
         }
@@ -820,7 +820,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     // Element名と角度指定
     public void ApplyElement(string elementName, float angle, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             var position = CalculatePositionFromAngle(angle, radius);
             InternalApplyElement(element, position, elementRadius, filled, tether);
@@ -830,7 +830,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     // Element名と方向指定
     public void ApplyElement(string elementName, DirectionCalculator.Direction direction, float radius = 0f, float elementRadius = 0.3f, bool filled = true, bool tether = true)
     {
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             var position = CalculatePositionFromDirection(direction, radius);
             InternalApplyElement(element, position, elementRadius, filled, tether);
@@ -843,17 +843,17 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     private static float GetCorrectionAngle(Vector2 origin, Vector2 target, float rotation)
     {
         // Calculate the relative angle to the target
-        Vector2 direction = target - origin;
-        float relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
+        var direction = target - origin;
+        var relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
 
         // Normalize relative angle to 0-360 range
         relativeAngle = (relativeAngle + 360) % 360;
 
         // Calculate the correction angle
-        float correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
+        var correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
 
         // Adjust correction angle to range -180 to 180 for shortest rotation
-        if (correctionAngle > 180)
+        if(correctionAngle > 180)
             correctionAngle -= 360;
 
         return correctionAngle;
@@ -862,7 +862,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     private static float ConvertRotationRadiansToDegrees(float radians)
     {
         // Convert radians to degrees with coordinate system adjustment
-        float degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
+        var degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
 
         // Ensure the result is within the 0° to 360° range
         return degrees < 0 ? degrees + 360 : degrees;
@@ -871,7 +871,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
     private static float ConvertDegreesToRotationRadians(float degrees)
     {
         // Convert degrees to radians with coordinate system adjustment
-        float radians = -(degrees - 180) * (MathF.PI / 180);
+        var radians = -(degrees - 180) * (MathF.PI / 180);
 
         // Normalize the result to the range -π to π
         radians = ((radians + MathF.PI) % (2 * MathF.PI)) - MathF.PI;
@@ -883,22 +883,22 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party :SplatoonScript
         Vector3 center, Vector3 currentPos, float extensionLength, float? limit)
     {
         // Calculate the normalized direction vector from the center to the current position
-        Vector3 direction = Vector3.Normalize(currentPos - center);
+        var direction = Vector3.Normalize(currentPos - center);
 
         // Extend the position by the specified length
-        Vector3 extendedPos = currentPos + (direction * extensionLength);
+        var extendedPos = currentPos + (direction * extensionLength);
 
         // If limit is null, return the extended position without clamping
-        if (!limit.HasValue)
+        if(!limit.HasValue)
         {
             return extendedPos;
         }
 
         // Calculate the distance from the center to the extended position
-        float distanceFromCenter = Vector3.Distance(center, extendedPos);
+        var distanceFromCenter = Vector3.Distance(center, extendedPos);
 
         // If the extended position exceeds the limit, clamp it within the limit
-        if (distanceFromCenter > limit.Value)
+        if(distanceFromCenter > limit.Value)
         {
             return center + (direction * limit.Value);
         }

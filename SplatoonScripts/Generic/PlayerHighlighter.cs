@@ -18,9 +18,9 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Generic;
 public class PlayerHighlighter : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories => new();
-    Config C => Controller.GetConfig<Config>();
-    List<Element> Elements = new();
+    public override HashSet<uint>? ValidTerritories => [];
+    private Config C => Controller.GetConfig<Config>();
+    private List<Element> Elements = [];
 
     public class Config : IEzConfig
     {
@@ -31,8 +31,8 @@ public class PlayerHighlighter : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        if (Svc.ClientState.TerritoryType.EqualsAny(MainCities.List)) return;
-        int i = 0;
+        if(Svc.ClientState.TerritoryType.EqualsAny(MainCities.List)) return;
+        var i = 0;
         foreach(var x in Svc.Objects)
         {
             if(x is IPlayerCharacter pc && pc.Address != Player.Object.Address && Vector2.Distance(Player.Object.Position.ToVector2(), pc.Position.ToVector2()) <= C.MaxDistance2D)
@@ -46,7 +46,7 @@ public class PlayerHighlighter : SplatoonScript
 
     public Element GetElement(int i)
     {
-        if (Controller.TryGetElementByName($"Player{i}", out var element))
+        if(Controller.TryGetElementByName($"Player{i}", out var element))
         {
             return element;
         }

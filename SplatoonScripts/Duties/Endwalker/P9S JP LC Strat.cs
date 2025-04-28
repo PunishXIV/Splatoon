@@ -12,29 +12,29 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P9S_JP_LC_Strat : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1148 };
+        public override HashSet<uint> ValidTerritories => [1148];
         public override Metadata? Metadata => new(1, "Kopi");
-        bool mechanicActive = false;
+        private bool mechanicActive = false;
 
-        bool isBola5InN = false;
-        bool isBola5InNE = false;
-        bool isBola5InE = false;
-        bool isBola5InSE = false;
-        bool isBola5InS = false;
-        bool isBola5InSW = false;
-        bool isBola5InW = false;
-        bool isBola5InNW = false;
+        private bool isBola5InN = false;
+        private bool isBola5InNE = false;
+        private bool isBola5InE = false;
+        private bool isBola5InSE = false;
+        private bool isBola5InS = false;
+        private bool isBola5InSW = false;
+        private bool isBola5InW = false;
+        private bool isBola5InNW = false;
 
-        bool isBola7InN = false;
-        bool isBola7InNE = false;
-        bool isBola7InE = false;
-        bool isBola7InSE = false;
-        bool isBola7InS = false;
-        bool isBola7InSW = false;
-        bool isBola7InW = false;
-        bool isBola7InNW = false;
+        private bool isBola7InN = false;
+        private bool isBola7InNE = false;
+        private bool isBola7InE = false;
+        private bool isBola7InSE = false;
+        private bool isBola7InS = false;
+        private bool isBola7InSW = false;
+        private bool isBola7InW = false;
+        private bool isBola7InNW = false;
 
-        TickScheduler? sched = null;
+        private TickScheduler? sched = null;
 
         public override void OnSetup()
         {
@@ -92,16 +92,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 }
             };
 
-            double positionTolerance = 1.0;
+            var positionTolerance = 1.0;
 
-            if (vfxPositionMap.ContainsKey(vfxPath))
+            if(vfxPositionMap.ContainsKey(vfxPath))
             {
                 var positionMap = vfxPositionMap[vfxPath];
 
-                foreach (var entry in positionMap)
+                foreach(var entry in positionMap)
                 {
                     var (x, z) = entry.Key;
-                    if (Math.Abs(obj.Position.X - x) <= positionTolerance && Math.Abs(obj.Position.Z - z) <= positionTolerance)
+                    if(Math.Abs(obj.Position.X - x) <= positionTolerance && Math.Abs(obj.Position.Z - z) <= positionTolerance)
                     {
                         entry.Value.Invoke();
                         break;
@@ -113,7 +113,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
 
             //bola 5 di NW
-            if (isBola5InNW && isBola7InNE)
+            if(isBola5InNW && isBola7InNE)
             {
                 DisplayHide("PuddleNorth", "DefamSouth");
 
@@ -126,7 +126,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InNW && isBola7InSW)
+            if(isBola5InNW && isBola7InSW)
             {
                 DisplayHide("PuddleWest", "DefamEast");
 
@@ -141,7 +141,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
 
             //bola 5 di NE
-            if (isBola5InNE && isBola7InNW)
+            if(isBola5InNE && isBola7InNW)
             {
                 DisplayHide("PuddleNorth", "DefamSouth");
 
@@ -154,7 +154,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InNE && isBola7InSE)
+            if(isBola5InNE && isBola7InSE)
             {
                 DisplayHide("PuddleEast", "DefamWest");
 
@@ -171,7 +171,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
 
             //bola 5 di SE
-            if (isBola5InSE && isBola7InNE)
+            if(isBola5InSE && isBola7InNE)
             {
                 DisplayHide("PuddleEast", "DefamWest");
 
@@ -184,7 +184,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InSE && isBola7InSW)
+            if(isBola5InSE && isBola7InSW)
             {
                 DisplayHide("PuddleSouth", "DefamNorth");
 
@@ -199,7 +199,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
 
             //bola 5 di SW
-            if (isBola5InSW && isBola7InNW)
+            if(isBola5InSW && isBola7InNW)
             {
                 DisplayHide("PuddleWest", "DefamEast");
 
@@ -212,7 +212,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InSW && isBola7InSE)
+            if(isBola5InSW && isBola7InSE)
             {
                 DisplayHide("PuddleSouth", "DefamNorth");
 
@@ -227,7 +227,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
 
             //bola 5 di N
-            if (isBola5InN && isBola7InE)
+            if(isBola5InN && isBola7InE)
             {
                 DisplayHide("PuddleNorthEast", "DefamSouthWest");
 
@@ -240,7 +240,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InN && isBola7InW)
+            if(isBola5InN && isBola7InW)
             {
                 DisplayHide("PuddleNorthWest", "DefamSouthEast");
 
@@ -256,7 +256,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
 
             //bola 5 di E
-            if (isBola5InE && isBola7InN)
+            if(isBola5InE && isBola7InN)
             {
                 DisplayHide("PuddleNorthEast", "DefamSouthWest");
 
@@ -269,7 +269,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InE && isBola7InS)
+            if(isBola5InE && isBola7InS)
             {
                 DisplayHide("PuddleSouthEast", "DefamNorthWest");
 
@@ -286,7 +286,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
 
             //bola 5 di S
-            if (isBola5InS && isBola7InE)
+            if(isBola5InS && isBola7InE)
             {
                 DisplayHide("PuddleSouthEast", "DefamNorthWest");
 
@@ -299,7 +299,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InS && isBola7InW)
+            if(isBola5InS && isBola7InW)
             {
                 DisplayHide("PuddleSouthWest", "DefamNorthEast");
 
@@ -316,7 +316,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
 
             //bola 5 di W
-            if (isBola5InW && isBola7InN)
+            if(isBola5InW && isBola7InN)
             {
                 DisplayHide("PuddleNorthWest", "DefamSouthEast");
 
@@ -329,7 +329,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     DisplayHide();
                 });
             }
-            if (isBola5InW && isBola7InS)
+            if(isBola5InW && isBola7InS)
             {
                 DisplayHide("PuddleSouthWest", "DefamNorthEast");
 
@@ -348,32 +348,32 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
         {
-            if (category.EqualsAny(DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
+            if(category.EqualsAny(DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
             {
                 DisplayHide();
             }
         }
 
-        void DisplayHide(params string[] elementsToEnable)
+        private void DisplayHide(params string[] elementsToEnable)
         {
             Svc.Framework.RunOnFrameworkThread(() =>
             {
-                foreach (var element in Controller.GetRegisteredElements())
+                foreach(var element in Controller.GetRegisteredElements())
                 {
                     element.Value.Enabled = false;
                 }
 
                 sched?.Dispose();
 
-                foreach (var elementToEnable in elementsToEnable)
+                foreach(var elementToEnable in elementsToEnable)
                 {
-                    if (Controller.GetElementByName(elementToEnable) != null)
+                    if(Controller.GetElementByName(elementToEnable) != null)
                     {
                         Controller.GetElementByName(elementToEnable).Enabled = true;
                     }
                 }
 
-                if (elementsToEnable.Length > 0)
+                if(elementsToEnable.Length > 0)
                 {
                     sched = new TickScheduler(() => DisplayHide(), 21000);
                 }

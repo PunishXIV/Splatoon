@@ -15,9 +15,9 @@ using Localization = ECommons.LanguageHelpers.Localization;
 
 namespace Splatoon;
 
-partial class CGui
+internal partial class CGui
 {
-    void DisplayGeneralSettings()
+    private void DisplayGeneralSettings()
     {
         ImGuiEx.Text("Game version: ".Loc());
         ImGui.SameLine(0, 0);
@@ -171,7 +171,7 @@ partial class CGui
                     {
                         if(!dict.TryGetValue(x.Territory, out var list))
                         {
-                            list = new();
+                            list = [];
                             dict[x.Territory] = list;
                         }
                         list.Add(x);
@@ -207,7 +207,7 @@ partial class CGui
                         });
                         ImGui.PopID();
                     }
-                    
+
                 });
             })
 
@@ -234,12 +234,12 @@ partial class CGui
                 }
                 ImGui.Checkbox("Disable stream notice (effective only after restart)".Loc(), ref P.Config.NoStreamWarning);
             })
-        
+
             .Section("Script auto-reloading (for developers)", collapsible: true)
             .TextWrapped("Add pathes to folders that contain scripts that you are editing. Do NOT add Splatoon's own configuration folder here.")
             .Widget(() =>
             {
-                for(int i = 0; i < P.Config.FileWatcherPathes.Count; i++)
+                for(var i = 0; i < P.Config.FileWatcherPathes.Count; i++)
                 {
                     var index = i;
                     var f = P.Config.FileWatcherPathes[i];

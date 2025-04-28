@@ -8,9 +8,9 @@ namespace Splatoon;
 
 internal partial class CGui
 {
-    string LoggerSearch = "";
-    bool IsViewer = false;
-    void DisplayLogger()
+    private string LoggerSearch = "";
+    private bool IsViewer = false;
+    private void DisplayLogger()
     {
         ImGui.Checkbox("Enable logger".Loc(), ref p.LogObjects);
         ImGui.SameLine();
@@ -43,7 +43,7 @@ internal partial class CGui
         ImGui.TableSetupColumn("Life".Loc());
         ImGui.TableHeadersRow();
         var i = 0;
-        foreach (var x in p.loggedObjectList)
+        foreach(var x in p.loggedObjectList)
         {
             i++;
             var mid = !x.Value.IsChar ? "--" : $"{x.Key.ModelID.Format()}";
@@ -52,9 +52,9 @@ internal partial class CGui
             var did = x.Key.DataID == 0 ? "--" : $"{x.Key.DataID.Format()}";
             var npcid = $"{x.Key.NPCID.Format()}";
             var nameid = !x.Value.IsChar ? "--" : $"{x.Key.NameID.Format()}";
-            if (LoggerSearch != "")
+            if(LoggerSearch != "")
             {
-                if (!x.Key.Name.ToString().Contains(LoggerSearch, StringComparison.OrdinalIgnoreCase)
+                if(!x.Key.Name.ToString().Contains(LoggerSearch, StringComparison.OrdinalIgnoreCase)
                     && !x.Key.type.ToString().Contains(LoggerSearch, StringComparison.OrdinalIgnoreCase)
                     && !oid.Contains(LoggerSearch, StringComparison.OrdinalIgnoreCase)
                     && !oidl.Contains(LoggerSearch, StringComparison.OrdinalIgnoreCase)
@@ -69,7 +69,7 @@ internal partial class CGui
             ImGuiEx.Text($"{x.Key.type}");
             ImGui.TableNextColumn();
             ImGuiEx.TextCopy(oid);
-            if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+            if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
                 if(Svc.Objects.TryGetFirst(z => z.EntityId == x.Key.EntityId, out var go))
                 {
@@ -77,7 +77,7 @@ internal partial class CGui
                 }
             }
             ImGui.SameLine();
-            if (ImGui.SmallButton("Find".Loc()+"##"+i))
+            if(ImGui.SmallButton("Find".Loc() + "##" + i))
             {
                 p.SFind.Clear();
                 p.SFind.Add(new()
@@ -98,13 +98,13 @@ internal partial class CGui
             ImGui.TableNextColumn();
             ImGuiEx.TextCopy(nameid);
             ImGui.TableNextColumn();
-            if (x.Value.Targetable) ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
+            if(x.Value.Targetable) ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
             ImGuiEx.Text($"{(int)(((double)x.Value.TargetableTicks / (double)x.Value.ExistenceTicks) * 100)}%");
-            if (x.Value.Targetable) ImGui.PopStyleColor();
+            if(x.Value.Targetable) ImGui.PopStyleColor();
             ImGui.TableNextColumn();
-            if (x.Value.Visible) ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            ImGuiEx.Text(!x.Value.IsChar ? "--":$"{(int)(((double)x.Value.VisibleTicks / (double)x.Value.ExistenceTicks) * 100)}%");
-            if (x.Value.Visible) ImGui.PopStyleColor();
+            if(x.Value.Visible) ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
+            ImGuiEx.Text(!x.Value.IsChar ? "--" : $"{(int)(((double)x.Value.VisibleTicks / (double)x.Value.ExistenceTicks) * 100)}%");
+            if(x.Value.Visible) ImGui.PopStyleColor();
             ImGui.TableNextColumn();
             ImGuiEx.Text($"{x.Value.ExistenceTicks}");
             ImGui.TableNextColumn();
@@ -115,7 +115,7 @@ internal partial class CGui
             ImGuiEx.Text($"{x.Value.Life:F1}");
         }
         ImGui.EndTable();
-        if (IsViewer)
+        if(IsViewer)
         {
             p.loggedObjectList.Clear();
         }

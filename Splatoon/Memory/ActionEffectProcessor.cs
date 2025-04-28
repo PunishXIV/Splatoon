@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Splatoon.Memory
 {
-    internal unsafe static class ActionEffectProcessor
+    internal static unsafe class ActionEffectProcessor
     {
         internal static void ProcessActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage)
         {

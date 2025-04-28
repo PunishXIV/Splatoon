@@ -24,9 +24,9 @@ public class AutoExec : SplatoonScript
         ProperOnLogin.Unregister(OnLogin);
     }
 
-    void OnLogin()
+    private void OnLogin()
     {
-        foreach(var x in C.Commands.Split("\n" , StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach(var x in C.Commands.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             Chat.Instance.SendMessage(x);
         }

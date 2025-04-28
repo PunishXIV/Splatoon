@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
@@ -12,6 +9,9 @@ using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
@@ -27,10 +27,10 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is { RowId: 35496 })
+        if(set.Action is { RowId: 35496 })
         {
             _crustalCastingCount++;
-            if (_crustalCastingCount != 3) return;
+            if(_crustalCastingCount != 3) return;
             var crystals = Svc.Objects.Where(x => x.DataId is 0x409D or 0x40A4).ToArray();
             var hasBubbleCrystals = crystals.Where(x => float.Abs(x.Position.X) < 11f);
 
@@ -46,7 +46,7 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
                 ? new Vector2(14f, 0f) * diagonalOffset
                 : new Vector2(10f * xOffset, 14f * yOffset) * diagonalOffset;
 
-            if (Controller.TryGetElementByName("Bait", out var element))
+            if(Controller.TryGetElementByName("Bait", out var element))
             {
                 element.SetRefPosition(position.ToVector3());
                 element.Enabled = true;
@@ -57,13 +57,13 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
             _state = State.Start;
         }
 
-        if (set.Action is { RowId : 35499 } or { RowId: 35547 } && _state is State.Start)
+        if(set.Action is { RowId: 35499 } or { RowId: 35547 } && _state is State.Start)
             _state = State.End;
     }
 
     public override void OnUpdate()
     {
-        if (_state is State.Start)
+        if(_state is State.Start)
             Controller.GetRegisteredElements()
                 .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
         else
@@ -72,7 +72,7 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
+        if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
                 DirectorUpdateCategory.Wipe)) Reset();
     }
 
@@ -101,7 +101,7 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("General"))
+        if(ImGuiEx.CollapsingHeader("General"))
         {
             ImGui.Indent();
             ImGui.Text("Direction");
@@ -126,10 +126,10 @@ public class Boss1_Spring_Crystal_Tower : SplatoonScript
             ImGui.Unindent();
         }
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Indent();
-            if (ImGui.Button("Reset")) Reset();
+            if(ImGui.Button("Reset")) Reset();
             ImGui.Text($"State: {_state}");
 
             var crystals = Svc.Objects.Where(x => x.DataId is 0x409D or 0x40A4).ToArray();

@@ -15,7 +15,7 @@ namespace Splatoon.Gui
         internal SplatoonScript Script;
         public PinnedElementEdit() : base("###Pinned element editor")
         {
-            this.SizeConstraints = new()
+            SizeConstraints = new()
             {
                 MinimumSize = new(200, 200),
                 MaximumSize = new(float.MaxValue, float.MaxValue),
@@ -47,12 +47,12 @@ namespace Splatoon.Gui
         {
             if(EditingElement != null && Script != null)
             {
-                this.OnClose();
+                OnClose();
             }
             EditingElement = s.InternalData.Overrides.Elements[name];
             Script = s;
-            this.WindowName = $"Editing element [{name}] from {s.InternalData.FullName}###Pinned element editor";
-            this.IsOpen = true;
+            WindowName = $"Editing element [{name}] from {s.InternalData.FullName}###Pinned element editor";
+            IsOpen = true;
         }
 
         public override bool DrawConditions()

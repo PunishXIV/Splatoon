@@ -1,18 +1,18 @@
-﻿using Splatoon.SplatoonScripting;
+﻿using ECommons;
+using ECommons.DalamudServices;
+using ECommons.Logging;
+using ImGuiNET;
+using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using ECommons.DalamudServices;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading;
-using ECommons;
-using ImGuiNET;
-using ECommons.Logging;
+using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Tests;
 public class DownloadPluginTest : SplatoonScript
@@ -21,7 +21,7 @@ public class DownloadPluginTest : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGui.Button("Test"))
+        if(ImGui.Button("Test"))
         {
             Task.Run(() =>
             {
@@ -32,7 +32,7 @@ public class DownloadPluginTest : SplatoonScript
                     x.Wait();
                     DuoLog.Information($"Downloaded plugin, {x.Result.Length} size");
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     e.Log();
                 }

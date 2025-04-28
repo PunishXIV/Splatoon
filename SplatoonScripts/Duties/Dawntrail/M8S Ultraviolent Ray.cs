@@ -1,4 +1,8 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -9,25 +13,20 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public class M8S_Ultraviolent_Ray :SplatoonScript
+public class M8S_Ultraviolent_Ray : SplatoonScript
 {
     private const string MarkerVfxPath = "vfx/lockon/eff/m0005sp_19o0t.avfx";
     private const uint UltraviolentRayCastId = 42076;
-    private const uint kLoneWolfsLamentCastId = 42115;
+
+    private int _activeCount;
 
     private List<IntPtr> _aoeList = [];
     private string _basePlayerOverride = "";
-    private bool _isLock = false;
     public override HashSet<uint>? ValidTerritories => [1263];
     public override Metadata? Metadata => new(3, "Garume");
-
 
     private IPlayerCharacter BasePlayer
     {
@@ -64,14 +63,6 @@ public class M8S_Ultraviolent_Ray :SplatoonScript
         }
     }
 
-    public override void OnStartingCast(uint source, uint castId)
-    {
-        if (castId == kLoneWolfsLamentCastId)
-        {
-            _isLock = true;
-        }
-    }
-
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if (set.Action is { RowId: UltraviolentRayCastId })
@@ -84,18 +75,19 @@ public class M8S_Ultraviolent_Ray :SplatoonScript
     public override void OnReset()
     {
         _aoeList.Clear();
-        _isLock = false;
+        _activeCount = 0;
         if (Controller.TryGetElementByName("Bait", out var e)) e.Enabled = false;
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (_isLock) return;
         if (target.GetObject() is IPlayerCharacter player && vfxPath == MarkerVfxPath)
         {
             _aoeList.Add(player.Address);
             if (_aoeList.Count == 5 && Controller.TryGetElementByName("Bait", out var e))
             {
+                _activeCount++;
+                if (_activeCount > 3 && C.SkipForthActive) return;
                 var ownIndex = C.PriorityData.GetPlayers(x => _aoeList.Contains(x.IGameObject.Address))?
                     .IndexOf(x => x.IGameObject.Address == BasePlayer.Address);
                 var noPredicateOwnIndex = C.PriorityData.GetPlayers(_ => true)?
@@ -142,8 +134,8 @@ public class M8S_Ultraviolent_Ray :SplatoonScript
         const float radius = 17f;
         var angle = (int)direction;
         var center = new Vector2(100f, 100f);
-        var x = center.X + (radius * MathF.Cos(angle * MathF.PI / 180));
-        var y = center.Y + (radius * MathF.Sin(angle * MathF.PI / 180));
+        var x = center.X + radius * MathF.Cos(angle * MathF.PI / 180);
+        var y = center.Y + radius * MathF.Sin(angle * MathF.PI / 180);
         return new Vector3(x, -150f, y);
     }
 
@@ -156,7 +148,7 @@ public class M8S_Ultraviolent_Ray :SplatoonScript
         NorthWest = 234
     }
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();

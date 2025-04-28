@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.ClientState.Statuses;
 using ECommons;
@@ -10,6 +7,9 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
@@ -60,17 +60,17 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
 
     public override void OnMessage(string message)
     {
-        if (message.Contains(Loc(en: "I am Alexander...the Creator. You...who would prove yourself worthy of your utopia...will be judged.", jp: "我はアレキサンダー……機械仕掛けの神なり……。", de: "Ich bin Alexander ... der Schöpfer. Nehmt mein letztes Urteil an, auf dass ihr ins Paradies geführt werdet ..."))) _isStartTemporalStasis = true;
+        if(message.Contains(Loc(en: "I am Alexander...the Creator. You...who would prove yourself worthy of your utopia...will be judged.", jp: "我はアレキサンダー……機械仕掛けの神なり……。", de: "Ich bin Alexander ... der Schöpfer. Nehmt mein letztes Urteil an, auf dass ihr ins Paradies geführt werdet ..."))) _isStartTemporalStasis = true;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_isStartTemporalStasis) _shouldDisplayElement = true;
+        if(_isStartTemporalStasis) _shouldDisplayElement = true;
     }
 
     public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
     {
-        if (_isStartTemporalStasis) _isStartTemporalStasis = false;
+        if(_isStartTemporalStasis) _isStartTemporalStasis = false;
     }
 
     public override void OnUpdate()
@@ -78,13 +78,13 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
         var cruiseChaser = CruiseChaser;
-        if (cruiseChaser == null || !_isStartTemporalStasis) return;
+        if(cruiseChaser == null || !_isStartTemporalStasis) return;
 
         var statuses = Player.Status;
         var baitType = GetBaitType(statuses);
         var cruiseChaserSide = GetCruiseChaserSide(cruiseChaser);
         var baitPosition = GetBaitPosition(baitType, cruiseChaserSide);
-        if (Controller.TryGetElementByName("TEA_P2_Temporal_Stasis_Bait", out var element))
+        if(Controller.TryGetElementByName("TEA_P2_Temporal_Stasis_Bait", out var element))
         {
             element.Enabled = _shouldDisplayElement;
             element.refX = baitPosition.X;
@@ -100,8 +100,8 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
 
     private BaitType GetBaitType(IEnumerable<Status> statuses)
     {
-        foreach (var status in statuses)
-            switch (status.StatusId)
+        foreach(var status in statuses)
+            switch(status.StatusId)
             {
                 case LightningDebuffId:
                     return C.LightningBaitPosition;

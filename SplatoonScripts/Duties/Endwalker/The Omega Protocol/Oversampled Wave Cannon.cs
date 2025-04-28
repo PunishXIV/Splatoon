@@ -5,13 +5,16 @@ using Dalamud.Interface;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.PartyFunctions;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using System;
@@ -19,20 +22,17 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using ECommons.ExcelServices;
-using ECommons.PartyFunctions;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 
-public unsafe class Oversampled_Wave_Cannon :SplatoonScript
+public unsafe class Oversampled_Wave_Cannon : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1122];
     public override Metadata? Metadata => new(8, "NightmareXIV");
 
     private readonly string[] strings = { "front", "right", "back", "left" };
     private readonly string[] monitorRlString = { "right", "left" };
-    
+
     private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
 
     private class Direction
@@ -246,17 +246,17 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             }
         }
         ImGui.Checkbox("PrintDebug", ref Conf.IsDebug);
-        
-        if (ImGuiEx.CollapsingHeader("Option"))
+
+        if(ImGuiEx.CollapsingHeader("Option"))
         {
             DragDrop.Begin();
-            foreach (var job in Conf.Jobs)
+            foreach(var job in Conf.Jobs)
             {
                 DragDrop.NextRow();
                 ImGui.Text(job.ToString());
                 ImGui.SameLine();
 
-                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
                 {
                     ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
                     ImGui.SameLine();
@@ -268,7 +268,7 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
 
             DragDrop.End();
         }
-        
+
         if(ImGui.CollapsingHeader("Debug"))
         {
             var pr = ObtainMyPriority();
@@ -350,9 +350,9 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             ImGui.SetNextItemWidth(150);
             if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
                              .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if (ImGui.Selectable(x))
+                    if(ImGui.Selectable(x))
                         prio[i] = x;
                 ImGui.EndCombo();
             }
@@ -363,17 +363,17 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             return true;
         }
         ImGui.SameLine();
-        if (ImGui.Button("Fill by job"))
+        if(ImGui.Button("Fill by job"))
         {
             HashSet<(string, Job)> party = [];
-            foreach (var x in FakeParty.Get())
+            foreach(var x in FakeParty.Get())
                 party.Add((x.Name.ToString(), x.GetJob()));
 
             var proxy = InfoProxyCrossRealm.Instance();
-            for (var i = 0; i < proxy->GroupCount; i++)
+            for(var i = 0; i < proxy->GroupCount; i++)
             {
                 var group = proxy->CrossRealmGroups[i];
-                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
                 {
                     var x = group.GroupMembers[c];
                     party.Add((x.Name.Read(), (Job)x.ClassJobId));
@@ -381,13 +381,13 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
             }
 
             var index = 0;
-            foreach (var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            foreach(var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
             {
                 prio[index] = party.First(x => x.Item2 == job).Item1;
                 index++;
             }
 
-            for (var i = index; i < prio.Length; i++)
+            for(var i = index; i < prio.Length; i++)
                 prio[i] = "";
         }
         ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
@@ -448,14 +448,14 @@ public unsafe class Oversampled_Wave_Cannon :SplatoonScript
         ActionManager->AutoFaceTargetPosition(&position, unkObjId);
     }
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public List<string[]> Priorities = [];
         public bool LockFace = false;
         public string[] EastMoniterRotation = { "left", "front", "back" };
         public string[] WestMoniterRotation = { "right", "front", "back" };
         public bool IsDebug = false;
-        
+
         public List<Job> Jobs =
         [
             Job.PLD,

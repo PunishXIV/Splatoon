@@ -15,7 +15,7 @@ public class WorldWaiter : SplatoonScript
     public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
-    int World = 0;
+    private int World = 0;
 
     public override void OnUpdate()
     {
@@ -29,7 +29,7 @@ public class WorldWaiter : SplatoonScript
     }
 
 
-    WorldSelector WorldSelector = new();
+    private WorldSelector WorldSelector = new();
     public override void OnSettingsDraw()
     {
         WorldSelector.Draw(ref World);

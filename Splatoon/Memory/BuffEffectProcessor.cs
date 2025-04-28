@@ -7,17 +7,17 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Splatoon.Memory;
-internal unsafe class BuffEffectProcessor :IDisposable
+internal unsafe class BuffEffectProcessor : IDisposable
 {
     #region types
-    private enum StatusChangeType :byte
+    private enum StatusChangeType : byte
     {
         NoChange,
         Remove,
         Gain
     }
 
-    private enum StatusChangeResult :byte
+    private enum StatusChangeResult : byte
     {
         NoChange,
         Change
@@ -52,7 +52,7 @@ internal unsafe class BuffEffectProcessor :IDisposable
         {
             _CharacterStatusInfoPtr = (CharacterStatusInfo*)Marshal.AllocHGlobal(sizeof(CharacterStatusInfo) * MAX_OBJECT_NUM);
             Unsafe.InitBlock(_CharacterStatusInfoPtr, 0, (uint)sizeof(CharacterStatusInfo) * MAX_OBJECT_NUM);
-            for(int i = 0; i < MAX_OBJECT_NUM; ++i)
+            for(var i = 0; i < MAX_OBJECT_NUM; ++i)
             {
                 _CharacterStatusInfoPtr[i].StatusPtr = (FFXIVClientStructs.FFXIV.Client.Game.Status*)Marshal.AllocHGlobal(sizeof(FFXIVClientStructs.FFXIV.Client.Game.Status) * MAX_STATUS_NUM);
             }
@@ -79,7 +79,7 @@ internal unsafe class BuffEffectProcessor :IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        for(int i = 0; i < MAX_OBJECT_NUM; ++i)
+        for(var i = 0; i < MAX_OBJECT_NUM; ++i)
         {
             if(_CharacterStatusInfoPtr[i].StatusPtr != null)
             {
@@ -105,24 +105,24 @@ internal unsafe class BuffEffectProcessor :IDisposable
         catch(Exception ex)
         {
             DuoLog.Error($"[Splatoon]: {ex.Message}");
-            this.Dispose();
+            Dispose();
             _IsRunning = false;
         }
     }
     #endregion
     private void Update()
     {
-        GameObjectManager* gameObjectManagerPtr = GameObjectManager.Instance();
+        var gameObjectManagerPtr = GameObjectManager.Instance();
 
-        for(int i = 0; i < MAX_OBJECT_NUM; ++i)
+        for(var i = 0; i < MAX_OBJECT_NUM; ++i)
         {
-            GameObject* gameObject = gameObjectManagerPtr->Objects.IndexSorted[i].Value;
+            var gameObject = gameObjectManagerPtr->Objects.IndexSorted[i].Value;
             if(gameObject == null) continue;
             if(!gameObject->IsCharacter()) continue;
             if(gameObject->EntityId == INVALID_OBJECTID) continue;
-            Character* character = (Character*)gameObject;
-            StatusManager* sm = (StatusManager*)character->GetStatusManager();
-            Status* statusArray = (Status*)((byte*)sm + 0x08);
+            var character = (Character*)gameObject;
+            var sm = (StatusManager*)character->GetStatusManager();
+            var statusArray = (Status*)((byte*)sm + 0x08);
             if(sm == null) continue;
             if(statusArray == null) continue;
 
@@ -138,8 +138,8 @@ internal unsafe class BuffEffectProcessor :IDisposable
             // Existing object
             // Check status change
             Status status;
-            bool isChange = false;
-            for(int j = 0; j < sm->NumValidStatuses; ++j)
+            var isChange = false;
+            for(var j = 0; j < sm->NumValidStatuses; ++j)
             {
                 if(_CharacterStatusInfoPtr[i].StatusPtr[j].StatusId != statusArray[j].StatusId)
                 {
@@ -185,17 +185,17 @@ internal unsafe class BuffEffectProcessor :IDisposable
 
 
     #region private
-    void AddStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff+", data, gameObjectCharactor);
-    void RemoveStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff-", data, gameObjectCharactor);
-    void UpdateStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff*", data, gameObjectCharactor);
+    private void AddStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff+", data, gameObjectCharactor);
+    private void RemoveStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff-", data, gameObjectCharactor);
+    private void UpdateStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff*", data, gameObjectCharactor);
 
     // Updated LogChanges method
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    void StatusLog(string prefix, Status* data, Character* gameObjectCharactor)
+    private void StatusLog(string prefix, Status* data, Character* gameObjectCharactor)
     {
-        string text = "";
-        string PositionString = P.Config.LogPosition == true ? $"({gameObjectCharactor->Position.ToString()})" : "";
-        string ElementTrigger = "";
+        var text = "";
+        var PositionString = P.Config.LogPosition == true ? $"({gameObjectCharactor->Position.ToString()})" : "";
+        var ElementTrigger = "";
         if(gameObjectCharactor->ObjectKind == ObjectKind.Pc)
         {
             ElementTrigger = $"[{prefix}]PC:{data->StatusId}:{gameObjectCharactor->ClassJob.ToString()}";

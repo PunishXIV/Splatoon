@@ -312,8 +312,8 @@ public class P4_Darklit : SplatoonScript
                         break;
                     case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthWestAndSouthWest:
                         _players[up[0].Id].Direction = Direction.South;
-                        _players[down[1].Id].Direction = Direction.North;
-                        _players[up[0].Id].Direction = Direction.North;
+                        _players[up[1].Id].Direction = Direction.North;
+                        _players[down[0].Id].Direction = Direction.North;
                         _players[down[1].Id].Direction = Direction.South;
                         break;
                     case MoveType.Box when C.BoxSwapType == BoxSwapType.NorthEastAndSouthEast:

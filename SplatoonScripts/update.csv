@@ -1,11 +1,14 @@
 SplatoonScriptsOfficial.Tests@GenericTest4,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest4.cs
 SplatoonScriptsOfficial.Tests@DMParser,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Tests@IPCExample,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/IPCExample.cs
+SplatoonScriptsOfficial.Tests@RedmoonTest3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest3.cs
+SplatoonScriptsOfficial.Tests@RedmoonTest2,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest2.cs
+SplatoonScriptsOfficial.Tests@RedmoonTest4,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest4.cs
 SplatoonScriptsOfficial.Tests@GenericTest6,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest6.cs
 SplatoonScriptsOfficial.Tests@SendSpawnedObjects,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/SendSpawnedObjects.cs
 SplatoonScriptsOfficial.Tests@GenericTest7,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
-SplatoonScriptsOfficial.Generic@ScriptEventLogger,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
+SplatoonScriptsOfficial.Generic@ScriptEventLogger,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
 SplatoonScriptsOfficial.Generic@DisableHandleActionOutHook,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/DisableHandleActionOutHook.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
@@ -32,7 +35,9 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Electrope_Edge,9,https://github.com
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Lone_Wolfs_Lament,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Lone Wolfs Lament.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@EX2_Projection_of_Triumph,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX2 Projection of Triumph.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Elemental_Purge_Cleave,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Elemental Purge Cleave.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@M6S_MagmaTower,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M6S MagmaTower.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@EX4_Escelons_Fall,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX4 Escelons Fall.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@M7S_Scatter_Seeds,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M7S Scatter Seeds.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Ultraviolent_Ray_4th,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Ultraviolent Ray 4th.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Rise_of_the_Howling_Wind,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Rise of the Howling Wind.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Midnight_Sabbath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Midnight Sabbath.cs
@@ -43,6 +48,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Disco_Infernal,1,https://github.com
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Chain_Lightning,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Chain Lightning.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Millennial_Decay,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Millennial Decay.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S Protean Highlight.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@M7S_Blow_Seeds,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M7S Blow Seeds.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M6S_Lava_Towers,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M6S Lava Towers.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Lets_Dance,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M5S Lets Dance.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Ultraviolent_Ray,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Ultraviolent Ray.cs

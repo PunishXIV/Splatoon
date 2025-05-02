@@ -100,7 +100,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
             radius = 2f,
             Donut = 0.35f,
             fillIntensity = 1f,
-            thicc=9.0f,
+            thicc=9.0f
         };
         Controller.RegisterElement("PredictBait", predictBaitElement);
     }

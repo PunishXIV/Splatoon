@@ -11,6 +11,7 @@ SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/
 SplatoonScriptsOfficial.Generic@ScriptEventLogger,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
 SplatoonScriptsOfficial.Generic@DisableHandleActionOutHook,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/DisableHandleActionOutHook.cs
+SplatoonScriptsOfficial.Generic@InventoryLowNotifier,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/InventoryLowNotifier.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
 SplatoonScriptsOfficial.Generic@ZoneNameToast,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ZoneNameToast.cs
 SplatoonScriptsOfficial.Generic@Makeplace2List,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Makeplace2List.cs
@@ -44,7 +45,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Midnight_Sabbath,2,https://github.c
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Sunrise_Sabbath,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Sunrise Sabbath.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M6S_Color_Riot,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M6S Color Riot.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M6S_Target_Enforcer,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M6S Target Enforcer.cs
-SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Disco_Infernal,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M5S Disco Infernal.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Disco_Infernal,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M5S Disco Infernal.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Chain_Lightning,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Chain Lightning.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Millennial_Decay,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Millennial Decay.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Protean_Highlight,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S Protean Highlight.cs

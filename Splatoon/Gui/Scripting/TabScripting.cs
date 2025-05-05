@@ -319,7 +319,12 @@ internal static class TabScripting
 
                     if(ImGuiEx.IconButton("\uf0e2"))
                     {
-                        ScriptingProcessor.ReloadScript(script);
+                        var isOpen = script.InternalData.ConfigOpen;
+                        ScriptingProcessor.ReloadScript(script, true);
+                        if(isOpen)
+                        {
+                            RequestOpen = script.InternalData.FullName;
+                        }
                     }
                     ImGuiEx.Tooltip("Reload this script");
 

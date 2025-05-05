@@ -52,6 +52,7 @@ public unsafe class InventoryLowNotifier : SplatoonScript
                 IsNotified = true;
                 Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification("Final Fantasy XIV", "Inventory is almost full!");
                 Splatoon.Splatoon.P.NotificationMasterApi.FlashTaskbarIcon();
+                Splatoon.Splatoon.P.NotificationMasterApi.PlaySound(@"c:\path_to_sound.mp3");
             }
         }
         else

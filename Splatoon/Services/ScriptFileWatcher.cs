@@ -84,11 +84,11 @@ public class ScriptFileWatcher : IDisposable
                         var script = ScriptingProcessor.Scripts.FirstOrDefault(x => x.InternalData.Name == scriptName && x.InternalData.Namespace == scriptNamespace);
                         if(script != null)
                         {
-                            if(script.IsDisabledByUser)
+                            /*if(script.IsDisabledByUser)
                             {
                                 PluginLog.Warning($"Script {script.InternalData.FullName} is disabled by user, skipping reload for {e.FullPath}");
                             }
-                            else
+                            else*/
                             {
                                 PluginLog.Information($"Auto-reloading {script.InternalData.FullName} from {e.FullPath}");
                                 ChatPrinter.Green($"Auto-reloading script {script.InternalData.Name}");

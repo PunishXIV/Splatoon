@@ -3,6 +3,7 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices.TerritoryEnumeration;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.MathHelpers;
 using ImGuiNET;
@@ -66,7 +67,7 @@ public class PlayerHighlighter : SplatoonScript
         }
     }
 
-    public override void OnSettingsDraw()
+    public unsafe override void OnSettingsDraw()
     {
         ImGui.DragInt("Max 2D distance", ref C.MaxDistance2D);
     }

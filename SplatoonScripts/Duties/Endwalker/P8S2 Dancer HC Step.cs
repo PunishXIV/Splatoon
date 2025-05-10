@@ -15,13 +15,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
     internal class P8S2_Dancer_HC_Step : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [1088];
-        public override Metadata? Metadata => new(1, "NightmareXIV");
+        public override Metadata? Metadata => new(2, "NightmareXIV");
         private long castAt = long.MaxValue;
-
-        public override void OnSetup()
-        {
-            _ = Chat.Instance;
-        }
 
         public override void OnUpdate()
         {
@@ -31,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 {
                     DuoLog.Information($"Casting standard step");
                     castAt = long.MaxValue;
-                    Chat.Instance.SendMessage("/ac \"Standard Step\"");
+                    Chat.SendMessage("/ac \"Standard Step\"");
                 }
             }
         }

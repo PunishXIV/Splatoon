@@ -55,7 +55,7 @@ public class P6_Wroth_Flames : SplatoonScript
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(5, "Garume");
+    public override Metadata? Metadata => new(6, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -182,10 +182,10 @@ public class P6_Wroth_Flames : SplatoonScript
                 (false, false) => [StackSafeDirection.NorthWest, StackSafeDirection.NorthEast]
             };
 
-            if(C.PrioritizeSecondRedBallDiagonal) redSphereSafeDirection = redSphereSafeDirection.Reverse().ToArray();
+            if(C.PrioritizeSecondRedBallDiagonal) redSphereSafeDirection = redSphereSafeDirection.AsEnumerable().Reverse().ToArray();
             if(C.PrioritizeWest)
                 if(redSphereSafeDirection[1].ToString().Contains("West"))
-                    redSphereSafeDirection = redSphereSafeDirection.Reverse().ToArray();
+                    redSphereSafeDirection = redSphereSafeDirection.AsEnumerable().Reverse().ToArray();
 
             var hraesvelgrPositionX = Hraesvelgr?.Position.X ?? 100f;
             StackSafeDirection[] hraesvelgrSafeDirection = Math.Abs(hraesvelgrPositionX - 100f) < 0.1f

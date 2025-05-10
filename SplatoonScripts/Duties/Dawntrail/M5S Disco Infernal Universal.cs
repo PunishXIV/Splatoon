@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Interface;
+using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -19,7 +21,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1257];
 
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     TileDescriptor? TargetedTile = null;
     Element Early;
@@ -55,11 +57,11 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     public override void OnSetup()
     {
-        Early = Controller.RegisterElementFromCode("Prepare", "{\"Name\":\"\",\"refX\":92.5,\"refY\":97.5,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508694,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255103,\"overlayFScale\":1.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\"}");
-        Go = Controller.RegisterElementFromCode("Go", "{\"Name\":\"\",\"refX\":92.5,\"refY\":97.5,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508509,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255389,\"overlayFScale\":2.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\",\"tether\":true}");
+        Early = Controller.RegisterElementFromCode("Prepare", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508694,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255103,\"overlayFScale\":1.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\"}");
+        Go = Controller.RegisterElementFromCode("Go", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508509,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255389,\"overlayFScale\":2.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\",\"tether\":true}");
         for(int i = 0; i < 8; i++)
         {
-            Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"refX\":92.5,\"refY\":97.5,\"radius\":2.3,\"Donut\":0.2,\"color\":3372220415,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255389,\"overlayFScale\":2.0,\"thicc\":4.0}");
+            Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"refZ\":-15.006033,\"radius\":2.5,\"color\":3372220415,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":4.0}");
         }
     }
 
@@ -83,7 +85,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
     void BeginMechanic()
     {
         IsLong = BasePlayer.StatusList.Any(x => x.StatusId == Debuff && x.RemainingTime > 25f);
-        DuoLog.Information($"{Svc.Objects.Where(x => x.DataId == 18363).Select(x => x.Position).Print("\n")}");
+        //DuoLog.Information($"{Svc.Objects.Where(x => x.DataId == 18363).Select(x => x.Position).Print("\n")}");
         MeleeInverted = !Svc.Objects.Where(x => x.DataId == 18363).Any(x => Vector2.Distance(x.Position.ToVector2(), new(92.5f, 97.5f)) < 0.5f);
 
         var safe = ValidTiles
@@ -93,7 +95,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
             .ToArray();
         for(int i = 0; i < safe.Length; i++)
         {
-            if(Controller.TryGetElementByName($"Debug{i}", out var e))
+            if(C.DisplayAllSafe && Controller.TryGetElementByName($"Debug{i}", out var e))
             {
                 e.Enabled = true;
                 e.SetRefPosition(GetTileCoordinates(safe[i]).ToVector3());
@@ -133,6 +135,18 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        if(C.SelectedTiles.Count(x => x.IsRanged()) == 2 && C.SelectedTiles.Count == 2)
+        {
+            ImGuiEx.Text(EColor.GreenBright, "Ranged configuration is valid");
+        }
+        else if(C.SelectedTiles.Count(x => !x.IsRanged()) == 4 && C.SelectedTiles.Count == 4)
+        {
+            ImGuiEx.Text(EColor.GreenBright, "Melee configuration is valid");
+        }
+        else
+        {
+            ImGuiEx.Text(EColor.RedBright, "Current configuration is not valid. Select 2 (ranged) or 4 (melee) positions:");
+        }
         for(int i = 0; i < 8; i++)
         {
             for(int k = 0; k < 8; k++)
@@ -146,15 +160,18 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
                 }
                 else
                 {
-                    bool? x = null;
-                    ImGui.BeginDisabled();
-                    ImGuiEx.Checkbox("##null", ref x);
-                    ImGui.EndDisabled();
+                    bool x = false;
+                    ImGui.PushStyleColor(ImGuiCol.FrameBg, ImGuiColors.DalamudGrey3);
+                    ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGuiColors.DalamudGrey3);
+                    ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGuiColors.DalamudGrey3);
+                    ImGui.Checkbox("##null", ref x);
+                    ImGui.PopStyleColor(3);
                 }
-                ImGui.SameLine();
+                ImGui.SameLine(0,ImGui.GetStyle().ItemSpacing.Y);
             }
             ImGui.NewLine();
         }
+        ImGui.Checkbox("Highlight all safe tiles", ref C.DisplayAllSafe);
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.InputText("Player override", ref C.BasePlayerOverride, 50);
@@ -186,6 +203,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
     {
         public HashSet<TileDescriptor> SelectedTiles = [];
         public string BasePlayerOverride = "";
+        public bool DisplayAllSafe = true;
     }
 
     public struct TileDescriptor : IEquatable<TileDescriptor>
@@ -197,6 +215,11 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
         {
             X = x;
             Y = y;
+        }
+
+        public bool IsRanged()
+        {
+            return X == 1 || X == 6 || Y == 1 || Y == 6;
         }
 
         public override bool Equals(object? obj)

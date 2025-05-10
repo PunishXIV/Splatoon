@@ -1,4 +1,10 @@
-### **[Script]** Let's Dance
+### **[Script]** [Beta] [ALL STRATS] Disco Infernal
+Universal Disco Infernal script that works with any strat, both melee and ranged.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Disco%20Infernal%20Universal.cs
+```
+
+### **[Script]** Let's Dance (clones)
 
 Also works for normal
 ```
@@ -8,20 +14,6 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ### **[Script]** Conga Line for Arcady Night Fever + Let's Dance
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S_Lets_Dance_NavigateStandPosition.cs
-```
-
-### **[Script]** **[JP strat only]** Disco Infernal
-
-The script only works with ranged unless you use JP strats.
-Needs configuration. NA/EU version - look down!!!
-```
-https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Disco%20Infernal.cs
-```
-
-### **[Script]** [Beta] [NA/EU] Disco Infernal
-[Please read here on how to configure it and which strats are supported.](https://github.com/PunishXIV/Splatoon/pull/288#issuecomment-2852446469)
-```
-https://github.com/PunishXIV/Splatoon/raw/03f45f70e6dff1c82faeadbe00f76e4abe028a30/SplatoonScripts/Duties/Dawntrail/M5S%20Disco%20Infernal%20raidplan.cs
 ```
 
 ### *-snap twist
@@ -165,4 +157,21 @@ https://youtu.be/6ibKI011KjA?t=663
 ~Lv2~{"Name":"M5S Ride the waves 10_ 4_ 16384","Description":"","Group":"AAC Cruiserweight M1 Savage - Ride The Waves","ZoneLockH":[1257],"DCond":5,"UseTriggers":true,"Freezing":true,"FreezeFor":2.0,"IntervalBetweenFreezes":1.0,"Triggers":[{"Type":2,"Duration":0.5,"Match":"MapEffect: 10, 4, 16384"}],"ElementsL":[{"Name":"","type":2,"refX":102.5,"refY":110.0,"offX":102.5,"offY":115.0,"radius":2.5,"color":3372155131,"fillIntensity":0.5,"includeRotation":true},{"Name":"","type":2,"refX":117.5,"refY":110.0,"offX":117.5,"offY":115.0,"radius":2.5,"color":3372155131,"fillIntensity":0.5,"includeRotation":true},{"Name":"","type":2,"refX":85.0,"refY":110.0,"offX":85.0,"offY":115.0,"radius":5.0,"color":3372155131,"fillIntensity":0.5,"includeRotation":true}]}
 ~Lv2~{"Name":"M5S Ride the waves 11_ 4_ 16384","Description":"","Group":"AAC Cruiserweight M1 Savage - Ride The Waves","ZoneLockH":[1257],"DCond":5,"UseTriggers":true,"Freezing":true,"FreezeFor":2.0,"IntervalBetweenFreezes":1.0,"Triggers":[{"Type":2,"Duration":0.5,"Match":"MapEffect: 11, 4, 16384"}],"ElementsL":[{"Name":"","type":2,"refX":102.5,"refY":115.0,"offX":102.5,"offY":120.0,"radius":2.5,"color":3372155131,"fillIntensity":0.5,"includeRotation":true},{"Name":"","type":2,"refX":117.5,"refY":115.0,"offX":117.5,"offY":120.0,"radius":2.5,"color":3372155131,"fillIntensity":0.5,"includeRotation":true},{"Name":"","type":2,"refX":85.0,"refY":115.0,"offX":85.0,"offY":120.0,"radius":5.0,"color":3372155131,"fillIntensity":0.5,"includeRotation":true}]}
 ~Lv2~{"Name":"M5S Ride the waves First row unsafe always","Description":"","Group":"AAC Cruiserweight M1 Savage - Ride The Waves","ZoneLockH":[1257],"DCond":5,"UseTriggers":true,"Triggers":[{"Type":2,"Duration":12.5,"Match":"(13778>42836)","MatchDelay":7.0}],"ElementsL":[{"Name":"","type":2,"refX":100.0,"refY":80.0,"offX":100.0,"offY":85.0,"radius":20.0,"color":3372155131,"fillIntensity":0.5,"includeRotation":true}]}
+```
+
+# Archive
+These presets/scripts are replaced by other ones.
+
+### **[Script]** **[JP strat only]** Disco Infernal
+
+The script only works with ranged unless you use JP strats.
+Needs configuration. 
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M5S%20Disco%20Infernal.cs
+```
+
+### **[Script]** [Beta] [NA/EU] Disco Infernal
+[Please read here on how to configure it and which strats are supported.](https://github.com/PunishXIV/Splatoon/pull/288#issuecomment-2852446469)
+```
+https://github.com/PunishXIV/Splatoon/raw/03f45f70e6dff1c82faeadbe00f76e4abe028a30/SplatoonScripts/Duties/Dawntrail/M5S%20Disco%20Infernal%20raidplan.cs
 ```

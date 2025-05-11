@@ -16,7 +16,7 @@ public unsafe class DataMigrator
         {
             foreach(var x in P.Config.LayoutsL)
             {
-                PluginLog.Warning($"Checking migrations for {x.Name}");
+                PluginLog.Debug($"Checking migrations for {x.Name}");
                 x.Migrate();
             }
         }

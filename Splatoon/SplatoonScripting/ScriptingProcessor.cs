@@ -236,7 +236,7 @@ internal static partial class ScriptingProcessor
         try
         {
             var result = P.HttpClient.GetStringAsync(url).Result;
-            CompileAndLoad(result, null, isFirst);
+            CompileAndLoad(result, null, isFirst, true);
         }
         catch(Exception e)
         {
@@ -320,13 +320,13 @@ internal static partial class ScriptingProcessor
                             {
                                 byte[] code = null;
                                 byte[] pdb = null;
-                                if(!P.Config.DisableScriptCache && !ignoreCache)
+                                if(!P.Config.DisableScriptCache)
                                 {
                                     var md5 = MD5.HashData(Encoding.UTF8.GetBytes(result.code)).Select(x => $"{x:X2}").Join("");
                                     var cacheFile = Path.Combine(scriptCacheDirectory, $"{md5}-{P.loader.splatoonVersion}.bin");
                                     var cacheFilePdb = Path.Combine(scriptCacheDirectory, $"{md5}-{P.loader.splatoonVersion}.pdb");
                                     PluginLog.Debug($"Cache path: {cacheFile}, {cacheFilePdb}");
-                                    if(File.Exists(cacheFile) && File.Exists(cacheFilePdb))
+                                    if(!ignoreCache && File.Exists(cacheFile) && File.Exists(cacheFilePdb))
                                     {
                                         PluginLog.Debug($"Loading from cache...");
                                         code = File.ReadAllBytes(cacheFile);

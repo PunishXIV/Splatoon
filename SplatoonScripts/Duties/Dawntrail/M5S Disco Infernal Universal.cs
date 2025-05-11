@@ -21,11 +21,11 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1257];
 
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     TileDescriptor? TargetedTile = null;
-    Element Early;
-    Element Go;
+    Element Early => Controller.GetElementByName("Prepare")!;
+    Element Go => Controller.GetElementByName("Go")!;
 
     IPlayerCharacter BasePlayer
     {
@@ -57,8 +57,8 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     public override void OnSetup()
     {
-        Early = Controller.RegisterElementFromCode("Prepare", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508694,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255103,\"overlayFScale\":1.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\"}");
-        Go = Controller.RegisterElementFromCode("Go", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508509,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255389,\"overlayFScale\":2.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\",\"tether\":true}");
+        Controller.RegisterElementFromCode("Prepare", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508694,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255103,\"overlayFScale\":1.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\"}");
+        Controller.RegisterElementFromCode("Go", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"radius\":2.0,\"Donut\":0.5,\"color\":3355508509,\"fillIntensity\":0.8,\"overlayBGColor\":3355443200,\"overlayTextColor\":4278255389,\"overlayFScale\":2.0,\"thicc\":4.0,\"overlayText\":\"Cleanse in X\",\"tether\":true}");
         for(int i = 0; i < 8; i++)
         {
             Controller.RegisterElementFromCode($"Debug{i}", "{\"Name\":\"\",\"refX\":0,\"refY\":0,\"refZ\":-15.006033,\"radius\":2.5,\"color\":3372220415,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":4.0}");

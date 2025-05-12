@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Lava_Towers : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(2, "NightmareXIV");
+    public override Metadata? Metadata => new(3, "NightmareXIV");
 
     bool ReadyToSoak = false;
     bool IsSecondTowers = false;
@@ -203,13 +203,15 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        ImGui.SetNextItemWidth(100f);
         ImGuiEx.EnumCombo("Starting Position", ref C.StartingPosition);
         if(C.StartingPosition == TowerPosition.Left || C.StartingPosition == TowerPosition.Right)
         {
             ImGui.Checkbox("Bait stack", ref C.BaitStack);
             ImGuiEx.Text($"Tower to take:");
             ImGuiEx.RadioButtonBool("Closer to middle", "Further from middle", ref C.TwoTowerCloserToMiddle);
-            ImGuiEx.EnumCombo("Flying from 4 towers to", ref C.EscapeFrom4Towers);
+            ImGui.SetNextItemWidth(100f);
+            ImGuiEx.EnumCombo("Flying direction if 4 towers spawned on your side", ref C.EscapeFrom4Towers);
         }
         ImGui.SetNextItemWidth(100f);
         ImGuiEx.Combo("8 towers position", ref C.Position8, Towers.Keys.Where(x => x >= 89));

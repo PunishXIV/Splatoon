@@ -1,7 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface.Textures;
-using Dalamud.Interface.Textures.TextureWraps;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -11,20 +9,16 @@ using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
-using Splatoon.Structures;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Lava_Towers : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
 
     bool ReadyToSoak = false;
     bool IsSecondTowers = false;
@@ -120,31 +114,68 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
             {
                 this.ReadyToSoak = false;
             }
-            var myTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.StartingPosition).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray().ToArray();
+            var myTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.StartingPosition).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToList();
             if(!IsSecondTowers)
             {
-                if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
+                if(C.StartingPosition == TowerPosition.Left || C.StartingPosition == TowerPosition.Right)
                 {
-                    e.SetRefPosition((C.TwoTowerCloserToMiddle ? myTowers[0] : myTowers[1]).ToVector3(0));
-                    e.Enabled = true;
-                }
-            }
-            else
-            {
-                if(myTowers.Length == 4)
-                {
-                    var adjTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.EscapeFrom4Towers).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray().ToArray();
                     if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
                     {
-                        e.Enabled = true; 
-                        e.SetRefPosition((C.TwoTowerCloserToMiddle ? adjTowers[0] : adjTowers[1]).ToVector3(0));
+                        e.SetRefPosition((C.TwoTowerCloserToMiddle ? myTowers[0] : myTowers[1]).ToVector3(0));
+                        e.Enabled = true;
                     }
                 }
                 else
                 {
-                    foreach(var x in Enum.GetValues<TowerPosition>())
+                    var myTower = GetTowerPoint(myTowers, C.MeleeTower1);
+                    if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
                     {
-                        if(x == TowerPosition.Undefined || x == C.StartingPosition) continue;
+                        e.SetRefPosition(myTower.ToVector3(0));
+                        e.Enabled = true;
+                    }
+                }
+            }
+            else
+            {
+                if(C.StartingPosition == TowerPosition.Bottom)
+                {
+                    var is8towers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == TowerPosition.Bottom).Count() == 8;
+                    if(is8towers)
+                    {
+                        var adjTowers = this.ActiveTowers.Select(x => Towers[x]).ToArray();
+                        if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e) && Towers.TryGetValue(C.Position8, out var pos))
+                        {
+                            e.Enabled = true;
+                            e.SetRefPosition(pos.ToVector3(0));
+                        }
+                    }
+                    else
+                    {
+                        var fourTowers = ActiveTowers.Select(x => Towers[x]).GroupBy(GetTowerPosition)
+                            .Where(g => g.Key != TowerPosition.Undefined && g.Count() >= 4)
+                            .Select(g => g.Take(4).ToList())
+                            .First();
+                        var myTower = GetTowerPoint(fourTowers, C.MeleeTower2);
+                        if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
+                        {
+                            e.SetRefPosition(myTower.ToVector3(0));
+                            e.Enabled = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if(myTowers.Count == 4)
+                    {
+                        var adjTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.EscapeFrom4Towers).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray().ToArray();
+                        if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
+                        {
+                            e.Enabled = true;
+                            e.SetRefPosition((C.TwoTowerCloserToMiddle ? adjTowers[0] : adjTowers[1]).ToVector3(0));
+                        }
+                    }
+                    else
+                    {
                         var is8towers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == TowerPosition.Bottom).Count() == 8;
                         if(is8towers)
                         {
@@ -153,7 +184,7 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
                             {
                                 e.Enabled = true;
                                 e.SetRefPosition(pos.ToVector3(0));
-                            };
+                            }
                         }
                         else
                         {
@@ -213,6 +244,13 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
             ImGui.SetNextItemWidth(100f);
             ImGuiEx.EnumCombo("Flying direction if 4 towers spawned on your side", ref C.EscapeFrom4Towers);
         }
+        else if(C.StartingPosition == TowerPosition.Bottom)
+        {
+            ImGui.SetNextItemWidth(100f);
+            ImGuiEx.EnumCombo("First 4 towers position", ref C.MeleeTower1);
+            ImGui.SetNextItemWidth(100f);
+            ImGuiEx.EnumCombo("Second 4 towers position", ref C.MeleeTower2);
+        }
         ImGui.SetNextItemWidth(100f);
         ImGuiEx.Combo("8 towers position", ref C.Position8, Towers.Keys.Where(x => x >= 89));
         if(ThreadLoadImageHandler.TryGetTextureWrap("https://github.com/PunishXIV/Splatoon/blob/main/Presets/Files/Dawntrail/image_230.png?raw=true", out var w))
@@ -228,6 +266,79 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         public bool TwoTowerCloserToMiddle = true;
         public TowerPosition EscapeFrom4Towers = TowerPosition.Undefined;
         public int Position8 = 90;
+        public MeleeTower1 MeleeTower1 = MeleeTower1.Upper_Left;
+        public MeleeTower2 MeleeTower2 = MeleeTower2.Leftmost;
+    }
+
+    public static Vector2 GetTowerPoint(List<Vector2> points, MeleeTower1 corner)
+    {
+        if(points == null || points.Count != 4)
+            throw new ArgumentException("You must provide exactly 4 points.");
+
+        // Invert Y logic: highest Y becomes 'lowest visually'
+        List<Vector2> sorted = [.. points];
+        sorted.Sort((a, b) => a.Y.CompareTo(b.Y)); // Ascending Y: 0 = top visually, 3 = bottom visually
+
+        Vector2 topLeft, topRight, bottomLeft, bottomRight;
+
+        if(sorted[0].X < sorted[1].X)
+        {
+            topLeft = sorted[0];
+            topRight = sorted[1];
+        }
+        else
+        {
+            topLeft = sorted[1];
+            topRight = sorted[0];
+        }
+
+        if(sorted[2].X < sorted[3].X)
+        {
+            bottomLeft = sorted[2];
+            bottomRight = sorted[3];
+        }
+        else
+        {
+            bottomLeft = sorted[3];
+            bottomRight = sorted[2];
+        }
+
+        return corner switch
+        {
+            MeleeTower1.Upper_Left => topLeft,
+            MeleeTower1.Upper_Right => topRight,
+            MeleeTower1.Lower_Left => bottomLeft,
+            MeleeTower1.Lower_Right => bottomRight,
+            _ => throw new ArgumentOutOfRangeException(nameof(corner), "Unknown corner value."),
+        };
+    }
+
+    public static Vector2 GetTowerPoint(List<Vector2> points, MeleeTower2 position)
+    {
+        if(points == null || points.Count != 4)
+            throw new ArgumentException("You must provide exactly 4 points.");
+
+        Vector2 center = new Vector2(100, 100);
+
+        var withAngles = points.Select(p =>
+        {
+            var dx = p.X - center.X;
+            var dy = -(p.Y - center.Y);
+            var angle = Math.Atan2(dx, -dy); 
+            if(angle < 0) angle += 2 * Math.PI;
+            return (Point: p, Angle: angle);
+        }).ToList();
+
+        withAngles.Sort((a, b) => a.Angle.CompareTo(b.Angle));
+
+        return position switch
+        {
+            MeleeTower2.Rightmost => withAngles[3].Point,
+            MeleeTower2.Second_from_right => withAngles[2].Point,
+            MeleeTower2.Second_from_left => withAngles[1].Point,
+            MeleeTower2.Leftmost => withAngles[0].Point,
+            _ => throw new ArgumentOutOfRangeException(nameof(position), "Unknown position enum value."),
+        };
     }
 
     public enum Wall
@@ -237,4 +348,22 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         Top,
         Bottom
     }
+
+    public enum MeleeTower1
+    {
+        Upper_Left,
+        Upper_Right,
+        Lower_Left,
+        Lower_Right,
+    }
+
+    public enum MeleeTower2
+    {
+        Leftmost,
+        Second_from_left,
+        Second_from_right,
+        Rightmost,
+    }
+
+
 }

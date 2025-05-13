@@ -22,11 +22,12 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1257];
 
-    public override Metadata? Metadata => new(6, "NightmareXIV");
+    public override Metadata? Metadata => new(7, "NightmareXIV");
 
     TileDescriptor? TargetedTile = null;
     Element Early => Controller.GetElementByName("Prepare")!;
     Element Go => Controller.GetElementByName("Go")!;
+    bool MechanicStarted = false;
 
     IPlayerCharacter BasePlayer
     {
@@ -85,6 +86,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     void BeginMechanic()
     {
+        MechanicStarted = true;
         IsLong = BasePlayer.StatusList.Any(x => x.StatusId == Debuff && x.RemainingTime > 25f);
         //DuoLog.Information($"{Svc.Objects.Where(x => x.DataId == 18363).Select(x => x.Position).Print("\n")}");
         MeleeInverted = !Svc.Objects.Where(x => x.DataId == 18363).Any(x => Vector2.Distance(x.Position.ToVector2(), new(92.5f, 97.5f)) < 0.5f);
@@ -114,23 +116,20 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     public override void OnReset()
     {
+        MechanicStarted = false;
         this.TargetedTile = null;
     }
 
     public override void OnUpdate()
     {
-        if(Svc.Objects.OfType<IBattleNpc>().Any(x => x.DataId == 18361 && x.IsTargetable && (float)x.CurrentHp / (float)x.MaxHp < 0.3f))
-        {
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-            return;
-        }
         Early.Enabled = false;
         Go.Enabled = false;
         if(!Svc.Objects.OfType<IPlayerCharacter>().Where(x => x.EntityId != 0xE0000000).Any(x => x.StatusList.Any(s => s.StatusId == Debuff)))
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            MechanicStarted = false;
         }
-        if(TargetedTile != null && BasePlayer.StatusList.TryGetFirst(s => s.StatusId == Debuff, out var d))
+        if(MechanicStarted && TargetedTile != null && BasePlayer.StatusList.TryGetFirst(s => s.StatusId == Debuff, out var d))
         {
             var e = d.RemainingTime > 9f ? Early : Go;
             e.Enabled = true;

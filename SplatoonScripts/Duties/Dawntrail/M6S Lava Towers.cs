@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Lava_Towers : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(4, "NightmareXIV");
+    public override Metadata? Metadata => new(5, "NightmareXIV");
 
     bool ReadyToSoak = false;
     bool IsSecondTowers = false;
@@ -155,7 +155,11 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
                             .Where(g => g.Key != TowerPosition.Undefined && g.Count() >= 4)
                             .Select(g => g.Take(4).ToList())
                             .First();
-                        var myTower = GetTowerPoint(fourTowers, C.MeleeTower2);
+                        var tp = GetTowerPosition(fourTowers.First());
+                        var inverted = false;
+                        if(tp == TowerPosition.Left && C.InvertNW) inverted = true;
+                        if(tp == TowerPosition.Right && C.InvertNE) inverted = true;
+                        var myTower = GetTowerPoint(fourTowers, C.MeleeTower2, inverted);
                         if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
                         {
                             e.SetRefPosition(myTower.ToVector3(0));
@@ -250,6 +254,13 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
             ImGuiEx.EnumCombo("First 4 towers position", ref C.MeleeTower1);
             ImGui.SetNextItemWidth(100f);
             ImGuiEx.EnumCombo("Second 4 towers position", ref C.MeleeTower2);
+            ImGuiEx.HelpMarker("Relative if you're looking at the middle of the arena.");
+            ImGui.Indent();
+            ImGui.Checkbox("Invert position if second 4 towers spawn NorthWest ←", ref C.InvertNW);
+            ImGuiEx.HelpMarker("Inverts position so that left becomes right, second from left becomes second from right, etc. if second towers spawns NorthWest.");
+            ImGui.Checkbox("Invert position second 4 towers spawn NorthEast →", ref C.InvertNE);
+            ImGuiEx.HelpMarker("Inverts position so that left becomes right, second from left becomes second from right, etc. if second towers spawns NorthEast.");
+            ImGui.Unindent();
         }
         ImGui.SetNextItemWidth(100f);
         ImGuiEx.Combo("8 towers position", ref C.Position8, Towers.Keys.Where(x => x >= 89));
@@ -268,6 +279,8 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         public int Position8 = 90;
         public MeleeTower1 MeleeTower1 = MeleeTower1.Upper_Left;
         public MeleeTower2 MeleeTower2 = MeleeTower2.Leftmost;
+        public bool InvertNW = false;
+        public bool InvertNE = false;
     }
 
     public static Vector2 GetTowerPoint(List<Vector2> points, MeleeTower1 corner)
@@ -313,7 +326,7 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         };
     }
 
-    public static Vector2 GetTowerPoint(List<Vector2> points, MeleeTower2 position)
+    public static Vector2 GetTowerPoint(List<Vector2> points, MeleeTower2 position, bool inverted)
     {
         if(points == null || points.Count != 4)
             throw new ArgumentException("You must provide exactly 4 points.");
@@ -331,14 +344,28 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
 
         withAngles.Sort((a, b) => a.Angle.CompareTo(b.Angle));
 
-        return position switch
+        if(!inverted)
         {
-            MeleeTower2.Rightmost => withAngles[3].Point,
-            MeleeTower2.Second_from_right => withAngles[2].Point,
-            MeleeTower2.Second_from_left => withAngles[1].Point,
-            MeleeTower2.Leftmost => withAngles[0].Point,
-            _ => throw new ArgumentOutOfRangeException(nameof(position), "Unknown position enum value."),
-        };
+            return position switch
+            {
+                MeleeTower2.Rightmost => withAngles[3].Point,
+                MeleeTower2.Second_from_right => withAngles[2].Point,
+                MeleeTower2.Second_from_left => withAngles[1].Point,
+                MeleeTower2.Leftmost => withAngles[0].Point,
+                _ => throw new ArgumentOutOfRangeException(nameof(position), "Unknown position enum value."),
+            };
+        }
+        else
+        {
+            return position switch
+            {
+                MeleeTower2.Rightmost => withAngles[0].Point,
+                MeleeTower2.Second_from_right => withAngles[1].Point,
+                MeleeTower2.Second_from_left => withAngles[2].Point,
+                MeleeTower2.Leftmost => withAngles[3].Point,
+                _ => throw new ArgumentOutOfRangeException(nameof(position), "Unknown position enum value."),
+            };
+        }
     }
 
     public enum Wall

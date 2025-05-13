@@ -22,7 +22,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1257];
 
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata? Metadata => new(6, "NightmareXIV");
 
     TileDescriptor? TargetedTile = null;
     Element Early => Controller.GetElementByName("Prepare")!;
@@ -68,7 +68,6 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if(Svc.Objects.OfType<IBattleNpc>().Any(x => x.DataId == 18361 && x.IsTargetable && (float)x.CurrentHp / (float)x.MaxHp < 0.3f)) return; 
         if(Svc.Objects.OfType<IPlayerCharacter>().Where(x => x.EntityId != 0xE0000000).Any(x => x.StatusList.Any(s => s.StatusId == Debuff && s.RemainingTime > 28f)))
         {
             if(position == 3 && data1 == 1 && data2 == 2)
@@ -120,6 +119,11 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     public override void OnUpdate()
     {
+        if(Svc.Objects.OfType<IBattleNpc>().Any(x => x.DataId == 18361 && x.IsTargetable && (float)x.CurrentHp / (float)x.MaxHp < 0.3f))
+        {
+            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            return;
+        }
         Early.Enabled = false;
         Go.Enabled = false;
         if(!Svc.Objects.OfType<IPlayerCharacter>().Where(x => x.EntityId != 0xE0000000).Any(x => x.StatusList.Any(s => s.StatusId == Debuff)))

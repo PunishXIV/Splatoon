@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
     {
         public override HashSet<uint> ValidTerritories => [733];
 
-        public override Metadata? Metadata => new(3, "NightmareXIV");
+        public override Metadata? Metadata => new(4, "NightmareXIV, damolitionn");
         private const string TargetVFX = "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx";
         private int diveCnt = 0;
         private uint[] baiters = new uint[3];
@@ -151,9 +151,17 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
+        private static readonly Vector2 TrueNorth = new(-0.015319824f, -24.002502f);
         private IBattleChara[] GetOrderedDragons()
         {
-            return GetDragons().OrderBy(x => (MathHelper.GetRelativeAngle(Vector3.Zero, x.Position) + 360 - 3) % 360).ToArray();
+            return GetDragons()
+                .OrderBy(d =>
+                {
+                    var target = new Vector2(d.Position.X, d.Position.Z);
+                    float angle = MathHelper.GetRelativeAngle(TrueNorth, target);
+                    return angle;
+                })
+                .ToArray();
         }
 
         private IEnumerable<IBattleChara> GetDragons()

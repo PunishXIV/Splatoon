@@ -4,22 +4,27 @@
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Color%20Riot.cs
 ```
 
-### [Script] [Beta] Phase 2 Target Enforcer
-> [!WARNING]
-> M6S Target Enforcer script has been completely remade to allow significantly more precise operation. Please configure it again.
+### [Script] Phase 2 Target Enforcer
+Requires configuration. For melee, set radius to 3.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Target%20Enforcer.cs
 ```
 
 ### [Script] Cloud Navigation
-You need to set the configuration to choose right or left when the clouds are behind and the bridge is in front.
+Requires configuration
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Cloud%20Navigation.cs
 ```
 
-### [Script] [Beta] Taste of Thunder (twister)
+### [Script] Taste of Thunder (twister)
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Taste%20of%20Thunder.cs
+```
+
+### [Script] [Beta] Lava towers
+Resolves your tower. Requires configuration.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M6S%20Lava%20Towers.cs
 ```
 
 ### Double style
@@ -59,7 +64,7 @@ Warning, you must enable your designated spot!
 ~Lv2~{"Name":"M6S Cacti","Description":"","Group":"ACC Cruiserweight M2 Savage","ZoneLockH":[1259],"ElementsL":[{"Name":"M6S Cactus Explosions","type":1,"radius":10.0,"color":4292542208,"fillIntensity":0.144,"refActorNPCNameID":13822,"refActorRequireCast":true,"refActorCastId":[42603,42657],"refActorUseCastTime":true,"refActorCastTimeMin":1.1,"refActorCastTimeMax":4.0,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true},{"Name":"M6S Cactus Explosions","type":1,"radius":10.0,"color":4278190335,"fillIntensity":0.3,"refActorNPCNameID":13822,"refActorRequireCast":true,"refActorCastId":[42603,42657],"refActorUseCastTime":true,"refActorCastTimeMin":4.0,"refActorCastTimeMax":10.0,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true},{"Name":"M6S Cactus Explosions with hole","type":1,"radius":10.0,"color":4278190335,"fillIntensity":0.15,"refActorNPCNameID":13822,"refActorRequireCast":true,"refActorCastId":[39468],"refActorUseCastTime":true,"refActorCastTimeMax":10.0,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true},{"Name":"Heating Up","type":1,"radius":14.0,"Donut":1.0,"color":3372155392,"fillIntensity":0.25,"overlayBGColor":4294905344,"overlayTextColor":3959422975,"refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[4454],"refActorUseBuffTime":true,"refActorBuffTimeMax":9.999999},{"Name":"Heating Up You","type":1,"radius":14.0,"Donut":1.0,"color":3372155392,"fillIntensity":0.25,"overlayBGColor":4294905344,"overlayTextColor":3959422975,"overlayText":"Defamation on YOU","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[4454],"refActorUseBuffTime":true,"refActorBuffTimeMax":9.999999,"refActorType":1},{"Name":"Stack","type":1,"radius":4.5,"Donut":0.5,"color":3355508731,"fillIntensity":0.5,"overlayTextColor":4278253567,"overlayText":">>> Stack <<<","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[4448],"refActorUseBuffTime":true,"refActorBuffTimeMax":10.0}]}
 ```
 
-### [Beta] Cactus with hole - safe spot finder - can be configured for Healer
+### Cactus with hole - safe spot finder - can be configured for Healer
 >[!IMPORTANT]
 >If you want Healer spot, disable 4 "Party" elements and enable 4 "Healer left" or "Healer right" elements. Left or right is looking at party safe spot.
 ```

@@ -21,7 +21,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1257];
 
-    public override Metadata? Metadata => new(3, "NightmareXIV");
+    public override Metadata? Metadata => new(4, "NightmareXIV");
 
     TileDescriptor? TargetedTile = null;
     Element Early => Controller.GetElementByName("Prepare")!;
@@ -67,6 +67,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
+        if(Controller.CombatSeconds > 60 * 6) return;
         if(Svc.Objects.OfType<IPlayerCharacter>().Where(x => x.EntityId != 0xE0000000).Any(x => x.StatusList.Any(s => s.StatusId == Debuff && s.RemainingTime > 28f)))
         {
             if(position == 3 && data1 == 1 && data2 == 2)
@@ -183,6 +184,7 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
             {
                 BeginMechanic();
             }
+            ImGuiEx.Text($"{Controller.CombatSeconds}");
         }
     }
 

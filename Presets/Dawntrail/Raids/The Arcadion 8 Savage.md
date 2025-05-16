@@ -269,7 +269,7 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 
 
-### [Script] Rise of the Howling Wind
+### [Script] Rise of the Howling Wind / Twofold Tempest
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Rise%20of%20the%20Howling%20Wind.cs
 ```

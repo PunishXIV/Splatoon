@@ -3,6 +3,7 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices.TerritoryEnumeration;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.MathHelpers;
 using ImGuiNET;
@@ -35,7 +36,7 @@ public class PlayerHighlighter : SplatoonScript
         var i = 0;
         foreach(var x in Svc.Objects)
         {
-            if(x is IPlayerCharacter pc && pc.Address != Player.Object.Address && Vector2.Distance(Player.Object.Position.ToVector2(), pc.Position.ToVector2()) <= C.MaxDistance2D)
+            if(x is IPlayerCharacter pc && pc.EntityId != 0xE0000000 && pc.Address != Player.Object.Address && Vector2.Distance(Player.Object.Position.ToVector2(), pc.Position.ToVector2()) <= C.MaxDistance2D)
             {
                 var element = GetElement(i++);
                 element.refActorObjectID = pc.EntityId;
@@ -66,7 +67,7 @@ public class PlayerHighlighter : SplatoonScript
         }
     }
 
-    public override void OnSettingsDraw()
+    public unsafe override void OnSettingsDraw()
     {
         ImGui.DragInt("Max 2D distance", ref C.MaxDistance2D);
     }

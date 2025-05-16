@@ -764,7 +764,7 @@ internal unsafe partial class CGui
                 ImGuiEx.Checkbox("Source", ref el.refActorIsTetherSource);
                 ImGuiEx.HelpMarker("Checked - only check if object is tether source; unchecked - only check if object is tether target; dot - check if object is either tether source or target.");
                 ImGui.SameLine();
-                ImGui.Checkbox("Invert condition", ref el.refActorIsTetherInvert);
+                ImGui.Checkbox("Invert condition##tether", ref el.refActorIsTetherInvert);
 
                 ImGuiUtils.SizedText("         " + "Connected with:".Loc(), WidthElement);
                 ImGui.SameLine();

@@ -27,7 +27,7 @@ public class M6S_Cloud_Navigation : SplatoonScript
     private Config C => Controller.GetConfig<Config>();
 
     public override HashSet<uint>? ValidTerritories => [1259];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
 
     private static IBattleNpc? Cloud =>
         Svc.Objects.FirstOrDefault(x => x.DataId == CloudDataId) as IBattleNpc;
@@ -40,10 +40,8 @@ public class M6S_Cloud_Navigation : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Checkbox("You are Right Side", ref C.IsRight);
-        ImGuiEx.HelpMarker(
-            "When the clouds are in the back and the bridge is in the front, should you go right or left?");
-
+        ImGuiEx.Text($"Configure your position:");
+        ImGuiEx.RadioButtonBool("Right side when looking at the cloud", "Left side when looking at the cloud", ref C.IsRight);
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"Cloud Direction: {_currentCloudDirection}");

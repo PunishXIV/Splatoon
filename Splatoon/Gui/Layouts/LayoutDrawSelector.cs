@@ -108,9 +108,9 @@ internal static class LayoutDrawSelector
         }
         if(CurrentLayout == layout)
         {
-            for(var i = 0; i < CurrentLayout.ElementsL.Count; i++)
+            for(var i = 0; i < CurrentLayout.GetElementsWithSubconfiguration().Count; i++)
             {
-                var e = CurrentLayout.ElementsL[i];
+                var e = CurrentLayout.GetElementsWithSubconfiguration()[i];
                 ImGui.PushID(e.GUID);
                 ImGui.SetCursorPosX(group == null ? 10 : 20);
                 var col = layout.PushTextColors(e);
@@ -155,10 +155,10 @@ internal static class LayoutDrawSelector
                         ImGuiUtils.DrawLine(curpos, contRegion);
                         if(ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                         {
-                            var exch = CurrentLayout.ElementsL[indexOfMovedObj];
-                            CurrentLayout.ElementsL[indexOfMovedObj] = null;
-                            CurrentLayout.ElementsL.Insert(i, exch);
-                            CurrentLayout.ElementsL.RemoveAll(x => x == null);
+                            var exch = CurrentLayout.GetElementsWithSubconfiguration()[indexOfMovedObj];
+                            CurrentLayout.GetElementsWithSubconfiguration()[indexOfMovedObj] = null;
+                            CurrentLayout.GetElementsWithSubconfiguration().Insert(i, exch);
+                            CurrentLayout.GetElementsWithSubconfiguration().RemoveAll(x => x == null);
                         }
                     }
                     ImGui.EndDragDropTarget();
@@ -178,14 +178,14 @@ internal static class LayoutDrawSelector
             {
                 if(ImGui.SmallButton("Add element".Loc()))
                 {
-                    layout.ElementsL.Add(new(0));
+                    layout.GetElementsWithSubconfiguration().Add(new(0));
                 }
                 ImGui.SameLine();
                 if(ImGui.SmallButton("Paste".Loc()))
                 {
                     try
                     {
-                        layout.ElementsL.Add(JsonConvert.DeserializeObject<Element>(ImGui.GetClipboardText()));
+                        layout.GetElementsWithSubconfiguration().Add(JsonConvert.DeserializeObject<Element>(ImGui.GetClipboardText()));
                     }
                     catch(Exception e)
                     {

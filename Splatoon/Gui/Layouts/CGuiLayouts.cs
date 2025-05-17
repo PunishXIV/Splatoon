@@ -160,7 +160,7 @@ internal partial class CGui
             ImGui.BeginChild("LayoutsTableEdit", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.HorizontalScrollbar);
             if(CurrentLayout != null)
             {
-                if(CurrentElement != null && CurrentLayout.ElementsL.Contains(CurrentElement))
+                if(CurrentElement != null && CurrentLayout.GetElementsWithSubconfiguration().Contains(CurrentElement))
                 {
                     LayoutDrawElement(CurrentLayout, CurrentElement);
                 }
@@ -224,23 +224,12 @@ internal partial class CGui
 
         foreach(var x in P.Config.LayoutsL)
         {
-            x.ElementsL.RemoveAll(z => z == null);
-            var deleted = x.ElementsL.RemoveAll(k => k.Delete);
-            if(deleted > 0)
-            {
-                Notify.Info($"Deleted ?? elements".Loc(deleted));
-                if(!P.Config.LayoutsL.Any(l => l.ElementsL.Contains(CurrentElement)))
-                {
-                    CurrentElement = null;
-                }
-            }
             if(x.Group == null) x.Group = "";
             if(x.Group != "" && !P.Config.GroupOrder.Contains(x.Group))
             {
                 P.Config.GroupOrder.Add(x.Group);
             }
         }
-        P.Config.GroupOrder.RemoveAll(x => x.IsNullOrEmpty());
         var takenLayouts = P.Config.LayoutsL.ToArray();
         var groupToRemove = -1;
         if(!P.Config.FocusMode || CurrentLayout == null)

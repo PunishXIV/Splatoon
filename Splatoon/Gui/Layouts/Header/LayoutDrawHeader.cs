@@ -157,7 +157,7 @@ internal partial class CGui
 
             ImGui.TableNextColumn();
 
-            ImGuiEx.TextV("Scene (beta)");
+            ImGuiEx.TextV("Scene");
             ImGui.TableNextColumn();
             layout.DrawSceneSelector();
 
@@ -165,6 +165,20 @@ internal partial class CGui
             ImGuiEx.TextV("Job lock".Loc());
             ImGui.TableNextColumn();
             layout.DrawJlockSelector();
+
+            var selectedConf = layout.Subconfigurations.FirstOrDefault(x => x.Guid == layout.SelectedSubconfigurationID);
+            ImGui.TableNextColumn();
+            ImGuiEx.TextV(selectedConf == null?EColor.GreenBright:EColor.YellowBright,"Configuration".Loc());
+            ImGui.TableNextColumn();
+            layout.DrawLayoutConfigurations();
+
+            if(selectedConf != null)
+            {
+                ImGui.TableNextColumn();
+                ImGuiEx.TextV(selectedConf == null ? EColor.GreenBright : EColor.YellowBright, "Configuration Name".Loc());
+                ImGui.TableNextColumn();
+                layout.DrawLayoutConfigurationName();
+            }
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Distance limit".Loc(), ref layout.UseDistanceLimit);

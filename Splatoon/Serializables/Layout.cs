@@ -23,6 +23,8 @@ public class Layout
     public HashSet<int> Scenes = [];
     [DefaultValue(false)] public bool IsZoneBlacklist = false;
     [DefaultValue(false)] public bool ConditionalAnd = false;
+    public List<LayoutSubconfiguration> Subconfigurations = [];
+    public Guid SelectedSubconfigurationID = Guid.Empty;
 
     /// <summary>
     /// 0: Always shown |
@@ -67,6 +69,19 @@ public class Layout
 
     public bool IsVisible() => LastDisplayFrame == P.FrameCounter;
 
+    public List<Element> GetElementsWithSubconfiguration()
+    {
+        if(this.Subconfigurations.Count == 0 || this.SelectedSubconfigurationID == Guid.Empty) return ElementsL;
+        for(int i = 0; i < this.Subconfigurations.Count; i++)
+        {
+            if(Subconfigurations[i].Guid == SelectedSubconfigurationID)
+            {
+                return Subconfigurations[i].Elements;
+            }
+        }
+        return ElementsL;
+    }
+
     public bool ShouldSerializeJobLockH() => JobLockH.Count > 0;
     public bool ShouldSerializeInternationalDescription() => !InternationalDescription.IsEmpty();
     public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();
@@ -83,4 +98,6 @@ public class Layout
     public bool ShouldSerializeZoneLockH() => ZoneLockH.Count > 0;
     public bool ShouldSerializeTriggers() => UseTriggers && Triggers.Count > 0;
     public bool ShouldSerializeElements() => false;
+    public bool ShouldSerializeSubconfigurations() => Subconfigurations.Count != 0;
+    public bool ShouldSerializeSelectedSubconfigurationID() => ShouldSerializeSubconfigurations();
 }

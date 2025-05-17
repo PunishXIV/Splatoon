@@ -7,6 +7,7 @@ using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
+using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -16,6 +17,23 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="conf">Can pass null</param>
+    /// <param name="layout"></param>
+    /// <returns></returns>
+    public static string GetName(this LayoutSubconfiguration conf, Layout layout)
+    {
+        var name = conf?.Name ?? "Default Configration";
+        if(name == "")
+        {
+            var index = layout.Subconfigurations.IndexOf(conf);
+            name = $"Unnamed configuration {(index == -1?conf.Guid:index+1)}";
+        }
+        return name;
+    }
+
     private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
 
     public static float GetRotationWithOverride(this IGameObject obj, Element e)
@@ -371,9 +389,9 @@ public static unsafe class Utils
     {
         if(e.InternationalName.Get(e.Name).IsNullOrEmpty())
         {
-            if(P.Config.LayoutsL.TryGetFirst(x => x.ElementsL.Contains(e), out var l))
+            if(P.Config.LayoutsL.TryGetFirst(x => x.GetElementsWithSubconfiguration().Contains(e), out var l))
             {
-                var index = l.ElementsL.IndexOf(e);
+                var index = l.GetElementsWithSubconfiguration().IndexOf(e);
                 if(index >= 0)
                 {
                     return $"Unnamed element {index}";

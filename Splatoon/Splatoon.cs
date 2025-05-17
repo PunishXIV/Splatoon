@@ -662,9 +662,10 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal static void ProcessElementsOfLayout(Layout l)
     {
-        for(var i = 0; i < l.ElementsL.Count; i++)
+        var elementCollection = l.GetElementsWithSubconfiguration();
+        for(var i = 0; i < elementCollection.Count; i++)
         {
-            var element = l.ElementsL[i];
+            var element = elementCollection[i];
             if(element.Conditional && element.ConditionalReset) l.ConditionalStatus = null;
             var shouldSkip = l.ConditionalStatus == false && (l.ConditionalAnd || (!l.ConditionalAnd && l.ConditionalStatus == false && !element.Conditional));
             if(shouldSkip) continue;

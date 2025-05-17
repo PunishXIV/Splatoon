@@ -241,7 +241,7 @@ internal partial class CGui
                     !P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(layoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
 
                 ImGui.PushID(g);
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+                ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g)? EColor.Yellow: EColor.YellowBright);
 
                 if(HighlightGroup == g)
                 {
@@ -298,6 +298,10 @@ internal partial class CGui
                         }
                     }
                     ImGui.EndDragDropTarget();
+                }
+                if(ImGui.IsItemClicked(ImGuiMouseButton.Middle))
+                {
+                    P.Config.DisabledGroups.Toggle(g);
                 }
                 if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 {
@@ -391,6 +395,7 @@ internal partial class CGui
                         }
                         ImGui.SetClipboardText(Export.Join("\n"));
                     }
+                    ImGuiEx.CollectionCheckbox("Group Enabled", g, P.Config.DisabledGroups, inverted: true);
                     ImGui.EndPopup();
                 }
                 for(var n = 0; n < takenLayouts.Length; n++)

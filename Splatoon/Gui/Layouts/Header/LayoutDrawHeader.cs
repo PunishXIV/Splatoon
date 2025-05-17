@@ -21,11 +21,14 @@ internal partial class CGui
 
             //ImGui.TableHeadersRow();
             ImGui.TableNextColumn();
+            var groupCol = P.Config.DisabledGroups.Contains(layout.Group);
+            if(groupCol) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
             ImGuiEx.TextV("Group:".Loc());
             ImGui.TableNextColumn();
             ImGuiEx.SetNextItemFullWidth();
             if(ImGui.BeginCombo("##group", $"{(layout.Group == "" ? "- No group -".Loc() : $"{layout.Group}")}"))
             {
+                if(groupCol) ImGui.PopStyleColor();
                 if(ImGui.Selectable("- No group -".Loc()))
                 {
                     layout.Group = "";
@@ -59,9 +62,13 @@ internal partial class CGui
                 });
                 ImGui.EndCombo();
             }
+            else
+            {
+                if(groupCol) ImGui.PopStyleColor();
+            }
 
 
-            ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
             ImGuiEx.TextV("Export:".Loc());
             ImGui.TableNextColumn();
             if(ImGui.Button("Copy to clipboard".Loc()))

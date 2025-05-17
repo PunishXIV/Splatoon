@@ -8,10 +8,18 @@ using System.Threading.Tasks;
 namespace Splatoon.Gui.Layouts.Header.Sections;
 internal static class LayoutConfigurations
 {
+    static ImGuiEx.RealtimeDragDrop<LayoutSubconfiguration> DragDrop = new("LayoutSubDD", x => x.Guid.ToString(), true);
     internal static void DrawLayoutConfigurations(this Layout layout, bool allowAddition = true, int width = 0)
     {
         try
         {
+            foreach(var x in layout.Subconfigurations)
+            {
+                if(layout.Subconfigurations.Count(c => c.Guid == x.Guid) > 1)
+                {
+                    x.Guid = Guid.NewGuid();
+                }
+            }
             var selectedConf = layout.Subconfigurations.FirstOrDefault(x => x.Guid == layout.SelectedSubconfigurationID);
 
             if(selectedConf == null && layout.SelectedSubconfigurationID != Guid.Empty)
@@ -26,48 +34,87 @@ internal static class LayoutConfigurations
             {
                 ImGui.SetNextItemWidth(width);
             }
-            if(ImGui.BeginCombo("##layoutConfiguration", selectedConf.GetName(layout), ImGuiComboFlags.HeightLarge))
+            ImGuiEx.InputWithRightButtonsArea($"ComboLC{layout.GUID}", () =>
             {
-                if(ImGui.Selectable($"Default Configuration"))
+                if(ImGui.BeginCombo("##layoutConfiguration", selectedConf.GetName(layout), ImGuiComboFlags.HeightLarge))
                 {
-                    layout.SelectedSubconfigurationID = Guid.Empty;
-                }
-                foreach(var conf in layout.Subconfigurations)
-                {
-                    if(ImGui.Selectable($"{conf.GetName(layout)}##{conf.Guid}"))
+                    if(ImGui.Selectable($"Default Configuration", selectedConf == null))
                     {
-                        layout.SelectedSubconfigurationID = conf.Guid;
+                        layout.SelectedSubconfigurationID = Guid.Empty;
                     }
-                }
-                if(allowAddition)
-                {
                     ImGui.Separator();
-                    ImGuiEx.Text(UiBuilder.IconFont, FontAwesomeIcon.Plus.ToIconString());
-                    ImGui.SameLine();
-                    if(ImGui.Selectable($"Add New based on Default Configuration"))
+                    DragDrop.Begin();
+                    for(var i = 0; i < layout.Subconfigurations.Count; i++)
                     {
-                        var newConf = new LayoutSubconfiguration
+                        var conf = layout.Subconfigurations[i];
+                        if(allowAddition)
                         {
-                            Elements = layout.ElementsL.JSONClone()
-                        };
-                        layout.Subconfigurations.Add(newConf);
-                        layout.SelectedSubconfigurationID = newConf.Guid;
+                            DragDrop.NextRow();
+                            DragDrop.DrawButtonDummy(conf, layout.Subconfigurations, i);
+                            ImGui.SameLine();
+                        }
+                        var col = DragDrop.SetRowColor(conf, false);
+                        if(col) ImGui.PushStyleColor(ImGuiCol.Header, DragDrop.HighlightColor);
+                        if(ImGui.Selectable($"{conf.GetName(layout)}##{conf.Guid}", col || conf.Guid == selectedConf?.Guid))
+                        {
+                            layout.SelectedSubconfigurationID = conf.Guid;
+                        }
+                        if(col) ImGui.PopStyleColor();
                     }
-                    if(selectedConf != null)
+                    DragDrop.End();
+                    if(allowAddition)
                     {
-                        ImGuiEx.Text(UiBuilder.IconFont, FontAwesomeIcon.Clone.ToIconString());
+                        ImGui.Separator();
+                        ImGuiEx.Text(UiBuilder.IconFont, FontAwesomeIcon.Plus.ToIconString());
                         ImGui.SameLine();
-
-                        if(ImGui.Selectable($"Add New based on {selectedConf.GetName(layout)}"))
+                        if(ImGui.Selectable($"Add New based on Default Configuration"))
                         {
-                            var newConf = selectedConf.JSONClone();
+                            var newConf = new LayoutSubconfiguration
+                            {
+                                Elements = layout.ElementsL.JSONClone()
+                            };
                             layout.Subconfigurations.Add(newConf);
                             layout.SelectedSubconfigurationID = newConf.Guid;
                         }
+                        if(selectedConf != null)
+                        {
+                            ImGuiEx.Text(UiBuilder.IconFont, FontAwesomeIcon.Clone.ToIconString());
+                            ImGui.SameLine();
+
+                            if(ImGui.Selectable($"Add New based on {selectedConf.GetName(layout)}"))
+                            {
+                                var newConf = selectedConf.JSONClone();
+                                newConf.Guid = Guid.NewGuid();
+                                if(newConf.Name != "")
+                                {
+                                    for(int i = 1; i < 999; i++)
+                                    {
+                                        var newName = newConf.Name + (i == 1 ? $" (copy)" : $" (copy {i})");
+                                        if(!layout.Subconfigurations.Any(n => n.Name == newName))
+                                        {
+                                            newConf.Name = newName;
+                                            break;
+                                        }
+                                    }
+                                }
+                                layout.Subconfigurations.Add(newConf);
+                                layout.SelectedSubconfigurationID = newConf.Guid;
+                            }
+                        }
                     }
+                    ImGui.EndCombo();
                 }
-                ImGui.EndCombo();
-            }
+            }, () =>
+            {
+                if(allowAddition)
+                {
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled: ImGuiEx.Ctrl && selectedConf != null))
+                    {
+                        new TickScheduler(() => layout.Subconfigurations.Remove(selectedConf));
+                    }
+                    ImGuiEx.Tooltip(selectedConf == null ? "Default Configuration can not be removed" : "Hold CTRL and click to remove configuration");
+                }
+            });
         }
         catch(Exception e)
         {

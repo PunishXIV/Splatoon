@@ -93,6 +93,8 @@ internal class Configuration : IEzConfig
     public bool UseServerBar = true;
     public Dictionary<Job, RolePosition> PreferredPositions = [];
     public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
+    public bool ConfigurationsHideDisabled = false;
+    public List<string> DisabledGroups = [];
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

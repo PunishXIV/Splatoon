@@ -28,7 +28,7 @@ internal unsafe class DirectX11Scene : IDisposable
     private void Draw()
     {
         if(!DirectX11Renderer.Enabled) return;
-        if (DirectX11Renderer.DisplayObjects.Count == 0) return;
+        if(DirectX11Renderer.DisplayObjects.Count == 0) return;
         uid = 0;
         void Draw(PctTexture? texture)
         {

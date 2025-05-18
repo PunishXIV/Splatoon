@@ -241,7 +241,7 @@ internal partial class CGui
                     !P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(layoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
 
                 ImGui.PushID(g);
-                ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g)? EColor.Yellow: EColor.YellowBright);
+                ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g) ? EColor.Yellow : EColor.YellowBright);
 
                 if(HighlightGroup == g)
                 {

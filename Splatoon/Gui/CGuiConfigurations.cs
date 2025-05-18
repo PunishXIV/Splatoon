@@ -16,8 +16,8 @@ using System.Threading.Tasks;
 namespace Splatoon.Gui;
 internal static class CGuiConfigurations
 {
-    static uint SelectedZone = 0;
-    static List<string> AvailableConfigurations = [];
+    private static uint SelectedZone = 0;
+    private static List<string> AvailableConfigurations = [];
 
     public static void Draw()
     {
@@ -120,7 +120,7 @@ internal static class CGuiConfigurations
                 if(script.InternalData.Blacklisted) continue;
                 if(SelectedZone != 0 && script.ValidTerritories != null && script.ValidTerritories.Count != 0 && !script.ValidTerritories.Contains(SelectedZone)) continue;
                 if(P.Config.ConfigurationsHideDisabled && script.IsDisabledByUser) continue;
-                if(script.TryGetAvailableConfigurations(out var configs) && configs.Count > 1)
+                if(script.TryGetAvailableConfigurations(out var configs) && configs.Count > 0)
                 {
                     foreach(var n in configs)
                     {

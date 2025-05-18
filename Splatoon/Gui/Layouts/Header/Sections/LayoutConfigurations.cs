@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Splatoon.Gui.Layouts.Header.Sections;
 internal static class LayoutConfigurations
 {
-    static ImGuiEx.RealtimeDragDrop<LayoutSubconfiguration> DragDrop = new("LayoutSubDD", x => x.Guid.ToString(), true);
+    private static ImGuiEx.RealtimeDragDrop<LayoutSubconfiguration> DragDrop = new("LayoutSubDD", x => x.Guid.ToString(), true);
     internal static void DrawLayoutConfigurations(this Layout layout, bool allowAddition = true, int width = 0)
     {
         try
@@ -87,7 +87,7 @@ internal static class LayoutConfigurations
                                 newConf.Guid = Guid.NewGuid();
                                 if(newConf.Name != "")
                                 {
-                                    for(int i = 1; i < 999; i++)
+                                    for(var i = 1; i < 999; i++)
                                     {
                                         var newName = newConf.Name + (i == 1 ? $" (copy)" : $" (copy {i})");
                                         if(!layout.Subconfigurations.Any(n => n.Name == newName))

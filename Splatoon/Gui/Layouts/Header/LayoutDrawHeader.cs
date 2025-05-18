@@ -68,7 +68,7 @@ internal partial class CGui
             }
 
 
-                ImGui.TableNextColumn();
+            ImGui.TableNextColumn();
             ImGuiEx.TextV("Export:".Loc());
             ImGui.TableNextColumn();
             if(ImGui.Button("Copy to clipboard".Loc()))
@@ -175,7 +175,7 @@ internal partial class CGui
 
             var selectedConf = layout.Subconfigurations.FirstOrDefault(x => x.Guid == layout.SelectedSubconfigurationID);
             ImGui.TableNextColumn();
-            ImGuiEx.TextV(selectedConf == null?EColor.GreenBright:EColor.YellowBright,"Configuration".Loc());
+            ImGuiEx.TextV(selectedConf == null ? EColor.GreenBright : EColor.YellowBright, "Configuration".Loc());
             ImGui.TableNextColumn();
             layout.DrawLayoutConfigurations();
 

@@ -36,7 +36,7 @@ public class Layout
     /// </summary>
     [DefaultValue(0)] public int DCond = 0;
     [DefaultValue(false)] public bool DisableDisabling = false;
-    [Obsolete("Use JobLockH")] [DefaultValue(0)] public ulong JobLock = 0;
+    [Obsolete("Use JobLockH")][DefaultValue(0)] public ulong JobLock = 0;
     public HashSet<Job> JobLockH = [];
     [DefaultValue(false)] public bool DisableInDuty = false;
     [DefaultValue(false)] public bool UseTriggers = false;
@@ -71,8 +71,8 @@ public class Layout
 
     public List<Element> GetElementsWithSubconfiguration()
     {
-        if(this.Subconfigurations.Count == 0 || this.SelectedSubconfigurationID == Guid.Empty) return ElementsL;
-        for(int i = 0; i < this.Subconfigurations.Count; i++)
+        if(Subconfigurations.Count == 0 || SelectedSubconfigurationID == Guid.Empty) return ElementsL;
+        for(var i = 0; i < Subconfigurations.Count; i++)
         {
             if(Subconfigurations[i].Guid == SelectedSubconfigurationID)
             {

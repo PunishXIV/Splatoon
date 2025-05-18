@@ -29,7 +29,7 @@ public static unsafe class Utils
         if(name == "")
         {
             var index = layout.Subconfigurations.IndexOf(conf);
-            name = $"Unnamed configuration {(index == -1?conf.Guid:index+1)}";
+            name = $"Unnamed configuration {(index == -1 ? conf.Guid : index + 1)}";
         }
         return name;
     }

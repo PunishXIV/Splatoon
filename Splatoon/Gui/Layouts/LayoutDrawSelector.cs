@@ -117,7 +117,7 @@ internal static class LayoutDrawSelector
                 var curpos = ImGui.GetCursorScreenPos();
                 var contRegion = ImGui.GetContentRegionAvail().X;
                 var cond = layout.Enabled && e.Enabled && e.Conditional;
-                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert?"↓":null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert?"×":null)}{(cond && e.ConditionalReset? "§" : null)}{e.GetName()}", CurrentElement == e))
+                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert ? "↓" : null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert ? "×" : null)}{(cond && e.ConditionalReset ? "§" : null)}{e.GetName()}", CurrentElement == e))
                 {
                     if(CurrentElement == e)
                     {
@@ -197,7 +197,7 @@ internal static class LayoutDrawSelector
         ImGui.PopID();
     }
 
-    static int PushTextColors(this Layout l)
+    private static int PushTextColors(this Layout l)
     {
         var ret = 0;
         if(l.Enabled)
@@ -217,7 +217,7 @@ internal static class LayoutDrawSelector
         return ret;
     }
 
-    static int PushTextColors(this Layout l, Element e)
+    private static int PushTextColors(this Layout l, Element e)
     {
         var ret = 0;
         if(e.Enabled)
@@ -226,7 +226,7 @@ internal static class LayoutDrawSelector
             {
                 if(e.IsVisible())
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, e.Conditional?Colors.ElementIsConditionalVisible: Colors.ElementLayoutIsVisible);
+                    ImGui.PushStyleColor(ImGuiCol.Text, e.Conditional ? Colors.ElementIsConditionalVisible : Colors.ElementLayoutIsVisible);
                     ret++;
                 }
                 else if(e.Conditional)
@@ -237,15 +237,15 @@ internal static class LayoutDrawSelector
             }
             else
             {
-                var col = e.Conditional?Colors.ElementIsConditional:ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
-                ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled?1f:0.5f) });
+                var col = e.Conditional ? Colors.ElementIsConditional : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+                ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled ? 1f : 0.5f) });
                 ret++;
             }
         }
         else
         {
             var col = e.Conditional ? Colors.ElementIsConditional : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
-            ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled? 0.5f:0.25f) });
+            ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled ? 0.5f : 0.25f) });
             ret++;
         }
         return ret;

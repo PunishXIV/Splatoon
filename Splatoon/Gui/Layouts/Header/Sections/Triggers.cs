@@ -15,7 +15,7 @@ internal static class Triggers
             {
                 var trigger = layout.Triggers[n];
                 ImGui.PushID(trigger.GUID);
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled:ImGuiEx.Ctrl))
+                if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled: ImGuiEx.Ctrl))
                 {
                     new TickScheduler(() => layout.Triggers.Remove(trigger));
                 }

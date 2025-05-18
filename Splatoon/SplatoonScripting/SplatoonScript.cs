@@ -688,9 +688,9 @@ public abstract class SplatoonScript
 
     internal void DrawConfigurationSelector(int width = 0)
     {
-        if(this.TryGetAvailableConfigurations(out var configurations))
+        if(TryGetAvailableConfigurations(out var configurations))
         {
-            var activeConf = this.InternalData.CurrentConfigurationKey;
+            var activeConf = InternalData.CurrentConfigurationKey;
             var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? "Default";
             if(width == 0)
             {
@@ -704,14 +704,14 @@ public abstract class SplatoonScript
             {
                 if(ImGui.Selectable("Default", activeConf.IsNullOrEmpty()))
                 {
-                    this.ApplyDefaultConfiguration();
+                    ApplyDefaultConfiguration();
                 }
                 var i = 0;
                 foreach(var c in configurations)
                 {
                     if(ImGui.Selectable($"{c.Value}##{i++}", c.Key == activeConf))
                     {
-                        this.ApplyConfiguration(c.Key);
+                        ApplyConfiguration(c.Key);
                     }
                 }
                 ImGui.EndCombo();

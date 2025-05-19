@@ -9,7 +9,7 @@
 	url = https://github.com/NightmareXIV/NightmareUI
 [submodule "ffxiv_pictomancy"]
 	path = ffxiv_pictomancy
-	url = https://github.com/Limiana/ffxiv_pictomancy
+	url = https://github.com/sourpuh/ffxiv_pictomancy
 [submodule "FFXIVClientStructs"]
 	path = FFXIVClientStructs
 	url = https://github.com/Limiana/FFXIVClientStructs

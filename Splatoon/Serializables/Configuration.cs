@@ -80,6 +80,7 @@ internal class Configuration : IEzConfig
     public int ElementMinFillAlpha = 0;
     public int ElementMaxFillAlpha = 255;
     public int MaxAlpha = 0xFF;
+    public bool UseVfxRendering = false;
     [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = [];
     public Dictionary<string, Dictionary<string, string>> ScriptConfigurationNames = [];

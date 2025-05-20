@@ -4,6 +4,7 @@ using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using Splatoon.Memory;
 using Splatoon.Serializables;
+using Splatoon.SplatoonScripting;
 using System.Runtime.InteropServices;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 
@@ -140,7 +141,6 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 var (pointA, pointB) = CommonRenderUtils.GetRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
-                DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
                 DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), pointA.X, pointA.Y, pointA.Z,
                     pointB.X, pointB.Y, pointB.Z,
                     e.thicc, e.color, e.LineEndA, e.LineEndB));
@@ -161,6 +161,8 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
 
                 if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;
+
+                var line = new DisplayObjectLine(e.GetUniqueId(go), Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(go), e.LineEndA, e.LineEndB);
 
                 DisplayObjects.Add(line);
             }

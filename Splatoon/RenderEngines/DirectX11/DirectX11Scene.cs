@@ -103,19 +103,23 @@ internal unsafe class DirectX11Scene : IDisposable
                 autoDraw: false,
                 maxAlpha: (byte)P.Config.MaxAlpha,
                 alphaBlendMode: P.Config.AlphaBlendMode,
-                clipNativeUI: P.Config.AutoClipNativeUI);
+                clipNativeUI: P.Config.AutoClipNativeUI,
+                drawWithVfx: P.Config.UseVfxRendering);
             using var drawList = PictoService.Draw(ImGui.GetWindowDrawList(), hints);
             if(drawList == null)
                 return null;
-            foreach(var element in DirectX11Renderer.DisplayObjects)
+            foreach (VfxDisplayObject element in DirectX11Renderer.DisplayObjects)
             {
-                if(element is DisplayObjectFan elementFan)
+                using (drawList.PushDrawContext(element.id))
                 {
-                    DrawFan(elementFan, drawList);
-                }
-                else if(element is DisplayObjectLine elementLine)
-                {
-                    DrawLine(elementLine, drawList);
+                    if (element is DisplayObjectFan elementFan)
+                    {
+                        DrawFan(elementFan, drawList);
+                    }
+                    else if (element is DisplayObjectLine elementLine)
+                    {
+                        DrawLine(elementLine, drawList);
+                    }
                 }
             }
             foreach(var zone in P.Config.ClipZones)

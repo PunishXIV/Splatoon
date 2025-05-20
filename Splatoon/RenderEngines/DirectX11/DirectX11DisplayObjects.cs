@@ -5,13 +5,19 @@ using Splatoon.Structures;
 namespace Splatoon.RenderEngines.DirectX11;
 public class DirectX11DisplayObjects
 {
-    public class DisplayObjectDot : DisplayObject
+    public class VfxDisplayObject : DisplayObject
+    {
+        public string id;
+    }
+
+    public class DisplayObjectDot : VfxDisplayObject
     {
         public float x, y, z, thickness;
         public uint color;
 
-        public DisplayObjectDot(float x, float y, float z, float thickness, uint color)
+        public DisplayObjectDot(string id, float x, float y, float z, float thickness, uint color)
         {
+            this.id = id;
             this.x = x;
             this.y = y;
             this.z = z;
@@ -20,14 +26,15 @@ public class DirectX11DisplayObjects
         }
     }
 
-    public class DisplayObjectFan : DisplayObject
+    public class DisplayObjectFan : VfxDisplayObject
     {
         public readonly Vector3 origin;
 
         public readonly float innerRadius, outerRadius, angleMin, angleMax;
         public readonly DisplayStyle style;
-        public DisplayObjectFan(Vector3 origin, float innerRadius, float outerRadius, float angleMin, float angleMax, DisplayStyle style)
+        public DisplayObjectFan(string id, Vector3 origin, float innerRadius, float outerRadius, float angleMin, float angleMax, DisplayStyle style)
         {
+            this.id = id;
             this.origin = origin;
             this.innerRadius = innerRadius;
             this.outerRadius = outerRadius;
@@ -39,27 +46,28 @@ public class DirectX11DisplayObjects
 
     public class DisplayObjectCircle : DisplayObjectFan
     {
-        public DisplayObjectCircle(Vector3 origin, float radius, DisplayStyle style) : base(origin, 0, radius, 0, 2 * MathF.PI, style)
+        public DisplayObjectCircle(string id, Vector3 origin, float radius, DisplayStyle style) : base(id, origin, 0, radius, 0, 2 * MathF.PI, style)
         {
         }
     }
 
     public class DisplayObjectDonut : DisplayObjectFan
     {
-        public DisplayObjectDonut(Vector3 origin, float innerRadius, float donutRadius, DisplayStyle style) : base(origin, innerRadius, innerRadius + donutRadius, 0, 2 * MathF.PI, style)
+        public DisplayObjectDonut(string id, Vector3 origin, float innerRadius, float donutRadius, DisplayStyle style) : base(id, origin, innerRadius, innerRadius + donutRadius, 0, 2 * MathF.PI, style)
         {
         }
     }
 
-    public class DisplayObjectLine : DisplayObject
+    public class DisplayObjectLine : VfxDisplayObject
     {
         public readonly Vector3 start, stop;
         public readonly float radius;
         public readonly DisplayStyle style;
         public readonly LineEnd startStyle, endStyle;
 
-        public DisplayObjectLine(Vector3 start, Vector3 stop, float radius, DisplayStyle style, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
+        public DisplayObjectLine(string id, Vector3 start, Vector3 stop, float radius, DisplayStyle style, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
         {
+            this.id = id;
             this.start = start;
             this.stop = stop;
             this.radius = radius;
@@ -68,7 +76,7 @@ public class DirectX11DisplayObjects
             this.endStyle = endStyle;
         }
 
-        public DisplayObjectLine(float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
+        public DisplayObjectLine(string id, float ax, float ay, float az, float bx, float by, float bz, float thickness, uint color, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
         {
             start = new Vector3(ax, az, ay);
             stop = new Vector3(bx, bz, by);
@@ -120,13 +128,14 @@ public class DirectX11DisplayObjects
             }
         }
     }
-    public class DisplayObjectText : DisplayObject
+    public class DisplayObjectText : VfxDisplayObject
     {
         public float x, y, z, fscale;
         public string text;
         public uint bgcolor, fgcolor;
-        public DisplayObjectText(float x, float y, float z, string text, uint bgcolor, uint fgcolor, float fscale)
+        public DisplayObjectText(string id, float x, float y, float z, string text, uint bgcolor, uint fgcolor, float fscale)
         {
+            this.id = id;
             this.x = x;
             this.y = y;
             this.z = z;

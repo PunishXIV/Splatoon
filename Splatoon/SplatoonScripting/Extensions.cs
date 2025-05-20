@@ -50,4 +50,15 @@ public static unsafe class Extensions
         e.offY = Position.Z;
         e.offZ = Position.Y;
     }
+
+    /// <summary>
+    /// Get a unique ID for this element.
+    /// </summary>
+    /// <param name="e">Element to get unqiue ID for</param>
+    /// <param name="maybeGameObject">A GameObject that is only specified if the element is attached to one</param>
+    /// <returns></returns>
+    public static string GetUniqueId(this Element e, IGameObject? maybeGameObject = null)
+    {
+        return e.GUID + maybeGameObject?.GameObjectId;
+    }
 }

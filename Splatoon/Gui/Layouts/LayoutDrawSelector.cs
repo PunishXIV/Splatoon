@@ -96,12 +96,12 @@ internal static class LayoutDrawSelector
                 {
                     P.Archive.LayoutsL.Add(layout.JSONClone());
                     P.SaveArchive();
-                    layout.Delete = true;
+                    new TickScheduler(() => P.Config.LayoutsL.Remove(layout));
                 }
                 ImGui.Separator();
                 if(ImGui.Selectable("Delete layout".Loc()))
                 {
-                    layout.Delete = true;
+                    new TickScheduler(() => P.Config.LayoutsL.Remove(layout));
                 }
                 ImGui.EndPopup();
             }
@@ -168,7 +168,8 @@ internal static class LayoutDrawSelector
                     ImGuiEx.Text($"{"Layout".Loc()} {layout.GetName()}\n{"Element".Loc()} {e.GetName()}");
                     if(ImGui.Selectable("Delete element".Loc()))
                     {
-                        e.Delete = true;
+                        var l = layout.GetElementsWithSubconfiguration();
+                        new TickScheduler(() => l.Remove(e));
                     }
                     ImGui.EndPopup();
                 }

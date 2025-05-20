@@ -18,7 +18,6 @@ public class Layout
     public InternationalString InternationalDescription = new();
     public string Group = "";
     [NonSerialized] internal string GUID = Guid.NewGuid().ToString();
-    [NonSerialized] internal bool Delete = false;
     public HashSet<ushort> ZoneLockH = [];
     public HashSet<int> Scenes = [];
     [DefaultValue(false)] public bool IsZoneBlacklist = false;

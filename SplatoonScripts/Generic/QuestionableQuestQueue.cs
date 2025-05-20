@@ -109,7 +109,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         if(data.Aetheryte != 0)
         {
             var aetheryte = Svc.Data.GetExcelSheet<Aetheryte>().GetRowOrDefault(data.Aetheryte);
-            if(aetheryte != null && aetheryte.Value.Territory.RowId != Player.Territory)
+            if(aetheryte != null && (aetheryte.Value.Territory.RowId != Player.Territory || !Svc.Objects.Any(x => x.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Aetheryte && Player.DistanceTo(x) < 20f)))
             {
                 TaskManager.Enqueue(() => LifestreamTeleport(data.Aetheryte, 0), "Teleport");
                 TaskManager.Enqueue(() => !GenericHelpers.IsScreenReady(), "Wait 1");

@@ -18,6 +18,7 @@ internal static class CGuiConfigurations
 {
     private static uint SelectedZone = 0;
     private static List<string> AvailableConfigurations = [];
+    private static HashSet<uint> AvailableTerritories = [];
 
     public static void Draw()
     {
@@ -35,7 +36,7 @@ internal static class CGuiConfigurations
                 selector.Close();
             }, "Select Zone".Loc())
             {
-                HiddenTerritories = Svc.Data.GetExcelSheet<TerritoryType>().Select(x => x.RowId).Where(t => !P.Config.LayoutsL.Any(l => l.Subconfigurations.Count > 0 && l.ZoneLockH.Contains((ushort)t))).ToArray(),
+                HiddenTerritories = Svc.Data.GetExcelSheet<TerritoryType>().Select(x => x.RowId).Where(t => !AvailableTerritories.Contains(t)).ToArray(),
                 SelectedCategory = TerritorySelector.Category.All,
             };
         }
@@ -57,54 +58,56 @@ internal static class CGuiConfigurations
             ImGui.EndCombo();
         }
         AvailableConfigurations.Clear();
+        AvailableTerritories.Clear();
         if(ImGuiEx.BeginDefaultTable("##Configurations", ["~" + "Layout Name".Loc(), "Zone".Loc(), "Selected Configuration".Loc()]))
         {
-            foreach(var x in P.Config.LayoutsL)
+            foreach(var layout in P.Config.LayoutsL)
             {
-                if(SelectedZone != 0 && x.ZoneLockH.Count != 0 && !x.ZoneLockH.Contains((ushort)SelectedZone)) continue;
-                if(P.Config.ConfigurationsHideDisabled && !x.Enabled) continue;
-                if(x.Subconfigurations.Count > 0)
+                if(SelectedZone != 0 && layout.ZoneLockH.Count != 0 && !layout.ZoneLockH.Contains((ushort)SelectedZone)) continue;
+                if(P.Config.ConfigurationsHideDisabled && !layout.Enabled) continue;
+                if(layout.Subconfigurations.Count > 0)
                 {
-                    foreach(var n in x.Subconfigurations)
+                    foreach(var subConf in layout.Subconfigurations)
                     {
-                        if(n.Name != "" && !AvailableConfigurations.Contains(n.Name))
+                        if(subConf.Name != "")
                         {
-                            AvailableConfigurations.Add(n.Name);
+                            if(!AvailableConfigurations.Contains(subConf.Name)) AvailableConfigurations.Add(subConf.Name);
+                            AvailableTerritories.AddRange(layout.ZoneLockH.Select(x => (uint)x));
                         }
                     }
                     if(requestedConfiguration != null)
                     {
-                        if(x.Subconfigurations.TryGetFirst(v => v.Name == requestedConfiguration, out var switchTo))
+                        if(layout.Subconfigurations.TryGetFirst(v => v.Name == requestedConfiguration, out var switchTo))
                         {
-                            x.SelectedSubconfigurationID = switchTo.Guid;
+                            layout.SelectedSubconfigurationID = switchTo.Guid;
                         }
                         else if(requestedConfiguration == Guid.Empty.ToString())
                         {
-                            x.SelectedSubconfigurationID = Guid.Empty;
+                            layout.SelectedSubconfigurationID = Guid.Empty;
                         }
                     }
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGuiEx.TextV(x.Enabled ? null : ImGuiColors.DalamudGrey3, $"{x.GetName()}");
+                    ImGuiEx.TextV(layout.Enabled ? null : ImGuiColors.DalamudGrey3, $"{layout.GetName()}");
 
                     ImGui.TableNextColumn();
-                    if(x.ZoneLockH.Count == 0)
+                    if(layout.ZoneLockH.Count == 0)
                     {
                         ImGuiEx.TextV($"All Zones".Loc());
                     }
-                    else if(x.ZoneLockH.Count == 1)
+                    else if(layout.ZoneLockH.Count == 1)
                     {
-                        ImGuiEx.TextV($"{ExcelTerritoryHelper.GetName(x.ZoneLockH.First())}");
+                        ImGuiEx.TextV($"{ExcelTerritoryHelper.GetName(layout.ZoneLockH.First())}");
                     }
                     else
                     {
-                        ImGuiEx.TextV($"?? zones".Loc(x.ZoneLockH.Count));
-                        ImGuiEx.Tooltip(x.ZoneLockH.Select(z => ExcelTerritoryHelper.GetName(z)).Print("\n"));
+                        ImGuiEx.TextV($"?? zones".Loc(layout.ZoneLockH.Count));
+                        ImGuiEx.Tooltip(layout.ZoneLockH.Select(z => ExcelTerritoryHelper.GetName(z)).Print("\n"));
                     }
 
                     ImGui.TableNextColumn();
-                    ImGui.PushID(x.GUID.ToString());
-                    x.DrawLayoutConfigurations(false, (int)Math.Max(200, ImGui.GetContentRegionMax().X / 2.2f));
+                    ImGui.PushID(layout.GUID.ToString());
+                    layout.DrawLayoutConfigurations(false, (int)Math.Max(200, ImGui.GetContentRegionMax().X / 2.2f));
                     ImGui.PopID();
                 }
             }
@@ -120,13 +123,14 @@ internal static class CGuiConfigurations
                 if(script.InternalData.Blacklisted) continue;
                 if(SelectedZone != 0 && script.ValidTerritories != null && script.ValidTerritories.Count != 0 && !script.ValidTerritories.Contains(SelectedZone)) continue;
                 if(P.Config.ConfigurationsHideDisabled && script.IsDisabledByUser) continue;
-                if(script.TryGetAvailableConfigurations(out var configs) && configs.Count > 0)
+                if(script.TryGetAvailableConfigurations(out var scriptConfigurations) && scriptConfigurations.Count > 0)
                 {
-                    foreach(var n in configs)
+                    foreach(var scriptConf in scriptConfigurations)
                     {
-                        if(n.Value != "" && !AvailableConfigurations.Contains(n.Value))
+                        if(scriptConf.Value != "")
                         {
-                            AvailableConfigurations.Add(n.Value);
+                            if(!AvailableConfigurations.Contains(scriptConf.Value)) AvailableConfigurations.Add(scriptConf.Value);
+                            AvailableTerritories.AddRange(script.ValidTerritories ?? []);
                         }
                     }
                     if(requestedConfiguration != null && script.TryGetAvailableConfigurations(out var confList))

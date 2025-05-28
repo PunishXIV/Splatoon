@@ -8,6 +8,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using ImGuiNET;
+using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Lava_Towers : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata? Metadata => new(6, "NightmareXIV");
 
     bool ReadyToSoak = false;
     bool IsSecondTowers = false;
@@ -192,7 +193,8 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
                         }
                         else
                         {
-                            var adjTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == C.EscapeFrom4Towers).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray();
+                            var destination = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) != C.StartingPosition).GroupBy(GetTowerPosition).First(x => x.Count() == 2);
+                            var adjTowers = this.ActiveTowers.Select(x => Towers[x]).Where(x => GetTowerPosition(x) == GetTowerPosition(destination.First())).OrderBy(x => Vector2.Distance(x, new(100, 100))).ToArray();
                             if(Controller.TryGetElementByName(ReadyToSoak ? "Take" : "Prepare", out var e))
                             {
                                 e.Enabled = true;
@@ -267,6 +269,26 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         if(ThreadLoadImageHandler.TryGetTextureWrap("https://github.com/PunishXIV/Splatoon/blob/main/Presets/Files/Dawntrail/image_230.png?raw=true", out var w))
         {
             ImGui.Image(w.ImGuiHandle, w.Size);
+        }
+        if(ImGui.CollapsingHeader("Debug"))
+        {
+            if(ImGui.Button("Store active towers"))
+            {
+                GenericHelpers.Copy(JsonConvert.SerializeObject(this.ActiveTowers));
+            }
+            if(ImGui.Button("Restore active towers"))
+            {
+                try
+                {
+                    ActiveTowers = JsonConvert.DeserializeObject<HashSet<int>>(GenericHelpers.Paste()!) ?? [];
+                }
+                catch(Exception e)
+                {
+                    e.LogDuo();
+                }
+            }
+            ImGui.Checkbox("ReadyToSoak", ref ReadyToSoak);
+            ImGui.Checkbox("IsSecondTowers", ref IsSecondTowers);
         }
     }
     Config C => Controller.GetConfig<Config>();

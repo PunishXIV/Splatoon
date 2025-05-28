@@ -1,91 +1,165 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
-using ECommons.Hooks.ActionEffectTypes;
+using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
-using Lumina.Excel.Sheets;
+using ECommons.Throttlers;
+using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class M8S_Quad_Beckon_Moonlight : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
 
+    public override Metadata? Metadata => new(2, "NightmareXIV");
+
     public override void OnSetup()
     {
-
-        Controller.RegisterElementFromCode($"BottomLeftUnsafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278190335,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"FillStep\":99.0}");
-        Controller.RegisterElementFromCode($"TopLeftUnsafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278190335,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"AdditionalRotation\":1.5707964,\"FillStep\":99.0}");
-        Controller.RegisterElementFromCode($"TopRightUnsafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278190335,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"AdditionalRotation\":3.1415927,\"FillStep\":99.0}");
-        Controller.RegisterElementFromCode($"BottomRightUnsafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278190335,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"AdditionalRotation\":4.712389,\"FillStep\":99.0}");
-        Controller.RegisterElementFromCode($"BottomLeftSafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278386432,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"FillStep\":99.0}");
-        Controller.RegisterElementFromCode($"TopLeftSafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278386432,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"AdditionalRotation\":1.5707964,\"FillStep\":99.0}");
-        Controller.RegisterElementFromCode($"TopRightSafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278386432,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"AdditionalRotation\":3.1415927,\"FillStep\":99.0}");
-        Controller.RegisterElementFromCode($"BottomRightSafe", "{\"Name\":\"\",\"type\":5,\"refX\":100.0,\"refY\":100.0,\"radius\":12.0,\"coneAngleMax\":90,\"color\":4278386432,\"Filled\":false,\"fillIntensity\":0.5,\"thicc\":6.0,\"includeRotation\":true,\"AdditionalRotation\":4.712389,\"FillStep\":99.0}");
+        Controller.RegisterElementFromCode("SafeCone", """
+            {"Name":"","type":5,"refX":100.0,"refY":100.0,"radius":12.0,"coneAngleMax":90,"color":4278255376,"Filled":false,"fillIntensity":0.5,"thicc":6.0,"includeRotation":true,"FillStep":99.0}
+            """);
+        Controller.RegisterElementFromCode("UnsafeCone", """
+            {"Name":"","type":5,"refX":100.0,"refY":100.0,"radius":12.0,"coneAngleMax":90,"color":4278225151,"Filled":false,"fillIntensity":0.5,"thicc":3.0,"includeRotation":true,"FillStep":99.0}
+            """);
+        Controller.RegisterElementFromCode($"{Position.Ranged_Left}", """
+            {"Name":"ranged left","refX":88.5,"refY":100.5,"radius":0.3,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+        Controller.RegisterElementFromCode($"{Position.Ranged_Right}", """
+            {"Name":"ranged right","refX":99.5,"refY":111.5,"radius":0.3,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+        Controller.RegisterElementFromCode($"{Position.Melee_Left}", """
+            {"Name":"melee left","refX":95.0,"refY":100.5,"radius":0.3,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+        Controller.RegisterElementFromCode($"{Position.Melee_Right}", """
+            {"Name":"melee right","refX":99.5,"refY":105.0,"radius":0.3,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+        Controller.RegisterElementFromCode("Stack", """
+            {"Name":"stack","refX":92.0,"refY":108.0,"radius":0.6,"color":3355505151,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
     }
 
-    Quadrant? SafeZone1 = null;
-    Quadrant? SafeZone2 = null;
-    IBattleNpc[] Shadows => GetShadows().ToArray().OrderBy(x => Order.IndexOf(x.EntityId)).ToArray();
+    private Dictionary<Position, Vector2> SpreadPositions = new()
+    {
+        [Position.Ranged_Left] = new(88.5f, 100.5f),
+        [Position.Ranged_Right] = new(99.5f, 111.5f),
+        [Position.Melee_Left] = new(95.0f, 100.5f),
+        [Position.Melee_Right] = new(99.5f, 105.0f),
+    };
+
+    private Vector2 StackPosition = new(92f, 108f);
+
+    private Dictionary<Quadrant, int> Rotations = new()
+    {
+        [Quadrant.SouthWest] = 0,
+        [Quadrant.NorthWest] = 90,
+        [Quadrant.NorthEast] = 180,
+        [Quadrant.SouthEast] = 270,
+    };
+
+    public enum Position { Disabled, Ranged_Right, Ranged_Left, Melee_Right, Melee_Left };
+
+    private Quadrant? SafeZone1 = null;
+    private Quadrant? SafeZone2 = null;
+    private IBattleNpc[] Shadows => GetShadows().ToArray().OrderBy(x => Order.IndexOf(x.EntityId)).ToArray();
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         if(Shadows.Length == 0) return;
         if(Shadows.Length == 4)
         {
-            SafeZone1 ??= FindSafeQuadrant(
+            SafeZone1 ??= FindSafeQuadrants(
                 Shadows[0].Position.ToVector2(), Shadows[0].GetTransformationID() == 6,
-                Shadows[1].Position.ToVector2(), Shadows[1].GetTransformationID() == 6);
-            SafeZone2 ??= FindSafeQuadrant(
+                Shadows[1].Position.ToVector2(), Shadows[1].GetTransformationID() == 6).First();
+            SafeZone2 ??= FindSafeQuadrants(
                 Shadows[2].Position.ToVector2(), Shadows[2].GetTransformationID() == 6,
-                Shadows[3].Position.ToVector2(), Shadows[3].GetTransformationID() == 6);
+                Shadows[3].Position.ToVector2(), Shadows[3].GetTransformationID() == 6).First();
         }
         else if(Shadows.Length == 2)
         {
-            SafeZone1 ??= FindSafeQuadrant(
+            SafeZone1 ??= FindSafeQuadrants(
                 Shadows[0].Position.ToVector2(), Shadows[0].GetTransformationID() == 6,
-                Shadows[1].Position.ToVector2(), Shadows[1].GetTransformationID() == 6);
+                Shadows[1].Position.ToVector2(), Shadows[1].GetTransformationID() == 6).First();
         }
-        if(this.NumActions < 4)
+        if(NumActions < 4)
         {
-            if(this.NumActions < 2)
+            if(NumActions < 2)
             {
                 {
-                    if(Controller.TryGetElementByName($"{SafeZone1}Safe", out var e))
+                    if(SafeZone1 != null && Controller.TryGetElementByName($"SafeCone", out var e))
                     {
                         e.Enabled = true;
+                        e.AdditionalRotation = Rotations[SafeZone1.Value].DegreesToRadians();
+                        DrawStackSpread(SafeZone1.Value);
                     }
                 }
                 {
-                    if(Controller.TryGetElementByName($"{SafeZone2}Unsafe", out var e))
+                    if(SafeZone2 != null && Controller.TryGetElementByName($"UnsafeCone", out var e))
                     {
                         e.Enabled = true;
+                        e.AdditionalRotation = Rotations[SafeZone2.Value].DegreesToRadians();
                     }
                 }
             }
             else
             {
-                if(Controller.TryGetElementByName($"{SafeZone2}Safe", out var e))
+                if(SafeZone2 != null && Controller.TryGetElementByName($"SafeCone", out var e))
                 {
+                    e.AdditionalRotation = Rotations[SafeZone2.Value].DegreesToRadians();
                     e.Enabled = true;
+                    DrawStackSpread(SafeZone2.Value);
                 }
             }
         }
     }
 
-    HashSet<uint> Casted = [];
-    List<uint> Order = [];
-    int NumActions = 0;
-    IEnumerable<IBattleNpc> GetShadows()
+    public override void OnVFXSpawn(uint target, string vfxPath)
+    {
+        if(vfxPath == "vfx/lockon/eff/target_ae_s5f.avfx" && target.GetObject()?.Address == Player.Object.Address)
+        {
+            EzThrottler.Throttle("BeckonSpread", 5000, true);
+        }
+        if(vfxPath == "vfx/lockon/eff/com_share1f.avfx" && target.TryGetObject(out var go) && go is IPlayerCharacter pc)
+        {
+            if(pc.GetJob().IsDps() == Player.Job.IsDps())
+            {
+                EzThrottler.Throttle("BeckonStack", 5000, true);
+            }
+        }
+    }
+
+    private void DrawStackSpread(Quadrant quadrant)
+    {
+        {
+            if(!EzThrottler.Check("BeckonStack") && Controller.TryGetElementByName("Stack", out var e))
+            {
+                e.Enabled = true;
+                e.SetRefPosition(MathHelper.RotateWorldPoint(Center.ToVector3(), Rotations[quadrant].DegreesToRadians(), StackPosition.ToVector3()));
+            }
+        }
+        {
+            if(!EzThrottler.Check("BeckonSpread") && Controller.TryGetElementByName($"{C.Position}", out var e) && SpreadPositions.TryGetValue(C.Position, out var pos))
+            {
+                e.Enabled = true;
+                e.SetRefPosition(MathHelper.RotateWorldPoint(Center.ToVector3(), Rotations[quadrant].DegreesToRadians(), pos.ToVector3()));
+            }
+        }
+    }
+
+    private HashSet<uint> Casted = [];
+    private List<uint> Order = [];
+    private int NumActions => Casted.Count - GetShadows().Count(x => x.IsCasting());
+    private IEnumerable<IBattleNpc> GetShadows()
     {
         foreach(var x in Svc.Objects.OfType<IBattleNpc>())
         {
@@ -103,26 +177,24 @@ public class M8S_Quad_Beckon_Moonlight : SplatoonScript
                     }
                     yield return x;
                 }
-            } 
+            }
         }
     }
 
-    public override void OnActionEffectEvent(ActionEffectSet set)
-    {
-        if(set.Action != null && set.SourceCharacter != null && set.SourceCharacter.Value.ObjectKind != FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Pc)
-        {
-            if(set.Action.Value.RowId == 41923) NumActions++;
-        }
-    }
-
+    private Config C => Controller.GetConfig<Config>();
     public override void OnSettingsDraw()
     {
-        ImGuiEx.Text($"Shadows:\n{Shadows.Select(x => $"{x} - {GetAttackedQuadrants(GetRoundedDirection(x.Position.ToVector2()), x.GetTransformationID() == 6).Print()}").Print("\n")}");
-        ImGuiEx.Text($"""
+        ImGui.SetNextItemWidth(200f.Scale());
+        ImGuiEx.EnumCombo("Spread position", ref C.Position);
+        if(ImGui.CollapsingHeader("Debug"))
+        {
+            ImGuiEx.Text($"Shadows:\n{Shadows.Select(x => $"{x} - {GetUnsafeQuadrants(x.Position.ToVector2(), x.GetTransformationID() == 6).Print()}").Print("\n")}");
+            ImGuiEx.Text($"""
             {SafeZone1}
             {SafeZone2}
             """);
-        ImGuiEx.Text($"Order:\n{Order.Print("\n")}");
+            ImGuiEx.Text($"Order:\n{Order.Print("\n")}");
+        }
     }
 
     public override void OnReset()
@@ -131,73 +203,54 @@ public class M8S_Quad_Beckon_Moonlight : SplatoonScript
         Order.Clear();
         SafeZone1 = null;
         SafeZone2 = null;
-        NumActions = 0;
     }
 
-    static readonly Vector2 Center = new(100, 100);
+    private static readonly Vector2 Center = new(100, 100);
 
-    public enum Quadrant
+    private enum Quadrant
+    { NorthWest, NorthEast, SouthEast, SouthWest }
+
+    private Quadrant[] FindSafeQuadrants(Vector2 pos1, bool right1, Vector2 pos2, bool right2)
     {
-        TopRight = 1,
-        TopLeft = 2,
-        BottomLeft = 3,
-        BottomRight = 4
+        return Enum.GetValues<Quadrant>().Where(x => !((Quadrant[])[.. GetUnsafeQuadrants(pos1, right1), .. GetUnsafeQuadrants(pos2, right2)]).Contains(x)).ToArray();
     }
 
-    private enum Direction
+    private List<Quadrant> GetUnsafeQuadrants(Vector2 pos, bool isAttackingRight)
     {
-        North,
-        East,
-        South,
-        West
-    }
-
-    public static Quadrant FindSafeQuadrant(Vector2 a1, bool attacksRight, Vector2 a2, bool attacksRight2)
-    {
-        var attackedQuadrants = new HashSet<Quadrant>();
-
-        attackedQuadrants.UnionWith(GetAttackedQuadrants(GetRoundedDirection(a1), attacksRight));
-        attackedQuadrants.UnionWith(GetAttackedQuadrants(GetRoundedDirection(a2), attacksRight2));
-
-        foreach(Quadrant q in Enum.GetValues<Quadrant>())
+        List<Quadrant> ret = [];
+        if(Vector2.Distance(pos, new(100, 88)) < 5f)
         {
-            if(!attackedQuadrants.Contains(q))
-                return q;
+            //north
+            ret = [Quadrant.NorthEast, Quadrant.SouthEast];
         }
-
-        throw new InvalidOperationException("No safe quadrant found.");
-    }
-
-    private static Direction GetRoundedDirection(Vector2 position)
-    {
-        Vector2 delta = Center - position; // looking toward the center
-        double angleRad = Math.Atan2(delta.Y, delta.X);
-        double angleDeg = angleRad * (180.0 / Math.PI);
-        if(angleDeg < 0) angleDeg += 360;
-
-        if(angleDeg >= 45 && angleDeg < 135) return Direction.North;
-        if(angleDeg >= 135 && angleDeg < 225) return Direction.West;
-        if(angleDeg >= 225 && angleDeg < 315) return Direction.South;
-        return Direction.East;
-    }
-
-    private static Quadrant[] GetAttackedQuadrants(Direction dir, bool attacksRight)
-    {
-        return (dir, attacksRight) switch
+        else if(Vector2.Distance(pos, new(100, 112)) < 5f)
         {
-            (Direction.North, true) => [Quadrant.TopLeft, Quadrant.BottomLeft],
-            (Direction.North, false) => [Quadrant.TopRight, Quadrant.BottomRight],
+            //south
+            ret = [Quadrant.NorthWest, Quadrant.SouthWest];
+        }
+        else if(Vector2.Distance(pos, new(88, 100)) < 5f)
+        {
+            //west
+            ret = [Quadrant.NorthWest, Quadrant.NorthEast];
+        }
+        else if(Vector2.Distance(pos, new(112, 100)) < 5f)
+        {
+            //east
+            ret = [Quadrant.SouthWest, Quadrant.SouthEast];
+        }
+        else
+        {
+            return [];
+        }
+        if(isAttackingRight)
+        {
+            return Enum.GetValues<Quadrant>().Where(x => !ret.Contains(x)).ToList();
+        }
+        return ret;
+    }
 
-            (Direction.South, true) => [Quadrant.BottomRight, Quadrant.TopRight],
-            (Direction.South, false) => [Quadrant.BottomLeft, Quadrant.TopLeft],
-
-            (Direction.East, true) => [Quadrant.TopLeft, Quadrant.TopRight],
-            (Direction.East, false) => [Quadrant.BottomLeft, Quadrant.BottomRight],
-
-            (Direction.West, true) => [Quadrant.BottomLeft, Quadrant.BottomRight],
-            (Direction.West, false) => [Quadrant.TopLeft, Quadrant.TopRight],
-
-            _ => throw new ArgumentException("Invalid direction.")
-        };
+    public class Config : IEzConfig
+    {
+        public Position Position = Position.Disabled;
     }
 }

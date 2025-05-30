@@ -26,12 +26,16 @@ public class Layout
     public Guid SelectedSubconfigurationID = Guid.Empty;
 
     /// <summary>
-    /// 0: Always shown |
-    /// 1: Only in combat |
-    /// 2: Only in instance |
-    /// 3: Only in combat AND instance |
-    /// 4: Only in combat OR instance |
-    /// 5: Never
+    /// 0: Always shown <br />
+    /// 1: Only in combat <br />
+    /// 2: Only in instance <br />
+    /// 3: Only in combat AND instance <br />
+    /// 4: Only in combat OR instance <br />
+    /// 5: Never <br />
+    /// 6: Outside of combat <br />
+    /// 7: Outside of instance <br />
+    /// 8: Outside of combat AND instance <br />
+    /// 9: Outside of combat OR instance
     /// </summary>
     [DefaultValue(0)] public int DCond = 0;
     [DefaultValue(false)] public bool DisableDisabling = false;

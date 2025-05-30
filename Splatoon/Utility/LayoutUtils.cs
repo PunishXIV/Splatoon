@@ -272,10 +272,14 @@ public static unsafe class LayoutUtils
         if(layout.Scenes.Count > 0 && !layout.Scenes.Contains(*Scene.ActiveScene)) return false;
         if(layout.Phase != 0 && layout.Phase != P.Phase) return false;
         if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(Player.Job)) return false;
-        if((layout.DCond == 1 || layout.DCond == 3) && !Svc.Condition[ConditionFlag.InCombat]) return false;
-        if((layout.DCond == 2 || layout.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if(layout.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]
-            || Svc.Condition[ConditionFlag.BoundByDuty])) return false;
+        var inCombat = Svc.Condition[ConditionFlag.InCombat];
+        var inDuty = Svc.Condition[ConditionFlag.BoundByDuty];
+        if((layout.DCond == 1 || layout.DCond == 3) && !inCombat) return false;
+        if((layout.DCond == 2 || layout.DCond == 3) && !inDuty) return false;
+        if(layout.DCond == 4 && !(inCombat || inDuty)) return false;
+        if((layout.DCond == 6 || layout.DCond == 8) && inCombat) return false;
+        if((layout.DCond == 7 || layout.DCond == 8) && inDuty) return false;
+        if(layout.DCond == 9 && (!inCombat || !inDuty)) return false;
         if(layout.UseDistanceLimit && layout.DistanceLimitType == 0)
         {
             if(Svc.Targets.Target != null)

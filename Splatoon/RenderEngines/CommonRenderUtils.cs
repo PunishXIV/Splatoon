@@ -91,13 +91,14 @@ public static unsafe class CommonRenderUtils
         return (pointA, pointB);
     }
 
-    internal static bool IsElementObjectMatches(Element e, bool targetable, IGameObject a)
+    internal static bool IsElementObjectMatches(Element element, bool isTargetable, IGameObject gameObject)
     {
-        return (!e.onlyTargetable || targetable)
-                            && (!e.onlyUnTargetable || !targetable)
-                            && LayoutUtils.CheckCharacterAttributes(e, a)
-                            && (!e.refTargetYou || LayoutUtils.CheckTargetingOption(e, a))
-                            && (!e.refActorObjectLife || a.GetLifeTimeSeconds().InRange(e.refActorLifetimeMin, e.refActorLifetimeMax))
-                            && (!e.LimitDistance || Vector3.Distance(a.GetPositionXZY(), new(e.DistanceSourceX, e.DistanceSourceY, e.DistanceSourceZ)).InRange(e.DistanceMin, e.DistanceMax).Invert(e.LimitDistanceInvert));
+        return (!element.onlyTargetable || isTargetable)
+                            && (!element.onlyUnTargetable || !isTargetable)
+                            && LayoutUtils.CheckCharacterAttributes(element, gameObject)
+                            && (!element.refTargetYou || LayoutUtils.CheckTargetingOption(element, gameObject))
+                            && (!element.refActorObjectLife || gameObject.GetLifeTimeSeconds().InRange(element.refActorLifetimeMin, element.refActorLifetimeMax))
+                            && (!element.LimitDistance || Vector3.Distance(gameObject.GetPositionXZY(), new(element.DistanceSourceX, element.DistanceSourceY, element.DistanceSourceZ)).InRange(element.DistanceMin, element.DistanceMax).Invert(element.LimitDistanceInvert))
+                            && (element.ObjectKinds.Count == 0 || element.ObjectKinds.Contains(gameObject.ObjectKind));
     }
 }

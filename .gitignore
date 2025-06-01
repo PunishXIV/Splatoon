@@ -369,3 +369,4 @@ FodyWeavers.xsd
 /SplatoonScripts/Tests/TestTradeHook.cs
 /SplatoonScripts/Generic/GlamourerFixer.cs
 /SplatoonScripts/Tests/GenericTest8.cs
+/SplatoonScripts/Generic/AutoTeleport.cs

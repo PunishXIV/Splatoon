@@ -49,7 +49,7 @@ public class Party_Synergy : SplatoonScript
 
     // public
     public override HashSet<uint> ValidTerritories => [1122];
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata? Metadata => new(6, "NightmareXIV");
     private Config Conf => Controller.GetConfig<Config>();
 
     public override void OnSetup()
@@ -399,7 +399,9 @@ public class Party_Synergy : SplatoonScript
         isLeftRightDecided = false;
         myData = null;
         printed = false;
+        Controller.ClearRegisteredElements();
         OnSetup();
+        Controller.ApplyOverrides();
     }
 
     public override void OnSettingsDraw()

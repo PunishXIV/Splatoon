@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
-    public override Metadata? Metadata => new(7, "NightmareXIV,Alex");
+    public override Metadata? Metadata => new(8, "NightmareXIV,Alex");
 
     public override void OnSetup()
     {
@@ -41,7 +41,7 @@ public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
         Controller.RegisterElementFromCode($"{Position.Bottom_Left}", """
             {"Name":"Bottom Left","refX":94.0,"refY":110.0,"radius":0.3,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":6.0,"tether":true}
             """);
-        Controller.RegisterElementFromCode($"{Position.Bottom_Rigth}", """
+        Controller.RegisterElementFromCode($"{Position.Bottom_Right}", """
             {"Name":"Bottom Right","refX":94.0,"refY":110.0,"radius":0.3,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":6.0,"tether":true}
             """);
         Controller.RegisterElementFromCode("Stack", """
@@ -54,7 +54,7 @@ public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
         [Position.Far_Left] = new(88.5f, 100.5f),
         [Position.Far_Right] = new(111.5f, 100.5f),
         [Position.Bottom_Left] = new(94f, 110f),
-        [Position.Bottom_Rigth] = new(106f, 110f),
+        [Position.Bottom_Right] = new(106f, 110f),
     };
 
     private Vector2 StackPosition = new(99.3f, 100.7f);
@@ -67,7 +67,7 @@ public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
         [Quadrant.SouthEast] = 270,
     };
 
-    public enum Position { Disabled, Far_Right, Far_Left, Bottom_Rigth, Bottom_Left };
+    public enum Position { Disabled, Far_Right, Far_Left, Bottom_Right, Bottom_Left };
     public enum DirectionalQuadrant { North, South, East, West }
     
     private DirectionalQuadrant? FirstShadowSafeZone = null;

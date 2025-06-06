@@ -121,6 +121,7 @@ internal unsafe partial class CGui : IDisposable
                         ("Render".Loc() + "###tab2", DisplayRenderers, null, true),
                         ("Layouts".Loc(), DislayLayouts, Colors.Green.ToVector4(), true),
                         ("Scripts".Loc(), TabScripting.Draw, Colors.Yellow.ToVector4(), true),
+                        ("Configurations".Loc(), CGuiConfigurations.Draw, EColor.PurpleBright, true),
                         ("Mass Import".Loc(), RapidImport.Draw, null, true),
                         ("Tools".Loc(), delegate
                         {

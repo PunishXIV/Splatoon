@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.GameFunctions;
@@ -462,6 +463,21 @@ internal unsafe partial class CGui
                 {
                     ImGui.SetTooltip("Setting this checkbox will also restrict search to characters ONLY. \n(character - is a player, companion or friendly/hostile NPC that can fight and have HP)".Loc());
                 }
+            }
+
+            ImGuiUtils.SizedText("Object Kind:".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(WidthCombo);
+            if(ImGui.BeginCombo("##objectKindSel", el.ObjectKinds.Count == 0 ? "Any" : el.ObjectKinds.Print(), ImGuiComboFlags.HeightLarge))
+            {
+                if(ImGui.Button("Select All".Loc())) el.ObjectKinds.AddRange(Enum.GetValues<ObjectKind>());
+                ImGui.SameLine();
+                if(ImGui.Button("Deselect All".Loc())) el.ObjectKinds.Clear();
+                foreach(var x in Enum.GetValues<ObjectKind>())
+                {
+                    ImGuiEx.CollectionCheckbox($"{x}", x, el.ObjectKinds);
+                }
+                ImGui.EndCombo();
             }
 
             ImGui.SetNextItemWidth(WidthElement + ImGui.GetStyle().ItemSpacing.X);

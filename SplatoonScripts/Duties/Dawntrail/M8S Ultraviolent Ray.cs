@@ -45,7 +45,7 @@ public class M8S_Ultraviolent_Ray : SplatoonScript
     public override void OnSettingsDraw()
     {
         C.PriorityData.Draw();
-        ImGui.Checkbox("Skip forth active", ref C.SkipForthActive);
+        ImGui.Checkbox("Skip 4th UV ray", ref C.SkipForthActive);
 
         if (ImGuiEx.CollapsingHeader("Debug"))
         {

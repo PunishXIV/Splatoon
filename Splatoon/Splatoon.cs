@@ -170,13 +170,17 @@ public unsafe class Splatoon : IDalamudPlugin
         StreamDetector.Start();
         AttachedInfo.Init();
         Logger.OnTerritoryChanged();
-        Layout.DisplayConditions = new string[] {
+        Layout.DisplayConditions = [
             "Always shown".Loc(),
             "Only in combat".Loc(),
             "Only in instance".Loc(),
             "Only in combat AND instance".Loc(),
             "Only in combat OR instance".Loc(),
-            "On trigger only".Loc() };
+            "On trigger only".Loc(),
+            "Outside of combat".Loc(),
+            "Outside of instance".Loc(),
+            "Outside of combat AND instance".Loc(),
+            "Outside of combat OR instance".Loc()];
         Element.Init();
         mapEffectProcessor = new();
         TetherProcessor = new();
@@ -662,9 +666,10 @@ public unsafe class Splatoon : IDalamudPlugin
 
     internal static void ProcessElementsOfLayout(Layout l)
     {
-        for(var i = 0; i < l.ElementsL.Count; i++)
+        var elementCollection = l.GetElementsWithSubconfiguration();
+        for(var i = 0; i < elementCollection.Count; i++)
         {
-            var element = l.ElementsL[i];
+            var element = elementCollection[i];
             if(element.Conditional && element.ConditionalReset) l.ConditionalStatus = null;
             var shouldSkip = l.ConditionalStatus == false && (l.ConditionalAnd || (!l.ConditionalAnd && l.ConditionalStatus == false && !element.Conditional));
             if(shouldSkip) continue;

@@ -1,4 +1,5 @@
-﻿using ECommons.LanguageHelpers;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
+using ECommons.LanguageHelpers;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.Structures;
@@ -47,7 +48,6 @@ public class Element
     public string Name = "";
     public InternationalString InternationalName = new();
     [NonSerialized] internal string GUID = Guid.NewGuid().ToString();
-    [NonSerialized] internal bool Delete = false;
     /// <summary>
     /// 0: Object at fixed coordinates |
     /// 1: Object relative to actor position | 
@@ -213,6 +213,7 @@ public class Element
     [DefaultValue(false)] public bool RotationOverride = false;
     public Point2 RotationOverridePoint = new();
     [DefaultValue(0f)] public float RotationOverrideAddAngle = 0f;
+    public HashSet<ObjectKind> ObjectKinds = [];
 
     public bool ShouldSerializeRotationOverridePoint() => RotationOverride;
     public bool ShouldSerializeRotationOverrideAddAngle() => RotationOverride;

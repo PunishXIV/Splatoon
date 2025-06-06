@@ -83,6 +83,11 @@ internal partial class CGui
                 ImGuiEx.Text($"DirectX11 Render made by SourP. ");
                 S.RenderManager.DrawCommonSettings(RenderEngineKind.DirectX11);
 
+                ImGuiUtils.SizedText("[EXPERIMENTAL] Use VFX Rendering:".Loc(), WidthLayout);
+                ImGui.SameLine();
+                ImGui.Checkbox("##usevfxrendering", ref p.Config.UseVfxRendering);
+                ImGuiComponents.HelpMarker("If possible, render elements with in-game omen VFX. Some donut and cone sizes are not supported; these will fall back to DirectX rendering.".Loc());
+
                 ImGuiUtils.SizedText("Alpha Blend Mode:".Loc(), WidthLayout);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);

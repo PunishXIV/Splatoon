@@ -80,6 +80,7 @@ internal class Configuration : IEzConfig
     public int ElementMinFillAlpha = 0;
     public int ElementMaxFillAlpha = 255;
     public int MaxAlpha = 0xFF;
+    public bool UseVfxRendering = false;
     [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = [];
     public Dictionary<string, Dictionary<string, string>> ScriptConfigurationNames = [];
@@ -93,6 +94,8 @@ internal class Configuration : IEzConfig
     public bool UseServerBar = true;
     public Dictionary<Job, RolePosition> PreferredPositions = [];
     public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
+    public bool ConfigurationsHideDisabled = false;
+    public List<string> DisabledGroups = [];
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

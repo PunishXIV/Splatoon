@@ -18,23 +18,28 @@ public class Layout
     public InternationalString InternationalDescription = new();
     public string Group = "";
     [NonSerialized] internal string GUID = Guid.NewGuid().ToString();
-    [NonSerialized] internal bool Delete = false;
     public HashSet<ushort> ZoneLockH = [];
     public HashSet<int> Scenes = [];
     [DefaultValue(false)] public bool IsZoneBlacklist = false;
     [DefaultValue(false)] public bool ConditionalAnd = false;
+    public List<LayoutSubconfiguration> Subconfigurations = [];
+    public Guid SelectedSubconfigurationID = Guid.Empty;
 
     /// <summary>
-    /// 0: Always shown |
-    /// 1: Only in combat |
-    /// 2: Only in instance |
-    /// 3: Only in combat AND instance |
-    /// 4: Only in combat OR instance |
-    /// 5: Never
+    /// 0: Always shown <br />
+    /// 1: Only in combat <br />
+    /// 2: Only in instance <br />
+    /// 3: Only in combat AND instance <br />
+    /// 4: Only in combat OR instance <br />
+    /// 5: Never <br />
+    /// 6: Outside of combat <br />
+    /// 7: Outside of instance <br />
+    /// 8: Outside of combat AND instance <br />
+    /// 9: Outside of combat OR instance
     /// </summary>
     [DefaultValue(0)] public int DCond = 0;
     [DefaultValue(false)] public bool DisableDisabling = false;
-    [Obsolete("Use JobLockH")] [DefaultValue(0)] public ulong JobLock = 0;
+    [Obsolete("Use JobLockH")][DefaultValue(0)] public ulong JobLock = 0;
     public HashSet<Job> JobLockH = [];
     [DefaultValue(false)] public bool DisableInDuty = false;
     [DefaultValue(false)] public bool UseTriggers = false;
@@ -67,6 +72,19 @@ public class Layout
 
     public bool IsVisible() => LastDisplayFrame == P.FrameCounter;
 
+    public List<Element> GetElementsWithSubconfiguration()
+    {
+        if(Subconfigurations.Count == 0 || SelectedSubconfigurationID == Guid.Empty) return ElementsL;
+        for(var i = 0; i < Subconfigurations.Count; i++)
+        {
+            if(Subconfigurations[i].Guid == SelectedSubconfigurationID)
+            {
+                return Subconfigurations[i].Elements;
+            }
+        }
+        return ElementsL;
+    }
+
     public bool ShouldSerializeJobLockH() => JobLockH.Count > 0;
     public bool ShouldSerializeInternationalDescription() => !InternationalDescription.IsEmpty();
     public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();
@@ -83,4 +101,6 @@ public class Layout
     public bool ShouldSerializeZoneLockH() => ZoneLockH.Count > 0;
     public bool ShouldSerializeTriggers() => UseTriggers && Triggers.Count > 0;
     public bool ShouldSerializeElements() => false;
+    public bool ShouldSerializeSubconfigurations() => Subconfigurations.Count != 0;
+    public bool ShouldSerializeSelectedSubconfigurationID() => ShouldSerializeSubconfigurations();
 }

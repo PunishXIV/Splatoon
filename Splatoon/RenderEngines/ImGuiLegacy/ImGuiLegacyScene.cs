@@ -36,7 +36,7 @@ internal class ImGuiLegacyScene : IDisposable
 
     private void Draw()
     {
-        if (ImGuiLegacyRenderer.DisplayObjects.Count == 0) return;
+        if(ImGuiLegacyRenderer.DisplayObjects.Count == 0) return;
         uid = 0;
         try
         {

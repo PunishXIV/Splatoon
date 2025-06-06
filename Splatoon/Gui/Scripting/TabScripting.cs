@@ -99,7 +99,7 @@ internal static class TabScripting
                 foreach(var s in ScriptingProcessor.Scripts)
                 {
                     if(s.IsDisabledByUser) continue;
-                    if(s.InternalData.CurrentConfigurationKey != confName && s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey))
+                    if(s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey) && s.InternalData.CurrentConfigurationKey != confKey)
                     {
                         if(doReload)
                         {
@@ -200,28 +200,7 @@ internal static class TabScripting
 
                     ImGui.TableNextColumn();
 
-                    if(script.TryGetAvailableConfigurations(out var configurations))
-                    {
-                        var activeConf = script.InternalData.CurrentConfigurationKey;
-                        var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? "Default";
-                        ImGuiEx.SetNextItemFullWidth();
-                        if(ImGui.BeginCombo("##confs", $"{activeConfName}", ImGuiComboFlags.HeightLarge))
-                        {
-                            if(ImGui.Selectable("Default", activeConf.IsNullOrEmpty()))
-                            {
-                                script.ApplyDefaultConfiguration();
-                            }
-                            var i = 0;
-                            foreach(var c in configurations)
-                            {
-                                if(ImGui.Selectable($"{c.Value}##{i++}", c.Key == activeConf))
-                                {
-                                    script.ApplyConfiguration(c.Key);
-                                }
-                            }
-                            ImGui.EndCombo();
-                        }
-                    }
+                    script.DrawConfigurationSelector();
 
                     ImGui.TableNextColumn();
 

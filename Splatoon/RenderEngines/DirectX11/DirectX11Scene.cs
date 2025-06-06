@@ -28,7 +28,7 @@ internal unsafe class DirectX11Scene : IDisposable
     private void Draw()
     {
         if(!DirectX11Renderer.Enabled) return;
-        if (DirectX11Renderer.DisplayObjects.Count == 0) return;
+        if(DirectX11Renderer.DisplayObjects.Count == 0) return;
         uid = 0;
         void Draw(PctTexture? texture)
         {
@@ -107,13 +107,13 @@ internal unsafe class DirectX11Scene : IDisposable
             using var drawList = PictoService.Draw(ImGui.GetWindowDrawList(), hints);
             if(drawList == null)
                 return null;
-            foreach(var element in DirectX11Renderer.DisplayObjects)
+            foreach (VfxDisplayObject element in DirectX11Renderer.DisplayObjects)
             {
-                if(element is DisplayObjectFan elementFan)
+                if (element is DisplayObjectFan elementFan)
                 {
                     DrawFan(elementFan, drawList);
                 }
-                else if(element is DisplayObjectLine elementLine)
+                else if (element is DisplayObjectLine elementLine)
                 {
                     DrawLine(elementLine, drawList);
                 }
@@ -145,15 +145,18 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawFan(DisplayObjectFan fan, PctDrawList drawList)
     {
-        if(fan.style.filled)
-            drawList.AddFanFilled(
-                fan.origin,
-                fan.innerRadius,
-                fan.outerRadius,
-                fan.angleMin,
-                fan.angleMax,
-                fan.style.originFillColor,
-                fan.style.endFillColor);
+        if (fan.style.filled)
+        {
+            if (!P.Config.UseVfxRendering || !PictoService.VfxRenderer.AddFan(fan.id, fan.origin, fan.innerRadius, fan.outerRadius, fan.angleMin, fan.angleMax, fan.style.originFillColor.AlphaDXToVFX()))
+                drawList.AddFanFilled(
+                    fan.origin,
+                    fan.innerRadius,
+                    fan.outerRadius,
+                    fan.angleMin,
+                    fan.angleMax,
+                    fan.style.originFillColor,
+                    fan.style.endFillColor);
+        }
         if(fan.style.IsStrokeVisible())
             drawList.AddFan(
                 fan.origin,
@@ -225,13 +228,21 @@ internal unsafe class DirectX11Scene : IDisposable
         }
         else
         {
-            if(line.style.filled)
-                drawList.AddLineFilled(
-                line.start,
-                line.stop,
-                line.radius,
-                line.style.originFillColor,
-                line.style.endFillColor);
+            if (line.style.filled)
+                if (P.Config.UseVfxRendering)
+                    PictoService.VfxRenderer.AddLine(
+                        line.id,
+                        line.start,
+                        line.stop,
+                        line.radius,
+                        line.style.originFillColor.AlphaDXToVFX());
+                else
+                    drawList.AddLineFilled(
+                        line.start,
+                        line.stop,
+                        line.radius,
+                        line.style.originFillColor,
+                        line.style.endFillColor);
             if(line.style.IsStrokeVisible())
                 drawList.AddLine(
                 line.start,

@@ -91,7 +91,7 @@ internal class Commands : IDisposable
                     else
                     {
                         var name = arguments.Substring(arguments.IndexOf("settarget ") + 10).Split('~');
-                        var el = P.Config.LayoutsL.First(x => x.Name == name[0]).ElementsL.First(x => x.Name == name[1]);
+                        var el = P.Config.LayoutsL.First(x => x.Name == name[0]).GetElementsWithSubconfiguration().First(x => x.Name == name[1]);
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;
                         el.refActorObjectID = Svc.Targets.Target.EntityId;
@@ -197,7 +197,7 @@ internal class Commands : IDisposable
                 foreach(var x in P.Config.LayoutsL.Where(x => x.Name == aname[0]))
                 {
                     if(web && x.DisableDisabling) continue;
-                    foreach(var z in x.ElementsL.Where(z => z.Name == aname[1]))
+                    foreach(var z in x.GetElementsWithSubconfiguration().Where(z => z.Name == aname[1]))
                     {
                         z.Enabled = enable ?? !z.Enabled;
                     }

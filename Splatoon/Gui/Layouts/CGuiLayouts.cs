@@ -72,18 +72,6 @@ internal partial class CGui
 
     private void DislayLayouts()
     {
-        {
-            var deleted = P.Config.LayoutsL.RemoveAll(x => x.Delete);
-            if(deleted > 0)
-            {
-                Notify.Info($"Removed ?? layouts".Loc(deleted));
-                if(!P.Config.LayoutsL.Contains(CurrentLayout))
-                {
-                    CurrentLayout = null;
-                    CurrentElement = null;
-                }
-            }
-        }
         ImGui.BeginChild("TableWrapper", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
         if(ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
         {
@@ -160,7 +148,7 @@ internal partial class CGui
             ImGui.BeginChild("LayoutsTableEdit", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.HorizontalScrollbar);
             if(CurrentLayout != null)
             {
-                if(CurrentElement != null && CurrentLayout.ElementsL.Contains(CurrentElement))
+                if(CurrentElement != null && CurrentLayout.GetElementsWithSubconfiguration().Contains(CurrentElement))
                 {
                     LayoutDrawElement(CurrentLayout, CurrentElement);
                 }
@@ -224,25 +212,13 @@ internal partial class CGui
 
         foreach(var x in P.Config.LayoutsL)
         {
-            x.ElementsL.RemoveAll(z => z == null);
-            var deleted = x.ElementsL.RemoveAll(k => k.Delete);
-            if(deleted > 0)
-            {
-                Notify.Info($"Deleted ?? elements".Loc(deleted));
-                if(!P.Config.LayoutsL.Any(l => l.ElementsL.Contains(CurrentElement)))
-                {
-                    CurrentElement = null;
-                }
-            }
             if(x.Group == null) x.Group = "";
             if(x.Group != "" && !P.Config.GroupOrder.Contains(x.Group))
             {
                 P.Config.GroupOrder.Add(x.Group);
             }
         }
-        P.Config.GroupOrder.RemoveAll(x => x.IsNullOrEmpty());
         var takenLayouts = P.Config.LayoutsL.ToArray();
-        var groupToRemove = -1;
         if(!P.Config.FocusMode || CurrentLayout == null)
         {
             for(var i = 0; i < P.Config.GroupOrder.Count; i++)
@@ -252,7 +228,7 @@ internal partial class CGui
                     !P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(layoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
 
                 ImGui.PushID(g);
-                ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudYellow);
+                ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g) ? EColor.Yellow : EColor.YellowBright);
 
                 if(HighlightGroup == g)
                 {
@@ -310,6 +286,10 @@ internal partial class CGui
                     }
                     ImGui.EndDragDropTarget();
                 }
+                if(ImGui.IsItemClicked(ImGuiMouseButton.Middle))
+                {
+                    P.Config.DisabledGroups.Toggle(g);
+                }
                 if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 {
                     ImGui.OpenPopup("GroupPopup");
@@ -357,10 +337,11 @@ internal partial class CGui
                             {
                                 P.Archive.LayoutsL.Add(l.JSONClone());
                                 l.Group = "";
-                                l.Delete = true;
+                                new TickScheduler(() => P.Config.LayoutsL.Remove(l));
                             }
                         }
-                        groupToRemove = i;
+                        var index = i;
+                        new TickScheduler(() => P.Config.GroupOrder.RemoveAt(index));
                         P.SaveArchive();
                     }
                     ImGuiEx.Tooltip("Hold CTRL+click".Loc());
@@ -374,7 +355,8 @@ internal partial class CGui
                                 l.Group = "";
                             }
                         }
-                        groupToRemove = i;
+                        var index = i;
+                        new TickScheduler(() => P.Config.GroupOrder.RemoveAt(index));
                     }
                     ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
                     if(ImGui.Selectable("Remove group and it's layouts".Loc()) && ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift)
@@ -384,10 +366,11 @@ internal partial class CGui
                             if(l.Group == g)
                             {
                                 l.Group = "";
-                                l.Delete = true;
+                                new TickScheduler(() => P.Config.LayoutsL.Remove(l));
                             }
                         }
-                        groupToRemove = i;
+                        var index = i;
+                        new TickScheduler(() => P.Config.GroupOrder.RemoveAt(index));
                     }
                     ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
                     if(ImGui.Selectable("Export Group".Loc()))
@@ -402,6 +385,7 @@ internal partial class CGui
                         }
                         ImGui.SetClipboardText(Export.Join("\n"));
                     }
+                    ImGuiEx.CollectionCheckbox("Group Enabled", g, P.Config.DisabledGroups, inverted: true);
                     ImGui.EndPopup();
                 }
                 for(var n = 0; n < takenLayouts.Length; n++)
@@ -429,10 +413,6 @@ internal partial class CGui
                     x.DrawSelector(null, i);
                 }
             }
-        }
-        if(groupToRemove != -1)
-        {
-            P.Config.GroupOrder.RemoveAt(groupToRemove);
         }
     }
 

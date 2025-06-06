@@ -685,4 +685,37 @@ public abstract class SplatoonScript
         IsEnabled = false;
         return true;
     }
+
+    internal void DrawConfigurationSelector(int width = 0)
+    {
+        if(TryGetAvailableConfigurations(out var configurations))
+        {
+            var activeConf = InternalData.CurrentConfigurationKey;
+            var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? "Default";
+            if(width == 0)
+            {
+                ImGuiEx.SetNextItemFullWidth();
+            }
+            else
+            {
+                ImGui.SetNextItemWidth(width);
+            }
+            if(ImGui.BeginCombo("##confs", $"{activeConfName}", ImGuiComboFlags.HeightLarge))
+            {
+                if(ImGui.Selectable("Default", activeConf.IsNullOrEmpty()))
+                {
+                    ApplyDefaultConfiguration();
+                }
+                var i = 0;
+                foreach(var c in configurations)
+                {
+                    if(ImGui.Selectable($"{c.Value}##{i++}", c.Key == activeConf))
+                    {
+                        ApplyConfiguration(c.Key);
+                    }
+                }
+                ImGui.EndCombo();
+            }
+        }
+    }
 }

@@ -14,13 +14,14 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class CloseReplayWindows : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     private string[] StandardAddons = [
         "ShopExchangeItem",
         "TelepotTown",
         "Talk",
         "MKDTowerEntry",
+        "ShopExchangeCurrency",
         ];
     private (string Name, Action<Pointer<AtkUnitBase>> Action)[] SpecialAddons = [];
 

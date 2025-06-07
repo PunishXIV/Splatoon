@@ -485,6 +485,25 @@ internal unsafe partial class CGui
             {
                 if(ImGui.Selectable("While casting".Loc())) el.refActorCastReverse = false;
                 if(ImGui.Selectable("While NOT casting".Loc())) el.refActorCastReverse = true;
+                ImGui.Separator();
+                if(ImGui.Selectable("Paste from clipboard##castinfo"))
+                {
+                    try
+                    {
+                        var pasted = JsonConvert.DeserializeObject<Element>(Paste()) ?? throw new NullReferenceException();
+                        el.refActorCastReverse = pasted.refActorCastReverse;
+                        el.refActorRequireCast = pasted.refActorRequireCast;
+                        el.refActorCastId = pasted.refActorCastId ?? throw new NullReferenceException();
+                        el.refActorUseOvercast = pasted.refActorUseOvercast;
+                        el.refActorCastTimeMax = pasted.refActorCastTimeMax;
+                        el.refActorCastTimeMin = pasted.refActorCastTimeMin;
+                    }
+                    catch(Exception e)
+                    {
+                        e.Log();
+                        Notify.Error(e.Message);
+                    }
+                }
                 ImGui.EndCombo();
             }
             ImGui.SameLine();

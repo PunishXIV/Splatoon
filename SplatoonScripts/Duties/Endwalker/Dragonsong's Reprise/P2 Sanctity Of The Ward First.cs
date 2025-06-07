@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -12,15 +17,11 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
-using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+using Splatoon.SplatoonScripting.Priority;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -51,7 +52,7 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
 
     private ZephiranDirection _zephiranDirection;
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(6, "Garume, damolitionn");
     private bool IsStart => _sword1 != null && _sword2 != null;
     private Config C => Controller.GetConfig<Config>();
     private IBattleChara? Zephiran => Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.NameId == 0xE31);
@@ -64,12 +65,12 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if(!IsStart) return;
-        switch(data1)
+        if (!IsStart) return;
+        switch (data1)
         {
             case 1:
                 {
-                    if(_eyesPositions.TryGetValue(position, out var eyesPosition))
+                    if (_eyesPositions.TryGetValue(position, out var eyesPosition))
                         _eyesPosition = eyesPosition;
                     break;
                 }
@@ -81,9 +82,9 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if(IsStart) return;
+        if (IsStart) return;
 
-        switch(vfxPath)
+        switch (vfxPath)
         {
             // 1 sword
             case "vfx/lockon/eff/m0244trg_a1t.avfx":
@@ -95,12 +96,12 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
                 break;
         }
 
-        if(IsStart)
+        if (IsStart)
         {
             var zephiran = Zephiran;
             var adelphel = Adelphel;
 
-            if(zephiran == null || adelphel == null) return;
+            if (zephiran == null || adelphel == null) return;
             _zephiranDirection = GetZephiranDirection(zephiran);
             _clockwiseDirection = adelphel.Position.X > _center.X
                 ? ClockwiseDirection.Clockwise
@@ -167,23 +168,37 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
     {
         Controller.GetRegisteredElements().Each(e => e.Value.Enabled = false);
 
-        if(!IsStart) return;
+        if (!IsStart) return;
 
-        if(_zephiranDirection != ZephiranDirection.None)
+        if (_zephiranDirection != ZephiranDirection.None)
         {
             var resolvePosition = C.ResolvePosition;
+            var pairCharacterName = ResolvePairCharacterNameFromParty();
 
-            if(_sword1.Name.ToString() == Player.Name)
-                resolvePosition = ResolvePosition.ZephiranFaceToFace;
-            else if(_sword2.Name.ToString() == Player.Name)
-                resolvePosition = ResolvePosition.ZephiranBack;
-            else if(_sword1.Name.ToString() == C.PairCharacterName)
-                resolvePosition = ResolvePosition.ZephiranBack;
-            else if(_sword2.Name.ToString() == C.PairCharacterName)
-                resolvePosition = ResolvePosition.ZephiranFaceToFace;
+            if (string.IsNullOrEmpty(pairCharacterName))
+            {
+                Svc.Chat.Print("No pair character defined.");
+                return;
+            }
 
+            if (_sword1?.Name.ToString() == Player.Name)
+            {
+                resolvePosition = ResolvePosition.ZephiranFaceToFace;
+            }
+            else if (_sword2?.Name.ToString() == Player.Name)
+            {
+                resolvePosition = ResolvePosition.ZephiranBack;
+            }
+            else if (_sword1?.Name.ToString() == pairCharacterName)
+            {
+                resolvePosition = ResolvePosition.ZephiranBack;
+            }
+            else if (_sword2?.Name.ToString() == pairCharacterName)
+            {
+                resolvePosition = ResolvePosition.ZephiranFaceToFace;
+            }
             var element = ResolveElement(resolvePosition, _clockwiseDirection);
-            if(element != null)
+            if (element != null)
             {
                 element.Enabled = true;
                 element.tether = true;
@@ -191,22 +206,22 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
             }
 
             var thordan = Thordan;
-            if(thordan != null && _eyesPosition != Vector2.Zero && C.LockFace)
+            if (thordan != null && _eyesPosition != Vector2.Zero && C.LockFace)
             {
-                if(Player.Position != _lastPlayerPosition && C.LockFaceEnableWhenNotMoving) return;
+                if (Player.Position != _lastPlayerPosition && C.LockFaceEnableWhenNotMoving) return;
                 var resolveFacePosition = CalculateExtendedBisectorPoint(thordan.Position.ToVector2(), _eyesPosition);
                 FaceTarget(resolveFacePosition.ToVector3(0f));
             }
         }
 
-        if(_clockwiseDirection != ClockwiseDirection.None)
+        if (_clockwiseDirection != ClockwiseDirection.None)
         {
             var elementName = _clockwiseDirection == ClockwiseDirection.Clockwise ? "clockwise" : "counterClockwise";
-            if(Controller.TryGetElementByName(elementName, out var element)) element.Enabled = true;
+            if (Controller.TryGetElementByName(elementName, out var element)) element.Enabled = true;
         }
 
-        if(_eyesPosition != Vector2.Zero)
-            if(Controller.TryGetElementByName("eyes", out var element))
+        if (_eyesPosition != Vector2.Zero)
+            if (Controller.TryGetElementByName("eyes", out var element))
             {
                 element.Enabled = true;
                 element.offX = _eyesPosition.X;
@@ -270,7 +285,7 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
 
     private ZephiranDirection GetZephiranDirection(IBattleChara target)
     {
-        if(target.NameId != 0xE31) return ZephiranDirection.None;
+        if (target.NameId != 0xE31) return ZephiranDirection.None;
         var isEast = target.Position.X > _center.X;
         var isNorth = target.Position.Z < _center.Y;
         return (isEast, isNorth) switch
@@ -290,19 +305,10 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
         ImGui.Text("Pair Character Name");
         ImGui.SameLine();
         ImGuiEx.Spacing();
-        if(ImGui.Button("Perform test")) SelfTest();
+        if (ImGui.Button("Perform test")) SelfTest();
 
-        ImGui.InputText("##PairCharacterName", ref C.PairCharacterName, 32);
-        ImGui.SameLine();
-        ImGui.SetNextItemWidth(150);
-        if(ImGui.BeginCombo("##partysel", "Select from party"))
-        {
-            foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
-                         .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                if(ImGui.Selectable(x))
-                    C.PairCharacterName = x;
-            ImGui.EndCombo();
-        }
+        ImGui.Text("Pair Character Name");
+        C.PriorityData.Draw();
 
         ImGui.Text("Resolve Position");
         ImGuiEx.EnumCombo("##Resolve Position", ref C.ResolvePosition);
@@ -316,7 +322,7 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
             "This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.\n\n自動で視線を調整します。ストリーミング中は使用しないでください。他のソフトウェアが同様の機能を実装していないことを確認してください。",
             EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
 
-        if(C.LockFace)
+        if (C.LockFace)
         {
             ImGui.Indent();
             ImGui.Checkbox("Lock Face Enable When Not Moving", ref C.LockFaceEnableWhenNotMoving);
@@ -334,9 +340,9 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if(!C.ShouldCheckOnStart)
+        if (!C.ShouldCheckOnStart)
             return;
-        if(category == DirectorUpdateCategory.Commence ||
+        if (category == DirectorUpdateCategory.Commence ||
             (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
             SelfTest();
     }
@@ -349,18 +355,20 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
                 .AddUiForeground("= P2 Sancity of The Ward First self-test =", (ushort)UIColor.LightBlue).Build()
         });
         var party = FakeParty.Get();
-        var hasPairCharacter = party.Any(x => x.Name.ToString() == C.PairCharacterName);
-        if(hasPairCharacter)
+        var pairCharacter = ResolvePairCharacterNameFromParty();
+        if (pairCharacter != null)
             Svc.Chat.PrintChat(new XivChatEntry
-            { Message = new SeStringBuilder().AddUiForeground("Test Success!", (ushort)UIColor.Green).Build() });
+            { Message = new SeStringBuilder().AddUiForeground("Test Success! Partner: " + pairCharacter, (ushort)UIColor.Green).Build() });
         else
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
-                    .AddUiForeground($"Could not find player {C.PairCharacterName}\n", (ushort)UIColor.Red)
+                    .AddUiForeground($"Could not find player {C.PriorityData.GetFirstValidList()?.List.First().Name}\n",
+                        (ushort)UIColor.Red)
                     .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
             });
     }
+
 
     private enum ClockwiseDirection
     {
@@ -389,8 +397,46 @@ public unsafe class P2_Sanctity_Of_The_Ward_First : SplatoonScript
     {
         public bool LockFace = true;
         public bool LockFaceEnableWhenNotMoving = true;
-        public string PairCharacterName = "";
+        public OnePriorityData PriorityData = new();
         public ResolvePosition ResolvePosition = ResolvePosition.ZephiranFaceToFace;
         public bool ShouldCheckOnStart = true;
+    }
+
+    public class OnePriorityData : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 1;
+        }
+    }
+    private string? ResolvePairCharacterNameFromParty()
+    {
+        var party = FakeParty.Get();
+        var priorityList = C.PriorityData.GetFirstValidList()?.List;
+        if (priorityList == null || priorityList.Count == 0)
+        {
+            Svc.Chat.PrintChat(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("Priority list is empty or null.", (ushort)UIColor.Red).Build()
+            });
+            return null;
+        }
+
+        foreach (var member in party)
+        {
+            if (C.PriorityData.GetPlayer(x => x.Name == member.Name.TextValue) is not null)
+            {
+                return member.Name.TextValue;
+            }
+        }
+
+        Svc.Chat.PrintChat(new XivChatEntry
+        {
+            Message = new SeStringBuilder()
+                .AddUiForeground("No matching pair character found in party.", (ushort)UIColor.Red).Build()
+        });
+
+        return null;
     }
 }

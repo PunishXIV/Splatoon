@@ -22,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
-    public override Metadata? Metadata => new(8, "NightmareXIV,Alex");
+    public override Metadata? Metadata => new(9, "NightmareXIV,Alex");
 
     public override void OnSetup()
     {
@@ -524,11 +524,14 @@ public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
             
             if (ImGui.Button("Preview Safe/Unsafe Zone"))
             {
-                safeAndUnsafePreviewActive = true;
-                previewSafeZone = C.DebugQuadrant;
+            safeZonePreviewActive = false;
+            spreadPreviewActive = false;
+            stackPreviewActive = false;
+            safeAndUnsafePreviewActive = true;
+            previewSafeZone = C.DebugQuadrant;
             }
             ImGui.SameLine();            
-            if (ImGui.Button("Reset Preview"))
+            if (ImGui.Button("Reset Combined Preview"))
             {
                 safeZonePreviewActive = false;
                 spreadPreviewActive = false;
@@ -547,10 +550,14 @@ public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
             
             if (ImGui.Button("Preview Spread Point"))
             {
+            safeAndUnsafePreviewActive = false;
+            safeZonePreviewActive = false;
+            stackPreviewActive = false;
+            spreadPreviewActive = true;                           
                 PreviewSpreadPoint(C.DebugDirectionalQuadrant);
             }
             ImGui.SameLine();            
-            if (ImGui.Button("Reset Preview"))
+            if (ImGui.Button("Reset Spread Preview"))
             {
                 safeZonePreviewActive = false;
                 spreadPreviewActive = false;
@@ -569,11 +576,15 @@ public class M8S_Quad_Beckon_Moonlight_JP_Game8 : SplatoonScript
             
             if (ImGui.Button("Preview Stack Point"))
             {
+            safeAndUnsafePreviewActive = false;
+            safeZonePreviewActive = false;
+            stackPreviewActive = true;
+            spreadPreviewActive = false;                 
                 PreviewStackPoint(C.DebugStackQuadrant);
             }
             
             ImGui.SameLine();
-            if (ImGui.Button("Reset Preview"))
+            if (ImGui.Button("Reset Stack Preview"))
             {
                 safeZonePreviewActive = false;
                 spreadPreviewActive = false;

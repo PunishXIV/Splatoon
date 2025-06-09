@@ -36,7 +36,7 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
     private Element? _vellguineTargetElement;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(3, "Enthusiastus,Garume");
+    public override Metadata? Metadata => new(4, "Enthusiastus, Garume, damolitionn");
 
     private IBattleNpc? Ignasse =>
         Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == IgnasseDataId) as IBattleNpc;
@@ -45,8 +45,8 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
         Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == VellguineDataId) as IBattleNpc;
 
     private IPlayerCharacter PC =>
-        TestOverride != "" &&
-        FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc
+        !string.IsNullOrWhiteSpace(TestOverride) &&
+        FakeParty.Get().FirstOrDefault(x => x.Name.TextValue == TestOverride) is IPlayerCharacter pc
             ? pc
             : Svc.ClientState.LocalPlayer!;
 
@@ -214,17 +214,6 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
     {
         if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
                 DirectorUpdateCategory.Wipe)) Off();
-    }
-
-    public override void OnSettingsDraw()
-    {
-        ImGui.ColorEdit4("Non Doom Color", ref Conf.ColNoDoom, ImGuiColorEditFlags.NoInputs);
-        ImGui.ColorEdit4("Doom Color", ref Conf.ColDoom, ImGuiColorEditFlags.NoInputs);
-        ImGui.Separator();
-        ImGui.SetNextItemWidth(150);
-        ImGui.DragFloat("Number vertical offset", ref Conf.offZ.ValidateRange(-5f, 5f), 0.1f);
-        ImGui.SetNextItemWidth(150);
-        ImGui.DragFloat("Number scale", ref Conf.tScale.ValidateRange(0.1f, 10f), 0.1f);
     }
 
     public static unsafe Vector4 Vector4FromRGBA(uint col)

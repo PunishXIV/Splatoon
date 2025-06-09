@@ -215,6 +215,7 @@ public class Element
     [DefaultValue(0f)] public float RotationOverrideAddAngle = 0f;
     public HashSet<ObjectKind> ObjectKinds = [];
 
+    public bool ShouldSerializeObjectKinds() => ObjectKinds.Count > 0;
     public bool ShouldSerializeRotationOverridePoint() => RotationOverride;
     public bool ShouldSerializeRotationOverrideAddAngle() => RotationOverride;
     public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();

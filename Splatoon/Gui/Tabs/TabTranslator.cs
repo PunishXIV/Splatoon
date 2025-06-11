@@ -15,6 +15,7 @@ public unsafe static class TabTranslator
         ImGuiEx.TextWrapped($"""
             Beta feature - may contain issues. Please proceed with caution, translate and submit PRs in small batches.
             To begin working with translator, copy the text of the whole GitHub .md file and press "Import Page from Clipboard" button, or select previously imported page.
+            When you have finished translating, copy text with "Copy Result to Clipboard" button and submit a pull request to the original repository.
             """);
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Import Page from Clipboard".Loc()))
         {

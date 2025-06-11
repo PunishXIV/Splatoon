@@ -17,8 +17,6 @@ namespace Splatoon.Gui.Windows;
 public unsafe sealed class TranslationWorkspaceWindow : Window
 {
     public Page Page;
-    public static ClientLanguage SourceLanguage = ClientLanguage.English;
-    public static ClientLanguage TargetLanguage = Svc.Data.Language;
     public TranslationWorkspaceWindow(string name, Page page) : base(name, ImGuiWindowFlags.NoSavedSettings)
     {
         Page = page;    
@@ -45,18 +43,18 @@ public unsafe sealed class TranslationWorkspaceWindow : Window
             ImGuiEx.TextV("Source Language:".Loc());
             ImGui.TableNextColumn();
             ImGuiEx.SetNextItemFullWidth();
-            ImGuiEx.EnumCombo("##src", ref SourceLanguage);
+            ImGuiEx.EnumCombo("##src", ref Page.SourceLanguage);
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGuiEx.TextV("Target Language:".Loc());
             ImGui.TableNextColumn();
             ImGuiEx.SetNextItemFullWidth();
-            ImGuiEx.EnumCombo("##tar", ref TargetLanguage);
+            ImGuiEx.EnumCombo("##tar", ref Page.TargetLanguage);
             ImGui.EndTable();
         }
 
-        if(SourceLanguage == TargetLanguage)
+        if(Page.SourceLanguage == Page.TargetLanguage)
         {
             ImGuiEx.Text(EColor.RedBright, "Source and Target languages can not be the same!".Loc());
             return;
@@ -174,10 +172,10 @@ public unsafe sealed class TranslationWorkspaceWindow : Window
     public void EditField(InternationalString internationalStr, string str)
     {
         ImGui.PushID(internationalStr.guid);
-        ImGuiEx.Text(internationalStr.Get(str, SourceLanguage));
+        ImGuiEx.TextCopy(internationalStr.Get(str, Page.SourceLanguage));
         ImGuiEx.SetNextItemFullWidth();
-        ImGui.InputTextWithHint("##input", $"Use Global Value: {str}", ref internationalStr.GetRefString(TargetLanguage), 2000);
-        ImGuiEx.Tooltip($"Entered text will be used with game clients using language: {TargetLanguage}. If empty, global value will be used. Global value is:\n{str}");
+        ImGui.InputTextWithHint("##input", $"Use Global Value: {str}", ref internationalStr.GetRefString(Page.TargetLanguage), 2000);
+        ImGuiEx.Tooltip($"Entered text will be used with game clients using language: {Page.TargetLanguage}. If empty, global value will be used. Global value is:\n{str}");
         ImGui.PopID();
     }
 }

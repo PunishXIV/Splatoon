@@ -8,6 +8,8 @@ namespace Splatoon.Modules.TranslationWorkspace;
 [Serializable]
 public unsafe sealed class Line
 {
+    public Line() { }
+
     public Line(string text)
     {
         Kind = LineKind.Text;

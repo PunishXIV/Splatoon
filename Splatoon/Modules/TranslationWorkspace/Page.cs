@@ -1,4 +1,5 @@
-﻿using ECommons;
+﻿using Dalamud.Game;
+using ECommons;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
 using System;
@@ -12,6 +13,8 @@ namespace Splatoon.Modules.TranslationWorkspace;
 public unsafe sealed class Page
 {
     internal string ID = Guid.NewGuid().ToString();
+    public ClientLanguage SourceLanguage = ClientLanguage.English;
+    public ClientLanguage TargetLanguage = Svc.Data.Language;
     public string Name = $"Imported page at {DateTime.Now}";
     public List<Line> Lines = [];
 

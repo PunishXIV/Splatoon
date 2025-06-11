@@ -335,16 +335,16 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         DrawText(e, go, cx, cy, z);
     }
 
-    private void DrawText(Element e, IGameObject go, float cx, float cy, float z)
+    private void DrawText(Element element, IGameObject associatedGameObject, float cx, float cy, float z)
     {
-        if(e.overlayText.Length > 0)
+        if(element.overlayTextIntl.Get(element.overlayText).Length > 0)
         {
-            var text = e.overlayText;
-            if(go != null)
+            var text = element.overlayTextIntl.Get(element.overlayText);
+            if(associatedGameObject != null)
             {
-                text = text.ProcessPlaceholders(go);
+                text = text.ProcessPlaceholders(associatedGameObject);
             }
-            DisplayObjects.Add(new DisplayObjectText(cx, cy, z + e.offZ + e.overlayVOffset, text, e.overlayBGColor, e.overlayTextColor, e.overlayFScale));
+            DisplayObjects.Add(new DisplayObjectText(cx, cy, z + element.offZ + element.overlayVOffset, text, element.overlayBGColor, element.overlayTextColor, element.overlayFScale));
         }
     }
 

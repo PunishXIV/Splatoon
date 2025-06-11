@@ -17,6 +17,65 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static bool IsActorNameUsed(this Element e)
+    {
+        if(e.refActorType != 0) return false;
+        if(!e.refActorComparisonAnd && e.refActorComparisonType != 0) return false;
+        if(e.refActorName.EqualsAny("", "*") && e.refActorNameIntl.IsEmpty()) return false;
+        return true;
+    }
+
+    public static bool IsValid(this Layout l)
+    {
+        if(l == null) return false;
+        if(l.Name == null || !l.InternationalName.IsValid()) return false;
+        if(l.Description == null || !l.InternationalDescription.IsValid()) return false;
+        if(l.ZoneLockH == null) return false;
+        if(l.Group == null) return false;
+        if(l.Scenes == null) return false;
+        if(l.Subconfigurations == null) return false;
+        if(l.JobLockH == null) return false;
+        if(l.Triggers == null || !l.Triggers.All(IsValid)) return false;
+        if(l.ElementsL == null || !l.ElementsL.All(IsValid)) return false;
+        return true;
+    }
+
+    public static bool IsValid(this Trigger t)
+    {
+        if(t == null) return false;
+        if(t.Match == null || !t.MatchIntl.IsValid()) return false;
+        if(t.EnableAt == null || t.DisableAt == null) return false;
+        return true;
+    }
+
+    /// <summary>
+    /// Checks whether element is free of fields set to null.
+    /// </summary>
+    /// <param name="e"></param>
+    /// <returns></returns>
+    public static bool IsValid(this Element e)
+    {
+        if(e == null) return false;
+        if(e.Name == null || !e.InternationalName.IsValid()) return false;
+        if(e.overlayText == null || !e.overlayTextIntl.IsValid()) return false;
+        if(e.refActorName == null || !e.refActorNameIntl.IsValid()) return false;
+        if(e.refActorPlaceholder == null || e.refActorPlaceholder.Contains(null)) return false;
+        if(e.refActorCastId == null) return false;
+        if(e.refActorBuffId == null) return false;
+        if(e.refActorTetherConnectedWithPlayer == null || e.refActorTetherConnectedWithPlayer.Contains(null)) return false;
+        if(e.faceplayer == null) return false;
+        if(e.RotationOverridePoint == null) return false;
+        if(e.ObjectKinds == null) return false;
+        return true;
+    }
+
+    public static bool IsValid(this InternationalString s)
+    {
+        if(s == null) return false;
+        if(s.En == null || s.Fr == null || s.Other == null || s.Jp == null || s.De == null) return false;
+        return true;
+    }
+
     /// <summary>
     /// 
     /// </summary>

@@ -97,6 +97,7 @@ public class Element
     [DefaultValue(false)] public bool overlayPlaceholders = false;
     [DefaultValue(2f)] public float thicc = 2f;
     [DefaultValue("")] public string overlayText = "";
+    public InternationalString overlayTextIntl = new();
     [DefaultValue("")] public string refActorName = "";
     public InternationalString refActorNameIntl = new();
     [DefaultValue(0)] public uint refActorModelID = 0;
@@ -215,6 +216,7 @@ public class Element
     [DefaultValue(0f)] public float RotationOverrideAddAngle = 0f;
     public HashSet<ObjectKind> ObjectKinds = [];
 
+    public bool ShouldSerializeoverlayTextIntl() => !overlayTextIntl.IsEmpty();
     public bool ShouldSerializeObjectKinds() => ObjectKinds.Count > 0;
     public bool ShouldSerializeRotationOverridePoint() => RotationOverride;
     public bool ShouldSerializeRotationOverrideAddAngle() => RotationOverride;

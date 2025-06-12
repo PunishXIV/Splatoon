@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class M8S_Quad_Beckon_Moonlight_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
-    public override Metadata? Metadata => new(10, "NightmareXIV,Alex");
+    public override Metadata? Metadata => new(1, "NightmareXIV,Alex");
 
     public override void OnSetup()
     {

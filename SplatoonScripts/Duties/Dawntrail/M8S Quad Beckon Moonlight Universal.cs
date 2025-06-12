@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class M8S_Quad_Beckon_Moonlight_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
-    public override Metadata? Metadata => new(1, "NightmareXIV,Alex");
+    public override Metadata? Metadata => new(2, "NightmareXIV,Alex");
 
     public override void OnSetup()
     {
@@ -352,6 +352,18 @@ public class M8S_Quad_Beckon_Moonlight_Universal : SplatoonScript
             SafeZone2 != lastSafeZone2)
         {
             DebugInfo.Clear();
+
+        if (C.SpreadBase == SpreadBaseType.SafeZone)
+        {
+            DebugInfo.AppendLine($"Safe Zone benchmark mode");
+            DebugInfo.AppendLine($"Rotation type: Quadrant rotation");
+        }
+        else
+        {
+            DebugInfo.AppendLine($"Shadow benchmark mode");
+            DebugInfo.AppendLine($"Rotation type: Directional rotation");
+        }
+
             
             if (FirstShadowPosition != null || FourthShadowPosition != null)
             {
@@ -521,41 +533,50 @@ public class M8S_Quad_Beckon_Moonlight_Universal : SplatoonScript
     }
     
     private int GetCurrentSpreadRotation()
+{
+    if (C.SpreadBase == SpreadBaseType.SafeZone)
     {
-        // Select spread reference based on configuration
+        // Safe Zone base Mode
+        Quadrant? safeZone = null;
+        
+        if (NumActions < 2)
+        {
+            // First Spread using the safe zone 1
+            safeZone = SafeZone1;
+        }
+        else
+        {
+            // Second Spread Using Safe Zone 2
+            safeZone = SafeZone2;
+        }
+        
+        if (safeZone != null && Rotations.ContainsKey(safeZone.Value))
+        {
+            return Rotations[safeZone.Value];
+        }
+    }
+    else
+    {
+        // Shadow base mode
         DirectionalQuadrant? baseDirection = null;
         
         if (NumActions < 2)
         {
-            // First spread
-            if (C.SpreadBase == SpreadBaseType.Shadow)
-            {
-                baseDirection = FirstShadowPosition;
-            }
-            else
-            {
-                baseDirection = FirstShadowSafeZone;
-            }
+            baseDirection = FirstShadowSafeZone; // Using the safe zone of the 1st shadow
         }
         else
         {
-            // Fourth spread
-            if (C.SpreadBase == SpreadBaseType.Shadow)
-            {
-                baseDirection = FourthShadowPosition;
-            }
-            else
-            {
-                baseDirection = FourthShadowSafeZone;
-            }
+            baseDirection = FourthShadowSafeZone; // Using the safe zone of the 4th shadow
         }
         
         if (baseDirection != null && DirectionalRotations.ContainsKey(baseDirection.Value))
         {
             return DirectionalRotations[baseDirection.Value];
         }
-        return 0;
     }
+    
+    return 0; // default value
+}
 
     private void DrawSpreadPoints()
     {

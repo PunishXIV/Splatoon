@@ -7,6 +7,7 @@ using PInvoke;
 using Splatoon.ConfigGui;
 using Splatoon.Gui;
 using Splatoon.Gui.Scripting;
+using Splatoon.Gui.Tabs;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -126,6 +127,7 @@ internal unsafe partial class CGui : IDisposable
                         ("Tools".Loc(), delegate
                         {
                             ImGuiEx.EzTabBar("Tools",
+                            ("Translator".Loc(), TabTranslator.Draw, null, true),
                             ("Logger".Loc(), DisplayLogger, null, true),
                             ("Explorer".Loc(), Explorer.Draw, null, true),
                             ("Archive".Loc(), DrawArchive, null, true),

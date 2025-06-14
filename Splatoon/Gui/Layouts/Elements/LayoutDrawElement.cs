@@ -1153,7 +1153,7 @@ internal unsafe partial class CGui
             ImGuiUtils.SizedText("Overlay text:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-            ImGui.InputTextWithHint("##overlaytext", "Text to display as overlay".Loc(), ref el.overlayText, 500);
+            el.overlayTextIntl.ImGuiEdit(ref el.overlayText, "Text to display as overlay".Loc());
             if(el.overlayPlaceholders && el.type == 1)
             {
                 ImGuiUtils.SizedText("", WidthElement);
@@ -1183,7 +1183,7 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.TextCopy("\\n");
             }
-            if(el.overlayText.Length > 0)
+            if(!el.overlayTextIntl.IsEmpty() || el.overlayText.Length > 0)
             {
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();

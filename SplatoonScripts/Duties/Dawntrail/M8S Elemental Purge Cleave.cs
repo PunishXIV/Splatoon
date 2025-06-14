@@ -37,8 +37,8 @@ public class M8S_Elemental_Purge_Cleave : SplatoonScript
     {
         if (_isActive)
         {
-            var npc = Svc.Objects.OfType<IBattleNpc>().First(x => x.CastActionId == 42087);
-            if (Controller.TryGetElementByName("Cone", out var e))
+            var npc = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.CastActionId == 42087);
+            if (npc != null && Controller.TryGetElementByName("Cone", out var e))
             {
                 e.Enabled = true;
                 if (npc.TargetObject != null) e.faceplayer = $"<{GetPlayerOrder(npc.TargetObject)}>";

@@ -2,6 +2,7 @@
 using ECommons.ExcelServices;
 using Newtonsoft.Json;
 using Pictomancy;
+using Splatoon.Modules.TranslationWorkspace;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
@@ -96,6 +97,7 @@ internal class Configuration : IEzConfig
     public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
     public bool ConfigurationsHideDisabled = false;
     public List<string> DisabledGroups = [];
+    public List<Page> TranslatorPages = [];
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

@@ -14,6 +14,8 @@ public unsafe class HighlightDeadgePlayers : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
 
+    public override Metadata? Metadata => new(2, "NightmareXIV");
+
     public override void OnSetup()
     {
         Controller.RegisterElementFromCode("Dead", """
@@ -27,7 +29,7 @@ public unsafe class HighlightDeadgePlayers : SplatoonScript
         int i = 0;
         foreach(var x in Svc.Objects)
         {
-            if(x is IPlayerCharacter pc && pc.CurrentHp == 0 && !pc.StatusList.Any(s => s.StatusId is 148 or 1140))
+            if(x is IPlayerCharacter pc && pc.EntityId != 0xE0000000 && pc.CurrentHp == 0 && !pc.StatusList.Any(s => s.StatusId is 148 or 1140 or 4263))
             {
                 var e = GetElement(i++);
                 e.Enabled = true;

@@ -33,6 +33,7 @@ public class PriorityTest : SplatoonScript
             
             Your index: {C.Priority.GetOwnIndex(x => x.Name.Length <= n)}
             Your index backwards: {C.Priority.GetOwnIndex(x => x.Name.Length <= n, true)}
+            2nd player: {C.Priority.GetPlayer(x => x.Name.Length <= n, 2)}
             """);
         }
         catch(Exception e)

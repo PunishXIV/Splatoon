@@ -2,7 +2,9 @@
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Utility;
 using ECommons;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using Newtonsoft.Json;
@@ -17,6 +19,66 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static string GetShortName(this Expansion ex)
+    {
+        return ex switch
+        {
+            Expansion.A_Realm_Reborn => "ARR".Loc(),
+            Expansion.Heavensward => "HW".Loc(),
+            Expansion.Stormblood => "SB".Loc(),
+            Expansion.Shadowbringers => "ShB".Loc(),
+            Expansion.Endwalker => "EW".Loc(),
+            Expansion.Dawntrail => "DT".Loc(),
+            _ => ex.ToString().Replace('_', ' '),
+        };
+    }
+
+    public static Expansion DetermineExpansion(this Layout l)
+    {
+        if(l.ZoneLockH.Count == 0)
+        {
+            return Expansion.Mixed;
+        }
+        else
+        {
+            var enumerator = l.ZoneLockH.GetEnumerator();
+            enumerator.MoveNext();
+            var initial = DetermineExpansion(enumerator.Current);
+            while(enumerator.MoveNext())
+            {
+                if(DetermineExpansion(enumerator.Current) != initial)
+                {
+                    return Expansion.Mixed;
+                }
+            }
+            return initial;
+        }
+    }
+
+    static Dictionary<uint, Expansion> ExpansionCache = [];
+    public static Expansion DetermineExpansion(uint territoryType)
+    {
+        if(!ExpansionCache.TryGetValue(territoryType, out var ret))
+        {
+            ret = Expansion.A_Realm_Reborn;
+            var data = ExcelTerritoryHelper.Get(territoryType);
+            if(data != null)
+            {
+                var bg = data.Value.Bg.GetText();
+                for(int i = 1; i <= 5; i++)
+                {
+                    if(bg.StartsWith($"ex{i}/"))
+                    {
+                        ret = (Expansion)i;
+                        break;
+                    }
+                }
+            }
+            ExpansionCache[territoryType] = ret;
+        }
+        return ret;
+    }
+
     public static bool IsActorNameUsed(this Element e)
     {
         if(e.refActorType != 0) return false;

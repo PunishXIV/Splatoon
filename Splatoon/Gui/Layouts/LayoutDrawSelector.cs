@@ -11,7 +11,15 @@ internal static class LayoutDrawSelector
     internal static Element CurrentElement = null;
     internal static void DrawSelector(this Layout layout, string group, int index)
     {
-        if(CGui.layoutFilter != "" && !layout.GetName().Contains(CGui.layoutFilter, StringComparison.OrdinalIgnoreCase))
+        if(CGui.LayoutFilter != "" && !layout.GetName().Contains(CGui.LayoutFilter, StringComparison.OrdinalIgnoreCase))
+        {
+            if(CGui.ScrollTo == layout)
+            {
+                CGui.ScrollTo = null;
+            }
+            return;
+        }
+        if(CGui.ActiveExpansion != null && layout.DetermineExpansion() != CGui.ActiveExpansion.Value)
         {
             if(CGui.ScrollTo == layout)
             {

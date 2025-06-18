@@ -19,6 +19,7 @@ public class GenericTargetEnforcer : SplatoonScript
         [1045] = [208], //bowl of embers normal - nail
         [1037] = [125], //tam tararam deepcraft - mobs that make boss immune
         [1245] = [1410], //halatali - doctore
+        [233] = [717],
     };
 
     public override void OnUpdate()

@@ -1,6 +1,8 @@
 ﻿using Dalamud.Interface.Colors;
 using ECommons.LanguageHelpers;
+using NightmareUI;
 using Splatoon.SplatoonScripting;
+using Splatoon.Structures;
 using static Splatoon.ConfigGui.CGuiLayouts.LayoutDrawSelector;
 
 namespace Splatoon;
@@ -21,7 +23,7 @@ internal partial class CGui
         }
     }
 
-    internal static string layoutFilter = "";
+    internal static string LayoutFilter = "";
     private string PopupRename = "";
     //internal static string CurrentGroup = null;
     internal static string HighlightGroup = null;
@@ -70,100 +72,109 @@ internal partial class CGui
         return i == -1 ? int.MaxValue : i;
     }
 
+    internal static Expansion? ActiveExpansion;
+
+    readonly NuiTools.ButtonInfo[] ExpansionTabs = [new("All", () => ActiveExpansion = null), .. Enum.GetValues<Expansion>().Select(x => new NuiTools.ButtonInfo(x.ToString().Replace('_', ' ').Loc(), x.ToString(), () => ActiveExpansion = x))];
+    readonly NuiTools.ButtonInfo[] ExpansionTabsShort = [new("All", () => ActiveExpansion = null), .. Enum.GetValues<Expansion>().Select(x => new NuiTools.ButtonInfo(x.GetShortName(), x.ToString(), () => ActiveExpansion = x))];
+
     private void DislayLayouts()
     {
-        ImGui.BeginChild("TableWrapper", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse);
-        if(ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
+        var shortExpansions = ExpansionTabs.Select(x => ImGui.CalcTextSize(x.Name).X).Max() > ImGui.GetContentRegionMax().X / (1+ExpansionTabs.Length);
+        if(ImGui.BeginChild("TableWrapper", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
         {
-            ImGui.TableSetupColumn("Layout list".Loc() + "###Layout id", ImGuiTableColumnFlags.None, 200);
-            ImGui.TableSetupColumn($"{(CurrentLayout == null ? "" : $"{CurrentLayout.GetName()}") + (CurrentElement == null ? "" : $" | {CurrentElement.GetName()}")}###Layout edit", ImGuiTableColumnFlags.None, 600);
+            NuiTools.ButtonTabs("LayoutsButtonTabs", [shortExpansions?ExpansionTabsShort:ExpansionTabs], child:false);
+            if(ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
+            {
+                ImGui.TableSetupColumn("Layout list".Loc() + "###Layout id", ImGuiTableColumnFlags.None, 200);
+                ImGui.TableSetupColumn($"{(CurrentLayout == null ? "" : $"{CurrentLayout.GetName()}") + (CurrentElement == null ? "" : $" | {CurrentElement.GetName()}")}###Layout edit", ImGuiTableColumnFlags.None, 600);
 
-            ImGui.TableHeadersRow();
+                //ImGui.TableHeadersRow();
 
-            ImGui.TableNextColumn();
-            ImGuiEx.InputWithRightButtonsArea("Search layouts", delegate
-            {
-                ImGui.InputTextWithHint("##layoutFilter", "Search layouts...".Loc(), ref layoutFilter, 100);
-            }, delegate
-            {
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Plus))
+                ImGui.TableNextColumn();
+                ImGuiEx.InputWithRightButtonsArea("Search layouts", delegate
                 {
-                    ImGui.OpenPopup("Add layout");
-                }
-                ImGuiEx.Tooltip("Add new layout...".Loc());
-                ImGui.SameLine(0, 1);
-                if(ImGuiEx.IconButton(P.Config.FocusMode ? FontAwesomeIcon.SearchMinus : FontAwesomeIcon.SearchPlus))
+                    ImGui.InputTextWithHint("##layoutFilter", "Search layouts...".Loc(), ref LayoutFilter, 100);
+                }, delegate
                 {
-                    P.Config.FocusMode = !P.Config.FocusMode;
-                }
-                ImGuiEx.Tooltip("Toggle focus mode.\nFocus mode: when layout is selected, hide all other layouts.".Loc());
-                ImGui.SameLine(0, 2);
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Sort))
-                {
-                    P.Config.GroupOrder.Sort();
-                }
-                ImGuiEx.Tooltip("Sorts groups alphabetically.".Loc());
-            });
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
-            if(ImGui.Button("Import from clipboard".Loc(), new(ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("A").Y)))
-            {
-                Safe(() =>
-                {
-                    var text = ImGui.GetClipboardText();
-                    if(ScriptingProcessor.IsUrlTrusted(text))
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Plus))
                     {
-                        ScriptingProcessor.DownloadScript(text, false);
+                        ImGui.OpenPopup("Add layout");
+                    }
+                    ImGuiEx.Tooltip("Add new layout...".Loc());
+                    ImGui.SameLine(0, 1);
+                    if(ImGuiEx.IconButton(P.Config.FocusMode ? FontAwesomeIcon.SearchMinus : FontAwesomeIcon.SearchPlus))
+                    {
+                        P.Config.FocusMode = !P.Config.FocusMode;
+                    }
+                    ImGuiEx.Tooltip("Toggle focus mode.\nFocus mode: when layout is selected, hide all other layouts.".Loc());
+                    ImGui.SameLine(0, 2);
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Sort))
+                    {
+                        P.Config.GroupOrder.Sort();
+                    }
+                    ImGuiEx.Tooltip("Sorts groups alphabetically.".Loc());
+                });
+                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, Vector2.Zero);
+                if(ImGui.Button("Import from clipboard".Loc(), new(ImGui.GetContentRegionAvail().X, ImGui.CalcTextSize("A").Y)))
+                {
+                    Safe(() =>
+                    {
+                        var text = ImGui.GetClipboardText();
+                        if(ScriptingProcessor.IsUrlTrusted(text))
+                        {
+                            ScriptingProcessor.DownloadScript(text, false);
+                        }
+                        else
+                        {
+                            ImportFromClipboard();
+                        }
+                    });
+
+                }
+                ImGui.PopStyleVar();
+                if(ImGui.BeginPopup("Add layout"))
+                {
+                    ImGui.InputTextWithHint("", "Layout name".Loc(), ref NewLayoytName, 100);
+                    ImGui.SameLine();
+                    if(ImGui.Button("Add".Loc()))
+                    {
+                        if(CGui.AddEmptyLayout(out var newLayout))
+                        {
+                            ImGui.CloseCurrentPopup();
+                            Notify.Success($"Layout created: ??".Loc(newLayout.GetName()));
+                            ScrollTo = newLayout;
+                            CurrentLayout = newLayout;
+                        }
+                    }
+                    ImGui.EndPopup();
+                }
+                ImGui.BeginChild("LayoutsTableSelector");
+                //DrawNewSelector();
+                DrawOldSelector();
+                ImGui.EndChild();
+
+                ImGui.TableNextColumn();
+
+                ImGui.BeginChild("LayoutsTableEdit", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.HorizontalScrollbar);
+                if(CurrentLayout != null)
+                {
+                    if(CurrentElement != null && CurrentLayout.GetElementsWithSubconfiguration().Contains(CurrentElement))
+                    {
+                        LayoutDrawElement(CurrentLayout, CurrentElement);
                     }
                     else
                     {
-                        ImportFromClipboard();
+                        LayoutDrawHeader(CurrentLayout);
                     }
-                });
-
-            }
-            ImGui.PopStyleVar();
-            if(ImGui.BeginPopup("Add layout"))
-            {
-                ImGui.InputTextWithHint("", "Layout name".Loc(), ref NewLayoytName, 100);
-                ImGui.SameLine();
-                if(ImGui.Button("Add".Loc()))
-                {
-                    if(CGui.AddEmptyLayout(out var newLayout))
-                    {
-                        ImGui.CloseCurrentPopup();
-                        Notify.Success($"Layout created: ??".Loc(newLayout.GetName()));
-                        ScrollTo = newLayout;
-                        CurrentLayout = newLayout;
-                    }
-                }
-                ImGui.EndPopup();
-            }
-            ImGui.BeginChild("LayoutsTableSelector");
-            //DrawNewSelector();
-            DrawOldSelector();
-            ImGui.EndChild();
-
-            ImGui.TableNextColumn();
-
-            ImGui.BeginChild("LayoutsTableEdit", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.HorizontalScrollbar);
-            if(CurrentLayout != null)
-            {
-                if(CurrentElement != null && CurrentLayout.GetElementsWithSubconfiguration().Contains(CurrentElement))
-                {
-                    LayoutDrawElement(CurrentLayout, CurrentElement);
                 }
                 else
                 {
-                    LayoutDrawHeader(CurrentLayout);
+                    ImGuiEx.Text("UI Help:\n- Left panel contains groups, layouts and elements.\n- You can drag and drop layouts, elements and groups to reorder them.\n- Right click on a group to rename or delete it.\n- Right click on a layout/element to delete it.\n- Middle click on layout/element for quick enable/disable".Loc());
                 }
-            }
-            else
-            {
-                ImGuiEx.Text("UI Help:\n- Left panel contains groups, layouts and elements.\n- You can drag and drop layouts, elements and groups to reorder them.\n- Right click on a group to rename or delete it.\n- Right click on a layout/element to delete it.\n- Middle click on layout/element for quick enable/disable".Loc());
-            }
-            ImGui.EndChild();
+                ImGui.EndChild();
 
-            ImGui.EndTable();
+                ImGui.EndTable();
+            }
         }
         ImGui.EndChild();
     }
@@ -224,8 +235,9 @@ internal partial class CGui
             for(var i = 0; i < P.Config.GroupOrder.Count; i++)
             {
                 var g = P.Config.GroupOrder[i];
-                if(layoutFilter != "" &&
-                    !P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(layoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
+                if(LayoutFilter != "" &&
+                    !P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(LayoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
+                if(ActiveExpansion != null && !P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineExpansion() == ActiveExpansion.Value)) continue;
 
                 ImGui.PushID(g);
                 ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g) ? EColor.Yellow : EColor.YellowBright);
@@ -393,7 +405,7 @@ internal partial class CGui
                     var x = takenLayouts[n];
                     if(x != null && (x.Group == g))
                     {
-                        if(OpenedGroup.Contains(g) || layoutFilter != "")
+                        if(OpenedGroup.Contains(g) || LayoutFilter != "")
                         {
                             x.DrawSelector(g, n);
                         }

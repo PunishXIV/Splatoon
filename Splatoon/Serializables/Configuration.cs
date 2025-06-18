@@ -1,6 +1,7 @@
 ﻿using ECommons.Configuration;
 using ECommons.ExcelServices;
 using Newtonsoft.Json;
+using NightmareUI;
 using Pictomancy;
 using Splatoon.Modules.TranslationWorkspace;
 using Splatoon.RenderEngines;
@@ -98,6 +99,7 @@ internal class Configuration : IEzConfig
     public bool ConfigurationsHideDisabled = false;
     public List<string> DisabledGroups = [];
     public List<Page> TranslatorPages = [];
+    public NightmareUIState NightmareUIState = new();
 
     public uint ClampFillColorAlpha(uint fillColor)
     {
@@ -119,6 +121,7 @@ internal class Configuration : IEzConfig
         {
             plugin.ConfigGui.Open = true;
         };
+        NuiTools.SetState(this.NightmareUIState);
     }
 
     public void Save(bool suppressError = false)

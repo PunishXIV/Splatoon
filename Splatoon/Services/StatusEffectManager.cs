@@ -11,12 +11,12 @@ using Status = Lumina.Excel.Sheets.Status;
 namespace Splatoon.Services;
 public unsafe class StatusEffectManager
 {
-    delegate byte StatusManager_SetStatus(nint a1, uint a2, ushort a3, float a4, ushort a5, uint a6, byte a7);
+    private delegate byte StatusManager_SetStatus(nint a1, uint a2, ushort a3, float a4, ushort a5, uint a6, byte a7);
     [EzHook("40 53 56 41 56 48 83 EC 70 45 32 F6")]
-    EzHook<StatusManager_SetStatus> StatusManager_SetStatusHook;
+    private EzHook<StatusManager_SetStatus> StatusManager_SetStatusHook;
 
-    EzHook<StatusManager.Delegates.AddStatus> AddStatusHook;
-    EzHook<StatusManager.Delegates.RemoveStatus> RemoveStatusHook;
+    private EzHook<StatusManager.Delegates.AddStatus> AddStatusHook;
+    private EzHook<StatusManager.Delegates.RemoveStatus> RemoveStatusHook;
     private StatusEffectManager()
     {
         EzSignatureHelper.Initialize(this);

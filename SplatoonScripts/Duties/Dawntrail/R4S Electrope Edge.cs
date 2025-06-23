@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using Dalamud.Game.ClientState.Objects.Enums;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
@@ -18,6 +15,9 @@ using NightmareUI.PrimaryUI;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Electrope_Edge : SplatoonScript
@@ -38,16 +38,16 @@ public class R4S_Electrope_Edge : SplatoonScript
 
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
     public override Metadata? Metadata => new(9, "NightmareXIV");
-    List<uint> Hits = [];
-    List<uint> Longs = [];
-    uint Debuff = 3999;
+    private List<uint> Hits = [];
+    private List<uint> Longs = [];
+    private uint Debuff = 3999;
 
-    IBattleNpc? WickedThunder => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == 13057 && x.IsTargetable);
-    IBattleNpc? RelativeTile => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.DataId == 9020 && x.CastActionId == 38351 && x.IsCasting && x.BaseCastTime - x.CurrentCastTime > 0 && Vector3.Distance(new(100,0,100), x.Position).InRange(15.5f, 17f));
+    private IBattleNpc? WickedThunder => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == 13057 && x.IsTargetable);
+    private IBattleNpc? RelativeTile => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.DataId == 9020 && x.CastActionId == 38351 && x.IsCasting && x.BaseCastTime - x.CurrentCastTime > 0 && Vector3.Distance(new(100, 0, 100), x.Position).InRange(15.5f, 17f));
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             Controller.RegisterElementFromCode($"Count{i}", "{\"Name\":\"\",\"type\":1,\"Enabled\":false,\"radius\":0.0,\"Filled\":false,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"overlayBGColor\":3640655872,\"overlayTextColor\":4294967295,\"overlayVOffset\":2.0,\"overlayFScale\":1.5,\"overlayPlaceholders\":true,\"thicc\":0.0,\"overlayText\":\"Long\\\\n   3\",\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         }
@@ -55,21 +55,21 @@ public class R4S_Electrope_Edge : SplatoonScript
         Controller.RegisterElementFromCode("Safe", "{\"Name\":\"\",\"refX\":84.07532,\"refY\":99.538475,\"refZ\":0.0010004044,\"radius\":2.0,\"color\":3372218624,\"Filled\":false,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"thicc\":5.0,\"overlayText\":\"Safe\",\"tether\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
     }
     public override void OnScriptUpdated(uint previousVersion)
-{
-    if(previousVersion < 6)
     {
-        new PopupWindow(() =>
+        if(previousVersion < 6)
         {
-            ImGuiEx.Text($"""
+            new PopupWindow(() =>
+            {
+                ImGuiEx.Text($"""
                 Warning: Splatoon Script 
-                {this.InternalData.Name}
+                {InternalData.Name}
                 was updated. 
                 If you were using Sidewise Spark related functions,
                 you must reconfigure the script.
                 """);
-        });
+            });
+        }
     }
-}
 
     public override void OnUpdate()
     {
@@ -85,12 +85,12 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
         // Hits must be left behind to define a safe for the Side Spark.
         // Hits.RemoveAll(x => !(x.GetObject() is IPlayerCharacter pc && pc.StatusList.Any(z => z.StatusId == Debuff)));
-        int i = 0;
+        var i = 0;
         foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
         {
-            bool tooFew = false;
+            var tooFew = false;
             var num = Hits.Count(s => s == x.EntityId);
-            string tooFewString = "";
+            var tooFewString = "";
             if(num > 0 && Controller.TryGetElementByName($"Count{i}", out var e))
             {
                 e.Enabled = true;
@@ -112,8 +112,8 @@ public class R4S_Electrope_Edge : SplatoonScript
                     tooFewString = Controller.GetConfig<Config>().stringMuch;
                 }
                 e.overlayText = l ? "Long" : "Short";
-                e.overlayText += $"\n   {num + (Controller.GetConfig<Config>().AddOne && l?1:0)} {(Controller.GetConfig<Config>().showMuchFew? tooFewString:"")}";
-                e.overlayTextColor = (x.StatusList.FirstOrDefault(x => x.StatusId == Debuff)?.RemainingTime < 16f?EColor.RedBright:EColor.White).ToUint();
+                e.overlayText += $"\n   {num + (Controller.GetConfig<Config>().AddOne && l ? 1 : 0)} {(Controller.GetConfig<Config>().showMuchFew ? tooFewString : "")}";
+                e.overlayTextColor = (x.StatusList.FirstOrDefault(x => x.StatusId == Debuff)?.RemainingTime < 16f ? EColor.RedBright : EColor.White).ToUint();
                 e.overlayFScale = x.Address == Player.Object.Address ? 2f : 1f;
                 e.refActorObjectID = x.EntityId;
             }
@@ -128,7 +128,7 @@ public class R4S_Electrope_Edge : SplatoonScript
             if(Vector3.Distance(new(100, 0, 84), tile.Position) < 2f) rotation = 180;
             if(Vector3.Distance(new(116, 0, 100), tile.Position) < 2f) rotation = 270;
             var doingMechanic = Player.Object.StatusList.FirstOrDefault(x => x.StatusId == Debuff)?.RemainingTime < 15f;
-            var num = Hits.Count(s => s == Player.Object.EntityId)+ (Longs.Contains(Player.Object.EntityId) ? 1 : 0);
+            var num = Hits.Count(s => s == Player.Object.EntityId) + (Longs.Contains(Player.Object.EntityId) ? 1 : 0);
             var pos = num == 2 ? C.Position2 : C.Position3;
             var posmod = new Vector2((pos.Item2 - 2) * 8, pos.Item1 * 8);
             if(!doingMechanic)
@@ -137,9 +137,9 @@ public class R4S_Electrope_Edge : SplatoonScript
             }
             var basePos = new Vector2(100, 84);
             var posRaw = posmod + basePos;
-            var newPoint = Utils.RotatePoint(100,100, rotation.DegreesToRadians(), new(posRaw.X, posRaw.Y, 0));
+            var newPoint = Utils.RotatePoint(100, 100, rotation.DegreesToRadians(), new(posRaw.X, posRaw.Y, 0));
             //PluginLog.Information($"Modifier: {posmod}, num: {num}, raw: {posRaw}, new: {newPoint}, rotation: {rotation}, tile: {tile.Position}");
-            if(Controller.TryGetElementByName(doingMechanic?"Explode":"Safe", out var e))
+            if(Controller.TryGetElementByName(doingMechanic ? "Explode" : "Safe", out var e))
             {
                 e.Enabled = true;
                 e.radius = 2f;
@@ -149,7 +149,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
 
         var wickedThunder = WickedThunder;
-        if (C.ResolveBox && wickedThunder is { IsCasting: true } && IsPairSidewiseSpark &&
+        if(C.ResolveBox && wickedThunder is { IsCasting: true } && IsPairSidewiseSpark &&
             wickedThunder.CastActionId.EqualsAny(LeftSidewiseSparkCastActionId, RightSidewiseSparkCastActionId))
         {
             var isSafeRight = wickedThunder.CastActionId == LeftSidewiseSparkCastActionId;
@@ -164,9 +164,9 @@ public class R4S_Electrope_Edge : SplatoonScript
                 _ => null
             };
 
-            if (Controller.TryGetElementByName("Safe", out var e))
+            if(Controller.TryGetElementByName("Safe", out var e))
             {
-                if (safeArea == null) return;
+                if(safeArea == null) return;
                 e.Enabled = true;
                 e.radius = 1.5f;
                 e.refX = safeArea.Value.X;
@@ -183,15 +183,15 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
     }
 
-    Config C => Controller.GetConfig<Config>();
-    (int, int)[] Unsafe = [(0,0), (0,1), (0,3), (0,4),
+    private Config C => Controller.GetConfig<Config>();
+    private (int, int)[] Unsafe = [(0,0), (0,1), (0,3), (0,4),
                            (1,2),
                            (2,2),
                            (3,0),(3,2),(3,4),
                            (4,1),(4,2),(4,3),
     ];
 
-    Dictionary<SidewiseSparkPosition, string> AltRemaps = new()
+    private Dictionary<SidewiseSparkPosition, string> AltRemaps = new()
     {
         [SidewiseSparkPosition.North] = "1 (North all the way)",
         [SidewiseSparkPosition.South] = "2 (North and side)",
@@ -291,11 +291,11 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
     }
 
-    void DrawBox(ref (int, int) value)
+    private void DrawBox(ref (int, int) value)
     {
-        for(int i = 0; i < 5; i++)
+        for(var i = 0; i < 5; i++)
         {
-            for(int k = 0; k < 5; k++)
+            for(var k = 0; k < 5; k++)
             {
                 var dis = Unsafe.Contains((i, k));
                 if(dis)
@@ -319,7 +319,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         }
     }
 
-    void Reset()
+    private void Reset()
     {
         Hits.Clear();
         IsPairSidewiseSpark = false;
@@ -329,7 +329,7 @@ public class R4S_Electrope_Edge : SplatoonScript
     {
         if(set.Action?.RowId == 38790)
         {
-            for(int i = 0; i < set.TargetEffects.Length; i++)
+            for(var i = 0; i < set.TargetEffects.Length; i++)
             {
                 var obj = ((uint)set.TargetEffects[i].TargetID).GetObject();
                 if(obj?.ObjectKind == ObjectKind.Player)
@@ -347,7 +347,7 @@ public class R4S_Electrope_Edge : SplatoonScript
         var center = new Vector2(100, 100);
         if(C.SidewiseSparkAlt)
         {
-            var mod = isSafeRight ? new Vector2(-1f,1f) : new Vector2(1f);
+            var mod = isSafeRight ? new Vector2(-1f, 1f) : new Vector2(1f);
             if(pos == SidewiseSparkPosition.North) return center + new Vector2(-1, -8) * mod;
             if(pos == SidewiseSparkPosition.Inside) return center + new Vector2(-7, 4) * mod;
             if(pos == SidewiseSparkPosition.South) return center + new Vector2(-7, -4) * mod;

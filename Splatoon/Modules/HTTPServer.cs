@@ -6,10 +6,10 @@ using System.Threading;
 
 namespace Splatoon.Modules;
 
-class HTTPServer : IDisposable
+internal class HTTPServer : IDisposable
 {
-    HttpListener listener;
-    Splatoon p;
+    private HttpListener listener;
+    private Splatoon p;
     public HTTPServer(Splatoon p)
     {
         this.p = p;
@@ -20,13 +20,13 @@ class HTTPServer : IDisposable
         listener.Start();
         new Thread((ThreadStart)delegate
         {
-            while (listener != null && listener.IsListening)
+            while(listener != null && listener.IsListening)
             {
                 try
                 {
-                    List<string> status = new List<string>();
-                    HttpListenerContext context = listener.GetContext();
-                    HttpListenerRequest request = context.Request;
+                    List<string> status = [];
+                    var context = listener.GetContext();
+                    var request = context.Request;
                     var elementsName = request.QueryString.Get("namespace");
                     var directElements = request.QueryString.Get("elements");
                     var destroyElements = request.QueryString.Get("destroy");
@@ -35,7 +35,7 @@ class HTTPServer : IDisposable
                     var disableElements = request.QueryString.Get("disable");
                     var rawElement = request.QueryString.Get("raw");
                     var contents = "";
-                    using (var a = new StreamReader(context.Request.InputStream))
+                    using(var a = new StreamReader(context.Request.InputStream))
                     {
                         contents = a.ReadToEnd();
                         //p.Log("Body length: " + contents.Length);
@@ -43,41 +43,41 @@ class HTTPServer : IDisposable
                     }
                     try
                     {
-                        if (elementsName == null)
+                        if(elementsName == null)
                         {
                             elementsName = "";
                         }
-                        if (disableElements != null)
+                        if(disableElements != null)
                         {
                             var names = disableElements.Split(',');
-                            foreach (var n in names)
+                            foreach(var n in names)
                             {
                                 p.tickScheduler.Enqueue(delegate { p.CommandManager.SwitchState(n, false, true); });
                                 status.Add("Disabling: " + n);
                             }
                         }
 
-                        if (enableElements != null)
+                        if(enableElements != null)
                         {
                             var names = enableElements.Split(',');
-                            foreach (var n in names)
+                            foreach(var n in names)
                             {
                                 p.tickScheduler.Enqueue(delegate { p.CommandManager.SwitchState(n, true, true); });
                                 status.Add("Enabling: " + n);
                             }
                         }
 
-                        if (destroyElements != null)
+                        if(destroyElements != null)
                         {
-                            foreach (var s in destroyElements.Split(','))
+                            foreach(var s in destroyElements.Split(','))
                             {
                                 status.Add("Requesting destruction: " + s);
                                 p.tickScheduler.Enqueue(delegate
                                 {
-                                    for (var i = p.dynamicElements.Count - 1; i >= 0; i--)
+                                    for(var i = p.dynamicElements.Count - 1; i >= 0; i--)
                                     {
                                         var de = p.dynamicElements[i];
-                                        if (s == "*" || de.Name == s)
+                                        if(s == "*" || de.Name == s)
                                         {
                                             p.dynamicElements.RemoveAt(i);
                                         }
@@ -86,7 +86,7 @@ class HTTPServer : IDisposable
                             }
                         }
 
-                        if (directElements != null || rawElement != null || contents != null && contents != "")
+                        if(directElements != null || rawElement != null || contents != null && contents != "")
                         {
                             var dynElem = new DynamicElement()
                             {
@@ -96,12 +96,12 @@ class HTTPServer : IDisposable
 
                             var Layouts = new List<Layout>();
                             var Elements = new List<Element>();
-                            if (destroyAt != null)
+                            if(destroyAt != null)
                             {
                                 var dAtArray = new List<long>();
-                                foreach (var destr in destroyAt.Split(','))
+                                foreach(var destr in destroyAt.Split(','))
                                 {
-                                    if (long.TryParse(destr, out var dAt) && dAt > 0)
+                                    if(long.TryParse(destr, out var dAt) && dAt > 0)
                                     {
                                         dAtArray.Add(Environment.TickCount64 + dAt);
                                     }
@@ -112,22 +112,22 @@ class HTTPServer : IDisposable
                                 }
                                 dynElem.DestroyTime = dAtArray.ToArray();
                             }
-                            if (rawElement != null)
+                            if(rawElement != null)
                             {
                                 status.Add("Raw payload found");
                                 //status.Add(rawElement);
                                 ProcessElement(rawElement, ref Layouts, ref Elements);
                             }
-                            if (contents != null && contents != "")
+                            if(contents != null && contents != "")
                             {
                                 status.Add("Body payload found");
                                 //status.Add(rawElement);
                                 ProcessElement(contents, ref Layouts, ref Elements);
                             }
-                            if (directElements != null)
+                            if(directElements != null)
                             {
                                 var encodedElements = directElements.Split(',');
-                                foreach (var e in encodedElements)
+                                foreach(var e in encodedElements)
                                 {
                                     //status.Add(directElements);
                                     string decoded;
@@ -135,7 +135,7 @@ class HTTPServer : IDisposable
                                     {
                                         decoded = e.Decompress();
                                     }
-                                    catch (Exception)
+                                    catch(Exception)
                                     {
                                         decoded = e.FromBase64UrlSafe();
                                     }
@@ -152,22 +152,22 @@ class HTTPServer : IDisposable
                                 $"Layouts: {dynElem.Layouts.Length}, destroyAt: {dynElem.DestroyTime})");
                         }
                     }
-                    catch (Exception e)
+                    catch(Exception e)
                     {
                         status.Add("Error:");
                         status.Add(e.ToStringFull());
                     }
-                    HttpListenerResponse response = context.Response;
+                    var response = context.Response;
                     response.AppendHeader("Access-Control-Allow-Origin", request.Headers["Origin"]);
                     response.AppendHeader("Access-Control-Allow-Headers", "Content-Type");
-                    string responseString = string.Join("\n", status);
-                    byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+                    var responseString = string.Join("\n", status);
+                    var buffer = Encoding.UTF8.GetBytes(responseString);
                     response.ContentLength64 = buffer.Length;
-                    Stream output = response.OutputStream;
+                    var output = response.OutputStream;
                     output.Write(buffer, 0, buffer.Length);
                     output.Close();
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     p.tickScheduler.Enqueue(delegate { p.Log("Error: " + e + "\n" + e.StackTrace); });
                 }
@@ -177,12 +177,12 @@ class HTTPServer : IDisposable
 
     private void ProcessElement(string decoded, ref List<Layout> Layouts, ref List<Element> Elements)
     {
-        if (decoded.StartsWith("~"))
+        if(decoded.StartsWith("~"))
         {
             //status.Add(decoded);
             var l = JsonConvert.DeserializeObject<Layout>(decoded.Substring(1));
             l.Enabled = true;
-            foreach (var el in l.ElementsL) el.Enabled = true;
+            foreach(var el in l.ElementsL) el.Enabled = true;
             Layouts.Add(l);
         }
         else

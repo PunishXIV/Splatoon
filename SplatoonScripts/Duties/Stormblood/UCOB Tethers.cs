@@ -16,10 +16,10 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Stormblood
 {
-    public class UCOB_Tethers :SplatoonScript
+    public class UCOB_Tethers : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { Raids.the_Unending_Coil_of_Bahamut_Ultimate };
-        HashSet<uint> TetheredPlayers = new();
+        public override HashSet<uint> ValidTerritories => [Raids.the_Unending_Coil_of_Bahamut_Ultimate];
+        private HashSet<uint> TetheredPlayers = [];
         public override Metadata? Metadata => new(5, "NightmareXIV");
 
         public override void OnSetup()
@@ -50,7 +50,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             UpdateTethers();
         }
 
-        bool IsBahamut(uint oid, [NotNullWhen(true)] out IBattleChara? bahamut)
+        private bool IsBahamut(uint oid, [NotNullWhen(true)] out IBattleChara? bahamut)
         {
             if(oid.TryGetObject(out var obj) && obj is IBattleChara o && o.NameId == 3210)
             {
@@ -61,17 +61,17 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             return false;
         }
 
-        void Reset()
+        private void Reset()
         {
             TetheredPlayers.Clear();
         }
 
-        IBattleChara? GetBahamut()
+        private IBattleChara? GetBahamut()
         {
             return Svc.Objects.FirstOrDefault(x => x is IBattleChara o && o.NameId == 3210 && o.IsCharacterVisible()) as IBattleChara;
         }
 
-        void UpdateTethers()
+        private void UpdateTethers()
         {
             if(TetheredPlayers.Count == 2)
             {
@@ -104,7 +104,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
-        Config Conf => Controller.GetConfig<Config>();
+        private Config Conf => Controller.GetConfig<Config>();
         public override void OnSettingsDraw()
         {
             ImGui.ColorEdit4("Valid tether color", ref Conf.ValidTetherColor, ImGuiColorEditFlags.NoInputs);
@@ -118,7 +118,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
-        public class Config :IEzConfig
+        public class Config : IEzConfig
         {
             public Vector4 ValidTetherColor = ImGuiColors.ParsedGreen;
             public Vector4 InvalidTetherColor1 = ImGuiColors.DalamudOrange;

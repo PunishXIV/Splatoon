@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using ECommons.MathHelpers;
 using Splatoon.Memory;
 using Splatoon.Structures;
@@ -11,7 +12,7 @@ public static unsafe class LayoutUtils
 {
     public static bool IsAttributeMatches(Element e, IGameObject o)
     {
-        if (e.refActorComparisonAnd)
+        if(e.refActorComparisonAnd)
         {
             return (e.refActorNameIntl.Get(e.refActorName) == String.Empty || IsNameMatches(e, o)) &&
              (e.refActorModelID == 0 || (o is ICharacter c && c.Struct()->ModelContainer.ModelCharaId == e.refActorModelID)) &&
@@ -26,25 +27,25 @@ public static unsafe class LayoutUtils
         }
         else
         {
-            if (e.refActorComparisonType == 0 && IsNameMatches(e, o)) return true;
-            if (e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->ModelContainer.ModelCharaId == e.refActorModelID) return true;
-            if (e.refActorComparisonType == 2 && o.EntityId == e.refActorObjectID) return true;
-            if (e.refActorComparisonType == 3 && o.DataId == e.refActorDataID) return true;
-            if (e.refActorComparisonType == 4 && o.Struct()->GetNameId() == e.refActorNPCID) return true;
-            if (e.refActorComparisonType == 5 && e.refActorPlaceholder.Any(x => ResolvePlaceholder(x) == o.Address)) return true;
-            if (e.refActorComparisonType == 6 && o is ICharacter c2 && c2.NameId == e.refActorNPCNameID) return true;
-            if (e.refActorComparisonType == 7 && AttachedInfo.TryGetSpecificVfxInfo(o, e.refActorVFXPath, out var info) && info.Age.InRange(e.refActorVFXMin, e.refActorVFXMax)) return true;
-            if (e.refActorComparisonType == 8 && AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo)) return true;
-            if (e.refActorComparisonType == 9 && o.Struct()->NamePlateIconId == e.refActorNamePlateIconID) return true;
+            if(e.refActorComparisonType == 0 && IsNameMatches(e, o)) return true;
+            if(e.refActorComparisonType == 1 && o is ICharacter c && c.Struct()->ModelContainer.ModelCharaId == e.refActorModelID) return true;
+            if(e.refActorComparisonType == 2 && o.EntityId == e.refActorObjectID) return true;
+            if(e.refActorComparisonType == 3 && o.DataId == e.refActorDataID) return true;
+            if(e.refActorComparisonType == 4 && o.Struct()->GetNameId() == e.refActorNPCID) return true;
+            if(e.refActorComparisonType == 5 && e.refActorPlaceholder.Any(x => ResolvePlaceholder(x) == o.Address)) return true;
+            if(e.refActorComparisonType == 6 && o is ICharacter c2 && c2.NameId == e.refActorNPCNameID) return true;
+            if(e.refActorComparisonType == 7 && AttachedInfo.TryGetSpecificVfxInfo(o, e.refActorVFXPath, out var info) && info.Age.InRange(e.refActorVFXMin, e.refActorVFXMax)) return true;
+            if(e.refActorComparisonType == 8 && AttachedInfo.ObjectEffectInfos.TryGetValue(o.Address, out var einfo) && IsObjectEffectMatches(e, o, einfo)) return true;
+            if(e.refActorComparisonType == 9 && o.Struct()->NamePlateIconId == e.refActorNamePlateIconID) return true;
             return false;
         }
     }
 
     public static bool IsObjectEffectMatches(Element e, IGameObject o, List<CachedObjectEffectInfo> info)
     {
-        if (e.refActorObjectEffectLastOnly)
+        if(e.refActorObjectEffectLastOnly)
         {
-            if (info.Count > 0)
+            if(info.Count > 0)
             {
                 var last = info[info.Count - 1];
                 return last.data1 == e.refActorObjectEffectData1 && last.data2 == e.refActorObjectEffectData2;
@@ -64,7 +65,7 @@ public static unsafe class LayoutUtils
 
     public static nint ResolvePlaceholder(string ph)
     {
-        if (PlaceholderCache.TryGetValue(ph, out var val))
+        if(PlaceholderCache.TryGetValue(ph, out var val))
         {
             return val;
         }
@@ -78,7 +79,7 @@ public static unsafe class LayoutUtils
 
     public static bool CheckTargetingOption(Element e, IGameObject a)
     {
-        if (e.refTargetYou)
+        if(e.refTargetYou)
         {
             return ((e.refActorTargetingYou == 1 && a.TargetObjectId != Svc.ClientState.LocalPlayer.EntityId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId));
         }
@@ -176,9 +177,9 @@ public static unsafe class LayoutUtils
     public static bool IsCastingMatches(Element e, IBattleChara chr)
     {
         if(chr == null) return false;
-        if (chr.IsCasting(e.refActorCastId))
+        if(chr.IsCasting(e.refActorCastId))
         {
-            if (e.refActorUseCastTime)
+            if(e.refActorUseCastTime)
             {
                 return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
             }
@@ -189,9 +190,9 @@ public static unsafe class LayoutUtils
         }
         else
         {
-            if (e.refActorUseOvercast)
+            if(e.refActorUseOvercast)
             {
-                if (AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
+                if(AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
                 {
                     return castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
                 }
@@ -209,27 +210,27 @@ public static unsafe class LayoutUtils
 
     public static float CastFraction(Element e, IGameObject go)
     {
-        if (go is IBattleChara chr)
+        if(go is IBattleChara chr)
         {
             float castTime = -1;
             float totalCastTime = 1;
-            if (chr.IsCasting(e.refActorCastId))
+            if(chr.IsCasting(e.refActorCastId))
             {
                 castTime = chr.CurrentCastTime;
                 totalCastTime = chr.TotalCastTime;
             }
-            else if (!(e.refActorUseOvercast && AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out castTime)))
+            else if(!(e.refActorUseOvercast && AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out castTime)))
             {
                 return 0;
             }
 
-            if (e.refActorUseCastTime)
+            if(e.refActorUseCastTime)
             {
                 castTime -= e.refActorCastTimeMin;
                 totalCastTime = e.refActorCastTimeMax - e.refActorCastTimeMin;
             }
-            if (castTime <= 0 || totalCastTime <= 0) return 0;
-            if (castTime > totalCastTime) return 1;
+            if(castTime <= 0 || totalCastTime <= 0) return 0;
+            if(castTime > totalCastTime) return 1;
 
             return castTime / totalCastTime;
         }
@@ -238,9 +239,9 @@ public static unsafe class LayoutUtils
 
     public static bool CheckEffect(Element e, IBattleChara c)
     {
-        if (e.refActorRequireAllBuffs)
+        if(e.refActorRequireAllBuffs)
         {
-            if (e.refActorUseBuffTime)
+            if(e.refActorUseBuffTime)
             {
                 return c.StatusList.Where(x => x.RemainingTime.InRange(e.refActorBuffTimeMin, e.refActorBuffTimeMax) && (!e.refActorUseBuffParam || x.Param == e.refActorBuffParam)).Select(x => x.StatusId).ContainsAll(e.refActorBuffId).Invert(e.refActorRequireBuffsInvert);
             }
@@ -251,7 +252,7 @@ public static unsafe class LayoutUtils
         }
         else
         {
-            if (e.refActorUseBuffTime)
+            if(e.refActorUseBuffTime)
             {
                 return c.StatusList.Where(x => x.RemainingTime.InRange(e.refActorBuffTimeMin, e.refActorBuffTimeMax) && (!e.refActorUseBuffParam || x.Param == e.refActorBuffParam)).Select(x => x.StatusId).ContainsAny(e.refActorBuffId).Invert(e.refActorRequireBuffsInvert);
             }
@@ -262,45 +263,50 @@ public static unsafe class LayoutUtils
         }
     }
 
-    public static bool IsLayoutVisible(Layout i)
+    public static bool IsLayoutVisible(Layout layout)
     {
-        if (!i.Enabled) return false;
-        if (i.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if ((i.ZoneLockH.Count > 0 && !i.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(i.IsZoneBlacklist)) return false;
-        if (i.Scenes.Count > 0 && !i.Scenes.Contains(*Scene.ActiveScene)) return false;
-        if (i.Phase != 0 && i.Phase != P.Phase) return false;
-        if (i.JobLock != 0 && !Bitmask.IsBitSet(i.JobLock, (int)Svc.ClientState.LocalPlayer.ClassJob.RowId)) return false;
-        if ((i.DCond == 1 || i.DCond == 3) && !Svc.Condition[ConditionFlag.InCombat]) return false;
-        if ((i.DCond == 2 || i.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if (i.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]
-            || Svc.Condition[ConditionFlag.BoundByDuty])) return false;
-        if (i.UseDistanceLimit && i.DistanceLimitType == 0)
+        if(!layout.Enabled) return false;
+        if(!layout.Group.IsNullOrEmpty() && P.Config.DisabledGroups.Contains(layout.Group)) return false;
+        if(layout.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty]) return false;
+        if((layout.ZoneLockH.Count > 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)) return false;
+        if(layout.Scenes.Count > 0 && !layout.Scenes.Contains(*Scene.ActiveScene)) return false;
+        if(layout.Phase != 0 && layout.Phase != P.Phase) return false;
+        if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(Player.Job)) return false;
+        var inCombat = Svc.Condition[ConditionFlag.InCombat];
+        var inDuty = Svc.Condition[ConditionFlag.BoundByDuty];
+        if((layout.DCond == 1 || layout.DCond == 3) && !inCombat) return false;
+        if((layout.DCond == 2 || layout.DCond == 3) && !inDuty) return false;
+        if(layout.DCond == 4 && !(inCombat || inDuty)) return false;
+        if((layout.DCond == 6 || layout.DCond == 8) && inCombat) return false;
+        if((layout.DCond == 7 || layout.DCond == 8) && inDuty) return false;
+        if(layout.DCond == 9 && (!inCombat || !inDuty)) return false;
+        if(layout.UseDistanceLimit && layout.DistanceLimitType == 0)
         {
-            if (Svc.Targets.Target != null)
+            if(Svc.Targets.Target != null)
             {
-                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (i.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (i.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
-                if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
+                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (layout.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (layout.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
+                if(!(dist >= layout.MinDistance && dist < layout.MaxDistance)) return false;
             }
             else
             {
                 return false;
             }
         }
-        if (i.UseTriggers)
+        if(layout.UseTriggers)
         {
-            foreach (var t in i.Triggers)
+            foreach(var t in layout.Triggers)
             {
-                if (t.FiredState == 2) continue;
-                if ((t.Type == 2 || t.Type == 3) && !t.Disabled)
+                if(t.FiredState == 2) continue;
+                if((t.Type == 2 || t.Type == 3) && !t.Disabled)
                 {
-                    foreach (var CurrentChatMessage in P.CurrentChatMessages)
+                    foreach(var CurrentChatMessage in P.CurrentChatMessages)
                     {
                         var trg = t.MatchIntl.Get(t.Match);
-                        if (trg != string.Empty &&
+                        if(trg != string.Empty &&
                             (t.IsRegex ? Regex.IsMatch(CurrentChatMessage, trg) : CurrentChatMessage.ContainsIgnoreCase(trg))
                             )
                         {
-                            if (t.Duration == 0)
+                            if(t.Duration == 0)
                             {
                                 t.FiredState = 0;
                             }
@@ -309,26 +315,26 @@ public static unsafe class LayoutUtils
                                 t.FiredState = 1;
                                 t.DisableAt.Add(Environment.TickCount64 + (int)(t.Duration * 1000) + (int)(t.MatchDelay * 1000));
                             }
-                            if (t.MatchDelay != 0)
+                            if(t.MatchDelay != 0)
                             {
                                 t.EnableAt.Add(Environment.TickCount64 + (int)(t.MatchDelay * 1000));
                             }
                             else
                             {
-                                i.TriggerCondition = t.Type == 2 ? 1 : -1;
+                                layout.TriggerCondition = t.Type == 2 ? 1 : -1;
                             }
-                            if (t.FireOnce)
+                            if(t.FireOnce)
                             {
                                 t.Disabled = true;
                             }
                         }
                     }
                 }
-                if (t.FiredState == 0 && (t.Type == 0 || t.Type == 1))
+                if(t.FiredState == 0 && (t.Type == 0 || t.Type == 1))
                 {
-                    if (P.CombatStarted != 0 && Environment.TickCount64 - P.CombatStarted > t.TimeBegin * 1000)
+                    if(P.CombatStarted != 0 && Environment.TickCount64 - P.CombatStarted > t.TimeBegin * 1000)
                     {
-                        if (t.Duration == 0)
+                        if(t.Duration == 0)
                         {
                             t.FiredState = 2;
                         }
@@ -337,31 +343,31 @@ public static unsafe class LayoutUtils
                             t.FiredState = 1;
                             t.DisableAt.Add(Environment.TickCount64 + (int)(t.Duration * 1000));
                         }
-                        i.TriggerCondition = t.Type == 0 ? 1 : -1;
+                        layout.TriggerCondition = t.Type == 0 ? 1 : -1;
                     }
                 }
-                for (var e = 0; e < t.EnableAt.Count; e++)
+                for(var e = 0; e < t.EnableAt.Count; e++)
                 {
-                    if (Environment.TickCount64 > t.EnableAt[e])
+                    if(Environment.TickCount64 > t.EnableAt[e])
                     {
-                        i.TriggerCondition = t.Type == 2 ? 1 : -1;
+                        layout.TriggerCondition = t.Type == 2 ? 1 : -1;
                         t.EnableAt.RemoveAt(e);
                         break;
                     }
                 }
-                for (var e = 0; e < t.DisableAt.Count; e++)
+                for(var e = 0; e < t.DisableAt.Count; e++)
                 {
-                    if (Environment.TickCount64 > t.DisableAt[e])
+                    if(Environment.TickCount64 > t.DisableAt[e])
                     {
                         t.FiredState = (t.Type == 2 || t.Type == 3) ? 0 : 2;
                         t.DisableAt.RemoveAt(e);
-                        i.TriggerCondition = 0;
+                        layout.TriggerCondition = 0;
                         break;
                     }
                 }
 
             }
-            if (i.TriggerCondition == -1 || (i.TriggerCondition == 0 && i.DCond == 5)) return false;
+            if(layout.TriggerCondition == -1 || (layout.TriggerCondition == 0 && layout.DCond == 5)) return false;
         }
         return true;
     }
@@ -373,17 +379,17 @@ public static unsafe class LayoutUtils
 
     public static bool CheckDistanceCondition(Layout i, Vector3 v)
     {
-        if (i.DistanceLimitType != 1) return true;
+        if(i.DistanceLimitType != 1) return true;
         var dist = Vector3.Distance(v, Utils.GetPlayerPositionXZY());
-        if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
+        if(!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
         return true;
     }
 
     public static bool CheckDistanceToLineCondition(Layout i, Element e)
     {
-        if (i.DistanceLimitType != 1) return true;
+        if(i.DistanceLimitType != 1) return true;
         var dist = Vector3.Distance(Utils.FindClosestPointOnLine(Utils.GetPlayerPositionXZY(), new Vector3(e.refX, e.refY, e.refZ), new Vector3(e.offX, e.offY, e.offZ)), Utils.GetPlayerPositionXZY());
-        if (!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
+        if(!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
         return true;
     }
 

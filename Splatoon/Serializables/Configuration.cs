@@ -1,7 +1,9 @@
 ﻿using ECommons.Configuration;
 using ECommons.ExcelServices;
 using Newtonsoft.Json;
+using NightmareUI;
 using Pictomancy;
+using Splatoon.Modules.TranslationWorkspace;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
@@ -14,8 +16,8 @@ namespace Splatoon;
 [Serializable]
 internal class Configuration : IEzConfig
 {
-    [NonSerialized] Splatoon plugin;
-    [NonSerialized] SemaphoreSlim ZipSemaphore;
+    [NonSerialized] private Splatoon plugin;
+    [NonSerialized] private SemaphoreSlim ZipSemaphore;
 
     private static JsonSerializerSettings JsonSerializerSettings = new()
     {
@@ -32,8 +34,8 @@ internal class Configuration : IEzConfig
     public RenderEngineKind RenderEngineKind = RenderEngineKind.DirectX11;
     public HashSet<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];
 
-    public List<Layout> LayoutsL = new();
-    public List<string> GroupOrder = new();
+    public List<Layout> LayoutsL = [];
+    public List<string> GroupOrder = [];
     public bool dumplog = false;
     public bool verboselog = false;
     public float maxdistance = 100;
@@ -70,18 +72,19 @@ internal class Configuration : IEzConfig
     public bool NoFindReset = false;
     public bool NoCircleFix = false;
 
-    public HashSet<string> DisabledScripts = new();
+    public HashSet<string> DisabledScripts = [];
     public bool DisableScriptCache = false;
-    public List<WrappedRect> RenderableZones = new();
-    public List<WrappedRect> ClipZones = new();
+    public List<WrappedRect> RenderableZones = [];
+    public List<WrappedRect> ClipZones = [];
     public bool AutoClipNativeUI = true;
     public bool RenderableZonesValid = false;
     public bool SplatoonLowerZ = false;
     public int ElementMinFillAlpha = 0;
     public int ElementMaxFillAlpha = 255;
     public int MaxAlpha = 0xFF;
+    public bool UseVfxRendering = false;
     [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
-    public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = new();
+    public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = [];
     public Dictionary<string, Dictionary<string, string>> ScriptConfigurationNames = [];
     public Dictionary<string, string> ActiveScriptConfigurations = [];
     public string ExtraTrustedRepos = "";
@@ -93,10 +96,14 @@ internal class Configuration : IEzConfig
     public bool UseServerBar = true;
     public Dictionary<Job, RolePosition> PreferredPositions = [];
     public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
+    public bool ConfigurationsHideDisabled = false;
+    public List<string> DisabledGroups = [];
+    public List<Page> TranslatorPages = [];
+    public NightmareUIState NightmareUIState = new();
 
     public uint ClampFillColorAlpha(uint fillColor)
     {
-        uint alpha = fillColor >> 24;
+        var alpha = fillColor >> 24;
         alpha = Math.Clamp(alpha, (uint)ElementMinFillAlpha, (uint)ElementMaxFillAlpha);
         return fillColor & 0x00FFFFFF | (alpha << 24);
     }
@@ -114,12 +121,13 @@ internal class Configuration : IEzConfig
         {
             plugin.ConfigGui.Open = true;
         };
+        NuiTools.SetState(this.NightmareUIState);
     }
 
     public void Save(bool suppressError = false)
     {
         EzConfig.Save();
-        foreach (var x in ScriptingProcessor.Scripts)
+        foreach(var x in ScriptingProcessor.Scripts)
         {
             //PluginLog.Debug($"Saving configuration for {x.InternalData.FullName}");
             Safe(x.Controller.SaveConfig);
@@ -129,7 +137,7 @@ internal class Configuration : IEzConfig
 
     public bool Backup(bool update = false)
     {
-        if (!ZipSemaphore.Wait(0))
+        if(!ZipSemaphore.Wait(0))
         {
             LogErrorAndNotify("Failed to create backup: previous backup did not completed yet. ");
             return false;
@@ -152,7 +160,7 @@ internal class Configuration : IEzConfig
             {
                 Copy(Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "Archive.json"), archiveFile);
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 e.LogWarning();
             }
@@ -163,12 +171,12 @@ internal class Configuration : IEzConfig
                 fileStream.CopyTo(writer);
             }
         }
-        catch (FileNotFoundException e)
+        catch(FileNotFoundException e)
         {
             ZipSemaphore.Release();
             LogErrorAndNotify(e, "Could not find configuration to backup.");
         }
-        catch (Exception e)
+        catch(Exception e)
         {
             ZipSemaphore.Release();
             LogErrorAndNotify(e, "Failed to create a backup:\n" + e.Message);
@@ -183,7 +191,7 @@ internal class Configuration : IEzConfig
                 {
                     File.Delete(archiveFile);
                 }
-                catch (Exception e)
+                catch(Exception e)
                 {
                     e.Log();
                 }
@@ -193,7 +201,7 @@ internal class Configuration : IEzConfig
                     Notify.Info("A backup of your current configuration has been created.");
                 });
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 plugin.tickScheduler.Enqueue(delegate
                 {

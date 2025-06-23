@@ -1,5 +1,5 @@
-﻿using ECommons.LanguageHelpers;
 ﻿using Dalamud.Interface.Components;
+using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
 using Splatoon.ConfigGui;
 using Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
@@ -8,11 +8,11 @@ using Splatoon.Utility;
 
 namespace Splatoon;
 
-partial class CGui
+internal partial class CGui
 {
-    string NewGroupName = "";
+    private string NewGroupName = "";
 
-    void LayoutDrawHeader(Layout layout)
+    private void LayoutDrawHeader(Layout layout)
     {
         if(ImGui.BeginTable("SingleLayoutEdit", 2, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerH))
         {
@@ -21,18 +21,21 @@ partial class CGui
 
             //ImGui.TableHeadersRow();
             ImGui.TableNextColumn();
+            var groupCol = P.Config.DisabledGroups.Contains(layout.Group);
+            if(groupCol) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
             ImGuiEx.TextV("Group:".Loc());
             ImGui.TableNextColumn();
             ImGuiEx.SetNextItemFullWidth();
-            if(ImGui.BeginCombo("##group", $"{(layout.Group == ""?"- No group -".Loc() : $"{layout.Group}")}"))
+            if(ImGui.BeginCombo("##group", $"{(layout.Group == "" ? "- No group -".Loc() : $"{layout.Group}")}"))
             {
-                if (ImGui.Selectable("- No group -".Loc()))
+                if(groupCol) ImGui.PopStyleColor();
+                if(ImGui.Selectable("- No group -".Loc()))
                 {
                     layout.Group = "";
                 }
-                foreach (var x in P.Config.GroupOrder)
+                foreach(var x in P.Config.GroupOrder)
                 {
-                    if (ImGui.Selectable(x))
+                    if(ImGui.Selectable(x))
                     {
                         layout.Group = x;
                     }
@@ -52,32 +55,36 @@ partial class CGui
                     NewGroupName = NewGroupName.SanitizeName();
                 }, delegate
                 {
-                    if (ImGui.Button("Add".Loc()))
+                    if(ImGui.Button("Add".Loc()))
                     {
                         Add();
                     }
                 });
                 ImGui.EndCombo();
             }
+            else
+            {
+                if(groupCol) ImGui.PopStyleColor();
+            }
 
 
             ImGui.TableNextColumn();
             ImGuiEx.TextV("Export:".Loc());
             ImGui.TableNextColumn();
-            if (ImGui.Button("Copy to clipboard".Loc()))
+            if(ImGui.Button("Copy to clipboard".Loc()))
             {
                 layout.ExportToClipboard();
             }
             ImGui.SameLine();
             ImGuiEx.TextV("Share:".Loc());
             ImGui.SameLine();
-            if (ImGui.Button("GitHub".Loc()))
+            if(ImGui.Button("GitHub".Loc()))
             {
                 layout.ExportToClipboard();
                 Contribute.OpenGithubPresetSubmit();
             }
             ImGui.SameLine(0, 1);
-            if (ImGui.Button("Discord".Loc()))
+            if(ImGui.Button("Discord".Loc()))
             {
                 layout.ExportToClipboard();
                 Contribute.OpenDiscordLink();
@@ -92,13 +99,22 @@ partial class CGui
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Enabled".Loc(), ref layout.Enabled);
+
+            if(layout.IsVisible())
+            {
+                ImGuiEx.HelpMarker("This layout is currently being rendered".Loc(), EColor.GreenBright, FontAwesomeIcon.Eye.ToIconString());
+            }
+            else
+            {
+                ImGuiEx.HelpMarker("This layout is currently not being rendered".Loc(), EColor.White, FontAwesomeIcon.EyeSlash.ToIconString());
+            }
             ImGui.TableNextColumn();
             ImGui.SetNextItemWidth(150f.Scale());
-            if (ImGui.BeginCombo("##phaseSelectorL", $"{(layout.Phase == 0 ? "Any phase".Loc() : $"Phase ??".Loc(layout.Phase))}"))
+            if(ImGui.BeginCombo("##phaseSelectorL", $"{(layout.Phase == 0 ? "Any phase".Loc() : $"Phase ??".Loc(layout.Phase))}"))
             {
-                if (ImGui.Selectable("Any phase".Loc())) layout.Phase = 0;
-                if (ImGui.Selectable("Phase 1 (doorboss)".Loc())) layout.Phase = 1;
-                if (ImGui.Selectable("Phase 2 (post-doorboss)".Loc())) layout.Phase = 2;
+                if(ImGui.Selectable("Any phase".Loc())) layout.Phase = 0;
+                if(ImGui.Selectable("Phase 1 (doorboss)".Loc())) layout.Phase = 1;
+                if(ImGui.Selectable("Phase 2 (post-doorboss)".Loc())) layout.Phase = 2;
                 ImGuiEx.Text("Manual phase selection:".Loc());
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(30f.Scale());
@@ -118,6 +134,12 @@ partial class CGui
             }
 
             ImGui.TableNextColumn();
+            ImGuiEx.TextV("Intl. Name:".Loc());
+            ImGui.TableNextColumn();
+            ImGuiEx.SetNextItemFullWidth();
+            layout.InternationalName.ImGuiEdit(ref layout.Name);
+
+            ImGui.TableNextColumn();
             ImGuiEx.TextV("Display conditions:".Loc());
             ImGui.TableNextColumn();
             ImGuiEx.SetNextItemFullWidth();
@@ -125,13 +147,13 @@ partial class CGui
 
             ImGui.TableNextColumn();
             ImGuiEx.SetNextItemFullWidth();
-            if(ImGui.BeginCombo("##zlock", layout.IsZoneBlacklist?"Zone Blacklist".Loc() : "Zone Whitelist".Loc()))
+            if(ImGui.BeginCombo("##zlock", layout.IsZoneBlacklist ? "Zone Blacklist".Loc() : "Zone Whitelist".Loc()))
             {
-                if (ImGui.Selectable("Whitelist mode".Loc()))
+                if(ImGui.Selectable("Whitelist mode".Loc()))
                 {
                     layout.IsZoneBlacklist = false;
                 }
-                if (ImGui.Selectable("Blacklist mode".Loc()))
+                if(ImGui.Selectable("Blacklist mode".Loc()))
                 {
                     layout.IsZoneBlacklist = true;
                 }
@@ -142,7 +164,7 @@ partial class CGui
 
             ImGui.TableNextColumn();
 
-            ImGuiEx.TextV("Scene (beta)");
+            ImGuiEx.TextV("Scene");
             ImGui.TableNextColumn();
             layout.DrawSceneSelector();
 
@@ -151,10 +173,29 @@ partial class CGui
             ImGui.TableNextColumn();
             layout.DrawJlockSelector();
 
+            var selectedConf = layout.Subconfigurations.FirstOrDefault(x => x.Guid == layout.SelectedSubconfigurationID);
+            ImGui.TableNextColumn();
+            ImGuiEx.TextV(selectedConf == null ? EColor.GreenBright : EColor.YellowBright, "Configuration".Loc());
+            ImGui.TableNextColumn();
+            layout.DrawLayoutConfigurations();
+
+            if(selectedConf != null)
+            {
+                ImGui.TableNextColumn();
+                ImGuiEx.TextV(selectedConf == null ? EColor.GreenBright : EColor.YellowBright, "Configuration Name".Loc());
+                ImGui.TableNextColumn();
+                layout.DrawLayoutConfigurationName();
+            }
+
             ImGui.TableNextColumn();
             ImGui.Checkbox("Distance limit".Loc(), ref layout.UseDistanceLimit);
             ImGui.TableNextColumn();
             layout.DrawDistanceLimit();
+
+            ImGui.TableNextColumn();
+            ImGuiEx.TextV("Multiple Conditions".Loc());
+            ImGui.TableNextColumn();
+            ImGuiEx.RadioButtonBool("AND##mcc", "OR##mcc", ref layout.ConditionalAnd, true);
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Freeze".Loc(), ref layout.Freezing);
@@ -168,17 +209,17 @@ New frozen elements are created every refreeze interval.".Loc());
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Enable triggers".Loc(), ref layout.UseTriggers);
-            if (layout.UseTriggers)
+            if(layout.UseTriggers)
             {
-                if (ImGui.Button("Add new trigger".Loc()))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add".Loc()))
                 {
                     layout.Triggers.Add(new Trigger());
                 }
-                if (ImGui.Button("Copy triggers".Loc()))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy".Loc()))
                 {
                     ImGui.SetClipboardText(JsonConvert.SerializeObject(layout.Triggers));
                 }
-                if (ImGui.Button("Paste triggers".Loc()) && (ImGui.GetIO().KeyCtrl || layout.Triggers.Count == 0))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste Replace".Loc(), ImGui.GetIO().KeyCtrl || layout.Triggers.Count == 0))
                 {
                     try
                     {
@@ -192,6 +233,21 @@ New frozen elements are created every refreeze interval.".Loc());
                 if(layout.Triggers.Count != 0)
                 {
                     ImGuiEx.Tooltip("Hold CTRL and click. Existing triggers will be overwritten.".Loc());
+                }
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste Add".Loc()))
+                {
+                    try
+                    {
+                        var newTriggers = JsonConvert.DeserializeObject<List<Trigger>>(ImGui.GetClipboardText());
+                        foreach(var t in newTriggers)
+                        {
+                            layout.Triggers.Add(t);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        Notify.Error(e.Message);
+                    }
                 }
             }
             ImGui.TableNextColumn();

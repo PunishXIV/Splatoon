@@ -36,12 +36,14 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         Controller.RegisterElement("Donut", new(0)
         {
             color = ImGuiEx.Vector4FromRGBA(0xFF8200C8).ToUint(),
-            refX = 100, refY = 100,
+            refX = 100,
+            refY = 100,
         });
         Controller.RegisterElement("Circle", new(0)
         {
             color = ImGuiEx.Vector4FromRGBA(0xFF8200C8).ToUint(),
-            refX = 100,            refY = 100,
+            refX = 100,
+            refY = 100,
         });
     }
 
@@ -49,7 +51,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Values.Each(x => x.Enabled = false);
-        if (Towers.Length == 0)
+        if(Towers.Length == 0)
         {
             RotateModifier = null;
             LeftMovers.Clear();
@@ -60,42 +62,42 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         {
             CalculateModifier();
         }
-        if (RotateModifier == null) return;
-        foreach (var x in Donuts.Concat(Circles))
+        if(RotateModifier == null) return;
+        foreach(var x in Donuts.Concat(Circles))
         {
             var xPos = RotateRelative(x.Position);
-            if (xPos.Z > 120f) LeftMovers.Add(x.EntityId);
-            if (xPos.Z < 80f) RightMovers.Add(x.EntityId);
+            if(xPos.Z > 120f) LeftMovers.Add(x.EntityId);
+            if(xPos.Z < 80f) RightMovers.Add(x.EntityId);
         }
-        for (var i = 0; i < Towers.Length; i++)
+        for(var i = 0; i < Towers.Length; i++)
         {
             var t = Towers[i];
             var name = $"Tower{i}";
-            if (!Controller.TryGetElementByName(name, out _)) Controller.RegisterElement(name, new(0));
+            if(!Controller.TryGetElementByName(name, out _)) Controller.RegisterElement(name, new(0));
             var element = Controller.GetElementByName(name);
             var originalPos = t.Position;
             var rotatedPos = RotateRelative(originalPos);
             element.SetRefPosition(originalPos);
             //element.overlayText = $"Original: {originalPos}\nRotated:{rotatedPos}";
             element.overlayVOffset = 2;
-            foreach (var x in Donuts.Concat(Circles))
+            foreach(var x in Donuts.Concat(Circles))
             {
                 var xPos = RotateRelative(x.Position);
                 var isDonut = x.DataId == 16727;
-                if (!xPos.Z.InRange(80, 120)) continue;
-                if (LeftMovers.Contains(x.EntityId))
+                if(!xPos.Z.InRange(80, 120)) continue;
+                if(LeftMovers.Contains(x.EntityId))
                 {
                     var distance = xPos.Z - rotatedPos.Z;
-                    if (distance.InRange(0, 8))
+                    if(distance.InRange(0, 8))
                     {
                         Assign(element, isDonut, distance);
                         //element.overlayText += $"\n{(isDonut ? "Donut" : "Circle")}/{xPos}";
                     }
                 }
-                if (RightMovers.Contains(x.EntityId))
+                if(RightMovers.Contains(x.EntityId))
                 {
                     var distance = rotatedPos.Z - xPos.Z;
-                    if (distance.InRange(0, 8))
+                    if(distance.InRange(0, 8))
                     {
                         Assign(element, isDonut, distance);
                         //element.overlayText += $"\n{(isDonut ? "Donut" : "Circle")}/{xPos}";
@@ -105,9 +107,9 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         }
     }
 
-    void CalculateModifier()
+    private void CalculateModifier()
     {
-        if(Donuts.Concat(Circles).Any(x => Vector3.Distance(x.Position, new(85,0,115)) < 3))
+        if(Donuts.Concat(Circles).Any(x => Vector3.Distance(x.Position, new(85, 0, 115)) < 3))
         {
             RotateModifier = -45;
         }
@@ -117,11 +119,11 @@ public class EX2_Projection_of_Triumph : SplatoonScript
         }
     }
 
-    void Assign(Element e, bool isDonut, float distance)
+    private void Assign(Element e, bool isDonut, float distance)
     {
         e.Enabled = true;
         var percent = Math.Clamp(1f - distance / 8f, 0f, 1f);
-        if (isDonut)
+        if(isDonut)
         {
             e.Filled = false;
             e.Donut = 6f;
@@ -140,7 +142,7 @@ public class EX2_Projection_of_Triumph : SplatoonScript
     private Vector3 RotateRelative(Vector3 s)
     {
         var swapped = new Vector3(s.X, s.Z, s.Y);
-        var rotated = Utils.RotatePoint(100, 100, this.RotateModifier.Value.DegreesToRadians(), swapped);
+        var rotated = Utils.RotatePoint(100, 100, RotateModifier.Value.DegreesToRadians(), swapped);
         return new(rotated.X, rotated.Z, rotated.Y);
     }
 

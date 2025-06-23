@@ -16,7 +16,8 @@ public enum MechanicType
 }
 
 
-public static class MechanicTypes {
+public static class MechanicTypes
+{
     public static readonly string[] Names =
     [
         "Unspecified".Loc(),

@@ -5,7 +5,7 @@ using System.Threading;
 namespace Splatoon.Services;
 public class ScriptFileWatcher : IDisposable
 {
-    List<FileSystemWatcher> Watchers = [];
+    private List<FileSystemWatcher> Watchers = [];
     private ScriptFileWatcher()
     {
         StartWatching();
@@ -16,7 +16,7 @@ public class ScriptFileWatcher : IDisposable
         StopWatching();
     }
 
-    void StopWatching()
+    private void StopWatching()
     {
         foreach(var w in Watchers)
         {
@@ -44,7 +44,7 @@ public class ScriptFileWatcher : IDisposable
                     NotifyFilters.FileName |
                     NotifyFilters.LastWrite |
                     NotifyFilters.Size |
-                    NotifyFilters.Security, 
+                    NotifyFilters.Security,
                     EnableRaisingEvents = true
                 };
                 watcher.Created += Watcher_Created;
@@ -84,11 +84,11 @@ public class ScriptFileWatcher : IDisposable
                         var script = ScriptingProcessor.Scripts.FirstOrDefault(x => x.InternalData.Name == scriptName && x.InternalData.Namespace == scriptNamespace);
                         if(script != null)
                         {
-                            if(script.IsDisabledByUser)
+                            /*if(script.IsDisabledByUser)
                             {
                                 PluginLog.Warning($"Script {script.InternalData.FullName} is disabled by user, skipping reload for {e.FullPath}");
                             }
-                            else
+                            else*/
                             {
                                 PluginLog.Information($"Auto-reloading {script.InternalData.FullName} from {e.FullPath}");
                                 ChatPrinter.Green($"Auto-reloading script {script.InternalData.Name}");

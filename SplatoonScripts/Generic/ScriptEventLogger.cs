@@ -10,12 +10,13 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace SplatoonScriptsOfficial.Generic;
 internal unsafe class ScriptEventLogger :SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
-    public override Metadata? Metadata => new(6, "Redmoon");
+    public override Metadata? Metadata => new(8, "Redmoon");
 
     private Config Conf => Controller.GetConfig<Config>();
 
@@ -135,6 +136,8 @@ internal unsafe class ScriptEventLogger :SplatoonScript
         if (Conf.FilterOnVFXSpawnSubFilterPlayers && targetObj is IPlayerCharacter) return;
         if (Conf.FilterOnVFXSpawnSubFilterEnemies && targetObj is IBattleNpc) return;
 
+        if (targetObj is IPlayerCharacter && vfxPath.Contains("vfx/common/eff/")) return;
+
         if (targetObj == null)
             PluginLog.Information($"OnVFXSpawn: {vfxPath}");
         else
@@ -150,15 +153,15 @@ internal unsafe class ScriptEventLogger :SplatoonScript
             npc.BattleNpcKind == BattleNpcSubKind.Chocobo) return;
         if (npc == null || npc.DataId == 0) return;
 
-        var actionName = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>().GetRowOrDefault(castId)?.Name.ToString();
+        var action = Svc.Data.GetExcelSheet<Action>()!.GetRowOrDefault(castId);
 
-        if (actionName == null)
+        if (action.HasValue)
         {
-            PluginLog.Information($"OnStartingCast: Cast: {actionName}({castId}) - source: {npc.Name}{npc.Position}(GID: {npc.GameObjectId} DID: {npc.DataId})");
+            PluginLog.Information($"OnStartingCast: Cast: {action.Value.Name}({castId}) - source: {npc.Name}{npc.Position}(GID: 0x{npc.GameObjectId.ToString("X8")} DID: {npc.DataId})");
         }
         else
         {
-            PluginLog.Information($"OnStartingCast: Cast: {castId} - source: {npc.Name}{npc.Position}(GID: {npc.GameObjectId} DID: {npc.DataId})");
+            PluginLog.Information($"OnStartingCast: Cast: {castId} - source: {npc.Name}{npc.Position}(GID: 0x{npc.GameObjectId.ToString("X8")} DID: {npc.DataId})");
         }
     }
 
@@ -204,9 +207,18 @@ internal unsafe class ScriptEventLogger :SplatoonScript
             npc.BattleNpcKind == BattleNpcSubKind.Chocobo) return;
 
         if (set.Target == null)
-            PluginLog.Information($"OnActionEffectEvent: {set.Action.Value.Name}({set.Action.Value.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId})");
+            PluginLog.Information(
+                $"OnActionEffectEvent: " +
+                $"{set.Action.Value.Name}({set.Action.Value.RowId}) - " +
+                $"Source: {set.Source.Name}{set.Source.Position}" +
+                $"(GID: 0x{set.Source.GameObjectId.ToString("X8")} DID: {set.Source.DataId})");
         else
-            PluginLog.Information($"OnActionEffectEvent: {set.Action.Value.Name}({set.Action.Value.RowId}) - Source: {set.Source.Name}{set.Source.Position}(GID: {set.Source.GameObjectId} DID: {set.Source.DataId}) - Target: {set.Target.Name}{set.Target.Position}(GID: {set.Target.GameObjectId} DID: {set.Target.DataId})");
+            PluginLog.Information(
+                $"OnActionEffectEvent: {set.Action.Value.Name}({set.Action.Value.RowId}) - " +
+                $"Source: {set.Source.Name}{set.Source.Position}" +
+                $"(GID: 0x{set.Source.GameObjectId.ToString("X8")} DID: {set.Source.DataId}) - " +
+                $"Target: {set.Target.Name}{set.Target.Position}" +
+                $"(GID: 0x{set.Target.GameObjectId.ToString("X8")} DID: {set.Target.DataId})");
     }
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)

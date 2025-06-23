@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 #nullable enable
 namespace Splatoon.SplatoonScripting;
 
-public unsafe static class Extensions
+public static unsafe class Extensions
 {
     /// <summary>
     /// Gets object by it's object ID.
@@ -21,7 +21,7 @@ public unsafe static class Extensions
     /// <param name="objectID">Object ID to search.</param>
     /// <param name="obj">Resulting GameObject if found; null otherwise.</param>
     /// <returns>Whether object was found.</returns>
-    public static bool TryGetObject(this uint objectID, [NotNullWhen(true)]out IGameObject? obj)
+    public static bool TryGetObject(this uint objectID, [NotNullWhen(true)] out IGameObject? obj)
     {
         obj = objectID.GetObject();
         return obj != null;
@@ -49,5 +49,16 @@ public unsafe static class Extensions
         e.offX = Position.X;
         e.offY = Position.Z;
         e.offZ = Position.Y;
+    }
+
+    /// <summary>
+    /// Get a unique ID for this element.
+    /// </summary>
+    /// <param name="e">Element to get unqiue ID for</param>
+    /// <param name="maybeGameObject">A GameObject that is only specified if the element is attached to one</param>
+    /// <returns></returns>
+    public static string GetUniqueId(this Element e, IGameObject? maybeGameObject = null)
+    {
+        return e.GUID + maybeGameObject?.GameObjectId;
     }
 }

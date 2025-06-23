@@ -20,16 +20,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Limit_Cut : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1154 };
+        public override HashSet<uint> ValidTerritories => [1154];
         public override Metadata? Metadata => new(2, "NightmareXIV");
-        const uint Puddle = 33527;
-        const uint Laser = 33520;
-        bool mechanicActive = false;
-        int puddleNum = 0;
-        int laserNum = 0;
+        private const uint Puddle = 33527;
+        private const uint Laser = 33520;
+        private bool mechanicActive = false;
+        private int puddleNum = 0;
+        private int laserNum = 0;
 
-        Element EPuddle = null!;
-        Element ELaser = null!;
+        private Element EPuddle = null!;
+        private Element ELaser = null!;
 
         public override void OnSetup()
         {
@@ -49,7 +49,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnVFXSpawn(uint target, string vfxPath)
         {
-            if (vfxPath.StartsWith("vfx/lockon/eff/sph_lockon2_num0"))
+            if(vfxPath.StartsWith("vfx/lockon/eff/sph_lockon2_num0"))
             {
                 mechanicActive = true;
                 puddleNum = 0;
@@ -62,12 +62,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         {
             EPuddle.Enabled = false;
             ELaser.Enabled = false;
-            if (mechanicActive)
+            if(mechanicActive)
             {
                 var myNum = GetMyNumber();
-                if (myNum.EqualsAny(1, 2, 3, 4))
+                if(myNum.EqualsAny(1, 2, 3, 4))
                 {
-                    if (puddleNum < 4)
+                    if(puddleNum < 4)
                     {
                         //take puddle
                         EPuddle.Enabled = true;
@@ -79,7 +79,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 }
                 else
                 {
-                    if (puddleNum >= 4)
+                    if(puddleNum >= 4)
                     {
                         //take puddle
                         EPuddle.Enabled = true;
@@ -90,31 +90,31 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     }
                 }
                 //57681324
-                if (myNum.EqualsAny(5, 7) && laserNum == 0)
+                if(myNum.EqualsAny(5, 7) && laserNum == 0)
                 {
                     //laser
                     ELaser.Enabled = true;
                 }
-                if (myNum.EqualsAny(6, 8) && laserNum == 2)
+                if(myNum.EqualsAny(6, 8) && laserNum == 2)
                 {
                     //laser
                     ELaser.Enabled = true;
                 }
-                if (myNum.EqualsAny(1, 3) && laserNum == 4)
+                if(myNum.EqualsAny(1, 3) && laserNum == 4)
                 {
                     //laser
                     ELaser.Enabled = true;
                 }
-                if (myNum.EqualsAny(2, 4) && laserNum == 6)
+                if(myNum.EqualsAny(2, 4) && laserNum == 6)
                 {
                     //laser
                     ELaser.Enabled = true;
                 }
-                if (ELaser.Enabled)
+                if(ELaser.Enabled)
                 {
                     ELaser.overlayBGColor = GradientColor.Get(ImGuiColors.DalamudRed, ImGuiColors.DalamudYellow).ToUint();
                 }
-                if ((puddleNum >= 8 && laserNum >= 8))
+                if((puddleNum >= 8 && laserNum >= 8))
                 {
                     mechanicActive = false;
                     //DuoLog.Information($"Mechanic ends {puddleNum} {laserNum}");
@@ -130,7 +130,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        int GetMyNumber()
+        private int GetMyNumber()
         {
             if(AttachedInfo.VFXInfos.TryGetValue(Svc.ClientState.LocalPlayer.Address, out var info))
             {
@@ -144,7 +144,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
-            if (!mechanicActive) return;
+            if(!mechanicActive) return;
             if(set.Source?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
             {
                 if(set.Action.Value.RowId == Puddle)

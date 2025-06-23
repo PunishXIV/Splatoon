@@ -1,6 +1,9 @@
-﻿using Dalamud.Hooking;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Hooking;
 using ECommons.DalamudServices.Legacy;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Lumina.Excel.Sheets;
@@ -13,19 +16,19 @@ namespace Splatoon.Memory;
 
 
 #nullable enable
-public unsafe static class AttachedInfo
+public static unsafe class AttachedInfo
 {
-    delegate nint GameObject_ctor(nint obj);
-    static Hook<GameObject_ctor>? GameObject_ctor_hook = null;
-    public static Dictionary<nint, CachedCastInfo> CastInfos = new();
-    public static Dictionary<nint, List<CachedObjectEffectInfo>> ObjectEffectInfos = new();
-    public static Dictionary<nint, Dictionary<string, VFXInfo>> VFXInfos = new();
-    public static Dictionary<nint, List<CachedTetherInfo>> TetherInfos = new();
-    static HashSet<nint> Casters = new();
+    private delegate nint GameObject_ctor(nint obj);
+    private static Hook<GameObject_ctor>? GameObject_ctor_hook = null;
+    public static Dictionary<nint, CachedCastInfo> CastInfos = [];
+    public static Dictionary<nint, List<CachedObjectEffectInfo>> ObjectEffectInfos = [];
+    public static Dictionary<nint, Dictionary<string, VFXInfo>> VFXInfos = [];
+    public static Dictionary<nint, List<CachedTetherInfo>> TetherInfos = [];
+    private static HashSet<nint> Casters = [];
 
     [Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
-    delegate nint ActorVfxCreateDelegate2(char* a1, nint a2, nint a3, float a4, char a5, ushort a6, char a7);
-    static Hook<ActorVfxCreateDelegate2>? ActorVfxCreateHook;
+    private delegate nint ActorVfxCreateDelegate2(char* a1, nint a2, nint a3, float a4, char a5, ushort a6, char a7);
+    private static Hook<ActorVfxCreateDelegate2>? ActorVfxCreateHook;
 
     internal static void Init()
     {
@@ -47,7 +50,7 @@ public unsafe static class AttachedInfo
     internal static void Dispose()
     {
         Svc.Framework.Update -= Tick;
-        if (GameObject_ctor_hook != null)
+        if(GameObject_ctor_hook != null)
         {
             GameObject_ctor_hook.Disable();
             GameObject_ctor_hook.Dispose();
@@ -60,14 +63,14 @@ public unsafe static class AttachedInfo
         ObjectEffectInfos = null!;
     }
 
-    static nint ActorVfxNewHandler(char* a1, nint a2, nint a3, float a4, char a5, ushort a6, char a7)
+    private static nint ActorVfxNewHandler(char* a1, nint a2, nint a3, float a4, char a5, ushort a6, char a7)
     {
         try
         {
             var vfxPath = Dalamud.Memory.MemoryHelper.ReadString(new nint(a1), Encoding.ASCII, 256);
-            if (!VFXInfos.ContainsKey(a2))
+            if(!VFXInfos.ContainsKey(a2))
             {
-                VFXInfos[a2] = new();
+                VFXInfos[a2] = [];
             }
             VFXInfos[a2][vfxPath] = new()
             {
@@ -75,20 +78,21 @@ public unsafe static class AttachedInfo
             };
             var obj = Svc.Objects.CreateObjectReference(a2)!;
             ScriptingProcessor.OnVFXSpawn(obj.EntityId, vfxPath);
-            if (!Utils.BlacklistedVFX.Contains(vfxPath))
+            if(!Utils.BlacklistedVFX.Contains(vfxPath))
             {
-                if (obj is ICharacter c)
+                if(obj is ICharacter c)
                 {
-                    var text = $"VFX {vfxPath} spawned on {(obj.Address == Svc.ClientState.LocalPlayer?.Address ? "me" : obj.Name.ToString())} npc id={obj.Struct()->GetNameId()}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={obj.Position.ToString()}";
+                    var targetText = c.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
+                    var text = $"VFX {vfxPath} spawned on {targetText} npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}";
                     P.ChatMessageQueue.Enqueue(text);
-                    if (P.Config.Logging) Logger.Log(text);
-                    if(obj is IBattleNpc) P.LogWindow.Log(text);
+                    if(P.Config.Logging) Logger.Log(text);
+                    if(c is IBattleNpc) P.LogWindow.Log(text);
                 }
                 else
                 {
-                    var text = $"VFX {vfxPath} spawned on {obj.Name.ToString()} npc id={obj.Struct()->GetNameId()}, position={obj.Position.ToString()}";
+                    var text = $"VFX {vfxPath} spawned on {obj.DataId} npc id={obj.Struct()->GetNameId()}, position={obj.Position}";
                     P.ChatMessageQueue.Enqueue(text);
-                    if (P.Config.Logging) Logger.Log(text);
+                    if(P.Config.Logging) Logger.Log(text);
                     if(obj is IBattleNpc) P.LogWindow.Log(text);
                 }
             }
@@ -102,7 +106,7 @@ public unsafe static class AttachedInfo
 
     public static bool TryGetVfx(this IGameObject go, out Dictionary<string, VFXInfo>? fx)
     {
-        if (VFXInfos.ContainsKey(go.Address))
+        if(VFXInfos.ContainsKey(go.Address))
         {
             fx = VFXInfos[go.Address];
             return true;
@@ -125,7 +129,7 @@ public unsafe static class AttachedInfo
 
     public static bool TryGetSpecificVfxInfo(this IGameObject go, string path, out VFXInfo info)
     {
-        if (TryGetVfx(go, out var dict) && dict?.ContainsKey(path) == true)
+        if(TryGetVfx(go, out var dict) && dict?.ContainsKey(path) == true)
         {
             info = dict[path];
             return true;
@@ -134,7 +138,7 @@ public unsafe static class AttachedInfo
         return false;
     }
 
-    static nint GameObject_ctor_detour(nint ptr)
+    private static nint GameObject_ctor_detour(nint ptr)
     {
         CastInfos.Remove(ptr);
         Casters.Remove(ptr);
@@ -143,31 +147,33 @@ public unsafe static class AttachedInfo
         TetherInfos.Remove(ptr);
         return GameObject_ctor_hook!.Original(ptr);
     }
-    static void Tick(object _)
+    private static void Tick(object _)
     {
         foreach(var x in Svc.Objects)
         {
-            if(x is IBattleChara b) {
+            if(x is IBattleChara b)
+            {
                 bool isCasting;
-                try 
+                try
                 {
                     isCasting = b.Struct()->GetCastInfo() != null && b.IsCasting;
                 }
-                catch {
+                catch
+                {
                     // Ignore invalid BattleChara objects that exist during cutscenes
                     continue;
                 }
 
-                if (isCasting)
+                if(isCasting)
                 {
-                    if (!Casters.Contains(b.Address)) 
+                    if(!Casters.Contains(b.Address))
                     {
                         CastInfos[b.Address] = new(b.CastActionId, Environment.TickCount64 - (long)(b.CurrentCastTime * 1000));
                         Casters.Add(b.Address);
                         string text;
-                        if (P.Config.LogPosition)
+                        if(P.Config.LogPosition)
                         {
-                            text = $"{b.Name} ({x.Position.ToString()}) starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
+                            text = $"{b.Name} ({x.Position}) starts casting {b.CastActionId} ({b.NameId}>{b.CastActionId})";
                         }
                         else
                         {
@@ -175,7 +181,7 @@ public unsafe static class AttachedInfo
                         }
                         ScriptingProcessor.OnStartingCast(b.EntityId, b.CastActionId);
                         P.ChatMessageQueue.Enqueue(text);
-                        if (P.Config.Logging)
+                        if(P.Config.Logging)
                         {
                             Logger.Log(text);
                             if(b is IBattleNpc) P.LogWindow.Log(text);
@@ -184,7 +190,7 @@ public unsafe static class AttachedInfo
                 }
                 else
                 {
-                    if (Casters.Contains(b.Address))
+                    if(Casters.Contains(b.Address))
                     {
                         Casters.Remove(b.Address);
                     }

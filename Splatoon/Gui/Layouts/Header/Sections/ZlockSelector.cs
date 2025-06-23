@@ -13,44 +13,44 @@ internal static class ZlockSelector
         var colorZLock = Svc.ClientState?.TerritoryType != null
             && (layout.ZoneLockH.Count != 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)
             && Environment.TickCount64 % 1000 < 500;
-        if (colorZLock) ImGui.PushStyleColor(ImGuiCol.Text, Colors.Red);
+        if(colorZLock) ImGui.PushStyleColor(ImGuiCol.Text, Colors.Red);
         layout.ZoneLockH.RemoveWhere(el => !P.Zones.ContainsKey(el));
         ImGuiEx.SetNextItemFullWidth();
-        if (ImGui.BeginCombo("##zlk", layout.ZoneLockH.Count == 0 ? "All zones".Loc() :
+        if(ImGui.BeginCombo("##zlk", layout.ZoneLockH.Count == 0 ? "All zones".Loc() :
             layout.ZoneLockH.Count == 1 ? GenericHelpers.GetTerritoryName(layout.ZoneLockH.First()) :
             "?? zones".Loc(layout.ZoneLockH.Count)
             ))
         {
-            if (colorZLock) ImGui.PopStyleColor();
+            if(colorZLock) ImGui.PopStyleColor();
             ImGui.SetNextItemWidth(100f);
             ImGui.InputTextWithHint("##zfltr", "Filter".Loc(), ref zlockf, 100);
             ImGui.SameLine();
             ImGui.Checkbox("Only selected".Loc(), ref zlockcur);
-            if (P.Zones.ContainsKey(Svc.ClientState.TerritoryType))
+            if(P.Zones.ContainsKey(Svc.ClientState.TerritoryType))
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, Colors.Yellow);
-                if (layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType))
+                if(layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType))
                 {
                     ImGuiUtils.ColorButton(Colors.Red);
                 }
-                string zcfc = P.Zones[Svc.ClientState.TerritoryType].ContentFinderCondition.ValueNullable?.Name.ToString();
-                if (P.Zones.ContainsKey(Svc.ClientState.TerritoryType) && ImGui.SmallButton($"Current zone: ??".Loc(GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType))))
+                var zcfc = P.Zones[Svc.ClientState.TerritoryType].ContentFinderCondition.ValueNullable?.Name.ToString();
+                if(P.Zones.ContainsKey(Svc.ClientState.TerritoryType) && ImGui.SmallButton($"Current zone: ??".Loc(GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType))))
                 {
                     layout.ZoneLockH.Toggle(Svc.ClientState.TerritoryType);
                 }
                 ImGuiUtils.UncolorButton();
                 ImGui.PopStyleColor();
             }
-            foreach (var z in P.Zones.Where(x => x.Value.PlaceName.ValueNullable?.Name.ToString().IsNullOrEmpty() == false))
+            foreach(var z in P.Zones.Where(x => x.Value.PlaceName.ValueNullable?.Name.ToString().IsNullOrEmpty() == false))
             {
                 var s = GenericHelpers.GetTerritoryName(z.Key);
-                if (!s.ToLower().Contains(zlockf)) continue;
-                if (zlockcur && !layout.ZoneLockH.Contains(z.Key)) continue;
-                if (layout.ZoneLockH.Contains(z.Key))
+                if(!s.ToLower().Contains(zlockf)) continue;
+                if(zlockcur && !layout.ZoneLockH.Contains(z.Key)) continue;
+                if(layout.ZoneLockH.Contains(z.Key))
                 {
                     ImGuiUtils.ColorButton(Colors.Red);
                 }
-                if (ImGui.SmallButton(s))
+                if(ImGui.SmallButton(s))
                 {
                     layout.ZoneLockH.Toggle(z.Key);
                 }
@@ -60,7 +60,7 @@ internal static class ZlockSelector
         }
         else
         {
-            if (colorZLock) ImGui.PopStyleColor();
+            if(colorZLock) ImGui.PopStyleColor();
         }
     }
 }

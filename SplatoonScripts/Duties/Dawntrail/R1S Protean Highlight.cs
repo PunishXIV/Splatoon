@@ -29,13 +29,13 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
     public override HashSet<uint>? ValidTerritories { get; } = [1226];
     public override Metadata? Metadata => new(3, "NightmareXIV");
 
-    IBattleNpc? BlackCat => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.IsTargetable && x.NameId == 12686);
-    int CrossingStage = 0;
-    Vector3 EntityPos = Vector3.Zero;
+    private IBattleNpc? BlackCat => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.IsTargetable && x.NameId == 12686);
+    private int CrossingStage = 0;
+    private Vector3 EntityPos = Vector3.Zero;
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             Controller.RegisterElementFromCode($"Cone{i}", "{\"Name\":\"\",\"type\":5,\"radius\":30.0,\"coneAngleMin\":-23,\"coneAngleMax\":23,\"fillIntensity\":0.25,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":12686,\"refActorComparisonType\":2,\"includeRotation\":true,\"FaceMe\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
@@ -69,7 +69,7 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
                 if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsCasting && x.CastActionId.EqualsAny(38009u), out var caster))
                 {
                     CrossingStage = 1;
-                    EntityPos = caster.Position + new Vector3(-10,0,0) * (caster.Rotation.RadToDeg().InRange(170,190)?1:-1);
+                    EntityPos = caster.Position + new Vector3(-10, 0, 0) * (caster.Rotation.RadToDeg().InRange(170, 190) ? 1 : -1);
                 }
             }
             {
@@ -92,7 +92,7 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
         }
     }
 
-    Dictionary<uint, uint[]> MirroredStatus = [];
+    private Dictionary<uint, uint[]> MirroredStatus = [];
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
         PluginLog.Information($"Tether created \non {source.GetObject()}\nto{target.GetObject()}\n{data2}, {data3}, {data5}");
@@ -103,18 +103,19 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
         }
     }
 
-    void DrawCrossings(bool inverted)
+    private void DrawCrossings(bool inverted)
     {
-        var players = FakeParty.Get().OrderBy(x => Vector3.Distance(this.EntityPos, x.Position)).ToList();
+        var players = FakeParty.Get().OrderBy(x => Vector3.Distance(EntityPos, x.Position)).ToList();
         var baits = C.IsBaitingFirst;
         if(inverted) baits = !baits;
 
-        if (C.ShowCrossGuide) {
-            var cross1 = Controller.GetElementByName("Cross1")!;       
+        if(C.ShowCrossGuide)
+        {
+            var cross1 = Controller.GetElementByName("Cross1")!;
             cross1.Enabled = true;
             cross1.refX = EntityPos.X + 5;
             cross1.refY = EntityPos.Z + 5;
-            cross1.offX = EntityPos.X - 5;        
+            cross1.offX = EntityPos.X - 5;
             cross1.offY = EntityPos.Z - 5;
 
             var cross2 = Controller.GetElementByName("Cross2")!;
@@ -125,7 +126,7 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
             cross2.offY = EntityPos.Z + 5;
         }
 
-        foreach (var x in Controller.GetPartyMembers())
+        foreach(var x in Controller.GetPartyMembers())
         {
             if(AttachedInfo.TryGetSpecificVfxInfo(x, "vfx/lockon/eff/lockon8_t0w.avfx", out var info) && info.AgeF < 15)
             {
@@ -141,14 +142,14 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
         {
             Controller.GetElementByName("Avoid")!.Enabled = true;
         }
-        for(int i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             var e = Controller.GetElementByName($"Cone{i}")!;
             e.Enabled = true;
             e.SetRefPosition(EntityPos);
             var order = GetPlayerOrder(players[i]);
             e.faceplayer = $"<{order}>";
-            
+
             if(order == 1)
             {
                 if(baits)
@@ -176,7 +177,7 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
             {
                 PluginLog.Information("Switch to stage 2");
                 CrossingStage = 2;
-                this.EntityPos = BlackCat!.Position;
+                EntityPos = BlackCat!.Position;
                 Controller.ScheduleReset(5000);
             }, 1000);
         }
@@ -209,9 +210,9 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
         Controller.GetElementByName("Cross2")!.Enabled = false;
     }
 
-    int GetPlayerOrder(IPlayerCharacter c)
+    private int GetPlayerOrder(IPlayerCharacter c)
     {
-        for(int i = 1; i <=8; i++)
+        for(var i = 1; i <= 8; i++)
         {
             if((nint)FakePronoun.Resolve($"<{i}>") == c.Address) return i;
         }
@@ -223,14 +224,14 @@ public unsafe class R1S_Protean_Highlight : SplatoonScript
         ImGuiEx.RadioButtonBool("Baiting first proteans", "Baiting second proteans", ref C.IsBaitingFirst);
         ImGui.Separator();
         ImGui.Checkbox("Show intercardinal guide", ref C.ShowCrossGuide);
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"EntityPos: {EntityPos}");
         }
     }
 
 
-    Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
     {
         public bool IsBaitingFirst = true;

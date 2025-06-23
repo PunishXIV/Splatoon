@@ -20,33 +20,33 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class DSR_Dooms : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 968 };
+        public override HashSet<uint> ValidTerritories => [968];
         public override Metadata? Metadata => new(6, "Enthusiastus");
 
-        List<Element> DoomElements = new();
-        List<Element> NoDoomElements = new();
-        Dictionary<double, IPlayerCharacter> plrs = new();
+        private List<Element> DoomElements = [];
+        private List<Element> NoDoomElements = [];
+        private Dictionary<double, IPlayerCharacter> plrs = [];
 
-        Element? Circle1Element;
-        Element? Circle2Element;
-        Element? DoomSquareElement;
-        Element? DoomTriangleElement;
-        Element? NoDoomSquareElement;
-        Element? NoDoomTriangleElement;
-        Element? X1Element;
-        Element? X2Element;
+        private Element? Circle1Element;
+        private Element? Circle2Element;
+        private Element? DoomSquareElement;
+        private Element? DoomTriangleElement;
+        private Element? NoDoomSquareElement;
+        private Element? NoDoomTriangleElement;
+        private Element? X1Element;
+        private Element? X2Element;
 
-        int count = 0;
-        bool active = false;
+        private int count = 0;
+        private bool active = false;
 
-        const uint GuerriqueDataId = 12637;
-        bool positionDynamic = true;
+        private const uint GuerriqueDataId = 12637;
+        private bool positionDynamic = true;
 
         //IBattleNpc? Thordan => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == ThordanDataId) as IBattleNpc;
-        string TestOverride = "";
+        private string TestOverride = "";
 
-        IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
-        Vector2 Center = new(100, 100);
+        private IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+        private Vector2 Center = new(100, 100);
 
         public override void OnSetup()
         {
@@ -69,7 +69,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
             var doom = "{\"Name\":\"\",\"radius\":0.0,\"overlayBGColor\":1879048447,\"overlayVOffset\":0,\"overlayFScale\":7.0,\"thicc\":0.0,\"overlayText\":\"1\",\"refActorType\":1}";
             var nodoom = "{\"Name\":\"\",\"radius\":0.0,\"overlayBGColor\":1895761920,\"overlayVOffset\":0,\"overlayFScale\":7.0,\"thicc\":0.0,\"overlayText\":\"1\",\"refActorType\":1}";
-            for (var i = 0; i < 4; i++)
+            for(var i = 0; i < 4; i++)
             {
                 var e = Controller.RegisterElementFromCode($"doom{i}", doom);
                 e.overlayText = $"{i + 1}";
@@ -79,7 +79,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 e.Enabled = false;
                 DoomElements.Add(e);
             }
-            for (var i = 0; i < 4; i++)
+            for(var i = 0; i < 4; i++)
             {
                 var e = Controller.RegisterElementFromCode($"nodoom{i}", nodoom);
                 e.overlayText = $"{i + 1}";
@@ -98,44 +98,47 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         public override void OnVFXSpawn(uint target, string vfxPath)
         {
             // Circle
-            if (vfxPath == "vfx/lockon/eff/r1fz_firechain_01x.avfx")
+            if(vfxPath == "vfx/lockon/eff/r1fz_firechain_01x.avfx")
             {
                 DeactivateDoomMarkers();
-                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+                if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has circle");
-                    if (pvc != PC)
+                    if(pvc != PC)
                         return;
                     Circle1Element.Enabled = true;
                     Circle2Element.Enabled = true;
                 }
-            // Triangle
-            } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_02x.avfx")
+                // Triangle
+            }
+            else if(vfxPath == "vfx/lockon/eff/r1fz_firechain_02x.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+                if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has triangle");
-                    if (pvc != PC)
+                    if(pvc != PC)
                         return;
                     var doom = PC.StatusList.Where(z => z.StatusId == 2976);
-                    if (doom.Count() > 0)
+                    if(doom.Count() > 0)
                     {
                         DoomTriangleElement.Enabled = true;
-                    } else
+                    }
+                    else
                     {
                         NoDoomTriangleElement.Enabled = true;
                     }
                 }
-            // Square
-            } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_03x.avfx")
+                // Square
+            }
+            else if(vfxPath == "vfx/lockon/eff/r1fz_firechain_03x.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+                if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has square");
-                    if (pvc != PC)
+                    if(pvc != PC)
                         return;
                     var doom = PC.StatusList.Where(z => z.StatusId == 2976);
-                    if (doom.Count() > 0)
+                    if(doom.Count() > 0)
                     {
                         DoomSquareElement.Enabled = true;
                     }
@@ -144,13 +147,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                         NoDoomSquareElement.Enabled = true;
                     }
                 }
-            // X
-            } else if (vfxPath == "vfx/lockon/eff/r1fz_firechain_04x.avfx")
+                // X
+            }
+            else if(vfxPath == "vfx/lockon/eff/r1fz_firechain_04x.avfx")
             {
-                if (target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
+                if(target.TryGetObject(out var pv) && pv is IPlayerCharacter pvc)
                 {
                     //DuoLog.Information($"{pvc.Name} has x");
-                    if (pvc != PC)
+                    if(pvc != PC)
                         return;
                     X1Element.Enabled = true;
                     X2Element.Enabled = true;
@@ -160,9 +164,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnMessage(string Message)
         {
-            if (Message.Contains("(3641>25557)"))
+            if(Message.Contains("(3641>25557)"))
             {
-                if (count == 0)
+                if(count == 0)
                 {
                     count++;
                     return;
@@ -172,20 +176,20 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 //DuoLog.Information($"Guerrique is at {guerrique.Position.X}/{guerrique.Position.Z}/{guerrique.Position.Y}, need to rotate {-guerrique.Rotation}");
 
                 var players = FakeParty.Get();
-                int blue = 0;
-                int red = 0;
-                foreach (var p in players)
+                var blue = 0;
+                var red = 0;
+                foreach(var p in players)
                 {
                     //DuoLog.Information($"{p.Name} is @ {p.Position.X}/{p.Position.Z}/{p.Position.Y}");
                     plrs.Add(p.Position.X * Math.Cos(-guerrique.Rotation) + p.Position.Z * Math.Sin(-guerrique.Rotation), p);
                     var doom = p.StatusList.Where(z => z.StatusId == 2976);
                     //DuoLog.Information($"has {doom.Count()} dooms ");
                 }
-                foreach (var p in plrs.OrderBy(x => x.Key))
+                foreach(var p in plrs.OrderBy(x => x.Key))
                 {
                     //DuoLog.Information($"{p.Value.Name}");
                     var doom = p.Value.StatusList.Where(z => z.StatusId == 2976);
-                    if (doom.Count() > 0)
+                    if(doom.Count() > 0)
                     {
                         var e = DoomElements[red];
                         e.SetRefPosition(p.Value.Position);
@@ -251,11 +255,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ActionEffect.ActionEffectEvent -= ActionEffect_ActionEffectEvent;
         }
 
-        void Hide()
+        private void Hide()
         {
         }
 
-        void Off()
+        private void Off()
         {
             plrs.Clear();
             count = 0;
@@ -264,14 +268,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnUpdate()
         {
-            if (!active)
+            if(!active)
                 return;
-            int blue = 0;
-            int red = 0;
-            foreach (var p in plrs.OrderBy(x => x.Key))
+            var blue = 0;
+            var red = 0;
+            foreach(var p in plrs.OrderBy(x => x.Key))
             {
                 var doom = p.Value.StatusList.Where(z => z.StatusId == 2976);
-                if (doom.Count() > 0)
+                if(doom.Count() > 0)
                 {
                     var e = DoomElements[red];
                     e.SetRefPosition(p.Value.Position);
@@ -288,13 +292,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
         {
-            if (category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
+            if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
             {
                 Off();
             }
         }
 
-        Config Conf => Controller.GetConfig<Config>();
+        private Config Conf => Controller.GetConfig<Config>();
         public class Config : IEzConfig
         {
             public Vector4 ColNoDoom = Vector4FromRGBA(0xFF0000C8);
@@ -314,9 +318,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.DragFloat("Number scale", ref Conf.tScale.ValidateRange(0.1f, 10f), 0.1f);
         }
 
-        public unsafe static Vector4 Vector4FromRGBA(uint col)
+        public static unsafe Vector4 Vector4FromRGBA(uint col)
         {
-            byte* bytes = (byte*)&col;
+            var bytes = (byte*)&col;
             return new Vector4((float)bytes[3] / 255f, (float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f);
         }
     }

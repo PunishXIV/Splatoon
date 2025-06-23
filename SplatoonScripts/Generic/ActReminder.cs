@@ -16,7 +16,7 @@ namespace SplatoonScriptsOfficial.Generic
 {
     public class ActReminder : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
         public override Metadata? Metadata => new(1, "NightmareXIV");
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Generic
                 if(!Process.GetProcessesByName("Advanced Combat Tracker").Any())
                 {
                     var s = new SeStringBuilder().AddUiForeground("!!! WARNING !!! ACT is not running", (ushort)UIColor.Red).Build();
-                    for (var i = 0; i < 20; i++)
+                    for(var i = 0; i < 20; i++)
                     {
                         Svc.Chat.Print(s);
                     }

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -10,6 +7,9 @@ using ECommons.ImGuiMethods;
 using ECommons.Throttlers;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -33,42 +33,42 @@ public class P2_AutoTargetCrystal : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGuiEx.EnumCombo("Target Type", ref C.TargetType);
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text("Light Crystals");
-            foreach (var crystal in LightCrystals) ImGui.Text(crystal.Name.ToString());
+            foreach(var crystal in LightCrystals) ImGui.Text(crystal.Name.ToString());
         }
     }
 
     public override void OnUpdate()
     {
-        if (EzThrottler.Throttle("AutoTargetCrystal", 200)) SetNearTarget();
+        if(EzThrottler.Throttle("AutoTargetCrystal", 200)) SetNearTarget();
     }
 
     private void SetNearTarget()
     {
-        switch (C.TargetType)
+        switch(C.TargetType)
         {
             case TargetType.OnlyCrystals:
-            {
-                if (LightCrystals.Where(x => x.CurrentHp != 0)
-                        .MinBy(x => Vector3.Distance(x.Position, Player.Position)) is { } target)
-                    Svc.Targets.SetTarget(target);
-                return;
-            }
+                {
+                    if(LightCrystals.Where(x => x.CurrentHp != 0)
+                            .MinBy(x => Vector3.Distance(x.Position, Player.Position)) is { } target)
+                        Svc.Targets.SetTarget(target);
+                    return;
+                }
             case TargetType.OnlyVeil:
-            {
-                if (!LightCrystals.Any(x => x.CurrentHp != 0) && IceCrystal is { } ice) Svc.Targets.SetTarget(ice);
-                return;
-            }
+                {
+                    if(!LightCrystals.Any(x => x.CurrentHp != 0) && IceCrystal is { } ice) Svc.Targets.SetTarget(ice);
+                    return;
+                }
             case TargetType.Both:
-            {
-                if (LightCrystals.Where(x => x.CurrentHp != 0)
-                        .MinBy(x => Vector3.Distance(x.Position, Player.Position)) is { } target)
-                    Svc.Targets.SetTarget(target);
-                else if (IceCrystal is { } ice) Svc.Targets.SetTarget(ice);
-                return;
-            }
+                {
+                    if(LightCrystals.Where(x => x.CurrentHp != 0)
+                            .MinBy(x => Vector3.Distance(x.Position, Player.Position)) is { } target)
+                        Svc.Targets.SetTarget(target);
+                    else if(IceCrystal is { } ice) Svc.Targets.SetTarget(ice);
+                    return;
+                }
         }
     }
 

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
@@ -24,6 +20,10 @@ using ImGuiNET;
 using Splatoon;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -31,7 +31,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 {
     private readonly Vector2 _centerPosition = new(100f, 100f);
 
-    private readonly Dictionary<string, EnchantmentType> _enchantments = new();
+    private readonly Dictionary<string, EnchantmentType> _enchantments = [];
     private readonly Vector2 _lowerLeftPosition = new(95f, 118.5f);
     private readonly Vector2 _lowerRightPosition = new(105f, 118.5f);
     private readonly Vector2 _upperLeftPosition = new(85f, 88f);
@@ -82,18 +82,18 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        if (_state != State.Start) return;
-        if (Status.StatusId is 2902 or 2903)
+        if(_state != State.Start) return;
+        if(Status.StatusId is 2902 or 2903)
             _state = State.End;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state != State.None) return;
-        if (target.GetObject() is not IBattleChara targetObject) return;
+        if(_state != State.None) return;
+        if(target.GetObject() is not IBattleChara targetObject) return;
         var targetDataId = targetObject.DataId;
-        if (targetDataId != 0x3144 && targetDataId != 0x3145) return;
-        if (source.GetObject() is not ICharacter sourceCharacter) return;
+        if(targetDataId != 0x3144 && targetDataId != 0x3145) return;
+        if(source.GetObject() is not ICharacter sourceCharacter) return;
         _enchantments[sourceCharacter.Name.ToString()] = targetDataId switch
         {
             0x3144 => EnchantmentType.Fire,
@@ -101,12 +101,12 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        if (_enchantments.Count == 6)
+        if(_enchantments.Count == 6)
         {
             _state = State.Start;
             _myBaitPosition = GetBaitPosition(Player.Name);
             var party = _enchantments.Keys.ToList();
-            if (C.SwapIfNeeded)
+            if(C.SwapIfNeeded)
             {
                 var myEnchantment = _enchantments[Player.Name];
                 var pairCharacterName = GetPairCharacterName(Player.Name);
@@ -114,7 +114,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
                 Alert($"Pair: {pairCharacterName} {pairEnchantment}");
 
-                if (myEnchantment == pairEnchantment)
+                if(myEnchantment == pairEnchantment)
                 {
                     party.Remove(Player.Object.Name.ToString());
                     party.Remove(pairCharacterName);
@@ -130,7 +130,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
                     Alert($"{otherPartyMember1Enchantment} {otherPartyMember1PairEnchantment}");
 
-                    if (otherPartyMember1Enchantment != otherPartyMember1PairEnchantment)
+                    if(otherPartyMember1Enchantment != otherPartyMember1PairEnchantment)
                     {
                         party.Remove(otherPartyMember1);
                         party.Remove(otherPartyMember1Pair);
@@ -151,11 +151,11 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (_state == State.End) return;
+        if(_state == State.End) return;
 
-        if (castId is 27954 or 27955 or 27956 or 27957)
+        if(castId is 27954 or 27955 or 27956 or 27957)
         {
-            switch (castId)
+            switch(castId)
             {
                 case 27955:
                     _mayRightTankStack = true;
@@ -165,7 +165,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
                     break;
             }
 
-            if (_myBaitPosition != BaitPosition.None)
+            if(_myBaitPosition != BaitPosition.None)
             {
                 var position = _myBaitPosition switch
                 {
@@ -177,11 +177,11 @@ public class P6_Wyrmsbreath_First : SplatoonScript
                     _ => Vector2.Zero
                 };
 
-                if (_myBaitPosition is BaitPosition.UpperLeft or BaitPosition.UpperRight)
-                    if (_mayLeftTankStack && _mayRightTankStack)
+                if(_myBaitPosition is BaitPosition.UpperLeft or BaitPosition.UpperRight)
+                    if(_mayLeftTankStack && _mayRightTankStack)
                         position = _centerPosition;
 
-                if (Controller.TryGetElementByName("Bait", out var element))
+                if(Controller.TryGetElementByName("Bait", out var element))
                 {
                     element.Enabled = true;
                     element.SetOffPosition(position.ToVector3());
@@ -205,13 +205,13 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
     private void Alert(string message)
     {
-        if (C.ShouldShowDebugMessage)
+        if(C.ShouldShowDebugMessage)
             DuoLog.Information(message);
     }
 
     public override void OnUpdate()
     {
-        if (_state is State.None or State.End)
+        if(_state is State.None or State.End)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
@@ -227,19 +227,19 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
         ImGui.SameLine();
         ImGuiEx.Spacing();
-        if (ImGui.Button("Perform test")) SelfTest();
+        if(ImGui.Button("Perform test")) SelfTest();
         ImGui.SameLine();
-        if (ImGui.Button("Fill by job"))
+        if(ImGui.Button("Fill by job"))
         {
             HashSet<(string, Job)> party = [];
-            foreach (var x in FakeParty.Get())
+            foreach(var x in FakeParty.Get())
                 party.Add((x.Name.ToString(), x.GetJob()));
 
             var proxy = InfoProxyCrossRealm.Instance();
-            for (var i = 0; i < proxy->GroupCount; i++)
+            for(var i = 0; i < proxy->GroupCount; i++)
             {
                 var group = proxy->CrossRealmGroups[i];
-                for (var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
+                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
                 {
                     var x = group.GroupMembers[c];
                     party.Add((x.Name.Read(), (Job)x.ClassJobId));
@@ -247,24 +247,24 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             }
 
             var index = 0;
-            foreach (var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
+            foreach(var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
             {
                 C.CharacterNames[index] = party.First(x => x.Item2 == job).Item1;
                 index++;
             }
 
-            for (var i = index; i < C.CharacterNames.Length; i++)
+            for(var i = index; i < C.CharacterNames.Length; i++)
                 C.CharacterNames[i] = "";
         }
         ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
 
-        if (C.CharacterNames.Length != 8)
+        if(C.CharacterNames.Length != 8)
         {
             C.CharacterNames = ["", "", "", "", "", "", "", ""];
             C.BaitPositions = new BaitPosition[8];
         }
 
-        for (var i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             ImGui.PushID("Character" + i);
             ImGui.Text($"Character {i + 1}");
@@ -276,11 +276,11 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             ImGuiEx.EnumCombo($"##BaitPosition{i}", ref C.BaitPositions[i]);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
+            if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get().Select(x => x.Name.ToString())
+                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
                              .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if (ImGui.Selectable(x))
+                    if(ImGui.Selectable(x))
                         C.CharacterNames[i] = x;
                 ImGui.EndCombo();
             }
@@ -293,16 +293,16 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         ImGui.ColorEdit4("Bait Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
         ImGui.Checkbox("Check on Start", ref C.ShouldCheckOnStart);
 
-        if (ImGuiEx.CollapsingHeader("Option"))
+        if(ImGuiEx.CollapsingHeader("Option"))
         {
             DragDrop.Begin();
-            foreach (var job in C.Jobs)
+            foreach(var job in C.Jobs)
             {
                 DragDrop.NextRow();
                 ImGui.Text(job.ToString());
                 ImGui.SameLine();
 
-                if (ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
+                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
                 {
                     ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
                     ImGui.SameLine();
@@ -314,14 +314,14 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
             DragDrop.End();
         }
-        
-        if (ImGuiEx.CollapsingHeader("Debug"))
+
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("Show Debug Message", ref C.ShouldShowDebugMessage);
             ImGui.Text($"State: {_state}");
             ImGui.Text($"My Bait Position: {_myBaitPosition}");
             ImGui.Text("Enchantments");
-            foreach (var enchantment in _enchantments)
+            foreach(var enchantment in _enchantments)
                 ImGui.Text($"{enchantment.Key}: {enchantment.Value}");
         }
     }
@@ -336,7 +336,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         var party = FakeParty.Get().ToArray();
         var isCorrect = C.CharacterNames.All(x => !string.IsNullOrEmpty(x));
 
-        if (!isCorrect)
+        if(!isCorrect)
         {
             Svc.Chat.PrintChat(new XivChatEntry
             {
@@ -346,7 +346,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             return;
         }
 
-        if (party.Length != 8)
+        if(party.Length != 8)
         {
             isCorrect = false;
             Svc.Chat.PrintChat(new XivChatEntry
@@ -356,8 +356,8 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             });
         }
 
-        foreach (var player in party)
-            if (C.CharacterNames.All(x => x != player.Name.ToString()))
+        foreach(var player in party)
+            if(C.CharacterNames.All(x => x != player.Name.ToString()))
             {
                 isCorrect = false;
                 Svc.Chat.PrintChat(new XivChatEntry
@@ -368,7 +368,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
                 });
             }
 
-        if (isCorrect)
+        if(isCorrect)
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
@@ -384,9 +384,9 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (!C.ShouldCheckOnStart)
+        if(!C.ShouldCheckOnStart)
             return;
-        if (category == DirectorUpdateCategory.Commence ||
+        if(category == DirectorUpdateCategory.Commence ||
             (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
             SelfTest();
     }

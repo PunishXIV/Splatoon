@@ -6,6 +6,6 @@ internal static class ConfigurationMigrator1to2
 {
     internal static void Migrate(Configuration config)
     {
-        
+
     }
 }

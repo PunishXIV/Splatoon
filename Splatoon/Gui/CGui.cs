@@ -7,6 +7,7 @@ using PInvoke;
 using Splatoon.ConfigGui;
 using Splatoon.Gui;
 using Splatoon.Gui.Scripting;
+using Splatoon.Gui.Tabs;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -17,10 +18,10 @@ using System.Web;
 namespace Splatoon;
 
 // Master class
-unsafe partial class CGui:IDisposable
+internal unsafe partial class CGui : IDisposable
 {
-    Dictionary<uint, string> ActionNames;
-    Dictionary<uint, string> BuffNames;
+    private Dictionary<uint, string> ActionNames;
+    private Dictionary<uint, string> BuffNames;
     internal const float WidthLayout = 150f;
     internal static float WidthElement
     {
@@ -32,8 +33,8 @@ unsafe partial class CGui:IDisposable
     internal const float WidthCombo = 200f;
     internal readonly Splatoon p;
     public bool Open = false;
-    bool WasOpen = false;
-    float RightWidth = 0;
+    private bool WasOpen = false;
+    private float RightWidth = 0;
     internal string TabRequest = null;
 
     public CGui(Splatoon p)
@@ -48,17 +49,17 @@ unsafe partial class CGui:IDisposable
     {
         Svc.PluginInterface.UiBuilder.Draw -= Draw;
     }
-            
-    void Draw()
+
+    private void Draw()
     {
-        if (p.s2wInfo != null || P.PinnedElementEditWindow.IsOpen) return;
-        if (!Open) 
-        { 
+        if(p.s2wInfo != null || P.PinnedElementEditWindow.IsOpen) return;
+        if(!Open)
+        {
             if(WasOpen)
             {
                 p.Config.Save();
                 WasOpen = false;
-                Notify.Success("Configuration saved".Loc());
+                //Notify.Success("Configuration saved".Loc());
                 if(p.Config.verboselog) p.Log("Configuration saved");
                 P.SaveArchive();
                 ScriptingProcessor.Scripts.Each(x => x.InternalData.UnconditionalDraw = false);
@@ -67,7 +68,7 @@ unsafe partial class CGui:IDisposable
         }
         else
         {
-            if (!WasOpen)
+            if(!WasOpen)
             {
                 p.Config.Backup();
             }
@@ -81,12 +82,12 @@ unsafe partial class CGui:IDisposable
         ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(700, 200));
         var titleColored = false;
         var ctspan = TimeSpan.FromMilliseconds(Environment.TickCount64 - p.CombatStarted);
-        var title = $"Splatoon v{p.loader.splatoonVersion} | {GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType).Replace("| ", "")} | {(p.CombatStarted == 0?"Not in combat".Loc(): $"{Loc("Combat")}: {ctspan.Minutes:D2}{(ctspan.Milliseconds < 500?":":" ")}{ctspan.Seconds:D2} ({(int)ctspan.TotalSeconds}.{(ctspan.Milliseconds / 100):D1}s)")} | {Loc("Phase")}: {p.Phase} | {Loc("Scene")}: {*Scene.ActiveScene} | {Loc("Layouts")}: {p.LayoutAmount} | {Loc("Elements")}: {p.ElementAmount} | {Utils.GetPlayerPositionXZY().X:F1}, {Utils.GetPlayerPositionXZY().Y:F1}###Splatoon";
-        if (ImGui.Begin(title, ref Open))
+        var title = $"Splatoon v{p.loader.splatoonVersion} | {GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType).Replace("| ", "")} | {(p.CombatStarted == 0 ? "Not in combat".Loc() : $"{Loc("Combat")}: {ctspan.Minutes:D2}{(ctspan.Milliseconds < 500 ? ":" : " ")}{ctspan.Seconds:D2} ({(int)ctspan.TotalSeconds}.{(ctspan.Milliseconds / 100):D1}s)")} | {Loc("Phase")}: {p.Phase} | {Loc("Scene")}: {*Scene.ActiveScene} | {Loc("Layouts")}: {p.LayoutAmount} | {Loc("Elements")}: {p.ElementAmount} | {Utils.GetPlayerPositionXZY().X:F1}, {Utils.GetPlayerPositionXZY().Y:F1}###Splatoon";
+        if(ImGui.Begin(title, ref Open))
         {
             try
             {
-                if (RapidImport.RapidImportEnabled)
+                if(RapidImport.RapidImportEnabled)
                 {
                     RapidImport.Draw();
                 }
@@ -97,10 +98,10 @@ unsafe partial class CGui:IDisposable
                     RightWidth = ImGuiEx.Measure(delegate
                     {
                         ImGui.SetNextItemWidth(80f);
-                        if (ImGui.BeginCombo("##phaseSelector", $"Phase ??".Loc(p.Phase)))
+                        if(ImGui.BeginCombo("##phaseSelector", $"Phase ??".Loc(p.Phase)))
                         {
-                            if (ImGui.Selectable("Phase 1 (doorboss)".Loc())) p.Phase = 1;
-                            if (ImGui.Selectable("Phase 2 (post-doorboss)".Loc())) p.Phase = 2;
+                            if(ImGui.Selectable("Phase 1 (doorboss)".Loc())) p.Phase = 1;
+                            if(ImGui.Selectable("Phase 2 (post-doorboss)".Loc())) p.Phase = 2;
                             ImGuiEx.Text("Manual phase selection:".Loc());
                             ImGui.SameLine();
                             ImGui.SetNextItemWidth(30f);
@@ -121,10 +122,12 @@ unsafe partial class CGui:IDisposable
                         ("Render".Loc() + "###tab2", DisplayRenderers, null, true),
                         ("Layouts".Loc(), DislayLayouts, Colors.Green.ToVector4(), true),
                         ("Scripts".Loc(), TabScripting.Draw, Colors.Yellow.ToVector4(), true),
+                        ("Configurations".Loc(), CGuiConfigurations.Draw, EColor.PurpleBright, true),
                         ("Mass Import".Loc(), RapidImport.Draw, null, true),
                         ("Tools".Loc(), delegate
                         {
                             ImGuiEx.EzTabBar("Tools",
+                            ("Translator".Loc(), TabTranslator.Draw, null, true),
                             ("Logger".Loc(), DisplayLogger, null, true),
                             ("Explorer".Loc(), Explorer.Draw, null, true),
                             ("Archive".Loc(), DrawArchive, null, true),
@@ -148,7 +151,7 @@ unsafe partial class CGui:IDisposable
             }
         }
         ImGui.PopStyleVar();
-        if (titleColored)
+        if(titleColored)
         {
             ImGui.PopStyleColor(2);
         }
@@ -156,9 +159,9 @@ unsafe partial class CGui:IDisposable
         ImGui.End();
     }
 
-    bool Convert = false;
-    string lastContent = "";
-    void DisplayConversion()
+    private bool Convert = false;
+    private string lastContent = "";
+    private void DisplayConversion()
     {
         ImGui.Checkbox($"Convert clipboard content from github to wiki", ref Convert);
         if(Convert)
@@ -168,9 +171,9 @@ unsafe partial class CGui:IDisposable
                 var content = ImGui.GetClipboardText();
                 if(content != lastContent)
                 {
-                    for (int i = 0; i < 1000; i++)
+                    for(var i = 0; i < 1000; i++)
                     {
-                        if (content.Contains("```"))
+                        if(content.Contains("```"))
                         {
                             content = content.ReplaceFirst("```", "<pre>").ReplaceFirst("```", "</pre>");
                         }
@@ -180,9 +183,9 @@ unsafe partial class CGui:IDisposable
                         }
                     }
                     var cArray = content.Split('\n');
-                    for (int i = 0; i < cArray.Length; i++)
+                    for(var i = 0; i < cArray.Length; i++)
                     {
-                        if (cArray[i].StartsWith("#"))
+                        if(cArray[i].StartsWith("#"))
                         {
                             cArray[i] = cArray[i].Replace("#", "");
                         }
@@ -193,7 +196,7 @@ unsafe partial class CGui:IDisposable
                     ImGui.SetClipboardText(content);
                 }
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 e.Log();
             }
@@ -204,12 +207,12 @@ unsafe partial class CGui:IDisposable
     {
         var l = JsonConvert.DeserializeObject<Layout>(JsonConvert.SerializeObject(el));
         l.Enabled = true;
-        foreach (var e in l.ElementsL) e.Enabled = true;
+        foreach(var e in l.ElementsL) e.Enabled = true;
         var json = "~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
         var jsonraw = "~" + JsonConvert.SerializeObject(l, Formatting.Indented, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
         var compressed = json.Compress();
         var base64 = json.ToBase64UrlSafe();
-        ImGui.SetClipboardText(ImGui.GetIO().KeyAlt ? jsonraw : ImGui.GetIO().KeyCtrl ? HttpUtility.UrlEncode(json) : compressed.Length>base64.Length?base64:compressed);
+        ImGui.SetClipboardText(ImGui.GetIO().KeyAlt ? jsonraw : ImGui.GetIO().KeyCtrl ? HttpUtility.UrlEncode(json) : compressed.Length > base64.Length ? base64 : compressed);
     }
 
     private void HTTPExportToClipboard(Element el)
@@ -225,11 +228,11 @@ unsafe partial class CGui:IDisposable
 
     private void SetCursorTo(float refX, float refZ, float refY)
     {
-        if (Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos))
+        if(Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos))
         {
             var point = new POINT() { x = (int)screenPos.X, y = (int)screenPos.Y };
             //Chat.Print(point.X + "/" + point.Y);
-            if (User32.ClientToScreen(Process.GetCurrentProcess().MainWindowHandle, ref point))
+            if(User32.ClientToScreen(Process.GetCurrentProcess().MainWindowHandle, ref point))
             {
                 //Chat.Print(point.X + "/" + point.Y);
                 User32.SetCursorPos(point.x, point.y);

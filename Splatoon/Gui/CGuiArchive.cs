@@ -20,29 +20,29 @@ internal unsafe partial class CGui
             """);
         var groups = P.Archive.LayoutsL.Select(x => x.Group).Distinct().Order();
 
-        foreach (var group in groups)
+        foreach(var group in groups)
         {
-            if (group == "") continue;
-            if (ImGuiEx.TreeNode(group))
+            if(group == "") continue;
+            if(ImGuiEx.TreeNode(group))
             {
                 var grp = P.Archive.LayoutsL.Where(x => x.Group == group);
-                if (ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy group"))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy group"))
                 {
                     Copy(grp.Select(x => EzConfig.DefaultSerializationFactory.Serialize(x, false)).Join("\n"));
                 }
                 ImGui.SameLine();
-                if (ImGuiEx.IconButtonWithText(FontAwesomeIcon.ArrowCircleLeft, "Restore group"))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ArrowCircleLeft, "Restore group"))
                 {
-                    foreach (var x in grp)
+                    foreach(var x in grp)
                     {
                         P.Config.LayoutsL.Add(x.JSONClone());
                         new TickScheduler(() => P.Archive.LayoutsL.Remove(x));
                     }
                 }
                 ImGui.SameLine();
-                if (ImGuiEx.IconButtonWithText(FontAwesomeIcon.Trash, "Delete group", ImGuiEx.Ctrl))
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Trash, "Delete group", ImGuiEx.Ctrl))
                 {
-                    foreach (var x in grp)
+                    foreach(var x in grp)
                     {
                         new TickScheduler(() => P.Archive.LayoutsL.Remove(x));
                     }
@@ -57,9 +57,9 @@ internal unsafe partial class CGui
         if(nogrp.Any()) DrawArchiveEntries(nogrp);
     }
 
-    void DrawArchiveEntries(IEnumerable<Layout> layouts)
+    private void DrawArchiveEntries(IEnumerable<Layout> layouts)
     {
-        if (ImGui.BeginTable("EntryArchive", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
+        if(ImGui.BeginTable("EntryArchive", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.RowBg | ImGuiTableFlags.Borders))
         {
             ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
             ImGui.TableSetupColumn("Info");

@@ -43,14 +43,14 @@ public class RenderManager : IDisposable
 
     internal RenderEngine GetRenderer()
     {
-        if (P.Config.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.Enabled && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
+        if(P.Config.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.Enabled && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
         return ImGuiLegacyRenderer;
     }
 
     internal RenderEngine GetRenderer(Element element)
     {
-        if (element.RenderEngineKind == RenderEngineKind.Unspecified) return GetRenderer();
-        if (element.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.Enabled && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
+        if(element.RenderEngineKind == RenderEngineKind.Unspecified) return GetRenderer();
+        if(element.RenderEngineKind == RenderEngineKind.DirectX11 && DirectX11Renderer.Enabled && DirectX11Renderer.LoadError == null) return DirectX11Renderer;
         return ImGuiLegacyRenderer;
     }
 
@@ -80,7 +80,7 @@ public class RenderManager : IDisposable
             x.RenderEngineKind = RenderEngineKind.DirectX11;
             ret.Add(x);
         }
-        foreach (var x in ImGuiLegacyRenderer.DisplayObjects)
+        foreach(var x in ImGuiLegacyRenderer.DisplayObjects)
         {
             x.RenderEngineKind = RenderEngineKind.ImGui_Legacy;
             ret.Add(x);
@@ -92,15 +92,15 @@ public class RenderManager : IDisposable
     {
         foreach(var x in displayObjects)
         {
-            if (x.RenderEngineKind == RenderEngineKind.DirectX11) DirectX11Renderer.DisplayObjects.Add(x);
-            if (x.RenderEngineKind == RenderEngineKind.ImGui_Legacy) ImGuiLegacyRenderer.DisplayObjects.Add(x);
+            if(x.RenderEngineKind == RenderEngineKind.DirectX11) DirectX11Renderer.DisplayObjects.Add(x);
+            if(x.RenderEngineKind == RenderEngineKind.ImGui_Legacy) ImGuiLegacyRenderer.DisplayObjects.Add(x);
         }
     }
 
     internal void DrawCommonSettings(RenderEngineKind kind)
     {
-        if (kind == RenderEngineKind.DirectX11) DirectX11Renderer.DrawSettings();
-        if (kind == RenderEngineKind.ImGui_Legacy) ImGuiLegacyRenderer.DrawSettings();
+        if(kind == RenderEngineKind.DirectX11) DirectX11Renderer.DrawSettings();
+        if(kind == RenderEngineKind.ImGui_Legacy) ImGuiLegacyRenderer.DrawSettings();
     }
 
     public void Dispose()

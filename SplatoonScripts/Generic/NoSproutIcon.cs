@@ -16,7 +16,7 @@ public class NoSproutIcon : SplatoonScript
     public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
-    public Config C => this.Controller.GetConfig<Config>();
+    public Config C => Controller.GetConfig<Config>();
 
     public override void OnEnable()
     {
@@ -28,7 +28,7 @@ public class NoSproutIcon : SplatoonScript
         ProperOnLogin.Unregister(OnLogin);
     }
 
-    void OnLogin()
+    private void OnLogin()
     {
         C.PlayerNames[Player.CID] = Player.NameWithWorld;
     }
@@ -53,7 +53,7 @@ public class NoSproutIcon : SplatoonScript
         }
     }
 
-    string GetName(ulong id)
+    private string GetName(ulong id)
     {
         return C.PlayerNames.SafeSelect(id) ?? $"{id:X16}";
     }

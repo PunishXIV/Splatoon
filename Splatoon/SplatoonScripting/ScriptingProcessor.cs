@@ -17,7 +17,7 @@ internal static partial class ScriptingProcessor
     internal static IReadOnlyList<SplatoonScript> Scripts => ScriptsInternal;
     internal static ConcurrentQueue<(string code, string path)> LoadScriptQueue = new();
     internal static volatile bool ThreadIsRunning = false;
-    internal readonly static string[] TrustedURLs =
+    internal static readonly string[] TrustedURLs =
     [
         "https://github.com/NightmareXIV/",
         "https://www.github.com/NightmareXIV/",
@@ -175,7 +175,7 @@ internal static partial class ScriptingProcessor
                     }
                 }
 
-                List<string> Updates = new();
+                List<string> Updates = [];
                 foreach(var line in updateList.Replace("\r", "").Split("\n"))
                 {
                     var data = line.Split(",");
@@ -231,12 +231,12 @@ internal static partial class ScriptingProcessor
         Notify.Info("Downloading script from trusted URL...".Loc());
     }
 
-    static void BlockingDownloadScript(string url, bool isFirst)
+    private static void BlockingDownloadScript(string url, bool isFirst)
     {
         try
         {
             var result = P.HttpClient.GetStringAsync(url).Result;
-            CompileAndLoad(result, null, isFirst);
+            CompileAndLoad(result, null, isFirst, true);
         }
         catch(Exception e)
         {
@@ -266,7 +266,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void ReloadScript(SplatoonScript s)
+    internal static void ReloadScript(SplatoonScript s, bool ignoreCache = false)
     {
         if(ThreadIsRunning)
         {
@@ -275,7 +275,7 @@ internal static partial class ScriptingProcessor
         }
         s.Disable();
         RemoveScript(s);
-        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, false);
+        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, false, ignoreCache);
     }
 
     internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts, bool isFirst)
@@ -293,7 +293,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void CompileAndLoad(string sourceCode, string fpath, bool isFirst)
+    internal static void CompileAndLoad(string sourceCode, string fpath, bool isFirst, bool ignoreCache = false)
     {
         PluginLog.Debug($"Requested script loading");
         LoadScriptQueue.Enqueue((sourceCode, fpath));
@@ -306,11 +306,11 @@ internal static partial class ScriptingProcessor
                 try
                 {
                     PluginLog.Debug($"Compiler thread started");
-                    int idleCount = 0;
-                    var dir = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "ScriptCache");
-                    if(!Directory.Exists(dir))
+                    var idleCount = 0;
+                    var scriptCacheDirectory = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "ScriptCache");
+                    if(!Directory.Exists(scriptCacheDirectory))
                     {
-                        Directory.CreateDirectory(dir);
+                        Directory.CreateDirectory(scriptCacheDirectory);
                     }
                     while(idleCount < 10)
                     {
@@ -323,10 +323,10 @@ internal static partial class ScriptingProcessor
                                 if(!P.Config.DisableScriptCache)
                                 {
                                     var md5 = MD5.HashData(Encoding.UTF8.GetBytes(result.code)).Select(x => $"{x:X2}").Join("");
-                                    var cacheFile = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.bin");
-                                    var cacheFilePdb = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.pdb");
+                                    var cacheFile = Path.Combine(scriptCacheDirectory, $"{md5}-{P.loader.splatoonVersion}.bin");
+                                    var cacheFilePdb = Path.Combine(scriptCacheDirectory, $"{md5}-{P.loader.splatoonVersion}.pdb");
                                     PluginLog.Debug($"Cache path: {cacheFile}, {cacheFilePdb}");
-                                    if(File.Exists(cacheFile) && File.Exists(cacheFilePdb))
+                                    if(!ignoreCache && File.Exists(cacheFile) && File.Exists(cacheFilePdb))
                                     {
                                         PluginLog.Debug($"Loading from cache...");
                                         code = File.ReadAllBytes(cacheFile);
@@ -365,18 +365,22 @@ internal static partial class ScriptingProcessor
                                                 if(t.BaseType?.FullName == "Splatoon.SplatoonScripting.SplatoonScript")
                                                 {
                                                     var instance = (SplatoonScript)assembly.CreateInstance(t.FullName);
-                                                    instance.InternalData = new(result.path, instance);
-                                                    instance.InternalData.Allowed = UpdateCompleted;
-                                                    bool rewrite = false;
+                                                    instance.InternalData = new(result.path, instance)
+                                                    {
+                                                        Allowed = UpdateCompleted
+                                                    };
+                                                    var rewrite = false;
                                                     var previousVersion = 0u;
                                                     if(Scripts.TryGetFirst(z => z.InternalData.FullName == instance.InternalData.FullName, out var loadedScript))
                                                     {
                                                         DuoLog.Information($"Script {instance.InternalData.FullName} already loaded, replacing.");
                                                         previousVersion = loadedScript.Metadata?.Version ?? 0;
                                                         result.path = loadedScript.InternalData.Path;
+                                                        var isOpen = loadedScript.InternalData.ConfigOpen;
                                                         loadedScript.Disable();
                                                         RemoveScripts(x => ReferenceEquals(loadedScript, x));
                                                         rewrite = true;
+                                                        TabScripting.RequestOpen = loadedScript.InternalData.FullName;
                                                     }
                                                     AddScript(instance);
                                                     if(result.path == null)
@@ -401,7 +405,7 @@ internal static partial class ScriptingProcessor
                                                     }
                                                     instance.OnSetup();
                                                     instance.Controller.ApplyOverrides();
-                                                    if (previousVersion > 0)
+                                                    if(previousVersion > 0)
                                                     {
                                                         instance.OnScriptUpdated(previousVersion);
                                                         P.ScriptUpdateWindow.UpdatedScripts_RemoveAll(x => x.InternalData.FullName == instance.InternalData.FullName);
@@ -474,10 +478,17 @@ internal static partial class ScriptingProcessor
 
     internal static void OpenUpdatePopupIfNeeded()
     {
-        PluginLog.Information($"Script updates now finished {P.ScriptUpdateWindow.FailedScripts_Count()}/{P.ScriptUpdateWindow.UpdatedScripts_Count()}");
-        if(P.ScriptUpdateWindow.FailedScripts_Count() > 0 || P.ScriptUpdateWindow.UpdatedScripts_Count() > 0)
+        try
         {
-            P.ScriptUpdateWindow.Open();
+            PluginLog.Information($"Script updates now finished {P.ScriptUpdateWindow.FailedScripts_Count()}/{P.ScriptUpdateWindow.UpdatedScripts_Count()}");
+            if(P.ScriptUpdateWindow.FailedScripts_Count() > 0 || P.ScriptUpdateWindow.UpdatedScripts_Count() > 0)
+            {
+                P.ScriptUpdateWindow.Open();
+            }
+        }
+        catch(Exception e)
+        {
+            e.Log();
         }
     }
 
@@ -493,8 +504,8 @@ internal static partial class ScriptingProcessor
                 {
                     script.OnUpdate();
                 }
-                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnUpdate)); }
-                if (tickCount > script.Controller.AutoResetAt)
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnUpdate)); }
+                if(tickCount > script.Controller.AutoResetAt)
                 {
                     PluginLog.Debug($"Resetting script {script.InternalData.Name} because of timer");
                     OnReset(script);
@@ -514,7 +525,7 @@ internal static partial class ScriptingProcessor
                 {
                     Scripts[i].OnCombatStart();
                 }
-                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnCombatStart)); }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnCombatStart)); }
             }
         }
     }
@@ -546,7 +557,7 @@ internal static partial class ScriptingProcessor
             script.OnReset();
             script.Controller.AutoResetAt = long.MaxValue;
         }
-        catch (Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
+        catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
     }
 
     internal static void OnMapEffect(uint Position, ushort Param1, ushort Param2)
@@ -660,7 +671,7 @@ internal static partial class ScriptingProcessor
         {
             if(Scripts[i].IsEnabled)
             {
-                if (category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence || category == DirectorUpdateCategory.Wipe)
+                if(category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence || category == DirectorUpdateCategory.Wipe)
                 {
                     OnReset(i);
                 }
@@ -720,15 +731,15 @@ internal static partial class ScriptingProcessor
 
     internal static void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
     {
-        for (var i = 0; i < Scripts.Count; i++)
+        for(var i = 0; i < Scripts.Count; i++)
         {
-            if (Scripts[i].IsEnabled)
+            if(Scripts[i].IsEnabled)
             {
                 try
                 {
                     Scripts[i].OnActorControl(sourceId, command, p1, p2, p3, p4, p5, p6, targetId, replaying);
                 }
-                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActorControl)); }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActorControl)); }
             }
         }
     }
@@ -750,15 +761,15 @@ internal static partial class ScriptingProcessor
 
     internal static void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        for (var i = 0; i < Scripts.Count; i++)
+        for(var i = 0; i < Scripts.Count; i++)
         {
-            if (Scripts[i].IsEnabled)
+            if(Scripts[i].IsEnabled)
             {
                 try
                 {
                     Scripts[i].OnGainBuffEffect(sourceId, Status);
                 }
-                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnGainBuffEffect)); }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnGainBuffEffect)); }
             }
         }
     }
@@ -780,15 +791,15 @@ internal static partial class ScriptingProcessor
 
     internal static void OnUpdateBuffEffect(uint sourceId, Status status)
     {
-        for (var i = 0; i < Scripts.Count; i++)
+        for(var i = 0; i < Scripts.Count; i++)
         {
-            if (Scripts[i].IsEnabled)
+            if(Scripts[i].IsEnabled)
             {
                 try
                 {
                     Scripts[i].OnUpdateBuffEffect(sourceId, status);
                 }
-                catch (Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnRemoveBuffEffect)); }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnRemoveBuffEffect)); }
             }
         }
     }

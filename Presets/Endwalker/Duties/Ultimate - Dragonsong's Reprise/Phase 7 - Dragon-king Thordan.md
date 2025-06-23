@@ -20,3 +20,8 @@
 ```
 ~Lv2~{"Name":"DSR P7 Highlight DPS towers","Group":"DSR","ZoneLockH":[968],"ElementsL":[{"Name":"Left tower","type":1,"radius":1.8,"color":4278253567,"thicc":8.0,"overlayText":"Left","refActorNPCNameID":11319,"refActorRequireCast":true,"refActorCastId":[29453],"refActorComparisonType":6,"onlyUnTargetable":true},{"Name":"Right tower","type":1,"radius":1.8,"color":4278226687,"thicc":8.0,"overlayText":"Right","refActorNPCNameID":11319,"refActorRequireCast":true,"refActorCastId":[29452],"refActorComparisonType":6,"onlyUnTargetable":true},{"Name":"Back(tank) tower","type":1,"radius":1.8,"color":4294908672,"thicc":8.0,"overlayText":"Tank","refActorNPCNameID":11319,"refActorRequireCast":true,"refActorCastId":[29454],"refActorComparisonType":6,"onlyUnTargetable":true}],"Phase":2}
 ```
+
+[EN] [Beta] Highlight 3rd exaflare
+```
+~Lv2~{"Name":"DSR P7 Third exaflare telegraph","Group":"DSR","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"","type":1,"offY":7.0,"radius":6.0,"color":1342177535,"refActorNPCID":11319,"refActorCastTimeMin":8.6,"refActorCastTimeMax":12.0,"refActorUseOvercast":true,"refActorComparisonType":4,"includeRotation":true,"onlyUnTargetable":true,"Filled":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMin":7.9,"DistanceMax":8.1}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":9.0,"Match":"Dragon-king Thordan uses Exaflare's Edge.","MatchDelay":1.5}]}
+```

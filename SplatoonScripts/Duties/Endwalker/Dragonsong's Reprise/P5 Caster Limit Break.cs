@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using Dalamud.Game.Command;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -10,6 +7,9 @@ using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -48,7 +48,7 @@ public class P5_Caster_Limit_Break : SplatoonScript
     {
         var targetPosition = TargetPosition(C.Direction);
         var result = UseLimitBreak(targetPosition);
-        if (result)
+        if(result)
             DuoLog.Debug($"Limit Break casted to {targetPosition}");
         else
             DuoLog.Warning("Failed to cast Limit Break");
@@ -59,7 +59,7 @@ public class P5_Caster_Limit_Break : SplatoonScript
         ImGui.Text("Limit Break Settings");
         ImGuiEx.EnumCombo("Direction", ref C.Direction);
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"My Position: {Player.Position}");
             ImGui.Text($"Target Position: {TargetPosition(C.Direction)}");
@@ -74,7 +74,7 @@ public class P5_Caster_Limit_Break : SplatoonScript
 
     private Vector3 TargetPosition(Direction direction)
     {
-        const float radius = 5.27f; 
+        const float radius = 5.27f;
         Vector2 center = new(100, 100);
         const float angleOffset = 22f;
         var angle = direction switch
@@ -89,10 +89,10 @@ public class P5_Caster_Limit_Break : SplatoonScript
             Direction.NorthNorthEast => 90f - angleOffset,
             _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
         };
-        
+
         var x = center.X + radius * MathF.Cos(MathF.PI * angle / 180);
         var y = center.Y - radius * MathF.Sin(MathF.PI * angle / 180);
-        return new Vector3(x,0, y);
+        return new Vector3(x, 0, y);
     }
 
     public class Config : IEzConfig

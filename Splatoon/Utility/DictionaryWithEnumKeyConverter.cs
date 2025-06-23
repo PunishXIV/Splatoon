@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Splatoon.Utility
 {
@@ -16,7 +16,7 @@ namespace Splatoon.Utility
 
             writer.WriteStartObject();
 
-            foreach (KeyValuePair<T, U> pair in dictionary)
+            foreach(var pair in dictionary)
             {
                 writer.WritePropertyName(Convert.ToInt32(pair.Key).ToString());
                 serializer.Serialize(writer, pair.Value);
@@ -30,10 +30,10 @@ namespace Splatoon.Utility
             var result = new Dictionary<T, U>();
             var jObject = JObject.Load(reader);
 
-            foreach (var x in jObject)
+            foreach(var x in jObject)
             {
-                T key = (T)(object)int.Parse(x.Key);
-                U value = (U)x.Value.ToObject(typeof(U));
+                var key = (T)(object)int.Parse(x.Key);
+                var value = (U)x.Value.ToObject(typeof(U));
                 result.Add(key, value);
             }
 

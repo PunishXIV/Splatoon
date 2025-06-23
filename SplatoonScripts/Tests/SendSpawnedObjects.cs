@@ -17,8 +17,8 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class SendSpawnedObjects : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
-        HttpClient Client;
+        public override HashSet<uint> ValidTerritories => [];
+        private HttpClient Client;
         public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
         public override void OnEnable()
         {
@@ -77,7 +77,7 @@ namespace SplatoonScriptsOfficial.Tests
 
         public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
         {
-            this.OnTetherCreate(source, 0xE0000000, data2, data3, data5);
+            OnTetherCreate(source, 0xE0000000, data2, data3, data5);
         }
 
         public override void OnMapEffect(uint position, ushort data1, ushort data2)
@@ -101,7 +101,7 @@ namespace SplatoonScriptsOfficial.Tests
             {
                 if(Svc.Objects.TryGetFirst(x => x.Address == newObjectPtr, out var obj))
                 {
-                    var chr = obj is ICharacter character ? character: null;
+                    var chr = obj is ICharacter character ? character : null;
                     //name|ObjectID|DataID|NPCID|ModelID|TransformID|Position.X|Position.Y|Position.Z|Angle
                     var str = new string[]
                     {
@@ -121,7 +121,7 @@ namespace SplatoonScriptsOfficial.Tests
             });
         }
 
-        void Send(string str)
+        private void Send(string str)
         {
             PluginLog.Verbose($"Sending {str}");
             Client?.SendAsync(new HttpRequestMessage()
@@ -131,6 +131,6 @@ namespace SplatoonScriptsOfficial.Tests
             });
         }
 
-        void Send(StringBuilder str) => Send(str.ToString());
+        private void Send(StringBuilder str) => Send(str.ToString());
     }
 }

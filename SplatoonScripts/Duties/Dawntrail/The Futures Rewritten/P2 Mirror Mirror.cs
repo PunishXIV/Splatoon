@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
@@ -11,6 +7,10 @@ using ECommons.Logging;
 using ImGuiNET;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -50,7 +50,7 @@ public class P2_Mirror_Mirror : SplatoonScript
         End
     }
 
-    private readonly List<Direction> _redMirrorDirections = new();
+    private readonly List<Direction> _redMirrorDirections = [];
 
     private Direction? _blueMirrorDirection;
 
@@ -64,9 +64,9 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (_state == State.End) return;
-        if (castId == 40179) _state = State.Casting;
-        if (_state == State.FirstAction)
+        if(_state == State.End) return;
+        if(castId == 40179) _state = State.Casting;
+        if(_state == State.FirstAction)
         {
             if(castId == 40205)
             {
@@ -106,35 +106,35 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if (_state != State.Casting) return;
-        if (data1 == 256 && data2 == 512)
+        if(_state != State.Casting) return;
+        if(data1 == 256 && data2 == 512)
             _redMirrorDirections.Add((Direction)position);
-        else if (data1 == 1 && data2 == 2) _blueMirrorDirection = (Direction)position;
+        else if(data1 == 1 && data2 == 2) _blueMirrorDirection = (Direction)position;
 
-        if (_redMirrorDirections.Count == 2 && _blueMirrorDirection != null)
+        if(_redMirrorDirections.Count == 2 && _blueMirrorDirection != null)
         {
             _state = State.FirstAction;
             _firstActionDirection = C.FirstAction == Action.BlueMirror
                 ? _blueMirrorDirection.Value
                 : (Direction)(((int)_blueMirrorDirection.Value + 4) % 8);
-            if (C.FirstAction == Action.BlueMirror)
+            if(C.FirstAction == Action.BlueMirror)
                 ApplyElement(_firstActionDirection);
-            else if (C.FirstAction == Action.OppositeBlueMirror)
+            else if(C.FirstAction == Action.OppositeBlueMirror)
                 ApplyElement(_firstActionDirection);
         }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_state == State.SecondAction)
+        if(_state == State.SecondAction)
         {
-            if (set.Action.Value.RowId == 40205) _state = State.End;
+            if(set.Action.Value.RowId == 40205) _state = State.End;
         }
     }
 
     public override void OnUpdate()
     {
-        if (_state.EqualsAny(State.End, State.None) || (_state == State.SecondAction && C.Clockwise == Clockwise.Do_not_display)) Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        if(_state.EqualsAny(State.End, State.None) || (_state == State.SecondAction && C.Clockwise == Clockwise.Do_not_display)) Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
     public void ApplyElement(Direction direction)
@@ -144,7 +144,7 @@ public class P2_Mirror_Mirror : SplatoonScript
         var radius = 20f;
         position += new Vector3((float)Math.Cos(MathF.PI * angle / 180f) * radius, 0f,
             (float)Math.Sin(MathF.PI * angle / 180f) * radius);
-        if (Controller.TryGetElementByName("Bait", out var element))
+        if(Controller.TryGetElementByName("Bait", out var element))
         {
             element.Enabled = true;
             element.SetOffPosition(position);
@@ -153,7 +153,7 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("General"))
+        if(ImGuiEx.CollapsingHeader("General"))
         {
             ImGuiEx.EnumCombo("First Action", ref C.FirstAction);
             ImGuiEx.EnumCombo("Clockwise", ref C.Clockwise);
@@ -161,7 +161,7 @@ public class P2_Mirror_Mirror : SplatoonScript
                 "When the red mirrors distance is equal, choose by clockwise or counterclockwise.");
         }
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"First Action Direction: {_firstActionDirection}");

@@ -21,28 +21,28 @@ public class PriorityData
 
     public void Draw()
     {
-        ImGui.PushID(this.ID);
-        if (PriorityLists.Count == 0) PriorityLists.Add(new());
-        if (ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new priority list"))
+        ImGui.PushID(ID);
+        if(PriorityLists.Count == 0) PriorityLists.Add(new());
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new priority list"))
         {
             PriorityLists.Add(new());
         }
         var matched = false;
-        for (int i = 0; i < PriorityLists.Count; i++)
+        for(var i = 0; i < PriorityLists.Count; i++)
         {
             var playerList = PriorityLists[i];
             playerList.DragDrop.Begin();
-            while (playerList.List.Count > GetNumPlayers())
+            while(playerList.List.Count > GetNumPlayers())
             {
                 playerList.List.RemoveAt(playerList.List.Count - 1);
             }
-            while (playerList.List.Count < GetNumPlayers())
+            while(playerList.List.Count < GetNumPlayers())
             {
                 playerList.List.Add(new());
             }
             ImGui.PushID($"##{ID}-{i}");
             var statusCursor = Vector2.Zero;
-            if (ImGui.BeginTable("##PriorityList", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.RowBg))
+            if(ImGui.BeginTable("##PriorityList", 3, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Borders | ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.RowBg))
             {
                 ImGui.TableSetupColumn("##reorder");
                 ImGui.TableSetupColumn("##name", ImGuiTableColumnFlags.WidthStretch);
@@ -121,9 +121,9 @@ public class PriorityData
 
     public PriorityList? GetFirstValidList()
     {
-        foreach (var l in PriorityLists)
+        foreach(var l in PriorityLists)
         {
-            if (l.Test(out _)) return l;
+            if(l.Test(out _)) return l;
         }
         return null;
     }
@@ -132,21 +132,21 @@ public class PriorityData
     /// This function gets player at certain position in priority list that matches set condition.
     /// </summary>
     /// <param name="predicate">A check to whether include a player into priority list resolution or not.</param>
-    /// <param name="position">A position to retrieve. Overshooting will result in null.</param>
+    /// <param name="position">A position to retrieve. Overshooting will result in null. Starts with 1.</param>
     /// <param name="fromEnd">Whether to start from end instead of start of the list.</param>
     /// <returns></returns>
     public UniversalPartyMember? GetPlayer(Predicate<UniversalPartyMember> predicate, int position = 1, bool fromEnd = false)
     {
         var list = GetFirstValidList();
-        if (list == null) return null;
+        if(list == null) return null;
         var skip = 0;
-        for (int i = 0; i < list.List.Count; i++)
+        for(var i = 0; i < list.List.Count; i++)
         {
             var index = fromEnd ? list.List.Count - 1 - i : i;
             var member = list.List[index];
-            if (member.IsInParty(list.IsRole, out var ret) && predicate(ret))
+            if(member.IsInParty(list.IsRole, out var ret) && predicate(ret))
             {
-                if (++skip >= position)
+                if(++skip >= position)
                 {
                     return ret;
                 }
@@ -163,11 +163,11 @@ public class PriorityData
     public List<UniversalPartyMember>? GetPlayers(Predicate<UniversalPartyMember> predicate, bool fromEnd = false)
     {
         var list = GetFirstValidList();
-        if (list == null) return null;
+        if(list == null) return null;
         var ret = new List<UniversalPartyMember>();
-        foreach (var x in list.List)
+        foreach(var x in list.List)
         {
-            if (x.IsInParty(list.IsRole, out var upm) && predicate(upm))
+            if(x.IsInParty(list.IsRole, out var upm) && predicate(upm))
             {
                 ret.Add(upm);
             }
@@ -177,7 +177,7 @@ public class PriorityData
 
     /// <inheritdoc cref="GetPlayer(Predicate{UniversalPartyMember}, int, bool)"/>
     /// <summary>
-    /// Get own index in the priority list. Will return -1 if not found.
+    /// Get own index in the priority list. Will return -1 if not found. Starts with 0. 
     /// </summary>
     /// <param name="predicate"></param>
     /// <param name="fromEnd"></param>
@@ -186,8 +186,8 @@ public class PriorityData
     {
         if(!Player.Available) return -1;
         var list = GetPlayers(predicate);
-        if (list == null) return -1;
-        for(int i = 0; i < list.Count; i++)
+        if(list == null) return -1;
+        for(var i = 0; i < list.Count; i++)
         {
             var index = fromEnd ? list.Count - 1 - i : i;
             var p = list[index];

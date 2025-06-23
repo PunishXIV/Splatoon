@@ -18,32 +18,33 @@ public class InternationalString
     [DefaultValue("")] public string Fr = string.Empty;
     [DefaultValue("")] public string Other = string.Empty;
 
-    public string Get(string Default = "")
+    public string Get(string defaultString = "", ClientLanguage? language = null)
     {
-        if (Svc.Data.Language == ClientLanguage.English) return En == string.Empty ? Default : En;
-        if (Svc.Data.Language == ClientLanguage.Japanese) return Jp == string.Empty ? Default : Jp;
-        if (Svc.Data.Language == ClientLanguage.German) return De == string.Empty ? Default : De;
-        if (Svc.Data.Language == ClientLanguage.French) return Fr == string.Empty ? Default : Fr;
-        return Other == string.Empty ? Default : Other;
+        language ??= Svc.Data.Language;
+        if(language == ClientLanguage.English) return En == string.Empty ? defaultString : En;
+        else if(language == ClientLanguage.Japanese) return Jp == string.Empty ? defaultString : Jp;
+        else if(language == ClientLanguage.German) return De == string.Empty ? defaultString : De;
+        else if(language == ClientLanguage.French) return Fr == string.Empty ? defaultString : Fr;
+        else return Other == string.Empty ? defaultString : Other;
     }
 
     internal ref string CurrentLangString
     {
         get
         {
-            if (Svc.Data.Language == ClientLanguage.English)
+            if(Svc.Data.Language == ClientLanguage.English)
             {
                 return ref En;
             }
-            else if (Svc.Data.Language == ClientLanguage.Japanese)
+            else if(Svc.Data.Language == ClientLanguage.Japanese)
             {
                 return ref Jp;
             }
-            else if (Svc.Data.Language == ClientLanguage.German)
+            else if(Svc.Data.Language == ClientLanguage.German)
             {
                 return ref De;
             }
-            else if (Svc.Data.Language == ClientLanguage.French)
+            else if(Svc.Data.Language == ClientLanguage.French)
             {
                 return ref Fr;
             }
@@ -56,9 +57,9 @@ public class InternationalString
 
     public void ImGuiEdit(ref string DefaultValue, string helpMessage = null)
     {
-        if (ImGui.BeginCombo($"##{guid}", Get(DefaultValue)))
+        if(ImGui.BeginCombo($"##{guid}", Get(DefaultValue)))
         {
-            ImGuiEx.ImGuiLineCentered($"line{guid}", delegate
+            ImGuiEx.LineCentered($"line{guid}", delegate
             {
                 ImGuiEx.Text("International string".Loc());
             });
@@ -66,13 +67,13 @@ public class InternationalString
             EditLangSpecificString(ClientLanguage.Japanese, ref Jp);
             EditLangSpecificString(ClientLanguage.French, ref Fr);
             EditLangSpecificString(ClientLanguage.German, ref De);
-            if (!Svc.Data.Language.EqualsAny(ClientLanguage.English, ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French))
+            if(!Svc.Data.Language.EqualsAny(ClientLanguage.English, ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French))
             {
                 EditLangSpecificString(Svc.Data.Language, ref Other);
             }
             else
             {
-                if (Other != "")
+                if(Other != "")
                 {
                     EditLangSpecificString((ClientLanguage)(-1), ref Other);
                 }
@@ -85,10 +86,10 @@ public class InternationalString
             ImGuiComponents.HelpMarker("Default value will be applied when language-specific is missing.".Loc());
             ImGui.EndCombo();
         }
-        if (ImGui.IsItemHovered())
+        if(ImGui.IsItemHovered())
         {
             ImGui.BeginTooltip();
-            if (!helpMessage.IsNullOrEmpty())
+            if(!helpMessage.IsNullOrEmpty())
             {
                 ImGuiEx.Text(helpMessage + "\n");
             }
@@ -104,15 +105,24 @@ public class InternationalString
         return En.IsNullOrEmpty() && Jp.IsNullOrEmpty() && De.IsNullOrEmpty() && Fr.IsNullOrEmpty() && Other.IsNullOrEmpty();
     }
 
-    void EditLangSpecificString(ClientLanguage language, ref string str)
+    public ref string GetRefString(ClientLanguage language)
+    {
+        if(language == ClientLanguage.English) return ref En;
+        else if(language == ClientLanguage.Japanese) return ref Jp;
+        else if(language == ClientLanguage.German) return ref De;
+        else if(language == ClientLanguage.French) return ref Fr;
+        else return ref Other;
+    }
+
+    private void EditLangSpecificString(ClientLanguage language, ref string str)
     {
         var col = false;
-        if (str == string.Empty)
+        if(str == string.Empty)
         {
             col = true;
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.DalamudGrey3);
         }
-        else if (Svc.Data.Language == language)
+        else if(Svc.Data.Language == language)
         {
             col = true;
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGreen);
@@ -120,8 +130,8 @@ public class InternationalString
         ImGuiUtils.SizedText($"{language.ToString().Loc()}:", 100);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(300f);
-        ImGui.InputText($"##{guid}{language}", ref str, 1000);
-        if (col)
+        ImGui.InputText($"##{guid}{language}", ref str, 2000);
+        if(col)
         {
             ImGui.PopStyleColor();
         }

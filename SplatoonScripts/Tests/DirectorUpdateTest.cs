@@ -11,7 +11,7 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public class DirectorUpdateTest : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
         {

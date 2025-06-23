@@ -13,8 +13,8 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public class VolumeControl : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
-        int storeVol;
+        public override HashSet<uint> ValidTerritories => [];
+        private int storeVol;
 
         public override void OnEnable()
         {
@@ -30,14 +30,14 @@ namespace SplatoonScriptsOfficial.Tests
             throw new NotImplementedException();
         }
 
-        void SetVolume()
+        private void SetVolume()
         {
-            
+
         }
 
-        class UiBuilderSched
+        private class UiBuilderSched
         {
-            Action Action;
+            private Action Action;
             public UiBuilderSched(Action a)
             {
                 Action = a;

@@ -13,19 +13,25 @@ internal static class LayoutDrawSelector
     {
         if(CGui.LayoutFilter != "" && !layout.GetName().Contains(CGui.LayoutFilter, StringComparison.OrdinalIgnoreCase))
         {
-            if(CGui.ScrollTo == layout)
-            {
-                CGui.ScrollTo = null;
-            }
+            scroll();
             return;
         }
         if(CGui.ActiveExpansion != null && layout.DetermineExpansion() != CGui.ActiveExpansion.Value)
+        {
+            scroll();
+            return;
+        }
+        if(CGui.ActiveContentCategory != null && layout.DetermineContentCategory() != CGui.ActiveContentCategory.Value)
+        {
+            scroll();
+            return;
+        }
+        void scroll()
         {
             if(CGui.ScrollTo == layout)
             {
                 CGui.ScrollTo = null;
             }
-            return;
         }
         ImGui.PushID(layout.GUID);
         {

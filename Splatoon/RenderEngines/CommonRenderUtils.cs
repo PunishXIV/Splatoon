@@ -1,4 +1,5 @@
-﻿using ECommons.GameFunctions;
+﻿using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs;
@@ -34,7 +35,6 @@ public static unsafe class CommonRenderUtils
             ret = ret
             .Replace("$MODELID", $"{chr.Struct()->ModelContainer.ModelCharaId.Format()}")
             .Replace("$NAMEID", $"{chr.NameId.Format()}")
-            .Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "")
             .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
             if(ret.Contains("$STREM:"))
             {
@@ -50,6 +50,42 @@ public static unsafe class CommonRenderUtils
                 {
                     e.Log();
                 }
+            }
+            if(ret.Contains("$CAST:"))
+            {
+                try
+                {
+                    var match = Regex.Match(ret, @"\$CAST:(.*?)\$");
+                    if(match.Success)
+                    {
+                        if(chr.IsCasting())
+                        {
+                            ret = ret.Replace(match.Groups[0].Value, $"{(chr.TotalCastTime - chr.CurrentCastTime).ToString(match.Groups[1].Value)}")
+                                .Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastActionId));
+                        }
+                        else
+                        {
+                            ret = ret.Replace(match.Groups[0].Value, "").Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastActionId));
+                        }
+                    }
+                    else
+                    {
+                        castFallback();
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.Log();
+                    castFallback();
+                }
+            }
+            else
+            {
+                castFallback();
+            }
+            void castFallback()
+            {
+                ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "");
             }
         }
         return ret;

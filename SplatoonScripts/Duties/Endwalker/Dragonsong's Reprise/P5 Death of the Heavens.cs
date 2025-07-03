@@ -52,7 +52,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
     public override HashSet<uint>? ValidTerritories => [968];
     private Config C => Controller.GetConfig<Config>();
 
-    public override Metadata? Metadata => new(7, "Garume, damolitionn");
+    public override Metadata? Metadata => new(8, "Garume, damolitionn");
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
@@ -62,57 +62,111 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
     private Vector2 GetBaitPosition(State state, BaitType bait)
     {
-        var position = (state, bait) switch
+        Vector2 position = default;
+        if (C.OrientationBase == Direction.North)
         {
-            (State.FirstSplit, BaitType.Red1) => new Vector2(12.49f, 8.5f),
-            (State.FirstSplit, BaitType.Red2) => new Vector2(12.49f, -7.76f),
-            (State.FirstSplit, BaitType.Red3) => new Vector2(-12.49f, -7.76f),
-            (State.FirstSplit, BaitType.Red4) => new Vector2(-12.49f, 8.5f),
-            (State.FirstSplit, BaitType.Blue1) => new Vector2(20.5f, 8.5f),
-            (State.FirstSplit, BaitType.Blue2) => new Vector2(12.49f, 24.76f),
-            (State.FirstSplit, BaitType.Blue3) => new Vector2(-12.49f, 24.76f),
-            (State.FirstSplit, BaitType.Blue4) => new Vector2(-20.5f, 8.5f),
-            (State.SecondSplit, BaitType.Blue1) => new Vector2(8f, 9f),
-            (State.SecondSplit, BaitType.Blue2) => new Vector2(1.4f, 7.6f),
-            (State.SecondSplit, BaitType.Blue3) => new Vector2(-1.4f, 7.6f),
-            (State.SecondSplit, BaitType.Blue4) => new Vector2(-9f, 9f),
-            (State.SecondSplit, BaitType.Red1) => C.PrePlaystationSplit switch
-            {
-                PrePlaystationSplit.Horizontal => new Vector2(6f, 13.5f),
-                PrePlaystationSplit.Vertical => new Vector2(0f, 9f),
-                _ => throw new ArgumentOutOfRangeException()
-            },
-            (State.SecondSplit, BaitType.Red2) => C.PrePlaystationSplit switch
-            {
-                PrePlaystationSplit.Horizontal => new Vector2(2f, 13.5f),
-                PrePlaystationSplit.Vertical => new Vector2(0f, 11.5f),
-                _ => throw new ArgumentOutOfRangeException()
-            },
-            (State.SecondSplit, BaitType.Red3) => C.PrePlaystationSplit switch
-            {
-                PrePlaystationSplit.Horizontal => new Vector2(-2f, 13.5f),
-                PrePlaystationSplit.Vertical => new Vector2(0f, 14f),
-                _ => throw new ArgumentOutOfRangeException()
-            },
-            (State.SecondSplit, BaitType.Red4) => C.PrePlaystationSplit switch
-            {
-                PrePlaystationSplit.Horizontal => new Vector2(-6f, 13.5f),
-                PrePlaystationSplit.Vertical => new Vector2(0f, 16.5f),
-                _ => throw new ArgumentOutOfRangeException()
-            },
-            (State.PlayStationSplit, BaitType.Red1) => new Vector2(2f, 9f),
-            (State.PlayStationSplit, BaitType.Red2) => new Vector2(1.4f, 7.6f),
-            (State.PlayStationSplit, BaitType.Red3) => new Vector2(-1.4f, 7.6f),
-            (State.PlayStationSplit, BaitType.Red4) => new Vector2(-2f, 9f),
-            (State.PlayStationSplit, BaitType.Blue1) => Vector2.Zero,
-            (State.PlayStationSplit, BaitType.Blue2) => Vector2.Zero,
-            (State.PlayStationSplit, BaitType.Blue3) => Vector2.Zero,
-            (State.PlayStationSplit, BaitType.Blue4) => Vector2.Zero,
-            _ => default
-        };
 
-        if (C.OrientationBase == Direction.South)
-            position = new Vector2(position.X, -position.Y);
+            position = (state, bait) switch
+            {
+                (State.FirstSplit, BaitType.Red1) => new Vector2(12.49f, 8.5f),
+                (State.FirstSplit, BaitType.Red2) => new Vector2(12.49f, -7.76f),
+                (State.FirstSplit, BaitType.Red3) => new Vector2(-12.49f, -7.76f),
+                (State.FirstSplit, BaitType.Red4) => new Vector2(-12.49f, 8.5f),
+                (State.FirstSplit, BaitType.Blue1) => new Vector2(20.5f, 8.5f),
+                (State.FirstSplit, BaitType.Blue2) => new Vector2(12.49f, 24.76f),
+                (State.FirstSplit, BaitType.Blue3) => new Vector2(-12.49f, 24.76f),
+                (State.FirstSplit, BaitType.Blue4) => new Vector2(-20.5f, 8.5f),
+                (State.SecondSplit, BaitType.Blue1) => new Vector2(8f, 9f),
+                (State.SecondSplit, BaitType.Blue2) => new Vector2(1.4f, 7.6f),
+                (State.SecondSplit, BaitType.Blue3) => new Vector2(-1.4f, 7.6f),
+                (State.SecondSplit, BaitType.Blue4) => new Vector2(-9f, 9f),
+                (State.SecondSplit, BaitType.Red1) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(6f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 9f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.SecondSplit, BaitType.Red2) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(2f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 11.5f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.SecondSplit, BaitType.Red3) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(-2f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 14f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.SecondSplit, BaitType.Red4) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(-6f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 16.5f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.PlayStationSplit, BaitType.Red1) => new Vector2(2f, 9f),
+                (State.PlayStationSplit, BaitType.Red2) => new Vector2(1.4f, 7.6f),
+                (State.PlayStationSplit, BaitType.Red3) => new Vector2(-1.4f, 7.6f),
+                (State.PlayStationSplit, BaitType.Red4) => new Vector2(-2f, 9f),
+                (State.PlayStationSplit, BaitType.Blue1) => Vector2.Zero,
+                (State.PlayStationSplit, BaitType.Blue2) => Vector2.Zero,
+                (State.PlayStationSplit, BaitType.Blue3) => Vector2.Zero,
+                (State.PlayStationSplit, BaitType.Blue4) => Vector2.Zero,
+                _ => default
+            };
+        }
+
+        else if (C.OrientationBase == Direction.South)
+        {
+            position = (state, bait) switch
+            {
+                (State.FirstSplit, BaitType.Red1) => new Vector2(12.49f, 8.5f),
+                (State.FirstSplit, BaitType.Red2) => new Vector2(12.49f, 24.76f),
+                (State.FirstSplit, BaitType.Red3) => new Vector2(-12.49f, 24.76f),
+                (State.FirstSplit, BaitType.Red4) => new Vector2(-12.49f, 8.5f),
+                (State.FirstSplit, BaitType.Blue1) => new Vector2(20.5f, 8.5f),
+                (State.FirstSplit, BaitType.Blue2) => new Vector2(12.49f, -7.76f),
+                (State.FirstSplit, BaitType.Blue3) => new Vector2(-12.49f, -7.76f),
+                (State.FirstSplit, BaitType.Blue4) => new Vector2(-20.5f, 8.5f),
+                (State.SecondSplit, BaitType.Red1) => new Vector2(8f, 9f),
+                (State.SecondSplit, BaitType.Red2) => new Vector2(1.4f, 7.6f),
+                (State.SecondSplit, BaitType.Red3) => new Vector2(-1.4f, 7.6f),
+                (State.SecondSplit, BaitType.Red4) => new Vector2(-9f, 9f),
+                (State.SecondSplit, BaitType.Blue1) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(6f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 9f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.SecondSplit, BaitType.Blue2) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(2f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 11.5f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.SecondSplit, BaitType.Blue3) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(-2f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 14f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.SecondSplit, BaitType.Blue4) => C.PrePlaystationSplit switch
+                {
+                    PrePlaystationSplit.Horizontal => new Vector2(-6f, 13.5f),
+                    PrePlaystationSplit.Vertical => new Vector2(0f, 16.5f),
+                    _ => throw new ArgumentOutOfRangeException()
+                },
+                (State.PlayStationSplit, BaitType.Red1) => new Vector2(2f, 9f),
+                (State.PlayStationSplit, BaitType.Red2) => new Vector2(1.4f, 7.6f),
+                (State.PlayStationSplit, BaitType.Red3) => new Vector2(-1.4f, 7.6f),
+                (State.PlayStationSplit, BaitType.Red4) => new Vector2(-2f, 9f),
+                (State.PlayStationSplit, BaitType.Blue1) => Vector2.Zero,
+                (State.PlayStationSplit, BaitType.Blue2) => Vector2.Zero,
+                (State.PlayStationSplit, BaitType.Blue3) => Vector2.Zero,
+                (State.PlayStationSplit, BaitType.Blue4) => Vector2.Zero,
+                _ => default
+            };
+        }
 
         return position;
     }
@@ -132,7 +186,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         C.PriorityData.Draw();
         ImGui.Text("Pre Playstation Split");
         ImGuiEx.EnumCombo("##Pre Playstation Split", ref C.PrePlaystationSplit);
-        ImGui.Text("Orientation Base");
+        ImGui.Text("Dooms North/South");
         ImGuiEx.EnumRadio(ref C.OrientationBase, true);
         ImGui.Unindent();
 
@@ -292,7 +346,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
             case State.PlayStationSplit:
                 {
                     //TODO: Someone needs to fix the playstation baits
-                    
+
                     //var pos = GetBaitPosition(_currentState, _myBait);
                     //if (pos != Vector2.Zero)
                     //{

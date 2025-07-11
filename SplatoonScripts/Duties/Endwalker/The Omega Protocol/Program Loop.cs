@@ -33,7 +33,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public unsafe class Program_Loop : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [1122];
-        public override Metadata? Metadata => new(15, "NightmareXIV, damolitionn");
+        public override Metadata? Metadata => new(14, "NightmareXIV, damolitionn");
         private Config Conf => Controller.GetConfig<Config>();
         private HashSet<uint> TetheredPlayers = [];
         private List<uint> Towers = [];

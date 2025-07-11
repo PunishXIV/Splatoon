@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(11, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(12, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
     private bool IsClockwise = true;
@@ -38,6 +38,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
             """,
         [10] = "Added second stack display hint",
         [11] = "Fixed issues regarding to second stack",
+        [12] = "Presumably fixed an issue with different selected positions"
     };
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
@@ -134,11 +135,11 @@ public unsafe class P3_Apocalypse : SplatoonScript
         }
         if(respectAdjust && IsAdjust)
         {
-            return Positions.Keys.Where(x => !C.SelectedPositions.Contains(x) && x != 0).ToList();
+            return Positions.Keys.Where(x => !positions.Contains(x) && x != 0).ToList();
         }
         else
         {
-            return C.SelectedPositions;
+            return positions;
         }
     }
 

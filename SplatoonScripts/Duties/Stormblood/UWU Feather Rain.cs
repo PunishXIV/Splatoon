@@ -15,12 +15,14 @@ public unsafe sealed class UWU_Feather_Rain : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.the_Weapons_Refrain_Ultimate];
 
+    public override Metadata? Metadata => new(2, "NightmareXIV");
+
     public override void OnSetup()
     {
         Controller.RegisterElementFromCode($"CaseAOE", """{"Name":"","type":1,"radius":3.0,"refActorNPCNameID":1644,"refActorRequireCast":true,"refActorCastId":[11085],"refActorComparisonType":6}""");
         for(var i = 0; i < 8; i++)
         {
-            Controller.RegisterElementFromCode($"Twister{i}", "{\"Name\":\"\",\"refX\":86.37486,\"refY\":92.822395,\"radius\":4.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+            Controller.RegisterElementFromCode($"Twister{i}", "{\"Name\":\"\",\"refX\":86.37486,\"refY\":92.822395,\"radius\":3.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         }
         OnReset();
     }

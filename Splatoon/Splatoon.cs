@@ -19,6 +19,7 @@ using ECommons.ObjectLifeTracker;
 using ECommons.Reflection;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
+using ECommons.WindowsFormsReflector;
 using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
 using PInvoke;
@@ -32,7 +33,6 @@ using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
 using System.Net.Http;
-using System.Windows.Forms;
 using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
 

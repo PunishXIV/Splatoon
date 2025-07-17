@@ -43,6 +43,12 @@ The following preset indicates range of cone attack directed at healers and tank
 ~Lv2~{"Name":"M8S *Reign Precise spots - enable two!","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"ElementsL":[{"Name":"Cone/Left Party","type":1,"Enabled":false,"offY":17.89,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43312],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"AdditionalRotation":6.017895,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle/Left Party","type":1,"Enabled":false,"offX":-4.14,"offY":-0.15,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43313],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Cone/Right Party","type":1,"Enabled":false,"offY":17.81,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43312],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"AdditionalRotation":0.27227136,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle/Right Party","type":1,"Enabled":false,"offX":4.14,"offY":-0.05,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43313],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Cone/Left Tank","type":1,"Enabled":false,"offY":20.97,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43312],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"AdditionalRotation":6.1383233,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle/Left Tank","type":1,"Enabled":false,"offX":-10.44,"offY":5.87,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43313],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Cone/Right Tank","type":1,"Enabled":false,"offY":21.33,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43312],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"AdditionalRotation":0.057595864,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle/Right Tank","type":1,"Enabled":false,"offX":10.36,"offY":5.29,"radius":0.5,"color":3372218624,"Filled":false,"fillIntensity":1.0,"thicc":5.0,"refActorNPCNameID":13843,"refActorRequireCast":true,"refActorCastId":[43313],"refActorUseCastTime":true,"refActorCastTimeMax":0.5,"refActorComparisonType":6,"includeRotation":true,"tether":true,"LineEndA":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"Freezing":true,"FreezeFor":13.0,"IntervalBetweenFreezes":1.0}
 ```
 
+### [Script] Millenial Decay Universal
+Requires thorough configuration. For strats where you are not being knocked back, you may also need to edit elements coordinates.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Millenial%20Decay%20EU.cs
+```
+
 ### Spread reminder
 Extra indication that you need to spread. Present during Breath of decay and Terrestrial rage mechanics.
 ```
@@ -88,12 +94,18 @@ Displays second upcoming AOE in faint yellow:
 ~Lv2~{"Name":"M8S Towerfall Fangs","Group":"AAC Cruiserweight M4 Savage","ZoneLockH":[1263],"DCond":5,"ElementsL":[{"Name":"Fangs","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"color":3355506687,"fillIntensity":0.3,"refActorNPCNameID":13850,"refActorComparisonType":6,"includeRotation":true,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Fangs","type":3,"refY":20.0,"offY":-20.0,"radius":3.5,"color":3355508731,"fillIntensity":0.3,"refActorNPCNameID":13850,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"Circle","refX":100.0,"refY":100.0,"radius":12.0,"Donut":3.0,"fillIntensity":0.5,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0},{"Name":"YOU","type":1,"radius":0.5,"color":3355508503,"fillIntensity":1.0,"refActorType":1,"refActorTetherTimeMin":0.0,"refActorTetherTimeMax":0.0}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":7.0,"Match":">41926)","MatchDelay":2.2}]}
 ```
 
-### [Script] [WIP] Tactical Pack
+## Add phase
+
+### [Script] Tactical Pack
+Requires configuration
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Tactical%20Pack.cs
 ```
 
-## Add phase
+### [Script] Pack Predation AOE
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M8S%20Pack%20Predation%20Telegraphs.cs
+```
 
 ### Cleanse countdown
 > [!IMPORTANT]

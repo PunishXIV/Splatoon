@@ -77,7 +77,7 @@ internal class Compiler
     private static CSharpCompilation GenerateCode(string sourceCode, string identity = "Script")
     {
         var codeString = SourceText.From(sourceCode);
-        var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
+        var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
         var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(codeString, options);
         var refs = ReferenceCache.ReferenceList;

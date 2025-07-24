@@ -7,7 +7,7 @@
 - Explicitly highlights your designated tether drop spot once you have picked up your tether, according to the priority you have set before.
 - Everything is configurable. You can disable individual functions, change colors of elements, remove things you don't want to see. By default, all functions are enabled.
 ```
-https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Program%20Loop.cs
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Program%20Loop%20Priority.cs
 ```
 
 [International] [Script] Pantoraktor. Simply displays upcoming line AOE and bomb AOE. If it's your - it will be red (by default)
@@ -28,4 +28,10 @@ https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScr
 [International] In line debuff numbers
 ```
 ~Lv2~{"Name":"◆サークルプログラム","Group":"◆絶オメガ","ZoneLockH":[1122],"ElementsL":[{"Name":"1st","type":1,"offZ":2.76,"radius":0.0,"color":4294965504,"overlayBGColor":4294965504,"overlayTextColor":3355443200,"thicc":5.0,"overlayText":"1st","refActorRequireBuff":true,"refActorBuffId":[3004],"refActorComparisonType":1,"onlyVisible":true},{"Name":"2nd","type":1,"offZ":2.76,"radius":0.0,"color":3364749567,"overlayBGColor":3364749567,"thicc":5.0,"overlayText":"2nd","refActorRequireBuff":true,"refActorBuffId":[3005],"refActorComparisonType":1,"onlyVisible":true},{"Name":"3rd","type":1,"offZ":2.76,"radius":0.0,"color":3372156928,"overlayBGColor":3372156928,"thicc":5.0,"overlayText":"3rd","refActorRequireBuff":true,"refActorBuffId":[3006],"refActorComparisonType":1,"onlyVisible":true},{"Name":"4th","type":1,"offZ":2.76,"radius":0.0,"color":3359113471,"overlayBGColor":3359113471,"thicc":5.0,"overlayText":"4th","refActorRequireBuff":true,"refActorBuffId":[3451],"refActorComparisonType":1,"onlyVisible":true}]}
+```
+
+# Archive
+These presets or scripts are currently obsolete and are displayed for archiving purposes
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Program%20Loop.cs
 ```

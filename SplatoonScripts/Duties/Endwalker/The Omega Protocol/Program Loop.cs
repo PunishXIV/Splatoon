@@ -15,7 +15,6 @@ using ECommons.PartyFunctions;
 using ECommons.Schedulers;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
-using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -33,7 +32,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public unsafe class Program_Loop : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [1122];
-        public override Metadata? Metadata => new(14, "NightmareXIV, damolitionn");
+        public override Metadata? Metadata => new(14, "NightmareXIV");
         private Config Conf => Controller.GetConfig<Config>();
         private HashSet<uint> TetheredPlayers = [];
         private List<uint> Towers = [];
@@ -46,6 +45,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         public override void OnSetup()
         {
             SetupElements();
+            if(Conf.PlayerToSwap != "")
+            {
+                Conf.Swappers.Add(Conf.PlayerToSwap);
+                Conf.PlayerToSwap = "";
+                Controller.SaveConfig();
+            }
         }
 
         private void SetupElements()
@@ -163,17 +168,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                         var pair = TowerOrder.GetPairNumber(GetTetherMechanicStep());
                                         if(pair.Count() == 2)
                                         {
-                                            var players = Conf.PriorityData.GetPlayers(player => pair.Any(pairMember => pairMember == player.IGameObject.EntityId));
-
-                                            if(players == null) return;
-
-                                            if(players[0].IGameObject.EntityId == Svc.ClientState.LocalPlayer.EntityId)
+                                            if(Conf.Swappers.Count != 0 && pair.Select(x => x.GetObject()).Any(x => x.Name.ToString().EqualsAny(Conf.Swappers)))
                                             {
-                                                SafeSpots[0].tether = true;
+                                                SafeSpots[Conf.MyDirection == Direction.Counter_clockwise ? 0 : 1].tether = true;
                                             }
                                             else
                                             {
-                                                SafeSpots[1].tether = true;
+                                                SafeSpots[Conf.MyDirection == Direction.Counter_clockwise ? 1 : 0].tether = true;
                                             }
                                         }
                                     }
@@ -190,18 +191,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                     var pair = TowerOrder.GetPairNumber(GetTetherMechanicStep());
                                     if(tetheredPlayers.Length == 2 && pair.Count() == 2 && !IsTakingCurrentTether(tetheredPlayers[0]) && !IsTakingCurrentTether(tetheredPlayers[1]))
                                     {
-                                        var players = Conf.PriorityData.GetPlayers(player => pair.Any(pairMember => pairMember == player.IGameObject.EntityId));
                                         var tethers = tetheredPlayers.OrderBy(x => GetTowerAngle(x.GetObject().Position.ToVector2())).ToArray();
-
-                                        if(players == null) return;
-
-                                        if(players[0].IGameObject.EntityId == Svc.ClientState.LocalPlayer.EntityId)
+                                        if(Conf.Swappers.Count != 0 && pair.Select(x => x.GetObject()).Any(x => x.Name.ToString().EqualsAny(Conf.Swappers)))
                                         {
-                                            myTether = tethers[0];
+                                            myTether = tethers[Conf.MyDirection == Direction.Counter_clockwise ? 0 : 1];
                                         }
                                         else
                                         {
-                                            myTether = tethers[1];
+                                            myTether = tethers[Conf.MyDirection == Direction.Counter_clockwise ? 1 : 0];
                                         }
                                     }
                                 }
@@ -265,19 +262,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             var currentTowers = GetCurrentTowers();
                             if(currentTowers.Length == 2)
                             {
-                                var players = Conf.PriorityData.GetPlayers(player => IsTakingCurrentTower(player.IGameObject.EntityId));
-
-                                if(players == null) return;
-
-                                if(players[0].IGameObject.EntityId == Svc.ClientState.LocalPlayer.EntityId)
+                                if(Conf.Swappers.Count != 0 && Svc.Objects.Any(x => x is IPlayerCharacter pc && pc.Name.ToString().EqualsAny(Conf.Swappers) && pc.StatusList.Any(z => z.StatusId == GetDebuffByNumber(GetCurrentMechanicStep()))))
                                 {
-                                    e.refActorObjectID = currentTowers[0];
-
+                                    e.refActorObjectID = currentTowers[Conf.MyDirection == Direction.Counter_clockwise ? 0 : 1];
                                 }
                                 else
                                 {
-                                    e.refActorObjectID = currentTowers[1];
-
+                                    e.refActorObjectID = currentTowers[Conf.MyDirection == Direction.Counter_clockwise ? 1 : 0];
                                 }
                             }
                         }
@@ -506,11 +497,53 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
             ImGuiEx.Text($"Towers:");
             ImGui.SetNextItemWidth(200f);
-            ImGuiEx.EnumCombo($"Starting Tower", ref Conf.Towers);
+            ImGuiEx.EnumCombo($"Tower handling", ref Conf.Towers);
+            ImGui.SetNextItemWidth(150f);
+            ImGuiEx.EnumCombo("My tower direction", ref Conf.MyDirection);
 
-            ImGuiEx.Text($"Global Priority going clockwise from Starting Tower:");
-            Conf.PriorityData.Draw();
-
+            ImGuiEx.Text($"If one of these players have same debuff as I, invert direction:");
+            var toRem = -1;
+            for(var i = 0; i < Conf.Swappers.Count; i++)
+            {
+                ImGui.SetCursorPosX(30);
+                ImGuiEx.Text($"{Conf.Swappers[i]}");
+                ImGui.SameLine();
+                if(ImGui.SmallButton("Delete##" + i))
+                {
+                    toRem = i;
+                }
+            }
+            if(toRem != -1)
+            {
+                Conf.Swappers.RemoveAt(toRem);
+            }
+            ImGui.SetCursorPosX(30);
+            if(ImGui.Button("Add new player"))
+            {
+                ImGui.OpenPopup("Addplayer");
+            }
+            if(ImGui.BeginPopup("Addplayer"))
+            {
+                ImGui.SetNextItemWidth(150f);
+                ImGui.InputTextWithHint("##newplayer", "Name without world", ref NewPlayer, 50);
+                ImGui.SameLine();
+                if(ImGui.Button("Add"))
+                {
+                    Conf.Swappers.Add(NewPlayer);
+                    NewPlayer = "";
+                }
+                ImGui.EndPopup();
+            }
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(120f);
+            if(ImGui.BeginCombo("##partysel", "Select from party"))
+            {
+                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
+                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
+                    if(ImGui.Selectable(x))
+                        Conf.Swappers.Add(x);
+                ImGui.EndCombo();
+            }
             ImGui.ColorEdit4("Primary tower color", ref Conf.TowerColor1, ImGuiColorEditFlags.NoInputs);
             ImGui.SameLine();
             ImGui.ColorEdit4("Secondary tower color", ref Conf.TowerColor2, ImGuiColorEditFlags.NoInputs);
@@ -521,13 +554,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 SetupElements();
             }
 
-
             ImGui.Separator();
 
             if(ImGui.CollapsingHeader("Debug"))
             {
                 ImGui.Checkbox($"Debug info", ref Conf.Debug);
-
                 foreach(var x in TetheredPlayers)
                 {
                     ImGuiEx.Text($"Tether Player: {x} {x.GetObject()}");
@@ -540,36 +571,6 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 Towers.Each(x => ImGuiEx.Text($"Towers: {x.GetObject()?.Position.ToString() ?? "unk position"}"));
             }
         }
-
-        /*public void PopulateSwappersFromPrio()
-        {
-            Conf.Swappers.Clear();
-            var myPrio = Conf.PriorityData.GetOwnIndex(x => true);
-
-            if (myPrio <= 3)
-            {
-                for (int i = 0; i < myPrio; i++)
-                {
-                    var player = Conf.PriorityData.GetPlayer(x => true, i + 1);
-                    if (player != null && !Conf.Swappers.Contains(player.Name.ToString()))
-                    {
-                        Conf.Swappers.Add(player.Name.ToString());
-                    }
-                }
-            }
-            else if (myPrio >= 4)
-            {
-                for (int i = 7; i > myPrio; i--)
-                {
-                    var player = Conf.PriorityData.GetPlayer(x => true, i + 1);
-                    if (player != null && !Conf.Swappers.Contains(player.Name.ToString()))
-                    {
-                        Conf.Swappers.Add(player.Name.ToString());
-                    }
-                }
-            }
-
-        }*/
 
         public class Config : IEzConfig
         {
@@ -584,14 +585,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             public Vector4 ProximityColor = ImGuiColors.ParsedBlue;
             public float InvalidOverlayScale = 2f;
             public bool ShowAOEAlways = false;
-            public Direction MyDirection = Direction.Clockwise;
+            public string PlayerToSwap = "";
+            public List<string> Swappers = [];
+            public Direction MyDirection = Direction.Counter_clockwise;
             public bool Debug = false;
             public TowerStartPoint Towers = TowerStartPoint.Start_NorthEast;
             public bool DisplayTetherSafeSpots = true;
             public bool TetherSafeSpotEnableDetect = true;
             public Vector4 TetherSafeSpotColor = 0xFF000000.ToVector4();
             public bool EnlargeMyTether = true;
-            public PriorityData PriorityData = new();
         }
 
         public enum Direction { Clockwise, Counter_clockwise }

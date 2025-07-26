@@ -17,6 +17,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using ImGuiNET;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -206,68 +207,9 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
             ImGui.Dummy(new Vector2(0f, 10f));
         }
         ImGuiEx.Text($"Priority list:");
-        ImGui.SameLine();
-        if(ImGui.SmallButton("Test"))
-        {
-            if(TryGetPriorityList(out var list))
-            {
-                DuoLog.Information($"Success: priority list {list.Print()}");
-            }
-            else
-            {
-                DuoLog.Warning($"Could not get priority list");
-            }
-        }
-        var toRem = -1;
-        for(var i = 0; i < Conf.Priorities.Count; i++)
-        {
-            if(DrawPrioList(i))
-            {
-                toRem = i;
-            }
-        }
-        if(toRem != -1)
-        {
-            Conf.Priorities.RemoveAt(toRem);
-        }
-        if(ImGui.Button("Create new priority list"))
-        {
-            Conf.Priorities.Add(new string[] { "", "", "", "", "", "", "", "" });
-        }
-        if(ImGui.Button("Get from initial conga setup"))
-        {
-            if(FakeParty.Get().Count() == 8)
-            {
-                Conf.Priorities.Add(FakeParty.Get().OrderBy(x => x.Position.X).Select(x => x.Name.ToString()).ToArray());
-            }
-            else
-            {
-                DuoLog.Error($"8 players are required");
-            }
-        }
+        Conf.PriorityData.Draw();
+
         ImGui.Checkbox("PrintDebug", ref Conf.IsDebug);
-
-        if(ImGuiEx.CollapsingHeader("Option"))
-        {
-            DragDrop.Begin();
-            foreach(var job in Conf.Jobs)
-            {
-                DragDrop.NextRow();
-                ImGui.Text(job.ToString());
-                ImGui.SameLine();
-
-                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
-                {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
-                    ImGui.SameLine();
-                }
-
-                ImGui.SameLine();
-                DragDrop.DrawButtonDummy(job, Conf.Jobs, Conf.Jobs.IndexOf(job));
-            }
-
-            DragDrop.End();
-        }
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -294,15 +236,16 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
 
     private (int Priority, bool IsMonitor) ObtainMyPriority()
     {
-        if(TryGetPriorityList(out var list))
+        var isMonitor = Svc.ClientState.LocalPlayer.HasMonitor();
+        bool anyHasMonitor = Conf.PriorityData.GetPlayers(z => (z.IGameObject as IPlayerCharacter)?.HasMonitor() == true).Any();
+        if (anyHasMonitor)
         {
-            var isMonitor = Svc.ClientState.LocalPlayer.HasMonitor();
-            if(isMonitor)
+            if (isMonitor)
             {
                 var prio = 1;
-                foreach(var x in list.Where(z => GetPlayer(z)?.HasMonitor() == true))
+                foreach (var x in Conf.PriorityData.GetPlayers(z => (z.IGameObject as IPlayerCharacter).HasMonitor() == true))
                 {
-                    if(x == Svc.ClientState.LocalPlayer.Name.ToString())
+                    if (x.Name.ToString() == Svc.ClientState.LocalPlayer.Name.ToString())
                     {
                         return (prio, true);
                     }
@@ -315,9 +258,9 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
             else
             {
                 var prio = 1;
-                foreach(var x in list.Where(z => GetPlayer(z)?.HasMonitor() == false))
+                foreach (var x in Conf.PriorityData.GetPlayers(z => (z.IGameObject as IPlayerCharacter).HasMonitor() == false))
                 {
-                    if(x == Svc.ClientState.LocalPlayer.Name.ToString())
+                    if (x.Name.ToString() == Svc.ClientState.LocalPlayer.Name.ToString())
                     {
                         return (prio, false);
                     }
@@ -328,96 +271,8 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
                 }
             }
         }
+
         return (0, false);
-    }
-
-    private IPlayerCharacter? GetPlayer(string name)
-    {
-        return FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == name);
-    }
-
-    private bool DrawPrioList(int num)
-    {
-        var prio = Conf.Priorities[num];
-        ImGuiEx.Text($"Priority list {num + 1}");
-        ImGui.PushID($"prio{num}");
-        for(var i = 0; i < prio.Length; i++)
-        {
-            ImGui.PushID($"prio{num}element{i}");
-            ImGui.SetNextItemWidth(200);
-            ImGui.InputText($"Player {i + 1}", ref prio[i], 50);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(150);
-            if(ImGui.BeginCombo("##partysel", "Select from party"))
-            {
-                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
-                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if(ImGui.Selectable(x))
-                        prio[i] = x;
-                ImGui.EndCombo();
-            }
-            ImGui.PopID();
-        }
-        if(ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl)
-        {
-            return true;
-        }
-        ImGui.SameLine();
-        if(ImGui.Button("Fill by job"))
-        {
-            HashSet<(string, Job)> party = [];
-            foreach(var x in FakeParty.Get())
-                party.Add((x.Name.ToString(), x.GetJob()));
-
-            var proxy = InfoProxyCrossRealm.Instance();
-            for(var i = 0; i < proxy->GroupCount; i++)
-            {
-                var group = proxy->CrossRealmGroups[i];
-                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
-                {
-                    var x = group.GroupMembers[c];
-                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
-                }
-            }
-
-            var index = 0;
-            foreach(var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
-            {
-                prio[index] = party.First(x => x.Item2 == job).Item1;
-                index++;
-            }
-
-            for(var i = index; i < prio.Length; i++)
-                prio[i] = "";
-        }
-        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
-
-        ImGui.PopID();
-        return false;
-    }
-
-    private bool TryGetPriorityList([NotNullWhen(true)] out string[]? values)
-    {
-        foreach(var p in Conf.Priorities)
-        {
-            var valid = true;
-            var l = FakeParty.Get().Select(x => x.Name.ToString()).ToHashSet();
-            foreach(var x in p)
-            {
-                if(!l.Remove(x))
-                {
-                    valid = false;
-                    break;
-                }
-            }
-            if(valid)
-            {
-                values = p;
-                return true;
-            }
-        }
-        values = default;
-        return false;
     }
 
     private void FaceTarget(float rotation, ulong unkObjId = 0xE0000000)
@@ -450,36 +305,11 @@ public unsafe class Oversampled_Wave_Cannon : SplatoonScript
 
     public class Config : IEzConfig
     {
-        public List<string[]> Priorities = [];
         public bool LockFace = false;
         public string[] EastMoniterRotation = { "left", "front", "back" };
         public string[] WestMoniterRotation = { "right", "front", "back" };
         public bool IsDebug = false;
-
-        public List<Job> Jobs =
-        [
-            Job.PLD,
-            Job.WAR,
-            Job.DRK,
-            Job.GNB,
-            Job.WHM,
-            Job.SCH,
-            Job.AST,
-            Job.SGE,
-            Job.VPR,
-            Job.DRG,
-            Job.MNK,
-            Job.SAM,
-            Job.RPR,
-            Job.NIN,
-            Job.BRD,
-            Job.MCH,
-            Job.DNC,
-            Job.BLM,
-            Job.SMN,
-            Job.RDM,
-            Job.PCT
-        ];
+        public PriorityData PriorityData = new();
     }
 }
 

@@ -29,7 +29,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public unsafe class Oversampled_Wave_Cannon : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1122];
-    public override Metadata? Metadata => new(8, "NightmareXIV");
+    public override Metadata? Metadata => new(9, "NightmareXIV, damolitionn");
 
     private readonly string[] strings = { "front", "right", "back", "left" };
     private readonly string[] monitorRlString = { "right", "left" };

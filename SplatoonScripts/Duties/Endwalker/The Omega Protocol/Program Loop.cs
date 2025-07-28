@@ -1,15 +1,12 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
-using Dalamud.Interface.Style;
-using Dalamud.Logging;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using ECommons.Schedulers;
@@ -17,22 +14,16 @@ using ImGuiNET;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
-using PluginLog = ECommons.Logging.PluginLog;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 
 public unsafe class Program_Loop : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [1122];
-    public override Metadata? Metadata => new(14, "NightmareXIV");
+    public override Metadata? Metadata => new(15, "NightmareXIV");
     private Config Conf => Controller.GetConfig<Config>();
     private HashSet<uint> TetheredPlayers = [];
     private List<uint> Towers = [];

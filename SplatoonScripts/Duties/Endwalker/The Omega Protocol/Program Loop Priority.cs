@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public unsafe class Program_Loop_Priority : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [1122];
-    public override Metadata? Metadata => new(15, "NightmareXIV, damolitionn");
+    public override Metadata? Metadata => new(16, "NightmareXIV, damolitionn");
     private Config Conf => Controller.GetConfig<Config>();
     private HashSet<uint> TetheredPlayers = [];
     private List<uint> Towers = [];
@@ -487,7 +487,52 @@ public unsafe class Program_Loop_Priority : SplatoonScript
         ImGui.SetNextItemWidth(200f);
         ImGuiEx.EnumCombo($"Tower handling", ref Conf.Towers);
 
-        ImGuiEx.Text($"If one of these players have same debuff as I, invert direction:");
+        ImGuiEx.Text($"Priority from North going Clockwise:");
+        if(ImGui.Button("Configure for NAUR"))
+        {
+            //h2 r2 m2 t2 t1 m1 r1 h1
+            Conf.PriorityData.PriorityLists =
+            [
+                new()
+                {
+                    IsRole = true,
+                    List =
+                    [
+                        new() { Role = RolePosition.H2},
+                        new() { Role = RolePosition.R2},
+                        new() { Role = RolePosition.M2},
+                        new() { Role = RolePosition.T2},
+                        new() { Role = RolePosition.T1},
+                        new() { Role = RolePosition.M1},
+                        new() { Role = RolePosition.R1},
+                        new() { Role = RolePosition.H1}
+                    ]
+                }
+            ];
+        }
+        ImGui.SameLine();
+        if(ImGui.Button("Configure for LPDU"))
+        {
+            //m1 m2 t1 t2 r1 r2 h1 h2
+            Conf.PriorityData.PriorityLists =
+            [
+                new()
+                {
+                    IsRole = true,
+                    List =
+                    [
+                        new() { Role = RolePosition.M1},
+                        new() { Role = RolePosition.M2},
+                        new() { Role = RolePosition.T1},
+                        new() { Role = RolePosition.T2},
+                        new() { Role = RolePosition.R1},
+                        new() { Role = RolePosition.R2},
+                        new() { Role = RolePosition.H1},
+                        new() { Role = RolePosition.H2}
+                    ]
+                }
+            ];
+        }
         Conf.PriorityData.Draw();
         PopulateSwappersFromPrio();
 

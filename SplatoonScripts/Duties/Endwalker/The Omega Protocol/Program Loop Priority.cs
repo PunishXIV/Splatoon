@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public unsafe class Program_Loop_Priority : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [1122];
-    public override Metadata? Metadata => new(16, "NightmareXIV, damolitionn");
+    public override Metadata? Metadata => new(17, "NightmareXIV, damolitionn");
     private Config Conf => Controller.GetConfig<Config>();
     private HashSet<uint> TetheredPlayers = [];
     private List<uint> Towers = [];
@@ -490,6 +490,7 @@ public unsafe class Program_Loop_Priority : SplatoonScript
         ImGuiEx.Text($"Priority from North going Clockwise:");
         if(ImGui.Button("Configure for NAUR"))
         {
+            Conf.Towers = TowerStartPoint.Start_NorthWest;
             //h2 r2 m2 t2 t1 m1 r1 h1
             Conf.PriorityData.PriorityLists =
             [
@@ -513,6 +514,7 @@ public unsafe class Program_Loop_Priority : SplatoonScript
         ImGui.SameLine();
         if(ImGui.Button("Configure for LPDU"))
         {
+            Conf.Towers = TowerStartPoint.Start_NorthWest;
             //m1 m2 t1 t2 r1 r2 h1 h2
             Conf.PriorityData.PriorityLists =
             [

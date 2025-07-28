@@ -16,12 +16,10 @@
 
   <ItemGroup>
     <Compile Remove="Duties\Dawntrail\The Futures Rewritten\FullToolerPartyOnlyScrtipts\P2 Diamond Dust Full Toolers.cs" />
-    <Compile Remove="Duties\Endwalker\The Omega Protocol\Program Loop Priority.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Duties\Dawntrail\The Futures Rewritten\FullToolerPartyOnlyScrtipts\P2 Diamond Dust Full Toolers.cs" />
-    <None Include="Duties\Endwalker\The Omega Protocol\Program Loop Priority.cs" />
   </ItemGroup>
 
   <ItemGroup>

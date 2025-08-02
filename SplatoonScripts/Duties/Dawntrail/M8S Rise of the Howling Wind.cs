@@ -1,5 +1,6 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -105,7 +106,7 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
      */
     #region Public Fields
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(2, "Redmoon");
+    public override Metadata? Metadata => new(3, "Redmoon, NightmareXIV");
     #endregion
 
     /*
@@ -356,14 +357,14 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
                 }
                 else if(mine.LandNumber == 2)
                 {
-                    if(Controller.TryGetElementByName("Nop1Land", out var element))
+                    if(Controller.TryGetElementByName(C.Is23Origin?"Nop2Land":"Nop1Land", out var element))
                     {
                         element.Enabled = true;
                     }
                 }
                 else if(mine.LandNumber == 3)
                 {
-                    if(Controller.TryGetElementByName("Nop4Land", out var element))
+                    if(Controller.TryGetElementByName(C.Is23Origin ? "Nop3Land" : "Nop4Land", out var element))
                     {
                         element.Enabled = true;
                     }
@@ -418,6 +419,7 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        ImGui.Checkbox("Stay on platform 2 and 3 (enable for EU and NA strats)", ref C.Is23Origin);
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"State: {_state}");
@@ -603,4 +605,10 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
         return null;
     }
     #endregion
+
+    public Config C => Controller.GetConfig<Config>();
+    public class Config : IEzConfig
+    {
+        public bool Is23Origin = false;
+    }
 }

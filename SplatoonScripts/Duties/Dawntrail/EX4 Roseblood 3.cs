@@ -3,21 +3,17 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
-using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
-using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using FFXIVClientStructs.Interop;
 using ImGuiNET;
+using SharpDX.Direct3D11;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe sealed class EX4_Roseblood_3 : SplatoonScript
@@ -90,6 +86,11 @@ public unsafe sealed class EX4_Roseblood_3 : SplatoonScript
                 {
                     ref var effect = ref cd->MapEffects->Items[i];
                     ImGuiEx.Text($"{i} Effect: {effect.LayoutId}/{effect.State}/{effect.Flags:B8}");
+                    ImGui.SameLine();
+                    if(ImGui.SmallButton($"c##{i}"))
+                    {
+                        GenericHelpers.Copy($"{(nint)(&cd->MapEffects->Items.GetPointer(i)->State):X}");
+                    }
                 }
             }
         }

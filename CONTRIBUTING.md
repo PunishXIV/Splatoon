@@ -1,5 +1,7 @@
 # Thank you for considering contributing to this project!
 ## Before you proceed with pull request, please consider the following:
+### Agree to the terms of Contributor License Agreement
+Please only submit pull request if you agree with [Contributor Lisense Agreement](./CLA.md).
 ### Do not refactor
 Even if current code is unoptimal, please avoid refactoring existing code. 
 - Do not replace opcodes with hooks

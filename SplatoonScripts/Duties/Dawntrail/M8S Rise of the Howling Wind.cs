@@ -106,7 +106,7 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
      */
     #region Public Fields
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(3, "Redmoon, NightmareXIV");
+    public override Metadata? Metadata => new(4, "Redmoon, NightmareXIV");
     #endregion
 
     /*
@@ -419,7 +419,8 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Checkbox("Stay on platform 2 and 3 (enable for EU and NA strats)", ref C.Is23Origin);
+        ImGui.Checkbox("Don't switch off platforms 2 and 3 before tether appears", ref C.Is23Origin);
+        ImGuiEx.Text("   (enable for EU and NA strats)");
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"State: {_state}");

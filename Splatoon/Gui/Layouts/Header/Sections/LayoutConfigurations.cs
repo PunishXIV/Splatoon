@@ -38,7 +38,7 @@ internal static class LayoutConfigurations
             {
                 if(ImGui.BeginCombo("##layoutConfiguration", selectedConf.GetName(layout), ImGuiComboFlags.HeightLarge))
                 {
-                    if(ImGui.Selectable($"Default Configuration", selectedConf == null))
+                    if(ImGui.Selectable(layout.DefaultConfigurationName.NullWhenEmpty() ?? $"Default Configuration", selectedConf == null))
                     {
                         layout.SelectedSubconfigurationID = Guid.Empty;
                     }
@@ -67,7 +67,7 @@ internal static class LayoutConfigurations
                         ImGui.Separator();
                         ImGuiEx.Text(UiBuilder.IconFont, FontAwesomeIcon.Plus.ToIconString());
                         ImGui.SameLine();
-                        if(ImGui.Selectable($"Add New based on Default Configuration"))
+                        if(ImGui.Selectable($"Add New based on {layout.DefaultConfigurationName.NullWhenEmpty() ?? $"Default Configuration"}"))
                         {
                             var newConf = new LayoutSubconfiguration
                             {
@@ -127,10 +127,14 @@ internal static class LayoutConfigurations
         try
         {
             var selectedConf = layout.Subconfigurations.FirstOrDefault(x => x.Guid == layout.SelectedSubconfigurationID);
+            ImGuiEx.SetNextItemFullWidth();
             if(selectedConf != null)
             {
-                ImGuiEx.SetNextItemFullWidth();
                 ImGui.InputTextWithHint("##confName", selectedConf.GetName(layout), ref selectedConf.Name, 100);
+            }
+            else
+            {
+                ImGui.InputTextWithHint("##confName", "Rename Default Configuration", ref layout.DefaultConfigurationName, 100);
             }
         }
         catch(Exception e)

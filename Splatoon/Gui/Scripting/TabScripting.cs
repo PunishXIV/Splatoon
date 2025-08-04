@@ -76,7 +76,7 @@ internal static class TabScripting
                     }
                 }
             }
-            if(ImGui.Selectable("Default"))
+            if(ImGui.Selectable("Default Configuration"))
             {
                 foreach(var s in ScriptingProcessor.Scripts)
                 {
@@ -99,7 +99,20 @@ internal static class TabScripting
                 foreach(var s in ScriptingProcessor.Scripts)
                 {
                     if(s.IsDisabledByUser) continue;
-                    if(s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey) && s.InternalData.CurrentConfigurationKey != confKey)
+                    if(P.Config.DefaultScriptConfigurationNames.TryGetValue(s.InternalData.FullName, out var defConName) && defConName == confName)
+                    {
+                        if(s.InternalData.CurrentConfigurationKey != "")
+                        {
+                            if(doReload)
+                            {
+                                s.ApplyDefaultConfiguration(out var act);
+                                if(act != null) toReload.Add(s);
+                            }
+                            sb.Append(s.InternalData.FullName.Replace(".", " - "));
+                            sb.Append('\n');
+                        }
+                    }
+                    else if(s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey) && s.InternalData.CurrentConfigurationKey != confKey)
                     {
                         if(doReload)
                         {

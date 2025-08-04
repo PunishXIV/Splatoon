@@ -23,6 +23,7 @@ public class Layout
     [DefaultValue(false)] public bool IsZoneBlacklist = false;
     [DefaultValue(false)] public bool ConditionalAnd = false;
     public List<LayoutSubconfiguration> Subconfigurations = [];
+    [DefaultValue("")] public string DefaultConfigurationName = "";
     public Guid SelectedSubconfigurationID = Guid.Empty;
 
     /// <summary>

@@ -44,7 +44,7 @@ internal static class CGuiConfigurations
         ImGuiEx.SetNextItemFullWidth();
         if(ImGui.BeginCombo("##switchAll", "Switch all displayed layouts/scripts to configuration, if supported:".Loc(), ImGuiComboFlags.HeightLarge))
         {
-            if(ImGui.Selectable("Default"))
+            if(ImGui.Selectable("Default Configuration"))
             {
                 requestedConfiguration = Guid.Empty.ToString();
             }
@@ -77,7 +77,11 @@ internal static class CGuiConfigurations
                     }
                     if(requestedConfiguration != null)
                     {
-                        if(layout.Subconfigurations.TryGetFirst(v => v.Name == requestedConfiguration, out var switchTo))
+                        if(layout.DefaultConfigurationName == requestedConfiguration)
+                        {
+                            layout.SelectedSubconfigurationID = Guid.Empty;
+                        }
+                        else if(layout.Subconfigurations.TryGetFirst(v => v.Name == requestedConfiguration, out var switchTo))
                         {
                             layout.SelectedSubconfigurationID = switchTo.Guid;
                         }
@@ -133,8 +137,17 @@ internal static class CGuiConfigurations
                             AvailableTerritories.AddRange(script.ValidTerritories ?? []);
                         }
                     }
-                    if(requestedConfiguration != null && script.TryGetAvailableConfigurations(out var confList))
+                    if(P.Config.DefaultScriptConfigurationNames.TryGetValue(script.InternalData.FullName, out var defConName) && defConName == requestedConfiguration)
                     {
+                        if(script.InternalData.CurrentConfigurationKey != "")
+                        {
+                            script.ApplyDefaultConfiguration(out var act);
+                            if(act != null) toReload.Add(script);
+                        }
+                    }
+                    else if(requestedConfiguration != null && script.TryGetAvailableConfigurations(out var confList))
+                    {
+                        
                         if(confList.FindKeysByValue(requestedConfiguration).TryGetFirst(out var confKey))
                         {
                             if(script.InternalData.CurrentConfigurationKey != confKey)

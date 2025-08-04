@@ -179,7 +179,7 @@ internal partial class CGui
             ImGui.TableNextColumn();
             layout.DrawLayoutConfigurations();
 
-            if(selectedConf != null)
+            if(layout.Subconfigurations.Count > 0)
             {
                 ImGui.TableNextColumn();
                 ImGuiEx.TextV(selectedConf == null ? EColor.GreenBright : EColor.YellowBright, "Configuration Name".Loc());

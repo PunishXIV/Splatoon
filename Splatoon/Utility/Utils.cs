@@ -221,7 +221,7 @@ public static unsafe class Utils
     /// <returns></returns>
     public static string GetName(this LayoutSubconfiguration conf, Layout layout)
     {
-        var name = conf?.Name ?? "Default Configration";
+        var name = conf?.Name ?? layout.DefaultConfigurationName.NullWhenEmpty() ?? "Default Configration";
         if(name == "")
         {
             var index = layout.Subconfigurations.IndexOf(conf);

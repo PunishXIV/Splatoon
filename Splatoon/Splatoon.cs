@@ -13,6 +13,7 @@ using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
+using ECommons.Interop;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
@@ -22,7 +23,7 @@ using ECommons.Singletons;
 using ECommons.WindowsFormsReflector;
 using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
-using PInvoke;
+
 using Splatoon.Gui;
 using Splatoon.Gui.Priority;
 using Splatoon.Gui.Scripting;
@@ -718,7 +719,7 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         if(s2wInfo != null)
         {
-            var lmbdown = Bitmask.IsBitSet(User32.GetKeyState(0x01), 15);
+            var lmbdown = Bitmask.IsBitSet(NativeFunctions.GetKeyState(0x01), 15);
             var mousePos = ImGui.GetIO().MousePos;
             if(Svc.GameGui.ScreenToWorld(new Vector2(mousePos.X, mousePos.Y), out var worldPos, Config.maxdistance * 5))
             {

@@ -10,7 +10,7 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Reflection;
 using ECommons.Schedulers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;

@@ -10,12 +10,13 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Callback = ECommons.Automation.Callback;
 
 namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class RedmoonTest4 :SplatoonScript
@@ -248,7 +249,7 @@ internal unsafe class RedmoonTest4 :SplatoonScript
                 ImGuiEx.EzTable("LeveData", entries);
             }
 
-            var buttonPtr = addon->GetButtonNodeById(94);
+            var buttonPtr = addon->GetComponentButtonById(94);
             if (buttonPtr == null)
             {
                 ImGuiEx.Text(EzColor.RedBright, "buttonPtr not found");
@@ -265,7 +266,7 @@ internal unsafe class RedmoonTest4 :SplatoonScript
                 return;
             }
 
-            buttonPtr = SelectYesno->GetButtonNodeById(8);
+            buttonPtr = SelectYesno->GetComponentButtonById(8);
             if (buttonPtr == null)
             {
                 ImGuiEx.Text(EzColor.RedBright, "buttonPtr not found");
@@ -329,8 +330,8 @@ internal unsafe class RedmoonTest4 :SplatoonScript
                 var text = comp->ButtonTextNode;
                 if (text == null || text->GetText() == "") break;
                 var wKSMissionUnitData = Svc.Data.GetExcelSheet<WKSMissionUnit>()
-                    .FirstOrNull(x => x.Unknown0.ToString() == text->GetText().ToString()
-                        && x.Unknown1 == (ushort)(Player.Job + 1));
+                    .FirstOrNull(x => x.Name.ToString() == text->GetText().ToString()
+                        && x.GoldStarRequirement == (ushort)(Player.Job + 1));
                 if (wKSMissionUnitData == null) continue;
                 var texNode = (AtkImageNode*)SearchResNodeOnly(new NodeData(node, (AtkComponentBase*)comp), 6);
                 if (texNode == null)
@@ -357,22 +358,22 @@ internal unsafe class RedmoonTest4 :SplatoonScript
                     }
                 }
                 index++;
-                if (wKSMissionUnitData.Value.Unknown17 != prevRank)
+                if (wKSMissionUnitData.Value.LevelGroup != prevRank)
                 {
                     if (prevRank != 0)
                     {
-                        if (!((prevRank == 4 && wKSMissionUnitData.Value.Unknown17 == 5) ||
-                              (prevRank == 5 && wKSMissionUnitData.Value.Unknown17 == 4)))
+                        if (!((prevRank == 4 && wKSMissionUnitData.Value.LevelGroup == 5) ||
+                              (prevRank == 5 && wKSMissionUnitData.Value.LevelGroup == 4)))
                         {
                             index++;
                         }
                     }
-                    prevRank = wKSMissionUnitData.Value.Unknown17;
+                    prevRank = wKSMissionUnitData.Value.LevelGroup;
                 }
                 _leveData.Add(new LeveData(
                     index,
                     wKSMissionUnitData.Value.RowId,
-                    wKSMissionUnitData.Value.Unknown17,
+                    wKSMissionUnitData.Value.LevelGroup,
                     text->GetText().ToString(),
                     node,
                     achevement));

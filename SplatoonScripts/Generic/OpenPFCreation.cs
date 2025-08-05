@@ -29,7 +29,7 @@ namespace SplatoonScriptsOfficial.Generic
             if(OpenCreate)
             {
                 OpenCreate = false;
-                Callback.Fire((AtkUnitBase*)args.Addon, true, 14);
+                Callback.Fire((AtkUnitBase*)args.Addon.Address, true, 14);
             }
         }
 

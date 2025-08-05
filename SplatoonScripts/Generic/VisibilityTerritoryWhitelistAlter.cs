@@ -7,7 +7,7 @@ using ECommons.ImGuiMethods;
 using ECommons.ImGuiMethods.TerritorySelection;
 using ECommons.Reflection;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;

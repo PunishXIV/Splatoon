@@ -4,7 +4,7 @@ using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Schedulers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;

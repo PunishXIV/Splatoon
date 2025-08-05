@@ -11,7 +11,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using SharpDX.DXGI;
 using Splatoon.SplatoonScripting;
 using System;

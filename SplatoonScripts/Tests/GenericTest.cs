@@ -5,7 +5,7 @@ using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;

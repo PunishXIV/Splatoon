@@ -7,7 +7,7 @@ using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.Interop;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using SharpDX.Direct3D11;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;

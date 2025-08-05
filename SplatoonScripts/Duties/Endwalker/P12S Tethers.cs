@@ -2,7 +2,7 @@
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;

@@ -16,6 +16,6 @@
 		"DownloadLinkTesting": "https://love.puni.sh/plugins/Splatoon/latest.zip",
 		"AcceptsFeedback": true,
 		"IconUrl": "https://love.puni.sh/resources/splatoon.png",
-		"DalamudApiLevel": 12
+		"DalamudApiLevel": 13
 }
 

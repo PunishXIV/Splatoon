@@ -10,12 +10,12 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
-using PInvoke;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using ECommons.Interop;
 
 namespace SplatoonScriptsOfficial.Generic
 {
@@ -37,7 +37,7 @@ namespace SplatoonScriptsOfficial.Generic
             var ret = AddonItemDetail_ShowHook.Original(a1, a2, a3);
             try
             {
-                if(!Bitmask.IsBitSet(User32.GetKeyState((int)Conf.Key), 15))
+                if(!Bitmask.IsBitSet(NativeFunctions.GetKeyState((int)Conf.Key), 15))
                 {
                     ((AtkUnitBase*)a1)->IsVisible = false;
                 }
@@ -86,7 +86,7 @@ namespace SplatoonScriptsOfficial.Generic
                     ImGuiEx.Text(GradientColor.Get(ImGuiColors.ParsedGreen, ImGuiColors.DalamudRed), "Now press new key...");
                     foreach(var x in Enum.GetValues<Keys>())
                     {
-                        if(Bitmask.IsBitSet(User32.GetKeyState((int)x), 15))
+                        if(Bitmask.IsBitSet(NativeFunctions.GetKeyState((int)x), 15))
                         {
                             ImGui.CloseCurrentPopup();
                             Conf.Key = x;

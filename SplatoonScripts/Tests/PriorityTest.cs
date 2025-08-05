@@ -3,7 +3,7 @@ using ECommons.Configuration;
 using ECommons.ExcelServices.TerritoryEnumeration;
 using ECommons.ImGuiMethods;
 using ECommons.PartyFunctions;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using System;

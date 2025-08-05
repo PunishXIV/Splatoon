@@ -57,8 +57,8 @@ public unsafe class AutoRetainerCreation : SplatoonScript
         {
             if(EzThrottler.Throttle(InternalData.FullName + addonName))
             {
-                if(addon->GetButtonNodeById(buttonId)->IsEnabled && addon->GetButtonNodeById(buttonId)->AtkResNode->IsVisible())
-                    addon->GetButtonNodeById(buttonId)->ClickAddonButton(addon);
+                if(addon->GetComponentButtonById(buttonId)->IsEnabled && addon->GetComponentButtonById(buttonId)->AtkResNode->IsVisible())
+                    addon->GetComponentButtonById(buttonId)->ClickAddonButton(addon);
             }
         }
     }

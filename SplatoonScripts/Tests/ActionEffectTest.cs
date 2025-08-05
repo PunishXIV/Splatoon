@@ -6,7 +6,7 @@ using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;

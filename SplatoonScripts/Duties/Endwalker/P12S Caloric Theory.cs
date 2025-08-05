@@ -6,7 +6,7 @@ using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;

@@ -15,7 +15,7 @@ using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using ECommons.Schedulers;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;

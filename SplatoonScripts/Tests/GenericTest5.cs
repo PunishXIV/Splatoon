@@ -4,7 +4,7 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Common.Math;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using SharpDX;
 using Splatoon.SplatoonScripting;
 using System;

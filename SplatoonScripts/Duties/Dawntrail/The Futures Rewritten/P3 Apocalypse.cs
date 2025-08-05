@@ -8,7 +8,7 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using NightmareUI.PrimaryUI;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;

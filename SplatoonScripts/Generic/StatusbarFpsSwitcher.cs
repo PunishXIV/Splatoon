@@ -19,7 +19,7 @@ public class StatusbarFpsSwitcher : SplatoonScript
     {
         Entry = Svc.DtrBar.Get("Splatoon.FpsSwitcher", "");
         Entry.Shown = true;
-        Entry.OnClick = () =>
+        Entry.OnClick = (x) =>
         {
             Toggle();
         };

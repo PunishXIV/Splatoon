@@ -10,7 +10,7 @@ using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using ECommons.Schedulers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;

@@ -7,7 +7,7 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;

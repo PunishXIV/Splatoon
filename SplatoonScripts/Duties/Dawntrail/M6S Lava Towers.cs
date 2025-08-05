@@ -7,7 +7,7 @@ using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
 using System;
@@ -268,7 +268,7 @@ public unsafe class M6S_Lava_Towers : SplatoonScript
         ImGuiEx.Combo("8 towers position", ref C.Position8, Towers.Keys.Where(x => x >= 89));
         if(ThreadLoadImageHandler.TryGetTextureWrap("https://github.com/PunishXIV/Splatoon/blob/main/Presets/Files/Dawntrail/image_230.png?raw=true", out var w))
         {
-            ImGui.Image(w.ImGuiHandle, w.Size);
+            ImGui.Image(w.Handle, w.Size);
         }
         if(ImGui.CollapsingHeader("Debug"))
         {

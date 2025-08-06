@@ -33,12 +33,12 @@ public abstract class SplatoonScript
     /// <summary>
     /// Metadata of a script that optionally contains author, description, version and script's origin website. This data will be displayed in Splatoon's interface.
     /// </summary>
-    public virtual Metadata? Metadata { get; }
+    public abstract Metadata Metadata { get; }
 
     /// <summary>
     /// If you want, you can supply changelog for your script. It will be displayed to user upon script update.
     /// </summary>
-    public virtual Dictionary<int, string> Changelog { get; }
+    public virtual Dictionary<int, string>? Changelog { get; }
 
     /// <summary>
     /// Indicates whether your script operates strictly within Splatoon, ECommons and Dalamud APIs. 

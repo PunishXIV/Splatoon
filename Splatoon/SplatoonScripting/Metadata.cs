@@ -61,7 +61,7 @@ public class Metadata
         Version = version;
     }
 
-    public Metadata()
+    private Metadata()
     {
     }
 }

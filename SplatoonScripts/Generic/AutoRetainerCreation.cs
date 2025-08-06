@@ -17,6 +17,8 @@ public unsafe class AutoRetainerCreation : SplatoonScript
     public string SymbolsA = "qwrtpsdfghjklzxcvbnm";
     public string SymbolsB = "eyuioa";
 
+    public override Metadata? Metadata => new(1, "NightmareXIV");
+
     private string GenerateRandomName()
     {
         var len = Random.Shared.Next(4, 21);

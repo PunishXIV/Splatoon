@@ -15,6 +15,8 @@ public class StatusbarFpsSwitcher : SplatoonScript
 
     private IDtrBarEntry Entry;
 
+    public override Metadata? Metadata => new(1, "NightmareXIV");
+
     public override void OnEnable()
     {
         Entry = Svc.DtrBar.Get("Splatoon.FpsSwitcher", "");

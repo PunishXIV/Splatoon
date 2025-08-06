@@ -17,6 +17,7 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class TetherProcessor2Test : SplatoonScript
     {
+        public override Metadata Metadata => new(1, "NightmareXIV");
         //__int64 __fastcall sub_14072F1E0(__int64 a1, unsigned __int8 a2, char a3, char a4, char a5)
         private delegate long ProcessActorControlPacket(GameObject* a1, byte a2, byte a3, byte a4, byte a5);
         [Signature("48 89 5C 24 ?? 48 89 6C 24 ?? 57 48 83 EC 20 41 0F B6 E9 0F B6 DA", DetourName = nameof(ProcessActorControlPacketDetour))]

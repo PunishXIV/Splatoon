@@ -13,7 +13,7 @@ namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class RedmoonTest1 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => null;
-
+    public override Metadata Metadata => new(1, "NightmareXIV");
     public override void OnSettingsDraw()
     {
         var gom = GameObjectManager.Instance();

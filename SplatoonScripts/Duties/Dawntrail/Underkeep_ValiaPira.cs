@@ -23,6 +23,7 @@ public unsafe class Underkeep_ValiaPira : SplatoonScript
     public int RotationAngle = 0;
     public Vector2 ArenaMiddle = new(0, -331);
     public List<Vector3> BlacklistedZones = [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public static class Entities
     {

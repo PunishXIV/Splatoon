@@ -16,6 +16,7 @@ internal unsafe class ActionTest : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [];
     private ActionManager* actionManager = ActionManager.Instance();
+    public override Metadata Metadata => new(1, "NightmareXIV");
     public override void OnSettingsDraw()
     {
         ImGui.Text($"AL: {actionManager->AnimationLock}");

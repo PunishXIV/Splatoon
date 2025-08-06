@@ -13,6 +13,7 @@ namespace SplatoonScriptsOfficial.Tests
     public class VentureOverrideTest : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnEnable()
         {

@@ -17,6 +17,7 @@ namespace SplatoonScriptsOfficial.Tests
     public unsafe class NumberArrayDataDebug : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         private delegate byte Delegate(ulong a1);
         [Signature("48 89 5C 24 ?? 57 48 83 EC 20 8B D9 8B F9", DetourName = nameof(Detour))]

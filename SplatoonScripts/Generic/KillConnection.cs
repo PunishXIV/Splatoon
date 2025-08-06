@@ -16,6 +16,7 @@ namespace SplatoonScriptsOfficial.Generic
     public class KillConnection : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnEnable()
         {

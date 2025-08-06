@@ -21,6 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     bool? IsCW = null;
 

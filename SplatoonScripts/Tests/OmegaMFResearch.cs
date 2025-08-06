@@ -17,6 +17,7 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public class OmegaMFResearch : SplatoonScript
     {
+        public override Metadata Metadata => new(1, "NightmareXIV");
         private delegate void ProcessActorControlPacket(uint a1, uint a2, uint a3, uint a4, uint a5, uint a6, int a7, uint a8, long a9, byte a10);
         [Signature("40 55 53 41 55 41 56 41 57 48 8D AC 24", DetourName = nameof(ProcessActorControlPacketDetour))]
         private Hook<ProcessActorControlPacket> ProcessActorControlPacketHook;

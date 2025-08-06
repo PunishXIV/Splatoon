@@ -19,6 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     {
         public override HashSet<uint> ValidTerritories => [1122];
         private TickScheduler? Sch = null;
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnMessage(string Message)
         {

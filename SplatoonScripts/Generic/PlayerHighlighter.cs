@@ -20,6 +20,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public class PlayerHighlighter : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
     private Config C => Controller.GetConfig<Config>();
     private List<Element> Elements = [];
 

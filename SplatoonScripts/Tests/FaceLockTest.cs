@@ -16,6 +16,7 @@ namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class FaceLockTest : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [];
+    public override Metadata Metadata => new(1);
     private static ActionManager* ActionManager => FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
     private Config C => Controller.GetConfig<Config>();
 

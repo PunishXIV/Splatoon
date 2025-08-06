@@ -7,6 +7,7 @@ namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class MoveTest : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
     public override void OnSettingsDraw()
     {
         if(ImGui.Button($"Move"))

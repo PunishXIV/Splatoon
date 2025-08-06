@@ -9,6 +9,7 @@ using System.Collections.Generic;
 namespace SplatoonScriptsOfficial.Tests;
 internal class StatusListMonitoring : SplatoonScript
 {
+    public override Metadata Metadata => new(1);
     #region types
     private enum StatusChangeType
     {

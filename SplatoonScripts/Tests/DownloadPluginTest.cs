@@ -18,6 +18,7 @@ namespace SplatoonScriptsOfficial.Tests;
 public class DownloadPluginTest : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => null;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnSettingsDraw()
     {

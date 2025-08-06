@@ -8,6 +8,7 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class GenericTest2 : SplatoonScript
     {
+        public override Metadata Metadata => new(1, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => [];
 
         public override void OnEnable()

@@ -14,6 +14,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe sealed class M8S_P2_Guide : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     long TimeStart = long.MaxValue;
     //Data ID: 18222

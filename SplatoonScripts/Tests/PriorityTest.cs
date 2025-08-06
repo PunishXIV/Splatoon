@@ -16,6 +16,7 @@ namespace SplatoonScriptsOfficial.Tests;
 public class PriorityTest : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [Dungeons.Sastasha];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 

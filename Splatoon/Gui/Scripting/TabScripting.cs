@@ -53,7 +53,7 @@ internal static class TabScripting
             }
             else
             {
-                ScriptingProcessor.CompileAndLoad(text, null, false);
+                ScriptingProcessor.CompileAndLoad(text, null, false, true);
             }
         }
         ImGuiEx.Tooltip("Installs script from clipboard. Your clipboard should contain either code of the script or link to a trusted URL (a script from Splatoon repository)");

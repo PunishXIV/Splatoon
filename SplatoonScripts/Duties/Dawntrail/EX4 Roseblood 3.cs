@@ -20,6 +20,8 @@ public unsafe sealed class EX4_Roseblood_3 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1271];
 
+    public override Metadata? Metadata => new(1, "NightmareXIV");
+
     bool? IsDropper = null;
     List<InnerTile>? Tiles = null;
 

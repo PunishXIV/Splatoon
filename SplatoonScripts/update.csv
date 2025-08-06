@@ -157,6 +157,8 @@ SplatoonScriptsOfficial.Generic@DisableHandleActionOutHook,2,https://github.com/
 SplatoonScriptsOfficial.Generic@CastExplorer,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@ScriptEventLogger,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@ObjectExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ObjectExplorer.cs
+SplatoonScriptsOfficial.Generic@AutoRetainerCreation,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoRetainerCreation.cs
+SplatoonScriptsOfficial.Generic@StatusbarFpsSwitcher,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/StatusbarFpsSwitcher.cs
 SplatoonScriptsOfficial.Generic@HighlightDeadgePlayers,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/HighlightDeadgePlayers.cs
 SplatoonScriptsOfficial.Generic@ExportBlacklist,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ExportBlacklist.cs
 SplatoonScriptsOfficial.Generic@NoSproutIcon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/NoSproutIcon.cs

@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
@@ -15,9 +15,10 @@ using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using ECommons.Schedulers;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -49,7 +50,7 @@ public class Party_Synergy : SplatoonScript
 
     // public
     public override HashSet<uint> ValidTerritories => [1122];
-    public override Metadata? Metadata => new(6, "NightmareXIV");
+    public override Metadata? Metadata => new(6, "NightmareXIV, damolitionn");
     private Config Conf => Controller.GetConfig<Config>();
 
     public override void OnSetup()
@@ -216,9 +217,9 @@ public class Party_Synergy : SplatoonScript
             foreach(var row in PartyList)
             {
                 if(fetchedList.Any(x => x.PlayStationMarker == row.PlayStationMarker))
-                    row.LeftRight = "Left";
-                else
                     row.LeftRight = "Right";
+                else
+                    row.LeftRight = "Left";
 
                 fetchedList.Add(row);
                 isLeftRightDecided = true;
@@ -438,49 +439,29 @@ public class Party_Synergy : SplatoonScript
 
         if(Conf.DecideLeftRight)
         {
-            ImGui.Text("# How to determine left/right priority : ");
-            ImGui.SameLine();
-            if(ImGui.SmallButton("Test"))
-            {
-                if(TryGetPriorityList(out var list))
-                    DuoLog.Information($"Success: priority list {list.Print()}");
-                else
-                    DuoLog.Warning("Could not get priority list");
-            }
-
-            var toRem = -1;
-            for(var i = 0; i < Conf.LeftRightPriorities.Count; i++)
-                if(DrawPrioList(i))
-                    toRem = i;
-            if(toRem != -1) Conf.LeftRightPriorities.RemoveAt(toRem);
-            if(ImGui.Button("Create new priority list"))
-                Conf.LeftRightPriorities.Add(new[] { "", "", "", "", "", "", "", "" });
-        }
-
-        if(ImGuiEx.CollapsingHeader("Option"))
-        {
-            DragDrop.Begin();
-            foreach(var job in Conf.Jobs)
-            {
-                DragDrop.NextRow();
-                ImGui.Text(job.ToString());
-                ImGui.SameLine();
-
-                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
-                {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
-                    ImGui.SameLine();
-                }
-
-                ImGui.SameLine();
-                DragDrop.DrawButtonDummy(job, Conf.Jobs, Conf.Jobs.IndexOf(job));
-            }
-
-            DragDrop.End();
+            //ImGui.Text("# How to determine left/right priority : ");
+            //ImGui.SameLine();
+            //if(ImGui.SmallButton("Test"))
+            //{
+            //    if(TryGetPriorityList(out var list))
+            //        DuoLog.Information($"Success: priority list {list.Print()}");
+            //    else
+            //        DuoLog.Warning("Could not get priority list");
+            //}
+            Conf.PriorityData.Draw();
         }
 
         if(ImGui.CollapsingHeader("Debug"))
         {
+            ImGui.Text("Priority List:");
+            if(TryGetPriorityList(out var list))
+            {
+                ImGui.Text(list.Print());
+            }
+            else
+            {
+                ImGui.Text("Could not get priority list");
+            }
             var opticalUnit = Svc.Objects.FirstOrDefault(x => x is ICharacter c && c.NameId == 7640);
             ImGui.Text($"State: {state}");
             if(opticalUnit != null)
@@ -631,86 +612,14 @@ public class Party_Synergy : SplatoonScript
 
     private bool TryGetPriorityList([NotNullWhen(true)] out string[]? values)
     {
-        foreach(var p in Conf.LeftRightPriorities)
+        var players = Conf.PriorityData.GetPlayers(x => true);
+        if (players != null && players.Count > 0)
         {
-            var valid = true;
-            var l = FakeParty.Get().Select(x => x.Name.ToString()).ToHashSet();
-            foreach(var x in p)
-                if(!l.Remove(x))
-                {
-                    valid = false;
-                    break;
-                }
-
-            if(valid)
-            {
-                values = p;
-                return true;
-            }
+            values = players.Select(x => x.Name).ToArray();
+            return true;
         }
 
         values = default;
-        return false;
-    }
-
-    private unsafe bool DrawPrioList(int num)
-    {
-        var prio = Conf.LeftRightPriorities[num];
-        ImGuiEx.Text($"# Priority list {num + 1}");
-        ImGui.PushID($"prio{num}");
-        ImGuiEx.Text("    Omega Female");
-        for(var i = 0; i < prio.Length; i++)
-        {
-            ImGui.PushID($"prio{num}element{i}");
-            ImGui.SetNextItemWidth(200);
-            ImGui.InputText($"Player {i + 1}", ref prio[i], 50);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(150);
-            if(ImGui.BeginCombo("##partysel", "Select from party"))
-            {
-                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
-                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if(ImGui.Selectable(x))
-                        prio[i] = x;
-                ImGui.EndCombo();
-            }
-
-            ImGui.PopID();
-        }
-
-        ImGuiEx.Text("    Omega Male");
-        if(ImGui.Button("Delete this list (ctrl+click)") && ImGui.GetIO().KeyCtrl) return true;
-        ImGui.SameLine();
-        if(ImGui.Button("Fill by job"))
-        {
-            HashSet<(string, Job)> party = [];
-            foreach(var x in FakeParty.Get())
-                party.Add((x.Name.ToString(), x.GetJob()));
-
-            var proxy = InfoProxyCrossRealm.Instance();
-            for(var i = 0; i < proxy->GroupCount; i++)
-            {
-                var group = proxy->CrossRealmGroups[i];
-                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
-                {
-                    var x = group.GroupMembers[c];
-                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
-                }
-            }
-
-            var index = 0;
-            foreach(var job in Conf.Jobs.Where(job => party.Any(x => x.Item2 == job)))
-            {
-                prio[index] = party.First(x => x.Item2 == job).Item1;
-                index++;
-            }
-
-            for(var i = index; i < prio.Length; i++)
-                prio[i] = "";
-        }
-        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
-
-        ImGui.PopID();
         return false;
     }
 
@@ -760,33 +669,9 @@ public class Party_Synergy : SplatoonScript
         public bool ExplicitTether;
         public bool IsRightAdjustKnokback;
 
-        public List<Job> Jobs =
-        [
-            Job.PLD,
-            Job.WAR,
-            Job.DRK,
-            Job.GNB,
-            Job.WHM,
-            Job.SCH,
-            Job.AST,
-            Job.SGE,
-            Job.VPR,
-            Job.DRG,
-            Job.MNK,
-            Job.SAM,
-            Job.RPR,
-            Job.NIN,
-            Job.BRD,
-            Job.MCH,
-            Job.DNC,
-            Job.BLM,
-            Job.SMN,
-            Job.RDM,
-            Job.PCT
-        ];
-
         public List<string[]> LeftRightPriorities = [];
         public bool PrintPreciseResultInChat;
         public bool ReverseAdjust;
+        public PriorityData PriorityData = new();
     }
 }

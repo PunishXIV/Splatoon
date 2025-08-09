@@ -13,6 +13,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public class GenericTargetEnforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [.. ForceTargetDataId.Keys];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     private static Dictionary<uint, uint[]> ForceTargetDataId = new()
     {

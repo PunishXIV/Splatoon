@@ -3,7 +3,7 @@ using ECommons;
 using ECommons.Funding;
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
-using PInvoke;
+using TerraFX.Interop.Windows;
 using Splatoon.ConfigGui;
 using Splatoon.Gui;
 using Splatoon.Gui.Scripting;
@@ -14,6 +14,7 @@ using Splatoon.Utility;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Web;
+using ECommons.Interop;
 
 namespace Splatoon;
 
@@ -228,14 +229,14 @@ internal unsafe partial class CGui : IDisposable
 
     private void SetCursorTo(float refX, float refZ, float refY)
     {
-        if(Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos))
+        if(Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos) && WindowFunctions.TryFindGameWindow(out var handle))
         {
             var point = new POINT() { x = (int)screenPos.X, y = (int)screenPos.Y };
             //Chat.Print(point.X + "/" + point.Y);
-            if(User32.ClientToScreen(Process.GetCurrentProcess().MainWindowHandle, ref point))
+            if(NativeFunctions.ClientToScreen(handle, &point))
             {
                 //Chat.Print(point.X + "/" + point.Y);
-                User32.SetCursorPos(point.x, point.y);
+                NativeFunctions.SetCursorPos(point.x, point.y);
             }
         }
     }

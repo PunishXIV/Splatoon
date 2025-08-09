@@ -16,7 +16,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.SplatoonAPI;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Data;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -240,7 +240,7 @@ internal unsafe class Hello_World_MoveGuide : SplatoonScript
             }
 
             ImGui.Text("ShowGuidePointRef()");
-            ImGui.InputText($"ObjectID", ref Conf.ObjectID, 11U);
+            ImGui.InputText($"ObjectID", ref Conf.ObjectID, 11);
             ImGui.InputFloat3("refOffset", ref Conf.refOffset);
             ImGui.InputFloat("Degree", ref Conf.deg);
             if(ImGui.Button("ShowGuidePointRef Show"))

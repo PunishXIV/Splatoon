@@ -14,6 +14,7 @@ namespace SplatoonScriptsOfficial.Tests
     public class VolumeControl : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
         private int storeVol;
 
         public override void OnEnable()

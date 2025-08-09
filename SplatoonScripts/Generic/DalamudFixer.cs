@@ -1,5 +1,5 @@
 ﻿using ECommons.Reflection;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public class DalamudFixer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [0];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnSettingsDraw()
     {

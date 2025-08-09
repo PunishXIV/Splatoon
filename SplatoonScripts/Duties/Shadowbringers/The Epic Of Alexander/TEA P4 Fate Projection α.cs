@@ -6,7 +6,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.Throttlers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
@@ -35,7 +35,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         .FirstOrDefault(x => x is { NameId: 0x2352, IsCasting: true, CastActionId: 18858 });
 
     public override HashSet<uint>? ValidTerritories => [887];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
 
     private string GetFutureActionText(FutureActionType type)

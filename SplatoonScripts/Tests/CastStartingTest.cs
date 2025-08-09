@@ -11,6 +11,7 @@ namespace SplatoonScriptsOfficial.Tests;
 internal class CastStartingTest : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnStartingCast(uint target, uint castId)
     {

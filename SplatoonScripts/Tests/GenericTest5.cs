@@ -4,7 +4,7 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Common.Math;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using SharpDX;
 using Splatoon.SplatoonScripting;
 using System;
@@ -20,6 +20,7 @@ namespace SplatoonScriptsOfficial.Tests;
 public unsafe class GenericTest5 : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     private System.Numerics.Vector3[] ArrayOfVectors;
     private FFXIVClientStructs.FFXIV.Common.Math.Vector3[] ArrayOfVectorsCS;

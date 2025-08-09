@@ -1,7 +1,7 @@
 ﻿using ECommons;
 using ECommons.DalamudServices;
 using ECommons.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -18,6 +18,7 @@ namespace SplatoonScriptsOfficial.Tests;
 public class DownloadPluginTest : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => null;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnSettingsDraw()
     {

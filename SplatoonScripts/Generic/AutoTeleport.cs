@@ -10,7 +10,7 @@ using ECommons.Logging;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -19,6 +19,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class AutoTeleport : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1252];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     delegate void DisplayPopupBanner(nint a1, int textureId, int a3, int a4);
 

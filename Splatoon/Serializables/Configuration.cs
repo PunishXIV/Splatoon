@@ -87,6 +87,7 @@ internal class Configuration : IEzConfig
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = [];
     public Dictionary<string, Dictionary<string, string>> ScriptConfigurationNames = [];
     public Dictionary<string, string> ActiveScriptConfigurations = [];
+    public Dictionary<string, string> DefaultScriptConfigurationNames = [];
     public string ExtraTrustedRepos = "";
     public string ExtraUpdateLinks = "";
     public List<uint> NoPrioPopupTerritories = [];

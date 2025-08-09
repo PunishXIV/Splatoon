@@ -91,7 +91,7 @@ public static unsafe class LayoutUtils
     {
         return
             (ignoreVisibility || !e.onlyVisible || (a is ICharacter chr && chr.IsCharacterVisible()))
-            && (!e.refActorRequireCast || (e.refActorCastId.Count > 0 && a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
+            && (!e.refActorRequireCast || (a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
             && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is IBattleChara chr3 && CheckEffect(e, chr3)))
             && (!e.refActorUseTransformation || (a is IBattleChara chr4 && CheckTransformationID(e, chr4)))
             && (!e.refMark || (a is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)e.refMarkID)))
@@ -177,28 +177,49 @@ public static unsafe class LayoutUtils
     public static bool IsCastingMatches(Element e, IBattleChara chr)
     {
         if(chr == null) return false;
-        if(chr.IsCasting(e.refActorCastId))
+        if(e.refActorCastId.Count > 0)
         {
-            if(e.refActorUseCastTime)
+            if(chr.IsCasting(e.refActorCastId))
             {
-                return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                if(e.refActorUseCastTime)
+                {
+                    return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                }
+                else
+                {
+                    return true;
+                }
             }
             else
             {
-                return true;
-            }
-        }
-        else
-        {
-            if(e.refActorUseOvercast)
-            {
-                if(AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
+                if(e.refActorUseOvercast)
                 {
-                    return castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                    if(AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
+                    {
+                        return castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
                     return false;
+                }
+            }
+        }
+        else
+        {
+            if(chr.IsCasting())
+            {
+                if(e.refActorUseCastTime)
+                {
+                    return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                }
+                else
+                {
+                    return true;
                 }
             }
             else

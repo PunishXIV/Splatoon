@@ -10,7 +10,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
 using System;
@@ -466,7 +466,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 for(var i = 0; i < Conf.MarkerOrder.Length; i++)
                 {
                     ImGui.PushID($"num{i}");
-                    if(ImGui.ArrowButton("up", ImGuiDir.Up))
+                    if(ImGuiEx.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowUp))
                     {
                         if(i != 0)
                         {
@@ -474,7 +474,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         }
                     }
                     ImGui.SameLine();
-                    if(ImGui.ArrowButton("down", ImGuiDir.Down))
+                    if(ImGuiEx.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowDown))
                     {
                         if(i != Conf.MarkerOrder.Length - 1)
                         {

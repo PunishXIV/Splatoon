@@ -7,6 +7,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class ShowInfo : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [0];
+    public override Metadata Metadata => new(1, "NightmareXIV");
     public override void OnSettingsDraw()
     {
         var a = LayoutWorld.Instance()->ActiveLayout;

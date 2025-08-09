@@ -7,6 +7,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Common.Configuration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using Reloaded.Hooks.Definitions.Structs;
@@ -32,12 +33,12 @@ public abstract class SplatoonScript
     /// <summary>
     /// Metadata of a script that optionally contains author, description, version and script's origin website. This data will be displayed in Splatoon's interface.
     /// </summary>
-    public virtual Metadata? Metadata { get; }
+    public abstract Metadata Metadata { get; }
 
     /// <summary>
     /// If you want, you can supply changelog for your script. It will be displayed to user upon script update.
     /// </summary>
-    public virtual Dictionary<int, string> Changelog { get; }
+    public virtual Dictionary<int, string>? Changelog { get; }
 
     /// <summary>
     /// Indicates whether your script operates strictly within Splatoon, ECommons and Dalamud APIs. 
@@ -282,7 +283,7 @@ public abstract class SplatoonScript
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGuiEx.TextV(current == "" ? ImGuiColors.ParsedGreen : null, $"Default configuration".Loc());
+            ImGuiEx.TextV(current == "" ? ImGuiColors.ParsedGreen : null, P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration").Loc());
             if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it.".Loc()))
             {
                 ApplyDefaultConfiguration();
@@ -300,6 +301,32 @@ public abstract class SplatoonScript
                 DuplicateConfiguration("");
             }
             ImGuiEx.Tooltip("Duplicate this configuration".Loc());
+
+            ImGui.SameLine(0, 1);
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Edit))
+            {
+                ImGui.OpenPopup($"EditConfDefault");
+            }
+            ImGuiEx.Tooltip("Rename".Loc());
+            if(ImGui.BeginPopup($"EditConfDefault"))
+            {
+                ImGuiEx.Text($"Please name your configuration".Loc());
+                ImGui.SetNextItemWidth(250f);
+                var name = P.Config.DefaultScriptConfigurationNames.SafeSelect(InternalData.FullName, "");
+                if(ImGui.InputText("##editval", ref name, 100))
+                {
+                    if(name == "")
+                    {
+                        P.Config.DefaultScriptConfigurationNames.Remove(InternalData.FullName);
+                    }
+                    else
+                    {
+                        P.Config.DefaultScriptConfigurationNames[InternalData.FullName] = name;
+                    }
+                }
+                ImGui.EndPopup();
+            }
+
             if(TryGetAvailableConfigurations(out var confList))
             {
                 foreach(var confKey in confList.Keys.ToArray())
@@ -383,7 +410,7 @@ public abstract class SplatoonScript
                     confList = [];
                 }
                 var m = GetExportedConfiguration(confKey)?.JSONClone() ?? throw new NullReferenceException();
-                var name = $"Copy of {confList.SafeSelect(confKey) ?? "Default configuration".Loc()}";
+                var name = $"Copy of {confList.SafeSelect(confKey) ?? P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration").Loc()}";
                 var name2 = name;
                 var i = 0;
                 while(confList.ContainsValue(name2))
@@ -691,7 +718,7 @@ public abstract class SplatoonScript
         if(TryGetAvailableConfigurations(out var configurations))
         {
             var activeConf = InternalData.CurrentConfigurationKey;
-            var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? "Default";
+            var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration");
             if(width == 0)
             {
                 ImGuiEx.SetNextItemFullWidth();
@@ -702,7 +729,7 @@ public abstract class SplatoonScript
             }
             if(ImGui.BeginCombo("##confs", $"{activeConfName}", ImGuiComboFlags.HeightLarge))
             {
-                if(ImGui.Selectable("Default", activeConf.IsNullOrEmpty()))
+                if(ImGui.Selectable(P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration"), activeConf.IsNullOrEmpty()))
                 {
                     ApplyDefaultConfiguration();
                 }

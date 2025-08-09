@@ -10,7 +10,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using NightmareUI.PrimaryUI;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;

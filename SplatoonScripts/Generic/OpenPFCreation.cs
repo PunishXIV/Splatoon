@@ -17,6 +17,7 @@ namespace SplatoonScriptsOfficial.Generic
     {
         public override HashSet<uint> ValidTerritories => [];
         private bool OpenCreate = false;
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnEnable()
         {
@@ -29,7 +30,7 @@ namespace SplatoonScriptsOfficial.Generic
             if(OpenCreate)
             {
                 OpenCreate = false;
-                Callback.Fire((AtkUnitBase*)args.Addon, true, 14);
+                Callback.Fire((AtkUnitBase*)args.Addon.Address, true, 14);
             }
         }
 

@@ -16,6 +16,7 @@ public class AutoDutyEnableTankStance : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
     [EzIPC] public Func<bool> IsStopped;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnSetup()
     {

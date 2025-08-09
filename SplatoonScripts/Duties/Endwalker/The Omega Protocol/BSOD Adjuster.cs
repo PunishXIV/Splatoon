@@ -11,7 +11,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -118,7 +118,7 @@ internal class BSOD_Adjuster : SplatoonScript
 
                 if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.Image(texture.Handle, new Vector2(24f));
                     ImGui.SameLine();
                 }
 

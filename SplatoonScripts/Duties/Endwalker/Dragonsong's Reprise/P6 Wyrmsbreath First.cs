@@ -16,7 +16,7 @@ using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
@@ -304,7 +304,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
                 if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
                 {
-                    ImGui.Image(texture.ImGuiHandle, new Vector2(24f));
+                    ImGui.Image(texture.Handle, new Vector2(24f));
                     ImGui.SameLine();
                 }
 

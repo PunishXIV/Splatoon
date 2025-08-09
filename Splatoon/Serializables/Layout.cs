@@ -12,17 +12,18 @@ public class Layout
     [NonSerialized] public uint LastDisplayFrame = 0;
     [NonSerialized] public bool? ConditionalStatus = null;
     [DefaultValue(true)] public bool Enabled = true;
-    public string Name = "";
+    [DefaultValue("")] public string Name = "";
     public InternationalString InternationalName = new();
-    public string Description = "";
+    [DefaultValue("")] public string Description = "";
     public InternationalString InternationalDescription = new();
-    public string Group = "";
+    [DefaultValue("")] public string Group = "";
     [NonSerialized] internal string GUID = Guid.NewGuid().ToString();
     public HashSet<ushort> ZoneLockH = [];
     public HashSet<int> Scenes = [];
     [DefaultValue(false)] public bool IsZoneBlacklist = false;
     [DefaultValue(false)] public bool ConditionalAnd = false;
     public List<LayoutSubconfiguration> Subconfigurations = [];
+    [DefaultValue("")] public string DefaultConfigurationName = "";
     public Guid SelectedSubconfigurationID = Guid.Empty;
 
     /// <summary>

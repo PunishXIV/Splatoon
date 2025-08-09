@@ -4,7 +4,7 @@ using ECommons.GameHelpers;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ internal unsafe class ActionTest : SplatoonScript
 {
     public override HashSet<uint> ValidTerritories => [];
     private ActionManager* actionManager = ActionManager.Instance();
+    public override Metadata Metadata => new(1, "NightmareXIV");
     public override void OnSettingsDraw()
     {
         ImGui.Text($"AL: {actionManager->AnimationLock}");

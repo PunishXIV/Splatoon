@@ -9,7 +9,7 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -26,6 +26,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public class EnemyAggro : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
     private Config Settings => Controller.GetConfig<Config>();
 
     public class Config : IEzConfig

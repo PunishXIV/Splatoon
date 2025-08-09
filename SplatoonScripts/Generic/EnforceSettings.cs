@@ -12,6 +12,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class EnforceSettings : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnEnable()
     {

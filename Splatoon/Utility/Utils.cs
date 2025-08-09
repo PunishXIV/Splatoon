@@ -79,6 +79,81 @@ public static unsafe class Utils
         return ret;
     }
 
+
+    public static ContentCategory DetermineContentCategory(this Layout l)
+    {
+        if(l.ZoneLockH.Count == 0)
+        {
+            return ContentCategory.Mixed;
+        }
+        else
+        {
+            var enumerator = l.ZoneLockH.GetEnumerator();
+            enumerator.MoveNext();
+            var initial = DetermineContentCategory(enumerator.Current);
+            while(enumerator.MoveNext())
+            {
+                if(DetermineContentCategory(enumerator.Current) != initial)
+                {
+                    return ContentCategory.Mixed;
+                }
+            }
+            return initial;
+        }
+    }
+    static Dictionary<uint, ContentCategory> ContentCategoryCache = [];
+    public static ContentCategory DetermineContentCategory(uint territoryType)
+    {
+        if(!ContentCategoryCache.TryGetValue(territoryType, out var ret))
+        {
+            ret = ContentCategory.Other;
+            var data = ExcelTerritoryHelper.Get(territoryType);
+            if(data != null)
+            {
+                var use = data.Value.GetTerritoryIntendedUse();
+                if(use.EqualsAny([
+                    TerritoryIntendedUseEnum.City_Area,
+                    TerritoryIntendedUseEnum.Open_World,
+                    TerritoryIntendedUseEnum.Residential_Area,
+                    TerritoryIntendedUseEnum.Housing_Instances,
+                    TerritoryIntendedUseEnum.Inn,
+                    TerritoryIntendedUseEnum.Gold_Saucer,
+                    TerritoryIntendedUseEnum.Diadem,
+                    TerritoryIntendedUseEnum.Barracks,
+                    TerritoryIntendedUseEnum.Island_Sanctuary,
+                    TerritoryIntendedUseEnum.Diadem_2,
+                    TerritoryIntendedUseEnum.Diadem_3,
+                    ])) ret = ContentCategory.World;
+                else if(use.EqualsAny([
+                    TerritoryIntendedUseEnum.Dungeon,
+                    TerritoryIntendedUseEnum.Variant_Dungeon,
+                    TerritoryIntendedUseEnum.Deep_Dungeon,
+                    TerritoryIntendedUseEnum.Criterion_Duty,
+                    TerritoryIntendedUseEnum.Criterion_Savage_Duty,
+                    ])) ret = ContentCategory.Dungeon;
+                else if(use.EqualsAny([
+                    TerritoryIntendedUseEnum.Trial,
+                    ])) ret = ContentCategory.Trial;
+                else if(use.EqualsAny([
+                    TerritoryIntendedUseEnum.Raid,
+                    TerritoryIntendedUseEnum.Raid_2,
+                    ])) ret = ContentCategory.Raid;
+                else if(use.EqualsAny([
+                    TerritoryIntendedUseEnum.Alliance_Raid,
+                    TerritoryIntendedUseEnum.Large_Scale_Raid,
+                    TerritoryIntendedUseEnum.Large_Scale_Savage_Raid,
+                    ])) ret = ContentCategory.Alliance;
+                else if(use.EqualsAny([
+                    TerritoryIntendedUseEnum.Bozja,
+                    TerritoryIntendedUseEnum.Eureka,
+                    TerritoryIntendedUseEnum.Occult_Crescent,
+                    ])) ret = ContentCategory.Foray;
+            }
+            ContentCategoryCache[territoryType] = ret;
+        }
+        return ret;
+    }
+
     public static bool IsActorNameUsed(this Element e)
     {
         if(e.refActorType != 0) return false;
@@ -146,7 +221,7 @@ public static unsafe class Utils
     /// <returns></returns>
     public static string GetName(this LayoutSubconfiguration conf, Layout layout)
     {
-        var name = conf?.Name ?? "Default Configration";
+        var name = conf?.Name ?? layout.DefaultConfigurationName.NullWhenEmpty() ?? "Default Configration";
         if(name == "")
         {
             var index = layout.Subconfigurations.IndexOf(conf);

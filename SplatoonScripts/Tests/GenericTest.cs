@@ -5,7 +5,7 @@ using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class GenericTest : SplatoonScript
     {
+        public override Metadata Metadata => new(1, "NightmareXIV");
         public override HashSet<uint> ValidTerritories => [];
         //bool __fastcall sub_1400AA130(__int16 a1)
         //NumberArrayData_SetValueIfDifferentAndNotify(__int64 a1, int a2, int a3)

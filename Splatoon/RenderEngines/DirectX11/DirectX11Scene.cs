@@ -35,7 +35,7 @@ internal unsafe class DirectX11Scene : IDisposable
             // Draw pre-rendered pictomancy texture with shapes and strokes.
             if(texture.HasValue)
             {
-                ImGui.GetWindowDrawList().AddImage((nint)texture?.TextureId, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2((float)texture?.Width, (float)texture?.Height));
+                ImGui.GetWindowDrawList().AddImage(texture.Value.TextureId, ImGuiHelpers.MainViewport.Pos, ImGuiHelpers.MainViewport.Pos + new Vector2((float)texture?.Width, (float)texture?.Height));
             }
 
             // Draw dots and text last because they are most critical to be legible.

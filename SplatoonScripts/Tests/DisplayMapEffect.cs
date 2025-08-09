@@ -13,6 +13,7 @@ namespace SplatoonScriptsOfficial.Tests
     public class DisplayMapEffect : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnMapEffect(uint position, ushort data1, ushort data2)
         {

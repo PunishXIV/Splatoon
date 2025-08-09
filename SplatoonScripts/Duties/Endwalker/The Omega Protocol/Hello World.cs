@@ -8,7 +8,7 @@ using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Data;
 using Splatoon;
 using Splatoon.SplatoonScripting;

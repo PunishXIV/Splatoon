@@ -12,6 +12,7 @@ namespace SplatoonScriptsOfficial.Tests;
 public unsafe class TestE1N : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [849];
+    public override Metadata Metadata => new(1, "NightmareXIV");
     public override void OnSetup()
     {
         Controller.RegisterElementFromCode("ShowAOE", $$"""

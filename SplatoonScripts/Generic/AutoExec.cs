@@ -13,6 +13,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public class AutoExec : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnEnable()
     {

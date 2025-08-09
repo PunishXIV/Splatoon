@@ -12,12 +12,13 @@ using ECommons.UIHelpers;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Callback = ECommons.Automation.Callback;
 #pragma warning disable
 namespace SplatoonScriptsOfficial.Tests;
 public unsafe class GenericTest4 : SplatoonScript
@@ -115,7 +116,7 @@ public unsafe class GenericTest4 : SplatoonScript
     {
         if(GenericHelpers.TryGetAddonByName<AtkUnitBase>("ContentsFinder", out var addon) && GenericHelpers.IsAddonReady(addon))
         {
-            var btn = addon->GetButtonNodeById(73);
+            var btn = addon->GetComponentButtonById(73);
             if(btn->IsEnabled)
             {
                 Callback.Fire(addon, true, 12, 1);

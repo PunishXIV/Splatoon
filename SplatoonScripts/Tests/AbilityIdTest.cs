@@ -14,6 +14,7 @@ namespace SplatoonScriptsOfficial.Tests
     public class AbilityIdTest : SplatoonScript
     {
         public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
         public override void OnActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage)
         {
             if(sourceID.GetObject() is IBattleNpc b)

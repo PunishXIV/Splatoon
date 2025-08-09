@@ -15,6 +15,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Taste_of_Thunder : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1259];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnSetup()
     {

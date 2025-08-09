@@ -14,6 +14,7 @@ public unsafe class LimitFramerate : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
     private long LastFrame;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnUpdate()
     {

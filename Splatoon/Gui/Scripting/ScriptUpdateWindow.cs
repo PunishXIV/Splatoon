@@ -66,7 +66,7 @@ public class ScriptUpdateWindow : Window
                             P.ConfigGui.TabRequest = "Scripts".Loc();
                             Svc.Framework.RunOnTick(() =>
                             {
-                                TabScripting.RequestOpen = x.InternalData.FullName;
+                                TabScripting.RequestOpen = x.InternalData?.FullName;
                             }, delayTicks: 2);
                         }
                     }
@@ -101,8 +101,11 @@ public class ScriptUpdateWindow : Window
                     {
                         new TickScheduler(() =>
                         {
-                            FailedScripts.Remove(x);
-                            GenericHelpers.DeleteFileToRecycleBin(x);
+                            if(x != null)
+                            {
+                                FailedScripts = FailedScripts.Remove(x);
+                                GenericHelpers.DeleteFileToRecycleBin(x);
+                            }
                         });
                     }
                     ImGuiEx.Tooltip("Delete this script");
@@ -115,7 +118,7 @@ public class ScriptUpdateWindow : Window
 
     public void Open()
     {
-        IsOpen = true;
+        //IsOpen = true;
     }
 
     public void Reset()

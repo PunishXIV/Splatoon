@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.8.2.0</Version>
+		<Version>3.8.2.1</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>

@@ -16,15 +16,26 @@ internal static class LayoutDrawSelector
             scroll();
             return;
         }
-        if(CGui.ActiveExpansion != null && layout.DetermineExpansion() != CGui.ActiveExpansion.Value)
+        if(P.ConfigGui.FilteredTerritory == 0)
         {
-            scroll();
-            return;
+            if(CGui.ActiveExpansion != null && layout.DetermineExpansion() != CGui.ActiveExpansion.Value)
+            {
+                scroll();
+                return;
+            }
+            if(CGui.ActiveContentCategory != null && layout.DetermineContentCategory() != CGui.ActiveContentCategory.Value)
+            {
+                scroll();
+                return;
+            }
         }
-        if(CGui.ActiveContentCategory != null && layout.DetermineContentCategory() != CGui.ActiveContentCategory.Value)
+        else
         {
-            scroll();
-            return;
+            if(!layout.ZoneLockH.Contains((ushort)P.ConfigGui.FilteredTerritory) && layout.ZoneLockH.Count > 0)
+            {
+                scroll();
+                return;
+            }
         }
         void scroll()
         {

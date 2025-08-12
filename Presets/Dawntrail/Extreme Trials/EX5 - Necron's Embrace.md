@@ -1,5 +1,5 @@
-# Work in progress
-Presets below may contain duplicate entries.
+# Necron's Embrace (Extreme)
+There are two presets below, by alternative creators. Only pick ONE set to import
 
 
 Presets by [ToolerofLight](https://github.com/ToolerofLight/myfiles/blob/main/Splatoon/%5B7.x%5D%E9%BB%84%E9%87%91%E3%81%AE%E3%83%AC%E3%82%AC%E3%82%B7%E3%83%BC/%E6%A5%B5/%5B7.3%5D%E6%B0%B8%E9%81%A0%E3%81%AE%E9%97%87.md) translated to English:

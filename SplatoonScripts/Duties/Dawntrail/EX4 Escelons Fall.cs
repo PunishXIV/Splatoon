@@ -23,7 +23,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1271];
 
-    public override Metadata? Metadata => new(7, "NightmareXIV, Redmoonwow");
+    public override Metadata? Metadata => new(8, "NightmareXIV, Redmoonwow");
 
     private uint StatusCloseFar = 2970;
     private uint StatusParamClose = 758;
@@ -63,7 +63,21 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderInt("Delay, ms", ref C.Delay, 0, 1000);
         ImGuiEx.HelpMarker("Delay helps to synchronize script with attack animation. If you want to see safe movement ASAP, set it to 0.");
-        ImGui.Checkbox("Do not resolve second mechanic at all (enable for \"braindead\" strat)", ref C.IgnoreSecond);
+        ImGuiEx.Text("Escelon's Fall 2:");
+        if(ImGui.RadioButton("Adjust for normal strat", !C.IgnoreSecond && !C.OriginalSecond))
+        {
+            C.IgnoreSecond = false;
+            C.OriginalSecond = false;
+        }
+        if(ImGui.RadioButton("Display original (like EF1 and EF3)", !C.IgnoreSecond && C.OriginalSecond))
+        {
+            C.IgnoreSecond = false;
+            C.OriginalSecond = true;
+        }
+        if(ImGui.RadioButton("Don't resolve it (nothing will be shown)", C.IgnoreSecond))
+        {
+            C.IgnoreSecond = true;
+        }
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("AdjustPhase", ref AdjustPhase);
@@ -116,7 +130,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
     private List<bool> GetMyCloses()
     {
         var myCloseFirst = SequenceIsClose[0] ? C.TakeFirstIfClose : C.TakeFirstIfFar;
-        if(AdjustPhase)
+        if(AdjustPhase && !C.OriginalSecond)
         {
             if(THShockTargeted)
             {
@@ -222,5 +236,6 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         public bool TakeFirstIfFar = false;
         public int Delay = 800;
         public bool IgnoreSecond = false;
+        public bool OriginalSecond = false;
     }
 }

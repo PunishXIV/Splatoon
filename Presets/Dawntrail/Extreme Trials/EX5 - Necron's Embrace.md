@@ -1,3 +1,11 @@
+# Necron's Embrace (scripts)
+[Beta] Relentless Reaping
+
+Probably conflicts with presets that draw on Aetherblight casts. 
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/EX5%20Relentless%20Reaping.cs
+```
+
 # Necron's Embrace (Extreme)
 There are two presets below, by alternative creators. Only pick ONE set to import
 

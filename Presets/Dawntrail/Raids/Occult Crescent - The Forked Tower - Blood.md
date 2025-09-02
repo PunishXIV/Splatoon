@@ -2,8 +2,8 @@
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Generic/CloseReplayWindows.cs
 ```
-> !Important
-> Some of these presets are made by ToolerOfLight and translated to English. Visit this link for originals.
+> [!NOTE]
+> Some of these presets are made by ToolerOfLight and translated to English. [Visit this link for originals.](https://tooleroflight.blog.jp/)
 
 # General
 ```

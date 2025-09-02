@@ -61,6 +61,16 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Generi
 ~Lv2~{"Name":"Marble Dragon - Frigid Dive","Group":"The Forked Tower: Blood (English translation - ToolerofLight)","ZoneLockH":[1252],"ElementsL":[{"Name":"Front Line AOE","type":3,"refY":60.0,"radius":10.0,"color":4278190335,"fillIntensity":0.3,"refActorNPCNameID":13838,"refActorRequireCast":true,"refActorCastId":[37819],"refActorComparisonType":6,"includeRotation":true,"FillStep":2.0}]}
 ```
 
+# Lockwards
+```
+~Lv2~{"Name":"Lockwards - Guardian Wraith","Group":"The Forked Tower: Blood (English translation - ToolerofLight)","ZoneLockH":[1252],"ElementsL":[{"Name":"Scream Circle","type":1,"radius":20.0,"color":4278190335,"fillIntensity":0.3,"refActorNPCNameID":13798,"refActorRequireCast":true,"refActorCastId":[42958],"refActorComparisonType":6,"includeRotation":true,"FaceMe":true}]}
+~Lv2~{"Name":"Lockwards - Guardian Knight Dispel","Group":"The Forked Tower: Blood (English translation - ToolerofLight)","ZoneLockH":[1252],"ElementsL":[{"Name":"Text","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"! Dispel !","overlayTextIntl":{"En":"! Dispel !","Jp":"！ディスペル！"},"refActorNPCNameID":13801,"refActorRequireBuff":true,"refActorBuffId":[4539],"refActorComparisonType":6}]}
+~Lv2~{"Name":"Lockwards - Guardian Knight Line of Fire","Group":"The Forked Tower: Blood (English translation - ToolerofLight)","ZoneLockH":[1252],"ElementsL":[{"Name":"Front Line AOE","type":3,"refY":50.0,"radius":4.0,"color":4278190335,"fillIntensity":0.3,"refActorNPCNameID":13801,"refActorRequireCast":true,"refActorCastId":[42965],"refActorComparisonType":6,"includeRotation":true,"FillStep":2.0}]}
+~Lv2~{"Name":"Lockwards - Guardian Weapon Steal","Group":"The Forked Tower: Blood (English translation - ToolerofLight)","ZoneLockH":[1252],"ElementsL":[{"Name":"Text","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"! Steal Weapon !","overlayTextIntl":{"En":"! Steal Weapon !","Jp":"！武器を盗む！"},"refActorNPCNameID":13803,"refActorRequireBuff":true,"refActorBuffId":[4458],"refActorComparisonType":6}]}
+~Lv2~{"Name":"Lockwards - Guardian Weapon Smite of Rage","Group":"The Forked Tower: Blood (English translation - ToolerofLight)","ZoneLockH":[1252],"ElementsL":[{"Name":"Front Line AOE","type":3,"refY":5.0,"radius":2.0,"color":4278190335,"fillIntensity":0.3,"refActorNPCNameID":13803,"refActorRequireCast":true,"refActorCastId":[42759],"refActorComparisonType":6,"includeRotation":true,"FillStep":2.0}]}
+~Lv2~{"Name":"Lockwards - Lockward Cunning Keywork","Group":"The Forked Tower: Blood (English translation - ToolerofLight)","ZoneLockH":[1252],"ElementsL":[{"Name":"Text","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":3.0,"thicc":0.0,"overlayText":"! Interrupt !","overlayTextIntl":{"En":"! Interrupt !","Jp":"！詠唱中断！"},"refActorNPCNameID":13783,"refActorRequireCast":true,"refActorCastId":[42980],"refActorComparisonType":6}]}
+```
+
 
 # Boss 4 - Magitaur
 ### Assassin's dagger

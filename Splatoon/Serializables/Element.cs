@@ -215,6 +215,8 @@ public class Element
     public Point2 RotationOverridePoint = new();
     [DefaultValue(0f)] public float RotationOverrideAddAngle = 0f;
     public HashSet<ObjectKind> ObjectKinds = [];
+    [DefaultValue(false)] public bool IsCapturing = false;
+    [DefaultValue(false)] public bool Nodraw = false;
 
     public bool ShouldSerializeoverlayTextIntl() => !overlayTextIntl.IsEmpty();
     public bool ShouldSerializeObjectKinds() => ObjectKinds.Count > 0;

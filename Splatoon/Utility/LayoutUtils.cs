@@ -71,7 +71,7 @@ public static unsafe class LayoutUtils
         }
         else
         {
-            var result = (nint)FakePronoun.Resolve(ph);
+            var result = (nint)ExtendedPronoun.Resolve(ph);
             PlaceholderCache[ph] = result;
             return result;
         }
@@ -121,7 +121,7 @@ public static unsafe class LayoutUtils
                         {
                             foreach(var p in e.refActorTetherConnectedWithPlayer)
                             {
-                                var tar = FakePronoun.Resolve(p);
+                                var tar = ExtendedPronoun.Resolve(p);
                                 if(tar != null)
                                 {
                                     if(t.Target == tar->EntityId) return true;
@@ -155,7 +155,7 @@ public static unsafe class LayoutUtils
                         {
                             foreach(var p in e.refActorTetherConnectedWithPlayer)
                             {
-                                var tar = FakePronoun.Resolve(p);
+                                var tar = ExtendedPronoun.Resolve(p);
                                 if(tar != null)
                                 {
                                     if(x.Key == (nint)tar) return true;

@@ -1,29 +1,22 @@
 ﻿using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
-using ECommons.Automation;
 using ECommons.Automation.NeoTaskManager;
-using ECommons.CircularBuffers;
 using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
-using ECommons.Interop;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
-using ECommons.Reflection;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
 using ECommons.WindowsFormsReflector;
 using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
-
 using Splatoon.Gui;
 using Splatoon.Gui.Priority;
 using Splatoon.Gui.Scripting;
@@ -36,6 +29,7 @@ using Splatoon.Structures;
 using System.Net.Http;
 using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
+using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace Splatoon;
 public unsafe class Splatoon : IDalamudPlugin
@@ -609,6 +603,7 @@ public unsafe class Splatoon : IDalamudPlugin
             CurrentChatMessages.Clear();
             BuffEffectProcessor.ActorEffectUpdate();
             ScriptingProcessor.OnUpdate();
+            CapturedPositions.Clear();
         }
         catch(Exception e)
         {
@@ -665,6 +660,8 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
+    internal static Dictionary<string, Dictionary<string, List<Vector3>>> CapturedPositions = [];
+
     internal static void ProcessElementsOfLayout(Layout l)
     {
         var elementCollection = l.GetElementsWithSubconfiguration();
@@ -719,7 +716,7 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         if(s2wInfo != null)
         {
-            var lmbdown = Bitmask.IsBitSet(NativeFunctions.GetKeyState(0x01), 15);
+            var lmbdown = Bitmask.IsBitSet(TerraFX.Interop.Windows.Windows.GetKeyState(0x01), 15);
             var mousePos = ImGui.GetIO().MousePos;
             if(Svc.GameGui.ScreenToWorld(new Vector2(mousePos.X, mousePos.Y), out var worldPos, Config.maxdistance * 5))
             {

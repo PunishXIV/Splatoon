@@ -61,10 +61,12 @@ internal partial class CGui
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                string[] faceOptions = { "<1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>", "<8>", "<t1>", "<t2>", "<h1>", "<h2>", "<d1>", "<d2>", "<d3>", "<d4>" };
+                string[] faceOptions = { "<me>", "<target>", "<1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>", "<8>", "<t1>", "<t2>", "<h1>", "<h2>", "<d1>", "<d2>", "<d3>", "<d4>" };
 
-                if(ImGui.BeginCombo("Face chara##", el.faceplayer))
+                if(ImGui.BeginCombo("Face chara##", el.faceplayer, ImGuiComboFlags.HeightLarge))
                 {
+                    ImGui.SetNextItemWidth(150f);
+                    ImGui.InputText("##enterManually", ref el.faceplayer);
                     foreach(var option in faceOptions)
                     {
                         if(ImGui.Selectable(option))

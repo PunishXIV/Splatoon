@@ -28,6 +28,11 @@ public abstract class RenderEngine : IDisposable
     /// <returns>Whether anything was drawn</returns>
     internal abstract bool ProcessElement(Element e, Layout i = null, bool forceEnable = false);
 
+    internal void AddCapturedObject(Layout l, Element e, Vector3 pos)
+    {
+        CapturedPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName()).Add(pos);
+    }
+
     internal void StoreDisplayObjects()
     {
         TempObjects = DisplayObjects;

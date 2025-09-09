@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.8.2.2</Version>
+		<Version>3.8.3.0</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -85,10 +85,6 @@
           <HintPath>$(DalamudLibPath)Dalamud.Common.dll</HintPath>
           <Private>False</Private>
       </Reference>
-		<Reference Include="ImGui.NET">
-			<HintPath>$(DalamudLibPath)ImGui.NET.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
 		<Reference Include="Lumina">
 			<HintPath>$(DalamudLibPath)Lumina.dll</HintPath>
 			<Private>False</Private>

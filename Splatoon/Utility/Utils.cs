@@ -19,6 +19,24 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static List<Vector3> GetFacePositions(Layout layout, Element element)
+    {
+        if(element.faceplayer.StartsWith("<element:"))
+        {
+            var details = element.faceplayer[1..^1].Split(":");
+            var list = details.Length == 2 
+                ? Splatoon.CapturedPositions.SafeSelect(layout.GetName())?.SafeSelect(details[1])
+                : Splatoon.CapturedPositions.SafeSelect(details[1])?.SafeSelect(details[2]);
+            return list;
+        }
+        var obj = ExtendedPronoun.Resolve(element.faceplayer);
+        if(obj != null)
+        {
+            return [obj->Position];
+        }
+        return null;
+    }
+
     public static string GetShortName(this Expansion ex)
     {
         return ex switch

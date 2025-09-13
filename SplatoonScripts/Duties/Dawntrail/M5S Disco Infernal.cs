@@ -8,7 +8,7 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
@@ -35,7 +35,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
 
     private (int x, int y) _targetIndex = (0, 0);
     public override HashSet<uint>? ValidTerritories => [1257];
-    public override Metadata? Metadata => new Metadata(1, "Garume");
+    public override Metadata? Metadata => new Metadata(2, "Garume,Alex");
     private static IBattleNpc[] SpotLights => [.. Svc.Objects.Where(x => x.DataId == 0x47BB).OfType<IBattleNpc>()];
 
     private Config C => Controller.GetConfig<Config>();
@@ -90,6 +90,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
             radius = 2f,
             Donut = 0.35f,
             fillIntensity = 1f,
+            thicc=9.0f,
             tether = true
         };
         Controller.RegisterElement("Bait", baitElement);
@@ -98,7 +99,8 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
         {
             radius = 2f,
             Donut = 0.35f,
-            fillIntensity = 1f
+            fillIntensity = 1f,
+            thicc=9.0f
         };
         Controller.RegisterElement("PredictBait", predictBaitElement);
     }
@@ -187,7 +189,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
         }
     }
 
-    private void SetBait(bool isShortDebuff)
+        private void SetBait(bool isShortDebuff)
     {
         if (_isSafeOutSideNorthWest)
         {
@@ -201,15 +203,15 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
             }
             else if (C.Directions.Contains(Direction.NorthEastInside))
             {
-                var index = HasSpotLightAt(4,2) ? (4,2) : (5,3);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var original = HasSpotLightAt(4, 2) ? (4, 2) : (5, 3);
+                var final = isShortDebuff ? (original == (4, 2) ? (5, 3) : (4, 2)) : original;
+                SetElementFromIndex(final.Item1, final.Item2);
             }
             else if (C.Directions.Contains(Direction.SouthWestInside))
             {
-                var index = HasSpotLightAt(2,4) ? (2,4) : (3,5);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var original = HasSpotLightAt(2, 4) ? (2, 4) : (3, 5);
+                var final = isShortDebuff ? (original == (2, 4) ? (3, 5) : (2, 4)) : original;
+                SetElementFromIndex(final.Item1, final.Item2);
             }
         }
         else
@@ -224,15 +226,15 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
             }
             else if (C.Directions.Contains(Direction.NorthWestInside))
             {
-                var index = HasSpotLightAt(3,2) ? (3,2) : (2,3);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var original = HasSpotLightAt(3, 2) ? (3, 2) : (2, 3);
+                var final = isShortDebuff ? (original == (3, 2) ? (2, 3) : (3, 2)) : original;
+                SetElementFromIndex(final.Item1, final.Item2);
             }
             else if (C.Directions.Contains(Direction.SouthEastInside))
             {
-                var index = HasSpotLightAt(5,4) ? (5,4) : (4,5);
-                if (isShortDebuff) index = (index.Item2, index.Item1);
-                SetElementFromIndex(index.Item1,index.Item2);
+                var original = HasSpotLightAt(5, 4) ? (5, 4) : (4, 5);
+                var final = isShortDebuff ? (original == (5, 4) ? (4, 5) : (5, 4)) : original;
+                SetElementFromIndex(final.Item1, final.Item2);
             }
         }
     }

@@ -13,8 +13,9 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class AutoUseItem : SplatoonScript
 {
-    const uint PotionID = 12345;
+    private const uint PotionID = 12345;
     public override HashSet<uint>? ValidTerritories { get; } = [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnUpdate()
     {

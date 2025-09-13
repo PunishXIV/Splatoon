@@ -15,8 +15,9 @@ namespace SplatoonScriptsOfficial.Generic
 {
     public unsafe class OpenPFCreation : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
-        bool OpenCreate = false;
+        public override HashSet<uint> ValidTerritories => [];
+        private bool OpenCreate = false;
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnEnable()
         {
@@ -26,16 +27,16 @@ namespace SplatoonScriptsOfficial.Generic
 
         private void OpenRecruitment(AddonEvent type, AddonArgs args)
         {
-            if (OpenCreate)
+            if(OpenCreate)
             {
                 OpenCreate = false;
-                Callback.Fire((AtkUnitBase*)args.Addon, true, 14);
+                Callback.Fire((AtkUnitBase*)args.Addon.Address, true, 14);
             }
         }
 
         private void OpenPF(string command, string arguments)
         {
-            if (EzThrottler.Throttle("CreatePF"))
+            if(EzThrottler.Throttle("CreatePF"))
             {
                 Chat.Instance.SendMessage("/pfinder");
                 OpenCreate = true;

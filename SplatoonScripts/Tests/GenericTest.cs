@@ -5,7 +5,7 @@ using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -13,18 +13,19 @@ using System.Collections.Generic;
 namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class GenericTest : SplatoonScript
-    { 
-        public override HashSet<uint> ValidTerritories => new() {  };
+    {
+        public override Metadata Metadata => new(1, "NightmareXIV");
+        public override HashSet<uint> ValidTerritories => [];
         //bool __fastcall sub_1400AA130(__int16 a1)
         //NumberArrayData_SetValueIfDifferentAndNotify(__int64 a1, int a2, int a3)
-        delegate void Func(nint a1, int a2, int a3);
+        private delegate void Func(nint a1, int a2, int a3);
         [Signature("3B 51 08 7D 15 48 8B 41 20 48 63 D2 44 39 04 90")]
-        Hook<Func> Hook;
+        private Hook<Func> Hook;
 
         //char __fastcall sub_1409EFD60(__int64 a1, unsigned int a2)
-        delegate byte AddonRetainerTaskAsk_OnRequestedUpdate(nint a1, uint a2);
+        private delegate byte AddonRetainerTaskAsk_OnRequestedUpdate(nint a1, uint a2);
         [Signature("48 89 5C 24 ?? 55 48 83 EC 20 48 8B E9 8B DA 8B CA")]
-        Hook<AddonRetainerTaskAsk_OnRequestedUpdate> Hook2;
+        private Hook<AddonRetainerTaskAsk_OnRequestedUpdate> Hook2;
 
         public override void OnEnable()
         {
@@ -40,7 +41,7 @@ namespace SplatoonScriptsOfficial.Tests
         {
             try
             {
-                if (direction == Dalamud.Game.Network.NetworkMessageDirection.ZoneDown)
+                if(direction == Dalamud.Game.Network.NetworkMessageDirection.ZoneDown)
                 {
                     //DuoLog.Information($"{opCode}");
                 }
@@ -61,7 +62,7 @@ namespace SplatoonScriptsOfficial.Tests
             base.OnDisable();
         }
 
-        byte Detour2(nint a1, uint a2)
+        private byte Detour2(nint a1, uint a2)
         {
             var ret = Hook2.Original(a1, a2);
             try
@@ -74,31 +75,31 @@ namespace SplatoonScriptsOfficial.Tests
                 DuoLog.Information($"v3:{v3:X16}, p1:{p1:X16}, v6:{(nint)v6:X16}/{*v6:X16}, ptr2:{ptr2:X16}");*/
                 PluginLog.Information($"{a1:X16}, {a2}, {ret:X2}");
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 e.Log();
             }
             return ret;
         }
 
-        void Detour(nint a1, int a2, int a3)
+        private void Detour(nint a1, int a2, int a3)
         {
             try
             {
-                
+
                 var v3 = *(nint*)(a1 + 32);
                 var r = (int*)(v3 + 4 * a2);
-                if (a1 > 0x0000020F4BD8ADA8 - 0x50 && a1 < 0x0000020F4BD8ADA8 + 0x50)
+                if(a1 > 0x0000020F4BD8ADA8 - 0x50 && a1 < 0x0000020F4BD8ADA8 + 0x50)
                 {
                     PluginLog.Information($"{a1}, {a2}, {a3}");
                 }
-                if ((nint)r == 0x0000020F4BD8ADA8)
+                if((nint)r == 0x0000020F4BD8ADA8)
                 {
                     DuoLog.Information($"{a2}, {a3}");
                     //if (Debugger.IsAttached) Debugger.Break();
                 }
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 e.Log();
             }

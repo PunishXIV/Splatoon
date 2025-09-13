@@ -8,7 +8,7 @@ using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System.Collections.Generic;
@@ -17,22 +17,22 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
-    public unsafe class Dynamis_Delta :SplatoonScript
+    public unsafe class Dynamis_Delta : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1122 };
+        public override HashSet<uint> ValidTerritories => [1122];
 
         public override Metadata? Metadata => new(10, "NightmareXIV");
 
-        Config Conf => Controller.GetConfig<Config>();
+        private Config Conf => Controller.GetConfig<Config>();
 
-        IPlayerCharacter Player => Svc.ClientState.LocalPlayer;
+        private IPlayerCharacter Player => Svc.ClientState.LocalPlayer;
 
-        int Stage = 0;
-        uint myTether;
-        bool isMeClose;
-        Dictionary<uint, uint> PlayerHands = new();
+        private int Stage = 0;
+        private uint myTether;
+        private bool isMeClose;
+        private Dictionary<uint, uint> PlayerHands = [];
 
-        class Effects
+        private class Effects
         {
             public const uint NearWorld = 3442;
             public const uint FarWorld = 3443;
@@ -52,14 +52,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             public const uint VulnerabilityUp = 2941;
         }
 
-        uint HandRed = 15710;
-        uint HandBlue = 15709;
+        private uint HandRed = 15710;
+        private uint HandBlue = 15709;
 
-        bool IsAnyoneUnsafe => FakeParty.Get().Any(x => x.HasEffect(Effects.ThriceRuin) || x.HasEffect(Effects.TwiceRuin) || x.HasEffect(Effects.VulnerabilityUp));
+        private bool IsAnyoneUnsafe => FakeParty.Get().Any(x => x.HasEffect(Effects.ThriceRuin) || x.HasEffect(Effects.TwiceRuin) || x.HasEffect(Effects.VulnerabilityUp));
 
         public override void OnSetup()
         {
-            for (var i = 0; i < 8; i++)
+            for(var i = 0; i < 8; i++)
             {
                 Controller.RegisterElement($"Debug{i}", new(0) { Enabled = false });
             }
@@ -82,7 +82,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             {
                 var beetle = GetBeetle();
                 var final = GetFinalOmega();
-                if (beetle != null || FakeParty.Get().Any(x => x.HasEffect(Effects.GreenTether)))
+                if(beetle != null || FakeParty.Get().Any(x => x.HasEffect(Effects.GreenTether)))
                 {
                     if(Stage == 0 && (HasEffect(Effects.UpcomingBlueTether) || HasEffect(Effects.UpcomingGreenTether)))
                     {
@@ -104,7 +104,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         }*/
                         isMeClose = Vector3.Distance(myPartner.Position, new Vector3(100, 0, 100)) > Vector3.Distance(Player.Position, new Vector3(100, 0, 100));
                         //InternalLog.Information($"Me close: {isMeClose}");
-                        if (myTether == Effects.UpcomingBlueTether)
+                        if(myTether == Effects.UpcomingBlueTether)
                         {
                             Alert("Blue - to beetle!", ImGuiColors.TankBlue);
                             Controller.GetElementByName("Beetle").Enabled = true;
@@ -114,10 +114,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             Alert("Green - to final (stretch)", ImGuiColors.HealerGreen);
                             Controller.GetElementByName("Final").Enabled = true;
                         }
-                        if (Svc.Objects.Count(x => x.DataId.EqualsAny<uint>(HandRed, HandBlue)) == 8)
+                        if(Svc.Objects.Count(x => x.DataId.EqualsAny<uint>(HandRed, HandBlue)) == 8)
                         {
                             DuoLog.Information($"Snapshotting: you are {(myTether == Effects.UpcomingBlueTether ? "blue" : "green")} " + (isMeClose ? "close" : "far"));
-                            foreach (var player in FakeParty.Get())
+                            foreach(var player in FakeParty.Get())
                             {
                                 var h = Svc.Objects.Where(x => x.DataId.EqualsAny<uint>(HandRed, HandBlue)).OrderBy(x => Vector3.Distance(x.Position, player.Position)).First();
                                 PlayerHands[player.EntityId] = h.DataId;
@@ -127,7 +127,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             DuoLog.Information("Stage 1");
                         }
                     }
-                    else if (Stage == 1)
+                    else if(Stage == 1)
                     {
                         if(isMeClose && PlayerHands[GetClosestPlayer().EntityId] == PlayerHands[Svc.ClientState.LocalPlayer.EntityId])
                         {
@@ -184,19 +184,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                 //green tether
                             }
                         }
-                        if (FakeParty.Get().Any(x => x.HasEffect(Effects.MonitorLeft) || x.HasEffect(Effects.MonitorRight)))
+                        if(FakeParty.Get().Any(x => x.HasEffect(Effects.MonitorLeft) || x.HasEffect(Effects.MonitorRight)))
                         {
                             Stage = 2;
                             DuoLog.Information("Stage 2");
                         }
                     }
-                    else if (Stage == 2)
+                    else if(Stage == 2)
                     {
                         var arms = GetArms().ToArray();
                         if(arms.Length == 6)
                         {
                             IBattleChara? myArm = null;
-                            if (myTether == Effects.UpcomingBlueTether)
+                            if(myTether == Effects.UpcomingBlueTether)
                             {
                                 if(isMeClose)
                                 {
@@ -221,19 +221,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                     myArm = arms.OrderBy(x => Vector3.Distance(x.Position, final.Position)).ToArray()[0..2].OrderBy(x => Vector3.Distance(Player.Position, x.Position)).First();
                                 }
                             }
-                            if (myArm != null && Controller.TryGetElementByName("Bait", out var e))
+                            if(myArm != null && Controller.TryGetElementByName("Bait", out var e))
                             {
                                 e.Enabled = true;
                                 e.SetRefPosition(myArm.Position);
                             }
-                            if (arms.Any(x => x.CastActionId == 31600))
+                            if(arms.Any(x => x.CastActionId == 31600))
                             {
                                 Stage = 3;
                                 DuoLog.Information($"Stage 3");
                             }
                         }
                     }
-                    else if (Stage == 3)
+                    else if(Stage == 3)
                     {
                         if(HasEffect(Effects.BlueTether))
                         {
@@ -246,7 +246,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                 Alert("Break - go far!", GradientColor.Get(ImGuiColors.DalamudRed, ImGuiColors.DalamudYellow, 200));
                             }
                         }
-                        if (myTether == Effects.UpcomingBlueTether)
+                        if(myTether == Effects.UpcomingBlueTether)
                         {
                             if(!HasEffect(Effects.TwiceRuin))
                             {
@@ -268,7 +268,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             DuoLog.Information("Stage 4");
                         }
                     }
-                    else if (Stage == 4)
+                    else if(Stage == 4)
                     {
                         if(HasEffect(Effects.NearWorld))
                         {
@@ -280,7 +280,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         }
                         else
                         {
-                            if (myTether == Effects.UpcomingBlueTether)
+                            if(myTether == Effects.UpcomingBlueTether)
                             {
                                 Alert("Bait near world");
                             }
@@ -310,13 +310,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                 }
                             }
                         }
-                        if (!FakeParty.Get().Any(x => x.HasEffect(Effects.NearWorld)))
+                        if(!FakeParty.Get().Any(x => x.HasEffect(Effects.NearWorld)))
                         {
                             Stage = 5;
                             DuoLog.Information("Stage 5");
                         }
                     }
-                    else if (Stage == 5)
+                    else if(Stage == 5)
                     {
                         if(HasEffect(Effects.GreenTether))
                         {
@@ -347,7 +347,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        IPlayerCharacter GetClosestPlayer()
+        private IPlayerCharacter GetClosestPlayer()
         {
             return FakeParty.Get().Where(x => x.Address != Svc.ClientState.LocalPlayer.Address).OrderBy(x => Vector3.Distance(Svc.ClientState.LocalPlayer.Position, x.Position)).FirstOrDefault();
         }
@@ -370,7 +370,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        void Alert(string? text = null, Vector4? color = null)
+        private void Alert(string? text = null, Vector4? color = null)
         {
             if(Controller.TryGetElementByName("Alert", out var e))
             {
@@ -381,7 +381,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 else
                 {
                     e.Enabled = true;
-                    if (color != null)
+                    if(color != null)
                     {
                         e.overlayBGColor = color.Value.ToUint();
                     }
@@ -395,34 +395,34 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         }
 
 
-        IEnumerable<IBattleChara> GetArms()
+        private IEnumerable<IBattleChara> GetArms()
         {
-            foreach (var x in Svc.Objects)
+            foreach(var x in Svc.Objects)
             {
                 if(x is IBattleChara b && b.DataId.EqualsAny<uint>(15719, 15718)) yield return x as IBattleChara;
             }
         }
 
-        void Off()
+        private void Off()
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         }
 
-        IBattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->ModelContainer.ModelCharaId == 3771) as IBattleChara;
+        private IBattleChara? GetBeetle() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->ModelContainer.ModelCharaId == 3771) as IBattleChara;
 
-        IBattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->ModelContainer.ModelCharaId == 3775) as IBattleChara;
+        private IBattleChara? GetFinalOmega() => Svc.Objects.FirstOrDefault(x => x is IBattleChara c && c.Struct()->ModelContainer.ModelCharaId == 3775) as IBattleChara;
 
-        bool HasEffect(uint id) => Player.StatusList.Any(x => x.StatusId == id);
-        bool HasEffect(uint id, float remainsMin, float remainsMax) => Player.StatusList.Any(x => x.StatusId == id && x.RemainingTime.InRange(remainsMin, remainsMax));
+        private bool HasEffect(uint id) => Player.StatusList.Any(x => x.StatusId == id);
+        private bool HasEffect(uint id, float remainsMin, float remainsMax) => Player.StatusList.Any(x => x.StatusId == id && x.RemainingTime.InRange(remainsMin, remainsMax));
 
-        float GetAngleRelativeToObject(IGameObject source, IGameObject target, bool invert = false)
+        private float GetAngleRelativeToObject(IGameObject source, IGameObject target, bool invert = false)
         {
             var angle = MathHelper.GetRelativeAngle(source.Position, target.Position);
             var angleRot = source.Rotation.RadToDeg();
             return (angle - angleRot + (invert ? (360 + 180) : 360)) % 360;
         }
 
-        public class Config :IEzConfig
+        public class Config : IEzConfig
         {
             public bool Debug = false;
             public bool DisableAlert = false;

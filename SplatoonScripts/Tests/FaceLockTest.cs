@@ -6,20 +6,21 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Tests;
-internal unsafe class FaceLockTest :SplatoonScript
+internal unsafe class FaceLockTest : SplatoonScript
 {
-    public override HashSet<uint> ValidTerritories => new() { };
+    public override HashSet<uint> ValidTerritories => [];
+    public override Metadata Metadata => new(1);
     private static ActionManager* ActionManager => FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance();
-    Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public bool LockFace = false;
         public float Angle = 0;
@@ -33,7 +34,7 @@ internal unsafe class FaceLockTest :SplatoonScript
 
     public override void OnUpdate()
     {
-        if (C.LockFace)
+        if(C.LockFace)
         {
             FaceTarget(C.Angle);
         }
@@ -41,7 +42,7 @@ internal unsafe class FaceLockTest :SplatoonScript
 
     private void FaceTarget(float rotation, ulong unkObjId = 0xE0000000)
     {
-        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback] && EzThrottler.Throttle("FaceTarget", 10000))
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback] && EzThrottler.Throttle("FaceTarget", 10000))
         {
             DuoLog.Information($"FaceTarget {rotation}");
             EzThrottler.Throttle("FaceTarget", 1000, true);
@@ -56,7 +57,7 @@ internal unsafe class FaceLockTest :SplatoonScript
         var player = Player.Object;
         var normalized = Vector2.Normalize(direction);
 
-        if (player == null)
+        if(player == null)
         {
             PluginLog.LogError("Player is null");
             return;

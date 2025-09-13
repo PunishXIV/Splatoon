@@ -5,7 +5,7 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -19,8 +19,8 @@ using System.Numerics;
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestHighlighter : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories => new();
-    Config C => Controller.GetConfig<Config>();
+    public override HashSet<uint>? ValidTerritories => [];
+    private Config C => Controller.GetConfig<Config>();
 
     public override Metadata? Metadata => new(2, "???");
 
@@ -116,54 +116,54 @@ public unsafe class QuestHighlighter : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (!(C.ShowMSQ || C.ShowMSQL || C.ShowFQ || C.ShowFQL || C.ShowSQ || C.ShowSQL || C.ShowEO))
+        if(!(C.ShowMSQ || C.ShowMSQL || C.ShowFQ || C.ShowFQL || C.ShowSQ || C.ShowSQL || C.ShowEO))
         {
             return;
         }
 
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-        int i = 0;
-        foreach (var x in Svc.Objects)
+        var i = 0;
+        foreach(var x in Svc.Objects)
         {
-            bool want = false;
+            var want = false;
 
-            if (x.IsTargetable)
+            if(x.IsTargetable)
             {
-                if (Vector2.Distance(Player.Object.Position.ToVector2(), x.Position.ToVector2()) <= C.MaxDistance2D)
+                if(Vector2.Distance(Player.Object.Position.ToVector2(), x.Position.ToVector2()) <= C.MaxDistance2D)
                 {
-                    if (x is ICharacter)
+                    if(x is ICharacter)
                     {
                         var icon = x.Struct()->NamePlateIconId;
 
-                        if (C.ShowMSQ && Markers.MSQ.Contains(icon))
+                        if(C.ShowMSQ && Markers.MSQ.Contains(icon))
                         {
                             want = true;
                         }
-                        else if (C.ShowMSQL && Markers.MSQ_Locked.Contains(icon))
+                        else if(C.ShowMSQL && Markers.MSQ_Locked.Contains(icon))
                         {
                             want = true;
                         }
-                        else if (C.ShowFQ && Markers.FQ.Contains(icon))
+                        else if(C.ShowFQ && Markers.FQ.Contains(icon))
                         {
                             want = true;
                         }
-                        else if (C.ShowFQL && Markers.FQ_Locked.Contains(icon))
+                        else if(C.ShowFQL && Markers.FQ_Locked.Contains(icon))
                         {
                             want = true;
                         }
-                        else if (C.ShowSQ && Markers.SQ.Contains(icon))
+                        else if(C.ShowSQ && Markers.SQ.Contains(icon))
                         {
                             want = true;
                         }
-                        else if (C.ShowSQL && Markers.SQ_Locked.Contains(icon))
+                        else if(C.ShowSQL && Markers.SQ_Locked.Contains(icon))
                         {
                             want = true;
                         }
                     }
-                    else if (x is IGameObject)
+                    else if(x is IGameObject)
                     {
-                        if (C.ShowEO && (Markers.EventObjNameWhitelist.ContainsIgnoreCase(x.Name.ToString()) || Markers.EventObjWhitelist.Contains(x.DataId)))
+                        if(C.ShowEO && (Markers.EventObjNameWhitelist.ContainsIgnoreCase(x.Name.ToString()) || Markers.EventObjWhitelist.Contains(x.DataId)))
                         {
                             want = true;
                         }
@@ -171,7 +171,7 @@ public unsafe class QuestHighlighter : SplatoonScript
                 }
             }
 
-            if (want)
+            if(want)
             {
                 var element = GetElement(i++);
                 element.refActorDataID = x.DataId;
@@ -185,7 +185,7 @@ public unsafe class QuestHighlighter : SplatoonScript
 
     public Element GetElement(int i)
     {
-        if (Controller.TryGetElementByName($"Quest{i}", out var element))
+        if(Controller.TryGetElementByName($"Quest{i}", out var element))
         {
             return element;
         }

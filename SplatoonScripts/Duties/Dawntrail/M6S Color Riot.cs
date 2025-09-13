@@ -9,7 +9,7 @@ using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -19,7 +19,7 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public class M6S_Color_Riot :SplatoonScript
+public class M6S_Color_Riot : SplatoonScript
 {
     public enum BaitType
     {
@@ -47,7 +47,7 @@ public class M6S_Color_Riot :SplatoonScript
     {
         get
         {
-            if (_basePlayerOverride == "")
+            if(_basePlayerOverride == "")
                 return Player.Object;
             return Svc.Objects.OfType<IPlayerCharacter>()
                 .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
@@ -105,16 +105,16 @@ public class M6S_Color_Riot :SplatoonScript
                            None: No luring will be performed.
                            """);
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.SetNextItemWidth(200);
             ImGui.InputText("Player override", ref _basePlayerOverride, 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(200);
-            if (ImGui.BeginCombo("Select..", "Select..."))
+            if(ImGui.BeginCombo("Select..", "Select..."))
             {
-                foreach (var x in Svc.Objects.OfType<IPlayerCharacter>())
-                    if (ImGui.Selectable(x.GetNameWithWorld()))
+                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
+                    if(ImGui.Selectable(x.GetNameWithWorld()))
                         _basePlayerOverride = x.Name.ToString();
                 ImGui.EndCombo();
             }
@@ -124,7 +124,7 @@ public class M6S_Color_Riot :SplatoonScript
             ImGui.Text($"{BasePlayer.Name}");
             ImGui.Text($"{BasePlayer.GetJob().ToString()}");
             ImGui.Text($"{BasePlayer.GetJob().IsTank().ToString()}");
-            if (Enemy == null) return;
+            if(Enemy == null) return;
             ImGui.Text($"IN: {Svc.Objects.OfType<IPlayerCharacter>()
                 .Where(x => !x.GetJob().IsTank())
                 .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), Enemy.Position.ToVector2())).ToList().SafeSelect(0)}");
@@ -138,7 +138,7 @@ public class M6S_Color_Riot :SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_isActive && Enemy is { } enemy)
+        if(_isActive && Enemy is { } enemy)
         {
             var positions = FakeParty.Get().Select(x => (x.Address, x.Position))
                 .OrderBy(x => Vector3.Distance(enemy.Position, x.Position));
@@ -147,39 +147,39 @@ public class M6S_Color_Riot :SplatoonScript
             var hasRedDebuff = BasePlayer.StatusList.Any(x => x.StatusId == RedDebuff);
             var hasBlueDebuff = BasePlayer.StatusList.Any(x => x.StatusId == BlueDebuff);
 
-            if (!Controller.TryGetElementByName("Far", out var far))
+            if(!Controller.TryGetElementByName("Far", out var far))
                 return;
-            if (!Controller.TryGetElementByName("Near", out var near))
+            if(!Controller.TryGetElementByName("Near", out var near))
                 return;
-            if (!Controller.TryGetElementByName("Text", out var text))
+            if(!Controller.TryGetElementByName("Text", out var text))
                 return;
-            if (!Controller.TryGetElementByName("Avoid", out var avoid))
+            if(!Controller.TryGetElementByName("Avoid", out var avoid))
                 return;
 
-            if (_nearIsRed)
+            if(_nearIsRed)
             {
-                if (hasRedDebuff)
+                if(hasRedDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 0f;
                     avoid.radius = GetRadius(false);
                     text.overlayText = farPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Far!!";
                 }
-                else if (hasBlueDebuff)
+                else if(hasBlueDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (C.BaitType == BaitType.Near)
+                else if(C.BaitType == BaitType.Near)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (C.BaitType == BaitType.Far)
+                else if(C.BaitType == BaitType.Far)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 0f;
@@ -189,28 +189,28 @@ public class M6S_Color_Riot :SplatoonScript
             }
             else
             {
-                if (hasBlueDebuff)
+                if(hasBlueDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 0f;
                     avoid.radius = GetRadius(false);
                     text.overlayText = farPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Far!!";
                 }
-                else if (hasRedDebuff)
+                else if(hasRedDebuff)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (C.BaitType == BaitType.Near)
+                else if(C.BaitType == BaitType.Near)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 25f;
                     avoid.radius = GetRadius(true);
                     text.overlayText = nearPositionMap.Address == BasePlayer.Address ? "Correct!!" : "Go Near!!";
                 }
-                else if (C.BaitType == BaitType.Far)
+                else if(C.BaitType == BaitType.Far)
                 {
                     avoid.refActorObjectID = Enemy.EntityId;
                     avoid.Donut = 0f;
@@ -219,7 +219,7 @@ public class M6S_Color_Riot :SplatoonScript
                 }
             }
 
-            if (hasRedDebuff || hasBlueDebuff || C.BaitType != BaitType.None)
+            if(hasRedDebuff || hasBlueDebuff || C.BaitType != BaitType.None)
             {
                 avoid.Enabled = true;
                 text.Enabled = true;
@@ -255,7 +255,7 @@ public class M6S_Color_Riot :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        switch (castId)
+        switch(castId)
         {
             case 42641:
                 _nearIsRed = false;
@@ -270,13 +270,13 @@ public class M6S_Color_Riot :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is { RowId: 42641 } or { RowId: 42642 }) _isActive = false;
+        if(set.Action is { RowId: 42641 } or { RowId: 42642 }) _isActive = false;
     }
 
     private float GetRadius(bool isIn)
     {
         var z = Enemy;
-        if (z == null) return 5f;
+        if(z == null) return 5f;
         var breakpoint =
             Svc.Objects.OfType<IPlayerCharacter>()
                 .Where(x => !x.GetJob().IsTank())
@@ -286,7 +286,7 @@ public class M6S_Color_Riot :SplatoonScript
         return Math.Max(5f, distance);
     }
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public BaitType BaitType = BaitType.None;
     }

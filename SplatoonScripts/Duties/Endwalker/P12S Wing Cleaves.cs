@@ -7,7 +7,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -20,19 +20,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Wing_Cleaves : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1153, 1154 };
+        public override HashSet<uint> ValidTerritories => [1153, 1154];
         public override Metadata? Metadata => new(7, "NightmareXIV");
-        Queue<string> Cleaves = new();
-        bool isSpin = false;
-        Vector3 firstPos;
-        float BaseRotation = 0;
+        private Queue<string> Cleaves = new();
+        private bool isSpin = false;
+        private Vector3 firstPos;
+        private float BaseRotation = 0;
 
-        const uint AthenaNameId = 12377;
-        readonly uint[] Casts = new uint[] { 33473, 33474, 33475, 33476, 33477, 33478, 33505, 33506, 33507, 33508, 33509, 33510, 33511, 33512, 33513, 33514, 33515, 33516 };
+        private const uint AthenaNameId = 12377;
+        private readonly uint[] Casts = new uint[] { 33473, 33474, 33475, 33476, 33477, 33478, 33505, 33506, 33507, 33508, 33509, 33510, 33511, 33512, 33513, 33514, 33515, 33516 };
 
-        IBattleNpc? Athena => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.NameId == AthenaNameId && b.IsTargetable()) as IBattleNpc;
-        Vector2 Center = new(100, 100);
-        bool IsSavage => Svc.ClientState.TerritoryType == 1154;
+        private IBattleNpc? Athena => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.NameId == AthenaNameId && b.IsTargetable()) as IBattleNpc;
+        private Vector2 Center = new(100, 100);
+        private bool IsSavage => Svc.ClientState.TerritoryType == 1154;
 
         public override void OnSetup()
         {
@@ -47,15 +47,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
-            if (set.Action == null) return;
-            if (Casts.Contains(set.Action.Value.RowId))
+            if(set.Action == null) return;
+            if(Casts.Contains(set.Action.Value.RowId))
             {
                 ////DuoLog.Information($"Cast");
                 GenericHelpers.Safe(() =>
                 {
                     Cleaves.Dequeue();
                     Hide();
-                    if (Cleaves.Count > 0)
+                    if(Cleaves.Count > 0)
                     {
                         Process(Cleaves.Peek());
                         //DuoLog.Information($"-> {Cleaves.Peek()}");
@@ -64,7 +64,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        public override void OnDisable() 
+        public override void OnDisable()
         {
             ActionEffect.ActionEffectEvent -= ActionEffect_ActionEffectEvent;
         }
@@ -74,7 +74,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             var obj = target.GetObject();
             if(obj?.DataId == 16229 && vfxPath.Contains("vfx/lockon/eff/m0829"))
             {
-                if (Cleaves.Count == 0)
+                if(Cleaves.Count == 0)
                 {
                     firstPos = obj.Position;
                     BaseRotation = 360 - Athena.Rotation.RadToDeg();
@@ -82,9 +82,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 }
                 var angle = (MathHelper.GetRelativeAngle(obj.Position, Athena.Position) + 360f - BaseRotation) % 360f;
                 //DuoLog.Information($"Angle: {angle}");
-                if (angle.InRange(180, 360))
+                if(angle.InRange(180, 360))
                 {
-                    if (Cleaves.Count == 1 && firstPos.Y < obj.Position.Y && IsSavage)
+                    if(Cleaves.Count == 1 && firstPos.Y < obj.Position.Y && IsSavage)
                     {
                         Cleaves.Enqueue("Right");
                     }
@@ -95,7 +95,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 }
                 else
                 {
-                    if (Cleaves.Count == 1 && firstPos.Y < obj.Position.Y)
+                    if(Cleaves.Count == 1 && firstPos.Y < obj.Position.Y)
                     {
                         Cleaves.Enqueue("Left");
                     }
@@ -113,13 +113,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        void Hide()
+        private void Hide()
         {
             Controller.GetElementByName("Indicator").Enabled = false;
             Controller.GetElementByName("Line").Enabled = false;
         }
 
-        void Process(string dir)
+        private void Process(string dir)
         {
             if(Controller.TryGetElementByName("Indicator", out var e) && Controller.TryGetElementByName("Line", out var l))
             {
@@ -143,7 +143,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        void SetPos(Element e, Vector3 RefPosition, Vector3 OffPosition)
+        private void SetPos(Element e, Vector3 RefPosition, Vector3 OffPosition)
         {
             e.refX = RefPosition.X;
             e.refY = RefPosition.Y;
@@ -155,10 +155,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnUpdate()
         {
-            if (Cleaves.Count > 0)
+            if(Cleaves.Count > 0)
             {
                 var wings = Svc.Objects.Where(x => x.DataId == 16229);
-                if (!wings.Any())
+                if(!wings.Any())
                 {
                     Cleaves.Clear();
                     Hide();
@@ -174,8 +174,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        Config C => Controller.GetConfig<Config>();
-        public class Config: IEzConfig
+        private Config C => Controller.GetConfig<Config>();
+        public class Config : IEzConfig
         {
             public Vector4 Col1 = Vector4FromRGBA(0xFF0000C8);
             public Vector4 Col2 = Vector4FromRGBA(0xFF7500C8);
@@ -187,9 +187,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.ColorEdit4("Color 2", ref C.Col2, ImGuiColorEditFlags.NoInputs);
         }
 
-        public unsafe static Vector4 Vector4FromRGBA(uint col)
+        public static unsafe Vector4 Vector4FromRGBA(uint col)
         {
-            byte* bytes = (byte*)&col;
+            var bytes = (byte*)&col;
             return new Vector4((float)bytes[3] / 255f, (float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f);
         }
     }

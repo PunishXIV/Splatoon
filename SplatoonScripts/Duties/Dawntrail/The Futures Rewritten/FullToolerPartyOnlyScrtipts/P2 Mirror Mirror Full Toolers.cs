@@ -9,7 +9,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -18,7 +18,7 @@ using System.Linq;
 using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
-internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
+internal class P2_Mirror_Mirror_Full_Toolers : SplatoonScript
 {
     #region enums
     private enum State
@@ -57,7 +57,7 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
         {
             EntityId = entityId;
             Direction = direction;
-            this.isFirstWave = false;
+            isFirstWave = false;
         }
     }
     #endregion
@@ -69,9 +69,9 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
 
     #region private properties
     private State _state = State.None;
-    private List<PartyData> _partyDataList = new();
-    private List<MirrorData> _mirrorDataList = new();
-    private List<MirrorData> _meleeSortedList = new();
+    private List<PartyData> _partyDataList = [];
+    private List<MirrorData> _mirrorDataList = [];
+    private List<MirrorData> _meleeSortedList = [];
     private uint _mainBossId = 0;
     private bool _transLock = false;
 
@@ -94,11 +94,11 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
         Controller.RegisterElement("BaitObject2", new Element(1) { tether = true, refActorComparisonType = 2, radius = 0.5f, thicc = 6f });
         Controller.RegisterElement("MirrorToMirror", new Element(2) { color = 0xC800FF00, radius = 0f, thicc = 11f });
         Controller.RegisterElement($"BaitTether", new Element(2) { thicc = 6.0f, radius = 0f });
-        for (var i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             Controller.RegisterElement($"ConeRange{i}", new Element(5) { radius = 35.0f, coneAngleMin = -15, coneAngleMax = 15, includeRotation = true, fillIntensity = 0.2f });
         }
-        for (var i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             Controller.RegisterElement($"Circle{i}", new Element(1) { radius = 5.0f, refActorComparisonType = 2, thicc = 2f, fillIntensity = 0.2f });
         }
@@ -106,18 +106,18 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40179)
+        if(castId == 40179)
         {
             SetListEntityIdByJob();
 
             _mainBossId = Svc.Objects.FirstOrDefault(x => x is IBattleNpc npc && npc.IsTargetable == true && npc.SubKind == 5)?.EntityId ?? 0;
 
-            if (_partyDataList.Count == 0) return;
-            if (_mainBossId == 0) return;
+            if(_partyDataList.Count == 0) return;
+            if(_mainBossId == 0) return;
             _state = State.SpawnMirror;
         }
 
-        if (castId is 40220 or 40221)
+        if(castId is 40220 or 40221)
         {
             _state = State.BanishCasting;
             HideAllElements();
@@ -127,8 +127,8 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action == null) return;
-        if (set.Action.Value.RowId == 40203)
+        if(set.Action == null) return;
+        if(set.Action.Value.RowId == 40203)
         {
             _state = State.WaveHit;
             _transLock = true;
@@ -136,54 +136,54 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
             HideAllElements();
             ShowSecondMirror();
         }
-        if (set.Action.Value.RowId == 40204 && !_transLock)
+        if(set.Action.Value.RowId == 40204 && !_transLock)
         {
             _state = State.WaveHit2;
             HideAllElements();
         }
-        if (set.Action.Value.RowId is 40220 or 40221)
+        if(set.Action.Value.RowId is 40220 or 40221)
         {
-            this.OnReset();
+            OnReset();
         }
     }
 
     public override void OnUpdate()
     {
-        if (_state == State.None) return;
-        if (_state == State.DataIsReady)
+        if(_state == State.None) return;
+        if(_state == State.DataIsReady)
         {
             //DynamicFirstShowRange();
         }
-        if (_state == State.WaveHit)
+        if(_state == State.WaveHit)
         {
             //DynamicSecondShowRange();
         }
-        if (_state == State.BanishCasting)
+        if(_state == State.BanishCasting)
         {
             DynamicShowBanish();
         }
 
-        if (Controller.GetElementByName("Bait").Enabled) Controller.GetElementByName("Bait").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if (Controller.GetElementByName("BaitObject").Enabled) Controller.GetElementByName("BaitObject").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if (Controller.GetElementByName("BaitObject2").Enabled) Controller.GetElementByName("BaitObject2").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
-        if (Controller.GetElementByName($"BaitTether").Enabled) Controller.GetElementByName("BaitTether").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
+        if(Controller.GetElementByName("Bait").Enabled) Controller.GetElementByName("Bait").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
+        if(Controller.GetElementByName("BaitObject").Enabled) Controller.GetElementByName("BaitObject").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
+        if(Controller.GetElementByName("BaitObject2").Enabled) Controller.GetElementByName("BaitObject2").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
+        if(Controller.GetElementByName($"BaitTether").Enabled) Controller.GetElementByName("BaitTether").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
     }
 
     public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
     {
-        if (_state == State.None) return;
-        if (_state == State.SpawnMirror)
+        if(_state == State.None) return;
+        if(_state == State.SpawnMirror)
         {
-            if (command == 503 && sourceId == Player.Object.EntityId)
+            if(command == 503 && sourceId == Player.Object.EntityId)
             {
                 _mirrorDataList.Add(new MirrorData(p2, DividePoint(p2.GetObject().Position, 20)));
             }
 
-            if (_mirrorDataList.Count == 3)
+            if(_mirrorDataList.Count == 3)
             {
                 // 最もEntityIdが小さいミラーが最初に来るミラー
                 var firstMirror = _mirrorDataList.OrderBy(x => x.EntityId).First();
-                if (firstMirror.EntityId == 0) return;
+                if(firstMirror.EntityId == 0) return;
                 PluginLog.Information($"First Mirror: {firstMirror.EntityId}");
                 firstMirror.isFirstWave = true;
                 _state = State.DataIsReady;
@@ -194,7 +194,7 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
             ImGui.Text($"Main Boss: {_mainBossId}");
@@ -202,29 +202,29 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
             ImGui.Text($"Mirror Data[0] EntityId: {_mirrorDataList[0].EntityId}");
             ImGui.Text($"Mirror Data[0] Direction: {_mirrorDataList[0].Direction}");
             ImGui.Text($"Mirror Data[0] isFirstWave: {_mirrorDataList[0].isFirstWave}");
-            if (_mirrorDataList[0].EntityId.GetObject() != null)
+            if(_mirrorDataList[0].EntityId.GetObject() != null)
             {
                 ImGui.Text($"Mirror Data[0] Position: {_mirrorDataList[0].EntityId.GetObject().Position}");
             }
             ImGui.Text($"Mirror Data[1] EntityId: {_mirrorDataList[1].EntityId}");
             ImGui.Text($"Mirror Data[1] Direction: {_mirrorDataList[1].Direction}");
             ImGui.Text($"Mirror Data[1] isFirstWave: {_mirrorDataList[1].isFirstWave}");
-            if (_mirrorDataList[1].EntityId.GetObject() != null)
+            if(_mirrorDataList[1].EntityId.GetObject() != null)
             {
                 ImGui.Text($"Mirror Data[1] Position: {_mirrorDataList[1].EntityId.GetObject().Position}");
             }
             ImGui.Text($"Mirror Data[2] EntityId: {_mirrorDataList[2].EntityId}");
             ImGui.Text($"Mirror Data[2] Direction: {_mirrorDataList[2].Direction}");
             ImGui.Text($"Mirror Data[2] isFirstWave: {_mirrorDataList[2].isFirstWave}");
-            if (_mirrorDataList[2].EntityId.GetObject() != null)
+            if(_mirrorDataList[2].EntityId.GetObject() != null)
             {
                 ImGui.Text($"Mirror Data[2] Position: {_mirrorDataList[2].EntityId.GetObject().Position}");
             }
             ImGui.Text($"Melee Sorted Data Count: {_meleeSortedList.Count}");
-            foreach (var partyData in _partyDataList)
+            foreach(var partyData in _partyDataList)
             {
                 var obj = partyData.EntityId.GetObject();
-                if (obj == null) continue;
+                if(obj == null) continue;
                 ImGui.Text($"Party {obj.Name.ToString()}: {partyData.index}");
             }
 
@@ -247,14 +247,14 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
     private void ShowFirstMirror()
     {
         var firstMirror = _mirrorDataList.Find(x => x.isFirstWave);
-        if (firstMirror == null) return;
+        if(firstMirror == null) return;
         // 自分がmeleeかrangeかで分岐
         var pc = _partyDataList.Find(x => x.EntityId == Player.Object.EntityId);
-        if (pc == null) return;
-        int index = pc.index;
+        if(pc == null) return;
+        var index = pc.index;
 
         // 自分がmeleeの場合 0,1,2,3
-        if (index <= 3)
+        if(index <= 3)
         {
             DuoLog.Information("Melee");
             ApplyElement("Bait", GetOppositeDirection(firstMirror.Direction), 13.0f);
@@ -323,10 +323,10 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
 
         // 自分がmeleeかrangeかで分岐
         var pc = _partyDataList.Find(x => x.EntityId == Player.Object.EntityId);
-        if (pc == null) return;
-        int index = pc.index;
+        if(pc == null) return;
+        var index = pc.index;
         // 自分がmeleeの場合 0,1,2,3
-        if (index <= 3)
+        if(index <= 3)
         {
             Controller.GetElementByName("BaitObject").refActorObjectID = _meleeSortedList.First().EntityId;
             Controller.GetElementByName("BaitObject").Enabled = true;
@@ -391,11 +391,11 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
     public void ShowBanish(uint castId)
     {
         // Stack
-        if (castId == 40220)
+        if(castId == 40220)
         {
             var pc = _partyDataList.Find(x => x.EntityId == Player.Object.EntityId);
-            if (pc == null) return;
-            int pairIndex = pc.index switch
+            if(pc == null) return;
+            var pairIndex = pc.index switch
             {
                 0 => 2,
                 1 => 3,
@@ -412,9 +412,9 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
             Controller.GetElementByName("BaitTether").Enabled = true;
         }
         // Spread
-        else if (castId == 40221)
+        else if(castId == 40221)
         {
-            for (var i = 0; i < 8; i++)
+            for(var i = 0; i < 8; i++)
             {
                 //Controller.GetElementByName($"Circle{i}").refActorObjectID = _partyDataList[i].EntityId;
                 //Controller.GetElementByName($"Circle{i}").Enabled = true;
@@ -424,11 +424,11 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
 
     public void DynamicShowBanish()
     {
-        if (Controller.GetElementByName("BaitTether").Enabled)
+        if(Controller.GetElementByName("BaitTether").Enabled)
         {
             var pc = _partyDataList.Find(x => x.EntityId == Player.Object.EntityId);
-            if (pc == null) return;
-            int pairIndex = pc.index switch
+            if(pc == null) return;
+            var pairIndex = pc.index switch
             {
                 0 => 2,
                 1 => 3,
@@ -489,66 +489,66 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
         _partyDataList.Clear();
 
         // リストに８人分の初期インスタンス生成
-        for (var i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             _partyDataList.Add(new PartyData(0));
             _partyDataList[i].index = i;
         }
 
-        foreach (var pc in FakeParty.Get())
+        foreach(var pc in FakeParty.Get())
         {
             var job = pc.GetJob();
-            switch (job)
+            switch(job)
             {
                 case Job.WAR:
                 case Job.DRK:
                 case Job.GNB:
-                _partyDataList[0].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[0].EntityId = pc.EntityId;
+                    break;
 
                 case Job.PLD:
-                _partyDataList[1].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[1].EntityId = pc.EntityId;
+                    break;
 
                 case Job.SAM:
                 case Job.MNK:
                 case Job.DRG:
                 case Job.RPR:
-                _partyDataList[2].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[2].EntityId = pc.EntityId;
+                    break;
 
                 case Job.NIN:
                 case Job.VPR:
                 case Job.RDM:
                 case Job.BLM:
                 case Job.SMN:
-                _partyDataList[3].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[3].EntityId = pc.EntityId;
+                    break;
 
                 case Job.BRD:
                 case Job.MCH:
                 case Job.DNC:
-                _partyDataList[4].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[4].EntityId = pc.EntityId;
+                    break;
 
                 case Job.PCT:
-                _partyDataList[5].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[5].EntityId = pc.EntityId;
+                    break;
 
                 case Job.WHM:
                 case Job.AST:
-                _partyDataList[6].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[6].EntityId = pc.EntityId;
+                    break;
 
                 case Job.SCH:
                 case Job.SGE:
-                _partyDataList[7].EntityId = pc.EntityId;
-                break;
+                    _partyDataList[7].EntityId = pc.EntityId;
+                    break;
             }
         }
 
-        PartyData mine = _partyDataList.Find(x => x.EntityId == Player.Object.EntityId);
-        if (mine != null) mine.Mine = true;
+        var mine = _partyDataList.Find(x => x.EntityId == Player.Object.EntityId);
+        if(mine != null) mine.Mine = true;
     }
 
     private Direction DividePoint(Vector3 Position, float Distance, Vector3? Center = null)
@@ -559,10 +559,10 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
         // ８方向の内、最も近い方向ベクトルを取得
         var closestDirection = Direction.North;
         var closestDistance = float.MaxValue;
-        foreach (var directionalVector in directionalVectors)
+        foreach(var directionalVector in directionalVectors)
         {
             var distance = Vector3.Distance(Position, directionalVector.Position);
-            if (distance < closestDistance)
+            if(distance < closestDistance)
             {
                 closestDistance = distance;
                 closestDirection = directionalVector.Direction;
@@ -577,11 +577,11 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
         var directionalVectors = new List<DirectionalVector>();
 
         // 各方向のオフセット計算
-        foreach (Direction direction in Enum.GetValues(typeof(Direction)))
+        foreach(Direction direction in Enum.GetValues(typeof(Direction)))
         {
-            if (direction == Direction.None) continue; // Noneはスキップ
+            if(direction == Direction.None) continue; // Noneはスキップ
 
-            Vector3 offset = direction switch
+            var offset = direction switch
             {
                 Direction.North => new Vector3(0, 0, -1),
                 Direction.NorthEast => Vector3.Normalize(new Vector3(1, 0, -1)),
@@ -595,7 +595,7 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
             };
 
             // 距離を適用して座標を計算
-            Vector3 position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
+            var position = (center ?? new Vector3(100, 0, 100)) + (offset * distance);
 
             // リストに追加
             directionalVectors.Add(new DirectionalVector(direction, position));
@@ -608,14 +608,14 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
     private int GetTwoPointAngle(Direction direction1, Direction direction2)
     {
         // enumの値を数値に変換
-        int angle1 = (int)direction1;
-        int angle2 = (int)direction2;
+        var angle1 = (int)direction1;
+        var angle2 = (int)direction2;
 
         // 環状の差分を計算
-        int diff = (angle2 - angle1 + 8) % 8; // 環状に補正して差分を取得
+        var diff = (angle2 - angle1 + 8) % 8; // 環状に補正して差分を取得
 
         // 差分に応じた角度を計算（時計回りで正、反時計回りで負）
-        int angle = diff switch
+        var angle = diff switch
         {
             0 => 0,
             1 => 45,
@@ -634,28 +634,28 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
     // 2つのDirectionを比較して、左右どちらかを返す。左なら-1、右なら1、同じまたは逆なら0を返す
     private LR GetTwoPointLeftRight(Direction direction1, Direction direction2)
     {
-        if (direction1 == Direction.North && direction2 == Direction.NorthEast) return LR.Right;
-        if (direction1 == Direction.NorthEast && direction2 == Direction.East) return LR.Right;
-        if (direction1 == Direction.East && direction2 == Direction.SouthEast) return LR.Right;
-        if (direction1 == Direction.SouthEast && direction2 == Direction.South) return LR.Right;
-        if (direction1 == Direction.South && direction2 == Direction.SouthWest) return LR.Right;
-        if (direction1 == Direction.SouthWest && direction2 == Direction.West) return LR.Right;
-        if (direction1 == Direction.West && direction2 == Direction.NorthWest) return LR.Right;
-        if (direction1 == Direction.NorthWest && direction2 == Direction.North) return LR.Right;
+        if(direction1 == Direction.North && direction2 == Direction.NorthEast) return LR.Right;
+        if(direction1 == Direction.NorthEast && direction2 == Direction.East) return LR.Right;
+        if(direction1 == Direction.East && direction2 == Direction.SouthEast) return LR.Right;
+        if(direction1 == Direction.SouthEast && direction2 == Direction.South) return LR.Right;
+        if(direction1 == Direction.South && direction2 == Direction.SouthWest) return LR.Right;
+        if(direction1 == Direction.SouthWest && direction2 == Direction.West) return LR.Right;
+        if(direction1 == Direction.West && direction2 == Direction.NorthWest) return LR.Right;
+        if(direction1 == Direction.NorthWest && direction2 == Direction.North) return LR.Right;
 
-        if (direction1 == Direction.North && direction2 == Direction.West) return LR.Left;
-        if (direction1 == Direction.West && direction2 == Direction.South) return LR.Left;
-        if (direction1 == Direction.South && direction2 == Direction.East) return LR.Left;
-        if (direction1 == Direction.East && direction2 == Direction.North) return LR.Left;
+        if(direction1 == Direction.North && direction2 == Direction.West) return LR.Left;
+        if(direction1 == Direction.West && direction2 == Direction.South) return LR.Left;
+        if(direction1 == Direction.South && direction2 == Direction.East) return LR.Left;
+        if(direction1 == Direction.East && direction2 == Direction.North) return LR.Left;
 
-        if (direction1 == Direction.North && direction2 == Direction.SouthEast) return LR.Right;
-        if (direction1 == Direction.NorthEast && direction2 == Direction.South) return LR.Right;
-        if (direction1 == Direction.East && direction2 == Direction.SouthWest) return LR.Right;
-        if (direction1 == Direction.SouthEast && direction2 == Direction.West) return LR.Right;
-        if (direction1 == Direction.South && direction2 == Direction.NorthWest) return LR.Right;
-        if (direction1 == Direction.SouthWest && direction2 == Direction.North) return LR.Right;
-        if (direction1 == Direction.West && direction2 == Direction.NorthEast) return LR.Right;
-        if (direction1 == Direction.NorthWest && direction2 == Direction.East) return LR.Right;
+        if(direction1 == Direction.North && direction2 == Direction.SouthEast) return LR.Right;
+        if(direction1 == Direction.NorthEast && direction2 == Direction.South) return LR.Right;
+        if(direction1 == Direction.East && direction2 == Direction.SouthWest) return LR.Right;
+        if(direction1 == Direction.SouthEast && direction2 == Direction.West) return LR.Right;
+        if(direction1 == Direction.South && direction2 == Direction.NorthWest) return LR.Right;
+        if(direction1 == Direction.SouthWest && direction2 == Direction.North) return LR.Right;
+        if(direction1 == Direction.West && direction2 == Direction.NorthEast) return LR.Right;
+        if(direction1 == Direction.NorthWest && direction2 == Direction.East) return LR.Right;
 
         return LR.Left;
     }
@@ -698,7 +698,7 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
         var position = new Vector3(100, 0, 100);
         var angle = GetAngle(direction);
         position += radius * new Vector3(MathF.Cos(MathF.PI * angle / 180f), 0, MathF.Sin(MathF.PI * angle / 180f));
-        if (Controller.TryGetElementByName(elementName, out var element))
+        if(Controller.TryGetElementByName(elementName, out var element))
         {
             element.Enabled = true;
             element.radius = elementRadius;
@@ -734,17 +734,17 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
     public static float GetCorrectionAngle(Vector2 origin, Vector2 target, float rotation)
     {
         // Calculate the relative angle to the target
-        Vector2 direction = target - origin;
-        float relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
+        var direction = target - origin;
+        var relativeAngle = MathF.Atan2(direction.Y, direction.X) * (180 / MathF.PI);
 
         // Normalize relative angle to 0-360 range
         relativeAngle = (relativeAngle + 360) % 360;
 
         // Calculate the correction angle
-        float correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
+        var correctionAngle = (relativeAngle - ConvertRotationRadiansToDegrees(rotation) + 360) % 360;
 
         // Adjust correction angle to range -180 to 180 for shortest rotation
-        if (correctionAngle > 180)
+        if(correctionAngle > 180)
             correctionAngle -= 360;
 
         return correctionAngle;
@@ -761,7 +761,7 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
     public static float ConvertRotationRadiansToDegrees(float radians)
     {
         // Convert radians to degrees with coordinate system adjustment
-        float degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
+        var degrees = ((-radians * (180 / MathF.PI)) + 180) % 360;
 
         // Ensure the result is within the 0° to 360° range
         return degrees < 0 ? degrees + 360 : degrees;
@@ -778,7 +778,7 @@ internal class P2_Mirror_Mirror_Full_Toolers :SplatoonScript
     public static float ConvertDegreesToRotationRadians(float degrees)
     {
         // Convert degrees to radians with coordinate system adjustment
-        float radians = -(degrees - 180) * (MathF.PI / 180);
+        var radians = -(degrees - 180) * (MathF.PI / 180);
 
         // Normalize the result to the range -π to π
         radians = ((radians + MathF.PI) % (2 * MathF.PI)) - MathF.PI;

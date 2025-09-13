@@ -53,7 +53,7 @@ internal static class TabScripting
             }
             else
             {
-                ScriptingProcessor.CompileAndLoad(text, null, false);
+                ScriptingProcessor.CompileAndLoad(text, null, false, true);
             }
         }
         ImGuiEx.Tooltip("Installs script from clipboard. Your clipboard should contain either code of the script or link to a trusted URL (a script from Splatoon repository)");
@@ -76,7 +76,7 @@ internal static class TabScripting
                     }
                 }
             }
-            if(ImGui.Selectable("Default"))
+            if(ImGui.Selectable("Default Configuration"))
             {
                 foreach(var s in ScriptingProcessor.Scripts)
                 {
@@ -99,7 +99,20 @@ internal static class TabScripting
                 foreach(var s in ScriptingProcessor.Scripts)
                 {
                     if(s.IsDisabledByUser) continue;
-                    if(s.InternalData.CurrentConfigurationKey != confName && s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey))
+                    if(P.Config.DefaultScriptConfigurationNames.TryGetValue(s.InternalData.FullName, out var defConName) && defConName == confName)
+                    {
+                        if(s.InternalData.CurrentConfigurationKey != "")
+                        {
+                            if(doReload)
+                            {
+                                s.ApplyDefaultConfiguration(out var act);
+                                if(act != null) toReload.Add(s);
+                            }
+                            sb.Append(s.InternalData.FullName.Replace(".", " - "));
+                            sb.Append('\n');
+                        }
+                    }
+                    else if(s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey) && s.InternalData.CurrentConfigurationKey != confKey)
                     {
                         if(doReload)
                         {
@@ -200,28 +213,7 @@ internal static class TabScripting
 
                     ImGui.TableNextColumn();
 
-                    if(script.TryGetAvailableConfigurations(out var configurations))
-                    {
-                        var activeConf = script.InternalData.CurrentConfigurationKey;
-                        var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? "Default";
-                        ImGuiEx.SetNextItemFullWidth();
-                        if(ImGui.BeginCombo("##confs", $"{activeConfName}", ImGuiComboFlags.HeightLarge))
-                        {
-                            if(ImGui.Selectable("Default", activeConf.IsNullOrEmpty()))
-                            {
-                                script.ApplyDefaultConfiguration();
-                            }
-                            var i = 0;
-                            foreach(var c in configurations)
-                            {
-                                if(ImGui.Selectable($"{c.Value}##{i++}", c.Key == activeConf))
-                                {
-                                    script.ApplyConfiguration(c.Key);
-                                }
-                            }
-                            ImGui.EndCombo();
-                        }
-                    }
+                    script.DrawConfigurationSelector();
 
                     ImGui.TableNextColumn();
 
@@ -319,7 +311,12 @@ internal static class TabScripting
 
                     if(ImGuiEx.IconButton("\uf0e2"))
                     {
-                        ScriptingProcessor.ReloadScript(script);
+                        var isOpen = script.InternalData.ConfigOpen;
+                        ScriptingProcessor.ReloadScript(script, true);
+                        if(isOpen)
+                        {
+                            RequestOpen = script.InternalData.FullName;
+                        }
                     }
                     ImGuiEx.Tooltip("Reload this script");
 
@@ -355,7 +352,7 @@ internal static class TabScripting
                 ImGuiEx.Text(ImGuiColors.DalamudYellow, $"{openConfig.InternalData.FullName} configuration");
             });
             ImGui.Separator();
-            ImGuiEx.EzTabBar("##scriptConfig",
+            ImGuiEx.EzTabBar($"##scriptConfig",
                 (openConfig.InternalData.SettingsPresent ? "Configuration" : null, () =>
                 {
                     try

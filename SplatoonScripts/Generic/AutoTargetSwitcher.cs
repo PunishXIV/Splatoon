@@ -1,14 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
 using ECommons.Logging;
 using ECommons.Throttlers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SplatoonScriptsOfficial.Generic;
 
@@ -29,16 +29,16 @@ public class AutoTargetSwitcher : SplatoonScript
         ImGui.Text("Auto Target Switcher");
         ImGui.Text("Switches target object automatically");
 
-        for (var i = 0; i < C.TargetObjectIds.Length; i++)
+        for(var i = 0; i < C.TargetObjectIds.Length; i++)
         {
             ImGui.PushID($"TargetObjectIds{i}");
             ImGui.Text($"Target Object {i}");
             ImGui.SameLine();
             InputUlong("##TargetObjectIds", ref C.TargetObjectIds[i]);
             ImGui.SameLine();
-            if (ImGui.Button("Remove"))
+            if(ImGui.Button("Remove"))
             {
-                for (var j = i; j < C.TargetObjectIds.Length - 1; j++)
+                for(var j = i; j < C.TargetObjectIds.Length - 1; j++)
                     C.TargetObjectIds[j] = C.TargetObjectIds[j + 1];
                 Array.Resize(ref C.TargetObjectIds, C.TargetObjectIds.Length - 1);
             }
@@ -46,7 +46,7 @@ public class AutoTargetSwitcher : SplatoonScript
             ImGui.PopID();
         }
 
-        if (ImGui.Button("Add Target Object"))
+        if(ImGui.Button("Add Target Object"))
             Array.Resize(ref C.TargetObjectIds, C.TargetObjectIds.Length + 1);
 
         ImGui.SliderFloat("Acceptable Percentage", ref C.AcceptablePercentage, 0f, 100f);
@@ -56,21 +56,21 @@ public class AutoTargetSwitcher : SplatoonScript
 
     private void Alert(string message)
     {
-        if (C.Debug)
+        if(C.Debug)
             DuoLog.Information(message);
     }
 
     public override void OnUpdate()
     {
         if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]) return;
-        if (EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
+        if(EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
         {
             var targets = Svc.Objects
                 .Where(o => C.TargetObjectIds.Contains(o.GameObjectId))
                 .OfType<IBattleChara>()
                 .ToList();
 
-            if (targets.Count == 0)
+            if(targets.Count == 0)
             {
                 Alert("No targets found");
                 return;
@@ -79,18 +79,18 @@ public class AutoTargetSwitcher : SplatoonScript
             Alert($"Found {targets.Count} targets");
 
             _percentages.Clear();
-            foreach (var percentage in targets.Select(target => (float)target.CurrentHp / target.MaxHp * 100f))
+            foreach(var percentage in targets.Select(target => (float)target.CurrentHp / target.MaxHp * 100f))
                 _percentages.Add(percentage);
 
             var minPercentage = _percentages.Min();
             var maxPercentage = _percentages.Max();
 
-            if (_currentTarget == null || maxPercentage - minPercentage > C.AcceptablePercentage ||
+            if(_currentTarget == null || maxPercentage - minPercentage > C.AcceptablePercentage ||
                 Math.Abs(minPercentage - _lastMinPercentage) > 0.1f)
             {
                 _lastMinPercentage = minPercentage;
 
-                if (maxPercentage - minPercentage > C.AcceptablePercentage)
+                if(maxPercentage - minPercentage > C.AcceptablePercentage)
                 {
                     var maxTarget = targets[_percentages.IndexOf(maxPercentage)];
                     Alert($"Switching to target with max percentage: {maxTarget.Name}");
@@ -117,7 +117,7 @@ public class AutoTargetSwitcher : SplatoonScript
     {
         var str = value.ToString();
         ImGui.InputText(id, ref str, 20);
-        if (ulong.TryParse(str, out var result))
+        if(ulong.TryParse(str, out var result))
             value = result;
     }
 

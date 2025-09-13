@@ -1,7 +1,9 @@
 ﻿using ECommons.Configuration;
 using ECommons.ExcelServices;
 using Newtonsoft.Json;
+using NightmareUI;
 using Pictomancy;
+using Splatoon.Modules.TranslationWorkspace;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
@@ -80,10 +82,12 @@ internal class Configuration : IEzConfig
     public int ElementMinFillAlpha = 0;
     public int ElementMaxFillAlpha = 255;
     public int MaxAlpha = 0xFF;
+    public bool UseVfxRendering = false;
     [JsonConverter(typeof(DictionaryWithEnumKeyConverter<MechanicType, Tuple<bool, DisplayStyle>>))]
     public Dictionary<MechanicType, Tuple<bool, DisplayStyle>> StyleOverrides = [];
     public Dictionary<string, Dictionary<string, string>> ScriptConfigurationNames = [];
     public Dictionary<string, string> ActiveScriptConfigurations = [];
+    public Dictionary<string, string> DefaultScriptConfigurationNames = [];
     public string ExtraTrustedRepos = "";
     public string ExtraUpdateLinks = "";
     public List<uint> NoPrioPopupTerritories = [];
@@ -93,6 +97,10 @@ internal class Configuration : IEzConfig
     public bool UseServerBar = true;
     public Dictionary<Job, RolePosition> PreferredPositions = [];
     public PriorityInfoOption ScriptPriorityNotification = PriorityInfoOption.Display_notification;
+    public bool ConfigurationsHideDisabled = false;
+    public List<string> DisabledGroups = [];
+    public List<Page> TranslatorPages = [];
+    public NightmareUIState NightmareUIState = new();
 
     public uint ClampFillColorAlpha(uint fillColor)
     {
@@ -114,6 +122,7 @@ internal class Configuration : IEzConfig
         {
             plugin.ConfigGui.Open = true;
         };
+        NuiTools.SetState(this.NightmareUIState);
     }
 
     public void Save(bool suppressError = false)

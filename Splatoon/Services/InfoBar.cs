@@ -20,7 +20,7 @@ public class InfoBar : IDisposable
     private InfoBar()
     {
         Entry = Svc.DtrBar.Get(EntryName, "");
-        Entry.OnClick = () => P.PriorityPopupWindow.Open(true);
+        Entry.OnClick = (x) => P.PriorityPopupWindow.Open(true);
         Entry.Tooltip = "Edit Splatoon priority";
         ProperOnLogin.RegisterAvailable(() => Update(true), true);
     }

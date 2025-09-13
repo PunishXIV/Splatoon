@@ -11,9 +11,10 @@ namespace SplatoonScriptsOfficial.Generic;
 public class VnavmeshAlignCameraUnsetter : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
-    [EzIPC("Path.GetAlignCamera", true)] Func<bool> GetAlignCamera;
-    [EzIPC("Path.SetAlignCamera", true)] Action<bool> SetAlignCamera;
+    [EzIPC("Path.GetAlignCamera", true)] private Func<bool> GetAlignCamera;
+    [EzIPC("Path.SetAlignCamera", true)] private Action<bool> SetAlignCamera;
 
     public override void OnSetup()
     {

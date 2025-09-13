@@ -6,7 +6,7 @@ using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -22,8 +22,8 @@ public unsafe class CastExplorer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
     public override Metadata? Metadata => new(2, "NightmareXIV");
-    uint HoveredID = 0;
-    bool HideExpired = false;
+    private uint HoveredID = 0;
+    private bool HideExpired = false;
 
     public override void OnUpdate()
     {
@@ -88,7 +88,7 @@ public unsafe class CastExplorer : SplatoonScript
                     }
                     if(ImGui.IsItemHovered())
                     {
-                        this.HoveredID = x.EntityId;
+                        HoveredID = x.EntityId;
                     }
                 }));
             }
@@ -96,7 +96,7 @@ public unsafe class CastExplorer : SplatoonScript
         ImGuiEx.EzTable(Entries);
     }
 
-    Element CreateCircle(IBattleNpc b)
+    private Element CreateCircle(IBattleNpc b)
     {
         var ret = new Element(0)
         {
@@ -108,7 +108,7 @@ public unsafe class CastExplorer : SplatoonScript
         return ret;
     }
 
-    Element CreateLine(IBattleNpc b)
+    private Element CreateLine(IBattleNpc b)
     {
         var ret = new Element(3)
         {

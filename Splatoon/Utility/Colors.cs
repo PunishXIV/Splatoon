@@ -11,9 +11,9 @@ public static class Colors
     public const uint Green = 0xff00ff00;
     public const uint Yellow = 0xff00ffff;
 
-    public static readonly Vector4 ElementLayoutIsVisible = ImGuiEx.Vector4FromRGB(0xc4ffc5);
+    public static readonly Vector4 ElementLayoutIsVisible = ImGuiEx.Vector4FromRGB(0xfcffad);
     public static readonly Vector4 ElementIsConditional = ImGuiEx.Vector4FromRGB(0x6bfff8);
-    public static readonly Vector4 ElementIsConditionalVisible = ImGuiEx.Vector4FromRGB(0xebff6b);
+    public static readonly Vector4 ElementIsConditionalVisible = ImGuiEx.Vector4FromRGB(0x6bff6b);
 
     public static uint MultiplyAlpha(uint color, float amount)
     {

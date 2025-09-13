@@ -132,7 +132,7 @@ public class PriorityData
     /// This function gets player at certain position in priority list that matches set condition.
     /// </summary>
     /// <param name="predicate">A check to whether include a player into priority list resolution or not.</param>
-    /// <param name="position">A position to retrieve. Overshooting will result in null.</param>
+    /// <param name="position">A position to retrieve. Overshooting will result in null. Starts with 1.</param>
     /// <param name="fromEnd">Whether to start from end instead of start of the list.</param>
     /// <returns></returns>
     public UniversalPartyMember? GetPlayer(Predicate<UniversalPartyMember> predicate, int position = 1, bool fromEnd = false)
@@ -177,7 +177,7 @@ public class PriorityData
 
     /// <inheritdoc cref="GetPlayer(Predicate{UniversalPartyMember}, int, bool)"/>
     /// <summary>
-    /// Get own index in the priority list. Will return -1 if not found.
+    /// Get own index in the priority list. Will return -1 if not found. Starts with 0. 
     /// </summary>
     /// <param name="predicate"></param>
     /// <param name="fromEnd"></param>

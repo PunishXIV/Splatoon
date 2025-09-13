@@ -18,13 +18,14 @@ public class InternationalString
     [DefaultValue("")] public string Fr = string.Empty;
     [DefaultValue("")] public string Other = string.Empty;
 
-    public string Get(string Default = "")
+    public string Get(string defaultString = "", ClientLanguage? language = null)
     {
-        if(Svc.Data.Language == ClientLanguage.English) return En == string.Empty ? Default : En;
-        if(Svc.Data.Language == ClientLanguage.Japanese) return Jp == string.Empty ? Default : Jp;
-        if(Svc.Data.Language == ClientLanguage.German) return De == string.Empty ? Default : De;
-        if(Svc.Data.Language == ClientLanguage.French) return Fr == string.Empty ? Default : Fr;
-        return Other == string.Empty ? Default : Other;
+        language ??= Svc.Data.Language;
+        if(language == ClientLanguage.English) return En == string.Empty ? defaultString : En;
+        else if(language == ClientLanguage.Japanese) return Jp == string.Empty ? defaultString : Jp;
+        else if(language == ClientLanguage.German) return De == string.Empty ? defaultString : De;
+        else if(language == ClientLanguage.French) return Fr == string.Empty ? defaultString : Fr;
+        else return Other == string.Empty ? defaultString : Other;
     }
 
     internal ref string CurrentLangString
@@ -58,7 +59,7 @@ public class InternationalString
     {
         if(ImGui.BeginCombo($"##{guid}", Get(DefaultValue)))
         {
-            ImGuiEx.ImGuiLineCentered($"line{guid}", delegate
+            ImGuiEx.LineCentered($"line{guid}", delegate
             {
                 ImGuiEx.Text("International string".Loc());
             });
@@ -104,6 +105,15 @@ public class InternationalString
         return En.IsNullOrEmpty() && Jp.IsNullOrEmpty() && De.IsNullOrEmpty() && Fr.IsNullOrEmpty() && Other.IsNullOrEmpty();
     }
 
+    public ref string GetRefString(ClientLanguage language)
+    {
+        if(language == ClientLanguage.English) return ref En;
+        else if(language == ClientLanguage.Japanese) return ref Jp;
+        else if(language == ClientLanguage.German) return ref De;
+        else if(language == ClientLanguage.French) return ref Fr;
+        else return ref Other;
+    }
+
     private void EditLangSpecificString(ClientLanguage language, ref string str)
     {
         var col = false;
@@ -120,7 +130,7 @@ public class InternationalString
         ImGuiUtils.SizedText($"{language.ToString().Loc()}:", 100);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(300f);
-        ImGui.InputText($"##{guid}{language}", ref str, 1000);
+        ImGui.InputText($"##{guid}{language}", ref str, 2000);
         if(col)
         {
             ImGui.PopStyleColor();

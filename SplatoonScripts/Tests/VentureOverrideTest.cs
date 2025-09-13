@@ -12,7 +12,8 @@ namespace SplatoonScriptsOfficial.Tests
 {
     public class VentureOverrideTest : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnEnable()
         {
@@ -24,7 +25,7 @@ namespace SplatoonScriptsOfficial.Tests
             Svc.PluginInterface.GetIpcSubscriber<string, object>("AutoRetainer.OnSendRetainerToVenture").Unsubscribe(OnRetainerSend);
         }
 
-        void OnRetainerSend(string name)
+        private void OnRetainerSend(string name)
         {
             DuoLog.Information($"{name} is about to be sent to venture!");
             var randomVenture = (uint)new Random().Next(1, 27);

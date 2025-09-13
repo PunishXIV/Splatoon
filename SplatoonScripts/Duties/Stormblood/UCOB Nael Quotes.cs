@@ -11,7 +11,7 @@ using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -26,11 +26,11 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood;
 
 public class UCOB_Nael_Quotes : SplatoonScript
 {
-    public override HashSet<uint> ValidTerritories => new() { 733 };
+    public override HashSet<uint> ValidTerritories => [733];
 
-    public override Metadata? Metadata => new(1, "Enthusiastus");    
+    public override Metadata? Metadata => new(1, "Enthusiastus");
 
-    private List<Element> _elements = new List<Element>();
+    private List<Element> _elements = [];
     private Element? InDonut;
     private Element? OutCircle;
     private Element? StackMarker;
@@ -38,10 +38,10 @@ public class UCOB_Nael_Quotes : SplatoonScript
     private bool active = false;
     private List<IPlayerCharacter> players = FakeParty.Get().ToList();
 
-    Config Conf => this.Controller.GetConfig<Config>();
+    private Config Conf => Controller.GetConfig<Config>();
 
-    string TestOverride = "";
-    IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
+    private string TestOverride = "";
+    private IPlayerCharacter PC => TestOverride != "" && FakeParty.Get().FirstOrDefault(x => x.Name.ToString() == TestOverride) is IPlayerCharacter pc ? pc : Svc.ClientState.LocalPlayer!;
 
     public override void OnSetup()
     {
@@ -59,7 +59,8 @@ public class UCOB_Nael_Quotes : SplatoonScript
         SpreadMarker.Enabled = false;
     }
 
-    public override void OnStartingCast(uint source, uint castId) {
+    public override void OnStartingCast(uint source, uint castId)
+    {
         //
     }
 
@@ -85,86 +86,86 @@ public class UCOB_Nael_Quotes : SplatoonScript
     public override void OnMessage(string Message)
     {
         //if (Message.StartsWith(""))
-        if (Message.StartsWith("From on high I descend, the hallowed moon to call!"))
+        if(Message.StartsWith("From on high I descend, the hallowed moon to call!"))
         {
             //DuoLog.Debug($"Spread&In");
             Activate(SpreadMarker, false);
             Activate(InDonut, true);
         }
-        if (Message.StartsWith("From on high I descend, the iron path to walk!"))
+        if(Message.StartsWith("From on high I descend, the iron path to walk!"))
         {
             //DuoLog.Debug($"Spread&Out");
             Activate(SpreadMarker, false);
-            Activate(OutCircle,true);
+            Activate(OutCircle, true);
         }
-        if (Message.StartsWith("Take fire, O hallowed moon!"))
+        if(Message.StartsWith("Take fire, O hallowed moon!"))
         {
             //DuoLog.Debug($"Stack&In");
             Activate(StackMarker, false);
             Activate(InDonut, true);
         }
-        if (Message.StartsWith("Blazing path, lead me to iron rule!"))
+        if(Message.StartsWith("Blazing path, lead me to iron rule!"))
         {
             //DuoLog.Debug($"Stack&Out");
             Activate(StackMarker, false);
             Activate(OutCircle, true);
         }
-        if (Message.StartsWith("O hallowed moon, take fire and scorch my foes!"))
+        if(Message.StartsWith("O hallowed moon, take fire and scorch my foes!"))
         {
             //DuoLog.Debug($"In&Stack");
             Activate(InDonut, false);
             Activate(StackMarker, true);
         }
-        if (Message.StartsWith("O hallowed moon, shine you the iron path!"))
+        if(Message.StartsWith("O hallowed moon, shine you the iron path!"))
         {
             //DuoLog.Debug($"In&Out");
             Activate(InDonut, false);
             Activate(OutCircle, true);
         }
-        if (Message.StartsWith("Fleeting light! 'Neath the red moon, scorch you the earth!"))
+        if(Message.StartsWith("Fleeting light! 'Neath the red moon, scorch you the earth!"))
         {
             //DuoLog.Debug($"TB&Stack");
             Activate(StackMarker, true);
         }
-        if (Message.StartsWith("Fleeting light! Amid a rain of stars, exalt you the red moon!"))
+        if(Message.StartsWith("Fleeting light! Amid a rain of stars, exalt you the red moon!"))
         {
             //DuoLog.Debug($"Spread&TB");
             Activate(SpreadMarker, false);
         }
-        if (Message.StartsWith("From on high I descend, the moon and stars to bring!"))
+        if(Message.StartsWith("From on high I descend, the moon and stars to bring!"))
         {
             //DuoLog.Debug($"Spread&In");
             Activate(SpreadMarker, false);
             Activate(InDonut, true);
         }
-        if (Message.StartsWith("From hallowed moon I descend, a rain of stars to bring!"))
+        if(Message.StartsWith("From hallowed moon I descend, a rain of stars to bring!"))
         {
             //DuoLog.Debug($"In&Spread");
             Activate(InDonut, false);
             Activate(SpreadMarker, true);
         }
-        if (Message.StartsWith("From hallowed moon I bare iron, in my descent to wield!"))
+        if(Message.StartsWith("From hallowed moon I bare iron, in my descent to wield!"))
         {
             //DuoLog.Debug($"In&Out&Spread");
             Activate(InDonut, false);
             Activate(OutCircle, true);
             Activate3(SpreadMarker);
         }
-        if (Message.StartsWith("From hallowed moon I descend, upon burning earth to tread!"))
+        if(Message.StartsWith("From hallowed moon I descend, upon burning earth to tread!"))
         {
             //DuoLog.Debug($"In&Spread&Stack,");
             Activate(InDonut, false);
             Activate(SpreadMarker, true);
             Activate3(StackMarker);
         }
-        if (Message.StartsWith("Unbending iron, take fire and descend!"))
+        if(Message.StartsWith("Unbending iron, take fire and descend!"))
         {
             //DuoLog.Debug($"Out&Stack&Spread,");
             Activate(OutCircle, false);
             Activate(StackMarker, true);
             Activate3(SpreadMarker);
         }
-        if (Message.StartsWith("Unbending iron, descend with fiery edge!"))
+        if(Message.StartsWith("Unbending iron, descend with fiery edge!"))
         {
             //DuoLog.Debug($"Out&Spread&Stack,");
             Activate(OutCircle, false);
@@ -175,7 +176,7 @@ public class UCOB_Nael_Quotes : SplatoonScript
 
     private void Activate(Element elem, bool later)
     {
-        if (later)
+        if(later)
         {
             Task.Delay(6000).ContinueWith(_ =>
             {
@@ -252,7 +253,7 @@ public class UCOB_Nael_Quotes : SplatoonScript
     }
     */
 
-    void Off()
+    private void Off()
     {
         InDonut.Enabled = false;
         OutCircle.Enabled = false;
@@ -260,7 +261,7 @@ public class UCOB_Nael_Quotes : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
+        if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe))
         {
             Off();
         }

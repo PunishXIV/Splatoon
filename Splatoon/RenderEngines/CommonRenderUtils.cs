@@ -1,4 +1,5 @@
-﻿using ECommons.GameFunctions;
+﻿using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs;
@@ -34,7 +35,6 @@ public static unsafe class CommonRenderUtils
             ret = ret
             .Replace("$MODELID", $"{chr.Struct()->ModelContainer.ModelCharaId.Format()}")
             .Replace("$NAMEID", $"{chr.NameId.Format()}")
-            .Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "")
             .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
             if(ret.Contains("$STREM:"))
             {
@@ -50,6 +50,42 @@ public static unsafe class CommonRenderUtils
                 {
                     e.Log();
                 }
+            }
+            if(ret.Contains("$CAST:"))
+            {
+                try
+                {
+                    var match = Regex.Match(ret, @"\$CAST:(.*?)\$");
+                    if(match.Success)
+                    {
+                        if(chr.IsCasting())
+                        {
+                            ret = ret.Replace(match.Groups[0].Value, $"{(chr.TotalCastTime - chr.CurrentCastTime).ToString(match.Groups[1].Value)}")
+                                .Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastActionId));
+                        }
+                        else
+                        {
+                            ret = ret.Replace(match.Groups[0].Value, "").Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastActionId));
+                        }
+                    }
+                    else
+                    {
+                        castFallback();
+                    }
+                }
+                catch(Exception e)
+                {
+                    e.Log();
+                    castFallback();
+                }
+            }
+            else
+            {
+                castFallback();
+            }
+            void castFallback()
+            {
+                ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "");
             }
         }
         return ret;
@@ -91,13 +127,14 @@ public static unsafe class CommonRenderUtils
         return (pointA, pointB);
     }
 
-    internal static bool IsElementObjectMatches(Element e, bool targetable, IGameObject a)
+    internal static bool IsElementObjectMatches(Element element, bool isTargetable, IGameObject gameObject)
     {
-        return (!e.onlyTargetable || targetable)
-                            && (!e.onlyUnTargetable || !targetable)
-                            && LayoutUtils.CheckCharacterAttributes(e, a)
-                            && (!e.refTargetYou || LayoutUtils.CheckTargetingOption(e, a))
-                            && (!e.refActorObjectLife || a.GetLifeTimeSeconds().InRange(e.refActorLifetimeMin, e.refActorLifetimeMax))
-                            && (!e.LimitDistance || Vector3.Distance(a.GetPositionXZY(), new(e.DistanceSourceX, e.DistanceSourceY, e.DistanceSourceZ)).InRange(e.DistanceMin, e.DistanceMax).Invert(e.LimitDistanceInvert));
+        return (!element.onlyTargetable || isTargetable)
+                            && (!element.onlyUnTargetable || !isTargetable)
+                            && LayoutUtils.CheckCharacterAttributes(element, gameObject)
+                            && (!element.refTargetYou || LayoutUtils.CheckTargetingOption(element, gameObject))
+                            && (!element.refActorObjectLife || gameObject.GetLifeTimeSeconds().InRange(element.refActorLifetimeMin, element.refActorLifetimeMax))
+                            && (!element.LimitDistance || Vector3.Distance(gameObject.GetPositionXZY(), new(element.DistanceSourceX, element.DistanceSourceY, element.DistanceSourceZ)).InRange(element.DistanceMin, element.DistanceMax).Invert(element.LimitDistanceInvert))
+                            && (element.ObjectKinds.Count == 0 || element.ObjectKinds.Contains(gameObject.ObjectKind));
     }
 }

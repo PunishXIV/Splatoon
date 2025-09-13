@@ -236,7 +236,7 @@ internal static partial class ScriptingProcessor
         try
         {
             var result = P.HttpClient.GetStringAsync(url).Result;
-            CompileAndLoad(result, null, isFirst);
+            CompileAndLoad(result, null, isFirst, true);
         }
         catch(Exception e)
         {
@@ -266,7 +266,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void ReloadScript(SplatoonScript s)
+    internal static void ReloadScript(SplatoonScript s, bool ignoreCache = false)
     {
         if(ThreadIsRunning)
         {
@@ -275,7 +275,7 @@ internal static partial class ScriptingProcessor
         }
         s.Disable();
         RemoveScript(s);
-        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, false);
+        CompileAndLoad(File.ReadAllText(s.InternalData.Path, Encoding.UTF8), s.InternalData.Path, false, ignoreCache);
     }
 
     internal static void ReloadScripts(IEnumerable<SplatoonScript> scripts, bool isFirst)
@@ -293,7 +293,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void CompileAndLoad(string sourceCode, string fpath, bool isFirst)
+    internal static void CompileAndLoad(string sourceCode, string fpath, bool isFirst, bool ignoreCache = false)
     {
         PluginLog.Debug($"Requested script loading");
         LoadScriptQueue.Enqueue((sourceCode, fpath));
@@ -307,10 +307,10 @@ internal static partial class ScriptingProcessor
                 {
                     PluginLog.Debug($"Compiler thread started");
                     var idleCount = 0;
-                    var dir = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "ScriptCache");
-                    if(!Directory.Exists(dir))
+                    var scriptCacheDirectory = Path.Combine(Svc.PluginInterface.GetPluginConfigDirectory(), "ScriptCache");
+                    if(!Directory.Exists(scriptCacheDirectory))
                     {
-                        Directory.CreateDirectory(dir);
+                        Directory.CreateDirectory(scriptCacheDirectory);
                     }
                     while(idleCount < 10)
                     {
@@ -323,10 +323,10 @@ internal static partial class ScriptingProcessor
                                 if(!P.Config.DisableScriptCache)
                                 {
                                     var md5 = MD5.HashData(Encoding.UTF8.GetBytes(result.code)).Select(x => $"{x:X2}").Join("");
-                                    var cacheFile = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.bin");
-                                    var cacheFilePdb = Path.Combine(dir, $"{md5}-{P.loader.splatoonVersion}.pdb");
+                                    var cacheFile = Path.Combine(scriptCacheDirectory, $"{md5}-{P.loader.splatoonVersion}.bin");
+                                    var cacheFilePdb = Path.Combine(scriptCacheDirectory, $"{md5}-{P.loader.splatoonVersion}.pdb");
                                     PluginLog.Debug($"Cache path: {cacheFile}, {cacheFilePdb}");
-                                    if(File.Exists(cacheFile) && File.Exists(cacheFilePdb))
+                                    if(!ignoreCache && File.Exists(cacheFile) && File.Exists(cacheFilePdb))
                                     {
                                         PluginLog.Debug($"Loading from cache...");
                                         code = File.ReadAllBytes(cacheFile);
@@ -376,9 +376,11 @@ internal static partial class ScriptingProcessor
                                                         DuoLog.Information($"Script {instance.InternalData.FullName} already loaded, replacing.");
                                                         previousVersion = loadedScript.Metadata?.Version ?? 0;
                                                         result.path = loadedScript.InternalData.Path;
+                                                        var isOpen = loadedScript.InternalData.ConfigOpen;
                                                         loadedScript.Disable();
                                                         RemoveScripts(x => ReferenceEquals(loadedScript, x));
                                                         rewrite = true;
+                                                        TabScripting.RequestOpen = loadedScript.InternalData.FullName;
                                                     }
                                                     AddScript(instance);
                                                     if(result.path == null)

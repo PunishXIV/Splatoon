@@ -1,16 +1,16 @@
 ﻿using Dalamud.Interface;
+using ECommons;
+using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.ImGuiMethods;
-using ECommons;
+using ECommons.Logging;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using ECommons.Logging;
 using System.Numerics;
-using ECommons.DalamudServices;
-using Lumina.Excel.Sheets;
+using System.Text;
 
 namespace SplatoonScriptsOfficial.Generic;
 public class Makeplace2List : SplatoonScript
@@ -71,7 +71,7 @@ public class Makeplace2List : SplatoonScript
         }
     }
 
-    string FindDye(string k)
+    private string FindDye(string k)
     {
         foreach(var x in Svc.Data.GetExcelSheet<Stain>())
         {
@@ -85,7 +85,7 @@ public class Makeplace2List : SplatoonScript
         return null;
     }
 
-    Vector4 StainToVector4(uint stainColor)
+    private Vector4 StainToVector4(uint stainColor)
     {
         var s = 1.0f / 255.0f;
 

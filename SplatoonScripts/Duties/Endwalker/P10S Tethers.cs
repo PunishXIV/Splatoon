@@ -7,7 +7,7 @@ using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
@@ -21,9 +21,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P10S_Tethers : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1150 };
+        public override HashSet<uint> ValidTerritories => [1150];
         public override Metadata? Metadata => new(5, "NightmareXIV");
-        List<TetherData> Tethers = new();
+        private List<TetherData> Tethers = [];
 
         public class TetherData
         {
@@ -67,7 +67,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Tethers.RemoveAll(x => x.Age > 30f);
         }
 
-        void Off()
+        private void Off()
         {
             Tethers.Clear();
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
@@ -92,7 +92,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.SliderFloat("Cone fill step", ref C.Interval, 1f, 20f);
             ImGui.SetNextItemWidth(150f);
             ImGui.SliderFloat("Cone length", ref C.radius, 5f, 40f);
-            if (ImGui.CollapsingHeader("debug"))
+            if(ImGui.CollapsingHeader("debug"))
             {
                 foreach(var x in Tethers)
                 {
@@ -103,7 +103,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnUpdate()
         {
-            int num = 1;
+            var num = 1;
             foreach(var x in Tethers)
             {
                 if(x.source.TryGetObject(out var pillar) && pillar is IBattleChara p && p.NameId == 12354 && x.target.TryGetObject(out var player) && player is IPlayerCharacter pc && Controller.TryGetElementByName($"Cone{num}", out var e))
@@ -119,7 +119,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     if(pc.Address == Player.Object.Address)
                     {
                         e.color = C.ColorSelf.ToUint();
-                        if (C.TetherSelf && Controller.TryGetElementByName("Tether", out var t))
+                        if(C.TetherSelf && Controller.TryGetElementByName("Tether", out var t))
                         {
                             t.Enabled = true;
                             t.SetRefPosition(p.Position);
@@ -129,7 +129,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        Config C => Controller.GetConfig<Config>();
+        private Config C => Controller.GetConfig<Config>();
         public class Config : IEzConfig
         {
             public Vector4 Color = 0xFFF700C8.SwapBytes().ToVector4();

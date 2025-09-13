@@ -8,6 +8,7 @@ namespace SplatoonScriptsOfficial.Tests;
 public unsafe class Mk2Waymark : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.the_Weapons_Refrain_Ultimate];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnSetup()
     {

@@ -3,7 +3,7 @@ using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
@@ -13,7 +13,7 @@ using Moodle = (Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter Playe
 namespace SplatoonScriptsOfficial.Tests;
 public class IPCExample : SplatoonScript
 {
-    [EzIPC] Action<Moodle> AddOrUpdateMoodle = null!;
+    [EzIPC] private Action<Moodle> AddOrUpdateMoodle = null!;
     public override HashSet<uint>? ValidTerritories { get; } = [];
     public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override void OnSetup()

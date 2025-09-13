@@ -6,7 +6,7 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Data.Parsing.Tex.Buffers;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -20,10 +20,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Superchain : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1154 };
+        public override HashSet<uint> ValidTerritories => [1154];
         public override Metadata? Metadata => new(7, "NightmareXIV");
 
-        enum Spheres : uint 
+        private enum Spheres : uint
         {
             Mastersphere = 16176,
             AOEBall = 16177,
@@ -32,7 +32,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Pairs = 16180,
         }
 
-        const uint AOEDebuff = 3578;
+        private const uint AOEDebuff = 3578;
 
         public override void OnSetup()
         {
@@ -53,11 +53,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             Controller.TryRegisterLayoutFromCode("DebuffAOEOther", "~Lv2~{\"Enabled\":false,\"Name\":\"P12S Spread AOE other\",\"Group\":\"P12S\",\"ZoneLockH\":[1154],\"ElementsL\":[{\"Name\":\"party\",\"type\":1,\"radius\":7.0,\"color\":3355508706,\"thicc\":5.0,\"refActorPlaceholder\":[\"<2>\",\"<3>\",\"<4>\",\"<5>\",\"<6>\",\"<7>\",\"<8>\"],\"refActorRequireBuff\":true,\"refActorBuffId\":[3578],\"refActorUseBuffTime\":true,\"refActorBuffTimeMax\":3.5,\"refActorComparisonType\":5}]}", out _);
         }
 
-        Dictionary<uint, List<uint>> Attachments = new();
+        private Dictionary<uint, List<uint>> Attachments = [];
 
         public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
-            if (!Attachments.ContainsKey(target)) Attachments.Add(target, new());
+            if(!Attachments.ContainsKey(target)) Attachments.Add(target, []);
             //DuoLog.Information($"Attached {source.GetObject()?.DataId} to {target.GetObject()?.DataId}");
             Attachments[target].Add(source);
         }
@@ -81,9 +81,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
             if(Controller.TryGetLayoutByName("DebuffAOESelf", out var self) && Controller.TryGetLayoutByName("DebuffAOEOther", out var other))
             {
-                if (C.EnableAOEChecking)
+                if(C.EnableAOEChecking)
                 {
-                    if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == AOEDebuff && x.RemainingTime < 3.5f))
+                    if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == AOEDebuff && x.RemainingTime < 3.5f))
                     {
                         self.Enabled = true;
                         other.Enabled = false;
@@ -102,20 +102,20 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        void Display(IEnumerable<(Spheres type, IBattleNpc obj, float dist)>? values = null)
+        private void Display(IEnumerable<(Spheres type, IBattleNpc obj, float dist)>? values = null)
         {
-            int aoe = 0;
-            int donut = 0;
+            var aoe = 0;
+            var donut = 0;
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             Controller.GetRegisteredLayouts().Each(x => x.Value.Enabled = false);
-            if (values != null)
+            if(values != null)
             {
-                foreach (var x in values)
+                foreach(var x in values)
                 {
-                    if (x.type == Spheres.AOEBall)
+                    if(x.type == Spheres.AOEBall)
                     {
                         aoe++;
-                        if (Controller.TryGetElementByName($"AOEBall{aoe}", out var e))
+                        if(Controller.TryGetElementByName($"AOEBall{aoe}", out var e))
                         {
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.EntityId;
@@ -123,10 +123,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                             e.color = C.AoeColor.ToUint();
                         }
                     }
-                    else if (x.type == Spheres.Donut)
+                    else if(x.type == Spheres.Donut)
                     {
                         donut++;
-                        if (Controller.TryGetElementByName($"Donut{donut}", out var e))
+                        if(Controller.TryGetElementByName($"Donut{donut}", out var e))
                         {
                             e.Enabled = true;
                             e.refActorObjectID = x.obj.EntityId;
@@ -137,12 +137,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     }
                     else
                     {
-                        if (Controller.TryGetLayoutByName($"{x.type}", out var e))
+                        if(Controller.TryGetLayoutByName($"{x.type}", out var e))
                         {
                             e.Enabled = true;
                             e.ElementsL.Each(z => z.refActorObjectID = x.obj.EntityId);
-                            if (x.type == Spheres.Protean) e.ElementsL.Each(z => z.color = C.ProteanLineColor.ToUint());
-                            if (x.type == Spheres.Pairs) e.ElementsL.Each(z => z.color = C.PairLineColor.ToUint());
+                            if(x.type == Spheres.Protean) e.ElementsL.Each(z => z.color = C.ProteanLineColor.ToUint());
+                            if(x.type == Spheres.Pairs) e.ElementsL.Each(z => z.color = C.PairLineColor.ToUint());
                             //e.ElementsL.Each(z => z.color = TransformColorBasedOnDistance(z.color, x.dist));
                         }
                     }
@@ -150,7 +150,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        uint TransformColorBasedOnDistance(uint col, float distance)
+        private uint TransformColorBasedOnDistance(uint col, float distance)
         {
             distance.ValidateRange(2, 20);
             distance -= 2f;
@@ -158,9 +158,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             return (col.ToVector4() with { W = alpha }).ToUint();
         }
 
-        IEnumerable<(IBattleNpc obj, Spheres type, float dist)> FindNextMechanic()
+        private IEnumerable<(IBattleNpc obj, Spheres type, float dist)> FindNextMechanic()
         {
-            List<(IBattleNpc obj, Spheres type, float dist)> objs = new();
+            List<(IBattleNpc obj, Spheres type, float dist)> objs = [];
             foreach(var x in Svc.Objects.Where(z => z is IBattleNpc b && b.IsCharacterVisible()).Cast<IBattleNpc>())
             {
                 if(Enum.GetValues<Spheres>().Contains((Spheres)x.DataId) && x.DataId != (uint)Spheres.Mastersphere)
@@ -175,11 +175,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             return objs.OrderBy(x => x.dist);
         }
 
-        IBattleNpc? GetMasterSphereForObject(IBattleNpc obj)
+        private IBattleNpc? GetMasterSphereForObject(IBattleNpc obj)
         {
             foreach(var x in Attachments)
             {
-                if (x.Value.Contains(obj.EntityId) && x.Key.GetObject() is IBattleNpc b && b.IsCharacterVisible())
+                if(x.Value.Contains(obj.EntityId) && x.Key.GetObject() is IBattleNpc b && b.IsCharacterVisible())
                 {
                     return b;
                 }
@@ -189,15 +189,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnMessage(string Message)
         {
-            if (Message.ContainsAny("(12377>33498)", "(12377>34554)", "(12377>34555)"))
+            if(Message.ContainsAny("(12377>33498)", "(12377>34554)", "(12377>34555)"))
             {
                 Attachments.Clear();
             }
         }
 
-        public unsafe static Vector4 Vector4FromABGR(uint col)
+        public static unsafe Vector4 Vector4FromABGR(uint col)
         {
-            byte* bytes = (byte*)&col;
+            var bytes = (byte*)&col;
             return new Vector4((float)bytes[0] / 255f, (float)bytes[1] / 255f, (float)bytes[2] / 255f, (float)bytes[3] / 255f);
         }
 
@@ -213,7 +213,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             //public Vector4 AssistColorOther = Vector4FromABGR(3355508706);
         }
 
-        Config C => Controller.GetConfig<Config>();
+        private Config C => Controller.GetConfig<Config>();
 
         public override void OnSettingsDraw()
         {
@@ -232,14 +232,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.SameLine();
             ImGui.ColorEdit4("Others (radius)", ref C.AssistColorOther, ImGuiColorEditFlags.NoInputs);*/
 
-            if (ImGui.CollapsingHeader("Debug"))
+            if(ImGui.CollapsingHeader("Debug"))
             {
                 foreach(var x in Attachments)
                 {
                     ImGuiEx.Text($"{x.Key}({x.Key.GetObject()}) <- {x.Value.Select(z => $"{z}({z.GetObject()})").Print()}");
                 }
                 ImGui.Separator();
-                foreach (var x in FindNextMechanic())
+                foreach(var x in FindNextMechanic())
                 {
                     ImGuiEx.Text($"{x.type} = {x.dist}");
                 }

@@ -14,7 +14,7 @@ namespace SplatoonScriptsOfficial.Generic
     public class ZoneNameToast : SplatoonScript
     {
         public override Metadata? Metadata => new(3, "NightmareXIV");
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
         public override void OnEnable()
         {
             Svc.ClientState.TerritoryChanged += ClientState_TerritoryChanged;
@@ -36,7 +36,7 @@ namespace SplatoonScriptsOfficial.Generic
             {
                 var name = t.Value.PlaceName.ValueNullable?.Name.ToString();
                 var cfc = t.Value.ContentFinderCondition.ValueNullable?.Name.ToString();
-                if (!name.IsNullOrEmpty())
+                if(!name.IsNullOrEmpty())
                 {
                     if(!cfc.IsNullOrEmpty() && name != cfc)
                     {

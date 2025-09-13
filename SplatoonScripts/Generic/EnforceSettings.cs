@@ -12,6 +12,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class EnforceSettings : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnEnable()
     {
@@ -19,7 +20,7 @@ public unsafe class EnforceSettings : SplatoonScript
         EnforceOption(Svc.GameConfig.UiConfig, "TelepoTicketGilSetting", 999);
     }
 
-    void EnforceOption(GameConfigSection section, string option, uint value)
+    private void EnforceOption(GameConfigSection section, string option, uint value)
     {
         if(section.GetUInt(option) != value)
         {

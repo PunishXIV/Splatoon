@@ -1,13 +1,15 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Hooking;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices.TerritoryEnumeration;
 using ECommons.GameHelpers;
+using ECommons.ImGuiMethods;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -16,17 +18,16 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Timers;
-using System.Threading.Tasks;
-using Dalamud.Hooking;
 using System.Threading;
-using ECommons.ImGuiMethods;
+using System.Threading.Tasks;
+using System.Timers;
 
 namespace SplatoonScriptsOfficial.Generic;
 public class EnemyAggro : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories => new() { };
-    Config Settings => Controller.GetConfig<Config>();
+    public override HashSet<uint>? ValidTerritories => [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
+    private Config Settings => Controller.GetConfig<Config>();
 
     public class Config : IEzConfig
     {
@@ -38,13 +39,13 @@ public class EnemyAggro : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        if (Svc.ClientState.LocalPlayer == null || Svc.Objects == null) return;
-        if (Svc.ClientState.LocalPlayer.CurrentHp > 0)
+        if(Svc.ClientState.LocalPlayer == null || Svc.Objects == null) return;
+        if(Svc.ClientState.LocalPlayer.CurrentHp > 0)
         {
-            int i = 0;
-            foreach (var x in Svc.Objects)
+            var i = 0;
+            foreach(var x in Svc.Objects)
             {
-                if (x is IPlayerCharacter pc && pc.Address != Player.Object.Address && pc.Address.ToInt64() != 0 && pc.CurrentHp > 0 && pc.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId)
+                if(x is IPlayerCharacter pc && pc.Address != Player.Object.Address && pc.Address.ToInt64() != 0 && pc.CurrentHp > 0 && pc.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId)
                 {
                     var element = GetElement(i++);
                     element.refActorObjectID = pc.EntityId;
@@ -56,7 +57,7 @@ public class EnemyAggro : SplatoonScript
 
     public Element GetElement(int i)
     {
-        if (Controller.TryGetElementByName($"Player{i}", out var element))
+        if(Controller.TryGetElementByName($"Player{i}", out var element))
         {
             return element;
         }
@@ -79,23 +80,23 @@ public class EnemyAggro : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGui.Checkbox("Enable Tethers", ref Settings.TetherEnable))
+        if(ImGui.Checkbox("Enable Tethers", ref Settings.TetherEnable))
         {
             UpdateElementProperties();
         }
         ImGuiComponents.HelpMarker("Shows tethers to players targeting you.".Loc());
         ImGui.SetNextItemWidth(200);
-        if (ImGui.ColorEdit4("Tether Color", ref Settings.TetherColor))
+        if(ImGui.ColorEdit4("Tether Color", ref Settings.TetherColor))
         {
             UpdateElementProperties();
         }
         ImGui.SetNextItemWidth(200);
-        if (ImGui.SliderFloat("Tether Thickness", ref Settings.TetherThicc, 0.1f, 5f, "%.1f"))
+        if(ImGui.SliderFloat("Tether Thickness", ref Settings.TetherThicc, 0.1f, 5f, "%.1f"))
         {
             UpdateElementProperties();
         }
 
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"Targeting you: ");
             foreach(var x in Svc.Objects)
@@ -103,7 +104,7 @@ public class EnemyAggro : SplatoonScript
                 if(x.TargetObjectId == Player.Object?.EntityId)
                 {
                     ImGuiEx.Text($"{x}");
-                    if (ImGuiEx.HoveredAndClicked())
+                    if(ImGuiEx.HoveredAndClicked())
                     {
                         Svc.Commands.ProcessCommand($"/sf {x.Name}");
                     }
@@ -114,26 +115,26 @@ public class EnemyAggro : SplatoonScript
 
     public void UpdateElementProperties()
     {
-        bool newTetherEnable = Settings.TetherEnable;
-        Vector4 newTetherColor = Settings.TetherColor;
-        float newTetherThicc = Settings.TetherThicc;
+        var newTetherEnable = Settings.TetherEnable;
+        var newTetherColor = Settings.TetherColor;
+        var newTetherThicc = Settings.TetherThicc;
 
-        foreach (var kvp in Controller.GetRegisteredElements())
+        foreach(var kvp in Controller.GetRegisteredElements())
         {
             var element = kvp.Value;
 
-            if (element.tether != newTetherEnable)
+            if(element.tether != newTetherEnable)
             {
                 element.tether = newTetherEnable;
             }
 
             var newColorU32 = ImGui.ColorConvertFloat4ToU32(newTetherColor);
-            if (element.color != newColorU32)
+            if(element.color != newColorU32)
             {
                 element.color = newColorU32;
             }
 
-            if (element.thicc != newTetherThicc)
+            if(element.thicc != newTetherThicc)
             {
                 element.thicc = newTetherThicc;
             }

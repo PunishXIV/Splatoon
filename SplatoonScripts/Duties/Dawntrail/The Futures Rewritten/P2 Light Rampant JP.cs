@@ -1,20 +1,20 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.PartyFunctions;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
-using ECommons.DalamudServices;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -39,9 +39,9 @@ public class P2_Light_Rampant_JP : SplatoonScript
         End
     }
 
-    private readonly HashSet<string> _aoeTargets = new();
+    private readonly HashSet<string> _aoeTargets = [];
     private bool _PlayerHasAoE;
-    
+
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
     public override Metadata? Metadata => new(3, "Garume, Lusaca");
@@ -52,7 +52,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
         uint p6, ulong targetId,
         byte replaying)
     {
-        if (_state == State.Start)
+        if(_state == State.Start)
         {
         }
     }
@@ -66,23 +66,23 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (_state is (State.Start or State.Split) && vfxPath == "vfx/lockon/eff/target_ae_s7k1.avfx")
+        if(_state is (State.Start or State.Split) && vfxPath == "vfx/lockon/eff/target_ae_s7k1.avfx")
         {
-            if (target.GetObject() is IPlayerCharacter player)
+            if(target.GetObject() is IPlayerCharacter player)
             {
                 _aoeTargets.Add(player.Name.ToString());
 
-                if (player.Name.ToString().Equals(Svc.ClientState.LocalPlayer.Name.ToString()))
+                if(player.Name.ToString().Equals(Svc.ClientState.LocalPlayer.Name.ToString()))
                     _PlayerHasAoE = true;
-                
+
             }
 
             var count = 0;
-            foreach (var aoeTarget in _aoeTargets)
+            foreach(var aoeTarget in _aoeTargets)
             {
-                if (C.PlayersCount == 1 && C.PriorityData1.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
-                if (C.PlayersCount == 2 && C.PriorityData2.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
-                if (C.PlayersCount == 3 && C.PriorityData3.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
+                if(C.PlayersCount == 1 && C.PriorityData1.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
+                if(C.PlayersCount == 2 && C.PriorityData2.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
+                if(C.PlayersCount == 3 && C.PriorityData3.GetPlayer(x => x.Name == aoeTarget) is not null) count++;
             }
 
             var direction = C.Directions[count];
@@ -94,7 +94,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
             var x = center.X + radius * MathF.Cos(angle * MathF.PI / 180);
             var y = center.Y + radius * MathF.Sin(angle * MathF.PI / 180);
 
-            if (Controller.TryGetElementByName("Bait", out var bait))
+            if(Controller.TryGetElementByName("Bait", out var bait))
             {
                 bait.Enabled = true;
                 bait.SetOffPosition(new Vector3(x, 0, y));
@@ -106,7 +106,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is { RowId: 40213 }) _state = State.End;
+        if(set.Action is { RowId: 40213 }) _state = State.End;
     }
 
     public override void OnSetup()
@@ -124,13 +124,13 @@ public class P2_Light_Rampant_JP : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 40212) _state = State.Start;
+        if(castId == 40212) _state = State.Start;
     }
 
     public override void OnUpdate()
     {
-       
-        if (_state == State.Split && !_PlayerHasAoE)
+
+        if(_state == State.Split && !_PlayerHasAoE)
             Controller.GetRegisteredElements()
                 .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
         else
@@ -140,8 +140,8 @@ public class P2_Light_Rampant_JP : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.SliderInt("Players Count", ref C.PlayersCount, 0, 3);
-        
-        switch (C.PlayersCount)
+
+        switch(C.PlayersCount)
         {
             case 1:
                 C.PriorityData1.Draw();
@@ -153,8 +153,8 @@ public class P2_Light_Rampant_JP : SplatoonScript
                 C.PriorityData3.Draw();
                 break;
         }
-        
-        foreach (var direction in C.Directions)
+
+        foreach(var direction in C.Directions)
         {
             var dir = direction.Value;
             ImGui.SetCursorPosX(30);
@@ -164,12 +164,12 @@ public class P2_Light_Rampant_JP : SplatoonScript
             C.Directions[direction.Key] = dir;
         }
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"State: {_state}");
             ImGuiEx.Text($"AOE Targets: {_aoeTargets.Print()}");
         }
-        
+
     }
 
 
@@ -180,7 +180,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
             return 1;
         }
     }
-    
+
     public class PriorityData2 : PriorityData
     {
         public override int GetNumPlayers()
@@ -188,7 +188,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
             return 2;
         }
     }
-    
+
     public class PriorityData3 : PriorityData
     {
         public override int GetNumPlayers()
@@ -212,7 +212,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
         public PriorityData1 PriorityData1 = new();
         public PriorityData2 PriorityData2 = new();
         public PriorityData3 PriorityData3 = new();
-        
+
         public int PlayersCount = 2;
     }
 }

@@ -8,7 +8,7 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using NightmareUI.PrimaryUI;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(11, "Errer, NightmareXIV");
+    public override Metadata? Metadata => new(12, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
     private bool IsClockwise = true;
@@ -38,12 +38,13 @@ public unsafe class P3_Apocalypse : SplatoonScript
             """,
         [10] = "Added second stack display hint",
         [11] = "Fixed issues regarding to second stack",
+        [12] = "Presumably fixed an issue with different selected positions"
     };
 
     public int NumDebuffs => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 2461));
 
     private List<Vector2> Spreads = [new(106, 81.5f), new(100, 90.5f), new(96, 81), new(93, 93.5f)];
-    private List<Vector2> SpreadsInverted = [new(100-6, 81.5f), new(100, 90.5f), new(100+4, 81), new(100+7, 93.5f)];
+    private List<Vector2> SpreadsInverted = [new(100 - 6, 81.5f), new(100, 90.5f), new(100 + 4, 81), new(100 + 7, 93.5f)];
     private Dictionary<int, Vector2> Positions = new()
     {
         [0] = new(100, 100),
@@ -58,7 +59,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
     };
 
     public override void OnSetup()
-    { 
+    {
         for(var i = 0; i < 6; i++)
         {
             Controller.RegisterElementFromCode($"Circle{i}", "{\"Name\":\"Circle\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":9.0,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
@@ -134,11 +135,11 @@ public unsafe class P3_Apocalypse : SplatoonScript
         }
         if(respectAdjust && IsAdjust)
         {
-            return Positions.Keys.Where(x => !C.SelectedPositions.Contains(x) && x != 0).ToList();
+            return Positions.Keys.Where(x => !positions.Contains(x) && x != 0).ToList();
         }
         else
         {
-            return C.SelectedPositions;
+            return positions;
         }
     }
 
@@ -244,7 +245,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
                                 if(Controller.TryGetElementByName($"Spreads{s}", out var e))
                                 {
                                     e.Enabled = true;
-                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (IsClockwise? Spreads: SpreadsInverted)[s].ToVector3(0));
+                                    var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (IsClockwise ? Spreads : SpreadsInverted)[s].ToVector3(0));
                                     e.SetRefPosition(adjPos);
                                 }
                             }

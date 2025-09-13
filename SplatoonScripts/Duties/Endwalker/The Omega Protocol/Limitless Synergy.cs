@@ -5,7 +5,7 @@ using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -19,10 +19,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
     public class Limitless_Synergy : SplatoonScript
     {
         public override Metadata? Metadata => new(3, "NightmareXIV");
-        public override HashSet<uint> ValidTerritories => new() { 1122 };
+        public override HashSet<uint> ValidTerritories => [1122];
 
-        Dictionary<uint, uint> Tethers = new();
-        bool allowed = false;
+        private Dictionary<uint, uint> Tethers = [];
+        private bool allowed = false;
 
         public override void OnSetup()
         {
@@ -34,7 +34,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         //[3:55][Splatoon] 40018754(Omega-M - IBattleNpc) at 1EF883C84C0 -> 10777E50(Samurai - Player) at 1EF883A3610
         public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
         {
-            if (!allowed) return;
+            if(!allowed) return;
             if(Svc.Objects.Any(x => x.DataId == 15713 && x.IsTargetable()))
             {
                 Tethers[source] = target;
@@ -48,7 +48,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
         public override void OnMessage(string Message)
         {
-            if (Message.Contains("(7635>31544)")) allowed = true;
+            if(Message.Contains("(7635>31544)")) allowed = true;
         }
 
         public override void OnDirectorUpdate(DirectorUpdateCategory category)
@@ -78,7 +78,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         }
 
 
-        static float GetRelativeAngle(Vector2 origin, Vector2 target)
+        private static float GetRelativeAngle(Vector2 origin, Vector2 target)
         {
             var vector2 = target - origin;
             var vector1 = new Vector2(0, 1);
@@ -92,7 +92,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             ImGui.SliderInt("Fill step", ref Conf.FillStep, 1, 25);
         }
 
-        Config Conf => Controller.GetConfig<Config>();
+        private Config Conf => Controller.GetConfig<Config>();
         public class Config : IEzConfig
         {
             public Vector4 Color = new(1f, 0.5f, 0f, 0.8f);

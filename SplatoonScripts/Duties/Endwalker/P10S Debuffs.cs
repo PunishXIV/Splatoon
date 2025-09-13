@@ -12,15 +12,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P10S_Debuffs : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1150 };
+        public override HashSet<uint> ValidTerritories => [1150];
 
         public override Metadata? Metadata => new(1, "NightmareXIV");
 
-        const uint SingleSpread = 3550;
-        const uint TwoStack = 3551;
-        const uint FourStack = 3696;
+        private const uint SingleSpread = 3550;
+        private const uint TwoStack = 3551;
+        private const uint FourStack = 3696;
 
-        readonly Dictionary<uint, string> Alerts = new()
+        private readonly Dictionary<uint, string> Alerts = new()
         {
             { SingleSpread, "Spread" },
             { TwoStack, "2 people stack" },
@@ -34,11 +34,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnUpdate()
         {
-            if (Controller.TryGetElementByName("Alert", out var e))
+            if(Controller.TryGetElementByName("Alert", out var e))
             {
                 e.Enabled = false;
                 var entity = FakeParty.Get().FirstOrDefault(x => x.StatusList.Count(z => z.StatusId.EqualsAny(SingleSpread, TwoStack, FourStack)) == 2) ?? FakeParty.Get().FirstOrDefault(x => x.StatusList.Count(z => z.StatusId.EqualsAny(SingleSpread, TwoStack, FourStack)) == 1);
-                if (entity != null)
+                if(entity != null)
                 {
                     var status = entity.StatusList.Where(z => z.StatusId.EqualsAny(SingleSpread, TwoStack, FourStack)).OrderBy(x => x.RemainingTime).ToArray();
                     var text = status.Select(x => Alerts[x.StatusId]).Join(" -> ");

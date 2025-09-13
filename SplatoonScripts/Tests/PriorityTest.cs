@@ -3,12 +3,12 @@ using ECommons.Configuration;
 using ECommons.ExcelServices.TerritoryEnumeration;
 using ECommons.ImGuiMethods;
 using ECommons.PartyFunctions;
-using ImGuiNET;
-using Splatoon.SplatoonScripting; 
+using Dalamud.Bindings.ImGui;
+using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
-using System.Linq; 
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,14 +16,15 @@ namespace SplatoonScriptsOfficial.Tests;
 public class PriorityTest : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [Dungeons.Sastasha];
-     
-    Config C => this.Controller.GetConfig<Config>();
+    public override Metadata Metadata => new(1, "NightmareXIV");
+
+    private Config C => Controller.GetConfig<Config>();
 
     public override void OnSettingsDraw()
     {
         try
         {
-            ref var r = ref Ref<int>.Get(this.InternalData.FullName);
+            ref var r = ref Ref<int>.Get(InternalData.FullName);
             ImGui.InputInt("num", ref r);
             ImGuiEx.Text($"Players with names <= {r}");
             var n = r;
@@ -33,6 +34,7 @@ public class PriorityTest : SplatoonScript
             
             Your index: {C.Priority.GetOwnIndex(x => x.Name.Length <= n)}
             Your index backwards: {C.Priority.GetOwnIndex(x => x.Name.Length <= n, true)}
+            2nd player: {C.Priority.GetPlayer(x => x.Name.Length <= n, 2)}
             """);
         }
         catch(Exception e)
@@ -47,7 +49,7 @@ public class PriorityTest : SplatoonScript
     {
         public PriorityData4 Priority = new();
     }
-     
+
     public class PriorityData4 : PriorityData
     {
         public override int GetNumPlayers() => 4;

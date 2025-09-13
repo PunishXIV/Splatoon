@@ -9,7 +9,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Throttlers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -24,26 +24,26 @@ public class R4S_Witch_Hunt : SplatoonScript
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
     public override Metadata? Metadata => new(5, "NightmareXIV");
 
-    uint CastNarrowing = 38369;
-    uint CastWidening = 38368;
-    uint StatusCloseFar = 2970;
-    uint StatusParamClose = 758;
-    uint StatusParamFar = 759;
-    uint[] CastSwitcher = [19730, 19729];
-    bool? IsUnsafeMiddle = null;
-    bool? IsInitialClose = null;
-    int NumSwitches = 0;
-    long ForceResetAt = long.MaxValue;
-    uint CastStandard = 38366;
+    private uint CastNarrowing = 38369;
+    private uint CastWidening = 38368;
+    private uint StatusCloseFar = 2970;
+    private uint StatusParamClose = 758;
+    private uint StatusParamFar = 759;
+    private uint[] CastSwitcher = [19730, 19729];
+    private bool? IsUnsafeMiddle = null;
+    private bool? IsInitialClose = null;
+    private int NumSwitches = 0;
+    private long ForceResetAt = long.MaxValue;
+    private uint CastStandard = 38366;
 
-    IBattleNpc? WickedThunder => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == 13057 && x.IsTargetable);
+    private IBattleNpc? WickedThunder => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.NameId == 13057 && x.IsTargetable);
 
     public override void OnSetup()
     {
         Controller.RegisterElementFromCode("In", "{\"Name\":\"In\",\"type\":1,\"Enabled\":false,\"radius\":10.0,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         Controller.RegisterElementFromCode("Out", "{\"Name\":\"Out\",\"type\":1,\"Enabled\":false,\"radius\":10.0,\"Donut\":20.0,\"fillIntensity\":0.5,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorNPCNameID\":13057,\"refActorComparisonType\":6,\"onlyTargetable\":true,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
 
-        for(int i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             Controller.RegisterElementFromCode($"Target{i}", "{\"Name\":\"Hunted\",\"type\":1,\"radius\":6.0,\"color\":3355508712,\"fillIntensity\":0.05,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"thicc\":3.0,\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         }
@@ -100,24 +100,24 @@ public class R4S_Witch_Hunt : SplatoonScript
         var w = WickedThunder;
         if(w != null)
         {
-            if(w.IsCasting && w.CurrentCastTime < 2f && w.CastActionId.EqualsAny(this.CastWidening, this.CastNarrowing))
+            if(w.IsCasting && w.CurrentCastTime < 2f && w.CastActionId.EqualsAny(CastWidening, CastNarrowing))
             {
-                this.IsUnsafeMiddle = w.CastActionId != this.CastNarrowing;
+                IsUnsafeMiddle = w.CastActionId != CastNarrowing;
                 NumSwitches = 0;
-                if(w.StatusList.Any(x => x.StatusId == this.StatusCloseFar && x.Param == this.StatusParamClose))
+                if(w.StatusList.Any(x => x.StatusId == StatusCloseFar && x.Param == StatusParamClose))
                 {
                     IsInitialClose = false;
                 }
-                if(w.StatusList.Any(x => x.StatusId == this.StatusCloseFar && x.Param == this.StatusParamFar))
+                if(w.StatusList.Any(x => x.StatusId == StatusCloseFar && x.Param == StatusParamFar))
                 {
                     IsInitialClose = true;
                 }
                 ForceResetAt = Environment.TickCount64 + 30 * 1000;
             }
-            if(C.Normal && w.IsCasting && w.CastActionId.EqualsAny(this.CastStandard))
+            if(C.Normal && w.IsCasting && w.CastActionId.EqualsAny(CastStandard))
             {
-                var players = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector3.Distance(x.Position, this.WickedThunder!.Position)).ToList();
-                if(w.StatusList.Any(x => x.StatusId == this.StatusCloseFar && x.Param == this.StatusParamClose))
+                var players = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector3.Distance(x.Position, WickedThunder!.Position)).ToList();
+                if(w.StatusList.Any(x => x.StatusId == StatusCloseFar && x.Param == StatusParamClose))
                 {
                     if(Player.Object.StatusList.Any(x => x.StatusId == 587))
                     {
@@ -134,7 +134,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                     players.Reverse();
                     if(Player.Object.StatusList.Any(x => x.StatusId == 587))
                     {
-                        
+
                         Controller.GetElementByName("NormalSide1")!.Enabled = true;
                         Controller.GetElementByName("NormalSide2")!.Enabled = true;
                     }
@@ -143,7 +143,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                         Controller.GetElementByName("NormalMid")!.Enabled = true;
                     }
                 }
-                for(int i = 0; i < 4; i++)
+                for(var i = 0; i < 4; i++)
                 {
                     var e = Controller.GetElementByName($"Target{i}");
                     e.Enabled = true;
@@ -161,18 +161,18 @@ public class R4S_Witch_Hunt : SplatoonScript
 
                 var baiterZone = Controller.GetElementByName(!IsUnsafeMiddle.Value ? (baitsClose ? "InClose" : "InFar") : (baitsClose ? "OutClose" : "OutFar"))!;
                 var idlerZone = Controller.GetElementByName("IdlersArea" + (!IsUnsafeMiddle.Value ? (baitsClose ? "InClose" : "InFar") : (baitsClose ? "OutClose" : "OutFar")));
-                if(idlerZone != null && C.ShowIdle && myTurn - 1 != this.NumSwitches)
+                if(idlerZone != null && C.ShowIdle && myTurn - 1 != NumSwitches)
                 {
                     idlerZone.Enabled = true;
                 }
                 baiterZone.Enabled = true;
 
 
-                if(C.Uncond || myTurn - 1 == this.NumSwitches)
+                if(C.Uncond || myTurn - 1 == NumSwitches)
                 {
-                    var players = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector3.Distance(x.Position, this.WickedThunder!.Position)).ToList();
+                    var players = Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector3.Distance(x.Position, WickedThunder!.Position)).ToList();
                     if(!baitsClose) players.Reverse();
-                    for(int i = 0; i < 2; i++)
+                    for(var i = 0; i < 2; i++)
                     {
                         var e = Controller.GetElementByName($"Target{i}")!;
                         e.Enabled = true;
@@ -180,7 +180,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                     }
                 }
 
-                if(myTurn - 1 == this.NumSwitches)
+                if(myTurn - 1 == NumSwitches)
                 {
                     var warning = Controller.GetElementByName("Warning")!;
                     warning.Enabled = true;
@@ -191,7 +191,7 @@ public class R4S_Witch_Hunt : SplatoonScript
                 {
                     baiterZone.color = ImGuiEx.Vector4FromRGBA(0xFFFF00C8).ToUint();
                 }
-                if(myTurn - 1 == this.NumSwitches + 1)
+                if(myTurn - 1 == NumSwitches + 1)
                 {
                     Controller.GetElementByName("Prepare")!.Enabled = true;
                 }
@@ -202,7 +202,7 @@ public class R4S_Witch_Hunt : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if(IsUnsafeMiddle == null || set.Action == null) return;
-        if(set.Action.Value.RowId.EqualsAny(this.CastSwitcher))
+        if(set.Action.Value.RowId.EqualsAny(CastSwitcher))
         {
             IsUnsafeMiddle = !IsUnsafeMiddle.Value;
             NumSwitches++;
@@ -214,14 +214,14 @@ public class R4S_Witch_Hunt : SplatoonScript
         if(category.EqualsAny(DirectorUpdateCategory.Complete, DirectorUpdateCategory.Recommence, DirectorUpdateCategory.Wipe)) Reset();
     }
 
-    void Reset()
+    private void Reset()
     {
         IsUnsafeMiddle = null;
         NumSwitches = 0;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
-    Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
     {
         public bool Uncond = false;

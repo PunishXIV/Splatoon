@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.DalamudServices;
@@ -8,9 +6,11 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.Throttlers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
 using Vector3 = System.Numerics.Vector3;
 
 namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
@@ -35,7 +35,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         .FirstOrDefault(x => x is { NameId: 0x2352, IsCasting: true, CastActionId: 18858 });
 
     public override HashSet<uint>? ValidTerritories => [887];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
 
     private string GetFutureActionText(FutureActionType type)
@@ -58,25 +58,25 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == 18555)
+        if(castId == 18555)
         {
             _isStartFateProjectionCasting = true;
             Controller.Schedule(() =>
             {
-                if (Controller.TryGetElementByName("FirstText", out var firstTextElement))
+                if(Controller.TryGetElementByName("FirstText", out var firstTextElement))
                     firstTextElement.overlayTextColor = EColor.Red.ToUint();
             }, 34 * 1000);
             Controller.Schedule(() =>
             {
-                if (Controller.TryGetElementByName("FirstText", out var firstTextElement))
+                if(Controller.TryGetElementByName("FirstText", out var firstTextElement))
                     firstTextElement.overlayTextColor = EColor.White.ToUint();
 
-                if (Controller.TryGetElementByName("ThirdText", out var thirdTextElement))
+                if(Controller.TryGetElementByName("ThirdText", out var thirdTextElement))
                     thirdTextElement.overlayTextColor = EColor.Red.ToUint();
             }, 39 * 1000);
             Controller.Schedule(() =>
             {
-                if (Controller.TryGetElementByName("ThirdText", out var thirdTextElement))
+                if(Controller.TryGetElementByName("ThirdText", out var thirdTextElement))
                     thirdTextElement.overlayTextColor = EColor.White.ToUint();
                 _isStartFateProjectionCasting = false;
             }, 44 * 1000);
@@ -143,7 +143,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (!_isStartFateProjectionCasting)
+        if(!_isStartFateProjectionCasting)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
@@ -154,9 +154,9 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
         ApplyTextFromFutureAction("ThirdText", _futureActionTypes[2]);
 
         var safeAlexander = SafeAlexander;
-        if (safeAlexander == null || _isOpenSafeSpot) return;
+        if(safeAlexander == null || _isOpenSafeSpot) return;
         _isOpenSafeSpot = true;
-        switch (_futureActionTypes[1])
+        switch(_futureActionTypes[1])
         {
             case FutureActionType.Defamation:
                 ApplyBaitStyle("NorthBait");
@@ -180,7 +180,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"_futureActionTypes[0]: {_futureActionTypes[0]}");
             ImGui.Text($"_futureActionTypes[1]: {_futureActionTypes[1]}");
@@ -190,8 +190,8 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
 
     private void ApplyTextFromFutureAction(string elementName, FutureActionType type)
     {
-        if (type == FutureActionType.None) return;
-        if (!Controller.TryGetElementByName(elementName, out var element)) return;
+        if(type == FutureActionType.None) return;
+        if(!Controller.TryGetElementByName(elementName, out var element)) return;
         var text = GetFutureActionText(type);
         element.overlayText = text;
         element.Enabled = true;
@@ -199,7 +199,7 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
 
     private void ApplyBaitStyle(string elementName)
     {
-        if (!Controller.TryGetElementByName(elementName, out var element)) return;
+        if(!Controller.TryGetElementByName(elementName, out var element)) return;
         element.Enabled = true;
         element.tether = true;
         element.color = GradientColor.Get(0xFFFF00FF.ToVector4(), 0xFFFFFF00.ToVector4()).ToUint();
@@ -208,17 +208,17 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (!_isStartFateProjectionCasting) return;
+        if(!_isStartFateProjectionCasting) return;
         _futurePlayers.Add(target);
-        if (source == Player.Object.EntityId)
+        if(source == Player.Object.EntityId)
         {
             _myFuturePlayer = target;
             Controller.Schedule(() =>
             {
                 var reversed = _futurePlayers.ToArray().Reverse().ToArray();
-                for (var i = 0; i < reversed.Length; i++)
-                    if (_myFuturePlayer == reversed[i])
-                        switch (i)
+                for(var i = 0; i < reversed.Length; i++)
+                    if(_myFuturePlayer == reversed[i])
+                        switch(i)
                         {
                             case 0:
                                 _futureActionTypes[1] = FutureActionType.SharedSentence;
@@ -243,8 +243,8 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (!_isStartFateProjectionCasting) return;
-        if (set is { Action: not null, Source: not null, Target: not null })
+        if(!_isStartFateProjectionCasting) return;
+        if(set is { Action: not null, Source: not null, Target: not null })
         {
             PluginLog.Warning("ActionId: " + set.Action.Value.RowId);
 
@@ -257,9 +257,9 @@ public class TEA_P4_Fate_Projection_α : SplatoonScript
                 18597 => FutureActionType.SecondStillness,
                 _ => FutureActionType.None
             };
-            if (futureAction == FutureActionType.None) return;
+            if(futureAction == FutureActionType.None) return;
             if(!EzThrottler.Throttle("FateProjectionAlphaActionEffectDelay", 1500)) return;
-            if (_futureActionTypes[0] == FutureActionType.None) _futureActionTypes[0] = futureAction;
+            if(_futureActionTypes[0] == FutureActionType.None) _futureActionTypes[0] = futureAction;
             else _futureActionTypes[2] = futureAction;
         }
     }

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
@@ -20,9 +16,13 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
@@ -43,12 +43,12 @@ public class Boss1_Roar : SplatoonScript
     }
 
     private const uint RoarId = 35524;
-    private readonly Dictionary<Direction, Debuff> _enemyDebuffs = new();
+    private readonly Dictionary<Direction, Debuff> _enemyDebuffs = [];
 
 
-    private readonly Dictionary<uint, Debuff> _playerDebuffs = new();
+    private readonly Dictionary<uint, Debuff> _playerDebuffs = [];
 
-    private readonly Dictionary<string, Direction> _solvedDirections = new();
+    private readonly Dictionary<string, Direction> _solvedDirections = [];
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [1179, 1180];
@@ -58,7 +58,7 @@ public class Boss1_Roar : SplatoonScript
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if (category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
+        if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
                 DirectorUpdateCategory.Wipe)) Reset();
     }
 
@@ -77,18 +77,18 @@ public class Boss1_Roar : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId == RoarId) _state = State.Start;
+        if(castId == RoarId) _state = State.Start;
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is { RowId: 35528 }) _state = State.End;
+        if(set.Action is { RowId: 35528 }) _state = State.End;
     }
 
     public override void OnRemoveBuffEffect(uint sourceId, Status Status)
     {
-        if (_state != State.Spread) return;
-        if (Status.StatusId == 3748)
+        if(_state != State.Spread) return;
+        if(Status.StatusId == 3748)
         {
             _state = State.Bait;
             var myDirection = _solvedDirections.FirstOrDefault(x => x.Key == Player.Name).Value;
@@ -101,7 +101,7 @@ public class Boss1_Roar : SplatoonScript
                 _ => Vector2.Zero
             };
 
-            if (Controller.TryGetElementByName("Bait", out var element))
+            if(Controller.TryGetElementByName("Bait", out var element))
             {
                 element.SetOffPosition(position.ToVector3());
                 element.radius = 1f;
@@ -123,7 +123,7 @@ public class Boss1_Roar : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_state is State.Spread or State.Bait)
+        if(_state is State.Spread or State.Bait)
             Controller.GetRegisteredElements()
                 .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
         else
@@ -132,8 +132,8 @@ public class Boss1_Roar : SplatoonScript
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        if (_state != State.Start) return;
-        switch (Status.StatusId)
+        if(_state != State.Start) return;
+        switch(Status.StatusId)
         {
             // Bind
             case 3788:
@@ -144,37 +144,37 @@ public class Boss1_Roar : SplatoonScript
                 _playerDebuffs[sourceId] = Debuff.Bubble;
                 break;
             default:
-            {
-                if (sourceId.GetObject() is IBattleChara { DataId: 0x40A1 } or { DataId: 0x40A8 })
                 {
-                    var enemy = (IBattleChara)sourceId.GetObject()!;
-                    if (enemy.Position.X < -5)
-                        _enemyDebuffs[Direction.West] = Debuff.Bubble;
-                    else if (enemy.Position.X > 5)
-                        _enemyDebuffs[Direction.East] = Debuff.Bubble;
-                    else if (enemy.Position.Z > 5)
-                        _enemyDebuffs[Direction.South] = Debuff.Bubble;
-                    else if (enemy.Position.Z < -5) _enemyDebuffs[Direction.North] = Debuff.Bubble;
-                }
+                    if(sourceId.GetObject() is IBattleChara { DataId: 0x40A1 } or { DataId: 0x40A8 })
+                    {
+                        var enemy = (IBattleChara)sourceId.GetObject()!;
+                        if(enemy.Position.X < -5)
+                            _enemyDebuffs[Direction.West] = Debuff.Bubble;
+                        else if(enemy.Position.X > 5)
+                            _enemyDebuffs[Direction.East] = Debuff.Bubble;
+                        else if(enemy.Position.Z > 5)
+                            _enemyDebuffs[Direction.South] = Debuff.Bubble;
+                        else if(enemy.Position.Z < -5) _enemyDebuffs[Direction.North] = Debuff.Bubble;
+                    }
 
-                break;
-            }
+                    break;
+                }
         }
 
-        if (_playerDebuffs.Count == 4 && _enemyDebuffs.Count == 2)
+        if(_playerDebuffs.Count == 4 && _enemyDebuffs.Count == 2)
         {
             var directions = Enum.GetValues<Direction>().ToList();
-            foreach (var direction in directions) _enemyDebuffs.TryAdd(direction, Debuff.Bind);
+            foreach(var direction in directions) _enemyDebuffs.TryAdd(direction, Debuff.Bind);
 
             var start = directions.IndexOf(C.StartDirection);
             var adjustedDirections = directions.Skip(start).Concat(directions.Take(start)).ToList();
-            if (C.Clockwise == Clockwise.CounterClockwise) adjustedDirections.Reverse();
+            if(C.Clockwise == Clockwise.CounterClockwise) adjustedDirections.Reverse();
 
             var fakeParty = FakeParty.Get().ToArray();
-            foreach (var member in C.PartyMembers)
+            foreach(var member in C.PartyMembers)
             {
-                if (fakeParty.FirstOrDefault(x => x.Name.ToString() == member) is not { } player) continue;
-                if (_playerDebuffs.TryGetValue(player.EntityId, out var debuff))
+                if(fakeParty.FirstOrDefault(x => x.Name.ToString() == member) is not { } player) continue;
+                if(_playerDebuffs.TryGetValue(player.EntityId, out var debuff))
                 {
                     var direction = adjustedDirections.First(x => _enemyDebuffs[x] != debuff);
                     _solvedDirections[member] = direction;
@@ -182,7 +182,7 @@ public class Boss1_Roar : SplatoonScript
                 }
             }
 
-            if (_solvedDirections.Count != 4)
+            if(_solvedDirections.Count != 4)
                 DuoLog.Warning($"[{GetType().Name.Replace("_", " ")}] Failed to solve directions.");
 
             var myDirection = _solvedDirections.FirstOrDefault(x => x.Key == Player.Name).Value;
@@ -199,7 +199,7 @@ public class Boss1_Roar : SplatoonScript
                 _ => Vector2.Zero
             };
 
-            if (Controller.TryGetElementByName("Bait", out var element))
+            if(Controller.TryGetElementByName("Bait", out var element))
             {
                 element.SetOffPosition(position.ToVector3());
                 element.radius = 2f;
@@ -212,17 +212,17 @@ public class Boss1_Roar : SplatoonScript
 
     private bool DrawPriorityList()
     {
-        if (C.PartyMembers.Length != 4)
+        if(C.PartyMembers.Length != 4)
             C.PartyMembers = ["", "", "", ""];
 
         ImGuiEx.Text("Priority list");
         ImGui.SameLine();
         ImGuiEx.Spacing();
-        if (ImGui.Button("Perform test")) SelfTest();
+        if(ImGui.Button("Perform test")) SelfTest();
 
         ImGui.PushID("prio");
         ImGui.Text("Clockwise");
-        for (var i = 0; i < C.PartyMembers.Length; i++)
+        for(var i = 0; i < C.PartyMembers.Length; i++)
         {
             ImGui.PushID($"prioelement{i}");
             ImGui.Text($"Character {i + 1}");
@@ -231,16 +231,16 @@ public class Boss1_Roar : SplatoonScript
             ImGui.InputText($"##Character{i}", ref C.PartyMembers[i], 50);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(150);
-            if (ImGui.BeginCombo("##partysel", "Select from party"))
+            if(ImGui.BeginCombo("##partysel", "Select from party"))
             {
-                foreach (var x in FakeParty.Get())
-                    if (ImGui.Selectable(x.Name.ToString()))
+                foreach(var x in FakeParty.Get())
+                    if(ImGui.Selectable(x.Name.ToString()))
                         C.PartyMembers[i] = x.Name.ToString();
                 ImGui.EndCombo();
             }
 
             ImGui.SameLine();
-            if (ImGui.Button($"  T  ##{i}") && Svc.Targets.Target is IPlayerCharacter pc)
+            if(ImGui.Button($"  T  ##{i}") && Svc.Targets.Target is IPlayerCharacter pc)
                 C.PartyMembers[i] = pc.Name.ToString();
             ImGuiEx.Tooltip("Fill name from your current target");
 
@@ -263,7 +263,7 @@ public class Boss1_Roar : SplatoonScript
         var party = FakeParty.Get().ToArray();
         var isCorrect = C.PartyMembers.All(x => !string.IsNullOrEmpty(x));
 
-        if (!isCorrect)
+        if(!isCorrect)
         {
             Svc.Chat.PrintChat(new XivChatEntry
             {
@@ -273,7 +273,7 @@ public class Boss1_Roar : SplatoonScript
             return;
         }
 
-        if (party.Length != 8)
+        if(party.Length != 8)
         {
             isCorrect = false;
             Svc.Chat.PrintChat(new XivChatEntry
@@ -283,8 +283,8 @@ public class Boss1_Roar : SplatoonScript
             });
         }
 
-        foreach (var player in party)
-            if (C.PartyMembers.All(x => x != player.Name.ToString()))
+        foreach(var player in party)
+            if(C.PartyMembers.All(x => x != player.Name.ToString()))
             {
                 isCorrect = false;
                 Svc.Chat.PrintChat(new XivChatEntry
@@ -295,7 +295,7 @@ public class Boss1_Roar : SplatoonScript
                 });
             }
 
-        if (isCorrect)
+        if(isCorrect)
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
@@ -312,7 +312,7 @@ public class Boss1_Roar : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        if (ImGuiEx.CollapsingHeader("General"))
+        if(ImGuiEx.CollapsingHeader("General"))
         {
             ImGui.Text("Party Members");
             DrawPriorityList();
@@ -331,25 +331,25 @@ public class Boss1_Roar : SplatoonScript
             ImGui.Unindent();
         }
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
-            if (ImGui.Button("Reset")) Reset();
+            if(ImGui.Button("Reset")) Reset();
 
             ImGui.Text($"State: {_state}");
             ImGui.Text("Player Debuffs");
             ImGui.Indent();
-            foreach (var (key, value) in _playerDebuffs)
+            foreach(var (key, value) in _playerDebuffs)
                 ImGui.Text($"{key.GetObject()?.Name} - {value}");
             ImGui.Unindent();
             ImGui.Text("Enemy Debuffs");
             ImGui.Indent();
-            foreach (var (key, value) in _enemyDebuffs)
+            foreach(var (key, value) in _enemyDebuffs)
                 ImGui.Text($"{key} - {value}");
             ImGui.Unindent();
 
             ImGui.Text("Solved Directions");
             ImGui.Indent();
-            foreach (var (key, value) in _solvedDirections)
+            foreach(var (key, value) in _solvedDirections)
                 ImGui.Text($"{key} - {value}");
             ImGui.Unindent();
         }

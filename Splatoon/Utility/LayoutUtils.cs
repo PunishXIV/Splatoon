@@ -91,7 +91,7 @@ public static unsafe class LayoutUtils
     {
         return
             (ignoreVisibility || !e.onlyVisible || (a is ICharacter chr && chr.IsCharacterVisible()))
-            && (!e.refActorRequireCast || (e.refActorCastId.Count > 0 && a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
+            && (!e.refActorRequireCast || (a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
             && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is IBattleChara chr3 && CheckEffect(e, chr3)))
             && (!e.refActorUseTransformation || (a is IBattleChara chr4 && CheckTransformationID(e, chr4)))
             && (!e.refMark || (a is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)e.refMarkID)))
@@ -177,28 +177,49 @@ public static unsafe class LayoutUtils
     public static bool IsCastingMatches(Element e, IBattleChara chr)
     {
         if(chr == null) return false;
-        if(chr.IsCasting(e.refActorCastId))
+        if(e.refActorCastId.Count > 0)
         {
-            if(e.refActorUseCastTime)
+            if(chr.IsCasting(e.refActorCastId))
             {
-                return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                if(e.refActorUseCastTime)
+                {
+                    return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                }
+                else
+                {
+                    return true;
+                }
             }
             else
             {
-                return true;
-            }
-        }
-        else
-        {
-            if(e.refActorUseOvercast)
-            {
-                if(AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
+                if(e.refActorUseOvercast)
                 {
-                    return castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                    if(AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out var castTime))
+                    {
+                        return castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 else
                 {
                     return false;
+                }
+            }
+        }
+        else
+        {
+            if(chr.IsCasting())
+            {
+                if(e.refActorUseCastTime)
+                {
+                    return chr.IsCastInRange(e.refActorCastTimeMin, e.refActorCastTimeMax);
+                }
+                else
+                {
+                    return true;
                 }
             }
             else
@@ -266,15 +287,20 @@ public static unsafe class LayoutUtils
     public static bool IsLayoutVisible(Layout layout)
     {
         if(!layout.Enabled) return false;
+        if(!layout.Group.IsNullOrEmpty() && P.Config.DisabledGroups.Contains(layout.Group)) return false;
         if(layout.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty]) return false;
         if((layout.ZoneLockH.Count > 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)) return false;
         if(layout.Scenes.Count > 0 && !layout.Scenes.Contains(*Scene.ActiveScene)) return false;
         if(layout.Phase != 0 && layout.Phase != P.Phase) return false;
         if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(Player.Job)) return false;
-        if((layout.DCond == 1 || layout.DCond == 3) && !Svc.Condition[ConditionFlag.InCombat]) return false;
-        if((layout.DCond == 2 || layout.DCond == 3) && !Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if(layout.DCond == 4 && !(Svc.Condition[ConditionFlag.InCombat]
-            || Svc.Condition[ConditionFlag.BoundByDuty])) return false;
+        var inCombat = Svc.Condition[ConditionFlag.InCombat];
+        var inDuty = Svc.Condition[ConditionFlag.BoundByDuty];
+        if((layout.DCond == 1 || layout.DCond == 3) && !inCombat) return false;
+        if((layout.DCond == 2 || layout.DCond == 3) && !inDuty) return false;
+        if(layout.DCond == 4 && !(inCombat || inDuty)) return false;
+        if((layout.DCond == 6 || layout.DCond == 8) && inCombat) return false;
+        if((layout.DCond == 7 || layout.DCond == 8) && inDuty) return false;
+        if(layout.DCond == 9 && (!inCombat || !inDuty)) return false;
         if(layout.UseDistanceLimit && layout.DistanceLimitType == 0)
         {
             if(Svc.Targets.Target != null)

@@ -6,7 +6,8 @@ using System.Collections.Generic;
 namespace SplatoonScriptsOfficial.Tests;
 public class ShowPID : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories { get; } = new();
+    public override HashSet<uint>? ValidTerritories { get; } = [];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnSettingsDraw()
     {

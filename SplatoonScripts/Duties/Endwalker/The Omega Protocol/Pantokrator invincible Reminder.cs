@@ -3,7 +3,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.SplatoonAPI;
 using ECommons.Throttlers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -12,9 +12,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
-internal class Pantokrator_invincible_Reminder :SplatoonScript
+internal class Pantokrator_invincible_Reminder : SplatoonScript
 {
-    public override HashSet<uint> ValidTerritories => new() { 1122 };
+    public override HashSet<uint> ValidTerritories => [1122];
     public override Metadata? Metadata => new(1, "Redmoon");
 
     private const uint kPantokrator = 31499;
@@ -26,7 +26,7 @@ internal class Pantokrator_invincible_Reminder :SplatoonScript
     {
         Controller.RegisterElementFromCode("invincible_count", "{\"Name\":\"Player dot\",\"type\":1,\"Enabled\":false,\"radius\":0.0,\"color\":3355508540,\"Filled\":false,\"fillIntensity\":0.5,\"overlayTextColor\":3355508496,\"overlayVOffset\":1.78,\"overlayFScale\":2.5,\"overlayText\":\"3\",\"refActorType\":1,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"mechanicType\":2,\"RenderEngineKind\":1}");
         var invincibleCountControllerElement = Controller.GetElementByName("invincible_count");
-        if (invincibleCountControllerElement == null)
+        if(invincibleCountControllerElement == null)
             return;
         invincibleCountControllerElement.overlayText = "4";
     }
@@ -34,16 +34,16 @@ internal class Pantokrator_invincible_Reminder :SplatoonScript
     public override void OnStartingCast(uint source, uint castId)
     {
         var sourceObj = source.GetObject();
-        if (sourceObj == null)
+        if(sourceObj == null)
             return;
-        if (sourceObj.DataId != 15708)
+        if(sourceObj.DataId != 15708)
             return;
 
-        if (castId == kPantokrator)
+        if(castId == kPantokrator)
         {
             _phaseStart = true;
         }
-        if (castId == kAtomicRay)
+        if(castId == kAtomicRay)
         {
             _phaseStart = false;
         }
@@ -52,12 +52,12 @@ internal class Pantokrator_invincible_Reminder :SplatoonScript
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
         var invincibleCountControllerElement = Controller.GetElementByName("invincible_count");
-        if (invincibleCountControllerElement == null)
+        if(invincibleCountControllerElement == null)
             return;
-        if (!_phaseStart || invincibleCountControllerElement.Enabled)
+        if(!_phaseStart || invincibleCountControllerElement.Enabled)
             return;
 
-        if (vfxPath == "vfx/lockon/eff/lockon5_t0h.avfx")
+        if(vfxPath == "vfx/lockon/eff/lockon5_t0h.avfx")
         {
             invincibleCountControllerElement.overlayText = "4";
             invincibleCountControllerElement.Enabled = true;
@@ -68,19 +68,19 @@ internal class Pantokrator_invincible_Reminder :SplatoonScript
     public override void OnUpdate()
     {
         var invincibleCountControllerElement = Controller.GetElementByName("invincible_count");
-        if (invincibleCountControllerElement == null)
+        if(invincibleCountControllerElement == null)
             return;
-        if (!invincibleCountControllerElement.Enabled)
+        if(!invincibleCountControllerElement.Enabled)
             return;
 
-        if (EzThrottler.Check("NextElementTimer"))
+        if(EzThrottler.Check("NextElementTimer"))
         {
             PluginLog.Log("Pantokrator invincible reminder End");
             invincibleCountControllerElement.Enabled = false;
-            int count = int.Parse(invincibleCountControllerElement.overlayText);
+            var count = int.Parse(invincibleCountControllerElement.overlayText);
             count--;
             invincibleCountControllerElement.overlayText = count.ToString();
-            if (count > -1)
+            if(count > -1)
             {
                 invincibleCountControllerElement.Enabled = true;
                 EzThrottler.Throttle("NextElementTimer", C.NextElementTimer);
@@ -99,22 +99,22 @@ internal class Pantokrator_invincible_Reminder :SplatoonScript
         EzThrottler.Reset("NextElementTimer");
         _phaseStart = false;
         var invincibleCountControllerElement = Controller.GetElementByName("invincible_count");
-        if (invincibleCountControllerElement == null)
+        if(invincibleCountControllerElement == null)
             return;
         invincibleCountControllerElement.Enabled = false;
         invincibleCountControllerElement.overlayText = "4";
     }
 
-    Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
     public override void OnSettingsDraw()
     {
         ImGui.InputInt("Count Interval", ref C.NextElementTimer);
         ImGuiEx.HelpMarker("The interval between each count down. Unit:[ms] default: 950[ms]");
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Indent();
             var invincibleCountControllerElement = Controller.GetElementByName("invincible_count");
-            if (invincibleCountControllerElement == null)
+            if(invincibleCountControllerElement == null)
                 return;
             ImGui.Text($"Phase Start: {_phaseStart}");
             ImGui.Text($"invincibleCountControllerElement: {invincibleCountControllerElement.Enabled}");
@@ -122,7 +122,7 @@ internal class Pantokrator_invincible_Reminder :SplatoonScript
         }
     }
 
-    public class Config :IEzConfig
+    public class Config : IEzConfig
     {
         public bool Debug = false;
         public int NextElementTimer = 950;

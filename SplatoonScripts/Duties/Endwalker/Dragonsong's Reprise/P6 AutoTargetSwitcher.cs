@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
@@ -10,8 +7,11 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.Throttlers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -46,20 +46,20 @@ public class P6_AutoTargetSwitcher : SplatoonScript
     private static void DrawReorderableList<T>(IList<T> list) where T : struct, Enum
     {
         var toRemoveIndex = -1;
-        for (var i = 0; i < list.Count; i++)
+        for(var i = 0; i < list.Count; i++)
         {
             ImGui.Text($"Item: {list[i]}");
             ImGui.SameLine();
-            if (ImGui.SmallButton($"Remove##{i}")) toRemoveIndex = i;
+            if(ImGui.SmallButton($"Remove##{i}")) toRemoveIndex = i;
         }
 
-        if (toRemoveIndex != -1) list.RemoveAt(toRemoveIndex);
+        if(toRemoveIndex != -1) list.RemoveAt(toRemoveIndex);
 
-        if (ImGui.BeginCombo("##partysel", "Add Item"))
+        if(ImGui.BeginCombo("##partysel", "Add Item"))
         {
             Enum.GetValues<T>().Each(x =>
             {
-                if (ImGui.Selectable(x.ToString())) list.Add(x);
+                if(ImGui.Selectable(x.ToString())) list.Add(x);
             });
             ImGui.EndCombo();
         }
@@ -74,7 +74,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
         ImGui.SliderInt("Interval", ref C.Interval, 100, 1000);
 
         ImGui.Checkbox("Timing Mode", ref C.TimingMode);
-        if (C.TimingMode)
+        if(C.TimingMode)
         {
             ImGui.Indent();
             ImGui.PushID("EnableTimings");
@@ -96,7 +96,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
         }
 
 
-        if (ImGuiEx.CollapsingHeader("Debug"))
+        if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("DebugMode", ref C.DebugMode);
             ImGui.Text($"Timings: {C.TimingMode}");
@@ -106,7 +106,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             ImGui.Separator();
             var nifhogg = Nidhogg;
             var hraesvelgr = Hraesvelgr;
-            if (nifhogg == null || hraesvelgr == null) return;
+            if(nifhogg == null || hraesvelgr == null) return;
             var nidhoggHpPercent = (float)nifhogg.CurrentHp / nifhogg.MaxHp * 100f;
             var hraesvelgrHpPercent = (float)hraesvelgr.CurrentHp / hraesvelgr.MaxHp * 100f;
             ImGui.Text($"Nidhogg Hp Percent: {nidhoggHpPercent}");
@@ -117,20 +117,20 @@ public class P6_AutoTargetSwitcher : SplatoonScript
 
     private void Alert(string message)
     {
-        if (C.DebugMode)
+        if(C.DebugMode)
             DuoLog.Information(message);
     }
 
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action is null) return;
+        if(set.Action is null) return;
 
-        switch (set.Action.Value.RowId)
+        switch(set.Action.Value.RowId)
         {
             case 27954 or 27955 or 27956 or 27957:
                 _breathCount++;
-                switch (_breathCount)
+                switch(_breathCount)
                 {
                     case 2:
                         _currentTiming = Timings.FirstWyrmsbreathEnd;
@@ -145,7 +145,7 @@ public class P6_AutoTargetSwitcher : SplatoonScript
                 break;
             case 27969 or 27971:
                 _akhAfahCount++;
-                switch (_akhAfahCount)
+                switch(_akhAfahCount)
                 {
                     case 2:
                         _currentTiming = Timings.FirstAkhAfahEnd;
@@ -167,26 +167,26 @@ public class P6_AutoTargetSwitcher : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (!IsActive) return;
-        if (EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
+        if(!IsActive) return;
+        if(EzThrottler.Throttle("AutoTargetSwitcher", C.Interval))
         {
             var nidhogg = Nidhogg;
             var hraesvelgr = Hraesvelgr;
 
-            if (nidhogg == null && hraesvelgr == null)
+            if(nidhogg == null && hraesvelgr == null)
             {
                 Alert("No targets found");
                 return;
             }
 
-            if (nidhogg == null && hraesvelgr != null)
+            if(nidhogg == null && hraesvelgr != null)
             {
                 Svc.Targets.SetTarget(hraesvelgr);
                 _currentTarget = hraesvelgr;
                 return;
             }
 
-            if (nidhogg != null && hraesvelgr == null)
+            if(nidhogg != null && hraesvelgr == null)
             {
                 Svc.Targets.SetTarget(nidhogg);
                 _currentTarget = nidhogg;
@@ -194,22 +194,22 @@ public class P6_AutoTargetSwitcher : SplatoonScript
             }
 
             _targets.Clear();
-            if (nidhogg != null) _targets.Add(nidhogg);
-            if (hraesvelgr != null) _targets.Add(hraesvelgr);
+            if(nidhogg != null) _targets.Add(nidhogg);
+            if(hraesvelgr != null) _targets.Add(hraesvelgr);
 
             _percentages.Clear();
-            foreach (var percentage in _targets.Select(target => (float)target.CurrentHp / target.MaxHp * 100f))
+            foreach(var percentage in _targets.Select(target => (float)target.CurrentHp / target.MaxHp * 100f))
                 _percentages.Add(percentage);
 
             var minPercentage = _percentages.Min();
             var maxPercentage = _percentages.Max();
 
-            if (_currentTarget == null || maxPercentage - minPercentage > C.AcceptablePercentage ||
+            if(_currentTarget == null || maxPercentage - minPercentage > C.AcceptablePercentage ||
                 Math.Abs(minPercentage - _lastMinPercentage) > 0.1f)
             {
                 _lastMinPercentage = minPercentage;
 
-                if (maxPercentage - minPercentage > C.AcceptablePercentage)
+                if(maxPercentage - minPercentage > C.AcceptablePercentage)
                 {
                     var maxTarget = _targets[_percentages.IndexOf(maxPercentage)];
                     Alert($"Switching to target with max percentage: {maxTarget.Name}");

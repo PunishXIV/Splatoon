@@ -20,7 +20,7 @@ public class AetherSight : SplatoonScript
     public override Metadata? Metadata { get; } = new(2, "NightmareXIV");
     public override void OnUpdate()
     {
-        this.Controller.ClearRegisteredElements();
+        Controller.ClearRegisteredElements();
         var i = 0;
         foreach(var x in Svc.Objects.OfType<IBattleNpc>())
         {
@@ -32,7 +32,7 @@ public class AetherSight : SplatoonScript
                 {
                     if(data.Value.CastType == 2) //circle
                     {
-                        this.Controller.RegisterElement($"Circle{i}", new(1)
+                        Controller.RegisterElement($"Circle{i}", new(1)
                         {
                             refActorComparisonType = 2,
                             refActorObjectID = x.EntityId,
@@ -42,7 +42,7 @@ public class AetherSight : SplatoonScript
                     else if(data.Value.CastType == 3)//cone
                     {
                         var angle = DetermineConeAngle(data.Value);
-                        this.Controller.RegisterElement($"Cone{i}", new(4)
+                        Controller.RegisterElement($"Cone{i}", new(4)
                         {
                             refActorComparisonType = 2,
                             refActorObjectID = x.EntityId,

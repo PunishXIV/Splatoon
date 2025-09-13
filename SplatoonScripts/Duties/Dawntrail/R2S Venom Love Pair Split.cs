@@ -25,9 +25,9 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
 
     public override Metadata? Metadata => new(3, "Redmoon");
 
-    const uint PoisonResistanceDownDebuffID = 3935;
-    bool IsShow = false;
-    bool IsAdd = false;
+    private const uint PoisonResistanceDownDebuffID = 3935;
+    private bool IsShow = false;
+    private bool IsAdd = false;
     private PairSplit LatchNextPairSplit = PairSplit.None;
 
     public override void OnSetup()
@@ -39,23 +39,23 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
     public override void OnStartingCast(uint source, uint castId)
     {
         var sourceObj = source.GetObject();
-        if (sourceObj == null)
+        if(sourceObj == null)
             return;
 
-        if (sourceObj.DataId == 0 || sourceObj.DataId != 16941)
+        if(sourceObj.DataId == 0 || sourceObj.DataId != 16941)
             return;
 
-        if ((castId == 37252) || (castId == 39688) )
+        if((castId == 37252) || (castId == 39688))
         {
             LatchNextPairSplit = PairSplit.Split;
         }
 
-        if ((castId == 37253) || (castId == 39689))
+        if((castId == 37253) || (castId == 39689))
         {
             LatchNextPairSplit = PairSplit.Pair;
         }
 
-        if ((castId == 37254) || (castId == 37255) || (castId == 39692) || (castId == 39693))
+        if((castId == 37254) || (castId == 37255) || (castId == 39692) || (castId == 39693))
         {
             ShowElement();
         }
@@ -64,15 +64,15 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action == null || (set.Source == null)) return;
-        if (set.Source.DataId == 0) return;
+        if(set.Action == null || (set.Source == null)) return;
+        if(set.Source.DataId == 0) return;
 
-        if ((set.Action.Value.RowId == 37256) && (set.Source.DataId == 16945))
+        if((set.Action.Value.RowId == 37256) && (set.Source.DataId == 16945))
         {
             HideElement();
         }
 
-        if ((set.Action.Value.RowId == 39691) && (set.Source.DataId == 16943))
+        if((set.Action.Value.RowId == 39691) && (set.Source.DataId == 16943))
         {
             HideElement();
         }
@@ -80,14 +80,14 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
 
     private void ShowElement()
     {
-        Element? element = Controller.GetElementByName("Pair");
-        if ((LatchNextPairSplit == PairSplit.Pair) && element != null && !element.Enabled)
+        var element = Controller.GetElementByName("Pair");
+        if((LatchNextPairSplit == PairSplit.Pair) && element != null && !element.Enabled)
         {
             Controller.GetElementByName("Pair")!.Enabled = true;
         }
 
         element = Controller.GetElementByName("split");
-        if ((LatchNextPairSplit == PairSplit.Split) && element != null && !element.Enabled)
+        if((LatchNextPairSplit == PairSplit.Split) && element != null && !element.Enabled)
         {
             Controller.GetElementByName("split")!.Enabled = true;
         }
@@ -95,14 +95,14 @@ public class R2S_Venom_Love_Pair_Split : SplatoonScript
 
     private void HideElement()
     {
-        Element? element = Controller.GetElementByName("Pair");
-        if (element != null && element.Enabled)
+        var element = Controller.GetElementByName("Pair");
+        if(element != null && element.Enabled)
         {
             Controller.GetElementByName("Pair")!.Enabled = false;
         }
 
         element = Controller.GetElementByName("split");
-        if (element != null && element.Enabled)
+        if(element != null && element.Enabled)
         {
             Controller.GetElementByName("split")!.Enabled = false;
         }

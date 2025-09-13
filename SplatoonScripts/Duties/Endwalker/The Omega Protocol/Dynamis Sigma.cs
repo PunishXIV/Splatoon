@@ -10,7 +10,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
 using System;
@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public unsafe class Dynamis_Sigma : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1122 };
+        public override HashSet<uint> ValidTerritories => [1122];
 
         public override Metadata? Metadata => new(7, "NightmareXIV");
 
@@ -45,25 +45,25 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             public const string Marker = "vfx/lockon/eff/lockon8_t0w.avfx";
         }
 
-        MarkingController* MKC;
-        Vector3 OmegaPos = Vector3.Zero;
-        Dictionary<uint, ChainMarker> Chains = new();
-        HashSet<uint> Markers = new();
-        List<string> State = new();
-        string MyMarker = "";
-        bool isLeft;
-        bool isUp;
-        long StopRegisteringAt;
-        bool announced = false;
+        private MarkingController* MKC;
+        private Vector3 OmegaPos = Vector3.Zero;
+        private Dictionary<uint, ChainMarker> Chains = [];
+        private HashSet<uint> Markers = [];
+        private List<string> State = [];
+        private string MyMarker = "";
+        private bool isLeft;
+        private bool isUp;
+        private long StopRegisteringAt;
+        private bool announced = false;
 
-        Config Conf => Controller.GetConfig<Config>();
+        private Config Conf => Controller.GetConfig<Config>();
 
-        IGameObject[] GetTowers() => Svc.Objects.Where(x => x.DataId.EqualsAny<uint>(TowerSingle, TowerDual)).ToArray();
+        private IGameObject[] GetTowers() => Svc.Objects.Where(x => x.DataId.EqualsAny<uint>(TowerSingle, TowerDual)).ToArray();
 
         public override void OnSetup()
         {
             MKC = MarkingController.Instance();
-            for (int i = 0; i < 6; i++)
+            for(var i = 0; i < 6; i++)
             {
                 Controller.RegisterElementFromCode($"{i}", "{\"Enabled\":false,\"Name\":\"\",\"radius\":2.5,\"Donut\":0.5,\"color\":4278255615,\"overlayBGColor\":4110417920,\"overlayTextColor\":4278255615,\"overlayFScale\":2.0,\"overlayPlaceholders\":true,\"thicc\":4.0,\"overlayText\":\"L1\\\\nL2\",\"refActorDataID\":2013244,\"refActorComparisonType\":3}");
             }
@@ -115,7 +115,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         {
             if(Controller.Scene == 6)
             {
-                if (vfxPath.StartsWith(Headmarkers.Playstation))
+                if(vfxPath.StartsWith(Headmarkers.Playstation))
                 {
                     Chains[target] = GetChainMarker(vfxPath);
                 }
@@ -127,46 +127,66 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        internal void ApplyMarkerPhaseNorthToSouth(IGameObject omega, IPlayerCharacter partner, bool first, string glitch) {
+        internal void ApplyMarkerPhaseNorthToSouth(IGameObject omega, IPlayerCharacter partner, bool first, string glitch)
+        {
             var rota = (MathHelper.GetRelativeAngle(omega.Position, Svc.ClientState.LocalPlayer.Position) + omega.Rotation.RadToDeg()) % 360;
             var rotaPar = (MathHelper.GetRelativeAngle(omega.Position, partner.Position) + omega.Rotation.RadToDeg()) % 360;
-            if (Environment.TickCount64 < StopRegisteringAt) isLeft = rota > rotaPar;
-            if (isLeft) {
+            if(Environment.TickCount64 < StopRegisteringAt) isLeft = rota > rotaPar;
+            if(isLeft)
+            {
                 //left
-                if (first) {
+                if(first)
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerFirstLeft]}").Enabled = true;
-                } else {
+                }
+                else
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerSecondLeft]}").Enabled = true;
                 }
-            } else {
+            }
+            else
+            {
                 //right
-                if (first) {
+                if(first)
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerFirstRight]}").Enabled = true;
-                } else {
+                }
+                else
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerSecondRight]}").Enabled = true;
                 }
             }
             State.Add($"Your rotation: {rota}, partner rotation: {rotaPar}");
         }
 
-        internal void ApplyMarkerPhaseWestToEast(IGameObject omega, IPlayerCharacter partner, bool first, string glitch) {
+        internal void ApplyMarkerPhaseWestToEast(IGameObject omega, IPlayerCharacter partner, bool first, string glitch)
+        {
             var relativeY = Dynamis_Sigma_Utils.GetRelativePosition(omega.Position, Svc.ClientState.LocalPlayer.Position,
                 omega.Rotation).Y;
             var partnerRelativeY =
                 Dynamis_Sigma_Utils.GetRelativePosition(omega.Position, partner.Position, omega.Rotation).Y;
-            if (Environment.TickCount64 < StopRegisteringAt) isUp = relativeY < partnerRelativeY;
-            if (isUp) {
+            if(Environment.TickCount64 < StopRegisteringAt) isUp = relativeY < partnerRelativeY;
+            if(isUp)
+            {
                 // left
-                if (first) {
+                if(first)
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerFirstUp]}").Enabled = true;
-                } else {
+                }
+                else
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerSecondUp]}").Enabled = true;
                 }
-            } else {
+            }
+            else
+            {
                 // right
-                if (first) {
+                if(first)
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerFirstDown]}").Enabled = true;
-                } else {
+                }
+                else
+                {
                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.DoubleMarkerSecondDown]}").Enabled = true;
                 }
             }
@@ -176,22 +196,22 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         {
             Off();
             State.Clear();
-            if (Controller.Scene == 6)
+            if(Controller.Scene == 6)
             {
                 State.Add("In scene 6");
-                if (GetTowers().Length.EqualsAny(5, 6))
+                if(GetTowers().Length.EqualsAny(5, 6))
                 {
                     State.Add($"Tower phase, yours is {MyMarker}");
-                    if (!announced)
+                    if(!announced)
                     {
                         announced = true;
                         if(!Conf.NoChat) DuoLog.Information(IsInverted() ? "Inverted pattern" : "Default pattern");
                     }
                     var towers = GetTowers().OrderBy(x => GetTowerAngle(x, IsInverted())).ToArray();
                     Queue<string> enumeration = Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == GlitchFar) ? new(Conf.FarTowers) : new(Conf.CloseTowers);
-                    for (int i = 0; i < towers.Length; i++)
+                    for(var i = 0; i < towers.Length; i++)
                     {
-                        if (towers[i].DataId == TowerSingle)
+                        if(towers[i].DataId == TowerSingle)
                         {
                             var e = enumeration.Dequeue();
                             SetTowerAs(i, towers[i], MyMarker.EqualsIgnoreCase(e.GetFirstLetter()), e);
@@ -206,7 +226,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 }
                 else
                 {
-                    if (Markers.Count == 6)
+                    if(Markers.Count == 6)
                     {
                         var glitch = Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == GlitchFar) ? "Far" : "Close";
                         State.Add("Markers phase");
@@ -218,11 +238,11 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         {
                             State.Add("You and your partners are markers");
                             //both are markers
-                            bool first = true;
+                            var first = true;
                             foreach(var x in Conf.MarkerOrder)
                             {
                                 State.Add($"Checking {x}...");
-                                if (x == Chains[Svc.ClientState.LocalPlayer.EntityId]) break;
+                                if(x == Chains[Svc.ClientState.LocalPlayer.EntityId]) break;
                                 State.Add(Chains.Where(c => c.Value == x).Select(z => $"{z.Key.GetObject()}/{Markers.Contains(z.Key)}").Print());
                                 if(Chains.Where(c => c.Value == x).All(z => Markers.Contains(z.Key)))
                                 {
@@ -230,8 +250,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                     first = false;
                                 }
                             }
-                            State.Add($"You are {(first?"first":"second")}");
-                            switch (Conf.AlignmentDirection) {
+                            State.Add($"You are {(first ? "first" : "second")}");
+                            switch(Conf.AlignmentDirection)
+                            {
                                 case MarkerAlignmentDirection.NorthToSouth:
                                     ApplyMarkerPhaseNorthToSouth(omega, partner, first, glitch);
                                     break;
@@ -244,12 +265,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         {
                             State.Add($"Only one of you or your partners are markers");
                             //single marker
-                            bool first = true;
-                            foreach (var x in Conf.MarkerOrder)
+                            var first = true;
+                            foreach(var x in Conf.MarkerOrder)
                             {
                                 State.Add($"Checking {x}...");
-                                if (x == Chains[Svc.ClientState.LocalPlayer.EntityId]) break;
-                                if (Chains.Where(c => c.Value == x).Count(z => Markers.Contains(z.Key)) == 1)
+                                if(x == Chains[Svc.ClientState.LocalPlayer.EntityId]) break;
+                                if(Chains.Where(c => c.Value == x).Count(z => Markers.Contains(z.Key)) == 1)
                                 {
                                     State.Add($"Not first because {x} are same");
                                     first = false;
@@ -258,9 +279,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             State.Add($"You are {(first ? "first" : "second")}");
                             var marked = Markers.Contains(Svc.ClientState.LocalPlayer.EntityId);
                             State.Add($"You are marked: {marked}");
-                            if (marked)
+                            if(marked)
                             {
-                                if (first)
+                                if(first)
                                 {
                                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.SingleMarkerFirstMarked]}").Enabled = true;
                                 }
@@ -271,7 +292,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                             }
                             else
                             {
-                                if (first)
+                                if(first)
                                 {
                                     Controller.GetElementByName($"{glitch}{Conf.DirectionsSpots[Position.SingleMarkerFirstUnmarked]}").Enabled = true;
                                 }
@@ -284,13 +305,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                     }
                     else
                     {
-                        if(Chains.Count == 8 && Vector3.Distance(new(100,0,100), Svc.Objects.FirstOrDefault(x => x.DataId == 15720).Position) > 10)
+                        if(Chains.Count == 8 && Vector3.Distance(new(100, 0, 100), Svc.Objects.FirstOrDefault(x => x.DataId == 15720).Position) > 10)
                         {
                             State.Add("Omega-M found");
-                            if (Conf.AlignmentDirection == MarkerAlignmentDirection.NorthToSouth) {
+                            if(Conf.AlignmentDirection == MarkerAlignmentDirection.NorthToSouth)
+                            {
                                 var i = 1f;
-                                foreach (var x in Conf.MarkerOrder) {
-                                    if (Controller.TryGetElementByName($"{x}L", out var l) && Controller.TryGetElementByName($"{x}R", out var r)) {
+                                foreach(var x in Conf.MarkerOrder)
+                                {
+                                    if(Controller.TryGetElementByName($"{x}L", out var l) && Controller.TryGetElementByName($"{x}R", out var r))
+                                    {
                                         l.offY = i;
                                         r.offY = i;
                                         l.Enabled = true;
@@ -301,11 +325,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                                     i += 3f;
                                 }
                             }
-                            else if (Conf.AlignmentDirection == MarkerAlignmentDirection.WestToEast) {
+                            else if(Conf.AlignmentDirection == MarkerAlignmentDirection.WestToEast)
+                            {
                                 var i = 4.5f;
-                                foreach (var x in Conf.MarkerOrder) {
-                                    if (Controller.TryGetElementByName($"{x}U", out var u) &&
-                                        Controller.TryGetElementByName($"{x}D", out var d)) {
+                                foreach(var x in Conf.MarkerOrder)
+                                {
+                                    if(Controller.TryGetElementByName($"{x}U", out var u) &&
+                                        Controller.TryGetElementByName($"{x}D", out var d))
+                                    {
                                         u.offX = i;
                                         d.offX = i;
                                         u.Enabled = true;
@@ -327,32 +354,32 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        IPlayerCharacter GetPartner()
+        private IPlayerCharacter GetPartner()
         {
             return FakeParty.Get().First(x => x.EntityId != Svc.ClientState.LocalPlayer.EntityId && Chains[x.EntityId] == Chains[Svc.ClientState.LocalPlayer.EntityId]);
         }
 
         public override void OnActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage)
         {
-            if (Controller.Scene == 6)
+            if(Controller.Scene == 6)
             {
-                if (ActionID == 31603)
+                if(ActionID == 31603)
                 {
                     OmegaPos = Svc.Objects.FirstOrDefault(x => x.DataId == 15720)?.Position ?? Vector3.Zero;
-                    if (!Conf.NoChat) DuoLog.Information($"Omega position captured: {OmegaPos}");
+                    if(!Conf.NoChat) DuoLog.Information($"Omega position captured: {OmegaPos}");
                     var distance = float.MaxValue;
                     var marker = "A";
-                    for (int i = 0; i < MkNum.Length; i++)
+                    for(var i = 0; i < MkNum.Length; i++)
                     {
-                        var d = MKC->FieldMarkers[i].GetPositon().GetDistanceToWaymark() ;
-                        if (d < distance)
+                        var d = MKC->FieldMarkers[i].GetPositon().GetDistanceToWaymark();
+                        if(d < distance)
                         {
                             marker = MkNum[i];
                             distance = d;
                         }
                     }
                     MyMarker = marker;
-                    if (!Conf.NoChat) DuoLog.Information($"You are marker {marker}!");
+                    if(!Conf.NoChat) DuoLog.Information($"You are marker {marker}!");
                     Chains.Clear();
                     Markers.Clear();
                 }
@@ -365,14 +392,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        void Off()
+        private void Off()
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         }
 
-        void SetTowerAs(int tower, IGameObject obj, bool tether, params string[] s)
+        private void SetTowerAs(int tower, IGameObject obj, bool tether, params string[] s)
         {
-            if (Controller.TryGetElementByName($"{tower}", out var t))
+            if(Controller.TryGetElementByName($"{tower}", out var t))
             {
                 t.Enabled = true;
                 t.SetRefPosition(obj.Position);
@@ -394,16 +421,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        float GetTowerAngle(IGameObject t, bool inverted = false)
+        private float GetTowerAngle(IGameObject t, bool inverted = false)
         {
             var z = new Vector3(100, 0, 100);
             var angle = (MathHelper.GetRelativeAngle(z, t.Position) + (inverted ? 181 : 1) + 360 - MathHelper.GetRelativeAngle(z, OmegaPos)) % 360;
             return angle;
         }
 
-        bool IsInverted()
+        private bool IsInverted()
         {
-            if (Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == GlitchFar))
+            if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == GlitchFar))
             {
                 return !GetTowers().Any(x => GetTowerAngle(x) < 3);
             }
@@ -413,12 +440,12 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        ChainMarker GetChainMarker(string s)
+        private ChainMarker GetChainMarker(string s)
         {
-            if (s == Headmarkers.RedCircle) return ChainMarker.RedCircle;
-            if (s == Headmarkers.BlueCross) return ChainMarker.BlueCross;
-            if (s == Headmarkers.GreenTriangle) return ChainMarker.GreenTriangle;
-            if (s == Headmarkers.PurpleSquare) return ChainMarker.PurpleSquare;
+            if(s == Headmarkers.RedCircle) return ChainMarker.RedCircle;
+            if(s == Headmarkers.BlueCross) return ChainMarker.BlueCross;
+            if(s == Headmarkers.GreenTriangle) return ChainMarker.GreenTriangle;
+            if(s == Headmarkers.PurpleSquare) return ChainMarker.PurpleSquare;
             return default;
         }
 
@@ -431,14 +458,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(150f);
                 var alignmentDirection = Conf.AlignmentDirection;
-                if (ImGuiEx.EnumCombo("(Omega-M is true north)", ref alignmentDirection)) {
+                if(ImGuiEx.EnumCombo("(Omega-M is true north)", ref alignmentDirection))
+                {
                     Conf.AlignmentDirection = alignmentDirection;
                 }
                 ImGuiEx.Text("Omega-M");
-                for (int i = 0; i < Conf.MarkerOrder.Length; i++)
+                for(var i = 0; i < Conf.MarkerOrder.Length; i++)
                 {
                     ImGui.PushID($"num{i}");
-                    if (ImGui.ArrowButton("up", ImGuiDir.Up))
+                    if(ImGuiEx.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowUp))
                     {
                         if(i != 0)
                         {
@@ -446,9 +474,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         }
                     }
                     ImGui.SameLine();
-                    if (ImGui.ArrowButton("down", ImGuiDir.Down))
+                    if(ImGuiEx.IconButton(Dalamud.Interface.FontAwesomeIcon.ArrowDown))
                     {
-                        if (i != Conf.MarkerOrder.Length - 1)
+                        if(i != Conf.MarkerOrder.Length - 1)
                         {
                             (Conf.MarkerOrder[i], Conf.MarkerOrder[i + 1]) = (Conf.MarkerOrder[i + 1], Conf.MarkerOrder[i]);
                         }
@@ -460,8 +488,8 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 ImGuiEx.Text($"Hands");
                 ImGui.Separator();
                 ImGuiEx.Text($"Spread configuration");
-                List<Position> directionsSpots = new();
-                switch (Conf.AlignmentDirection)
+                List<Position> directionsSpots = [];
+                switch(Conf.AlignmentDirection)
                 {
                     case MarkerAlignmentDirection.NorthToSouth:
                         directionsSpots = PositionsNorthToSouthOnly;
@@ -470,40 +498,41 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                         directionsSpots = PositionsWestToEastOnly;
                         break;
                 }
-                foreach (var x in directionsSpots) {
+                foreach(var x in directionsSpots)
+                {
                     var z = Conf.DirectionsSpots[x];
                     ImGui.SetNextItemWidth(200f);
-                    if (ImGuiEx.EnumCombo($"{x}", ref z))
+                    if(ImGuiEx.EnumCombo($"{x}", ref z))
                     {
                         Conf.DirectionsSpots[x] = z;
                     }
                 }
             }
-            if (ImGui.CollapsingHeader("Reset and reconfigure tower markers"))
+            if(ImGui.CollapsingHeader("Reset and reconfigure tower markers"))
             {
-                if (ImGui.Button("Reset and reconfigure for 1-2 north marker strat (new toolbox) (CTRL+click)") && ImGui.GetIO().KeyCtrl)
+                if(ImGui.Button("Reset and reconfigure for 1-2 north marker strat (new toolbox) (CTRL+click)") && ImGui.GetIO().KeyCtrl)
                 {
                     Conf.FarTowers = new Config().FarTowers;
                     Conf.CloseTowers = new Config().CloseTowers;
                 }
-                if (ImGui.Button("Reset and reconfigure for 3-4 north marker strat (old toolbox) (CTRL+click)") && ImGui.GetIO().KeyCtrl)
+                if(ImGui.Button("Reset and reconfigure for 3-4 north marker strat (old toolbox) (CTRL+click)") && ImGui.GetIO().KeyCtrl)
                 {
                     Conf.FarTowers = new Config().FarTowersOldToolbox;
                     Conf.CloseTowers = new Config().CloseTowersOldToolbox;
                 }
-                if (ImGui.Button("Reset and reconfigure for A-D north marker strat (Wingwan) (CTRL+click)") && ImGui.GetIO().KeyCtrl) 
+                if(ImGui.Button("Reset and reconfigure for A-D north marker strat (Wingwan) (CTRL+click)") && ImGui.GetIO().KeyCtrl)
                 {
                     Conf.FarTowers = new Config().FarTowersWingwan;
                     Conf.CloseTowers = new Config().CloseTowersWingwan;
                 }
-                if (ImGui.Button("Reset and reconfigure for UCOB-like strat (L1/R1...) (CTRL+click)") && ImGui.GetIO().KeyCtrl)
+                if(ImGui.Button("Reset and reconfigure for UCOB-like strat (L1/R1...) (CTRL+click)") && ImGui.GetIO().KeyCtrl)
                 {
                     Conf.FarTowers = new Config().FarTowersUcob;
                     Conf.CloseTowers = new Config().CloseTowersUcob;
                 }
             }
             ImGui.PushID("Far towers");
-            if (ImGui.CollapsingHeader("Far towers, clockwise"))
+            if(ImGui.CollapsingHeader("Far towers, clockwise"))
             {
                 ImGuiEx.Text($"Tower 1 (front)");
                 ImGui.InputText($"##0", ref Conf.FarTowers[0], 50);
@@ -525,7 +554,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
             ImGui.PopID();
             ImGui.PushID("Near towers");
-            if (ImGui.CollapsingHeader("Close towers, clockwise"))
+            if(ImGui.CollapsingHeader("Close towers, clockwise"))
             {
 
                 ImGuiEx.Text($"Tower 1 (front-right)");
@@ -551,7 +580,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             ImGui.PopID();
 
             ImGui.Checkbox($"Remember my marker and tether to my tower", ref Conf.RememberMarker);
-            if (Conf.RememberMarker)
+            if(Conf.RememberMarker)
             {
                 ImGuiEx.TextWrapped("Warning, tower label marker MUST START with the waymark label");
                 var farYes = Conf.FarTowers.All(x => x.GetFirstLetter().EqualsIgnoreCaseAny("a,b,c,d,1,2,3,4".Split(",")) && Conf.FarTowers.Where(z => z.GetFirstLetter().EqualsIgnoreCase(x.GetFirstLetter())).Count() == 1);
@@ -563,16 +592,16 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 
             ImGui.Checkbox($"Disable chat output", ref Conf.NoChat);
 
-            if (ImGui.CollapsingHeader("Debug"))
+            if(ImGui.CollapsingHeader("Debug"))
             {
                 ImGuiEx.TextCopy($"{(nint)MKC:X16}");
                 ImGui.InputFloat3("Omega pos", ref OmegaPos);
-                if (ImGui.Button("Copy"))
+                if(ImGui.Button("Copy"))
                 {
                     ImGui.SetClipboardText(JsonConvert.SerializeObject(OmegaPos));
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("Paste"))
+                if(ImGui.Button("Paste"))
                 {
                     GenericHelpers.Safe(() => { OmegaPos = JsonConvert.DeserializeObject<Vector3>(ImGui.GetClipboardText()); });
                 }
@@ -646,7 +675,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             DoubleMarkerSecondDown,
         }
 
-        internal readonly List<Position> PositionsNorthToSouthOnly = new() {
+        internal readonly List<Position> PositionsNorthToSouthOnly = [
             Position.DoubleMarkerFirstLeft,
             Position.DoubleMarkerFirstRight,
             Position.DoubleMarkerSecondLeft,
@@ -655,9 +684,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             Position.SingleMarkerFirstUnmarked,
             Position.SingleMarkerSecondMarked,
             Position.SingleMarkerSecondUnmarked,
-        };
+        ];
 
-        internal readonly List<Position> PositionsWestToEastOnly = new() {
+        internal readonly List<Position> PositionsWestToEastOnly = [
             Position.DoubleMarkerFirstUp,
             Position.DoubleMarkerFirstDown,
             Position.DoubleMarkerSecondUp,
@@ -666,7 +695,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             Position.SingleMarkerFirstUnmarked,
             Position.SingleMarkerSecondMarked,
             Position.SingleMarkerSecondUnmarked,
-        };
+        ];
 
         public enum Directions
         {
@@ -679,13 +708,13 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         }
 
 
-        static string[] MkNum = new string[] { "A", "B", "C", "D", "1", "2", "3", "4" };
-        Vector3 GetMarker(string s)
+        private static string[] MkNum = new string[] { "A", "B", "C", "D", "1", "2", "3", "4" };
+        private Vector3 GetMarker(string s)
         {
             var index = 0;
-            for (int i = 0; i < MkNum.Length; i++)
+            for(var i = 0; i < MkNum.Length; i++)
             {
-                if (MkNum[i].EqualsIgnoreCase(s))
+                if(MkNum[i].EqualsIgnoreCase(s))
                 {
                     index = i;
                     break;
@@ -695,7 +724,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
         }
     }
 
-    public unsafe static class Dynamis_Sigma_Utils
+    public static unsafe class Dynamis_Sigma_Utils
     {
         public static string GetFirstLetter(this string s)
         {
@@ -714,13 +743,15 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             return new Vector3(marker.X, 0, marker.Z);
         }
 
-        public static Vector2 GetRelativePosition(Vector2 origin, Vector2 target, float rotation) {
+        public static Vector2 GetRelativePosition(Vector2 origin, Vector2 target, float rotation)
+        {
             var offset = target - origin;
             var relative = Vector2.Transform(offset, Quaternion.CreateFromYawPitchRoll(0, 0, rotation));
             return relative;
         }
 
-        public static Vector2 GetRelativePosition(Vector3 origin, Vector3 target, float rotation) {
+        public static Vector2 GetRelativePosition(Vector3 origin, Vector3 target, float rotation)
+        {
             return GetRelativePosition(origin.ToVector2(), target.ToVector2(), rotation);
         }
     }

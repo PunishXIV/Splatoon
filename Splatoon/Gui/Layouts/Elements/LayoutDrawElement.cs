@@ -1,9 +1,11 @@
 ﻿using Dalamud.Game;
+using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
 using Lumina.Excel.Sheets;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
@@ -17,8 +19,6 @@ internal unsafe partial class CGui
     private string BuffName = "";
     internal void LayoutDrawElement(Layout l, Element el, bool forceEnable = false)
     {
-        var i = l.Name;
-        var k = el.Name;
         ImGui.Checkbox("Enabled".Loc(), ref el.Enabled);
         if(el.IsVisible())
         {
@@ -201,7 +201,7 @@ internal unsafe partial class CGui
         ImGuiUtils.SizedText("Element type:".Loc(), WidthElement);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(WidthCombo);
-        if(ImGui.Combo("##elemselecttype" + i + k, ref el.type, Element.ElementTypes, Element.ElementTypes.Length))
+        if(ImGui.Combo("##elemselecttype", ref el.type, Element.ElementTypes, Element.ElementTypes.Length))
         {
             if((el.type == 2 || el.type == 3) && el.radius == 0.35f)
             {
@@ -216,10 +216,33 @@ internal unsafe partial class CGui
         {
             ImGuiUtils.SizedText("Account for rotation:".Loc(), WidthElement);
             ImGui.SameLine();
-            ImGui.Checkbox("##rota" + i + k, ref el.includeRotation);
+            ImGui.Checkbox("##rota", ref el.includeRotation);
             if(el.includeRotation)
             {
-                DrawRotationSelector(el, i, k);
+                DrawRotationSelector(el);
+            }
+            ImGuiUtils.SizedText("Override rotation:".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.Checkbox("##rotaOverride", ref el.RotationOverride);
+            if(el.RotationOverride)
+            {
+                ImGui.SameLine();
+                ImGuiEx.TextV("Rotate towards:");
+                ImGui.SameLine();
+                ImGuiEx.Text($"X:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##rotateTowardsX", ref el.RotationOverridePoint.X, 0.1f);
+                ImGui.SameLine();
+                ImGuiEx.Text($"Y:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##rotateTowardsY", ref el.RotationOverridePoint.Y, 0.1f);
+                ImGui.SameLine();
+                ImGuiEx.Text($"Add angle:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##rotationOverrideAddAngle", ref el.RotationOverrideAddAngle, 0.1f);
             }
         }
         if(el.type.EqualsAny(1, 3, 4))
@@ -228,13 +251,13 @@ internal unsafe partial class CGui
             ImGuiUtils.SizedText("Targeted object: ".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(WidthCombo);
-            ImGui.Combo("##actortype" + i + k, ref el.refActorType, Element.ActorTypes, Element.ActorTypes.Length);
+            ImGui.Combo("##actortype", ref el.refActorType, Element.ActorTypes, Element.ActorTypes.Length);
             if(el.refActorType == 0)
             {
                 ImGui.SameLine();
                 if(ImGui.Button("Copy settarget command".Loc()))
                 {
-                    ImGui.SetClipboardText("/splatoon settarget " + i + "~" + k);
+                    ImGui.SetClipboardText("/splatoon settarget " + l.Name + "~" + el.Name);
                 }
                 if(ImGui.IsItemHovered())
                 {
@@ -255,12 +278,12 @@ internal unsafe partial class CGui
                 }
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(75f);
-                ImGui.Combo($"##attrSelect{i + k}", ref el.refActorComparisonType, Element.ComparisonTypes, Element.ComparisonTypes.Length);
+                ImGui.Combo($"##attrSelect", ref el.refActorComparisonType, Element.ComparisonTypes, Element.ComparisonTypes.Length);
                 ImGui.SameLine();
                 if(el.refActorComparisonType == 0)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    //ImGui.InputText("##actorname" + i + k, ref el.refActorName, 100);
+                    //ImGui.InputText("##actorname", ref el.refActorName, 100);
                     el.refActorNameIntl.ImGuiEdit(ref el.refActorName);
                     if(NameNpcIDs.TryGetValue(el.refActorNameIntl.Get(el.refActorName).ToLower(), out var nameid))
                     {
@@ -275,24 +298,24 @@ internal unsafe partial class CGui
                 }
                 else if(el.refActorComparisonType == 1)
                 {
-                    ImGuiUtils.InputUintDynamic("##actormid" + i + k, ref el.refActorModelID);
+                    ImGuiUtils.InputUintDynamic("##actormid", ref el.refActorModelID);
                 }
                 else if(el.refActorComparisonType == 2)
                 {
-                    ImGuiUtils.InputUintDynamic("##actoroid" + i + k, ref el.refActorObjectID);
+                    ImGuiUtils.InputUintDynamic("##actoroid", ref el.refActorObjectID);
                 }
                 else if(el.refActorComparisonType == 3)
                 {
-                    ImGuiUtils.InputUintDynamic("##actordid" + i + k, ref el.refActorDataID);
+                    ImGuiUtils.InputUintDynamic("##actordid", ref el.refActorDataID);
                 }
                 else if(el.refActorComparisonType == 4)
                 {
-                    ImGuiUtils.InputUintDynamic("##npcid" + i + k, ref el.refActorNPCID);
+                    ImGuiUtils.InputUintDynamic("##npcid", ref el.refActorNPCID);
                 }
                 else if(el.refActorComparisonType == 5)
                 {
                     ImGui.SetNextItemWidth(200f);
-                    ImGuiEx.InputListString("##pholder" + i + k, el.refActorPlaceholder);
+                    ImGuiEx.InputListString("##pholder", el.refActorPlaceholder);
                     ImGui.SameLine();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.AngleDoubleDown))
                     {
@@ -322,7 +345,7 @@ internal unsafe partial class CGui
                 }
                 else if(el.refActorComparisonType == 6)
                 {
-                    ImGuiUtils.InputUintDynamic("##nameID" + i + k, ref el.refActorNPCNameID);
+                    ImGuiUtils.InputUintDynamic("##nameID", ref el.refActorNPCNameID);
                     var npcnames = NameNpcIDsAll.FindKeysByValue(el.refActorNPCNameID);
                     if(npcnames.Any())
                     {
@@ -388,7 +411,7 @@ internal unsafe partial class CGui
                 else if(el.refActorComparisonType == 9)
                 {
                     ImGui.SetNextItemWidth(200f);
-                    ImGuiEx.InputUint("##nameplateiconid" + i + k, ref el.refActorNamePlateIconID);
+                    ImGuiEx.InputUint("##nameplateiconid", ref el.refActorNamePlateIconID);
                     if(ImGui.IsItemHovered())
                     {
                         ImGui.SetTooltip("Decimal input");
@@ -398,7 +421,7 @@ internal unsafe partial class CGui
                 if(Svc.Targets.Target != null && !el.refActorComparisonType.EqualsAny(7, 8))
                 {
                     ImGui.SameLine();
-                    if(ImGui.Button("Target".Loc() + "##btarget" + i + k))
+                    if(ImGui.Button("Target".Loc() + "##btarget"))
                     {
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;
@@ -415,7 +438,7 @@ internal unsafe partial class CGui
                 ImGuiUtils.SizedText("Targetability: ".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                if(ImGui.BeginCombo($"##TargetabilityCombo{i + k}", el.onlyTargetable ? "Targetable".Loc() : (el.onlyUnTargetable ? "Untargetable".Loc() : "Any".Loc())))
+                if(ImGui.BeginCombo($"##TargetabilityCombo", el.onlyTargetable ? "Targetable".Loc() : (el.onlyUnTargetable ? "Untargetable".Loc() : "Any".Loc())))
                 {
                     if(ImGui.Selectable("Any".Loc()))
                     {
@@ -442,28 +465,62 @@ internal unsafe partial class CGui
                 }
             }
 
+            ImGuiUtils.SizedText("Object Kind:".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(WidthCombo);
+            if(ImGui.BeginCombo("##objectKindSel", el.ObjectKinds.Count == 0 ? "Any" : el.ObjectKinds.Print(), ImGuiComboFlags.HeightLarge))
+            {
+                if(ImGui.Button("Select All".Loc())) el.ObjectKinds.AddRange(Enum.GetValues<ObjectKind>());
+                ImGui.SameLine();
+                if(ImGui.Button("Deselect All".Loc())) el.ObjectKinds.Clear();
+                foreach(var x in Enum.GetValues<ObjectKind>())
+                {
+                    ImGuiEx.CollectionCheckbox($"{x}", x, el.ObjectKinds);
+                }
+                ImGui.EndCombo();
+            }
+
             ImGui.SetNextItemWidth(WidthElement + ImGui.GetStyle().ItemSpacing.X);
             if(ImGui.BeginCombo("##whilecasting", el.refActorCastReverse ? "While NOT casting".Loc() : "While casting".Loc()))
             {
                 if(ImGui.Selectable("While casting".Loc())) el.refActorCastReverse = false;
                 if(ImGui.Selectable("While NOT casting".Loc())) el.refActorCastReverse = true;
+                ImGui.Separator();
+                if(ImGui.Selectable("Paste from clipboard##castinfo"))
+                {
+                    try
+                    {
+                        var pasted = JsonConvert.DeserializeObject<Element>(Paste()) ?? throw new NullReferenceException();
+                        el.refActorCastReverse = pasted.refActorCastReverse;
+                        el.refActorRequireCast = pasted.refActorRequireCast;
+                        el.refActorCastId = pasted.refActorCastId ?? throw new NullReferenceException();
+                        el.refActorUseOvercast = pasted.refActorUseOvercast;
+                        el.refActorCastTimeMax = pasted.refActorCastTimeMax;
+                        el.refActorCastTimeMin = pasted.refActorCastTimeMin;
+                    }
+                    catch(Exception e)
+                    {
+                        e.Log();
+                        Notify.Error(e.Message);
+                    }
+                }
                 ImGui.EndCombo();
             }
             ImGui.SameLine();
-            ImGui.Checkbox("##casting" + i + k, ref el.refActorRequireCast);
+            ImGui.Checkbox("##casting", ref el.refActorRequireCast);
             if(el.refActorRequireCast)
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(WidthCombo);
-                ImGuiEx.InputListUint("##casts" + i + k, el.refActorCastId, ActionNames);
+                ImGuiEx.InputListUint("##casts", el.refActorCastId, ActionNames);
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGuiEx.Text("Add all by name:".Loc());
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                ImGui.InputText("##ActionName" + i + k, ref ActionName, 100);
+                ImGui.InputText("##ActionName", ref ActionName, 100);
                 ImGui.SameLine();
-                if(ImGui.Button("Add".Loc() + "##byactionname" + i + k))
+                if(ImGui.Button("Add".Loc() + "##byactionname"))
                 {
                     foreach(var lang in (ClientLanguage?[])[null, ClientLanguage.English])
                     {
@@ -497,20 +554,20 @@ internal unsafe partial class CGui
 
             ImGuiUtils.SizedText("Status requirement:".Loc(), WidthElement);
             ImGui.SameLine();
-            ImGui.Checkbox("##buffreq" + i + k, ref el.refActorRequireBuff);
+            ImGui.Checkbox("##buffreq", ref el.refActorRequireBuff);
             if(el.refActorRequireBuff)
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(WidthCombo);
-                ImGuiEx.InputListUint("##buffs" + i + k, el.refActorBuffId, BuffNames);
+                ImGuiEx.InputListUint("##buffs", el.refActorBuffId, BuffNames);
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGuiEx.Text("Add all by name:".Loc());
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                ImGui.InputText("##BuffNames" + i + k, ref BuffName, 100);
+                ImGui.InputText("##BuffNames", ref BuffName, 100);
                 ImGui.SameLine();
-                if(ImGui.Button("Add".Loc() + "##bybuffname" + i + k))
+                if(ImGui.Button("Add".Loc() + "##bybuffname"))
                 {
                     foreach(var lang in (ClientLanguage?[])[null, ClientLanguage.English])
                     {
@@ -526,7 +583,7 @@ internal unsafe partial class CGui
                 if(Svc.Targets.Target != null && Svc.Targets.Target is IBattleChara bchr)
                 {
                     ImGui.SameLine();
-                    if(ImGui.Button("Add from target".Loc() + "##bybuffname" + i + k))
+                    if(ImGui.Button("Add from target".Loc() + "##bybuffname"))
                     {
                         el.refActorBuffId.AddRange(bchr.StatusList.Select(x => x.StatusId));
                     }
@@ -556,7 +613,7 @@ internal unsafe partial class CGui
                 }
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
-                ImGui.Checkbox((el.refActorRequireBuffsInvert ? "Require ANY status to be missing".Loc() + "##" : "Require ALL listed statuses to be present".Loc() + "##") + i + k, ref el.refActorRequireAllBuffs);
+                ImGui.Checkbox((el.refActorRequireBuffsInvert ? "Require ANY status to be missing".Loc() + "##" : "Require ALL listed statuses to be present".Loc() + "##"), ref el.refActorRequireAllBuffs);
                 ImGui.SameLine();
                 ImGui.Checkbox("Invert behavior".Loc(), ref el.refActorRequireBuffsInvert);
             }
@@ -600,17 +657,12 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##dist"))
                 {
-                    if(LayoutUtils.IsLayoutVisible(l) && (el.Enabled || forceEnable))
-                    {
-                        SetCursorTo(el.DistanceSourceX, el.DistanceSourceY, el.DistanceSourceZ);
-                        p.BeginS2W(el, "DistanceSourceX", "DistanceSourceY", "DistanceSourceZ");
-                    }
-                    else
-                    {
-                        Notify.Error("Unable to use for hidden element".Loc());
-                    }
+                    SetCursorTo(el.DistanceSourceX, el.DistanceSourceY, el.DistanceSourceZ);
+                    p.BeginS2W(el, "DistanceSourceX", "DistanceSourceY", "DistanceSourceZ");
                 }
                 ImGuiEx.Tooltip("Select on screen".Loc());
+                ImGui.SameLine();
+                DrawRounding(ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ);
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
@@ -655,17 +707,17 @@ internal unsafe partial class CGui
             {
                 ImGuiUtils.SizedText("Object life time:".Loc(), WidthElement);
                 ImGui.SameLine();
-                ImGui.Checkbox("##life" + i + k, ref el.refActorObjectLife);
+                ImGui.Checkbox("##life", ref el.refActorObjectLife);
                 if(el.refActorObjectLife)
                 {
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(50f);
-                    ImGui.DragFloat("##life1" + i + k, ref el.refActorLifetimeMin, 0.1f, 0f, float.MaxValue);
+                    ImGui.DragFloat("##life1", ref el.refActorLifetimeMin, 0.1f, 0f, float.MaxValue);
                     ImGui.SameLine();
                     ImGuiEx.Text("-");
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(50f);
-                    ImGui.DragFloat("##life2" + i + k, ref el.refActorLifetimeMax, 0.1f, 0f, float.MaxValue);
+                    ImGui.DragFloat("##life2", ref el.refActorLifetimeMax, 0.1f, 0f, float.MaxValue);
                     ImGui.SameLine();
                     ImGuiEx.Text("(in seconds)".Loc());
                 }
@@ -673,23 +725,23 @@ internal unsafe partial class CGui
 
             ImGuiUtils.SizedText("Transformation ID:".Loc(), WidthElement);
             ImGui.SameLine();
-            ImGui.Checkbox("##trans" + i + k, ref el.refActorUseTransformation);
+            ImGui.Checkbox("##trans", ref el.refActorUseTransformation);
             if(el.refActorUseTransformation)
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                ImGui.InputInt("##transid" + i + k, ref el.refActorTransformationID);
+                ImGui.InputInt("##transid", ref el.refActorTransformationID);
             }
 
             ImGuiUtils.SizedText("Head markings:".Loc(), WidthElement);
             ImGui.SameLine();
-            ImGui.Checkbox("##marks" + i + k, ref el.refMark);
+            ImGui.Checkbox("##marks", ref el.refMark);
             if(el.refMark)
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
                 string[] markOptions = { "attack1".Loc(), "attack2".Loc(), "attack3".Loc(), "attack4".Loc(), "attack5".Loc(), "bind1".Loc(), "bind2".Loc(), "bind3".Loc(), "stop1".Loc(), "stop2".Loc(), "square".Loc(), "circle".Loc(), "cross".Loc(), "triangle".Loc(), "attack6".Loc(), "attack7".Loc(), "attack8".Loc() };
-                if(ImGui.BeginCombo("##marks type" + i + k, markOptions[el.refMarkID]))
+                if(ImGui.BeginCombo("##marks type", markOptions[el.refMarkID]))
                 {
                     for(var j = 0; j < markOptions.Length; j++)
                     {
@@ -704,7 +756,7 @@ internal unsafe partial class CGui
 
             ImGuiUtils.SizedText("Targeting you:".Loc(), WidthElement);
             ImGui.SameLine();
-            ImGui.Checkbox($"##targetYou" + i + k, ref el.refTargetYou);
+            ImGui.Checkbox($"##targetYou", ref el.refTargetYou);
             if(el.refTargetYou)
             {
                 ImGui.SameLine();
@@ -725,12 +777,12 @@ internal unsafe partial class CGui
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
-                ImGui.DragFloat("##tetherlife1" + i + k, ref el.refActorTetherTimeMin, 0.1f, 0f, float.MaxValue);
+                ImGui.DragFloat("##tetherlife1", ref el.refActorTetherTimeMin, 0.1f, 0f, float.MaxValue);
                 ImGui.SameLine();
                 ImGuiEx.Text("-");
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
-                ImGui.DragFloat("##tetherlife2" + i + k, ref el.refActorTetherTimeMax, 0.1f, 0f, float.MaxValue);
+                ImGui.DragFloat("##tetherlife2", ref el.refActorTetherTimeMax, 0.1f, 0f, float.MaxValue);
                 ImGui.SameLine();
                 ImGuiEx.Text("(in seconds)".Loc());
 
@@ -747,7 +799,7 @@ internal unsafe partial class CGui
                 ImGuiEx.Checkbox("Source", ref el.refActorIsTetherSource);
                 ImGuiEx.HelpMarker("Checked - only check if object is tether source; unchecked - only check if object is tether target; dot - check if object is either tether source or target.");
                 ImGui.SameLine();
-                ImGui.Checkbox("Invert condition", ref el.refActorIsTetherInvert);
+                ImGui.Checkbox("Invert condition##tether", ref el.refActorIsTetherInvert);
 
                 ImGuiUtils.SizedText("         " + "Connected with:".Loc(), WidthElement);
                 ImGui.SameLine();
@@ -765,17 +817,17 @@ internal unsafe partial class CGui
             ImGuiEx.Text("X:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##refx" + i + k, ref el.refX, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.DragFloat("##refx", ref el.refX, 0.02f, float.MinValue, float.MaxValue);
             ImGui.SameLine();
             ImGuiEx.Text("Y:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##refy" + i + k, ref el.refY, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.DragFloat("##refy", ref el.refY, 0.02f, float.MinValue, float.MaxValue);
             ImGui.SameLine();
             ImGuiEx.Text("Z:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##refz" + i + k, ref el.refZ, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.DragFloat("##refz", ref el.refZ, 0.02f, float.MinValue, float.MaxValue);
             ImGui.SameLine();
             if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
             {
@@ -798,7 +850,7 @@ internal unsafe partial class CGui
                 }
             }
             ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##ref" + i + k))
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##ref"))
             {
                 el.refX = 0;
                 el.refY = 0;
@@ -808,7 +860,7 @@ internal unsafe partial class CGui
             if(el.type != 3)
             {
                 ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##ref" + i + k))
+                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##ref"))
                 {
                     el.refX = Utils.GetPlayerPositionXZY().X;
                     el.refY = Utils.GetPlayerPositionXZY().Y;
@@ -816,9 +868,9 @@ internal unsafe partial class CGui
                 }
                 ImGuiEx.Tooltip("My position".Loc());
                 ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w1" + i + k))
+                if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w1"))
                 {
-                    if(LayoutUtils.IsLayoutVisible(l) && (el.Enabled || forceEnable))
+                    if(el.IsVisible())
                     {
                         SetCursorTo(el.refX, el.refZ, el.refY);
                         p.BeginS2W(el, "refX", "refY", "refZ");
@@ -829,6 +881,8 @@ internal unsafe partial class CGui
                     }
                 }
                 ImGuiEx.Tooltip("Select on screen".Loc());
+                ImGui.SameLine();
+                DrawRounding(ref el.refX, ref el.refY, ref el.refZ);
             }
 
             if(el.type.EqualsAny(1, 3) && el.includeRotation)
@@ -843,19 +897,19 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.Text("+my hitbox (XYZ):".Loc());
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxXam{i + k}", ref el.LineAddPlayerHitboxLengthXA);
+                ImGui.Checkbox($"##lineTHitboxXam", ref el.LineAddPlayerHitboxLengthXA);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxYam{i + k}", ref el.LineAddPlayerHitboxLengthYA);
+                ImGui.Checkbox($"##lineTHitboxYam", ref el.LineAddPlayerHitboxLengthYA);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxZam{i + k}", ref el.LineAddPlayerHitboxLengthZA);
+                ImGui.Checkbox($"##lineTHitboxZam", ref el.LineAddPlayerHitboxLengthZA);
                 ImGui.SameLine();
                 ImGuiEx.Text("+target hitbox (XYZ):".Loc());
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxXa{i + k}", ref el.LineAddHitboxLengthXA);
+                ImGui.Checkbox($"##lineTHitboxXa", ref el.LineAddHitboxLengthXA);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxYa{i + k}", ref el.LineAddHitboxLengthYA);
+                ImGui.Checkbox($"##lineTHitboxYa", ref el.LineAddHitboxLengthYA);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxZa{i + k}", ref el.LineAddHitboxLengthZA);
+                ImGui.Checkbox($"##lineTHitboxZa", ref el.LineAddHitboxLengthZA);
             }
         }
 
@@ -867,19 +921,19 @@ internal unsafe partial class CGui
             ImGuiEx.Text("X:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##offx" + i + k, ref el.offX, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.DragFloat("##offx", ref el.offX, 0.02f, float.MinValue, float.MaxValue);
             ImGui.SameLine();
             ImGuiEx.Text("Y:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##offy" + i + k, ref el.offY, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.DragFloat("##offy", ref el.offY, 0.02f, float.MinValue, float.MaxValue);
             ImGui.SameLine();
             ImGuiEx.Text("Z:");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##offz" + i + k, ref el.offZ, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.DragFloat("##offz", ref el.offZ, 0.02f, float.MinValue, float.MaxValue);
             ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##off" + i + k))
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##off"))
             {
                 el.offX = 0;
                 el.offY = 0;
@@ -889,7 +943,7 @@ internal unsafe partial class CGui
             if(el.type == 2)
             {
                 ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##off" + i + k))
+                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##off"))
                 {
                     el.offX = Utils.GetPlayerPositionXZY().X;
                     el.offY = Utils.GetPlayerPositionXZY().Y;
@@ -903,19 +957,19 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.Text("+my hitbox (XYZ):".Loc());
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxXm{i + k}", ref el.LineAddPlayerHitboxLengthX);
+                ImGui.Checkbox($"##lineTHitboxXm", ref el.LineAddPlayerHitboxLengthX);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxYm{i + k}", ref el.LineAddPlayerHitboxLengthY);
+                ImGui.Checkbox($"##lineTHitboxYm", ref el.LineAddPlayerHitboxLengthY);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxZm{i + k}", ref el.LineAddPlayerHitboxLengthZ);
+                ImGui.Checkbox($"##lineTHitboxZm", ref el.LineAddPlayerHitboxLengthZ);
                 ImGui.SameLine();
                 ImGuiEx.Text("+target hitbox (XYZ):".Loc());
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxX{i + k}", ref el.LineAddHitboxLengthX);
+                ImGui.Checkbox($"##lineTHitboxX", ref el.LineAddHitboxLengthX);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxY{i + k}", ref el.LineAddHitboxLengthY);
+                ImGui.Checkbox($"##lineTHitboxY", ref el.LineAddHitboxLengthY);
                 ImGui.SameLine();
-                ImGui.Checkbox($"##lineTHitboxZ{i + k}", ref el.LineAddHitboxLengthZ);
+                ImGui.Checkbox($"##lineTHitboxZ", ref el.LineAddHitboxLengthZ);
             }
         }
 
@@ -924,12 +978,12 @@ internal unsafe partial class CGui
             ImGuiUtils.SizedText("Angle:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(50f);
-            ImGui.DragInt("##angle" + i + k, ref el.coneAngleMin, 0.1f);
+            ImGui.DragInt("##angle", ref el.coneAngleMin, 0.1f);
             ImGui.SameLine();
             ImGuiEx.Text("-");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(50f);
-            ImGui.DragInt("##angle2" + i + k, ref el.coneAngleMax, 0.1f);
+            ImGui.DragInt("##angle2", ref el.coneAngleMax, 0.1f);
         }
 
         //ImGui.SameLine();
@@ -937,7 +991,7 @@ internal unsafe partial class CGui
         if(el.type == 2)
         {
             ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w2" + i + k))
+            if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w2"))
             {
                 if(LayoutUtils.IsLayoutVisible(l) && (el.Enabled || forceEnable)/* && p.CamAngleY <= p.Config.maxcamY*/)
                 {
@@ -950,6 +1004,8 @@ internal unsafe partial class CGui
                 }
             }
             ImGuiEx.Tooltip("Select on screen".Loc());
+            ImGui.SameLine();
+            DrawRounding(ref el.offX, ref el.offY, ref el.offZ);
         }
 
         var style = el.GetDisplayStyle();
@@ -972,19 +1028,19 @@ internal unsafe partial class CGui
                 using(ImRaii.Disabled(!canSetCastAnimation))
                 {
                     ImGui.SetNextItemWidth(WidthElement);
-                    ImGuiUtils.EnumCombo("##castanimation" + i + k, ref el.castAnimation, CastAnimations.Names, CastAnimations.Tooltips);
+                    ImGuiUtils.EnumCombo("##castanimation", ref el.castAnimation, CastAnimations.Names, CastAnimations.Tooltips);
                     using(ImRaii.Disabled(el.castAnimation is CastAnimationKind.Unspecified))
                     {
                         ImGui.SameLine();
                         ImGuiEx.Text("Color:".Loc());
                         ImGui.SameLine();
                         var v4 = ImGui.ColorConvertU32ToFloat4(el.animationColor);
-                        if(ImGui.ColorEdit4("##animationcolorbutton" + i + k, ref v4, ImGuiColorEditFlags.NoInputs))
+                        if(ImGui.ColorEdit4("##animationcolorbutton", ref v4, ImGuiColorEditFlags.NoInputs))
                         {
                             el.animationColor = ImGui.ColorConvertFloat4ToU32(v4);
                         }
                         ImGui.SameLine();
-                        if(ImGui.Button("Copy".Loc() + "##copyfromstroke" + i + k))
+                        if(ImGui.Button("Copy".Loc() + "##copyfromstroke"))
                         {
                             el.animationColor = style.strokeColor;
                         }
@@ -1001,13 +1057,13 @@ internal unsafe partial class CGui
                             ImGui.SameLine();
                             ImGui.SetNextItemWidth(60f);
                             el.pulseSize = MathF.Min(el.pulseSize, el.EffectiveLength());
-                            ImGui.DragFloat("##animationsize" + i + k, ref el.pulseSize, 0.01f, 0.1f, el.EffectiveLength());
+                            ImGui.DragFloat("##animationsize", ref el.pulseSize, 0.01f, 0.1f, el.EffectiveLength());
                             ImGui.SameLine();
 
                             ImGuiEx.Text("Frequency (s):".Loc());
                             ImGui.SameLine();
                             ImGui.SetNextItemWidth(60f);
-                            ImGui.DragFloat("##animationfreq" + i + k, ref el.pulseFrequency, 0.01f, 1, 10);
+                            ImGui.DragFloat("##animationfreq", ref el.pulseFrequency, 0.01f, 1, 10);
                         }
                     }
                 }
@@ -1020,7 +1076,7 @@ internal unsafe partial class CGui
                 ImGuiUtils.SizedText("Radius:".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##radius" + i + k, ref el.radius, 0.01f, 0, float.MaxValue);
+                ImGui.DragFloat("##radius", ref el.radius, 0.01f, 0, float.MaxValue);
                 if(ImGui.IsItemHovered())
                     ImGui.SetTooltip("Leave at 0 to draw single dot".Loc());
                 if(el.type == 1 || (el.type == 3 && el.includeRotation) || el.type == 4)
@@ -1055,7 +1111,7 @@ internal unsafe partial class CGui
                     ImGuiEx.Text("Donut:".Loc());
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(60f);
-                    ImGui.DragFloat("##radiusdonut" + i + k, ref el.Donut, 0.01f, 0, float.MaxValue);
+                    ImGui.DragFloat("##radiusdonut", ref el.Donut, 0.01f, 0, float.MaxValue);
                     if(ImGui.IsItemHovered())
                         ImGui.SetTooltip("Leave at 0 to not draw a donut.\n" +
                             "If greater than 0, the radius is the donut hole radius\n" +
@@ -1067,12 +1123,12 @@ internal unsafe partial class CGui
             {
                 ImGuiUtils.SizedText("Tether:".Loc(), WidthElement);
                 ImGui.SameLine();
-                ImGui.Checkbox("Enable##TetherEnable" + i + k, ref el.tether);
+                ImGui.Checkbox("Enable##TetherEnable", ref el.tether);
                 ImGui.SameLine();
                 ImGuiEx.Text("Extra Length:".Loc());
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##extratetherlength" + i + k, ref el.ExtraTetherLength, 0.01f, 0, float.MaxValue);
+                ImGui.DragFloat("##extratetherlength", ref el.ExtraTetherLength, 0.01f, 0, float.MaxValue);
                 if(ImGui.IsItemHovered())
                     ImGui.SetTooltip("Add extra length to the tether to visualize knockbacks.".Loc());
             }
@@ -1084,12 +1140,12 @@ internal unsafe partial class CGui
             ImGuiEx.Text("A: ".Loc());
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGuiUtils.EnumCombo("##LineEndA" + i + k, ref el.LineEndA, LineEnds.Names, LineEnds.Tooltips);
+            ImGuiUtils.EnumCombo("##LineEndA", ref el.LineEndA, LineEnds.Names, LineEnds.Tooltips);
             ImGui.SameLine();
             ImGuiEx.Text("B: ".Loc());
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGuiUtils.EnumCombo("##LineEndB" + i + k, ref el.LineEndB, LineEnds.Names, LineEnds.Tooltips);
+            ImGuiUtils.EnumCombo("##LineEndB", ref el.LineEndB, LineEnds.Names, LineEnds.Tooltips);
             if(!canSetLineEnds) ImGui.EndDisabled();
         }
         if(el.type == 0 || el.type == 1 || el.type == 4 || el.type == 5)
@@ -1097,7 +1153,7 @@ internal unsafe partial class CGui
             ImGuiUtils.SizedText("Overlay text:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X);
-            ImGui.InputTextWithHint("##overlaytext" + i + k, "Text to display as overlay".Loc(), ref el.overlayText, 500);
+            el.overlayTextIntl.ImGuiEdit(ref el.overlayText, "Text to display as overlay".Loc());
             if(el.overlayPlaceholders && el.type == 1)
             {
                 ImGuiUtils.SizedText("", WidthElement);
@@ -1127,19 +1183,19 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.TextCopy("\\n");
             }
-            if(el.overlayText.Length > 0)
+            if(!el.overlayTextIntl.IsEmpty() || el.overlayText.Length > 0)
             {
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGuiEx.Text("Vertical offset:".Loc());
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##vtextadj" + i + k, ref el.overlayVOffset, 0.02f);
+                ImGui.DragFloat("##vtextadj", ref el.overlayVOffset, 0.02f);
                 ImGui.SameLine();
                 ImGuiEx.Text("Font scale:".Loc());
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##vtextsize" + i + k, ref el.overlayFScale, 0.02f, 0.1f, 50f);
+                ImGui.DragFloat("##vtextsize", ref el.overlayFScale, 0.02f, 0.1f, 50f);
                 if(el.overlayFScale < 0.1f) el.overlayFScale = 0.1f;
                 if(el.overlayFScale > 50f) el.overlayFScale = 50f;
 
@@ -1148,7 +1204,7 @@ internal unsafe partial class CGui
                 ImGuiEx.Text("BG color:".Loc());
                 ImGui.SameLine();
                 var v4b = ImGui.ColorConvertU32ToFloat4(el.overlayBGColor);
-                if(ImGui.ColorEdit4("##colorbuttonbg" + i + k, ref v4b, ImGuiColorEditFlags.NoInputs))
+                if(ImGui.ColorEdit4("##colorbuttonbg", ref v4b, ImGuiColorEditFlags.NoInputs))
                 {
                     el.overlayBGColor = ImGui.ColorConvertFloat4ToU32(v4b);
                 }
@@ -1156,7 +1212,7 @@ internal unsafe partial class CGui
                 ImGuiEx.Text("Text color:".Loc());
                 ImGui.SameLine();
                 var v4t = ImGui.ColorConvertU32ToFloat4(el.overlayTextColor);
-                if(ImGui.ColorEdit4("##colorbuttonfg" + i + k, ref v4t, ImGuiColorEditFlags.NoInputs))
+                if(ImGui.ColorEdit4("##colorbuttonfg", ref v4t, ImGuiColorEditFlags.NoInputs))
                 {
                     el.overlayTextColor = ImGui.ColorConvertFloat4ToU32(v4t);
                 }
@@ -1181,7 +1237,7 @@ internal unsafe partial class CGui
                 "This is used for automatically setting default colors.\nOnly for DirectX11 renderer.");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(WidthElement);
-        ImGuiUtils.EnumCombo("##mechtype" + i + k, ref el.mechanicType, MechanicTypes.Names, MechanicTypes.Tooltips);
+        ImGuiUtils.EnumCombo("##mechtype", ref el.mechanicType, MechanicTypes.Names, MechanicTypes.Tooltips);
 
         if((el.type.EqualsAny(0, 1) && el.Donut > 0) || el.type == 4 || (el.type.EqualsAny(2, 3) && (el.radius > 0 || el.includeHitbox || el.includeOwnHitbox)))
         {
@@ -1189,7 +1245,7 @@ internal unsafe partial class CGui
             ImGuiEx.HelpMarker("Only for ImGui Legacy renderer");
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##fillstep" + i + k, ref el.FillStep, 0.001f, 0, float.MaxValue);
+            ImGui.DragFloat("##fillstep", ref el.FillStep, 0.001f, 0, float.MaxValue);
             el.FillStep.ValidateRange(0.01f, float.MaxValue);
         }
 

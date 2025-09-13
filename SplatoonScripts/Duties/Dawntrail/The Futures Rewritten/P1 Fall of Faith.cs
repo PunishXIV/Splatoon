@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
@@ -12,10 +9,13 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -31,7 +31,7 @@ public class P1_Fall_of_Faith : SplatoonScript
 
     private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
 
-    private Dictionary<string, PlayerData> _partyDatas = new();
+    private Dictionary<string, PlayerData> _partyDatas = [];
 
     private State _state = State.None;
 
@@ -42,25 +42,25 @@ public class P1_Fall_of_Faith : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (_state == State.None && castId is 40137 or 40140)
+        if(_state == State.None && castId is 40137 or 40140)
         {
             _state = State.Start;
             var hasDebuffPlayer = FakeParty.Get().First(x => x.StatusList.Any(x => x.StatusId == 1051));
-            if (castId == 40137)
+            if(castId == 40137)
                 _partyDatas[hasDebuffPlayer.Name.ToString()] = new PlayerData(Debuff.Red, C.Tether1Direction, 1);
             else
                 _partyDatas[hasDebuffPlayer.Name.ToString()] = new PlayerData(Debuff.Blue, C.Tether1Direction, 1);
-            
+
             ApplyElement();
         }
 
-        if (_state == State.Split && castId == 40170) _state = State.End;
+        if(_state == State.Split && castId == 40170) _state = State.End;
     }
 
 
     public override void OnSetup()
     {
-        for (var i = 0; i < 4; i++)
+        for(var i = 0; i < 4; i++)
         {
             var element = new Element(1)
             {
@@ -94,16 +94,16 @@ public class P1_Fall_of_Faith : SplatoonScript
     public override void OnReset()
     {
         _state = State.None;
-        _partyDatas = new Dictionary<string, PlayerData>();
+        _partyDatas = [];
         _tetherCount = 1;
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (_state != State.Start) return;
+        if(_state != State.Start) return;
         _tetherCount++;
-        if (_tetherCount is > 4 or < 2) return;
-        if (target.GetObject() is not IPlayerCharacter targetPlayer) return;
+        if(_tetherCount is > 4 or < 2) return;
+        if(target.GetObject() is not IPlayerCharacter targetPlayer) return;
         var name = targetPlayer.Name.ToString();
 
         var debuff = data3 switch
@@ -121,11 +121,11 @@ public class P1_Fall_of_Faith : SplatoonScript
             _ => _partyDatas[name]
         };
 
-        if (_tetherCount == 4)
+        if(_tetherCount == 4)
         {
             _state = State.Split;
             var noTether = C.PriorityData.GetPlayers(x => !_partyDatas.ContainsKey(x.Name));
-            if (noTether == null)
+            if(noTether == null)
             {
                 DuoLog.Warning("[P1 Fall of Faith] NoTether is null");
                 return;
@@ -135,20 +135,20 @@ public class P1_Fall_of_Faith : SplatoonScript
             _partyDatas[noTether[2].Name] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
             _partyDatas[noTether[3].Name] = new PlayerData(Debuff.None, C.NoTether34Direction, 0);
         }
-        
+
         ApplyElement();
     }
 
     private void ApplyElement()
     {
-        if (_partyDatas.TryGetValue(Player.Name, out var value) && Controller.TryGetElementByName("Bait", out var bait))
+        if(_partyDatas.TryGetValue(Player.Name, out var value) && Controller.TryGetElementByName("Bait", out var bait))
         {
             bait.Enabled = true;
             bait.SetOffPosition(GetPosition(value.Direction).ToVector3());
         }
 
         var index = 0;
-        foreach (var data in _partyDatas.Where(x => x.Value.Debuff != Debuff.None))
+        foreach(var data in _partyDatas.Where(x => x.Value.Debuff != Debuff.None))
         {
             var text = data.Value.Debuff switch
             {
@@ -157,7 +157,7 @@ public class P1_Fall_of_Faith : SplatoonScript
                 _ => string.Empty
             };
 
-            if (Controller.TryGetElementByName("Tether" + index, out var tether))
+            if(Controller.TryGetElementByName("Tether" + index, out var tether))
             {
                 tether.Enabled = true;
                 tether.refActorName = data.Key;
@@ -170,17 +170,17 @@ public class P1_Fall_of_Faith : SplatoonScript
 
     public override void OnUpdate()
     {
-        switch (_state)
+        switch(_state)
         {
             case State.None or State.End:
                 Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
                 break;
             case State.Start or State.Split:
-            {
-                if (Controller.TryGetElementByName("Bait", out var bait))
-                    bait.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
-                break;
-            }
+                {
+                    if(Controller.TryGetElementByName("Bait", out var bait))
+                        bait.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+                    break;
+                }
         }
     }
 
@@ -211,11 +211,11 @@ public class P1_Fall_of_Faith : SplatoonScript
         var blueTether = C.BlueTetherText.Get();
         C.BlueTetherText.ImGuiEdit(ref blueTether);
 
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Text("PartyDirection");
             ImGui.Indent();
-            foreach (var (key, value) in _partyDatas) ImGui.Text($"{key} : {value}");
+            foreach(var (key, value) in _partyDatas) ImGui.Text($"{key} : {value}");
             ImGui.Unindent();
 
             ImGui.Text($"State: {_state}");

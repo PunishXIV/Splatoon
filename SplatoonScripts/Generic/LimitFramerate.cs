@@ -13,15 +13,16 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class LimitFramerate : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
-    long LastFrame;
+    private long LastFrame;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnUpdate()
     {
-        if (Framework.Instance()->WindowInactive
+        if(Framework.Instance()->WindowInactive
             && !Svc.Condition[ConditionFlag.OccupiedInQuestEvent])
         {
             var diff = Environment.TickCount64 - LastFrame;
-            if (diff >= 0 && diff < 16)
+            if(diff >= 0 && diff < 16)
             {
                 Thread.Sleep((int)(16 - diff));
             }

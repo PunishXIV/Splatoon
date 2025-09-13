@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Tests;
 public class DMParser : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories { get; } = new();
+    public override HashSet<uint>? ValidTerritories { get; } = [];
 
     public override Metadata? Metadata => new(2, "NightmareXIV");
 
@@ -27,10 +27,10 @@ public class DMParser : SplatoonScript
 
     private void Chat_ChatMessage(Dalamud.Game.Text.XivChatType type, int timestamp, ref Dalamud.Game.Text.SeStringHandling.SeString sender, ref Dalamud.Game.Text.SeStringHandling.SeString message, ref bool isHandled)
     {
-        if (type == Dalamud.Game.Text.XivChatType.TellIncoming || type == Dalamud.Game.Text.XivChatType.TellOutgoing)
+        if(type == Dalamud.Game.Text.XivChatType.TellIncoming || type == Dalamud.Game.Text.XivChatType.TellOutgoing)
         {
             var player = sender.Payloads.OfType<PlayerPayload>().FirstOrDefault();
-            if (player != null)
+            if(player != null)
             {
                 PluginLog.Information($"Detected {type}. Detected player name={player.PlayerName} and home world={player.World.RowId} ({player.World.Value.Name})");
             }

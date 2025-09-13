@@ -1,6 +1,8 @@
-﻿using ECommons.LanguageHelpers;
+﻿using Dalamud.Game.ClientState.Objects.Enums;
+using ECommons.LanguageHelpers;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
+using Splatoon.Structures;
 using System.ComponentModel;
 
 namespace Splatoon;
@@ -46,7 +48,6 @@ public class Element
     public string Name = "";
     public InternationalString InternationalName = new();
     [NonSerialized] internal string GUID = Guid.NewGuid().ToString();
-    [NonSerialized] internal bool Delete = false;
     /// <summary>
     /// 0: Object at fixed coordinates |
     /// 1: Object relative to actor position | 
@@ -96,6 +97,7 @@ public class Element
     [DefaultValue(false)] public bool overlayPlaceholders = false;
     [DefaultValue(2f)] public float thicc = 2f;
     [DefaultValue("")] public string overlayText = "";
+    public InternationalString overlayTextIntl = new();
     [DefaultValue("")] public string refActorName = "";
     public InternationalString refActorNameIntl = new();
     [DefaultValue(0)] public uint refActorModelID = 0;
@@ -188,8 +190,8 @@ public class Element
     [DefaultValue(0)] public int refActorObjectEffectMin = 0;
     [DefaultValue(0)] public int refActorObjectEffectMax = 0;
     [DefaultValue(false)] public bool refActorTether = false;
-    [DefaultValue(0)] public float refActorTetherTimeMin = 0;
-    [DefaultValue(0)] public float refActorTetherTimeMax = 0;
+    [DefaultValue(0f)] public float refActorTetherTimeMin = 0;
+    [DefaultValue(0f)] public float refActorTetherTimeMax = 0;
     [DefaultValue(null)] public int? refActorTetherParam1 = null;
     [DefaultValue(null)] public int? refActorTetherParam2 = null;
     [DefaultValue(null)] public int? refActorTetherParam3 = null;
@@ -209,7 +211,15 @@ public class Element
     [DefaultValue(false)] public bool Conditional = false;
     [DefaultValue(false)] public bool ConditionalInvert = false;
     [DefaultValue(false)] public bool ConditionalReset = false;
+    [DefaultValue(false)] public bool RotationOverride = false;
+    public Point2 RotationOverridePoint = new();
+    [DefaultValue(0f)] public float RotationOverrideAddAngle = 0f;
+    public HashSet<ObjectKind> ObjectKinds = [];
 
+    public bool ShouldSerializeoverlayTextIntl() => !overlayTextIntl.IsEmpty();
+    public bool ShouldSerializeObjectKinds() => ObjectKinds.Count > 0;
+    public bool ShouldSerializeRotationOverridePoint() => RotationOverride;
+    public bool ShouldSerializeRotationOverrideAddAngle() => RotationOverride;
     public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();
     public bool ShouldSerializeConditionalInvert() => Conditional;
     public bool ShouldSerializeConditionalReset() => Conditional;

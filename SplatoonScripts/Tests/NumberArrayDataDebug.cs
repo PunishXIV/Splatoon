@@ -1,5 +1,6 @@
 ﻿using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
+using ECommons.DalamudServices.Legacy;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -10,19 +11,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class NumberArrayDataDebug : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new();
+        public override HashSet<uint> ValidTerritories => [];
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
-        delegate byte Delegate(ulong a1);
+        private delegate byte Delegate(ulong a1);
         [Signature("48 89 5C 24 ?? 57 48 83 EC 20 8B D9 8B F9", DetourName = nameof(Detour))]
-        Hook<Delegate> Hook;
+        private Hook<Delegate> Hook;
 
-        byte Detour(ulong a1)
+        private byte Detour(ulong a1)
         {
             var ret = Hook.Original(a1);
             PluginLog.Information($"{a1} {ret}, {(nint)QuestManager.Instance():X16}");

@@ -10,6 +10,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 public class TEA_P1_Untarget_Doll : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.The_Epic_of_Alexander_Ultimate];
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnUpdate()
     {

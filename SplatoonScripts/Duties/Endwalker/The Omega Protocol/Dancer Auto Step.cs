@@ -17,8 +17,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
 {
     public class Dancer_Auto_Step : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1122 };
-        TickScheduler? Sch = null;
+        public override HashSet<uint> ValidTerritories => [1122];
+        private TickScheduler? Sch = null;
+        public override Metadata Metadata => new(1, "NightmareXIV");
 
         public override void OnMessage(string Message)
         {
@@ -32,19 +33,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
                 Sch?.Dispose();
                 Sch = new TickScheduler(CastStd, 22000);
             }
-            if (Message.Contains(">31624)"))
+            if(Message.Contains(">31624)"))
             {
                 DuoLog.Information($"Scheduling cast (delta)...");
                 Sch?.Dispose();
                 Sch = new TickScheduler(CastStd, 48000);
             }
-            if (Message.Contains(">32788)"))
+            if(Message.Contains(">32788)"))
             {
                 DuoLog.Information($"Scheduling cast (sigma)...");
                 Sch?.Dispose();
                 Sch = new TickScheduler(CastStd, 56000);
             }
-            if (Message.Contains(">32789)"))
+            if(Message.Contains(">32789)"))
             {
                 DuoLog.Information($"Scheduling cast (omega)...");
                 Sch?.Dispose();
@@ -66,10 +67,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        void CastTech()
+        private void CastTech()
         {
             DuoLog.Information($"Casting tech...");
-            if (!Svc.ClientState.LocalPlayer.IsDead && Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat]
+            if(!Svc.ClientState.LocalPlayer.IsDead && Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat]
                     && !Svc.Gauges.Get<DNCGauge>().IsDancing && EzThrottler.Throttle("DAS.Technical"))
             {
                 DuoLog.Information($"Casting tech 2...");
@@ -77,10 +78,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol
             }
         }
 
-        void CastStd()
+        private void CastStd()
         {
             DuoLog.Information($"Casting standard...");
-            if (!Svc.ClientState.LocalPlayer.IsDead && Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat]
+            if(!Svc.ClientState.LocalPlayer.IsDead && Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat]
                     && !Svc.Gauges.Get<DNCGauge>().IsDancing && EzThrottler.Throttle("DAS.Technical"))
             {
                 DuoLog.Information($"Casting standard 2...");

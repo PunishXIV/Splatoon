@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Numerics;
 using Dalamud.Interface.Components;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -10,8 +7,11 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Generic;
 
@@ -46,13 +46,13 @@ public unsafe class ForceSetDirection : SplatoonScript
         radian += MathF.PI / 2f;
         var player = Player.Object;
 
-        if (player == null)
+        if(player == null)
         {
             Alert("Player object is null, skipping FaceTarget.");
             return;
         }
 
-        if (_lastPosition != player.Position && C.OnlyStop)
+        if(_lastPosition != player.Position && C.OnlyStop)
         {
             Alert("Player position has changed, skipping FaceTarget.");
             return;
@@ -61,7 +61,7 @@ public unsafe class ForceSetDirection : SplatoonScript
         var playerAngle = -Player.Rotation + MathF.PI;
 
         var angleDiff = MathF.Abs(DeltaAngle(playerAngle, radian));
-        if (angleDiff < ToRadian(C.AngleToleranceDeg)) return;
+        if(angleDiff < ToRadian(C.AngleToleranceDeg)) return;
 
         Alert($"Executing FaceTarget: Difference {ToDegree(angleDiff)} exceeds {C.AngleToleranceDeg} degrees");
 
@@ -70,7 +70,7 @@ public unsafe class ForceSetDirection : SplatoonScript
 
     private void Alert(string message, bool force = false)
     {
-        if (C.Debug || force)
+        if(C.Debug || force)
             DuoLog.Information(message);
     }
 
@@ -78,16 +78,16 @@ public unsafe class ForceSetDirection : SplatoonScript
     {
         var delta = (target - current) % (2f * MathF.PI);
 
-        if (delta > MathF.PI)
+        if(delta > MathF.PI)
             delta -= 2f * MathF.PI;
-        else if (delta < -MathF.PI) delta += 2f * MathF.PI;
+        else if(delta < -MathF.PI) delta += 2f * MathF.PI;
 
         return delta;
     }
 
     public override void OnUpdate()
     {
-        if (!C.Enabled)
+        if(!C.Enabled)
             return;
         var direction = C.Mode switch
         {
@@ -100,7 +100,7 @@ public unsafe class ForceSetDirection : SplatoonScript
             _ => Vector2.Zero
         };
 
-        if (EzThrottler.Throttle("FaceDirection", 50))
+        if(EzThrottler.Throttle("FaceDirection", 50))
         {
             FaceDirection(direction);
             _lastPosition = Player.Position;
@@ -112,11 +112,11 @@ public unsafe class ForceSetDirection : SplatoonScript
     {
         ImGui.Text("Force the player to face a specific direction.");
         ImGui.Checkbox("Enabled", ref C.Enabled);
-        if (!C.Enabled)
+        if(!C.Enabled)
             return;
         ImGui.Indent();
         ImGuiEx.EnumCombo("##Mode", ref C.Mode);
-        switch (C.Mode)
+        switch(C.Mode)
         {
             case Mode.Angle:
                 ImGui.SliderFloat("Angle", ref C.Angle, 0, 360);
@@ -182,14 +182,14 @@ internal static unsafe class Camera
         var cameraAddressPtr =
             *(nint*)Svc.SigScanner.GetStaticAddressFromSig(
                 "48 8D 0D ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 8B 8B ?? ?? ?? ?? 48 85 C9 74 11 48 8B 01");
-        if (cameraAddressPtr == nint.Zero)
+        if(cameraAddressPtr == nint.Zero)
             throw new Exception("Camera address was zero");
         _xPtr = (float*)(cameraAddressPtr + 0x130);
     }
 
     internal static float GetRadianX()
     {
-        if (_xPtr == null)
+        if(_xPtr == null)
             return 0;
         return *_xPtr;
     }

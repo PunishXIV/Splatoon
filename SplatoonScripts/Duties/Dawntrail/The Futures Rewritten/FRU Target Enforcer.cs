@@ -7,7 +7,7 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ public class FRU_Target_Enforcer : SplatoonScript
 
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
     public override Metadata? Metadata => new(5, "NightmareXIV");
-    Config C => Controller.GetConfig<Config>();
+    private Config C => Controller.GetConfig<Config>();
 
     public static class Enemies
     {
@@ -36,13 +36,13 @@ public class FRU_Target_Enforcer : SplatoonScript
     public Dictionary<CrystalDirection, Vector2> CrystalPositions = new()
     {
         [CrystalDirection.Disabled] = new(100, 100),
-        [CrystalDirection.North] = new(100,85),
-        [CrystalDirection.West] = new(85,100),
-        [CrystalDirection.South] = new(100,115),
-        [CrystalDirection.East] = new(115,100),
+        [CrystalDirection.North] = new(100, 85),
+        [CrystalDirection.West] = new(85, 100),
+        [CrystalDirection.South] = new(100, 115),
+        [CrystalDirection.East] = new(115, 100),
     };
 
-    public bool Throttle() => EzThrottler.Throttle($"{this.InternalData.FullName}_SetTarget", 250);
+    public bool Throttle() => EzThrottler.Throttle($"{InternalData.FullName}_SetTarget", 250);
 
     public override void OnUpdate()
     {
@@ -51,7 +51,7 @@ public class FRU_Target_Enforcer : SplatoonScript
         if(C.NoSwitchOffTarget && Svc.Targets.Target != null) return;
         if(Player.Object.IsDead || Player.Object.CurrentHp == 0)
         {
-            EzThrottler.Throttle($"{this.InternalData.FullName}_SetTarget", 10000, true);
+            EzThrottler.Throttle($"{InternalData.FullName}_SetTarget", 10000, true);
             return;
         }
         if(C.KeepPlayers && Svc.Targets.Target is IPlayerCharacter) return;
@@ -68,7 +68,7 @@ public class FRU_Target_Enforcer : SplatoonScript
         }
     }
 
-    IBattleNpc? GetTargetToSet()
+    private IBattleNpc? GetTargetToSet()
     {
         var sortedObj = Svc.Objects.OfType<IBattleNpc>().OrderBy(Player.DistanceTo);
         if(C.EnableCrystals != CrystalDirection.Disabled && EzThrottler.Check("CrystalDeny"))

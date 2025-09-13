@@ -11,13 +11,27 @@ internal static class LayoutDrawSelector
     internal static Element CurrentElement = null;
     internal static void DrawSelector(this Layout layout, string group, int index)
     {
-        if(CGui.layoutFilter != "" && !layout.GetName().Contains(CGui.layoutFilter, StringComparison.OrdinalIgnoreCase))
+        if(CGui.LayoutFilter != "" && !layout.GetName().Contains(CGui.LayoutFilter, StringComparison.OrdinalIgnoreCase))
+        {
+            scroll();
+            return;
+        }
+        if(CGui.ActiveExpansion != null && layout.DetermineExpansion() != CGui.ActiveExpansion.Value)
+        {
+            scroll();
+            return;
+        }
+        if(CGui.ActiveContentCategory != null && layout.DetermineContentCategory() != CGui.ActiveContentCategory.Value)
+        {
+            scroll();
+            return;
+        }
+        void scroll()
         {
             if(CGui.ScrollTo == layout)
             {
                 CGui.ScrollTo = null;
             }
-            return;
         }
         ImGui.PushID(layout.GUID);
         {
@@ -96,27 +110,28 @@ internal static class LayoutDrawSelector
                 {
                     P.Archive.LayoutsL.Add(layout.JSONClone());
                     P.SaveArchive();
-                    layout.Delete = true;
+                    new TickScheduler(() => P.Config.LayoutsL.Remove(layout));
                 }
                 ImGui.Separator();
                 if(ImGui.Selectable("Delete layout".Loc()))
                 {
-                    layout.Delete = true;
+                    new TickScheduler(() => P.Config.LayoutsL.Remove(layout));
                 }
                 ImGui.EndPopup();
             }
         }
         if(CurrentLayout == layout)
         {
-            for(var i = 0; i < CurrentLayout.ElementsL.Count; i++)
+            for(var i = 0; i < CurrentLayout.GetElementsWithSubconfiguration().Count; i++)
             {
-                var e = CurrentLayout.ElementsL[i];
+                var e = CurrentLayout.GetElementsWithSubconfiguration()[i];
                 ImGui.PushID(e.GUID);
                 ImGui.SetCursorPosX(group == null ? 10 : 20);
                 var col = layout.PushTextColors(e);
                 var curpos = ImGui.GetCursorScreenPos();
                 var contRegion = ImGui.GetContentRegionAvail().X;
-                if(ImGui.Selectable($"{(layout.Enabled && e.Enabled && e.Conditional && e.IsVisible() == !e.ConditionalInvert?"↓":null)}{e.GetName()}", CurrentElement == e))
+                var cond = layout.Enabled && e.Enabled && e.Conditional;
+                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert ? "↓" : null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert ? "×" : null)}{(cond && e.ConditionalReset ? "§" : null)}{e.GetName()}", CurrentElement == e))
                 {
                     if(CurrentElement == e)
                     {
@@ -154,10 +169,10 @@ internal static class LayoutDrawSelector
                         ImGuiUtils.DrawLine(curpos, contRegion);
                         if(ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                         {
-                            var exch = CurrentLayout.ElementsL[indexOfMovedObj];
-                            CurrentLayout.ElementsL[indexOfMovedObj] = null;
-                            CurrentLayout.ElementsL.Insert(i, exch);
-                            CurrentLayout.ElementsL.RemoveAll(x => x == null);
+                            var exch = CurrentLayout.GetElementsWithSubconfiguration()[indexOfMovedObj];
+                            CurrentLayout.GetElementsWithSubconfiguration()[indexOfMovedObj] = null;
+                            CurrentLayout.GetElementsWithSubconfiguration().Insert(i, exch);
+                            CurrentLayout.GetElementsWithSubconfiguration().RemoveAll(x => x == null);
                         }
                     }
                     ImGui.EndDragDropTarget();
@@ -167,7 +182,8 @@ internal static class LayoutDrawSelector
                     ImGuiEx.Text($"{"Layout".Loc()} {layout.GetName()}\n{"Element".Loc()} {e.GetName()}");
                     if(ImGui.Selectable("Delete element".Loc()))
                     {
-                        e.Delete = true;
+                        var l = layout.GetElementsWithSubconfiguration();
+                        new TickScheduler(() => l.Remove(e));
                     }
                     ImGui.EndPopup();
                 }
@@ -177,14 +193,14 @@ internal static class LayoutDrawSelector
             {
                 if(ImGui.SmallButton("Add element".Loc()))
                 {
-                    layout.ElementsL.Add(new(0));
+                    layout.GetElementsWithSubconfiguration().Add(new(0));
                 }
                 ImGui.SameLine();
                 if(ImGui.SmallButton("Paste".Loc()))
                 {
                     try
                     {
-                        layout.ElementsL.Add(JsonConvert.DeserializeObject<Element>(ImGui.GetClipboardText()));
+                        layout.GetElementsWithSubconfiguration().Add(JsonConvert.DeserializeObject<Element>(ImGui.GetClipboardText()));
                     }
                     catch(Exception e)
                     {
@@ -196,7 +212,7 @@ internal static class LayoutDrawSelector
         ImGui.PopID();
     }
 
-    static int PushTextColors(this Layout l)
+    private static int PushTextColors(this Layout l)
     {
         var ret = 0;
         if(l.Enabled)
@@ -216,7 +232,7 @@ internal static class LayoutDrawSelector
         return ret;
     }
 
-    static int PushTextColors(this Layout l, Element e)
+    private static int PushTextColors(this Layout l, Element e)
     {
         var ret = 0;
         if(e.Enabled)
@@ -225,7 +241,7 @@ internal static class LayoutDrawSelector
             {
                 if(e.IsVisible())
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, e.Conditional?Colors.ElementIsConditionalVisible: Colors.ElementLayoutIsVisible);
+                    ImGui.PushStyleColor(ImGuiCol.Text, e.Conditional ? Colors.ElementIsConditionalVisible : Colors.ElementLayoutIsVisible);
                     ret++;
                 }
                 else if(e.Conditional)
@@ -236,15 +252,15 @@ internal static class LayoutDrawSelector
             }
             else
             {
-                var col = e.Conditional?Colors.ElementIsConditional:ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
-                ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled?1f:0.5f) });
+                var col = e.Conditional ? Colors.ElementIsConditional : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
+                ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled ? 1f : 0.5f) });
                 ret++;
             }
         }
         else
         {
             var col = e.Conditional ? Colors.ElementIsConditional : ImGui.GetStyle().Colors[(int)ImGuiCol.Text];
-            ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled? 0.5f:0.25f) });
+            ImGui.PushStyleColor(ImGuiCol.Text, col with { W = col.W * 0.75f * (l.Enabled ? 0.5f : 0.25f) });
             ret++;
         }
         return ret;

@@ -13,20 +13,22 @@ public class StatusbarFpsSwitcher : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
-    IDtrBarEntry Entry;
+    private IDtrBarEntry Entry;
+
+    public override Metadata? Metadata => new(1, "NightmareXIV");
 
     public override void OnEnable()
     {
         Entry = Svc.DtrBar.Get("Splatoon.FpsSwitcher", "");
         Entry.Shown = true;
-        Entry.OnClick = () =>
+        Entry.OnClick = (x) =>
         {
             Toggle();
         };
         Update();
     }
 
-    void Update()
+    private void Update()
     {
         Entry = Svc.DtrBar.Get("Splatoon.FpsSwitcher", "");
         var cfg = Svc.GameConfig.System.GetUInt("Fps");
@@ -48,7 +50,7 @@ public class StatusbarFpsSwitcher : SplatoonScript
         }
     }
 
-    void Toggle()
+    private void Toggle()
     {
         var cfg = Svc.GameConfig.System.GetUInt("Fps");
         Svc.GameConfig.System.Set("Fps", cfg == 3 ? 2u : 3u);

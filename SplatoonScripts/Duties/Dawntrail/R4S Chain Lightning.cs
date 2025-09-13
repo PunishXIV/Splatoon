@@ -19,16 +19,16 @@ public class R4S_Chain_Lightning : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1232];
     public override Metadata? Metadata => new(3, "NightmareXIV");
-    uint TowerID = 13061;
-    List<List<uint>> Towers = [];
-    Layout VoidZone = null!;
-    long ResetAt = long.MaxValue;
+    private uint TowerID = 13061;
+    private List<List<uint>> Towers = [];
+    private Layout VoidZone = null!;
+    private long ResetAt = long.MaxValue;
 
-    IEnumerable<IBattleChara> GetTowers() => Svc.Objects.OfType<IBattleNpc>().Where(x => x.NameId == TowerID);
+    private IEnumerable<IBattleChara> GetTowers() => Svc.Objects.OfType<IBattleNpc>().Where(x => x.NameId == TowerID);
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 6; i++)
+        for(var i = 0; i < 6; i++)
         {
             Controller.RegisterElementFromCode($"Tower{i}", "{\"Name\":\"Tower\",\"type\":1,\"radius\":7.0,\"color\":3355508223,\"fillIntensity\":0.3,\"originFillColor\":1677721855,\"endFillColor\":1677721855,\"refActorComparisonType\":2,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0,\"refActorTetherConnectedWithPlayer\":[]}");
         }
@@ -38,12 +38,12 @@ public class R4S_Chain_Lightning : SplatoonScript
     public override void OnUpdate()
     {
         if(Environment.TickCount64 > ResetAt) Reset();
-        this.Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         if(Towers.Count > 0)
         {
             VoidZone.Enabled = true;
             uint[] towersConcat = [.. Towers.SafeSelect(0), .. Towers.SafeSelect(1) ?? []];
-            for(int i = 0; i < towersConcat.Length; i++)
+            for(var i = 0; i < towersConcat.Length; i++)
             {
                 if(towersConcat[i].GetObject() == null) Reset();
                 if(Controller.TryGetElementByName($"Tower{i}", out var e))
@@ -104,7 +104,7 @@ public class R4S_Chain_Lightning : SplatoonScript
         }
     }
 
-    void Reset()
+    private void Reset()
     {
         Towers.Clear();
     }

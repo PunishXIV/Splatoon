@@ -10,6 +10,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class TurnAroundCmd : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
+    public override Metadata Metadata => new(1, "NightmareXIV");
 
     public override void OnEnable()
     {

@@ -10,7 +10,7 @@ using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -25,19 +25,19 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     public override HashSet<uint>? ValidTerritories { get; } = [];
     public override Metadata? Metadata => new(5, "NightmareXIV");
 
-    [EzIPC("Questionable.IsRunning", false)] Func<bool> QuestionableIsRunning;
-    [EzIPC("Questionable.StartSingleQuest", false)] Func<string, bool> QuestionableStartSingleQuest;
-    [EzIPC("Questionable.StartQuest", false)] Func<string, bool> QuestionableStartQuest;
-    [EzIPC("Questionable.GetCurrentQuestId", false)] Func<string> QuestionableGetCurrentQuestId;
+    [EzIPC("Questionable.IsRunning", false)] private Func<bool> QuestionableIsRunning;
+    [EzIPC("Questionable.StartSingleQuest", false)] private Func<string, bool> QuestionableStartSingleQuest;
+    [EzIPC("Questionable.StartQuest", false)] private Func<string, bool> QuestionableStartQuest;
+    [EzIPC("Questionable.GetCurrentQuestId", false)] private Func<string> QuestionableGetCurrentQuestId;
 
     [EzIPC("Lifestream.IsBusy", false)] public Func<bool> LifestreamIsBusy;
     [EzIPC("Lifestream.Teleport", false)] public Func<uint, byte, bool> LifestreamTeleport;
     [EzIPC("Lifestream.AethernetTeleport", false)] public Func<string, bool> LifestreamAethernetTeleport;
 
 
-    Config C => Controller.GetConfig<Config>();
-    Dictionary<uint, string> Aetherytes = [new KeyValuePair<uint, string>(0, "Disabled"), .. Svc.Data.GetExcelSheet<Aetheryte>().Where(x => x.IsAetheryte && x.PlaceName.Value.Name != "").ToDictionary(x => x.RowId, x => x.PlaceName.Value.Name.GetText())];
-    Dictionary<uint, string> Aethernets = [new KeyValuePair<uint, string>(0, "Disabled"), ..Svc.Data.GetExcelSheet<Aetheryte>().Where(x => !x.IsAetheryte && x.AethernetName.Value.Name != "").ToDictionary(x => x.RowId, x => x.AethernetName.Value.Name.GetText())];
+    private Config C => Controller.GetConfig<Config>();
+    private Dictionary<uint, string> Aetherytes = [new KeyValuePair<uint, string>(0, "Disabled"), .. Svc.Data.GetExcelSheet<Aetheryte>().Where(x => x.IsAetheryte && x.PlaceName.Value.Name != "").ToDictionary(x => x.RowId, x => x.PlaceName.Value.Name.GetText())];
+    private Dictionary<uint, string> Aethernets = [new KeyValuePair<uint, string>(0, "Disabled"), .. Svc.Data.GetExcelSheet<Aetheryte>().Where(x => !x.IsAetheryte && x.AethernetName.Value.Name != "").ToDictionary(x => x.RowId, x => x.AethernetName.Value.Name.GetText())];
 
     public bool IsNotified = false;
 
@@ -46,7 +46,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         EzIPC.Init(this);
     }
 
-    TaskManager TaskManager;
+    private TaskManager TaskManager;
 
     public override void OnEnable()
     {
@@ -61,28 +61,28 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     public override void OnUpdate()
     {
         if(!C.Active) return;
-        if(EzThrottler.Throttle(this.InternalData.FullName + "Notify", 60000)) DuoLog.Warning($"{this.InternalData.Name} is running.");
+        if(EzThrottler.Throttle(InternalData.FullName + "Notify", 60000)) DuoLog.Warning($"{InternalData.Name} is running.");
         if(QuestionableIsRunning())
         {
             IsNotified = false;
             var allowedQuests = C.Quests.Where(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536)).Select(x => x.ID.ToString());
             if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()))
             {
-                if(EzThrottler.Check(this.InternalData.FullName + "NoRestart"))
+                if(EzThrottler.Check(InternalData.FullName + "NoRestart"))
                 {
                     Svc.Commands.ProcessCommand("/qst stop");
                 }
             }
             else
             {
-                EzThrottler.Throttle(this.InternalData.FullName + "NoRestart", 3000, true);
+                EzThrottler.Throttle(InternalData.FullName + "NoRestart", 3000, true);
             }
         }
         if(IsBusy() || TaskManager.IsBusy)
         {
-            EzThrottler.Throttle(this.InternalData.FullName + "Busy", 1000, true);
+            EzThrottler.Throttle(InternalData.FullName + "Busy", 1000, true);
         }
-        if(EzThrottler.Check(this.InternalData.FullName + "Busy"))
+        if(EzThrottler.Check(InternalData.FullName + "Busy"))
         {
             var next = C.Quests.FirstOrDefault(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536));
             if(next == null)
@@ -90,11 +90,11 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
                 if(!IsNotified)
                 {
                     DuoLog.Warning("No more quests left in queue, script disabled");
-                    Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification(this.InternalData.Name, "No more quests left in queue");
+                    Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification(InternalData.Name, "No more quests left in queue");
                     Splatoon.Splatoon.P.NotificationMasterApi.FlashTaskbarIcon();
                 }
                 if(C.AutoDeactivate) C.Active = false;
-                IsNotified = true; 
+                IsNotified = true;
             }
             else
             {
@@ -104,12 +104,12 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         }
     }
 
-    void Enqueue(QuestInfo data)
+    private void Enqueue(QuestInfo data)
     {
         if(data.Aetheryte != 0)
         {
             var aetheryte = Svc.Data.GetExcelSheet<Aetheryte>().GetRowOrDefault(data.Aetheryte);
-            if(aetheryte != null && aetheryte.Value.Territory.RowId != Player.Territory)
+            if(aetheryte != null && (aetheryte.Value.Territory.RowId != Player.Territory || !Svc.Objects.Any(x => x.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Aetheryte && Player.DistanceTo(x) < 20f)))
             {
                 TaskManager.Enqueue(() => LifestreamTeleport(data.Aetheryte, 0), "Teleport");
                 TaskManager.Enqueue(() => !GenericHelpers.IsScreenReady(), "Wait 1");
@@ -118,16 +118,16 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         }
         if(data.Aethernet != 0)
         {
-            TaskManager.Enqueue(() => LifestreamAethernetTeleport(this.Aethernets[data.Aethernet]), "Aethernet teleport");
+            TaskManager.Enqueue(() => LifestreamAethernetTeleport(Aethernets[data.Aethernet]), "Aethernet teleport");
             TaskManager.Enqueue(() => !GenericHelpers.IsScreenReady(), "Wait 3");
             TaskManager.Enqueue(() => !IsBusy(), "Wait 4");
         }
-        TaskManager.Enqueue(() => (data.Cont? QuestionableStartQuest: QuestionableStartSingleQuest)(data.ID.ToString()), "Start quest");
+        TaskManager.Enqueue(() => (data.Cont ? QuestionableStartQuest : QuestionableStartSingleQuest)(data.ID.ToString()), "Start quest");
     }
 
     public bool IsBusy() => !Player.Interactable || QuestionableIsRunning() || LifestreamIsBusy() || GenericHelpers.IsOccupied() || Player.IsAnimationLocked || !GenericHelpers.IsScreenReady() || Player.Object.IsCasting;
 
-    ImGuiEx.RealtimeDragDrop<QuestInfo> DragDrop = new("QuestInfoDragDrop", (x) => x.DragDropID);
+    private ImGuiEx.RealtimeDragDrop<QuestInfo> DragDrop = new("QuestInfoDragDrop", (x) => x.DragDropID);
     public override void OnSettingsDraw()
     {
         ImGui.Checkbox("Automatically do quests", ref C.Active);
@@ -150,7 +150,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         DragDrop.Begin();
         if(ImGuiEx.BeginDefaultTable(["##drag", "##enabled", "~Quest", "Aetheryte", "Aethernet", "##delete"]))
         {
-            for(int i = 0; i < C.Quests.Count; i++)
+            for(var i = 0; i < C.Quests.Count; i++)
             {
                 ImGui.PushID($"Quest{i}");
                 var q = C.Quests[i];
@@ -183,10 +183,10 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
 
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(150f);
-                ImGuiEx.Combo("##aetheryte", ref q.Aetheryte, this.Aetherytes.Keys, names: this.Aetherytes);
+                ImGuiEx.Combo("##aetheryte", ref q.Aetheryte, Aetherytes.Keys, names: Aetherytes);
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(150f);
-                ImGuiEx.Combo("##aethernet", ref q.Aethernet, this.Aethernets.Keys, names: this.Aethernets);
+                ImGuiEx.Combo("##aethernet", ref q.Aethernet, Aethernets.Keys, names: Aethernets);
                 ImGui.TableNextColumn();
                 if(ImGuiEx.IconButton(FontAwesomeIcon.Play))
                 {
@@ -213,7 +213,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
 
     public class QuestInfo(uint iD, uint aetheryte, uint aethernet = 0)
     {
-        public QuestInfo():this(0,0) { }
+        public QuestInfo() : this(0, 0) { }
 
         internal string DragDropID = Guid.NewGuid().ToString();
         public bool Enabled = true;

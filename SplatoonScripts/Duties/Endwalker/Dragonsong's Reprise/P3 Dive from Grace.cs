@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using ECommons;
@@ -10,10 +7,13 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -329,7 +329,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (target != Player.Object.EntityId) return;
+        if(target != Player.Object.EntityId) return;
 
         _myNumber = vfxPath switch
         {
@@ -352,12 +352,12 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
+        if(_myNumber == -1 || _myDebuff == DebuffType.None) return;
 
-        if (set.Action?.RowId is 26382 or 26383 or 26384)
+        if(set.Action?.RowId is 26382 or 26383 or 26384)
         {
             _darkCount++;
-            if (_darkCount is 3 or 5 or 8)
+            if(_darkCount is 3 or 5 or 8)
             {
                 _phaseCount++;
                 var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
@@ -369,35 +369,35 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        switch (castId)
+        switch(castId)
         {
             case 26386 or 26387:
-            {
-                _generalSafe = castId == 26386 ? GeneralSafe.Out : GeneralSafe.In;
-                Controller.Schedule(() =>
                 {
-                    _generalSafe = _generalSafe == GeneralSafe.In ? GeneralSafe.Out : GeneralSafe.In;
+                    _generalSafe = castId == 26386 ? GeneralSafe.Out : GeneralSafe.In;
+                    Controller.Schedule(() =>
+                    {
+                        _generalSafe = _generalSafe == GeneralSafe.In ? GeneralSafe.Out : GeneralSafe.In;
+                        var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
+                        SetOffPositionBaitElements(positions);
+                    }, 1000 * 12);
+
+                    _phaseCount++;
+                    if(_phaseCount == 1)
+                    {
+                        var statuses = Player.Status;
+                        if(statuses.Any(x => x.StatusId == (uint)DebuffType.HighJump))
+                            _myDebuff = DebuffType.HighJump;
+                        else if(statuses.Any(x => x.StatusId == (uint)DebuffType.Spine))
+                            _myDebuff = DebuffType.Spine;
+                        else if(statuses.Any(x => x.StatusId == (uint)DebuffType.Illusive))
+                            _myDebuff = DebuffType.Illusive;
+                    }
+
+                    if(_myNumber == -1 || _myDebuff == DebuffType.None) return;
                     var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
                     SetOffPositionBaitElements(positions);
-                }, 1000 * 12);
-
-                _phaseCount++;
-                if (_phaseCount == 1)
-                {
-                    var statuses = Player.Status;
-                    if (statuses.Any(x => x.StatusId == (uint)DebuffType.HighJump))
-                        _myDebuff = DebuffType.HighJump;
-                    else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Spine))
-                        _myDebuff = DebuffType.Spine;
-                    else if (statuses.Any(x => x.StatusId == (uint)DebuffType.Illusive))
-                        _myDebuff = DebuffType.Illusive;
+                    break;
                 }
-
-                if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
-                var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
-                SetOffPositionBaitElements(positions);
-                break;
-            }
             case 26380:
                 Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
                 _myNumber = -1;
@@ -408,7 +408,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     private void ApplyLockFace()
     {
-        if (Player.Position != _lastPosition && C.LockFaceEnableWhenNotMoving) return;
+        if(Player.Position != _lastPosition && C.LockFaceEnableWhenNotMoving) return;
 
         var isEast = Player.Position.X > 100f;
         var targetPosition = (_myDebuff, isEast) switch
@@ -419,7 +419,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
             _ => Vector3.Zero
         };
 
-        if (targetPosition == Vector3.Zero) return;
+        if(targetPosition == Vector3.Zero) return;
 
         FaceTarget(targetPosition);
         return;
@@ -433,7 +433,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
     private List<Vector2>? GetBaitPositions(int phase, int number, DebuffType debuff)
     {
         string key;
-        switch (phase)
+        switch(phase)
         {
             case 1:
                 key = "First";
@@ -455,7 +455,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         }
 
         var offset = 0f;
-        if (C.ShouldConsiderCircleDonut)
+        if(C.ShouldConsiderCircleDonut)
             offset = _generalSafe switch
             {
                 GeneralSafe.In => -1.5f,
@@ -463,7 +463,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                 _ => 0f
             };
 
-        if (number == 2 && phase == 2 && _generalSafe == GeneralSafe.In)
+        if(number == 2 && phase == 2 && _generalSafe == GeneralSafe.In)
         {
             Controller.Schedule(() =>
             {
@@ -471,30 +471,30 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
                 var positions = GetBaitPositions(_phaseCount, _myNumber, _myDebuff);
                 SetOffPositionBaitElements(positions);
             }, 1000 * 3);
-            return new List<Vector2> { NorthSafePosition(offset) };
+            return [NorthSafePosition(offset)];
         }
 
-        if (_baitPositions.TryGetValue(key, out var phaseDict))
-            if (phaseDict.TryGetValue(number, out var numberDict))
-                if (numberDict.TryGetValue(debuff, out var positions))
+        if(_baitPositions.TryGetValue(key, out var phaseDict))
+            if(phaseDict.TryGetValue(number, out var numberDict))
+                if(numberDict.TryGetValue(debuff, out var positions))
                     return positions.Select(x => x(offset)).ToList();
         return null;
     }
 
     private void SetOffPositionBaitElements(List<Vector2>? positions)
     {
-        if (positions == null) return;
+        if(positions == null) return;
 
-        for (var i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
             var elementName = $"Bait{i}";
-            if (Controller.TryGetElementByName(elementName, out var element)) element.Enabled = false;
+            if(Controller.TryGetElementByName(elementName, out var element)) element.Enabled = false;
         }
 
-        for (var i = 0; i < positions.Count; i++)
+        for(var i = 0; i < positions.Count; i++)
         {
             var elementName = $"Bait{i}";
-            if (Controller.TryGetElementByName(elementName, out var element))
+            if(Controller.TryGetElementByName(elementName, out var element))
             {
                 element.Enabled = true;
                 element.SetOffPosition(positions[i].ToVector3());
@@ -526,7 +526,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
             "This feature might be dangerous. Do NOT use when streaming. Make sure no other software implements similar option.\n\nThis will lock your face to the monitor, use with caution.\n\n自動で視線を調整します。ストリーミング中は使用しないでください。他のソフトウェアが同様の機能を実装していないことを確認してください。",
             EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString());
 
-        if (C.LookFace)
+        if(C.LookFace)
         {
             ImGui.Indent();
             ImGui.Checkbox("Lock Face Enable When Not Moving", ref C.LockFaceEnableWhenNotMoving);
@@ -538,7 +538,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
         }
 
 
-        if (ImGui.CollapsingHeader("Debug"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Text("Debuff: " + _myDebuff);
             ImGui.Text("Number: " + _myNumber);
@@ -549,17 +549,17 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     public override void OnUpdate()
     {
-        if (_myNumber == -1 || _myDebuff == DebuffType.None) return;
+        if(_myNumber == -1 || _myDebuff == DebuffType.None) return;
         Controller.GetRegisteredElements().Each(x =>
             x.Value.color = GradientColor.Get(0xFFFF00FF.ToVector4(), 0xFFFFFF00.ToVector4()).ToUint());
 
-        if (C.LookFace)
+        if(C.LookFace)
         {
-            if (_myNumber == 1 && _phaseCount == 1) ApplyLockFace();
+            if(_myNumber == 1 && _phaseCount == 1) ApplyLockFace();
 
-            if (_myNumber == 2 && _phaseCount == 2) ApplyLockFace();
+            if(_myNumber == 2 && _phaseCount == 2) ApplyLockFace();
 
-            if (_myNumber == 3 && _phaseCount == 4) ApplyLockFace();
+            if(_myNumber == 3 && _phaseCount == 4) ApplyLockFace();
 
             _lastPosition = Player.Position;
         }
@@ -567,7 +567,7 @@ public unsafe class P3_Dive_from_Grace : SplatoonScript
 
     public override void OnSetup()
     {
-        for (var i = 0; i < 3; i++)
+        for(var i = 0; i < 3; i++)
         {
             var elementName = $"Bait{i}";
             var element = new Element(0)

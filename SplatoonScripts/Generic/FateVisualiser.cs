@@ -1,7 +1,7 @@
 ﻿using ECommons.Configuration;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -14,7 +14,7 @@ namespace SplatoonScriptsOfficial.Generic;
  */
 internal class FateVisualiser : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories => new();
+    public override HashSet<uint>? ValidTerritories => [];
     public override Metadata? Metadata => new(0, "sourpuh");
 
     private class Config : IEzConfig
@@ -47,17 +47,17 @@ internal class FateVisualiser : SplatoonScript
 
     public override void OnUpdate()
     {
-        foreach (var fate in Svc.Fates)
+        foreach(var fate in Svc.Fates)
         {
-            if (fate.StartTimeEpoch == 0) continue;
+            if(fate.StartTimeEpoch == 0) continue;
             DrawFateCircle(fate.Position, fate.Radius);
         }
     }
 
-    void DrawFateCircle(Vector3 origin, float radius, float castHeight = 20)
+    private void DrawFateCircle(Vector3 origin, float radius, float castHeight = 20)
     {
         var playerPos = Svc.ClientState.LocalPlayer?.Position;
-        if (playerPos.HasValue && Controller.TryGetElementByName("Fate Border Dot", out var template))
+        if(playerPos.HasValue && Controller.TryGetElementByName("Fate Border Dot", out var template))
         {
             var fadeoutDistance = C.FadeOutDistance;
             Vector3 castOffset = new(0, castHeight / 2, 0);
@@ -66,17 +66,17 @@ internal class FateVisualiser : SplatoonScript
             var numSegments = (int)(totalAngle * radius * C.Density);
             var angleStep = totalAngle / numSegments;
             var angleStart = angleStep * (Environment.TickCount64 % C.Period) / C.Period;
-            for (int step = 0; step <= numSegments; step++)
+            for(var step = 0; step <= numSegments; step++)
             {
                 var angle = angleStart + step * angleStep;
-                Vector3 offset = castOffset + radius * new Vector3(MathF.Cos(angle), 0, MathF.Sin(angle));
+                var offset = castOffset + radius * new Vector3(MathF.Cos(angle), 0, MathF.Sin(angle));
                 var castOrigin = origin with { Y = playerPos.Value.Y } + offset;
-                if (BGCollisionModule.RaycastMaterialFilter(castOrigin, -Vector3.UnitY, out RaycastHit hit, castHeight))
+                if(BGCollisionModule.RaycastMaterialFilter(castOrigin, -Vector3.UnitY, out var hit, castHeight))
                 {
                     var distance = Vector3.Distance(playerPos.Value, hit.Point);
                     var alpha = 1 - MathF.Min(1, distance / fadeoutDistance);
                     var color = MultiplyAlpha(template.color, alpha);
-                    if ((color & 0xFF000000) == 0) continue;
+                    if((color & 0xFF000000) == 0) continue;
                     DrawDot(template, hit.Point, color, 1);
                     DrawDot(template, hit.Point, MultiplyAlpha(0xFFFFFFFF, alpha), 0.5f);
                 }
@@ -86,11 +86,13 @@ internal class FateVisualiser : SplatoonScript
 
     public static void DrawDot(Element template, Vector3 pos, uint color, float scale)
     {
-        Element e = new(0);
-        e.Filled = template.Filled;
-        e.radius = template.radius;
-        e.color = color;
-        e.thicc = template.thicc * scale;
+        Element e = new(0)
+        {
+            Filled = template.Filled,
+            radius = template.radius,
+            color = color,
+            thicc = template.thicc * scale
+        };
         e.SetRefPosition(pos);
         Splatoon.Splatoon.P.InjectElement(e);
     }

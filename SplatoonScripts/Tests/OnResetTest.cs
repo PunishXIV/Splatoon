@@ -11,6 +11,7 @@ namespace SplatoonScriptsOfficial.Tests;
 public class OnResetTest : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = null;
+    public override Metadata Metadata => new(1, "NightmareXIV");
     public override void OnReset()
     {
         PluginLog.Information($"OnReset has been called");

@@ -5,7 +5,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
@@ -16,7 +16,7 @@ using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
-public class TEA_P2_1211_Transition :SplatoonScript
+public class TEA_P2_1211_Transition : SplatoonScript
 {
     private const uint HawkBlastActionEffectId = 18480;
 
@@ -192,60 +192,60 @@ public class TEA_P2_1211_Transition :SplatoonScript
         {
             // To Safe 1
             case 1 or 2:
-            EnableTetherElement("Safe1", "<1>");
-            break;
+                EnableTetherElement("Safe1", "<1>");
+                break;
             // To Safe 2
             case 3 or 4:
-            EnableTetherElement("Safe2", "<1>");
-            break;
+                EnableTetherElement("Safe2", "<1>");
+                break;
             // To Safe 3 and Bait 1
             case 5 or 6 when _myNumber == 1:
-            EnableTetherElement("Bait1", "<1>");
-            break;
+                EnableTetherElement("Bait1", "<1>");
+                break;
             case 5 or 6 when _myNumber == 2:
-            EnableTetherElement("Bait2", "<1>");
-            break;
+                EnableTetherElement("Bait2", "<1>");
+                break;
             case 5 or 6:
-            EnableTetherElement("Safe3", "<1>");
-            break;
+                EnableTetherElement("Safe3", "<1>");
+                break;
             // To Safe 4
             case 7 or 8:
-            EnableTetherElement("Safe4", "<1>");
-            break;
+                EnableTetherElement("Safe4", "<1>");
+                break;
             // To Safe 4 and Bait 2
             case 9 or 10 when _myNumber == 3:
-            EnableTetherElement("Bait3", "<1>");
-            break;
+                EnableTetherElement("Bait3", "<1>");
+                break;
             case 9 or 10 when _myNumber == 4:
-            EnableTetherElement("Bait4", "<1>");
-            break;
+                EnableTetherElement("Bait4", "<1>");
+                break;
             case 9 or 10:
-            EnableTetherElement("Safe4", "<1>");
-            break;
+                EnableTetherElement("Safe4", "<1>");
+                break;
             // To Safe 5
             case 11 or 12:
-            EnableTetherElement("Safe5", "<1>");
-            break;
+                EnableTetherElement("Safe5", "<1>");
+                break;
             // To Safe 6 and Bait 3
             case 13 or 14 when _myNumber == 5:
-            EnableTetherElement("Bait6", "<1>");
-            break;
+                EnableTetherElement("Bait6", "<1>");
+                break;
             case 13 or 14 when _myNumber == 6:
-            EnableTetherElement("Bait6", "<1>");
-            break;
+                EnableTetherElement("Bait6", "<1>");
+                break;
             case 13 or 14:
-            EnableTetherElement("Safe6", "<1>");
-            break;
+                EnableTetherElement("Safe6", "<1>");
+                break;
             // To Safe 7 and Bait 4
             case 15 or 16 or 17 when _myNumber == 7:
-            EnableTetherElement("Bait7", "<1>");
-            break;
+                EnableTetherElement("Bait7", "<1>");
+                break;
             case 15 or 16 or 17 when _myNumber == 8:
-            EnableTetherElement("Bait8", "<1>");
-            break;
+                EnableTetherElement("Bait8", "<1>");
+                break;
             case 15 or 16 or 17:
-            EnableTetherElement("Safe7", "<1>");
-            break;
+                EnableTetherElement("Safe7", "<1>");
+                break;
         }
 
         if(C.ShoulDisplayFlares)
@@ -258,38 +258,38 @@ public class TEA_P2_1211_Transition :SplatoonScript
                 case 10:
                 case 12:
                 case 14:
-                SetNextFlareElement("Flare_a", set.Position.ToVector2());
-                break;
+                    SetNextFlareElement("Flare_a", set.Position.ToVector2());
+                    break;
                 case 2:
                 case 4:
                 case 6:
                 case 11:
                 case 13:
                 case 15:
-                SetNextFlareElement("Flare_b", set.Position.ToVector2());
-                break;
+                    SetNextFlareElement("Flare_b", set.Position.ToVector2());
+                    break;
                 case 7:
                 case 16:
-                SetNextFlareElement("Flare_a", set.Position.ToVector2(), false);
-                break;
+                    SetNextFlareElement("Flare_a", set.Position.ToVector2(), false);
+                    break;
                 case 8:
                 case 17:
-                {
-                    SetNextFlareElement("Flare_b", set.Position.ToVector2(), false);
-                    var flareM = Controller.GetElementByName("Flare_m");
-                    flareM!.Enabled = true;
-                    break;
-                }
+                    {
+                        SetNextFlareElement("Flare_b", set.Position.ToVector2(), false);
+                        var flareM = Controller.GetElementByName("Flare_m");
+                        flareM!.Enabled = true;
+                        break;
+                    }
                 case 9:
-                {
-                    var flareM = Controller.GetElementByName("Flare_m");
-                    flareM!.Enabled = false;
-                    var flareA = Controller.GetElementByName("Flare_a");
-                    flareA!.Enabled = true;
-                    var flareB = Controller.GetElementByName("Flare_b");
-                    flareB!.Enabled = true;
-                    break;
-                }
+                    {
+                        var flareM = Controller.GetElementByName("Flare_m");
+                        flareM!.Enabled = false;
+                        var flareA = Controller.GetElementByName("Flare_a");
+                        flareA!.Enabled = true;
+                        var flareB = Controller.GetElementByName("Flare_b");
+                        flareB!.Enabled = true;
+                        break;
+                    }
             }
 
         if(_hawkBlastCount >= 18) Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
@@ -412,7 +412,7 @@ public class TEA_P2_1211_Transition :SplatoonScript
         ImGui.Checkbox("##displayFlares", ref C.ShoulDisplayFlares);
     }
 
-    private enum HawkBlastDirection :byte
+    private enum HawkBlastDirection : byte
     {
         None,
         North,
@@ -425,7 +425,7 @@ public class TEA_P2_1211_Transition :SplatoonScript
         Northwest
     }
 
-    private class Config :IEzConfig
+    private class Config : IEzConfig
     {
         //public string BaitMessage = "Turn to face the outside here.";
         public InternationalString BaitMessageIS = new();

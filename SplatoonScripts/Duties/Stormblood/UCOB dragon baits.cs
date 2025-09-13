@@ -9,7 +9,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -24,17 +24,17 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
 {
     public class UCOB_dragon_baits : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 733 };
+        public override HashSet<uint> ValidTerritories => [733];
 
-        public override Metadata? Metadata => new(3, "NightmareXIV");
-        const string TargetVFX = "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx";
-        int diveCnt = 0;
-        uint[] baiters = new uint[3];
-        List<TickScheduler> Schedulers = new();
+        public override Metadata? Metadata => new(4, "NightmareXIV, damolitionn");
+        private const string TargetVFX = "vfx/lockon/eff/bahamut_wyvn_glider_target_02tm.avfx";
+        private int diveCnt = 0;
+        private uint[] baiters = new uint[3];
+        private List<TickScheduler> Schedulers = [];
 
         public override void OnSetup()
         {
-            for (int i = 0; i < 5; i++)
+            for(var i = 0; i < 5; i++)
             {
                 Controller.RegisterElementFromCode($"Tether{i}", "{\"Name\":\"\",\"type\":2,\"radius\":5.0,\"color\":1677721855}");
             }
@@ -51,23 +51,23 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
 
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
-            
+
         }
 
         public override void OnUpdate()
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-            if (baiters.Any(x => x != 0))
+            if(baiters.Any(x => x != 0))
             {
                 var dragons = GetOrderedDragons();
-                for (int i = 0; i < baiters.Length; i++)
+                for(var i = 0; i < baiters.Length; i++)
                 {
-                    if (baiters[i] != 0)
+                    if(baiters[i] != 0)
                     {
                         GetElementsForNumber(i).Each(x => x.element.Enabled = true);
-                        if (baiters[i].TryGetObject(out var pc) && dragons.Length == 5)
+                        if(baiters[i].TryGetObject(out var pc) && dragons.Length == 5)
                         {
-                            foreach (var x in GetElementsForNumber(i))
+                            foreach(var x in GetElementsForNumber(i))
                             {
                                 x.element.SetRefPosition(pc.Position);
                                 x.element.SetOffPosition(dragons[x.num].Position);
@@ -78,25 +78,25 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
-        IEnumerable<int> GetOrderForNumber(int num)
+        private IEnumerable<int> GetOrderForNumber(int num)
         {
-            if (num == 0)
+            if(num == 0)
             {
                 yield return 0;
                 yield return 1;
             }
-            if (num == 1)
+            if(num == 1)
             {
                 yield return 2;
             }
-            if (num == 2)
+            if(num == 2)
             {
                 yield return 3;
                 yield return 4;
             }
         }
 
-        IEnumerable<(Element element, int num)> GetElementsForNumber(int num)
+        private IEnumerable<(Element element, int num)> GetElementsForNumber(int num)
         {
             foreach(var x in GetOrderForNumber(num))
             {
@@ -108,24 +108,24 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
         {
             if(vfxPath == TargetVFX)
             {
-                if (diveCnt < 3)
+                if(diveCnt < 3)
                 {
                     var c = diveCnt;
                     baiters[c] = target;
                     Schedulers.Add(new(() => baiters[c] = uint.MaxValue, 5000));
                     Schedulers.Add(new(() => baiters[c] = 0, 12000));
                     diveCnt++;
-                    if (target.TryGetObject(out var o) && o is IPlayerCharacter pc)
+                    if(target.TryGetObject(out var o) && o is IPlayerCharacter pc)
                     {
-                        if (diveCnt == 1)
+                        if(diveCnt == 1)
                         {
                             //DuoLog.Information($"{pc.Name} baits first");
                         }
-                        else if (diveCnt == 2)
+                        else if(diveCnt == 2)
                         {
                             //DuoLog.Information($"{pc.Name} baits second");
                         }
-                        else if (diveCnt == 3)
+                        else if(diveCnt == 3)
                         {
                             //DuoLog.Information($"{pc.Name} baits third");
                         }
@@ -134,7 +134,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
-        void Reset()
+        private void Reset()
         {
             baiters = new uint[3];
             diveCnt = 0;
@@ -151,12 +151,20 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
             }
         }
 
-        IBattleChara[] GetOrderedDragons()
+        private static readonly Vector2 TrueNorth = new(-0.015319824f, -24.002502f);
+        private IBattleChara[] GetOrderedDragons()
         {
-            return GetDragons().OrderBy(x => (MathHelper.GetRelativeAngle(Vector3.Zero, x.Position) + 360 - 3) % 360).ToArray();
+            return GetDragons()
+                .OrderBy(d =>
+                {
+                    var target = new Vector2(d.Position.X, d.Position.Z);
+                    float angle = MathHelper.GetRelativeAngle(TrueNorth, target);
+                    return angle;
+                })
+                .ToArray();
         }
 
-        IEnumerable<IBattleChara> GetDragons()
+        private IEnumerable<IBattleChara> GetDragons()
         {
             foreach(var x in Svc.Objects)
             {
@@ -169,7 +177,7 @@ namespace SplatoonScriptsOfficial.Duties.Stormblood
 
         public override void OnSettingsDraw()
         {
-            if (ImGui.CollapsingHeader("debug"))
+            if(ImGui.CollapsingHeader("debug"))
             {
                 ImGuiEx.Text($"Dragons: ");
                 foreach(var x in GetOrderedDragons())

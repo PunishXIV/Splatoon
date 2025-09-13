@@ -10,7 +10,7 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Reflection;
 using ECommons.Schedulers;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
@@ -25,18 +25,19 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P11S_Multiscript : SplatoonScript
     {
-        public override HashSet<uint> ValidTerritories => new() { 1152 };
+        public override HashSet<uint> ValidTerritories => [1152];
         public override Metadata? Metadata => new(6, "NightmareXIV");
 
-        const string DarkVFX = "vfx/common/eff/m0830_dark_castloopc0k1.avfx";
-        const string LightVFX = "vfx/common/eff/m0830_light_castloopc0k1.avfx";
-        enum Color { Unknown, Light, Dark };
-        IBattleNpc? Themis => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 16114 && b.IsTargetable()) as IBattleNpc;
-        IEnumerable<IBattleNpc> IllusoryThemises => Svc.Objects.Where(x => x is IBattleNpc b && b.DataId == 16115).Cast<IBattleNpc>();
-        TickScheduler? DonutScheduler;
-        TickScheduler? TowerScheduler;
+        private const string DarkVFX = "vfx/common/eff/m0830_dark_castloopc0k1.avfx";
+        private const string LightVFX = "vfx/common/eff/m0830_light_castloopc0k1.avfx";
+        private enum Color
+        { Unknown, Light, Dark };
+        private IBattleNpc? Themis => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == 16114 && b.IsTargetable()) as IBattleNpc;
+        private IEnumerable<IBattleNpc> IllusoryThemises => Svc.Objects.Where(x => x is IBattleNpc b && b.DataId == 16115).Cast<IBattleNpc>();
+        private TickScheduler? DonutScheduler;
+        private TickScheduler? TowerScheduler;
 
-        Dictionary<TowerDirection, Vector2> Towers = new()
+        private Dictionary<TowerDirection, Vector2> Towers = new()
         {
             { (TowerDirection)7,  new(108.152f, 91.834f) },
             { (TowerDirection)8, new(108.085f, 108.149f) },
@@ -60,9 +61,9 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             SouthEast = 8,
         }
 
-        TowerDirection[] Clock = new TowerDirection[] { TowerDirection.North, TowerDirection.NorthEast, TowerDirection.East, TowerDirection.SouthEast, TowerDirection.South, TowerDirection.SouthWest, TowerDirection.West, TowerDirection.NorthWest };
+        private TowerDirection[] Clock = new TowerDirection[] { TowerDirection.North, TowerDirection.NorthEast, TowerDirection.East, TowerDirection.SouthEast, TowerDirection.South, TowerDirection.SouthWest, TowerDirection.West, TowerDirection.NorthWest };
 
-        TowerDirection GetNextSpot(TowerDirection md, MoveDirection d)
+        private TowerDirection GetNextSpot(TowerDirection md, MoveDirection d)
         {
             if(d == MoveDirection.Fixed_position)
             {
@@ -70,18 +71,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
             if(d == MoveDirection.Unused_Tower_Position)
             {
-                if (md == C.Tower1) return C.Tower2;
-                if (md == C.Tower2) return C.Tower1;
+                if(md == C.Tower1) return C.Tower2;
+                if(md == C.Tower2) return C.Tower1;
             }
             var index = Array.IndexOf(Clock, md);
-            if (d == MoveDirection.Clockwise) index++;
-            if (d == MoveDirection.CounterClockwise) index--;
+            if(d == MoveDirection.Clockwise) index++;
+            if(d == MoveDirection.CounterClockwise) index--;
             if(index < 0) index = Clock.Length - 1;
-            if (index >= Clock.Length) index = 0;
+            if(index >= Clock.Length) index = 0;
             return Clock[index];
         }
 
-        public enum MoveDirection { Disable, Clockwise, CounterClockwise, Unused_Tower_Position, Fixed_position}
+        public enum MoveDirection { Disable, Clockwise, CounterClockwise, Unused_Tower_Position, Fixed_position }
 
         public override void OnSetup()
         {
@@ -103,31 +104,31 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
 
         public override void OnMapEffect(uint position, ushort data1, ushort data2)
         {
-            if (C.HighlightTower)
+            if(C.HighlightTower)
             {
                 var pos = (TowerDirection)position;
                 if(Towers.TryGetValue(pos, out var tower) && pos.EqualsAny(C.Tower1, C.Tower2))
                 {
                     //my tower
-                    if (data1 == 1)
+                    if(data1 == 1)
                     {
                         TowerScheduler?.Dispose();
                         TowerScheduler = new(delegate
                         {
-                            if (Controller.TryGetElementByName("Tower", out var e))
+                            if(Controller.TryGetElementByName("Tower", out var e))
                             {
                                 e.Enabled = true;
                                 e.SetRefPosition(tower.ToVector3(0));
                             }
                         }, C.TowerDelay);
                     }
-                    if (data1 == 4)
+                    if(data1 == 4)
                     {
-                        if (Controller.TryGetElementByName("Tower", out var e))
+                        if(Controller.TryGetElementByName("Tower", out var e))
                         {
                             e.Enabled = false;
                         }
-                        if (C.MoveDirection != MoveDirection.Disable) 
+                        if(C.MoveDirection != MoveDirection.Disable)
                         {
                             var next = GetNextSpot(pos, C.MoveDirection);
                             //now draw path
@@ -165,10 +166,10 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                     {
                         var col = GetColor(Themis);
                         var name = col == Color.Dark ? "PairDonut" : "LingerAOE";
-                        int i = 0;
-                        foreach (var x in FakeParty.Get())
+                        var i = 0;
+                        foreach(var x in FakeParty.Get())
                         {
-                            if (Controller.TryGetElementByName($"{name}{i}", out var e))
+                            if(Controller.TryGetElementByName($"{name}{i}", out var e))
                             {
                                 e.Enabled = true;
                                 e.SetRefPosition(x.Position);
@@ -182,17 +183,17 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        Color GetColor(IGameObject obj)
+        private Color GetColor(IGameObject obj)
         {
-            Color col = Color.Unknown;
-            long age = long.MaxValue;
+            var col = Color.Unknown;
+            var age = long.MaxValue;
             if(AttachedInfo.TryGetVfx(obj, out var info))
             {
                 foreach(var x in info)
                 {
-                    if (x.Value.Age < age)
+                    if(x.Value.Age < age)
                     {
-                        if (x.Key == LightVFX)
+                        if(x.Key == LightVFX)
                         {
                             col = Color.Light;
                             age = x.Value.Age;
@@ -213,7 +214,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             ImGui.Checkbox("Display post-protean lingering effects (AOE/donut)", ref C.EnableProteanLinger);
 
             ImGui.Checkbox("Highlight your designated letter of the law tower", ref C.HighlightTower);
-            if (C.HighlightTower)
+            if(C.HighlightTower)
             {
                 ImGuiEx.TextV("Your towers:");
                 ImGui.SameLine();
@@ -236,18 +237,18 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
                 }
 
 
-                if (ImGui.CollapsingHeader("Debug"))
+                if(ImGui.CollapsingHeader("Debug"))
                 {
                     var next1 = GetNextSpot(C.Tower1, C.MoveDirection);
                     var next2 = GetNextSpot(C.Tower2, C.MoveDirection);
                     ImGuiEx.Text($"Next: 1: {C.Tower1}->{next1}, 2: {C.Tower2}->{next2}");
 
                     var t = Themis;
-                    if (t != null)
+                    if(t != null)
                     {
                         ImGuiEx.Text($"Themis color: {GetColor(t)} / {t}");
                     }
-                    foreach (var x in IllusoryThemises)
+                    foreach(var x in IllusoryThemises)
                     {
                         ImGuiEx.Text($"{x} color: {GetColor(x)}");
                     }
@@ -263,14 +264,14 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
             }
         }
 
-        void ResetAll()
+        private void ResetAll()
         {
             DonutScheduler?.Dispose();
             TowerScheduler?.Dispose();
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         }
 
-        Config C => Controller.GetConfig<Config>();
+        private Config C => Controller.GetConfig<Config>();
         public class Config : IEzConfig
         {
             public bool EnableProteanLinger = true;

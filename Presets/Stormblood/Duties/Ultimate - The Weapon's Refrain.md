@@ -1,3 +1,8 @@
+[Script] Feather Rain 
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Stormblood/UWU%20Feather%20Rain.cs
+```
+
 Marks BOTH potential safespots for Titan's Upheaval Knockback. You will still have to determine the correct one yourself.
 ```
 ~Lv2~{"Name":"UWU Titan Upheaval","Group":"UWU","ZoneLockH":[777],"DCond":5,"ElementsL":[{"Name":"left","type":1,"offX":0.5,"offY":4.6,"radius":0.25,"thicc":5.0,"refActorType":2,"includeRotation":true},{"Name":"right","type":1,"offX":-0.5,"offY":4.6,"radius":0.25,"thicc":5.0,"refActorType":2,"includeRotation":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":4.0,"Match":"titan readies upheaval"}]}

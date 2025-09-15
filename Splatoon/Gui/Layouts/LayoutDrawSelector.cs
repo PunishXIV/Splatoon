@@ -1,5 +1,9 @@
-﻿using Dalamud.Interface.Colors;
+﻿using Dalamud.Hooking;
+using Dalamud.Interface.Colors;
 using ECommons.LanguageHelpers;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.Shell;
 using Newtonsoft.Json;
 using Splatoon.Utility;
 

@@ -722,7 +722,7 @@ public unsafe class Splatoon : IDalamudPlugin
             {
                 if(IsKeyPressed(Keys.LShiftKey) || IsKeyPressed(Keys.RShiftKey))
                 {
-                    s2wInfo.Apply(MathF.Round(worldPos.X), MathF.Round(worldPos.Z), MathF.Round(worldPos.Y));
+                    s2wInfo.Apply((float)(Math.Round(worldPos.X * 2d) / 2d), (float)(Math.Round(worldPos.Z * 2d) / 2d), (float)(Math.Round(worldPos.Y * 2d) / 2d));
                 }
                 else
                 {

@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Objects.Enums;
+using ECommons.Hooks;
 using ECommons.LanguageHelpers;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;

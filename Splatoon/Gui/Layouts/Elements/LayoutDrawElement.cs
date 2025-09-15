@@ -883,15 +883,8 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w1"))
                 {
-                    if(el.IsVisible())
-                    {
-                        SetCursorTo(el.refX, el.refZ, el.refY);
-                        p.BeginS2W(el, "refX", "refY", "refZ");
-                    }
-                    else
-                    {
-                        Notify.Error("Unable to use for hidden element".Loc());
-                    }
+                    SetCursorTo(el.refX, el.refZ, el.refY);
+                    p.BeginS2W(el, "refX", "refY", "refZ");
                 }
                 ImGuiEx.Tooltip("Select on screen".Loc());
                 ImGui.SameLine();
@@ -1010,15 +1003,8 @@ internal unsafe partial class CGui
             ImGui.SameLine();
             if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w2"))
             {
-                if(LayoutUtils.IsLayoutVisible(l) && (el.Enabled || forceEnable)/* && p.CamAngleY <= p.Config.maxcamY*/)
-                {
-                    SetCursorTo(el.offX, el.offZ, el.offY);
-                    p.BeginS2W(el, "offX", "offY", "offZ");
-                }
-                else
-                {
-                    Notify.Error("Unable to use for hidden element".Loc());
-                }
+                SetCursorTo(el.offX, el.offZ, el.offY);
+                p.BeginS2W(el, "offX", "offY", "offZ");
             }
             ImGuiEx.Tooltip("Select on screen".Loc());
             ImGui.SameLine();

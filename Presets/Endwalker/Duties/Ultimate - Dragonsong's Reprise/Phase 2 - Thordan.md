@@ -1,8 +1,7 @@
-[EN, JP] Ascalon's Mercy Move Reminder: Flashes "MOVE" on the screen when Ascalon's Mercy is fully cast to remind you to move. 
-
-(While Splatoon isn't really designed for being general-purpose trigger system, it can be used as such)
+[International] Ascalon's Mercy Concealed
 ```
-~Lv2~{"Name":"DSR P2 Move Trigger","Group":"DSR","ZoneLockH":[968],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":0.0,"overlayBGColor":4278190335,"overlayVOffset":3.0,"overlayFScale":8.0,"thicc":0.0,"overlayText":"MOVE","refActorType":1}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":1.0,"MatchIntl":{"En":"King Thordan readies Ascalon's Mercy Concealed.","Jp":"騎神トールダンは「インビジブル・アスカロンメルシー」の構え。"},"MatchDelay":2.6}],"Phase":2}
+~Lv2~{"Name":"DSRv2 P2 Ascalon's Mercy Concealed","Group":"DSR","ZoneLockH":[968],"Freezing":true,"FreezeFor":0.8,"ElementsL":[{"Name":"","type":4,"radius":30.0,"coneAngleMin":-20,"coneAngleMax":20,"fillIntensity":0.3,"refActorNPCNameID":3632,"refActorRequireCast":true,"refActorCastId":[25544],"refActorUseCastTime":true,"refActorCastTimeMin":2.5,"refActorCastTimeMax":2.7,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:Player>","Conditional":true,"Nodraw":true},{"Name":"Player","type":1,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>","<1>"],"refActorComparisonType":5,"IsCapturing":true,"Nodraw":true},{"Name":"","type":4,"radius":30.0,"coneAngleMin":-20,"coneAngleMax":20,"fillIntensity":0.3,"refActorNPCNameID":3632,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:Player>"}]}
+~Lv2~{"Name":"DSRv2 P2 Ascalon's Mercy Concealed 2 ","Group":"DSR","ZoneLockH":[968],"ElementsL":[{"Name":"","type":4,"radius":30.0,"coneAngleMin":-16,"coneAngleMax":16,"fillIntensity":0.3,"refActorName":"*","refActorRequireCast":true,"refActorCastId":[25545],"includeRotation":true}]}
 ```
 
 [International] Thordan Jump Tether: Tethers Thordan when he jumps to make it easier to locate him during Strength and Sanctity

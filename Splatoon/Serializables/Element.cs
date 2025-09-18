@@ -130,6 +130,7 @@ public class Element
     [DefaultValue(false)] public bool refActorObjectLife = false;
     [DefaultValue(0)] public float refActorLifetimeMin = 0;
     [DefaultValue(0)] public float refActorLifetimeMax = 0;
+    [DefaultValue(TargetAlteration.None)] public TargetAlteration TargetAlteration = TargetAlteration.None;
     /// <summary>
     /// 0: Name |
     /// 1: Model ID |
@@ -180,6 +181,8 @@ public class Element
     [DefaultValue(0f)] public float DistanceSourceZ = 0f;
     [DefaultValue(0f)] public float DistanceMin = 0f;
     [DefaultValue(0f)] public float DistanceMax = 0f;
+    [DefaultValue(false)] public bool UseDistanceSourcePlaceholder = false;
+    public List<string> DistanceSourcePlaceholder = [];
     [DefaultValue("")] public string refActorVFXPath = "";
     [DefaultValue(0)] public int refActorVFXMin = 0;
     [DefaultValue(0)] public int refActorVFXMax = 0;
@@ -198,6 +201,7 @@ public class Element
     [DefaultValue(null)] public int? refActorTetherParam3 = null;
     [DefaultValue(null)] public bool? refActorIsTetherSource = null;
     [DefaultValue(false)] public bool refActorIsTetherInvert = false;
+    [DefaultValue(false)] public bool refActorIsTetherLive = false;
     [DefaultValue(false)] public bool refActorObjectEffectLastOnly = false;
     [DefaultValue(false)] public bool refActorUseTransformation = false;
     public List<string> refActorTetherConnectedWithPlayer = [];
@@ -206,6 +210,7 @@ public class Element
     [DefaultValue(false)] public bool refMark = false;
     [DefaultValue(0)] public int refMarkID = 0;
     [DefaultValue("<1>")] public string faceplayer = "<1>";
+    [DefaultValue(false)] public bool FaceInvert = false;
     [DefaultValue(0.5f)] public float FillStep = 0.5f;
     [DefaultValue(false)] public bool LegacyFill = false;
     [DefaultValue(RenderEngineKind.Unspecified)] public RenderEngineKind RenderEngineKind = RenderEngineKind.Unspecified;
@@ -219,6 +224,7 @@ public class Element
     [DefaultValue(false)] public bool IsCapturing = false;
     [DefaultValue(false)] public bool Nodraw = false;
 
+    public bool ShouldSerializeDistanceSourcePlaceholder() => this.LimitDistance && UseDistanceSourcePlaceholder;
     public bool ShouldSerializeoverlayTextIntl() => !overlayTextIntl.IsEmpty();
     public bool ShouldSerializeObjectKinds() => ObjectKinds.Count > 0;
     public bool ShouldSerializeRotationOverridePoint() => RotationOverride;

@@ -16,6 +16,7 @@ namespace Splatoon.Memory
                 PluginLog.Verbose(text);
                 P.LogWindow.Log(text);
             }
+            PhaseUpdater.UpdateFromDirector(a3);
             ScriptingProcessor.OnDirectorUpdate(a3);
         }
     }

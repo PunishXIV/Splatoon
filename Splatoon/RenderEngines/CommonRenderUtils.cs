@@ -1,8 +1,10 @@
-﻿using ECommons.ExcelServices;
+﻿using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,6 +37,7 @@ public static unsafe class CommonRenderUtils
             ret = ret
             .Replace("$MODELID", $"{chr.Struct()->ModelContainer.ModelCharaId.Format()}")
             .Replace("$NAMEID", $"{chr.NameId.Format()}")
+            .Replace("$TETHER", $"{chr.Struct()->Vfx.Tethers.ToArray().Where(x => x.Id != 0).Select(x => $"{x.Id}").Print(",")}")
             .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
             if(ret.Contains("$STREM:"))
             {
@@ -127,14 +130,34 @@ public static unsafe class CommonRenderUtils
         return (pointA, pointB);
     }
 
-    internal static bool IsElementObjectMatches(Element element, bool isTargetable, IGameObject gameObject)
+    internal static bool IsElementObjectMatches(Layout layout, Element element, bool isTargetable, IGameObject gameObject)
     {
         return (!element.onlyTargetable || isTargetable)
                             && (!element.onlyUnTargetable || !isTargetable)
                             && LayoutUtils.CheckCharacterAttributes(element, gameObject)
                             && (!element.refTargetYou || LayoutUtils.CheckTargetingOption(element, gameObject))
                             && (!element.refActorObjectLife || gameObject.GetLifeTimeSeconds().InRange(element.refActorLifetimeMin, element.refActorLifetimeMax))
-                            && (!element.LimitDistance || Vector3.Distance(gameObject.GetPositionXZY(), new(element.DistanceSourceX, element.DistanceSourceY, element.DistanceSourceZ)).InRange(element.DistanceMin, element.DistanceMax).Invert(element.LimitDistanceInvert))
+                            && (!element.LimitDistance || IsDistanceMatches(layout, element, gameObject))
                             && (element.ObjectKinds.Count == 0 || element.ObjectKinds.Contains(gameObject.ObjectKind));
+    }
+
+    internal static bool IsDistanceMatches(Layout layout, Element element, IGameObject go)
+    {
+        if(element.UseDistanceSourcePlaceholder)
+        {
+            foreach(var p in element.DistanceSourcePlaceholder) 
+            {
+                var pos = Utils.GetFacePositions(layout, element, go, p);
+                foreach(var x in pos)
+                {
+                    if(Vector3.Distance(go.Position, x).InRange(element.DistanceMin, element.DistanceMax).Invert(element.LimitDistanceInvert)) return true;
+                }
+            }
+            return false;
+        }
+        else
+        {
+            return Vector3.Distance(go.GetPositionXZY(), new(element.DistanceSourceX, element.DistanceSourceY, element.DistanceSourceZ)).InRange(element.DistanceMin, element.DistanceMax).Invert(element.LimitDistanceInvert);
+        }
     }
 }

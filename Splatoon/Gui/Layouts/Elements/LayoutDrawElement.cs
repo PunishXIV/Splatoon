@@ -331,7 +331,7 @@ internal unsafe partial class CGui
                     {
                         for(var s = 1; s <= 8; s++)
                         {
-                            if(ImGui.Selectable($"<{s}>", false, ImGuiSelectableFlags.DontClosePopups)) el.refActorPlaceholder.Add($"<{s}>");
+                            if(ImGui.Selectable($"<{s}>", el.refActorPlaceholder.Contains("<{s}>"), ImGuiSelectableFlags.DontClosePopups)) el.refActorPlaceholder.Toggle($"<{s}>");
                         }
                         if(ImGui.Selectable("2-8", false, ImGuiSelectableFlags.DontClosePopups))
                         {
@@ -441,6 +441,12 @@ internal unsafe partial class CGui
                         el.refActorNamePlateIconID = Svc.Targets.Target.Struct()->NamePlateIconId;
                     }
                 }
+
+                ImGuiUtils.SizedText("Target alteration:".Loc(), WidthElement);
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(200f);
+                ImGuiEx.EnumCombo("##alter", ref el.TargetAlteration);
+
                 ImGuiUtils.SizedText("Targetability: ".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
@@ -630,45 +636,75 @@ internal unsafe partial class CGui
             if(el.LimitDistance)
             {
                 ImGui.SameLine();
-                ImGuiEx.Text("X:");
+                ImGuiEx.ButtonCheckbox(FontAwesomeIcon.Bullseye, ref el.UseDistanceSourcePlaceholder);
+                ImGuiEx.Tooltip($"Check distance against placeholder instead of fixed coordinates. Multiple entries are treated as combined with \"or\".".Loc());
+
                 ImGui.SameLine();
-                ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##distX", ref el.DistanceSourceX, 0.02f, float.MinValue, float.MaxValue);
-                ImGui.SameLine();
-                ImGuiEx.Text("Y:");
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##distY", ref el.DistanceSourceY, 0.02f, float.MinValue, float.MaxValue);
-                ImGui.SameLine();
-                ImGuiEx.Text("Z:");
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##distZ", ref el.DistanceSourceZ, 0.02f, float.MinValue, float.MaxValue);
-                ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##dist"))
+
+                if(el.UseDistanceSourcePlaceholder)
                 {
-                    el.DistanceSourceX = 0;
-                    el.DistanceSourceY = 0;
-                    el.DistanceSourceZ = 0;
+                    ImGui.SetNextItemWidth(200f);
+                    ImGuiEx.InputListString("##pholder2", el.DistanceSourcePlaceholder);
+                    ImGui.SameLine();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.AngleDoubleDown))
+                    {
+                        ImGui.OpenPopup("PlaceholderFastSelect2");
+                    }
+                    if(ImGui.BeginPopup("PlaceholderFastSelect2"))
+                    {
+                        foreach(var option in FaceOptions)
+                        {
+                            if(ImGui.Selectable(option, el.DistanceSourcePlaceholder.Contains(option), ImGuiSelectableFlags.DontClosePopups))
+                            {
+                                el.DistanceSourcePlaceholder.Toggle(option);
+                            }
+                        }
+                        ImGui.EndPopup();
+                    }
                 }
-                ImGuiEx.Tooltip("0 0 0");
-                ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##dist"))
+                else
                 {
-                    el.DistanceSourceX = Utils.GetPlayerPositionXZY().X;
-                    el.DistanceSourceY = Utils.GetPlayerPositionXZY().Y;
-                    el.DistanceSourceZ = Utils.GetPlayerPositionXZY().Z;
+                    ImGuiEx.Text("X:");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(60f);
+                    ImGui.DragFloat("##distX", ref el.DistanceSourceX, 0.02f, float.MinValue, float.MaxValue);
+                    ImGui.SameLine();
+                    ImGuiEx.Text("Y:");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(60f);
+                    ImGui.DragFloat("##distY", ref el.DistanceSourceY, 0.02f, float.MinValue, float.MaxValue);
+                    ImGui.SameLine();
+                    ImGuiEx.Text("Z:");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(60f);
+                    ImGui.DragFloat("##distZ", ref el.DistanceSourceZ, 0.02f, float.MinValue, float.MaxValue);
+                    ImGui.SameLine();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##dist"))
+                    {
+                        el.DistanceSourceX = 0;
+                        el.DistanceSourceY = 0;
+                        el.DistanceSourceZ = 0;
+                    }
+                    ImGuiEx.Tooltip("0 0 0");
+                    ImGui.SameLine();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##dist"))
+                    {
+                        el.DistanceSourceX = Utils.GetPlayerPositionXZY().X;
+                        el.DistanceSourceY = Utils.GetPlayerPositionXZY().Y;
+                        el.DistanceSourceZ = Utils.GetPlayerPositionXZY().Z;
+                    }
+                    ImGuiEx.Tooltip("My position");
+                    ImGui.SameLine();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##dist"))
+                    {
+                        SetCursorTo(el.DistanceSourceX, el.DistanceSourceY, el.DistanceSourceZ);
+                        p.BeginS2W(el, "DistanceSourceX", "DistanceSourceY", "DistanceSourceZ");
+                    }
+                    ImGuiEx.Tooltip("Select on screen".Loc());
+                    ImGui.SameLine();
+                    DrawRounding(ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ);
                 }
-                ImGuiEx.Tooltip("My position");
-                ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##dist"))
-                {
-                    SetCursorTo(el.DistanceSourceX, el.DistanceSourceY, el.DistanceSourceZ);
-                    p.BeginS2W(el, "DistanceSourceX", "DistanceSourceY", "DistanceSourceZ");
-                }
-                ImGuiEx.Tooltip("Select on screen".Loc());
-                ImGui.SameLine();
-                DrawRounding(ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ);
+
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
@@ -782,23 +818,49 @@ internal unsafe partial class CGui
             if(el.refActorTether)
             {
                 ImGui.SameLine();
-                ImGui.SetNextItemWidth(50f);
-                ImGui.DragFloat("##tetherlife1", ref el.refActorTetherTimeMin, 0.1f, 0f, float.MaxValue);
-                ImGui.SameLine();
-                ImGuiEx.Text("-");
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(50f);
-                ImGui.DragFloat("##tetherlife2", ref el.refActorTetherTimeMax, 0.1f, 0f, float.MaxValue);
-                ImGui.SameLine();
-                ImGuiEx.Text("(in seconds)".Loc());
+                ImGui.Checkbox("Realtime".Loc(), ref el.refActorIsTetherLive);
+                ImGuiEx.HelpMarker("Instead of historical tether, checks for tether that is present in real time. Only param 2 (tether id) is available; additionally, no time limits can be set.");
+                if(!el.refActorIsTetherLive)
+                {
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(50f);
+                    ImGui.DragFloat("##tetherlife1", ref el.refActorTetherTimeMin, 0.1f, 0f, float.MaxValue);
+                    ImGui.SameLine();
+                    ImGuiEx.Text("-");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(50f);
+                    ImGui.DragFloat("##tetherlife2", ref el.refActorTetherTimeMax, 0.1f, 0f, float.MaxValue);
+                    ImGui.SameLine();
+                    ImGuiEx.Text("(in seconds)".Loc());
+                }
 
                 ImGuiUtils.SizedText("         " + "Params:".Loc(), WidthElement);
+                if(el.refActorIsTetherLive)
+                {
+                    ImGui.BeginDisabled();
+                    ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.25f);
+                }
                 ImGui.SameLine();
                 ImGuiEx.InputInt(100f, "##param1", ref el.refActorTetherParam1);
+                if(el.refActorIsTetherLive)
+                {
+                    ImGui.PopStyleVar();
+                    ImGui.EndDisabled();
+                }
                 ImGui.SameLine();
                 ImGuiEx.InputInt(100f, "##param2", ref el.refActorTetherParam2);
                 ImGui.SameLine();
+                if(el.refActorIsTetherLive)
+                {
+                    ImGui.BeginDisabled();
+                    ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.25f);
+                }
                 ImGuiEx.InputInt(100f, "##param3", ref el.refActorTetherParam3);
+                if(el.refActorIsTetherLive)
+                {
+                    ImGui.PopStyleVar();
+                    ImGui.EndDisabled();
+                }
 
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
@@ -1183,6 +1245,8 @@ internal unsafe partial class CGui
                     ImGuiEx.TextCopy("$MODELID");
                     ImGui.SameLine();
                     ImGuiEx.TextCopy("$HITBOXR");
+                    ImGui.SameLine();
+                    ImGuiEx.TextCopy("$TETHER");
                     ImGuiUtils.SizedText("", WidthElement);
                     ImGui.SameLine();
                     ImGuiEx.TextCopy("$KIND");

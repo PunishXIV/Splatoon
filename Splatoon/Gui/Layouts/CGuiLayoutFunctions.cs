@@ -41,6 +41,8 @@ internal partial class CGui
         return false;
     }
 
+    public static string[] FaceOptions = { "<me>", "<target>", "<tethered>", "<1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>", "<8>", "<t1>", "<t2>", "<h1>", "<h2>", "<d1>", "<d2>", "<d3>", "<d4>" };
+
     private static void DrawRotationSelector(Element el)
     {
         ImGui.SameLine();
@@ -61,13 +63,13 @@ internal partial class CGui
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                string[] faceOptions = { "<me>", "<target>", "<1>", "<2>", "<3>", "<4>", "<5>", "<6>", "<7>", "<8>", "<t1>", "<t2>", "<h1>", "<h2>", "<d1>", "<d2>", "<d3>", "<d4>" };
+                
 
                 if(ImGui.BeginCombo("Face chara##", el.faceplayer, ImGuiComboFlags.HeightLarge))
                 {
                     ImGui.SetNextItemWidth(150f);
                     ImGui.InputText("##enterManually", ref el.faceplayer);
-                    foreach(var option in faceOptions)
+                    foreach(var option in FaceOptions)
                     {
                         if(ImGui.Selectable(option))
                         {
@@ -76,6 +78,9 @@ internal partial class CGui
                     }
                     ImGui.EndCombo();
                 }
+                ImGui.SameLine();
+                ImGui.Checkbox("Invert".Loc(), ref el.FaceInvert);
+                ImGuiEx.HelpMarker("Instead of this element facing placeholder, placeholder will face this element");
             }
         }
     }

@@ -103,28 +103,60 @@ public static unsafe class LayoutUtils
     {
         if(e.refActorIsTetherSource == null || e.refActorIsTetherSource == true)
         {
-            if(AttachedInfo.TetherInfos.TryGetValue(obj.Address, out var tethers))
+            if(e.refActorIsTetherLive)
             {
-                foreach(var t in tethers)
+                if(obj is ICharacter chr)
                 {
-                    if(t.AgeF >= e.refActorTetherTimeMin && t.AgeF <= e.refActorTetherTimeMax
-                        && (e.refActorTetherParam1 == null || e.refActorTetherParam1 == t.Param1)
-                        && (e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Param2)
-                        && (e.refActorTetherParam3 == null || e.refActorTetherParam3 == t.Param3)
-                        )
+                    var c = chr.Struct();
+                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
                     {
-                        if(e.refActorTetherConnectedWithPlayer.Count == 0)
+                        var t = c->Vfx.Tethers[i];
+                        if(e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Id)
                         {
-                            return true;
-                        }
-                        else
-                        {
-                            foreach(var p in e.refActorTetherConnectedWithPlayer)
+                            if(e.refActorTetherConnectedWithPlayer.Count == 0)
                             {
-                                var tar = ExtendedPronoun.Resolve(p);
-                                if(tar != null)
+                                return true;
+                            }
+                            else
+                            {
+                                foreach(var p in e.refActorTetherConnectedWithPlayer)
                                 {
-                                    if(t.Target == tar->EntityId) return true;
+                                    var tar = ExtendedPronoun.Resolve(p);
+                                    if(tar != null)
+                                    {
+                                        if(t.TargetId.ObjectId == tar->EntityId) return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if(AttachedInfo.TetherInfos.TryGetValue(obj.Address, out var tethers))
+                {
+                    foreach(var t in tethers)
+                    {
+                        if(t.AgeF >= e.refActorTetherTimeMin && t.AgeF <= e.refActorTetherTimeMax
+                            && (e.refActorTetherParam1 == null || e.refActorTetherParam1 == t.Param1)
+                            && (e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Param2)
+                            && (e.refActorTetherParam3 == null || e.refActorTetherParam3 == t.Param3)
+                            )
+                        {
+                            if(e.refActorTetherConnectedWithPlayer.Count == 0)
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                foreach(var p in e.refActorTetherConnectedWithPlayer)
+                                {
+                                    var tar = ExtendedPronoun.Resolve(p);
+                                    if(tar != null)
+                                    {
+                                        if(t.Target == tar->EntityId) return true;
+                                    }
                                 }
                             }
                         }
@@ -135,30 +167,66 @@ public static unsafe class LayoutUtils
         if(e.refActorIsTetherSource == null || e.refActorIsTetherSource == false)
         {
             //reverse lookup goes brrrrr
-            foreach(var x in AttachedInfo.TetherInfos)
+            if(e.refActorIsTetherLive)
             {
-                if(x.Key == obj.Address) continue;
-                foreach(var t in x.Value)
+                foreach(var o in Svc.Objects)
                 {
-                    if(t.AgeF >= e.refActorTetherTimeMin && t.AgeF <= e.refActorTetherTimeMax
-                        && (e.refActorTetherParam1 == null || e.refActorTetherParam1 == t.Param1)
-                        && (e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Param2)
-                        && (e.refActorTetherParam3 == null || e.refActorTetherParam3 == t.Param3)
-                        && t.Target == obj.EntityId
-                        )
+                    if(o.Address == obj.Address) continue;
+                    if(o is ICharacter chr)
                     {
-                        if(e.refActorTetherConnectedWithPlayer.Count == 0)
+                        var c = chr.Struct();
+                        for(int i = 0; i < c->Vfx.Tethers.Length; i++)
                         {
-                            return true;
-                        }
-                        else
-                        {
-                            foreach(var p in e.refActorTetherConnectedWithPlayer)
+                            var t = c->Vfx.Tethers[i];
+                            if(t.TargetId.ObjectId == obj.EntityId && (e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Id))
                             {
-                                var tar = ExtendedPronoun.Resolve(p);
-                                if(tar != null)
+                                if(e.refActorTetherConnectedWithPlayer.Count == 0)
                                 {
-                                    if(x.Key == (nint)tar) return true;
+                                    return true;
+                                }
+                                else
+                                {
+                                    foreach(var p in e.refActorTetherConnectedWithPlayer)
+                                    {
+                                        var tar = ExtendedPronoun.Resolve(p);
+                                        if(tar != null)
+                                        {
+                                            if(tar->EntityId == chr.EntityId) return true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach(var x in AttachedInfo.TetherInfos)
+                {
+                    if(x.Key == obj.Address) continue;
+                    foreach(var t in x.Value)
+                    {
+                        if(t.AgeF >= e.refActorTetherTimeMin && t.AgeF <= e.refActorTetherTimeMax
+                            && (e.refActorTetherParam1 == null || e.refActorTetherParam1 == t.Param1)
+                            && (e.refActorTetherParam2 == null || e.refActorTetherParam2 == t.Param2)
+                            && (e.refActorTetherParam3 == null || e.refActorTetherParam3 == t.Param3)
+                            && t.Target == obj.EntityId
+                            )
+                        {
+                            if(e.refActorTetherConnectedWithPlayer.Count == 0)
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                foreach(var p in e.refActorTetherConnectedWithPlayer)
+                                {
+                                    var tar = ExtendedPronoun.Resolve(p);
+                                    if(tar != null)
+                                    {
+                                        if(x.Key == (nint)tar) return true;
+                                    }
                                 }
                             }
                         }
@@ -317,6 +385,7 @@ public static unsafe class LayoutUtils
         {
             foreach(var t in layout.Triggers)
             {
+                if(t.UserDisabled) continue;
                 if(t.FiredState == 2) continue;
                 if((t.Type == 2 || t.Type == 3) && !t.Disabled)
                 {

@@ -43,7 +43,21 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Commands CommandManager;
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
-    internal long CombatStarted = 0;
+    internal long CombatStarted
+    {
+        get
+        {
+            if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            {
+                return EmulatedCombatTimer.CombatStart;
+            }
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
     internal HashSet<Element> InjectedElements = [];
     //internal HashSet<(float x, float y, float z, float r, float angle)> draw = new HashSet<(float x, float y, float z, float r, float angle)>();
     internal bool prevMouseState = false;
@@ -455,6 +469,7 @@ public unsafe class Splatoon : IDalamudPlugin
             S.RenderManager.ClearDisplayObjects();
             if(Svc.ClientState.LocalPlayer != null)
             {
+                EmulatedCombatTimer.Tick();
                 PhaseUpdater.UpdatePhaseIfNeeded();
                 if(ChatMessageQueue.Count > 5 * dequeueConcurrency)
                 {
@@ -482,35 +497,25 @@ public unsafe class Splatoon : IDalamudPlugin
                     return;
                 }
 
-                if(Svc.Condition[ConditionFlag.InCombat])
+                if(!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                 {
-                    if(CombatStarted == 0)
+                    if(Svc.Condition[ConditionFlag.InCombat])
                     {
-                        CombatStarted = Environment.TickCount64;
-                        Log("Combat started event");
-                        ScriptingProcessor.OnCombatStart();
+                        if(CombatStarted == 0)
+                        {
+                            CombatStarted = Environment.TickCount64;
+                            Log("Combat started event");
+                            ScriptingProcessor.OnCombatStart();
+                        }
                     }
-                }
-                else
-                {
-                    if(CombatStarted != 0)
+                    else
                     {
-                        CombatStarted = 0;
-                        Log("Combat ended event");
-                        ScriptingProcessor.OnCombatEnd();
-                        AttachedInfo.VFXInfos.Clear();
-                        foreach(var l in Config.LayoutsL)
+                        if(CombatStarted != 0)
                         {
-                            ResetLayout(l);
+                            CombatStarted = 0;
+                            Log("Combat ended event");
+                            CombatEnded();
                         }
-                        foreach(var de in dynamicElements)
-                        {
-                            foreach(var l in de.Layouts)
-                            {
-                                ResetLayout(l);
-                            }
-                        }
-                        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
                     }
                 }
 
@@ -611,6 +616,24 @@ public unsafe class Splatoon : IDalamudPlugin
             Log("Caught exception: " + e.Message);
             Log(e.ToStringFull());
         }
+    }
+
+    internal void CombatEnded()
+    {
+        ScriptingProcessor.OnCombatEnd();
+        AttachedInfo.VFXInfos.Clear();
+        foreach(var l in Config.LayoutsL)
+        {
+            ResetLayout(l);
+        }
+        foreach(var de in dynamicElements)
+        {
+            foreach(var l in de.Layouts)
+            {
+                ResetLayout(l);
+            }
+        }
+        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
     }
 
     internal void ProcessLayout(Layout l)

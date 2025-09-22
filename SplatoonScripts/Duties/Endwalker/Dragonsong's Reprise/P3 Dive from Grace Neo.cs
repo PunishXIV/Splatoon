@@ -5,7 +5,6 @@ using Dalamud.Interface;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Ipc.Exceptions;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -24,9 +23,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using TerraFX.Interop.Windows;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
@@ -154,10 +150,18 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 Numbers = [[.. Players.Where(x => HaveStatus(x, Pos1)).Select(x => x.EntityId)], [.. Players.Where(x => HaveStatus(x, Pos2)).Select(x => x.EntityId)], [.. Players.Where(x => HaveStatus(x, Pos3)).Select(x => x.EntityId)]];
                 var myPartners = Numbers[MyNumber];
                 if(myPartners.Any(x => HaveStatus((IPlayerCharacter)x.GetObject(), SpotForward)))
-                { 
+                {
                     //assuming forward goes right, change later in config
-                    if(HaveStatus(BasePlayer, SpotForward)) MyPosition = (Position.East, 999999);
-                    if(HaveStatus(BasePlayer, SpotBackwards)) MyPosition = (Position.West, 999999);
+                    if(!C.Invert)
+                    {
+                        if(HaveStatus(BasePlayer, SpotForward)) MyPosition = (Position.East, 999999);
+                        if(HaveStatus(BasePlayer, SpotBackwards)) MyPosition = (Position.West, 999999);
+                    }
+                    else
+                    {
+                        if(HaveStatus(BasePlayer, SpotForward)) MyPosition = (Position.West, 777777);
+                        if(HaveStatus(BasePlayer, SpotBackwards)) MyPosition = (Position.East, 777777);
+                    }
                     if(HaveStatus(BasePlayer, SpotOnPlayer)) MyPosition = (Position.South, 999999);
                 }
                 else
@@ -516,7 +520,8 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
     }
 
     public override void OnSettingsDraw()
-    { 
+    {
+        ImGuiEx.RadioButtonBool("Easthogg (beta)", "Westhogg", ref C.Invert);
         ImGui.DragFloat2("Window offset", ref C.Offset);
         if(ImGui.IsItemHovered())
         {
@@ -526,29 +531,32 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 EzThrottler.Throttle("DontCloseWindowDFG", 500, true);
             }
         }
-        ImGuiEx.Text($"Stage: {Stage}");
-        ImGuiEx.Text($"MyPositoon: {MyPosition}");
-        ImGui.InputText("BPO", ref C.BPO);
-        if(ImGui.BeginCombo("##sel", "Select base player"))
+        if(ImGui.CollapsingHeader("Debug"))
         {
-            foreach(var x in Players)
+            ImGuiEx.Text($"Stage: {Stage}");
+            ImGuiEx.Text($"MyPositoon: {MyPosition}");
+            ImGui.InputText("BPO", ref C.BPO);
+            if(ImGui.BeginCombo("##sel", "Select base player"))
             {
-                if(ImGuiEx.Selectable($"{x.GetNameWithWorld()}"))
+                foreach(var x in Players)
                 {
-                    C.BPO = x.GetNameWithWorld();
-                    MyPosition = default;
+                    if(ImGuiEx.Selectable($"{x.GetNameWithWorld()}"))
+                    {
+                        C.BPO = x.GetNameWithWorld();
+                        MyPosition = default;
+                    }
                 }
+                ImGui.EndCombo();
             }
-            ImGui.EndCombo();
+            if(ImGui.Button("Reset position"))
+            {
+                MyPosition = default;
+            }
+            ImGuiEx.Text($"My number: {MyNumber}");
+            ImGuiEx.Text(Numbers.Select(x => x.Select(o => o.GetObject()).Print("\n")).Print("\n\n"));
+            ImGui.Separator();
+            ImGuiEx.Text($"Partners: {Numbers[MyNumber].Select(x => x.GetObject()).Print()}");
         }
-        if(ImGui.Button("Reset position"))
-        {
-            MyPosition = default;
-        }
-        ImGuiEx.Text($"My number: {MyNumber}");
-        ImGuiEx.Text(Numbers.Select(x => x.Select(o => o.GetObject()).Print("\n")).Print("\n\n"));
-        ImGui.Separator();
-        ImGuiEx.Text($"Partners: {Numbers[MyNumber].Select(x => x.GetObject()).Print()}");
     }
 
     Config C => Controller.GetConfig<Config>();
@@ -556,6 +564,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
     {
         public string BPO = "";
         public Vector2 Offset = Vector2.Zero;
+        public bool Invert = false;
     }
 
     class AssignmentWindow : Window, IDisposable

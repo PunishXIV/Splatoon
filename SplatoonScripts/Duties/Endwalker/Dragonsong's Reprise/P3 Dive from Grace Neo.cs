@@ -27,7 +27,7 @@ using System.Numerics;
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
 
     IPlayerCharacter BasePlayer
@@ -56,14 +56,14 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
 
     public override void OnSetup()
     {
-        Controller.RegisterElementFromCode("NorthIn", """{"Name":"","refX":100.0,"refY":93.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
+       /* Controller.RegisterElementFromCode("NorthIn", """{"Name":"","refX":100.0,"refY":93.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("NorthOut", """{"Name":"","refX":100.0,"refY":90.5,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("SouthOut", """{"Name":"","refX":100.0,"refY":109.5,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("SouthIn", """{"Name":"","refX":100.0,"refY":107.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("WestIn", """{"Name":"","refX":93.0,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("WestOut", """{"Name":"","refX":90.5,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("EastIn", """{"Name":"","refX":107.0,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
-        Controller.RegisterElementFromCode("EastOut", """{"Name":"","refX":109.5,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("EastOut", """{"Name":"","refX":109.5,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");*/
         Controller.RegisterElementFromCode("NorthWest", """{"Name":"","refX":92,"refY":90.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("NorthEast", """{"Name":"","refX":108,"refY":90.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("FaceEast", """{"Name":"","type":3,"refX":5.0,"radius":0.0,"color":3372220160,"fillIntensity":0.345,"thicc":8.0,"refActorObjectID":0,"refActorComparisonType":2,"LineEndA":1}""");
@@ -74,6 +74,8 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         Controller.RegisterElementFromCode("North", """{"Name":"","refX":100.0,"refY":92,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("South", """{"Name":"","refX":100.0,"refY":108,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("Bait", """{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":2852126720,"overlayTextColor":4278190335,"overlayVOffset":3.0,"thicc":10.0,tether:true,"overlayText":"Bait Outside","refActorComparisonType":2,"onlyUnTargetable":true,"onlyVisible":true,"DistanceMax":5.0,"UseDistanceSourcePlaceholder":true}""");
+        Controller.RegisterElementFromCode("Tether1", """{"Name":"","type":1,"radius":0.0,"color":3372155119,"Filled":false,"fillIntensity":0.494,"thicc":4.0,"refActorObjectID":3758096384,"refActorComparisonType":2,"tether":true}""");
+        Controller.RegisterElementFromCode("Tether2", """{"Name":"","type":1,"radius":0.0,"color":3372155119,"Filled":false,"fillIntensity":0.494,"thicc":4.0,"refActorObjectID":3758096384,"refActorComparisonType":2,"tether":true}""");
     }
 
     public bool HaveStatus(IPlayerCharacter p, uint id) => p.StatusList.Any(x => x.StatusId == id);
@@ -169,6 +171,16 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                     //attempt to figure it out
                     var suggested = GetIndexAndConfidence(myPartners);
                     if(suggested.Confidence > MyPosition.Confidence) MyPosition = ((Position)suggested.myIndex, suggested.Confidence);
+                }
+                int num = 0;
+                foreach(var x in myPartners)
+                {
+                    if(x == BasePlayer.EntityId) continue;
+                    if(Controller.TryGetElementByName($"Tether{++num}", out var e))
+                    {
+                        e.Enabled = true;
+                        e.refActorObjectID = x;
+                    }
                 }
                 if(Players.All(x => HaveStatus(x, [SpotForward, SpotBackwards, SpotOnPlayer])))
                 {

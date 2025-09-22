@@ -2,6 +2,7 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Ipc.Exceptions;
@@ -30,14 +31,14 @@ using TerraFX.Interop.Windows;
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
 
     IPlayerCharacter BasePlayer
     {
         get
         {
-            if(C.BPO != "" && Players.TryGetFirst(x => x.GetNameWithWorld() == C.BPO, out var p))
+            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback] && C.BPO != "" && Players.TryGetFirst(x => x.GetNameWithWorld() == C.BPO, out var p))
             {
                 return p;
             }
@@ -67,8 +68,8 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         Controller.RegisterElementFromCode("WestOut", """{"Name":"","refX":90.5,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("EastIn", """{"Name":"","refX":107.0,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("EastOut", """{"Name":"","refX":109.5,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
-        Controller.RegisterElementFromCode("NorthWest", """{"Name":"","refX":92,"refY":86.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
-        Controller.RegisterElementFromCode("NorthEast", """{"Name":"","refX":108,"refY":86.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("NorthWest", """{"Name":"","refX":92,"refY":90.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("NorthEast", """{"Name":"","refX":108,"refY":90.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("FaceEast", """{"Name":"","type":3,"refX":5.0,"radius":0.0,"color":3372220160,"fillIntensity":0.345,"thicc":8.0,"refActorObjectID":0,"refActorComparisonType":2,"LineEndA":1}""");
         Controller.RegisterElementFromCode("FaceWest", """{"Name":"","type":3,"refX":-5.0,"radius":0.0,"color":3372220160,"fillIntensity":0.345,"thicc":8.0,"refActorObjectID":0,"refActorComparisonType":2,"LineEndA":1}""");
         Controller.RegisterElementFromCode("FaceLine", """{"Name":"","type":1,"radius":0.0,"color":3372220160,"fillIntensity":0.345,"overlayBGColor":2617245696,"overlayTextColor":4294963968,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":8.0,"overlayText":"Face Line!","refActorObjectID":0,"refActorComparisonType":2,"LineEndA":1}""");
@@ -76,7 +77,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         Controller.RegisterElementFromCode("East", """{"Name":"","refX":108,"refY":100.0,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("North", """{"Name":"","refX":100.0,"refY":92,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("South", """{"Name":"","refX":100.0,"refY":108,"radius":1.0,"Donut":0.2,"color":3355508484,"fillIntensity":0.494,"thicc":4.0,"tether":true}""");
-        Controller.RegisterElementFromCode("Bait", """{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":2852126720,"overlayTextColor":4278190335,"overlayVOffset":3.0,"thicc":10.0,"overlayText":"Bait Outside","refActorComparisonType":2,"onlyUnTargetable":true,"onlyVisible":true,"DistanceMax":5.0,"UseDistanceSourcePlaceholder":true}""");
+        Controller.RegisterElementFromCode("Bait", """{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":2852126720,"overlayTextColor":4278190335,"overlayVOffset":3.0,"thicc":10.0,tether:true,"overlayText":"Bait Outside","refActorComparisonType":2,"onlyUnTargetable":true,"onlyVisible":true,"DistanceMax":5.0,"UseDistanceSourcePlaceholder":true}""");
     }
 
     public bool HaveStatus(IPlayerCharacter p, uint id) => p.StatusList.Any(x => x.StatusId == id);
@@ -117,7 +118,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
     {
         Initial,        
         AllAssigned,    //1: drop e/w/s             2: stack north      3: stack north
-        Tower1Dropped,  //1: stack north            2: stack north      3: stack north
+        Tower1Dropped,  //1: stack north            2: drop ne/nw       3: take e/w/s
         Tower1Taken,    //1: stack north            2: drop ne/nw       3: bait e/w/s
         Tower1Baited,   //1: stack north            2: drop ne/nw       3: drop e/w/s
         Tower2Dropped,  //1: take ne/nw(1/3)        2: stack north      3: drop e/w/s
@@ -137,6 +138,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         if(Controller.Scene != 6)
         {
             MyPosition = default;
+            Stage = MechanicStage.Initial;
             return;
         }
         if(Players.All(x => HaveStatus(x, [Pos1, Pos2, Pos3])))
@@ -184,17 +186,18 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         }
         else if(Stage == MechanicStage.Tower1Dropped)
         {
-            if(MyNumber == 2)
+            if(MyNumber == 0)
             {
-                ShowMyPosition();
+                ShowNorth();
             }
             else if(MyNumber == 1)
             {
                 ShowMy2Position();
+                ShowArrowIfNeeded();
             }
-            else
+            else if(MyNumber == 2)
             {
-                ShowNorth();
+                ShowMyPosition();
             }
         }
         else if(Stage == MechanicStage.Tower1Taken)
@@ -240,7 +243,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 }
                 else
                 {
-                    ShowMyPosition();
+                    ShowMy2Position();
                 }
             }
             else if(MyNumber == 1)
@@ -263,7 +266,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 }
                 else
                 {
-                    ShowMyPosition();
+                    ShowBait();
                 }
             }
             else if(MyNumber == 1)
@@ -576,15 +579,24 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
 
         public override void Draw()
         {
+            ImGui.PushStyleVar(ImGuiStyleVar.ButtonTextAlign, new Vector2(0.5f, 0.5f));
             ImGuiEx.Text($"Your position: {Script.MyPosition.Number}, confidence={Script.MyPosition.Confidence}");
-            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ArrowLeft, "West")) Script.MyPosition = (P3_Dive_from_Grace_Neo.Position.West, 555555);
-            if(Script.Numbers[Script.MyNumber].Count == 3)
-            {
-                ImGui.SameLine();
-                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ArrowDown, "South")) Script.MyPosition = (P3_Dive_from_Grace_Neo.Position.South, 555555);
-            }
+            var pos = Script.MyPosition.Number;
+            if(pos == P3_Dive_from_Grace_Neo.Position.West) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
+            if(ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ArrowLeft, "West", size: new(80f.Scale(), 50f.Scale()))) { Script.MyPosition = (P3_Dive_from_Grace_Neo.Position.West, 555555); }
+            if(pos == P3_Dive_from_Grace_Neo.Position.West) ImGui.PopStyleColor();
+            var dis = Script.Numbers[Script.MyNumber].Count == 2;
+            if(dis) ImGui.BeginDisabled();
             ImGui.SameLine();
-            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ArrowRight, "East")) Script.MyPosition = (P3_Dive_from_Grace_Neo.Position.East, 555555);
+            if(pos == P3_Dive_from_Grace_Neo.Position.South) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
+            if(ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ArrowDown, "South", size: new(80f.Scale(), 50f.Scale()))) { Script.MyPosition = (P3_Dive_from_Grace_Neo.Position.South, 555555); }
+            if(pos == P3_Dive_from_Grace_Neo.Position.South) ImGui.PopStyleColor();
+            if(dis) ImGui.EndDisabled();
+            ImGui.SameLine();
+            if(pos == P3_Dive_from_Grace_Neo.Position.East) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
+            if(ImGuiComponents.IconButtonWithText(FontAwesomeIcon.ArrowRight, "East", size:new(80f.Scale(), 50f.Scale()))) { Script.MyPosition = (P3_Dive_from_Grace_Neo.Position.East, 555555); }
+            if(pos == P3_Dive_from_Grace_Neo.Position.East) ImGui.PopStyleColor();
+            ImGui.PopStyleVar();
             this.Position = new Vector2(ImGuiHelpers.MainViewport.Size.X / 2 - ImGui.GetWindowSize().X / 2, 0) + Script.C.Offset;
         }
     }

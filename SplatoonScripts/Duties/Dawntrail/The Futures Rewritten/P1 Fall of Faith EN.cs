@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P1_Fall_of_Faith_EN : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata? Metadata => new(6, "NightmareXIV");
     private Config C => Controller.GetConfig<Config>();
     private List<TetherInfo> Tethers = [];
     private int PlayersRemaining => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 1051));
@@ -150,6 +150,7 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         if(Active)
         {
+            var forwardDisplayed = false;
             var cnt = 0;
             List<IPlayerCharacter?> ActiveTethers = [];
             foreach(var x in Tethers)
@@ -171,7 +172,7 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
                     if(x.ObjectID == Player.Object.EntityId)
                     {
                         elem.overlayText += " (>>>Your turn, stay forward<<<)";
-                        DisplayForwardPosition();
+                        forwardDisplayed = DisplayForwardPosition();
                     }
                 }
                 cnt++;
@@ -199,7 +200,7 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
             }
             if(Tethers.TryGetFirst(x => x.ObjectID == Player.Object.EntityId, out var player))
             {
-                if(!EzThrottler.Check(InternalData.FullName + "OnStartCast"))
+                if(!forwardDisplayed && !EzThrottler.Check(InternalData.FullName + "OnStartCast"))
                 {
                     var index = Tethers.IndexOf(player);
                     MyTetherPos = index;
@@ -260,23 +261,22 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
         }
     }
 
-    void DisplayForwardPosition()
+    bool DisplayForwardPosition()
     {
-        if(EzThrottler.Check(InternalData.FullName + "OnStartCast"))
+        var elem = MyTetherPos switch
         {
-            var elem = MyTetherPos switch
-            {
-                0 => TNorth(1),
-                1 => TSouth(1),
-                2 => TNorth(1),
-                3 => TSouth(1),
-                _ => ""
-            };
-            if(Controller.TryGetElementByName(elem, out var element))
-            {
-                element.Enabled = true;
-            }
+            0 => TNorth(1),
+            1 => TSouth(1),
+            2 => TNorth(1),
+            3 => TSouth(1),
+            _ => ""
+        };
+        if(Controller.TryGetElementByName(elem, out var element))
+        {
+            element.Enabled = true;
+            return true;
         }
+        return false;
     }
 
     //> Tether create: 0000024115F33E58 / Fatebreaker / 1073755346, 276392049/276392049, 0, 249, 15

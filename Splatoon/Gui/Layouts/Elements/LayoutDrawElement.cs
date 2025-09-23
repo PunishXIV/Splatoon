@@ -745,6 +745,23 @@ internal unsafe partial class CGui
                 }
             }
 
+            ImGuiUtils.SizedText("Hitbox radius".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.Checkbox("##hitboxR", ref el.UseHitboxRadius);
+            if(el.UseHitboxRadius)
+            {
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##hitboxRmin", ref el.HitboxRadiusMin);
+
+                ImGui.SameLine();
+                ImGuiEx.Text("-");
+                ImGui.SameLine();
+
+                ImGui.SetNextItemWidth(50f);
+                ImGui.DragFloat("##hitboxRmax", ref el.HitboxRadiusMax);
+            }
+
             if(el.refActorType == 0)
             {
                 ImGuiUtils.SizedText("Object life time:".Loc(), WidthElement);

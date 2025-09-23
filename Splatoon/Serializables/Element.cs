@@ -223,7 +223,12 @@ public class Element
     public HashSet<ObjectKind> ObjectKinds = [];
     [DefaultValue(false)] public bool IsCapturing = false;
     [DefaultValue(false)] public bool Nodraw = false;
+    [DefaultValue(false)] public bool UseHitboxRadius = false;
+    [DefaultValue(0f)] public float HitboxRadiusMin = 0f;
+    [DefaultValue(0f)] public float HitboxRadiusMax = 0f;
 
+    public bool ShouldSerializeHitboxRadiusMin() => HitboxRadiusMin != 0f && UseHitboxRadius;
+    public bool ShouldSerializeHitboxRadiusMax() => HitboxRadiusMax != 0f && UseHitboxRadius;
     public bool ShouldSerializeDistanceSourcePlaceholder() => this.LimitDistance && UseDistanceSourcePlaceholder;
     public bool ShouldSerializeoverlayTextIntl() => !overlayTextIntl.IsEmpty();
     public bool ShouldSerializeObjectKinds() => ObjectKinds.Count > 0;

@@ -87,16 +87,15 @@ public static unsafe class LayoutUtils
         return false;
     }
 
-    public static bool CheckCharacterAttributes(Element e, IGameObject a, bool ignoreVisibility = false)
+    public static bool CheckCharacterAttributes(Element element, IGameObject gameObject, bool ignoreVisibility = false)
     {
         return
-            (ignoreVisibility || !e.onlyVisible || (a is ICharacter chr && chr.IsCharacterVisible()))
-            && (!e.refActorRequireCast || (a is IBattleChara chr2 && IsCastingMatches(e, chr2) != e.refActorCastReverse))
-            && (!e.refActorRequireBuff || (e.refActorBuffId.Count > 0 && a is IBattleChara chr3 && CheckEffect(e, chr3)))
-            && (!e.refActorUseTransformation || (a is IBattleChara chr4 && CheckTransformationID(e, chr4)))
-            && (!e.refMark || (a is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)e.refMarkID)))
-            && (!e.LimitRotation || (a.Rotation >= e.RotationMax && a.Rotation <= e.RotationMin))
-            && (!e.refActorTether || IsTetherMatches(e, a) == !e.refActorIsTetherInvert);
+            (ignoreVisibility || !element.onlyVisible || (gameObject is ICharacter chr && chr.IsCharacterVisible()))
+            && (!element.refActorRequireCast || (gameObject is IBattleChara chr2 && IsCastingMatches(element, chr2) != element.refActorCastReverse))
+            && (!element.refActorRequireBuff || (element.refActorBuffId.Count > 0 && gameObject is IBattleChara chr3 && CheckEffect(element, chr3)))
+            && (!element.refActorUseTransformation || (gameObject is IBattleChara chr4 && CheckTransformationID(element, chr4)))
+            && (!element.refMark || (gameObject is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)element.refMarkID)))
+            && (!element.refActorTether || IsTetherMatches(element, gameObject) == !element.refActorIsTetherInvert);
     }
 
     public static bool IsTetherMatches(Element e, IGameObject obj)

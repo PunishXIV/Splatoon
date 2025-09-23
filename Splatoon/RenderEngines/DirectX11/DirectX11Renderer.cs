@@ -54,7 +54,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             cx = rotatedPoint.X;
             cy = rotatedPoint.Y;
         }
-        if(e.tether)
+        if(e.tether && !e.Nodraw)
         {
             Vector3 origin = new(cx, z, cy);
             var end = Utils.XZY(Utils.GetPlayerPositionXZY());
@@ -128,7 +128,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 innerRadius = outerRadius;
                 outerRadius = innerRadius + e.Donut;
             }
-            if(e.tether)
+            if(e.tether && !e.Nodraw)
             {
                 var end = Utils.XZY(Utils.GetPlayerPositionXZY());
                 if(e.ExtraTetherLength > 0)

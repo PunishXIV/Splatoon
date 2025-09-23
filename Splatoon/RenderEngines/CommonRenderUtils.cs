@@ -132,13 +132,16 @@ public static unsafe class CommonRenderUtils
 
     internal static bool IsElementObjectMatches(Layout layout, Element element, bool isTargetable, IGameObject gameObject)
     {
-        return (!element.onlyTargetable || isTargetable)
-                            && (!element.onlyUnTargetable || !isTargetable)
-                            && LayoutUtils.CheckCharacterAttributes(element, gameObject)
-                            && (!element.refTargetYou || LayoutUtils.CheckTargetingOption(element, gameObject))
-                            && (!element.refActorObjectLife || gameObject.GetLifeTimeSeconds().InRange(element.refActorLifetimeMin, element.refActorLifetimeMax))
-                            && (!element.LimitDistance || IsDistanceMatches(layout, element, gameObject))
-                            && (element.ObjectKinds.Count == 0 || element.ObjectKinds.Contains(gameObject.ObjectKind));
+        return 
+            (!element.onlyTargetable || isTargetable)
+            && (!element.onlyUnTargetable || !isTargetable)
+            && (!element.LimitRotation || (gameObject.Rotation >= element.RotationMax && gameObject.Rotation <= element.RotationMin))
+            && (!element.UseHitboxRadius || (gameObject.HitboxRadius >= element.HitboxRadiusMin && gameObject.HitboxRadius <= element.HitboxRadiusMax))
+            && (!element.refTargetYou || LayoutUtils.CheckTargetingOption(element, gameObject))
+            && (!element.refActorObjectLife || gameObject.GetLifeTimeSeconds().InRange(element.refActorLifetimeMin, element.refActorLifetimeMax))
+            && (!element.LimitDistance || IsDistanceMatches(layout, element, gameObject))
+            && (element.ObjectKinds.Count == 0 || element.ObjectKinds.Contains(gameObject.ObjectKind))
+            && LayoutUtils.CheckCharacterAttributes(element, gameObject);
     }
 
     internal static bool IsDistanceMatches(Layout layout, Element element, IGameObject go)

@@ -353,7 +353,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
     {
         if(set.Action != null && set.Source is not IPlayerCharacter)
         {
-            PluginLog.Information(ExcelActionHelper.GetActionName(set.Action.Value.RowId, true));
+            //PluginLog.Information(ExcelActionHelper.GetActionName(set.Action.Value.RowId, true));
             if(set.Action.Value.RowId == 26385) //tower taken
             {
                 if(Stage == MechanicStage.Tower1Dropped)

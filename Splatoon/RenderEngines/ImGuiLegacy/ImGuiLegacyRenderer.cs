@@ -481,7 +481,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             cx = rotatedPoint.X;
             cy = rotatedPoint.Y;
         }
-        if(e.tether)
+        if(e.tether && !e.Nodraw)
         {
             DisplayObjects.Add(new DisplayObjectLine(cx,
                 cy,

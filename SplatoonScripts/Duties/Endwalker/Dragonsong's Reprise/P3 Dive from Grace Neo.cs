@@ -139,10 +139,14 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
             Stage = MechanicStage.Initial;
             return;
         }
-        if(Players.All(x => HaveStatus(x, [Pos1, Pos2, Pos3])))
+
+        if(Players.Any(x => HaveStatus(x, [Pos1, Pos2, Pos3])))
         {
             Window.IsOpen = true;
             EzThrottler.Throttle("DontCloseWindowDFG", 500, true);
+        }
+        if(Players.All(x => HaveStatus(x, [Pos1, Pos2, Pos3])))
+        {
             if(IsCastingDive)
             {
                 Stage = MechanicStage.Initial;
@@ -185,9 +189,11 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 if(Players.All(x => HaveStatus(x, [SpotForward, SpotBackwards, SpotOnPlayer])))
                 {
                     Stage = MechanicStage.AllAssigned;
+                    PluginLog.Information($"Stage Advance: {Stage}");
                 }
             }
         }
+        UpdateStage();
         if(Stage == MechanicStage.AllAssigned)
         {
             if(MyNumber == 0)
@@ -359,14 +365,17 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 if(Stage == MechanicStage.Tower1Dropped)
                 {
                     Stage = MechanicStage.Tower1Taken;
+                    PluginLog.Information($"Stage Advance: {Stage}");
                 }
                 else if(Stage == MechanicStage.Tower2Dropped)
                 {
                     Stage = MechanicStage.Tower2Taken;
+                    PluginLog.Information($"Stage Advance: {Stage}");
                 }
                 if(Stage == MechanicStage.Tower3Dropped)
                 {
                     Stage = MechanicStage.Tower3Taken;
+                    PluginLog.Information($"Stage Advance: {Stage}");
                 }
             }
             else if(set.Action.Value.RowId == 26382) //tower dropped
@@ -374,14 +383,17 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 if(Stage == MechanicStage.AllAssigned)
                 {
                     Stage = MechanicStage.Tower1Dropped;
+                    PluginLog.Information($"Stage Advance: {Stage}");
                 }
                 else if(Stage == MechanicStage.Tower1Baited)
                 {
                     Stage = MechanicStage.Tower2Dropped;
+                    PluginLog.Information($"Stage Advance: {Stage}");
                 }
                 else if(Stage == MechanicStage.Tower2Baited)
                 {
                     Stage = MechanicStage.Tower3Dropped;
+                    PluginLog.Information($"Stage Advance: {Stage}");
                 }
             }
         }
@@ -394,14 +406,17 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
             if(Stage == MechanicStage.Tower1Taken)
             {
                 Stage = MechanicStage.Tower1Baited;
+                PluginLog.Information($"Stage Advance: {Stage}");
             }
             else if(Stage == MechanicStage.Tower2Taken)
             {
                 Stage = MechanicStage.Tower2Baited;
+                PluginLog.Information($"Stage Advance: {Stage}");
             }
             if(Stage == MechanicStage.Tower3Taken)
             {
                 Stage = MechanicStage.Tower3Baited;
+                PluginLog.Information($"Stage Advance: {Stage}");
             }
         }
     }
@@ -531,6 +546,39 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         }
     }
 
+    void UpdateStage()
+    {
+        var strem = GetRemainingDuration();
+        if(strem > 20.5f)
+        {
+            //all assigned
+        }
+        else if(strem >= 14f)
+        {
+            SetStageIfLess(MechanicStage.Tower1Dropped);
+        }
+        else if(strem >= 11.5f)
+        {
+            SetStageIfLess(MechanicStage.Tower1Taken);
+        }
+        else if(strem >= 4.5f)
+        {
+            SetStageIfLess(MechanicStage.Tower2Dropped);
+        }
+        else if(strem >= 3.9f)
+        {
+            SetStageIfLess(MechanicStage.Tower2Taken);
+        }
+        else if(strem >= 1.5f && strem <= 1.1f)
+        {
+            SetStageIfLess(MechanicStage.Tower2Baited);
+        }
+        else if(strem >= 0.01f && strem <= 0.25f)
+        {
+            SetStageIfLess(MechanicStage.Tower3Dropped);
+        }
+    }
+
     public override void OnSettingsDraw()
     {
         ImGuiEx.RadioButtonBool("Easthogg (beta)", "Westhogg", ref C.Invert);
@@ -545,6 +593,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         }
         if(ImGui.CollapsingHeader("Debug"))
         {
+            ImGuiEx.Text($"StatusRem: {GetRemainingDuration()}");
             ImGuiEx.Text($"Stage: {Stage}");
             ImGuiEx.Text($"MyPositoon: {MyPosition}");
             ImGui.InputText("BPO", ref C.BPO);
@@ -570,6 +619,8 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
             ImGuiEx.Text($"Partners: {Numbers[MyNumber].Select(x => x.GetObject()).Print()}");
         }
     }
+
+    float GetRemainingDuration() => Svc.Objects.OfType<IPlayerCharacter>().Select(x => x.StatusList.FirstOrDefault(s => s.StatusId.EqualsAny(SpotBackwards, SpotForward, SpotOnPlayer))?.RemainingTime ?? 0).Max();
 
     Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
@@ -619,6 +670,15 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
             if(pos == P3_Dive_from_Grace_Neo.Position.East) ImGui.PopStyleColor();
             ImGui.PopStyleVar();
             this.Position = new Vector2(ImGuiHelpers.MainViewport.Size.X / 2 - ImGui.GetWindowSize().X / 2, 0) + Script.C.Offset;
+        }
+    }
+
+    void SetStageIfLess(MechanicStage newStage)
+    {
+        if(Stage < newStage)
+        {
+            PluginLog.Information($"Stage correction: {newStage}");
+            Stage = newStage;
         }
     }
 }

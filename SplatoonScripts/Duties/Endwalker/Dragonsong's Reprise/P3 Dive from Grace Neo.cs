@@ -27,7 +27,7 @@ using System.Numerics;
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
 
     IPlayerCharacter BasePlayer

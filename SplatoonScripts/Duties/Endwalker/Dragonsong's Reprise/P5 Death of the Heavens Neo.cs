@@ -9,6 +9,7 @@ using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.Throttlers;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
@@ -21,7 +22,7 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P5_Death_of_the_Heavens_Neo : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
 
     IPlayerCharacter BasePlayer
@@ -104,7 +105,7 @@ public sealed class P5_Death_of_the_Heavens_Neo : SplatoonScript
             }
             UpdatePositions();
             var str = (iHaveDoom ? "Doom" : "Clean") + (MyPosition.Num).ToString();
-            //PluginLog.Information(str+ $"{MyPosition}");
+            if(EzThrottler.Throttle("doomeam", 200)) DuoLog.Information(str+ $"{MyPosition}");
         }
         else if(Dooms.Count(x => x.StatusList.Any(s => s.StatusId == 2976 && s.RemainingTime >= 17f)) == 4)
         {
@@ -134,9 +135,9 @@ public sealed class P5_Death_of_the_Heavens_Neo : SplatoonScript
             var angle = RelNorth switch
             {
                 CardinalDirection.West => 0,
-                CardinalDirection.North => 270,
+                CardinalDirection.North => 90,
                 CardinalDirection.East => 180,
-                CardinalDirection.South => 90,
+                CardinalDirection.South => 270,
             };
             Controller.GetElementByName(x.Key).SetRefPosition(MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), x.Value));
         }

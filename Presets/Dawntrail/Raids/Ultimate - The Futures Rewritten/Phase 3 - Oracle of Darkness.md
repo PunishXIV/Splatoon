@@ -1,4 +1,4 @@
-## [WIP] Ultimate Relativity
+## Ultimate Relativity
 It highlights positions.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P3%20Ultimate%20Relativity.cs

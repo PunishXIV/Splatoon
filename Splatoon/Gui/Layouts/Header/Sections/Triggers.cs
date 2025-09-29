@@ -15,6 +15,13 @@ internal static class Triggers
             {
                 var trigger = layout.Triggers[n];
                 ImGui.PushID(trigger.GUID);
+                ImGui.PushStyleColor(ImGuiCol.Text, trigger.UserDisabled ? EColor.RedBright : EColor.GreenBright);
+                ImGui.PushFont(UiBuilder.IconFont);
+                ImGuiEx.ButtonCheckbox((trigger.UserDisabled ? FontAwesomeIcon.Times : FontAwesomeIcon.Check).ToIconString(), ref trigger.UserDisabled, noColor:true);
+                ImGui.PopFont();
+                ImGui.PopStyleColor();
+                ImGuiEx.Tooltip($"This trigger is {(trigger.UserDisabled ? "disabled" : "enabled")}");
+                ImGui.SameLine();
                 if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, enabled: ImGuiEx.Ctrl))
                 {
                     new TickScheduler(() => layout.Triggers.Remove(trigger));

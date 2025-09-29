@@ -84,7 +84,7 @@ public unsafe sealed class EX4_Roseblood_3 : SplatoonScript
             var cd = EventFramework.Instance()->GetInstanceContentDirector();
             if(cd != null && cd->MapEffects != null)
             {
-                for(int i = 4; i < 3 + 8; i++)
+                for(int i = 0; i < cd->MapEffects->ItemCount; i++)
                 {
                     ref var effect = ref cd->MapEffects->Items[i];
                     ImGuiEx.Text($"{i} Effect: {effect.LayoutId}/{effect.State}/{effect.Flags:B8}");

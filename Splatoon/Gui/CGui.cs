@@ -233,10 +233,10 @@ internal unsafe partial class CGui : IDisposable
         {
             var point = new POINT() { x = (int)screenPos.X, y = (int)screenPos.Y };
             //Chat.Print(point.X + "/" + point.Y);
-            if(NativeFunctions.ClientToScreen(handle, &point))
+            if(TerraFX.Interop.Windows.Windows.ClientToScreen(handle, &point))
             {
                 //Chat.Print(point.X + "/" + point.Y);
-                NativeFunctions.SetCursorPos(point.x, point.y);
+                TerraFX.Interop.Windows.Windows.SetCursorPos(point.x, point.y);
             }
         }
     }

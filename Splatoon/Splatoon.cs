@@ -1,29 +1,22 @@
 ﻿using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
-using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Plugin.Services;
 using ECommons;
-using ECommons.Automation;
 using ECommons.Automation.NeoTaskManager;
-using ECommons.CircularBuffers;
 using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
-using ECommons.Interop;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
-using ECommons.Reflection;
 using ECommons.SimpleGui;
 using ECommons.Singletons;
 using ECommons.WindowsFormsReflector;
 using Lumina.Excel.Sheets;
 using NotificationMasterAPI;
-
 using Splatoon.Gui;
 using Splatoon.Gui.Priority;
 using Splatoon.Gui.Scripting;
@@ -36,6 +29,7 @@ using Splatoon.Structures;
 using System.Net.Http;
 using Colors = Splatoon.Utility.Colors;
 using Localization = ECommons.LanguageHelpers.Localization;
+using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace Splatoon;
 public unsafe class Splatoon : IDalamudPlugin
@@ -49,7 +43,21 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Commands CommandManager;
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
-    internal long CombatStarted = 0;
+    internal long CombatStarted
+    {
+        get
+        {
+            if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            {
+                return EmulatedCombatTimer.CombatStart;
+            }
+            return field;
+        }
+        set
+        {
+            field = value;
+        }
+    }
     internal HashSet<Element> InjectedElements = [];
     //internal HashSet<(float x, float y, float z, float r, float angle)> draw = new HashSet<(float x, float y, float z, float r, float angle)>();
     internal bool prevMouseState = false;
@@ -461,6 +469,8 @@ public unsafe class Splatoon : IDalamudPlugin
             S.RenderManager.ClearDisplayObjects();
             if(Svc.ClientState.LocalPlayer != null)
             {
+                EmulatedCombatTimer.Tick();
+                PhaseUpdater.UpdatePhaseIfNeeded();
                 if(ChatMessageQueue.Count > 5 * dequeueConcurrency)
                 {
                     dequeueConcurrency++;
@@ -487,35 +497,25 @@ public unsafe class Splatoon : IDalamudPlugin
                     return;
                 }
 
-                if(Svc.Condition[ConditionFlag.InCombat])
+                if(!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                 {
-                    if(CombatStarted == 0)
+                    if(Svc.Condition[ConditionFlag.InCombat])
                     {
-                        CombatStarted = Environment.TickCount64;
-                        Log("Combat started event");
-                        ScriptingProcessor.OnCombatStart();
+                        if(CombatStarted == 0)
+                        {
+                            CombatStarted = Environment.TickCount64;
+                            Log("Combat started event");
+                            ScriptingProcessor.OnCombatStart();
+                        }
                     }
-                }
-                else
-                {
-                    if(CombatStarted != 0)
+                    else
                     {
-                        CombatStarted = 0;
-                        Log("Combat ended event");
-                        ScriptingProcessor.OnCombatEnd();
-                        AttachedInfo.VFXInfos.Clear();
-                        foreach(var l in Config.LayoutsL)
+                        if(CombatStarted != 0)
                         {
-                            ResetLayout(l);
+                            CombatStarted = 0;
+                            Log("Combat ended event");
+                            CombatEnded();
                         }
-                        foreach(var de in dynamicElements)
-                        {
-                            foreach(var l in de.Layouts)
-                            {
-                                ResetLayout(l);
-                            }
-                        }
-                        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
                     }
                 }
 
@@ -609,12 +609,31 @@ public unsafe class Splatoon : IDalamudPlugin
             CurrentChatMessages.Clear();
             BuffEffectProcessor.ActorEffectUpdate();
             ScriptingProcessor.OnUpdate();
+            CapturedPositions.Clear();
         }
         catch(Exception e)
         {
             Log("Caught exception: " + e.Message);
             Log(e.ToStringFull());
         }
+    }
+
+    internal void CombatEnded()
+    {
+        ScriptingProcessor.OnCombatEnd();
+        AttachedInfo.VFXInfos.Clear();
+        foreach(var l in Config.LayoutsL)
+        {
+            ResetLayout(l);
+        }
+        foreach(var de in dynamicElements)
+        {
+            foreach(var l in de.Layouts)
+            {
+                ResetLayout(l);
+            }
+        }
+        ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
     }
 
     internal void ProcessLayout(Layout l)
@@ -664,6 +683,8 @@ public unsafe class Splatoon : IDalamudPlugin
             }
         }
     }
+
+    internal static Dictionary<string, Dictionary<string, List<Vector3>>> CapturedPositions = [];
 
     internal static void ProcessElementsOfLayout(Layout l)
     {
@@ -719,13 +740,13 @@ public unsafe class Splatoon : IDalamudPlugin
     {
         if(s2wInfo != null)
         {
-            var lmbdown = Bitmask.IsBitSet(NativeFunctions.GetKeyState(0x01), 15);
+            var lmbdown = Bitmask.IsBitSet(TerraFX.Interop.Windows.Windows.GetKeyState(0x01), 15);
             var mousePos = ImGui.GetIO().MousePos;
             if(Svc.GameGui.ScreenToWorld(new Vector2(mousePos.X, mousePos.Y), out var worldPos, Config.maxdistance * 5))
             {
                 if(IsKeyPressed(Keys.LShiftKey) || IsKeyPressed(Keys.RShiftKey))
                 {
-                    s2wInfo.Apply(MathF.Round(worldPos.X), MathF.Round(worldPos.Z), MathF.Round(worldPos.Y));
+                    s2wInfo.Apply((float)(Math.Round(worldPos.X * 2d) / 2d), (float)(Math.Round(worldPos.Z * 2d) / 2d), (float)(Math.Round(worldPos.Y * 2d) / 2d));
                 }
                 else
                 {

@@ -189,7 +189,7 @@ internal class Loader
             }
             if(ImGui.Button($"Join discord to be notified for update immediately."))
             {
-                ShellStart("https://discord.gg/m8NRt4X8Gf");
+                ShellStart("https://discord.nightmarexiv.com/");
             }
         }
         size = ImGui.GetWindowSize();

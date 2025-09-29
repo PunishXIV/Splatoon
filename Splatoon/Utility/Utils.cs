@@ -6,7 +6,9 @@ using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
@@ -14,11 +16,166 @@ using Splatoon.Structures;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using TerraFX.Interop.Windows;
 
 namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static Vector3 ToXZY(this Vector3 xyzVector)
+    {
+        return new(xyzVector.X, xyzVector.Z, xyzVector.Y);
+    }
+
+    public static List<IGameObject> AlterTargetIfNeeded(Element element, IGameObject go)
+    {
+        List<IGameObject> ret = [go];
+        if(element.TargetAlteration == TargetAlteration.Tethered)
+        {
+            ret.Clear();
+            {
+                if(go is ICharacter chr)
+                {
+                    var c = chr.Struct();
+                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    {
+                        var t = c->Vfx.Tethers[i];
+                        if(t.Id != 0)
+                        {
+                            var target = Svc.Objects.FirstOrDefault(x => x.GameObjectId == t.TargetId);
+                            if(target != null)
+                            {
+                                ret.Add(target);
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach(var x in Svc.Objects)
+            {
+                if(x is ICharacter chr)
+                {
+                    var c = chr.Struct();
+                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    {
+                        var t = c->Vfx.Tethers[i];
+                        if(t.Id != 0 && t.TargetId == go.GameObjectId)
+                        {
+                            ret.Add(x);
+                        }
+                    }
+                }
+            }
+        }
+        else if(element.TargetAlteration == TargetAlteration.Targeted)
+        {
+            ret.Clear();
+            if(go is ICharacter chr)
+            {
+                var t = chr.TargetObject;
+                if(t != null)
+                {
+                    ret.Add(t);
+                }
+            }
+        }
+        else if((int)element.TargetAlteration >= 1100 && (int)element.TargetAlteration <= 1200)
+        {
+            ret.Clear();
+            if(go != null)
+            {
+                var index = (int)element.TargetAlteration - 1100;
+                int i = 0;
+                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderBy(o => Vector3.DistanceSquared(o.Position, go.Position)))
+                {
+                    if(index == i)
+                    {
+                        ret.Add(x);
+                        break;
+                    }
+                    i++;
+                }
+            }
+        }
+        else if((int)element.TargetAlteration >= 2100 && (int)element.TargetAlteration <= 2200)
+        {
+            ret.Clear();
+            if(go != null)
+            {
+                var index = (int)element.TargetAlteration - 2100;
+                int i = 0;
+                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderByDescending(o => Vector3.DistanceSquared(o.Position, go.Position)))
+                {
+                    if(index == i)
+                    {
+                        ret.Add(x);
+                        break;
+                    }
+                    i++;
+                }
+            }
+        }
+        return ret;
+    }
+
+    public static List<Vector3> GetFacePositions(Layout layout, Element element, IGameObject go, string placeholder)
+    {
+        if(placeholder.StartsWith("<element:"))
+        {
+            var details = placeholder[1..^1].Split(":");
+            var list = details.Length == 2 
+                ? Splatoon.CapturedPositions.SafeSelect(layout.GetName())?.SafeSelect(details[1])
+                : Splatoon.CapturedPositions.SafeSelect(details[1])?.SafeSelect(details[2]);
+            return list;
+        }
+        if(placeholder == "<tethered>")
+        {
+            var ret = new List<Vector3>();
+            {
+                if(go is ICharacter chr)
+                {
+                    var c = chr.Struct();
+                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    {
+                        var t = c->Vfx.Tethers[i];
+                        if(t.Id != 0)
+                        {
+                            var target = Svc.Objects.FirstOrDefault(x => x.GameObjectId == t.TargetId);
+                            if(target != null)
+                            {
+                                ret.Add(target.Position);
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach(var x in Svc.Objects)
+            {
+                if(x is ICharacter chr)
+                {
+                    var c = chr.Struct();
+                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    {
+                        var t = c->Vfx.Tethers[i];
+                        if(t.Id != 0 && t.TargetId == go.GameObjectId)
+                        {
+                            ret.Add(x.Position);
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
+        var obj = ExtendedPronoun.Resolve(placeholder);
+        if(obj != null)
+        {
+            return [obj->Position];
+        }
+        return null;
+    }
+
     public static string GetShortName(this Expansion ex)
     {
         return ex switch

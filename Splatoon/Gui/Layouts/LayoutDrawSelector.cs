@@ -1,5 +1,9 @@
-﻿using Dalamud.Interface.Colors;
+﻿using Dalamud.Hooking;
+using Dalamud.Interface.Colors;
 using ECommons.LanguageHelpers;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.Shell;
 using Newtonsoft.Json;
 using Splatoon.Utility;
 
@@ -142,7 +146,7 @@ internal static class LayoutDrawSelector
                 var curpos = ImGui.GetCursorScreenPos();
                 var contRegion = ImGui.GetContentRegionAvail().X;
                 var cond = layout.Enabled && e.Enabled && e.Conditional;
-                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert ? "↓" : null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert ? "×" : null)}{(cond && e.ConditionalReset ? "§" : null)}{e.GetName()}", CurrentElement == e))
+                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert ? "↓" : null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert ? "×" : null)}{(cond && e.ConditionalReset ? "§" : null)}{(e.IsCapturing? "©" : "")}{(e.Nodraw? "Ø" : "")}{e.GetName()}", CurrentElement == e))
                 {
                     if(CurrentElement == e)
                     {

@@ -608,7 +608,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
 
         public PrioData PriorityData = new();
 
-        public bool LockFace = true;
+        public bool LockFace = false;
         public bool LockFaceEnableWhenNotMoving = true;
         public Direction OrientationBase = Direction.North;
         public PrePlaystationSplit PrePlaystationSplit = PrePlaystationSplit.Horizontal;

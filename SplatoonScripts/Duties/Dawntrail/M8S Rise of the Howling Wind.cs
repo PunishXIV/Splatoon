@@ -12,6 +12,7 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using ECommons.Logging;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
@@ -106,7 +107,7 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
      */
     #region Public Fields
     public override HashSet<uint>? ValidTerritories => [1263];
-    public override Metadata? Metadata => new(4, "Redmoon, NightmareXIV");
+    public override Metadata? Metadata => new(5, "Redmoon, NightmareXIV");
     #endregion
 
     /*
@@ -280,6 +281,7 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
         if(data2 == 0 && data3 == 84 && data5 == 15)
         {
             // 別島のプレイヤーにTetherが付与された場合のみ有効
+
             if(_hasTetherPlayer != null)
             {
                 if(_hasTetherPlayer.Id == target) return;
@@ -342,6 +344,8 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
         var landNumber = _assignedPlayers.Where(x => x.Id == pc.EntityId).First().LandNumber;
         if(landNumber == 0) return;
 
+        var isMyTether = _assignedPlayers.Any(x => x.LandNumber == landNumber && x.Id == _hasTetherPlayer?.Id);
+
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
         switch(_state)
@@ -357,14 +361,14 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
                 }
                 else if(mine.LandNumber == 2)
                 {
-                    if(Controller.TryGetElementByName(C.Is23Origin?"Nop2Land":"Nop1Land", out var element))
+                    if(Controller.TryGetElementByName(!isMyTether && C.Is23Origin?"Nop2Land":"Nop1Land", out var element))
                     {
                         element.Enabled = true;
                     }
                 }
                 else if(mine.LandNumber == 3)
                 {
-                    if(Controller.TryGetElementByName(C.Is23Origin ? "Nop3Land" : "Nop4Land", out var element))
+                    if(Controller.TryGetElementByName(!isMyTether && C.Is23Origin ? "Nop3Land" : "Nop4Land", out var element))
                     {
                         element.Enabled = true;
                     }
@@ -420,7 +424,9 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.Checkbox("Don't switch off platforms 2 and 3 before tether appears", ref C.Is23Origin);
-        ImGuiEx.Text("   (enable for EU and NA strats)");
+        ImGui.Indent();
+        ImGuiEx.Text("(enable for EU and NA strats)");
+        ImGui.Unindent();
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"State: {_state}");

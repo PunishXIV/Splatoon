@@ -85,7 +85,7 @@ public class P2_Diamond_Dust : SplatoonScript
                 _state = State.Split;
                 if(_hasAoe)
                 {
-                    var radius = 20f;
+                    var radius = 19.5f;
                     var elementRadius = 1f;
                     switch(_firstIcicleImpactDirection)
                     {
@@ -105,7 +105,7 @@ public class P2_Diamond_Dust : SplatoonScript
                 }
                 else
                 {
-                    var radius = 17f;
+                    var radius = 16.5f;
                     var elementRadius = 1f;
                     switch(_firstIcicleImpactDirection)
                     {

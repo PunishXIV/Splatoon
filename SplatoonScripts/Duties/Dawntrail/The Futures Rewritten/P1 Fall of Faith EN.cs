@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P1_Fall_of_Faith_EN : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(7, "NightmareXIV");
+    public override Metadata? Metadata => new(8, "NightmareXIV");
     private Config C => Controller.GetConfig<Config>();
     private List<TetherInfo> Tethers = [];
     private int PlayersRemaining => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 1051));
@@ -200,10 +200,10 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
             }
             if(Tethers.TryGetFirst(x => x.ObjectID == Player.Object.EntityId, out var player))
             {
+                var index = Tethers.IndexOf(player);
+                MyTetherPos = index;
                 if(!forwardDisplayed && !EzThrottler.Check(InternalData.FullName + "OnStartCast"))
                 {
-                    var index = Tethers.IndexOf(player);
-                    MyTetherPos = index;
                     var elem = index switch
                     {
                         0 => TNorth(1),

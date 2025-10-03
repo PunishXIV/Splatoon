@@ -16,6 +16,11 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Dalamud.Plugin.Ipc.Exceptions;
+using ECommons.ExcelServices;
+using ECommons.Throttlers;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using ECommons.Automation;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -61,7 +66,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     public List<IGameObject> MyTowers = [];
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -96,7 +101,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
             Controller.Schedule(() =>
             {
-                Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+                Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => x.Value.Enabled = false);
                 _isStart = false;
             }, 40 * 1000);
         }
@@ -121,7 +126,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     public override void OnReset()
     {
-        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => x.Value.Enabled = false);
         _isStart = false;
         _isFirstTowerPhase = false;
         _isSecondTowerPhase = false;
@@ -142,6 +147,8 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             var element = new Element(0);
             Controller.TryRegisterElement($"bait{i + 1}", element, true);
         }
+
+        Controller.RegisterElementFromCode("AdjustCall", """{"Name":"","refX":100.0,"refY":100.0,"radius":3.0,"color":3356884736,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"thicc":8.0,"overlayText":"ADJUST","tether":true}""");
     }
 
     private void SetTowers(Vector2 playerPosition)
@@ -226,6 +233,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     public override void OnUpdate()
     {
+        ProcessSwap();
         if(!_isStart)
             return;
         if(!_isFirstTowerPhase && !_isSecondTowerPhase)
@@ -234,13 +242,13 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             if(playerPosition != _lastPlayerPosition)
             {
                 SetTowers(playerPosition);
-                Controller.GetRegisteredElements().Each(x => { x.Value.Enabled = false; });
+                Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => { x.Value.Enabled = false; });
                 for(var i = 0; i < MyTowers.Count; i++)
                     if(Controller.TryGetElementByName($"bait{i + 1}", out var element))
                     {
                         element.Enabled = true;
                         element.color = C.PredictBaitColor.ToUint();
-                        element.thicc = 2f;
+                        element.thicc = 4f; 
                         element.tether = true;
                         element.SetOffPosition(MyTowers[i].Position);
                     }
@@ -250,7 +258,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         }
 
         if(_isFirstTowerPhase || _isSecondTowerPhase)
-            Controller.GetRegisteredElements()
+            Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait"))
                 .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
     }
 
@@ -267,7 +275,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             var position = Player.Position.ToVector2();
             SetTowers(position);
 
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => x.Value.Enabled = false);
             for(var i = 0; i < MyTowers.Count; i++) SetOffPosition($"bait{i + 1}", MyTowers[i].Position);
         }
 
@@ -275,7 +283,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         {
             _isFirstTowerPhase = false;
             _isSecondTowerPhase = true;
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => x.Value.Enabled = false);
             if(!_shouldPrioritizeOuterTower)
             {
                 const float innerOffset = 3f;
@@ -332,7 +340,78 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         return null;
     }
 
-    public override void OnSettingsDraw()
+    unsafe void ProcessSwap()
+    {
+        var e = Controller.GetElementByName("AdjustCall")!;
+        e.Enabled = false;
+        if(!C.ResolveSwaps) return;
+        var remTime = Controller.GetPartyMembers().Select(x => x.StatusList.FirstOrDefault(s => s.StatusId == 562)).Where(x => x != null).Select(x => x.RemainingTime).FirstOrDefault();
+        
+        if(Controller.Scene == 4 && Player.DistanceTo(new Vector3(100,0,100)) > 12f)
+        {
+            if(Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsCasting(25308) && x.CurrentCastTime > 0.5f))
+            {
+                if(EzThrottler.Throttle(GenericHelpers.GetCallStackID(), 200))
+                {
+                    var action = Player.Job.IsDom() ? 7559u : 7548u;
+                    if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
+                    {
+                        if(ActionManager.Instance()->GetActionStatus(ActionType.Action, action) == 0)
+                        {
+                            Chat.ExecuteAction(action);
+                        }
+                    }
+                    else
+                    {
+                        DuoLog.Information($"Would use {ExcelActionHelper.GetActionName(action)}");
+                    }
+                }
+            }
+        }
+
+        if(Controller.Scene == 4 && remTime.InRange(16f, 25f))
+        {
+            var north = new Vector3(100.000f, 0, 90.500f); //radius = 7
+            var south = new Vector3(100.000f, 0, 109.500f);
+            var east = new Vector3(109.500f, 0, 100f);
+            var west = new Vector3(90.500f, 0, 100f);
+            var isMeDps = Player.Job.IsDps();
+            var isMeteorDps = Controller.GetPartyMembers().Any(x => x.GetJob().IsDps() == isMeDps && x.StatusList.Any(s => s.StatusId == 562));
+
+            if(isMeDps == isMeteorDps && !Player.Status.Any(s => s.StatusId == 562))
+            {
+                int countPlayersWithMeteor(Vector3 where)
+                {
+                    return Controller.GetPartyMembers().Where(x => x.GetJob().IsDps() == isMeDps && Vector3.Distance(where, x.Position) < 7f && x.StatusList.Any(s => s.StatusId == 562)).Count();
+                }
+                int countPlayersWithoutMeteor(Vector3 where)
+                {
+                    return Controller.GetPartyMembers().Where(x => x.GetJob().IsDps() == isMeDps && Vector3.Distance(where, x.Position) < 7f && !x.StatusList.Any(s => s.StatusId == 562)).Count();
+                }
+                int countPlayers(Vector3 where)
+                {
+                    return Controller.GetPartyMembers().Where(x => x.GetJob().IsDps() == isMeDps && Vector3.Distance(where, x.Position) < 7f).Count();
+                }
+
+                if(Player.DistanceTo(north) < 7f)
+                {
+                    if(countPlayersWithoutMeteor(west) == 0)
+                    {
+                        e.Enabled = true;
+                        e.SetRefPosition(west);
+                    }
+                    else if(countPlayersWithoutMeteor(east) == 0)
+                    {
+                        e.Enabled = true;
+                        e.SetRefPosition(east);
+                    }
+                }
+            }
+        }
+    }
+
+
+    public unsafe override void OnSettingsDraw()
     {
         ImGui.Text("Bait Color:");
         ImGuiComponents.HelpMarker(
@@ -347,8 +426,12 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         ImGui.ColorEdit4("Color", ref C.PredictBaitColor, ImGuiColorEditFlags.NoInputs);
         ImGui.Unindent();
 
+        ImGui.Checkbox("Resolve swaps (only works for north position right now)", ref C.ResolveSwaps);
+
         if(ImGui.CollapsingHeader("Debug"))
         {
+            var action = Player.Job.IsDom() ? 7559u : 7548u;
+            ImGuiEx.Text($"{ActionManager.Instance()->GetActionStatus(ActionType.Action, action)}");
             ImGui.Text("Inner");
             foreach(var tower in _innerTowers)
             {
@@ -406,5 +489,6 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public Vector4 PredictBaitColor = EColor.Red;
+        public bool ResolveSwaps = false;
     }
 }

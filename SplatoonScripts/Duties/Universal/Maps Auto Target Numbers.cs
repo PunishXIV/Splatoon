@@ -5,6 +5,7 @@ using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Logging;
+using ECommons.Reflection;
 using ECommons.Throttlers;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
@@ -32,6 +33,21 @@ public unsafe sealed class Maps_Auto_Target_Numbers : SplatoonScript
         [60690],
         [60691],
         ];
+
+    /*bool GetVBMAutoTarget()
+    {
+        try
+        {
+            if(DalamudReflector.TryGetDalamudPlugin("BossMod", out var p, true, true))
+            {
+                p.GetStaticFoP("BossMod.Service", "Config").CallStatic("")
+            }
+        }
+        catch(Exception e)
+        {
+            e.LogWarning();
+        }
+    }*/
 
     public override void OnUpdate()
     {

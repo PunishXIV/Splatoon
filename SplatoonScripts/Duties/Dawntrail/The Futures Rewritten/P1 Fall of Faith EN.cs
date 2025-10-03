@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class P1_Fall_of_Faith_EN : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(6, "NightmareXIV");
+    public override Metadata? Metadata => new(7, "NightmareXIV");
     private Config C => Controller.GetConfig<Config>();
     private List<TetherInfo> Tethers = [];
     private int PlayersRemaining => Svc.Objects.OfType<IPlayerCharacter>().Count(x => x.StatusList.Any(s => s.StatusId == 1051));
@@ -301,7 +301,10 @@ public class P1_Fall_of_Faith_EN : SplatoonScript
         {
             EzThrottler.Throttle(InternalData.FullName + "OnStartCast", 15000, true);
             Active = true;
-            Tethers = [Tethers[^1]];
+        }
+        if(castId == 40170)
+        {
+            Tethers.Clear();
         }
     }
 

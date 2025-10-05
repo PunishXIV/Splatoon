@@ -43,7 +43,7 @@ public class P2_Diamond_Dust : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -260,6 +260,8 @@ public class P2_Diamond_Dust : SplatoonScript
 
     public override void OnSetup()
     {
+        Controller.RegisterElementFromCode("HintStay", """{"Name":"HintStay","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":3355443455,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"Stay","refActorType":1}""");
+        Controller.RegisterElementFromCode("HintMove", """{"Name":"HintMove","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278219783,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"Move","refActorType":1}""");
         Controller.RegisterElementFromCode("SelfCW", """{"Name":"SelfCW","type":3,"refY":5.0,"radius":0.0,"color":3355508223,"Filled":false,"fillIntensity":0.345,"thicc":8.0,"refActorType":1,"includeRotation":true,"LineEndA":1,"AdditionalRotation":5.061455,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}""");
         Controller.RegisterElementFromCode("SelfCCW", """{"Name":"SelfCW","type":3,"refY":5.0,"radius":0.0,"color":3355508223,"Filled":false,"fillIntensity":0.345,"thicc":8.0,"refActorType":1,"includeRotation":true,"LineEndA":1,"AdditionalRotation":1.2217305,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}""");
         Controller.RegisterElement("Bait", new Element(0)
@@ -286,6 +288,7 @@ public class P2_Diamond_Dust : SplatoonScript
             Controller.GetElementByName("SelfCCW").Enabled = false;
         }
         ResolveCwCcw();
+        ProcessHint();
         if(_state is State.None or State.End)
         {
             Controller.GetElementByName("Bait").Enabled = false;
@@ -295,6 +298,21 @@ public class P2_Diamond_Dust : SplatoonScript
 
         if(Controller.TryGetElementByName("Bait", out var element))
             element.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+    }
+
+    void ProcessHint()
+    {
+        Controller.GetElementByName("HintStay").Enabled = false;
+        Controller.GetElementByName("HintMove").Enabled = false;
+        if(C.Hints)
+        {
+            var e = Controller.GetElementByName("Bait");
+            if(e.Enabled)
+            {
+                var pass = Player.DistanceTo(new Vector2(e.refX + e.offX, e.refY + e.offY)) < e.radius;
+                Controller.GetElementByName(pass ? "HintStay" : "HintMove").Enabled = true;
+            }
+        }
     }
 
     void ResolveCwCcw()
@@ -314,6 +332,7 @@ public class P2_Diamond_Dust : SplatoonScript
         {
             ImGui.Indent();
             ImGui.Checkbox("Resolve puddle bait direction", ref C.ResolveBaitDirection);
+            ImGui.Checkbox("Show move/stay hints", ref C.Hints);
             ImGuiEx.HelpMarker("Will assume you will always rotate clockwise unless Shiva is 45 degrees clockwise to your initial position");
             if(ImGuiEx.CollapsingHeader("Circle"))
             {
@@ -633,6 +652,7 @@ public class P2_Diamond_Dust : SplatoonScript
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public bool ResolveBaitDirection = false;
+        public bool Hints = false;
 
         public List<Direction> KnockbackDirections =
         [

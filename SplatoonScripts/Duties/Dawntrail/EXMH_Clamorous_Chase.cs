@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 #pragma warning disable SYSLIB1045
 public sealed class EXMH_Clamorous_Chase : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1306];
 
     IPlayerCharacter BasePlayer
@@ -159,7 +159,7 @@ public sealed class EXMH_Clamorous_Chase : SplatoonScript
 
     void ResolveNorthSouth()
     {
-        var isNorth = MyNumber % 2 == 1;
+        var isSouth = MyNumber % 2 == 0;
         var target = (MyNumber - CurrentTarget) switch
         {
             < 0 => 4,   
@@ -170,11 +170,11 @@ public sealed class EXMH_Clamorous_Chase : SplatoonScript
 
         if(target != 3)
         {
-            Controller.GetElementByName($"Center{(isNorth?"North":"South")}")!.Enabled = true;
+            Controller.GetElementByName($"Center{(isSouth?"North":"South")}")!.Enabled = true;
         }
         else
         {
-            Controller.GetElementByName($"{(isNorth ? "North" : "South")}")!.Enabled = true;
+            Controller.GetElementByName($"{(isSouth ? "North" : "South")}")!.Enabled = true;
         }
         if(target != 4 || Vector2.Distance(BasePlayer.Position.ToVector2(), new Vector2(100, 100)) > 15f)
         {

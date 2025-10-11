@@ -9,7 +9,7 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 
 > [!Important]
-> These presets were contributed by community
+> These presets were contributed by lillylilim, Ksirashi
 
 ```
 ~Lv2~{"Name":"Misc","Group":"The Final Verse Quantum","ZoneLockH":[1311],"ElementsL":[{"Name":"Light Vengence","type":1,"color":3355508719,"Filled":false,"fillIntensity":0.5,"refActorRequireBuff":true,"refActorBuffId":[4560],"refActorType":1},{"Name":"Dark Vengence","type":1,"color":3372155035,"Filled":false,"fillIntensity":0.5,"refActorRequireBuff":true,"refActorBuffId":[4559],"refActorType":1},{"Name":"Healer Debuff","type":1,"radius":20.5,"color":3357605632,"Filled":false,"fillIntensity":0.5,"refActorPlaceholder":["<1>","<2>","<3>","<4>"],"refActorRequireBuff":true,"refActorBuffId":[4564,4564],"refActorComparisonType":5}]}

@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public class Quantum_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1311];
-    public override Metadata? Metadata => new(2, "Poneglyph, NightmareXIV");
+    public override Metadata? Metadata => new(3, "Poneglyph, NightmareXIV");
 
     private static class Buffs
     {
@@ -102,6 +102,12 @@ public class Quantum_Target_Enforcer : SplatoonScript
         {
             EnforceTarget(target);
         }
+    }
+
+    public override void OnSettingsDraw()
+    {
+        ImGui.Checkbox("Target Vodoriga", ref C.TargetVodoriga);
+        ImGui.Checkbox("Don't switch off players", ref C.NoSwitchOffPlayers);
     }
 
     private void EnforceTarget(IBattleNpc target)

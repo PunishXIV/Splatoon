@@ -1,3 +1,10 @@
+> [!Warning]
+> To attempt to enable duty recording, you can install this script:
+> ```
+> https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs`
+> ```
+> It is not guaranteed that it will work at all times.
+
 > [!Important]
 > The following presets were made by [Leathen-94](https://github.com/Leathen-94/Presets)
 

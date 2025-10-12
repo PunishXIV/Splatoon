@@ -5,7 +5,7 @@
 > 
 > It is not guaranteed that it will work at all times.
 
-> > [!Important]
+> [!Important]
 > The following presets were made by [Leathen-94](https://github.com/Leathen-94/Presets)
 
 ## [ENG] Accursed Hoard Tether

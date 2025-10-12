@@ -5,9 +5,11 @@ using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
+using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
@@ -29,12 +31,19 @@ public sealed class SimpleMitigations : SplatoonScript
 
     Dictionary<string, long> TrackedTimes = [];
 
+    [EzIPC("WrathCombo.ActionRequest.RequestBlacklist", false)] public Action<ActionType, uint, int> RequestBlacklist;
+
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
         if(category == DirectorUpdateCategory.Commence || category == DirectorUpdateCategory.Recommence || category == DirectorUpdateCategory.Wipe)
         {
             TrackedTimes.Clear();
         }
+    }
+
+    public override void OnSetup()
+    {
+        EzIPC.Init(this);
     }
 
     public override void OnCombatStart()
@@ -49,6 +58,7 @@ public sealed class SimpleMitigations : SplatoonScript
 
     public unsafe override void OnUpdate()
     {
+        ProcessActionBlock();
         if(!Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat]) return;
         var names = C.Data.Select(x => x.Name).ToHashSet();
         foreach(var x in Svc.Objects)
@@ -64,19 +74,29 @@ public sealed class SimpleMitigations : SplatoonScript
                     }
                     if(C.Data.TryGetFirst(d => d.Name == n && GetTime(d.Name).InRange(d.Time, d.Time + 5), out var data))
                     {
-                        var s = ActionManager.Instance()->GetActionStatus(data.General ? ActionType.GeneralAction : ActionType.Action, (uint)data.Action);
-                        if(s == 0)
+                        if(!data.Prohibit)
                         {
-                            if(EzThrottler.Throttle("Cast", 50) && !Player.Object.IsDead && GenericHelpers.IsScreenReady())
+                            var s = ActionManager.Instance()->GetActionStatus(data.General ? ActionType.GeneralAction : ActionType.Action, (uint)data.Action);
+                            if(s == 0)
                             {
-                                if(data.General)
+                                if(EzThrottler.Throttle("Cast", 50) && !Player.Object.IsDead && GenericHelpers.IsScreenReady())
                                 {
-                                    Chat.ExecuteGeneralAction((uint)data.Action);
+                                    if(data.General)
+                                    {
+                                        Chat.ExecuteGeneralAction((uint)data.Action);
+                                    }
+                                    else
+                                    {
+                                        Chat.ExecuteAction((uint)data.Action);
+                                    }
                                 }
-                                else
-                                {
-                                    Chat.ExecuteAction((uint)data.Action);
-                                }
+                            }
+                        }
+                        else
+                        {
+                            if(EzThrottler.Throttle($"DisallowAction_{data.Type}_{data.Action}"))
+                            {
+                                RequestBlacklist(data.Type, (uint)data.Action, 1000);
                             }
                         }
                     }
@@ -104,6 +124,9 @@ public sealed class SimpleMitigations : SplatoonScript
                 ImGui.SameLine();
                 ImGuiEx.ButtonCheckbox(Dalamud.Interface.FontAwesomeIcon.PeopleGroup, ref x.General);
                 ImGuiEx.Tooltip("Is general action");
+                ImGui.SameLine();
+                ImGuiEx.ButtonCheckbox(Dalamud.Interface.FontAwesomeIcon.Times, ref x.Prohibit, EColor.RedBright);
+                ImGuiEx.Tooltip("Disallow action");
                 ImGui.TableNextColumn();
                 ImGui.SetNextItemWidth(100f);
                 ImGui.InputFloat("##time", ref x.Time);
@@ -128,6 +151,44 @@ public sealed class SimpleMitigations : SplatoonScript
         }
     }
 
+    void ProcessActionBlock()
+    {
+        {
+            if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsTargetable && x.Name.ToString() == "Fatebreaker", out var data))
+            {
+                var hp = (float)data.CurrentHp / (float)data.MaxHp;
+                if(hp < 0.15f)
+                {
+                    if(EzThrottler.Throttle("BlockFatebreaker"))
+                    {
+                        PluginLog.Information($"Preventing bursts...");
+                        this.RequestBlacklist(ActionType.Action, 2878, 1000); //wf
+                        this.RequestBlacklist(ActionType.Action, 7414, 1000); //stab
+                        this.RequestBlacklist(ActionType.Action, 16501, 1000); //robot
+                        if(hp < 0.1f) this.RequestBlacklist(ActionType.Action, 17209, 1000); //hyper
+                    }
+                }
+            }
+        }
+        {
+            if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsTargetable && x.Name.ToString() == "Usurper of Frost", out var data))
+            {
+                var hp = (float)data.CurrentHp / (float)data.MaxHp;
+                if(hp < 0.3f)
+                {
+                    if(EzThrottler.Throttle("BlockUsurper"))
+                    {
+                        PluginLog.Information($"Preventing bursts...");
+                        this.RequestBlacklist(ActionType.Action, 2878, 1000); //wf
+                        this.RequestBlacklist(ActionType.Action, 7414, 1000); //stab
+                        this.RequestBlacklist(ActionType.Action, 16501, 1000); //robot
+                        if(hp < 0.1f) this.RequestBlacklist(ActionType.Action, 17209, 1000); //hyper
+                    }
+                }
+            }
+        }
+    }
+
     float GetTime(string s)
     {
         if(TrackedTimes.TryGetValue(s, out var ret))
@@ -148,6 +209,8 @@ public sealed class SimpleMitigations : SplatoonScript
         internal Guid GUID = Guid.NewGuid();
         public string Name;
         public float Time;
+        public bool Prohibit = false;
+        public ActionType Type = ActionType.Action;
         public int Action;
         public bool General = false;
     }

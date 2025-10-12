@@ -17,6 +17,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Ultraviolent_Ray_4th,1,https://gith
 SplatoonScriptsOfficial.Duties.Dawntrail@EX5_Relentless_Reaping,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX5 Relentless Reaping.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@EX4_Escelons_Fall,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX4 Escelons Fall.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_P2_Guide,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S P2 Guide.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@EXMH_Clamorous_Chase,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EXMH_Clamorous_Chase.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Disco_Infernal_Universal,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M5S Disco Infernal Universal.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Elemental_Purge_Cleave,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Elemental Purge Cleave.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Witch_Hunt,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Witch Hunt.cs
@@ -51,6 +52,8 @@ SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Quad_Beckon_Moonlight,2,https://git
 SplatoonScriptsOfficial.Duties.Dawntrail@Underkeep_ValiaPira,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Underkeep_ValiaPira.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M6S_Lava_Towers,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M6S Lava Towers.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Millennial_Decay,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Millennial Decay.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Quantum_Target_Enforcer,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Quantum Target Enforcer.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@TFV_Bound_By_Sin,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/TFV Bound By Sin.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Cyclonic_Break,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Cyclonic Break.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Light_Rampant_JP,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Light Rampant JP.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Apocalypse,12,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P3 Apocalypse.cs
@@ -61,17 +64,17 @@ SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Light_Rampant,
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P5_Paradise_Regained,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P5 Paradise Regained.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_Darklit,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 Darklit.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Ultimate_Relativity,10,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P3 Ultimate Relativity.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Fall_of_Faith_EN,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Fall of Faith EN.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Fall_of_Faith_EN,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Fall of Faith EN.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Burn_Strike_Tower,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Burn Strike Tower.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Powder_Mark_Trail,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Powder Mark Trail.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Delete_Intermission_Ice,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Delete Intermission Ice.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Fall_of_Faith_old,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Fall of Faith old.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_AutoTargetSwitcher,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 AutoTargetSwitcher.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Diamond_Dust,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Diamond Dust.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Diamond_Dust,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Diamond Dust.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_Crystallize_Time,12,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 Crystallize Time.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P5_Fulgent_Blade_Dodge,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P5 Fulgent Blade Dodge.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Mirror_Mirror,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Mirror Mirror.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Bound_of_Faith,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Bound of Faith.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Bound_of_Faith,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Bound of Faith.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@FRU_Target_Enforcer,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/FRU Target Enforcer.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_AutoTargetCrystal,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 AutoTargetCrystal.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts@P4_Akh_Morn_Full_Toolers,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/FullToolerPartyOnlyScrtipts/P4 Akh Morn Full Toolers.cs
@@ -131,9 +134,9 @@ SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Oversampled_Wave_Can
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@P5_Delta_Hello_Guide,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/P5 Delta Hello Guide.cs
 SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P5_Death_of_the_Heavens_Neo,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P5 Death of the Heavens Neo.cs
 SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P3_Dive_from_Grace,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P3 Dive from Grace.cs
-SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P5_Wrath_of_the_Heavens,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P5 Wrath of the Heavens.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P5_Wrath_of_the_Heavens,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P5 Wrath of the Heavens.cs
 SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P2_Sanctity_Of_The_Ward_First,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P2 Sanctity Of The Ward First.cs
-SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P2_Sanctity_Of_The_Ward_Second,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P2 Sanctity Of The Ward Second.cs
+SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P2_Sanctity_Of_The_Ward_Second,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P2 Sanctity Of The Ward Second.cs
 SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P6_AutoTargetSwitcher,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P6 AutoTargetSwitcher.cs
 SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P5_Death_of_the_Heavens,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P5 Death of the Heavens.cs
 SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise@P4_Dives,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/Dragonsong's Reprise/P4 Dives.cs
@@ -221,6 +224,7 @@ SplatoonScriptsOfficial.Generic@AutoRetainerCreation,1,https://github.com/Punish
 SplatoonScriptsOfficial.Generic@EnemyAggro,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/EnemyAggro.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
 SplatoonScriptsOfficial.Generic@SimpleMitigations,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/SimpleMitigations.cs
+SplatoonScriptsOfficial.Generic@ARealmRecordedWhitelistMod,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs
 SplatoonScriptsOfficial.Generic@InventoryLowNotifier,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/InventoryLowNotifier.cs
 SplatoonScriptsOfficial.Generic@AutoExec,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoExec.cs
 SplatoonScriptsOfficial.Generic@CloseReplayWindows,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CloseReplayWindows.cs

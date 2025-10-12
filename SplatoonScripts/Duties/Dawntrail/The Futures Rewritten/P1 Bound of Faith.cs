@@ -1,9 +1,11 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices.TerritoryEnumeration;
+using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
@@ -13,6 +15,7 @@ using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using TerraFX.Interop.Windows;
@@ -20,8 +23,11 @@ using TerraFX.Interop.Windows;
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public sealed class P1_Bound_of_Faith : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Futures_Rewritten_Ultimate];
+
+    bool IsPositionLocked => Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsCasting(30165) && x.CurrentCastTime > 5.8f);
+    Vector3 LockedPosition;
 
     uint Debuff = 4165;
 
@@ -54,7 +60,11 @@ public sealed class P1_Bound_of_Faith : SplatoonScript
             //PluginLog.Debug($"List: {n1.Select(x => x.NameWithWorld).Print()}");
             //PluginLog.Debug($"Candidates: {indexes.Print()}, my={myIndex}");
             //PluginLog.Debug($"Candidates: {n1[indexes[0]].NameWithWorld}, {n1[indexes[1]].NameWithWorld}");
-            var dir = Player.Position.X > 100 ? "East" : "West";
+            if(!this.IsPositionLocked)
+            {
+                LockedPosition = Player.Position;
+            }
+            var dir = LockedPosition.X > 100 ? "East" : "West";
             if(indexes[0] < 4 == indexes[1] < 4) //potential adjust situation
             {
                 if(myIndex == indexes[0])

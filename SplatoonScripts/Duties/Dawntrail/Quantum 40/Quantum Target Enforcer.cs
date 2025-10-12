@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public class Quantum_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1311];
-    public override Metadata? Metadata => new(1, "Poneglyph, NightmareXIV");
+    public override Metadata? Metadata => new(2, "Poneglyph, NightmareXIV");
 
     private static class Buffs
     {
@@ -49,6 +49,10 @@ public class Quantum_Target_Enforcer : SplatoonScript
         if(!Controller.InCombat) return;
         if(Player.Object == null || Player.Object.IsDead) return;
         if(!GenericHelpers.IsScreenReady()) return;
+        if(C.NoSwitchOffPlayers && Svc.Targets.Target is IPlayerCharacter)
+        {
+            return;
+        }
 
         var player = Player.Object;
         if(player == null) return;
@@ -58,22 +62,27 @@ public class Quantum_Target_Enforcer : SplatoonScript
 
         if(vodoriga != null)
         {
-            EnforceTarget(vodoriga);
+            if(C.TargetVodoriga)
+            {
+                EnforceTarget(vodoriga);
+            }
             return;
         }
 
         var hasDark = player.StatusList.Any(x => x.StatusId == Buffs.DarkBuff);
         var hasLight = player.StatusList.Any(x => x.StatusId == Buffs.LightBuff);
 
-        var currentTarget = Svc.Targets.Target as IBattleNpc;
-
-        bool isCurrentlyValidTarget =
-            currentTarget.NameId == Enemies.EminentGrief ||
-            currentTarget.NameId == Enemies.DevouredEater;
-
-        if(!isCurrentlyValidTarget)
+        if(Svc.Targets.Target is IBattleNpc currentTarget)
         {
-            return;
+
+            bool isCurrentlyValidTarget =
+                currentTarget.NameId == Enemies.EminentGrief ||
+                currentTarget.NameId == Enemies.DevouredEater;
+
+            if(!isCurrentlyValidTarget)
+            {
+                return;
+            }
         }
 
         IBattleNpc? target = null;
@@ -103,5 +112,12 @@ public class Quantum_Target_Enforcer : SplatoonScript
         {
             Svc.Targets.Target = target;
         }
+    }
+
+    Config C => Controller.GetConfig<Config>();
+    public class Config : IEzConfig
+    {
+        public bool TargetVodoriga = true;
+        public bool NoSwitchOffPlayers = false;
     }
 }

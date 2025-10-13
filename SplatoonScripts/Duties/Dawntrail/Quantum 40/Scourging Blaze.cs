@@ -15,7 +15,7 @@ public class Scourging_Blaze : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1311];
 
-    public override Metadata Metadata => new(1, "damolitionn");
+    public override Metadata Metadata => new(2, "damolitionn");
 
     private uint NSFirst = 44798;
     private uint EWFirst = 44797;
@@ -79,7 +79,7 @@ public class Scourging_Blaze : SplatoonScript
         if (isNSFirst)
         {
             //First Set
-            if ((DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 14)
+            if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 14)
             {
                 var positions = new List<(float x, float y, float z)>
                 {
@@ -123,7 +123,7 @@ public class Scourging_Blaze : SplatoonScript
             }
 
             // Second set
-            if ((DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 22)
+            if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 22)
             {
                 var positions = new List<(float x, float y, float z)>
                 {
@@ -168,7 +168,7 @@ public class Scourging_Blaze : SplatoonScript
         if (isEWFirst)
         {
             //First Set
-            if ((DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 14)
+            if (castStartTime.HasValue &&(DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 14)
             {
                 var positions = new List<(float x, float y, float z)>
                 {
@@ -211,7 +211,7 @@ public class Scourging_Blaze : SplatoonScript
             }
 
             // Second set
-            if ((DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 22)
+            if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 22)
             {
                 var positions = new List<(float x, float y, float z)>
                 {
@@ -252,7 +252,7 @@ public class Scourging_Blaze : SplatoonScript
                 }
             }
         }
-        if ((DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 43)
+        if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 43)
         {
             if (is12Unsafe)
             {
@@ -291,7 +291,7 @@ public class Scourging_Blaze : SplatoonScript
             }
         }
 
-        if ((DateTime.Now - castStartTime.Value).TotalSeconds > 43)
+        if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds > 43)
         {
             Reset();
         }

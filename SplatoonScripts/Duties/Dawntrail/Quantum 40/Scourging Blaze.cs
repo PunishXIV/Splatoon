@@ -25,16 +25,12 @@ public class Scourging_Blaze : SplatoonScript
     private bool isNSFirst = false;
     private bool isEWFirst = false;
 
-    private bool is12Unsafe = false;
-    private bool is34Unsafe = false;
-    private bool isNUnsafe = false;
-    private bool isSUnsafe = false;
+    private bool isIn12Lane = false;
+    private bool isIn34Lane = false;
 
     private IBattleNpc? Necron => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.BaseId == 18670 && b.IsTargetable) as IBattleNpc;
 
     private DateTime? castStartTime = null;
-
-    private Dictionary<nint, DateTime> crystalSpawnTimes = new();
 
     public override void OnSetup()
     {
@@ -52,30 +48,27 @@ public class Scourging_Blaze : SplatoonScript
     {
         if (castId == NSFirst)
         {
+           Svc.Chat.Print("NS FIrst");
             isNSFirst = true;
             isEWFirst = false;
             castStartTime = DateTime.Now;
-            is12Unsafe = false;
-            is34Unsafe = false;
-            isNUnsafe = false;
-            isSUnsafe = false;
-            crystalSpawnTimes.Clear();
+            isIn12Lane = false;
+            isIn34Lane = false;
         }
         if (castId == EWFirst)
         {
+            Svc.Chat.Print("EW First");
             isEWFirst = true;
             isNSFirst = false;
             castStartTime = DateTime.Now;
-            is12Unsafe = false;
-            is34Unsafe = false;
-            isNUnsafe = false;
-            isSUnsafe = false;
-            crystalSpawnTimes.Clear();
+            isIn12Lane = false;
+            isIn34Lane = false;
         }
     }
 
     public override void OnUpdate()
     {
+        //S Safe
         if (isNSFirst)
         {
             //First Set
@@ -91,73 +84,17 @@ public class Scourging_Blaze : SplatoonScript
                     .OfType<IGameObject>()
                     .Where(obj => obj.BaseId == Crystal);
 
-                foreach (var crystal in crystals)
+                if (!isIn12Lane)
                 {
-                    // Track spawn time if not already tracked
-                    if (!crystalSpawnTimes.ContainsKey((nint)crystal.GameObjectId))
-                    {
-                        crystalSpawnTimes[(nint)crystal.GameObjectId] = DateTime.Now;
-                    }
-                }
-
-                // Only consider crystals with a lifetime < 3 seconds for lane checks
-                var recentCrystals = crystals.Where(obj =>
-                    crystalSpawnTimes.TryGetValue((nint)obj.GameObjectId, out var spawnTime) &&
-                    (DateTime.Now - spawnTime).TotalSeconds < 3);
-
-                if (!is12Unsafe)
-                {
-                    is12Unsafe = recentCrystals.Any(obj =>
+                    isIn12Lane = crystals.Any(obj =>
                         Math.Abs(obj.Position.X - positions[0].x) < 1.0f &&
                         Math.Abs(obj.Position.Y - positions[0].y) < 1.0f &&
                         Math.Abs(obj.Position.Z - positions[0].z) < 1.0f);
                 }
 
-                if (!is34Unsafe)
+                if (!isIn34Lane)
                 {
-                    is34Unsafe = recentCrystals.Any(obj =>
-                        Math.Abs(obj.Position.X - positions[1].x) < 1.0f &&
-                        Math.Abs(obj.Position.Y - positions[1].y) < 1.0f &&
-                        Math.Abs(obj.Position.Z - positions[1].z) < 1.0f);
-                }
-            }
-
-            // Second set
-            if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 22)
-            {
-                var positions = new List<(float x, float y, float z)>
-                {
-                    (-618f, 0.0f, -312f), // N Lane
-                    (-582f, 0.0f, -288f)  // S Lane
-                };
-
-                var crystals = Svc.Objects
-                    .OfType<IGameObject>()
-                    .Where(obj => obj.BaseId == Crystal);
-
-                foreach (var crystal in crystals)
-                {
-                    if (!crystalSpawnTimes.ContainsKey((nint)crystal.GameObjectId))
-                    {
-                        crystalSpawnTimes[(nint)crystal.GameObjectId] = DateTime.Now;
-                    }
-                }
-
-                var recentCrystals = crystals.Where(obj =>
-                    crystalSpawnTimes.TryGetValue((nint)obj.GameObjectId, out var spawnTime) &&
-                    (DateTime.Now - spawnTime).TotalSeconds < 3);
-
-                if (!isNUnsafe)
-                {
-                    isNUnsafe = recentCrystals.Any(obj =>
-                        Math.Abs(obj.Position.X - positions[0].x) < 1.0f &&
-                        Math.Abs(obj.Position.Y - positions[0].y) < 1.0f &&
-                        Math.Abs(obj.Position.Z - positions[0].z) < 1.0f);
-                }
-
-                if (!isSUnsafe)
-                {
-                    isSUnsafe = recentCrystals.Any(obj =>
+                    isIn34Lane = crystals.Any(obj =>
                         Math.Abs(obj.Position.X - positions[1].x) < 1.0f &&
                         Math.Abs(obj.Position.Y - positions[1].y) < 1.0f &&
                         Math.Abs(obj.Position.Z - positions[1].z) < 1.0f);
@@ -168,50 +105,7 @@ public class Scourging_Blaze : SplatoonScript
         if (isEWFirst)
         {
             //First Set
-            if (castStartTime.HasValue &&(DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 14)
-            {
-                var positions = new List<(float x, float y, float z)>
-                {
-                    (-618f, 0.0f, -312f), // N Lane
-                    (-582f, 0.0f, -288f)  // S Lane
-                };
-
-                var crystals = Svc.Objects
-                    .OfType<IGameObject>()
-                    .Where(obj => obj.BaseId == Crystal);
-
-                foreach (var crystal in crystals)
-                {
-                    if (!crystalSpawnTimes.ContainsKey((nint)crystal.GameObjectId))
-                    {
-                        crystalSpawnTimes[(nint)crystal.GameObjectId] = DateTime.Now;
-                    }
-                }
-
-                // Only consider crystals with a lifetime < 3 seconds for lane checks
-                var recentCrystals = crystals.Where(obj =>
-                    crystalSpawnTimes.TryGetValue((nint)obj.GameObjectId, out var spawnTime) &&
-                    (DateTime.Now - spawnTime).TotalSeconds < 3);
-
-                if (!isNUnsafe)
-                {
-                    isNUnsafe = recentCrystals.Any(obj =>
-                        Math.Abs(obj.Position.X - positions[0].x) < 1.0f &&
-                        Math.Abs(obj.Position.Y - positions[0].y) < 1.0f &&
-                        Math.Abs(obj.Position.Z - positions[0].z) < 1.0f);
-                }
-
-                if (!isSUnsafe)
-                {
-                    isSUnsafe = recentCrystals.Any(obj =>
-                        Math.Abs(obj.Position.X - positions[1].x) < 1.0f &&
-                        Math.Abs(obj.Position.Y - positions[1].y) < 1.0f &&
-                        Math.Abs(obj.Position.Z - positions[1].z) < 1.0f);
-                }
-            }
-
-            // Second set
-            if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 22)
+            if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 14)
             {
                 var positions = new List<(float x, float y, float z)>
                 {
@@ -223,69 +117,57 @@ public class Scourging_Blaze : SplatoonScript
                     .OfType<IGameObject>()
                     .Where(obj => obj.BaseId == Crystal);
 
-                foreach (var crystal in crystals)
+                if (!isIn12Lane)
                 {
-                    if (!crystalSpawnTimes.ContainsKey((nint)crystal.GameObjectId))
-                    {
-                        crystalSpawnTimes[(nint)crystal.GameObjectId] = DateTime.Now;
-                    }
-                }
-
-                var recentCrystals = crystals.Where(obj =>
-                    crystalSpawnTimes.TryGetValue((nint)obj.GameObjectId, out var spawnTime) &&
-                    (DateTime.Now - spawnTime).TotalSeconds < 3);
-
-                if (!is12Unsafe)
-                {
-                    is12Unsafe = recentCrystals.Any(obj =>
+                    isIn12Lane = crystals.Any(obj =>
                         Math.Abs(obj.Position.X - positions[0].x) < 1.0f &&
                         Math.Abs(obj.Position.Y - positions[0].y) < 1.0f &&
                         Math.Abs(obj.Position.Z - positions[0].z) < 1.0f);
                 }
 
-                if (!is34Unsafe)
+                if (!isIn34Lane)
                 {
-                    is34Unsafe = recentCrystals.Any(obj =>
+                    isIn34Lane = crystals.Any(obj =>
                         Math.Abs(obj.Position.X - positions[1].x) < 1.0f &&
                         Math.Abs(obj.Position.Y - positions[1].y) < 1.0f &&
                         Math.Abs(obj.Position.Z - positions[1].z) < 1.0f);
                 }
             }
         }
-        if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 19 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 43)
+        if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 43)
         {
-            if (is12Unsafe)
+            if (isIn12Lane)
             {
-                if (isNUnsafe)
+                if (isNSFirst)
                 {
                     if (Controller.TryGetElementByName("3", out var threeSafe))
                     {
                         threeSafe.Enabled = true;
                     }
                 }
-                if (isSUnsafe)
+                if (isEWFirst)
                 {
-                    if (Controller.TryGetElementByName("4", out var threeSafe))
+                    if (Controller.TryGetElementByName("1", out var oneSafe))
                     {
-                        threeSafe.Enabled = true;
+                        oneSafe.Enabled = true;
                     }
 
                 }
             }
-            if (is34Unsafe)
+            if (isIn34Lane)
             {
-                if (isNUnsafe)
+                if (isNSFirst)
                 {
-                    if (Controller.TryGetElementByName("2", out var oneSafe))
-                    {
-                        oneSafe.Enabled = true;
-                    }
-                }
-                if (isSUnsafe)
-                {
-                    if (Controller.TryGetElementByName("1", out var twoSafe))
+                    if (Controller.TryGetElementByName("2", out var twoSafe))
                     {
                         twoSafe.Enabled = true;
+                    }
+                }
+                if (isEWFirst)
+                {
+                    if (Controller.TryGetElementByName("4", out var fourSafe))
+                    {
+                        fourSafe.Enabled = true;
                     }
                 }
             }
@@ -307,11 +189,8 @@ public class Scourging_Blaze : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         isNSFirst = false;
         isEWFirst = false;
-        is12Unsafe = false;
-        is34Unsafe = false;
-        isNUnsafe = false;
-        isSUnsafe = false;
+        isIn12Lane = false;
+        isIn34Lane = false;
         castStartTime = null;
-        crystalSpawnTimes.Clear();
     }
 }

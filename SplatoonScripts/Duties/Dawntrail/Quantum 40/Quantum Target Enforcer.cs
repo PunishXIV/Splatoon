@@ -4,30 +4,17 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
-using ECommons.ExcelServices;
-using ECommons.GameFunctions;
 using ECommons.GameHelpers;
-using ECommons.Hooks.ActionEffectTypes;
-using ECommons.ImGuiMethods;
-using ECommons.Logging;
-using ECommons.MathHelpers;
-using ECommons.Schedulers;
 using ECommons.Throttlers;
-using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utility;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public class Quantum_Target_Enforcer : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories { get; } = [1290,  1311, 1333];
-    public override Metadata? Metadata => new(4, "Poneglyph, NightmareXIV");
+    public override HashSet<uint>? ValidTerritories { get; } = [1290, 1311, 1333];
+    public override Metadata? Metadata => new(5, "Poneglyph, NightmareXIV, Redmoon");
 
     private static class Buffs
     {
@@ -40,6 +27,7 @@ public class Quantum_Target_Enforcer : SplatoonScript
         public const uint EminentGrief = 14037;
         public const uint DevouredEater = 14038;
         public const uint VodorigaMinion = 14039;
+        public const uint MagicCircle = 14042;
     }
 
     private bool Throttle() => EzThrottler.Throttle($"{InternalData.FullName}_SetTarget", 250);
@@ -50,6 +38,11 @@ public class Quantum_Target_Enforcer : SplatoonScript
         if(Player.Object == null || Player.Object.IsDead) return;
         if(!GenericHelpers.IsScreenReady()) return;
         if(C.NoSwitchOffPlayers && Svc.Targets.Target is IPlayerCharacter)
+        {
+            return;
+        }
+
+        if(C.NoSwitchMagicCircle && Svc.Targets.Target is ICharacter npc && npc.NameId == Enemies.MagicCircle)
         {
             return;
         }
@@ -108,6 +101,7 @@ public class Quantum_Target_Enforcer : SplatoonScript
     {
         ImGui.Checkbox("Target Vodoriga", ref C.TargetVodoriga);
         ImGui.Checkbox("Don't switch off players", ref C.NoSwitchOffPlayers);
+        ImGui.Checkbox("Don't switch off Magic Circle", ref C.NoSwitchMagicCircle);
     }
 
     private void EnforceTarget(IBattleNpc target)
@@ -125,5 +119,6 @@ public class Quantum_Target_Enforcer : SplatoonScript
     {
         public bool TargetVodoriga = true;
         public bool NoSwitchOffPlayers = false;
+        public bool NoSwitchMagicCircle = false;
     }
 }

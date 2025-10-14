@@ -26,8 +26,8 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public class Quantum_Target_Enforcer : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories { get; } = [1311];
-    public override Metadata? Metadata => new(3, "Poneglyph, NightmareXIV");
+    public override HashSet<uint>? ValidTerritories { get; } = [1290,  1311, 1333];
+    public override Metadata? Metadata => new(4, "Poneglyph, NightmareXIV");
 
     private static class Buffs
     {

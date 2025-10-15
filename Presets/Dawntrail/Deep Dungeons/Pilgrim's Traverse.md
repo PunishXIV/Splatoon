@@ -1,7 +1,7 @@
 > [!Warning]
 > To attempt to enable duty recording, you can install this script:
 > ```
-> https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs`
+> https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs
 > ```
 > It is not guaranteed that it will work at all times.
 

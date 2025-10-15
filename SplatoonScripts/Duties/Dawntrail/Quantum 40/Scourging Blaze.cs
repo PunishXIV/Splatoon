@@ -48,7 +48,6 @@ public class Scourging_Blaze : SplatoonScript
     {
         if (castId == NSFirst)
         {
-           Svc.Chat.Print("NS FIrst");
             isNSFirst = true;
             isEWFirst = false;
             castStartTime = DateTime.Now;
@@ -57,7 +56,6 @@ public class Scourging_Blaze : SplatoonScript
         }
         if (castId == EWFirst)
         {
-            Svc.Chat.Print("EW First");
             isEWFirst = true;
             isNSFirst = false;
             castStartTime = DateTime.Now;

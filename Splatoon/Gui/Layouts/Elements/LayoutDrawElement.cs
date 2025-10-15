@@ -1156,77 +1156,77 @@ internal unsafe partial class CGui
         }
         if(!el.Nodraw)
         {
-            if((el.type != 3) || el.includeRotation)
-        {
-            if(!(el.type == 3 && !el.includeRotation))
-            {
-                ImGuiUtils.SizedText("Radius:".Loc(), WidthElement);
+            ImGuiUtils.SizedText("Radius:".Loc(), WidthElement);
 
-                if(el.radius == 0.35f)
+            if(el.radius == 0.35f)
+            {
+                ImGuiEx.HelpMarker("Radius is not changed; is this intended?", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString(), preserveCursor: true);
+            }
+            else if(!el.type.EqualsAny(0,1) && el.radius == 0f)
+            {
+                ImGuiEx.HelpMarker("Radius is not changed; is this intended?", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString(), preserveCursor: true);
+            }
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(60f);
+            ImGui.DragFloat("##radius", ref el.radius, 0.01f, 0, float.MaxValue);
+            if(ImGui.IsItemHovered())
+                ImGui.SetTooltip("Leave at 0 to draw single dot".Loc());
+            if(el.type == 1 || el.type == 3 || el.type == 4)
+            {
+                if(el.refActorType != 1)
                 {
-                    ImGuiEx.HelpMarker("Radius is not changed; is this intended?", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString(), preserveCursor:true);
+                    ImGui.SameLine();
+                    ImGui.Checkbox("+target hitbox".Loc(), ref el.includeHitbox);
                 }
                 ImGui.SameLine();
-                ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("##radius", ref el.radius, 0.01f, 0, float.MaxValue);
+                ImGui.Checkbox("+your hitbox".Loc(), ref el.includeOwnHitbox);
+                ImGui.SameLine();
+                ImGuiEx.Text("(?)");
                 if(ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Leave at 0 to draw single dot".Loc());
-                if(el.type == 1 || (el.type == 3 && el.includeRotation) || el.type == 4)
                 {
-                    if(el.refActorType != 1)
-                    {
-                        ImGui.SameLine();
-                        ImGui.Checkbox("+target hitbox".Loc(), ref el.includeHitbox);
-                    }
-                    ImGui.SameLine();
-                    ImGui.Checkbox("+your hitbox".Loc(), ref el.includeOwnHitbox);
-                    ImGui.SameLine();
-                    ImGuiEx.Text("(?)");
-                    if(ImGui.IsItemHovered())
-                    {
-                        ImGui.SetTooltip(("When the game tells you that ability A has distance D,\n" +
-                            "in fact it means that you are allowed to execute\n" +
-                            "ability A if distance between edge of your hitbox\n" +
-                            "and enemy's hitbox is less or equal than distance D,\n" +
-                            "that is for targeted abilities.\n" +
-                            "If an ability is AoE, such check is performed between\n" +
-                            "middle point of your character and edge of enemy's hitbox.\n\n" +
-                            "Summary: if you are trying to make targeted ability indicator -\n" +
-                            "enable both \"+your hitbox\" and \"+target hitbox\".\n" +
-                            "If you are trying to make AoE ability indicator - \n" +
-                            "enable only \"+target hitbox\" to make indicators valid.").Loc());
-                    }
-                }
-                if(el.type.EqualsAny(0, 1, 4, 5))
-                {
-                    ImGui.SameLine();
-                    ImGuiEx.Text("Donut:".Loc());
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(60f);
-                    ImGui.DragFloat("##radiusdonut", ref el.Donut, 0.01f, 0, float.MaxValue);
-                    if(ImGui.IsItemHovered())
-                        ImGui.SetTooltip("Leave at 0 to not draw a donut.\n" +
-                            "If greater than 0, the radius is the donut hole radius\n" +
-                            "and this is the thickness of the donut.".Loc());
-                    el.Donut.ValidateRange(0, float.MaxValue);
+                    ImGui.SetTooltip(("When the game tells you that ability A has distance D,\n" +
+                        "in fact it means that you are allowed to execute\n" +
+                        "ability A if distance between edge of your hitbox\n" +
+                        "and enemy's hitbox is less or equal than distance D,\n" +
+                        "that is for targeted abilities.\n" +
+                        "If an ability is AoE, such check is performed between\n" +
+                        "middle point of your character and edge of enemy's hitbox.\n\n" +
+                        "Summary: if you are trying to make targeted ability indicator -\n" +
+                        "enable both \"+your hitbox\" and \"+target hitbox\".\n" +
+                        "If you are trying to make AoE ability indicator - \n" +
+                        "enable only \"+target hitbox\" to make indicators valid.").Loc());
                 }
             }
-                if(el.type != 2 && el.type != 3)
-                {
-                    ImGuiUtils.SizedText("Tether:".Loc(), WidthElement);
-                    ImGui.SameLine();
-                    ImGui.Checkbox("Enable##TetherEnable", ref el.tether);
-                    ImGui.SameLine();
-                    ImGuiEx.Text("Extra Length:".Loc());
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(60f);
-                    ImGui.DragFloat("##extratetherlength", ref el.ExtraTetherLength, 0.01f, 0, float.MaxValue);
-                    if(ImGui.IsItemHovered())
-                        ImGui.SetTooltip("Add extra length to the tether to visualize knockbacks.".Loc());
-                }
-                var canSetLineEnds = el.tether ||
-                    ((el.type == 2 || el.type == 3) && el.radius == 0);
-                if(!canSetLineEnds) ImGui.BeginDisabled();
+            if(el.type.EqualsAny(0, 1, 4, 5))
+            {
+                ImGui.SameLine();
+                ImGuiEx.Text("Donut:".Loc());
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(60f);
+                ImGui.DragFloat("##radiusdonut", ref el.Donut, 0.01f, 0, float.MaxValue);
+                if(ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Leave at 0 to not draw a donut.\n" +
+                        "If greater than 0, the radius is the donut hole radius\n" +
+                        "and this is the thickness of the donut.".Loc());
+                el.Donut.ValidateRange(0, float.MaxValue);
+            }
+
+            if(el.type != 2 && el.type != 3)
+            {
+                ImGuiUtils.SizedText("Tether:".Loc(), WidthElement);
+                ImGui.SameLine();
+                ImGui.Checkbox("Enable##TetherEnable", ref el.tether);
+                ImGui.SameLine();
+                ImGuiEx.Text("Extra Length:".Loc());
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(60f);
+                ImGui.DragFloat("##extratetherlength", ref el.ExtraTetherLength, 0.01f, 0, float.MaxValue);
+                if(ImGui.IsItemHovered())
+                    ImGui.SetTooltip("Add extra length to the tether to visualize knockbacks.".Loc());
+            }
+
+            if(((el.type == 2 || el.type == 3 ) && el.radius == 0) || el.tether)
+            {
                 ImGuiUtils.SizedText("Line End Style:".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGuiEx.Text("A: ".Loc());
@@ -1238,7 +1238,6 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(60f);
                 ImGuiUtils.EnumCombo("##LineEndB", ref el.LineEndB, LineEnds.Names, LineEnds.Tooltips);
-                if(!canSetLineEnds) ImGui.EndDisabled();
             }
         }
         if(!el.Nodraw)

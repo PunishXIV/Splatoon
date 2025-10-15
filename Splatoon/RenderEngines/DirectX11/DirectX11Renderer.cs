@@ -190,17 +190,44 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         else
         {
-            var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
-            if(layout != null && e.IsCapturing)
+            if(aradius == 0)
             {
-                AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
+                if(layout != null && e.IsCapturing)
+                {
+                    AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                }
+                if(e.Nodraw) return;
+                if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
+                DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), pointA.X, pointA.Y, pointA.Z,
+                    pointB.X, pointB.Y, pointB.Z,
+                    e.thicc, e.color, e.LineEndA, e.LineEndB));
             }
-            if(e.Nodraw) return;
-            if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
-                && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
-            DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), pointA.X, pointA.Y, pointA.Z,
-                pointB.X, pointB.Y, pointB.Z,
-                e.thicc, e.color, e.LineEndA, e.LineEndB));
+            else
+            {
+                var start = new Vector3(
+                    tPos.X + e.refX,
+                    tPos.Y + e.refY,
+                    tPos.Z + e.refZ);
+                var stop = new Vector3(
+                    tPos.X + e.offX,
+                    tPos.Y + e.offY,
+                    tPos.Z + e.offZ);
+
+                if(layout != null && e.IsCapturing)
+                {
+                    AddCapturedObject(layout, e, new(start.X, start.Z, start.X));
+                }
+                if(e.Nodraw) return;
+
+                if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;
+
+                var line = new DisplayObjectLine(e.GetUniqueId(go), Utils.XZY(start), Utils.XZY(stop), aradius, e.GetDisplayStyleWithOverride(go), e.LineEndA, e.LineEndB);
+
+                DisplayObjects.Add(line);
+            }
         }
     }
 

@@ -621,17 +621,69 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         }
         else
         {
-            var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
-            if(layout != null && e.IsCapturing)
+            if(aradius == 0)
             {
-                AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
+                if(layout != null && e.IsCapturing)
+                {
+                    AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                }
+                if(e.Nodraw) return;
+                if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
+                DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
+                    pointB.X, pointB.Y, pointB.Z,
+                    e.thicc, e.color));
             }
-            if(e.Nodraw) return;
-            if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
-                && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
-            DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
-                pointB.X, pointB.Y, pointB.Z,
-                e.thicc, e.color));
+            else
+            {
+                var pointA = new Vector3(
+                    tPos.X + e.refX - aradius,
+                    tPos.Y + e.refY,
+                    tPos.Z + e.refZ);
+                var pointB = new Vector3(
+                    tPos.X + e.offX - aradius,
+                    tPos.Y + e.offY,
+                    tPos.Z + e.offZ);
+                var pointA2 = new Vector3(
+                    tPos.X + e.refX + aradius,
+                    tPos.Y + e.refY,
+                    tPos.Z + e.refZ);
+                var pointB2 = new Vector3(
+                    tPos.X + e.offX + aradius,
+                    tPos.Y + e.offY,
+                    tPos.Z + e.offZ);
+
+                if(layout != null && e.IsCapturing)
+                {
+                    var start = Utils.RotatePoint(tPos.X, tPos.Y,
+                    -angle + e.AdditionalRotation, new Vector3(
+                    tPos.X + -e.refX,
+                    tPos.Y + e.refY,
+                    tPos.Z + e.refZ));
+                    AddCapturedObject(layout, e, new(start.X, start.Z, start.X));
+                }
+                if(e.Nodraw) return;
+
+                if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(pointA2.X, Utils.GetPlayerPositionXZY().X, pointA2.Y, Utils.GetPlayerPositionXZY().Y)
+                    && !LayoutUtils.ShouldDraw(pointB2.X, Utils.GetPlayerPositionXZY().X, pointB2.Y, Utils.GetPlayerPositionXZY().Y)) return;
+
+                var rect = new DisplayObjectRect()
+                {
+                    l1 = new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
+                    pointB.X, pointB.Y, pointB.Z,
+                    e.thicc, e.color),
+                    l2 = new DisplayObjectLine(pointA2.X, pointA2.Y, pointA2.Z,
+                    pointB2.X, pointB2.Y, pointB2.Z,
+                    e.thicc, e.color)
+                };
+                if(P.Config.AltRectFill)
+                {
+                    AddAlternativeFillingRect(rect, GetFillStepRect(e.FillStep), e.fillIntensity ?? Utils.DefaultFillIntensity, e.Filled);
+                }
+            }
         }
     }
 

@@ -28,7 +28,7 @@ public class Scourging_Blaze : SplatoonScript
     private bool isIn12Lane = false;
     private bool isIn34Lane = false;
 
-    private IBattleNpc? Necron => Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.BaseId == 18670 && b.IsTargetable) as IBattleNpc;
+    private int castCounter = 0;
 
     private DateTime? castStartTime = null;
 
@@ -48,6 +48,7 @@ public class Scourging_Blaze : SplatoonScript
     {
         if (castId == NSFirst)
         {
+            castCounter++;
             isNSFirst = true;
             isEWFirst = false;
             castStartTime = DateTime.Now;
@@ -56,6 +57,7 @@ public class Scourging_Blaze : SplatoonScript
         }
         if (castId == EWFirst)
         {
+            castCounter++;
             isEWFirst = true;
             isNSFirst = false;
             castStartTime = DateTime.Now;
@@ -132,7 +134,9 @@ public class Scourging_Blaze : SplatoonScript
                 }
             }
         }
-        if (castStartTime.HasValue && (DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 43)
+        if (castStartTime.HasValue && 
+            ((castCounter != 4 && (DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 43) ||
+             (castCounter == 4 && (DateTime.Now - castStartTime.Value).TotalSeconds >= 11 && (DateTime.Now - castStartTime.Value).TotalSeconds <= 69)))
         {
             if (isIn12Lane)
             {
@@ -180,6 +184,7 @@ public class Scourging_Blaze : SplatoonScript
     public override void OnReset()
     {
         Reset();
+        castCounter = 0;
     }
 
     private void Reset()

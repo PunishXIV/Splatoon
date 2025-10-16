@@ -15,7 +15,7 @@ public class Scourging_Blaze : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1311];
 
-    public override Metadata Metadata => new(3, "damolitionn");
+    public override Metadata Metadata => new(4, "damolitionn");
 
     private uint NSFirst = 44798;
     private uint EWFirst = 44797;

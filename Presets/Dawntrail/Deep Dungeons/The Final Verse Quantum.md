@@ -5,14 +5,20 @@
 > ```
 > It is not guaranteed that it will work at all times.
 
-[Script] Bound by Sin
+[Script] Quantum 40: Bound by Sin
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Quantum%2040/TFV%20Bound%20By%20Sin.cs
 ```
 
-[Script] Auto Target Switcher
+[Script] Universal: Auto Target Switcher
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Quantum%2040/Quantum%20Target%20Enforcer.cs
+```
+
+[Script]
+Quantum 40: Srourging Blaze
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Quantum%2040/Scourging%20Blaze.cs
 ```
 
 > [!Important]

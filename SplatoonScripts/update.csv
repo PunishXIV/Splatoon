@@ -33,7 +33,7 @@ SplatoonScriptsOfficial.Generic@AetherSight,2,https://github.com/PunishXIV/Splat
 SplatoonScriptsOfficial.Generic@OpenPFCreation,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/OpenPFCreation.cs
 SplatoonScriptsOfficial.Generic@NoSproutIcon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/NoSproutIcon.cs
 SplatoonScriptsOfficial.Generic@ShowEmote,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs
-SplatoonScriptsOfficial.Generic@ScriptEventLogger,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
+SplatoonScriptsOfficial.Generic@ScriptEventLogger,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ScriptEventLogger.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@CheckEmote,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CheckEmote.cs
 SplatoonScriptsOfficial.Generic@CloseReplayWindows,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CloseReplayWindows.cs
@@ -194,7 +194,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Raining_Cats,2,https://github.com/P
 SplatoonScriptsOfficial.Duties.Dawntrail@EXMH_Clamorous_Chase,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EXMH_Clamorous_Chase.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Lets_Dance_NavigateStandPosition,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M5S_Lets_Dance_NavigateStandPosition.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Sunrise_Sabbath,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Sunrise Sabbath.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Quantum_Target_Enforcer,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Quantum Target Enforcer.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Quantum_Target_Enforcer,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Quantum Target Enforcer.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@TFV_Bound_By_Sin,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/TFV Bound By Sin.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Abyssal_Blaze,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Abyssal Blaze.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Abyssal_Blaze_Alternative,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Abyssal Blaze Alternative.cs

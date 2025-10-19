@@ -14,7 +14,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public class Quantum_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1290, 1311, 1333];
-    public override Metadata? Metadata => new(5, "Poneglyph, NightmareXIV, Redmoon");
+    public override Metadata? Metadata => new(6, "Poneglyph, NightmareXIV, Redmoon");
 
     private static class Buffs
     {
@@ -28,6 +28,7 @@ public class Quantum_Target_Enforcer : SplatoonScript
         public const uint DevouredEater = 14038;
         public const uint VodorigaMinion = 14039;
         public const uint MagicCircle = 14042;
+        public const uint FireEnemy = 14041;
     }
 
     private bool Throttle() => EzThrottler.Throttle($"{InternalData.FullName}_SetTarget", 250);
@@ -43,6 +44,11 @@ public class Quantum_Target_Enforcer : SplatoonScript
         }
 
         if(C.NoSwitchMagicCircle && Svc.Targets.Target is ICharacter npc && npc.NameId == Enemies.MagicCircle)
+        {
+            return;
+        }
+
+        if(C.NoSwitchFireEnemy && Svc.Targets.Target is ICharacter npc2 && npc2.NameId == Enemies.FireEnemy)
         {
             return;
         }
@@ -102,6 +108,7 @@ public class Quantum_Target_Enforcer : SplatoonScript
         ImGui.Checkbox("Target Vodoriga", ref C.TargetVodoriga);
         ImGui.Checkbox("Don't switch off players", ref C.NoSwitchOffPlayers);
         ImGui.Checkbox("Don't switch off Magic Circle", ref C.NoSwitchMagicCircle);
+        ImGui.Checkbox("Don't switch off Fire Enemy", ref C.NoSwitchFireEnemy);
     }
 
     private void EnforceTarget(IBattleNpc target)
@@ -120,5 +127,6 @@ public class Quantum_Target_Enforcer : SplatoonScript
         public bool TargetVodoriga = true;
         public bool NoSwitchOffPlayers = false;
         public bool NoSwitchMagicCircle = false;
+        public bool NoSwitchFireEnemy = false;
     }
 }

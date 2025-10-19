@@ -491,7 +491,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         }
         if(layout != null && e.IsCapturing)
         {
-            AddCapturedObject(layout, e, new(cx, z + e.offZ, cy));
+            AddCapturedObject(layout, e, new Vector3(cx, z + e.offZ, cy));
         }
         if(e.Nodraw) return;
         if(!LayoutUtils.ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
@@ -556,7 +556,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 var (pointA, pointB) = CommonRenderUtils.GetRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
                 if(layout != null && e.IsCapturing)
                 {
-                    AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                    AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
                 if(e.Nodraw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
@@ -595,7 +595,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     tPos.X + -e.refX,
                     tPos.Y + e.refY,
                     tPos.Z + e.refZ));
-                    AddCapturedObject(layout, e, new(start.X, start.Z, start.X));
+                    AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
                 if(e.Nodraw) return;
 
@@ -626,7 +626,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
                 if(layout != null && e.IsCapturing)
                 {
-                    AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                    AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
                 if(e.Nodraw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
@@ -661,7 +661,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     tPos.X + -e.refX,
                     tPos.Y + e.refY,
                     tPos.Z + e.refZ));
-                    AddCapturedObject(layout, e, new(start.X, start.Z, start.X));
+                    AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
                 if(e.Nodraw) return;
 
@@ -692,7 +692,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         //PluginLog.Debug($"[addcone] {center}, {startRad} -> {endRad}"); 
         if(layout != null && e.IsCapturing)
         {
-            AddCapturedObject(layout, e, new(center.X, center.Z, center.Y));
+            AddCapturedObject(layout, e, new Vector3(center.X, center.Z, center.Y));
         }
         if(e.Nodraw) return;
         DisplayObjects.Add(new DisplayObjectCone(

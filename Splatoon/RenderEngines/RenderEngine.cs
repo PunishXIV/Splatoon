@@ -1,4 +1,5 @@
 ﻿using ECommons.LanguageHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Splatoon.Serializables;
 using Splatoon.Structures;
 using System;
@@ -31,6 +32,11 @@ public abstract class RenderEngine : IDisposable
     internal void AddCapturedObject(Layout l, Element e, Vector3 pos)
     {
         CapturedPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName()).Add(pos);
+    }
+
+    internal void AddCapturedObject(Layout l, Element e, IGameObject pos)
+    {
+        CapturedObjectPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName()).Add(pos);
     }
 
     internal void StoreDisplayObjects()

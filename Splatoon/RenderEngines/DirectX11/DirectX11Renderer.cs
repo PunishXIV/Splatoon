@@ -66,7 +66,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         if(layout != null && e.IsCapturing)
         {
-            AddCapturedObject(layout, e, new(cx, z + e.offZ, cy));
+            AddCapturedObject(layout, e, new Vector3(cx, z + e.offZ, cy));
         }
         if(e.Nodraw) return;
         if(!LayoutUtils.ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
@@ -117,7 +117,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             var center = Utils.XZY(Utils.RotatePoint(origin.X, origin.Y, -baseAngle, origin + new Vector3(-e.offX, e.offY, e.offZ)));
             if(layout != null && e.IsCapturing)
             {
-                AddCapturedObject(layout, e, new(center.X, center.Z, center.Y));
+                AddCapturedObject(layout, e, new Vector3(center.X, center.Z, center.Y));
             }
             if(e.Nodraw) return;
             if(!LayoutUtils.ShouldDraw(center.X, Utils.GetPlayerPositionXZY().X, center.Z, Utils.GetPlayerPositionXZY().Y)) return;
@@ -152,7 +152,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 var (pointA, pointB) = CommonRenderUtils.GetRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
                 if(layout != null && e.IsCapturing)
                 {
-                    AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                    AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
                 if(e.Nodraw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
@@ -176,7 +176,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
 
                 if(layout != null && e.IsCapturing)
                 {
-                    AddCapturedObject(layout, e, new(start.X, start.Z, start.X));
+                    AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
                 if(e.Nodraw) return;
 
@@ -195,7 +195,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 var (pointA, pointB) = CommonRenderUtils.GetNonRotatedPointsForZeroRadius(tPos, e, hitboxRadius, angle);
                 if(layout != null && e.IsCapturing)
                 {
-                    AddCapturedObject(layout, e, new(pointA.X, pointA.Z, pointA.X));
+                    AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
                 if(e.Nodraw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
@@ -217,7 +217,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
 
                 if(layout != null && e.IsCapturing)
                 {
-                    AddCapturedObject(layout, e, new(start.X, start.Z, start.X));
+                    AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
                 if(e.Nodraw) return;
 

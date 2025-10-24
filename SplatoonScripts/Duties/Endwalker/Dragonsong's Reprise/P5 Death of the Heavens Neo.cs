@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P5_Death_of_the_Heavens_Neo : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
 
     IPlayerCharacter BasePlayer
@@ -89,19 +89,39 @@ public sealed class P5_Death_of_the_Heavens_Neo : SplatoonScript
             var guer = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.DataId == 12637);
             if(guer.Position.Z > 105)
             {
-                RelNorth = CardinalDirection.South;
+                var newNorth = CardinalDirection.South;
+                if(newNorth != RelNorth)
+                {
+                    MyPosition = MyPosition with { Confidence = 0 };
+                    RelNorth = newNorth;
+                }
             }
             else if(guer.Position.Z < 95)
             {
-                RelNorth = CardinalDirection.North;
+                var newNorth = CardinalDirection.North;
+                if(newNorth != RelNorth)
+                {
+                    MyPosition = MyPosition with { Confidence = 0 };
+                    RelNorth = newNorth;
+                }
             }
             else if(guer.Position.X > 105)
             {
-                RelNorth = CardinalDirection.East;
+                var newNorth = CardinalDirection.East;
+                if(newNorth != RelNorth)
+                {
+                    MyPosition = MyPosition with { Confidence = 0 };
+                    RelNorth = newNorth;
+                }
             }
             else if(guer.Position.X < 95)
             {
-                RelNorth = CardinalDirection.West;
+                var newNorth = CardinalDirection.West;
+                if(newNorth != RelNorth)
+                {
+                    MyPosition = MyPosition with { Confidence = 0 };
+                    RelNorth = newNorth;
+                }
             }
             UpdatePositions();
             var str = (iHaveDoom ? "Doom" : "Clean") + (MyPosition.Num).ToString();

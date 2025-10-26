@@ -1,6 +1,7 @@
 ﻿
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Plugin.Ipc.Exceptions;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -45,6 +46,8 @@ internal class P2_Light_Rampant : SplatoonScript
         public bool NorthSwap = false;
         public PriorityData Priority = new();
         public Prio4 AoePriority = new();
+        public bool IsDefaultNorth = false;
+        public bool IsPuddleCW = true;
     }
 
     public class Prio4 : PriorityData
@@ -87,7 +90,7 @@ internal class P2_Light_Rampant : SplatoonScript
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "redmoon & Smoothtalk, NightmareXIV");
+    public override Metadata? Metadata => new(4, "redmoon & Smoothtalk, NightmareXIV");
     #endregion
 
     #region private properties
@@ -166,7 +169,7 @@ internal class P2_Light_Rampant : SplatoonScript
                 var prio2 = C.AoePriority.GetFirstValidList();
                 if(prio2 != null)
                 {
-                    var nonTethers = C.AoePriority.GetPlayers(x => !((IPlayerCharacter)x.IGameObject).StatusList.Any(s => s.StatusId == 4157));
+                    var nonTethers = C.AoePriority.GetPlayers(x => !((IPlayerCharacter)x.IGameObject).StatusList.Any(s => s.StatusId == 4157)) ?? [];
                     if(nonTethers.Count == 2)
                     {
                         if(nonTethers[0].IGameObject.AddressEquals(Player.Object))
@@ -178,17 +181,25 @@ internal class P2_Light_Rampant : SplatoonScript
                             isNorthBait = false;
                         }
                     }
+                    else if(nonTethers.Count == 1)
+                    {
+                        if(nonTethers[0].IGameObject.AddressEquals(Player.Object))
+                        {
+                            isNorthBait = C.IsDefaultNorth;
+                        }
+                    }
                 }
+                var suffix = C.IsPuddleCW ? "CW" : "CCW";
                 if(isNorthBait == true)
                 {
-                    if(Controller.TryGetLayoutByName("DropNorthCW", out var l))
+                    if(Controller.TryGetLayoutByName($"DropNorth{suffix}", out var l))
                     {
                         l.Enabled = true;
                     }
                 }
                 if(isNorthBait == false)
                 {
-                    if(Controller.TryGetLayoutByName("DropSouthCW", out var l))
+                    if(Controller.TryGetLayoutByName($"DropSouth{suffix}", out var l))
                     {
                         l.Enabled = true;
                     }
@@ -247,6 +258,13 @@ internal class P2_Light_Rampant : SplatoonScript
         ImGui.Text("Swaper is NorthEast and SouthEast Players");
         C.Priority.Draw();
         ImGui.Separator();
+        ImGuiEx.TextV("Default puddle position:");
+        ImGui.SameLine();
+        ImGuiEx.RadioButtonBool("North", "South", ref C.IsDefaultNorth, true);
+        ImGuiEx.TextV("Puddle drop direction:");
+        ImGui.SameLine();
+        ImGuiEx.RadioButtonBool("Clockwise", "Counter-Clockwise", ref C.IsPuddleCW, true);
+
         ImGuiEx.Text($"Aoe priority adjustment, north to south:");
         C.AoePriority.Draw();
         if(ImGuiEx.CollapsingHeader("Debug"))

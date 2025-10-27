@@ -48,6 +48,7 @@ internal class P2_Light_Rampant : SplatoonScript
         public Prio4 AoePriority = new();
         public bool IsDefaultNorth = false;
         public bool IsPuddleCW = true;
+        public bool PsychopathMode = false;
     }
 
     public class Prio4 : PriorityData
@@ -90,7 +91,7 @@ internal class P2_Light_Rampant : SplatoonScript
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "redmoon & Smoothtalk, NightmareXIV");
+    public override Metadata? Metadata => new(5, "redmoon & Smoothtalk, NightmareXIV");
     #endregion
 
     #region private properties
@@ -118,6 +119,11 @@ internal class P2_Light_Rampant : SplatoonScript
         Controller.TryRegisterLayoutFromCode("DropSouthCCW", """~Lv2~{"ZoneLockH":[1238],"ElementsL":[{"Name":"","refX":100.05792,"refY":108.1015,"refZ":1.9073486E-06,"radius":5.0,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"","type":2,"refX":102.87615,"refY":107.529915,"refZ":-3.8146973E-06,"offX":107.19561,"offY":103.58603,"offZ":-7.6293945E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndB":1},{"Name":"","type":2,"refX":109.096306,"refY":98.77759,"offX":107.20059,"offY":103.55709,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1},{"Name":"","type":2,"refX":106.55073,"refY":93.23555,"refZ":-3.8146973E-06,"offX":109.07767,"offY":98.877205,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1}]}""", out _);
         Controller.TryRegisterLayoutFromCode("DropSouthCW", """~Lv2~{"ZoneLockH":[1238],"ElementsL":[{"Name":"","refX":100.05792,"refY":108.1015,"refZ":1.9073486E-06,"radius":5.0,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"","type":2,"refX":96.07363,"refY":107.04102,"refZ":1.9073486E-06,"offX":92.51755,"offY":102.39281,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndB":1},{"Name":"","type":2,"refX":93.41478,"refY":94.92555,"refZ":-1.9073486E-06,"offX":92.51698,"offY":102.30562,"offZ":3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1},{"Name":"","type":2,"refX":97.42292,"refY":89.76134,"refZ":1.9073486E-06,"offX":93.475876,"offY":95.040054,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1}]}""", out _);
         Controller.TryRegisterLayoutFromCode("DropNorthCW", """~Lv2~{"ZoneLockH":[1238],"ElementsL":[{"Name":"","refX":100.62637,"refY":91.17723,"radius":5.0,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"","type":2,"refX":104.348076,"refY":91.029396,"offX":107.91795,"offY":94.45116,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndB":1},{"Name":"","type":2,"refX":108.70579,"refY":99.64915,"refZ":-1.9073486E-06,"offX":107.89801,"offY":94.37764,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1},{"Name":"","type":2,"refX":106.07384,"refY":104.78666,"refZ":3.8146973E-06,"offX":108.72344,"offY":99.71201,"offZ":3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1}]}""", out _);
+
+        Controller.TryRegisterLayoutFromCode("DropWestUp", """~Lv2~{"ZoneLockH":[1238],"ElementsL":[{"Name":"","refX":80.90873,"refY":99.89605,"radius":5.0,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"","type":2,"refX":84.01141,"refY":100.00803,"refZ":-3.8146973E-06,"offX":93.686966,"offY":99.75496,"offZ":3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndB":1},{"Name":"","type":2,"refX":95.47949,"refY":83.61224,"refZ":3.8146973E-06,"offX":93.686966,"offY":99.75496,"offZ":3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1}]}""", out _);
+        Controller.TryRegisterLayoutFromCode("DropWestDown", """~Lv2~{"ZoneLockH":[1238],"ElementsL":[{"Name":"","refX":80.90873,"refY":99.89605,"radius":5.0,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"","type":2,"refX":84.01141,"refY":100.00803,"refZ":-3.8146973E-06,"offX":93.686966,"offY":99.75496,"offZ":3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndB":1},{"Name":"","type":2,"refX":95.71823,"refY":116.053375,"refZ":3.8146973E-06,"offX":93.686966,"offY":99.75496,"offZ":3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1}]}""", out _);
+        Controller.TryRegisterLayoutFromCode("DropEastUp", """~Lv2~{"ZoneLockH":[1238],"ElementsL":[{"Name":"","refX":119.29768,"refY":99.952484,"refZ":-3.8146973E-06,"radius":5.0,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"","type":2,"refX":115.83856,"refY":99.940704,"refZ":-3.8146973E-06,"offX":105.75837,"offY":99.99495,"offZ":-3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndB":1},{"Name":"","type":2,"refX":104.254906,"refY":82.546585,"offX":105.764175,"offY":100.02766,"offZ":-3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1}]}""", out _);
+        Controller.TryRegisterLayoutFromCode("DropEastDown", """~Lv2~{"ZoneLockH":[1238],"ElementsL":[{"Name":"","refX":119.29768,"refY":99.952484,"refZ":-3.8146973E-06,"radius":5.0,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"","type":2,"refX":115.83856,"refY":99.940704,"refZ":-3.8146973E-06,"offX":105.75837,"offY":99.99495,"offZ":-3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndB":1},{"Name":"","type":2,"refX":104.582115,"refY":116.23678,"refZ":7.6293945E-06,"offX":105.80082,"offY":100.04084,"offZ":-3.8146973E-06,"radius":0.0,"fillIntensity":0.5,"thicc":4.0,"LineEndA":1}]}""", out _);
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -189,19 +195,41 @@ internal class P2_Light_Rampant : SplatoonScript
                         }
                     }
                 }
-                var suffix = C.IsPuddleCW ? "CW" : "CCW";
-                if(isNorthBait == true)
+                if(!C.PsychopathMode)
                 {
-                    if(Controller.TryGetLayoutByName($"DropNorth{suffix}", out var l))
+                    var suffix = C.IsPuddleCW ? "CW" : "CCW";
+                    if(isNorthBait == true)
                     {
-                        l.Enabled = true;
+                        if(Controller.TryGetLayoutByName($"DropNorth{suffix}", out var l))
+                        {
+                            l.Enabled = true;
+                        }
+                    }
+                    if(isNorthBait == false)
+                    {
+                        if(Controller.TryGetLayoutByName($"DropSouth{suffix}", out var l))
+                        {
+                            l.Enabled = true;
+                        }
                     }
                 }
-                if(isNorthBait == false)
+                else
                 {
-                    if(Controller.TryGetLayoutByName($"DropSouth{suffix}", out var l))
+                    if(isNorthBait == true)
                     {
-                        l.Enabled = true;
+                        var suffix = C.IsPuddleCW ? "Up" : "Down";
+                        if(Controller.TryGetLayoutByName($"DropWest{suffix}", out var l))
+                        {
+                            l.Enabled = true;
+                        }
+                    }
+                    if(isNorthBait == false)
+                    {
+                        var suffix = !C.IsPuddleCW ? "Up" : "Down";
+                        if(Controller.TryGetLayoutByName($"DropEast{suffix}", out var l))
+                        {
+                            l.Enabled = true;
+                        }
                     }
                 }
             }
@@ -258,15 +286,41 @@ internal class P2_Light_Rampant : SplatoonScript
         ImGui.Text("Swaper is NorthEast and SouthEast Players");
         C.Priority.Draw();
         ImGui.Separator();
+        ImGuiEx.TextWrapped(EColor.GreenBright, "If you would like to resolve puddle baits, fill the following priority as well and configure default positions");
+        ImGuiEx.TextV($"Puddle bait mode:");
+        ImGui.SameLine();
+        ImGuiEx.RadioButtonBool("East/West (NAUR)", "North/South (LPDU/JP)", ref C.PsychopathMode, true);
         ImGuiEx.TextV("Default puddle position:");
         ImGui.SameLine();
-        ImGuiEx.RadioButtonBool("North", "South", ref C.IsDefaultNorth, true);
+        if(!C.PsychopathMode)
+        {
+            ImGuiEx.RadioButtonBool("North", "South", ref C.IsDefaultNorth, true);
+        }
+        else
+        {
+            ImGuiEx.RadioButtonBool("West", "East", ref C.IsDefaultNorth, true);
+        }
+        ImGuiEx.HelpMarker("Where will you go with puddle if no adjustment is required");
         ImGuiEx.TextV("Puddle drop direction:");
         ImGui.SameLine();
-        ImGuiEx.RadioButtonBool("Clockwise", "Counter-Clockwise", ref C.IsPuddleCW, true);
+        if(!C.PsychopathMode)
+        {
+            ImGuiEx.RadioButtonBool("Clockwise", "Counter-Clockwise", ref C.IsPuddleCW, true);
+        }
+        else
+        {
+            ImGuiEx.RadioButtonBool("West->North, East->South", "West->South, East->North", ref C.IsPuddleCW, true);
+        }
 
-        ImGuiEx.Text($"Aoe priority adjustment, north to south:");
-        C.AoePriority.Draw();
+        if(!C.PsychopathMode)
+        {
+            ImGuiEx.Text($"Aoe priority adjustment, north to south:");
+        }
+        else
+        {
+            ImGuiEx.Text($"Aoe priority adjustment, west to east:");
+        }
+            C.AoePriority.Draw();
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");

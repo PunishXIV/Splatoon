@@ -373,3 +373,4 @@ FodyWeavers.xsd
 /SplatoonScripts/Generic/FCDataViewer.cs
 /SplatoonScripts/Generic/MitigationFRU.cs
 /SplatoonScripts/Generic/SimpleMitigations.cs
+/SplatoonScripts/Generic/M8S_Mch_Mitigations.cs

@@ -14,7 +14,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public class Quantum_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1290, 1311, 1333];
-    public override Metadata? Metadata => new(6, "Poneglyph, NightmareXIV, Redmoon");
+    public override Metadata? Metadata => new(7, "Poneglyph, NightmareXIV, Redmoon");
 
     private static class Buffs
     {
@@ -38,6 +38,11 @@ public class Quantum_Target_Enforcer : SplatoonScript
         if(!Controller.InCombat) return;
         if(Player.Object == null || Player.Object.IsDead) return;
         if(!GenericHelpers.IsScreenReady()) return;
+        if(Svc.Targets.SoftTarget != null)
+        {
+            FrameThrottler.Throttle("SoftTargetThrottle", 10);
+        }
+        if(!FrameThrottler.Check("SoftTargetThrottle")) return;
         if(C.NoSwitchOffPlayers && Svc.Targets.Target is IPlayerCharacter)
         {
             return;

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using ECommons.ImGuiMethods;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -36,7 +37,7 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
     private Element? _vellguineTargetElement;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(4, "Enthusiastus, Garume, damolitionn");
+    public override Metadata? Metadata => new(5, "Enthusiastus, Garume, damolitionn");
 
     private IBattleNpc? Ignasse =>
         Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == IgnasseDataId) as IBattleNpc;
@@ -197,6 +198,7 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
 
     public override void OnUpdate()
     {
+        Controller.GetRegisteredElements().Where(x => x.Value.tether).Each(x => x.Value.color = GradientColor.Get(EColor.GreenBright, EColor.RedBright, 500).ToUint());
         if(_ignasseHitboxElement.Enabled)
         {
             _ignasseHitboxElement.SetRefPosition(Ignasse.Position);

@@ -1,0 +1,56 @@
+> [!Warning]
+> To attempt to enable duty recording, you can install this script:
+> ```
+> https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs
+> ```
+> It is not guaranteed that it will work at all times.
+
+[Script] Quantum 40: Bound by Sin
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Quantum%2040/TFV%20Bound%20By%20Sin.cs
+```
+
+[Script] Universal: Auto Target Switcher
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Quantum%2040/Quantum%20Target%20Enforcer.cs
+```
+
+[Script]
+Quantum 40: Srourging Blaze
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Quantum%2040/Scourging%20Blaze.cs
+```
+
+> [!Important]
+> These presets were contributed by lillylilim, Shinna
+
+```
+~Lv2~{"Name":"Misc","Group":"The Final Verse Quantum","ZoneLockH":[1311],"ElementsL":[{"Name":"Light Vengence","type":1,"color":3355508719,"Filled":false,"fillIntensity":0.5,"refActorRequireBuff":true,"refActorBuffId":[4560],"refActorType":1},{"Name":"Dark Vengence","type":1,"color":3372155035,"Filled":false,"fillIntensity":0.5,"refActorRequireBuff":true,"refActorBuffId":[4559],"refActorType":1},{"Name":"Healer Debuff","type":1,"radius":20.5,"color":3357605632,"Filled":false,"fillIntensity":0.5,"refActorPlaceholder":["<1>","<2>","<3>","<4>"],"refActorRequireBuff":true,"refActorBuffId":[4564,4564],"refActorComparisonType":5}]}
+~Lv2~{"Name":"Blade Chains Fireball","Group":"The Final Verse Quantum","ZoneLockH":[1311],"ElementsL":[{"Name":"Blade of First Light (middle)","type":3,"refY":15.0,"offY":-15.0,"radius":8.0,"color":3355508735,"fillIntensity":0.25,"castAnimation":3,"refActorNPCNameID":14038,"refActorRequireCast":true,"refActorCastId":[44110],"refActorComparisonType":6,"includeRotation":true},{"Name":"Blade of First Light (sides)","type":3,"refY":15.0,"offY":-15.0,"radius":7.5,"color":3355508735,"fillIntensity":0.25,"castAnimation":3,"refActorNPCNameID":14038,"refActorRequireCast":true,"refActorCastId":[44104],"refActorComparisonType":6,"includeRotation":true,"LineAddHitboxLengthZ":true},{"Name":"Ball of Fire","type":1,"refActorNPCNameID":14037,"refActorRequireCast":true,"refActorCastId":[44105,44097],"refActorUseCastTime":true,"refActorCastTimeMax":7.5,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"Ball of Fire (players warning)","type":1,"radius":6.0,"color":3355508735,"Filled":false,"fillIntensity":0.5,"refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorComparisonType":5}]}
+~Lv2~{"Name":"Chains of Condemnation","Group":"The Final Verse Quantum","ZoneLockH":[1311],"ElementsL":[{"Name":"Chains of Condemnation","type":1,"overlayTextColor":4294967295,"overlayFScale":8.0,"overlayText":"STOP","refActorNPCNameID":14037,"refActorRequireCast":true,"refActorCastId":[44099],"refActorComparisonType":6,"onlyVisible":true,"Conditional":true,"Nodraw":true},{"Name":"STOP","type":1,"radius":0.0,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":3.5,"overlayFScale":1.5,"overlayText":"STOP","refActorPlaceholder":["<1>"],"refActorComparisonType":5,"refActorType":1}]}
+~Lv2~{"Name":"Ball of Fire Snapshot (7.7s)","Group":"The Final Verse Quantum","ZoneLockH":[1311],"Freezing":true,"FreezeFor":2.0,"ElementsL":[{"Name":"Ball of Fire","type":1,"refActorNPCNameID":14037,"refActorRequireCast":true,"refActorCastId":[44105],"refActorUseCastTime":true,"refActorCastTimeMin":7.6,"refActorCastTimeMax":7.7,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"Ball of Fire (players snapshot)","type":1,"radius":6.0,"fillIntensity":0.25,"refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorUseCastTime":true,"refActorComparisonType":5}]}
+~Lv2~{"Name":"Ball of Fire Snapshot (4.7s)","Group":"The Final Verse Quantum","ZoneLockH":[1311],"Freezing":true,"FreezeFor":2.0,"ElementsL":[{"Name":"Ball of Fire","type":1,"refActorNPCNameID":14037,"refActorRequireCast":true,"refActorCastId":[44097],"refActorUseCastTime":true,"refActorCastTimeMin":4.6,"refActorCastTimeMax":4.7,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"Ball of Fire (players snapshot)","type":1,"radius":6.0,"fillIntensity":0.25,"refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorUseCastTime":true,"refActorComparisonType":5}]}
+~Lv2~{"Name":"Sin Bearer","Group":"The Final Verse Quantum","ZoneLockH":[1311],"ElementsL":[{"Name":"10","type":1,"radius":3.0,"color":3372220415,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":1.5,"overlayText":"10","refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorRequireBuff":true,"refActorBuffId":[4567],"refActorUseBuffParam":true,"refActorBuffParam":10,"refActorComparisonType":5},{"Name":"11","type":1,"radius":3.0,"color":3372220415,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":1.5,"overlayText":"11","refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorRequireBuff":true,"refActorBuffId":[4567],"refActorUseBuffParam":true,"refActorBuffParam":11,"refActorComparisonType":5},{"Name":"12","type":1,"radius":3.0,"color":3372220415,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":1.5,"overlayText":"12","refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorRequireBuff":true,"refActorBuffId":[4567],"refActorUseBuffParam":true,"refActorBuffParam":12,"refActorComparisonType":5},{"Name":"13","type":1,"radius":3.0,"color":3372220415,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":1.5,"overlayText":"13","refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorRequireBuff":true,"refActorBuffId":[4567],"refActorUseBuffParam":true,"refActorBuffParam":13,"refActorComparisonType":5},{"Name":"14","type":1,"radius":3.0,"color":3372220415,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":1.5,"overlayText":"14","refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorRequireBuff":true,"refActorBuffId":[4567],"refActorUseBuffParam":true,"refActorBuffParam":14,"refActorComparisonType":5},{"Name":"15","type":1,"radius":3.0,"color":3372220415,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":3.0,"overlayFScale":1.5,"overlayText":"15","refActorPlaceholder":["<1>","<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorRequireBuff":true,"refActorBuffId":[4567],"refActorUseBuffParam":true,"refActorBuffParam":15,"refActorComparisonType":5}]}
+~Lv2~{"Name":"Dark and Light Vengeance Reminders","Group":"The Final Verse Quantum","ZoneLockH":[1311],"ElementsL":[{"Name":"Dark Vengence Refresh","type":1,"radius":0.0,"color":3372155035,"Filled":false,"fillIntensity":0.5,"overlayTextColor":3372155035,"overlayVOffset":4.0,"overlayFScale":1.5,"overlayText":"REFRESH","refActorRequireBuff":true,"refActorBuffId":[4559],"refActorUseBuffTime":true,"refActorBuffTimeMax":10.0,"refActorType":1},{"Name":"Light Vengence Refresh","type":1,"radius":0.0,"color":3355508719,"Filled":false,"fillIntensity":0.5,"overlayTextColor":3355508735,"overlayVOffset":4.0,"overlayFScale":1.5,"overlayText":"REFRESH","refActorRequireBuff":true,"refActorBuffId":[4560],"refActorUseBuffTime":true,"refActorBuffTimeMax":10.0,"refActorType":1}]}
+```
+
+> [!Important]
+
+Boss Exoflares Helper
+
+This will paint a green line on the SAFE side that will last for 35 seconds
+
+
+```
+~Lv2~{"Name":"East West (North Safe) Q40","Group":"The Final Verse Quantum","ZoneLockH":[1311],"UseTriggers":true,"Freezing":true,"FreezeFor":35.0,"Triggers":[{"Type":2,"Duration":18.0,"Match":"(14037>44797)"}],"ElementsL":[{"Name":"North Safe (North East Crystal)","type":1,"offX":-0.12,"offY":-13.94,"radius":0.5,"color":1677786880,"fillIntensity":0.345,"overlayTextIntl":{"En":"SAFE"},"refActorNPCID":2014832,"refActorObjectLife":true,"refActorLifetimeMin":0.0,"refActorLifetimeMax":10.0,"refActorComparisonType":4,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":-593.3466,"DistanceSourceY":-299.85742,"DistanceSourceZ":-3.3378597E-06,"DistanceMax":5.0},{"Name":"North Safe (North West Crystal)","type":1,"offX":-0.12,"offY":-13.94,"radius":0.5,"color":1677786880,"fillIntensity":0.345,"thicc":4.5,"overlayTextIntl":{"En":"SAFE"},"refActorNPCID":2014832,"refActorObjectLife":true,"refActorLifetimeMin":0.0,"refActorLifetimeMax":10.0,"refActorComparisonType":4,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":-606.3521,"DistanceSourceY":-299.95547,"DistanceSourceZ":-1.430511E-06,"DistanceMax":5.0}]}
+```
+
+```
+~Lv2~{"Name":"North South (South Safe) Q40","Group":"The Final Verse Quantum","ZoneLockH":[1311],"DCond":5,"UseTriggers":true,"Freezing":true,"FreezeFor":35.0,"Triggers":[{"Type":2,"Duration":18.0,"Match":"(14037>44798)"}],"ElementsL":[{"Name":"South Safe (South East Crystal)","type":1,"offX":12.12,"offY":14.12,"radius":0.5,"color":1677786880,"fillIntensity":0.345,"thicc":4.5,"overlayTextIntl":{"En":"SAFE"},"refActorNPCID":2014832,"refActorObjectLife":true,"refActorLifetimeMin":0.0,"refActorLifetimeMax":300000.0,"refActorComparisonType":4,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":-593.2228,"DistanceSourceY":-300.10944,"DistanceSourceZ":-1.430511E-06,"DistanceMax":5.0},{"Name":"South Safe (South West Crystal)","type":1,"offX":-12.0,"offY":14.1,"radius":0.5,"color":1677786880,"fillIntensity":0.345,"thicc":4.5,"overlayTextIntl":{"En":"SAFE"},"refActorNPCID":2014832,"refActorObjectLife":true,"refActorLifetimeMin":0.0,"refActorLifetimeMax":300000.0,"refActorComparisonType":4,"includeRotation":true,"LimitDistance":true,"DistanceSourceX":-606.28485,"DistanceSourceY":-299.61526,"DistanceSourceZ":-1.430511E-06,"DistanceMax":5.0}]}
+```
+
+Manifold Lashes
+```
+~Lv2~{"Name":"Manifold Lashes Right","Group":"The Final Verse Quantum","ZoneLockH":[1311],"DCond":5,"UseTriggers":true,"Triggers":[{"Type":2,"Duration":3.0,"Match":"(14037>44157)","MatchDelay":7.7}],"ElementsL":[{"Name":"","type":2,"refX":-593.042,"refY":-314.98276,"refZ":4.768376E-07,"offX":-619.978,"offY":-288.1372,"offZ":-1.2874603E-05,"radius":4.5,"refActorNPCNameID":14038,"refActorComparisonType":6}]}
+~Lv2~{"Name":"Manifold Lashes Left","Group":"The Final Verse Quantum","ZoneLockH":[1311],"DCond":5,"UseTriggers":true,"Triggers":[{"Type":2,"Duration":3.0,"Match":"(14037>44158)","MatchDelay":7.7}],"ElementsL":[{"Name":"","type":2,"refX":-606.9911,"refY":-314.999,"refZ":-1.430511E-06,"offX":-580.0167,"offY":-288.02078,"offZ":-9.679794E-05,"radius":4.5,"refActorNPCNameID":14038,"refActorComparisonType":6}]}
+```

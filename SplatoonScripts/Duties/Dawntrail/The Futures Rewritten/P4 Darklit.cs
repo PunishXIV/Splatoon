@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using ECommons.Logging;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -50,7 +51,7 @@ public class P4_Darklit : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume, NightmareXIV");
     private Config C => Controller.GetConfig<Config>();
 
     private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)
@@ -181,7 +182,7 @@ public class P4_Darklit : SplatoonScript
         _players[source] = new PlayerData
         {
             Name = sourcePlayer.Name.ToString(),
-            IsInkling = true,
+            IsTether = true,
             LinkToRole = targetPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
             Id = source,
             LinkTo = target,
@@ -194,10 +195,11 @@ public class P4_Darklit : SplatoonScript
         {
             var otherPlayers = FakeParty.Get().Where(x => !_players.ContainsKey(x.GameObjectId)).ToList();
             foreach(var otherPlayer in otherPlayers)
+            {
                 _players[otherPlayer.GameObjectId] = new PlayerData
                 {
                     Name = otherPlayer.Name.ToString(),
-                    IsInkling = false,
+                    IsTether = false,
                     LinkToRole = otherPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
                     Id = otherPlayer.GameObjectId,
                     Role = otherPlayer.GetRole() == CombatRole.DPS ? Role.Dps : Role.TankAndHealer,
@@ -205,13 +207,26 @@ public class P4_Darklit : SplatoonScript
                         .IndexOf(x => x.Name == otherPlayer.Name.ToString()),
                     HasWater = otherPlayer.StatusList.Any(x => x.StatusId == WaterId)
                 };
+            }
+            if(C.GreedyCaster)
+            {
+                var players = C.GreedyCasterPrio.GetPlayers(x => otherPlayers.Any(p => p.AddressEquals(x.IGameObject)))?.ToArray();
+                if(players != null && players.Length == 2)
+                {
+                    var player1 = _players[players[0].IGameObject.EntityId];
+                    var player2 = _players[players[1].IGameObject.EntityId];
+                    PluginLog.Debug($"Swapping prio between {player1.Name}/{player1.Priority} and {player2.Name}/{player2.Priority}");
+                    (player1.Priority, player2.Priority) = (player2.Priority, player1.Priority);
+                    PluginLog.Debug($"New prio {player1.Name}/{player1.Priority} and {player2.Name}/{player2.Priority}");
+                }
+            }
             if(C.Mode == Mode.Vertical)
             {
-                var left = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
+                var left = _players.Values.Where(x => x is { Priority: < 4, IsTether: true })
                     .OrderBy(x => x.Priority).ToList();
-                var right = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: true })
+                var right = _players.Values.Where(x => x is { Priority: >= 4, IsTether: true })
                     .OrderBy(x => x.Priority).ToList();
-                var isSameRole = _players.Where(x => x.Value.IsInkling)
+                var isSameRole = _players.Where(x => x.Value.IsTether)
                     .Any(player => player.Value.Role == player.Value.LinkToRole);
 
                 if((_players[left[0].LinkTo].Name == right[0].Name ||
@@ -261,9 +276,9 @@ public class P4_Darklit : SplatoonScript
                         throw new ArgumentOutOfRangeException();
                 }
 
-                var otherLeft = _players.Values.Where(x => x is { Priority: < 4, IsInkling: false })
+                var otherLeft = _players.Values.Where(x => x is { Priority: < 4, IsTether: false })
                     .OrderBy(x => x.Priority).ToList();
-                var otherRight = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: false })
+                var otherRight = _players.Values.Where(x => x is { Priority: >= 4, IsTether: false })
                     .OrderBy(x => x.Priority).ToList();
                 _players[otherLeft[0].Id].Direction = Direction.NorthWest;
                 _players[otherRight[0].Id].Direction = Direction.NorthEast;
@@ -272,11 +287,11 @@ public class P4_Darklit : SplatoonScript
             }
             else
             {
-                var up = _players.Values.Where(x => x is { Priority: < 4, IsInkling: true })
+                var up = _players.Values.Where(x => x is { Priority: < 4, IsTether: true })
                     .OrderBy(x => x.Priority).ToList();
-                var down = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: true })
+                var down = _players.Values.Where(x => x is { Priority: >= 4, IsTether: true })
                     .OrderBy(x => x.Priority).ToList();
-                var isSameRole = _players.Where(x => x.Value.IsInkling)
+                var isSameRole = _players.Where(x => x.Value.IsTether)
                     .Any(player => player.Value.Role == player.Value.LinkToRole);
 
                 if((_players[up[0].LinkTo].Name == down[0].Name ||
@@ -326,9 +341,9 @@ public class P4_Darklit : SplatoonScript
                         throw new ArgumentOutOfRangeException();
                 }
 
-                var otherUp = _players.Values.Where(x => x is { Priority: < 4, IsInkling: false })
+                var otherUp = _players.Values.Where(x => x is { Priority: < 4, IsTether: false })
                     .OrderBy(x => x.Priority).ToList();
-                var otherDown = _players.Values.Where(x => x is { Priority: >= 4, IsInkling: false })
+                var otherDown = _players.Values.Where(x => x is { Priority: >= 4, IsTether: false })
                     .OrderBy(x => x.Priority).ToList();
                 _players[otherUp[0].Id].Direction = Direction.NorthWest;
                 _players[otherUp[1].Id].Direction = Direction.NorthEast;
@@ -338,11 +353,11 @@ public class P4_Darklit : SplatoonScript
 
 
             var noTetherAndHasWater =
-                _players.Values.Where(x => x is { IsInkling: false, HasWater: true }).ToList();
+                _players.Values.Where(x => x is { IsTether: false, HasWater: true }).ToList();
             if(noTetherAndHasWater.Count == 1)
             {
                 var player = noTetherAndHasWater.First();
-                var otherPlayer = _players.Values.First(x => x is { IsInkling: true, HasWater: true });
+                var otherPlayer = _players.Values.First(x => x is { IsTether: true, HasWater: true });
                 var playerAboutDirection = player.Direction switch
                 {
                     Direction.North => Direction.North,
@@ -468,6 +483,14 @@ public class P4_Darklit : SplatoonScript
             C.PriorityData.Draw();
             ImGuiEx.EnumCombo("Box Swap Type", ref C.BoxSwapType);
             ImGuiEx.EnumCombo("Hourglass Swap Type", ref C.HourglassSwapType);
+            ImGui.Checkbox("Fixed non-tether swap (NAUR)", ref C.GreedyCaster);
+            ImGuiEx.HelpMarker($"When these two players have tether, swap their bait positions");
+            if(C.GreedyCaster)
+            {
+                ImGui.Indent();
+                C.GreedyCasterPrio.Draw();
+                ImGui.Unindent();
+            }
             ImGui.Checkbox("Show Other", ref C.ShowOther);
             ImGui.Separator();
             ImGui.Text("Tank Settings");
@@ -486,7 +509,7 @@ public class P4_Darklit : SplatoonScript
                 new("Player Name", () => ImGuiEx.Text(x.Value.Name)),
                 new("Direction", () => ImGuiEx.Text(x.Value.Direction.ToString())),
                 new("ID", () => ImGuiEx.Text(x.Value.Id.ToString())),
-                new("Is Inkling", () => ImGuiEx.Text(x.Value.IsInkling.ToString())),
+                new("Is Inkling", () => ImGuiEx.Text(x.Value.IsTether.ToString())),
                 new("Link To", () => ImGuiEx.Text(x.Value.LinkTo.ToString())),
                 new("Link To Role", () => ImGuiEx.Text(x.Value.LinkToRole.ToString())),
                 new("Role", () => ImGuiEx.Text(x.Value.Role.ToString())),
@@ -538,7 +561,7 @@ public class P4_Darklit : SplatoonScript
         public Direction Direction;
         public bool HasWater;
         public ulong Id;
-        public bool IsInkling;
+        public bool IsTether;
         public ulong LinkTo;
         public Role LinkToRole;
         public string Name;
@@ -557,5 +580,25 @@ public class P4_Darklit : SplatoonScript
         public bool ShowOther = true;
         public bool ShowTank1stBait;
         public bool ShowTank2ndBait;
+        public bool GreedyCaster = false;
+        public Prio2 GreedyCasterPrio = new()
+        {
+            PriorityLists = [new() {
+                IsRole = true,
+                List = [new(){
+                    Role = RolePosition.R1,
+                },new(){
+                    Role = RolePosition.R2,
+                }]
+            }]
+        };
+    }
+
+    public class Prio2 : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 2;
+        }
     }
 }

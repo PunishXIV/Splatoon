@@ -1,8 +1,11 @@
 ﻿using Dalamud.Interface.Colors;
+using ECommons;
+using ECommons.ExcelServices;
 using ECommons.LanguageHelpers;
 using NightmareUI;
 using Splatoon.SplatoonScripting;
 using Splatoon.Structures;
+using TerraFX.Interop.Windows;
 using static Splatoon.ConfigGui.CGuiLayouts.LayoutDrawSelector;
 
 namespace Splatoon;
@@ -80,13 +83,43 @@ internal partial class CGui
 
     readonly NuiTools.ButtonInfo[] ContentCategoryTab = [new("All", () => ActiveContentCategory = null), .. Enum.GetValues<ContentCategory>().Select(x => new NuiTools.ButtonInfo(x.ToString().Replace('_', ' ').Loc(), x.ToString(), () => ActiveContentCategory = x))];
 
+    public uint FilteredTerritory = 0;
+
     private void DislayLayouts()
     {
         var shortExpansions = ExpansionTabs.Select(x => ImGui.CalcTextSize(x.Name).X).Max() > ImGui.GetContentRegionMax().X / (1+ExpansionTabs.Length);
         if(ImGui.BeginChild("TableWrapper", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
         {
-            NuiTools.ButtonTabs("LayoutsButtonTabs", [shortExpansions ? ExpansionTabsShort : ExpansionTabs], child: false);
-            NuiTools.ButtonTabs("LayoutsButtonTabsCategory", [ContentCategoryTab], child: false);
+            ImGuiEx.SetNextItemFullWidth();
+            if(ImGui.BeginCombo("##selTerritory", FilteredTerritory == 0?"Filter by Zone":ExcelTerritoryHelper.GetName(FilteredTerritory, true), ImGuiComboFlags.HeightLarge))
+            {
+                ImGuiEx.SetNextItemFullWidth();
+                ImGuiEx.FilteringInputTextWithHint("##searchTer", "Search...", out var filter);
+                if(ImGui.Selectable("- Show All -".Loc(), FilteredTerritory == 0))
+                {
+                    FilteredTerritory = 0;
+                }
+                var territories = P.Config.LayoutsL.Select(x => x.ZoneLockH).SelectMany(x => x).Distinct().ToArray();
+                foreach(var x in territories)
+                {
+                    var n = ExcelTerritoryHelper.GetName(x, true);
+                    if(filter != "" && !n.Contains(filter, StringComparison.OrdinalIgnoreCase)) continue;
+                    if(ImGui.Selectable(n, x == this.FilteredTerritory))
+                    {
+                        FilteredTerritory = x;
+                    }
+                    if(x == this.FilteredTerritory && ImGui.IsWindowAppearing())
+                    {
+                        ImGui.SetScrollHereY();
+                    }
+                }
+                ImGui.EndCombo();
+            }
+            if(FilteredTerritory == 0)
+            {
+                NuiTools.ButtonTabs("LayoutsButtonTabs", [shortExpansions ? ExpansionTabsShort : ExpansionTabs], child: false);
+                NuiTools.ButtonTabs("LayoutsButtonTabsCategory", [ContentCategoryTab], child: false);
+            }
             if(ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
             {
                 ImGui.TableSetupColumn("Layout list".Loc() + "###Layout id", ImGuiTableColumnFlags.None, 200);
@@ -241,10 +274,21 @@ internal partial class CGui
                 var g = P.Config.GroupOrder[i];
                 if(LayoutFilter != "" &&
                     !P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(LayoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
-                if(ActiveExpansion != null && !P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineExpansion() == ActiveExpansion.Value)) continue;
-                if(ActiveContentCategory != null && !P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineContentCategory() == ActiveContentCategory.Value)) continue;
 
-                ImGui.PushID(g);
+                if(FilteredTerritory == 0)
+                {
+                    if(ActiveExpansion != null && !P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineExpansion() == ActiveExpansion.Value)) continue;
+                    if(ActiveContentCategory != null && !P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineContentCategory() == ActiveContentCategory.Value)) continue;
+                }
+                else
+                {
+                    if(!P.Config.LayoutsL.Any(x => x.Group == g && x.ZoneLockH.Contains((ushort)this.FilteredTerritory) && x.ZoneLockH.Count > 0))
+                    {
+                        continue;
+                    }
+                }
+
+                    ImGui.PushID(g);
                 ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g) ? EColor.Yellow : EColor.YellowBright);
 
                 if(HighlightGroup == g)

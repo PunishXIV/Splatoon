@@ -1,5 +1,9 @@
-﻿using Dalamud.Interface.Colors;
+﻿using Dalamud.Hooking;
+using Dalamud.Interface.Colors;
 using ECommons.LanguageHelpers;
+using FFXIVClientStructs.FFXIV.Client.System.String;
+using FFXIVClientStructs.FFXIV.Client.UI;
+using FFXIVClientStructs.FFXIV.Component.Shell;
 using Newtonsoft.Json;
 using Splatoon.Utility;
 
@@ -16,15 +20,26 @@ internal static class LayoutDrawSelector
             scroll();
             return;
         }
-        if(CGui.ActiveExpansion != null && layout.DetermineExpansion() != CGui.ActiveExpansion.Value)
+        if(P.ConfigGui.FilteredTerritory == 0)
         {
-            scroll();
-            return;
+            if(CGui.ActiveExpansion != null && layout.DetermineExpansion() != CGui.ActiveExpansion.Value)
+            {
+                scroll();
+                return;
+            }
+            if(CGui.ActiveContentCategory != null && layout.DetermineContentCategory() != CGui.ActiveContentCategory.Value)
+            {
+                scroll();
+                return;
+            }
         }
-        if(CGui.ActiveContentCategory != null && layout.DetermineContentCategory() != CGui.ActiveContentCategory.Value)
+        else
         {
-            scroll();
-            return;
+            if(!layout.ZoneLockH.Contains((ushort)P.ConfigGui.FilteredTerritory) && layout.ZoneLockH.Count > 0)
+            {
+                scroll();
+                return;
+            }
         }
         void scroll()
         {
@@ -131,7 +146,7 @@ internal static class LayoutDrawSelector
                 var curpos = ImGui.GetCursorScreenPos();
                 var contRegion = ImGui.GetContentRegionAvail().X;
                 var cond = layout.Enabled && e.Enabled && e.Conditional;
-                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert ? "↓" : null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert ? "×" : null)}{(cond && e.ConditionalReset ? "§" : null)}{e.GetName()}", CurrentElement == e))
+                if(ImGui.Selectable($"{(cond && e.IsVisible() == !e.ConditionalInvert ? "↓" : null)}{(cond && layout.ConditionalAnd && e.IsVisible() == e.ConditionalInvert ? "×" : null)}{(cond && e.ConditionalReset ? "§" : null)}{(e.IsCapturing? "©" : "")}{(e.Nodraw? "Ø" : "")}{e.GetName()}", CurrentElement == e))
                 {
                     if(CurrentElement == e)
                     {

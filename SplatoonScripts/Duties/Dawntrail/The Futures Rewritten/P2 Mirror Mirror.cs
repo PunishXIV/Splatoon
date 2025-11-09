@@ -1,9 +1,12 @@
-using Dalamud.Bindings.ImGui;
+﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
+using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
@@ -19,6 +22,8 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P2_Mirror_Mirror : SplatoonScript
 {
+    public override HashSet<uint>? ValidTerritories => [1238];
+    public override Metadata Metadata => new(5, "Garume, NightmareXIV");
     public enum Action
     {
         OppositeBlueMirror,
@@ -28,8 +33,11 @@ public class P2_Mirror_Mirror : SplatoonScript
     public enum Clockwise
     {
         Clockwise,
-        CounterClockwise,
-        Do_not_display
+        Counter_Clockwise,
+        Do_not_display,
+        Clockwise_from_your_position,
+        Counter_Clockwise_from_your_position,
+        Try_to_guess,
     }
 
     public enum Direction
@@ -60,8 +68,6 @@ public class P2_Mirror_Mirror : SplatoonScript
     private Direction _firstActionDirection;
 
     private State _state = State.None;
-    public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(4, "Garume, NightmareXIV");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -108,6 +114,7 @@ public class P2_Mirror_Mirror : SplatoonScript
         _state = State.None;
         _redMirrorDirections.Clear();
         _blueMirrorDirection = null;
+        ReflectedPosition = null;
     }
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
@@ -142,10 +149,47 @@ public class P2_Mirror_Mirror : SplatoonScript
         }
     }
 
+    Vector3? ReflectedPosition = null;
     public override void OnUpdate()
     {
-        if(_state.EqualsAny(State.End, State.None) || (_state == State.SecondAction && C.Clockwise == Clockwise.Do_not_display)) { Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false); }
+        if(_state.EqualsAny(State.End, State.None) || (_state == State.SecondAction && C.Clockwise >= Clockwise.Do_not_display)) { Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false); }
         Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("Spot")).Each(x => x.Value.Enabled = false);
+
+        var castingMirrors = Svc.Objects.OfType<IBattleNpc>().Where(x => x.DataId == 17825 && x.IsCasting(40205));
+        if(castingMirrors.Count() == 2)
+        {
+            if(C.Clockwise == Clockwise.Try_to_guess)
+            {
+                var p1 = GetTankDistanceToPoint(castingMirrors.ElementAt(0).Position);
+                var p2 = GetTankDistanceToPoint(castingMirrors.ElementAt(1).Position);
+                if(p1 != null && p2 != null)
+                {
+                    var diff = p1.Value - p2.Value;
+                    if(Math.Abs(diff) > 3f)
+                    {
+                        if(Player.Job.IsMeleeDps() || Player.Job.IsTank()) diff = -diff;
+                        ReflectedPosition = castingMirrors.ElementAt(diff > 0 ? 0:1).Position;
+                    }
+                }
+            } 
+            else if(ReflectedPosition == null)
+            {
+                if(C.Clockwise == Clockwise.Clockwise_from_your_position)
+                {
+                    ReflectedPosition = GetClockwisePoint(Player.Position.ToVector2(), castingMirrors.Select(x => x.Position.ToVector2())).Value.ToVector3(0);
+                }
+                if(C.Clockwise == Clockwise.Counter_Clockwise_from_your_position)
+                {
+                    ReflectedPosition = castingMirrors.Where(x => x.Position.ToVector2() != GetClockwisePoint(Player.Position.ToVector2(), castingMirrors.Select(x => x.Position.ToVector2()))).First().Position;
+                }
+            }
+            if(ReflectedPosition != null && Controller.TryGetElementByName("Bait", out var el))
+            {
+                el.Enabled = true;
+                el.SetOffPosition(ReflectedPosition.Value);
+            }
+        }
+
         if(Controller.TryGetElementByName("Bait", out var e))
         {
             if(C.PreciseSpot && e.Enabled)
@@ -166,7 +210,17 @@ public class P2_Mirror_Mirror : SplatoonScript
                 e.tether = true;
             }
         }
+    }
 
+    public float? GetTankDistanceToPoint(Vector3 point)
+    {
+        //Data ID: 17823
+        var tank = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.IsTargetable && x.DataId == 17823)?.TargetObject;
+        if(tank != null)
+        {
+            return Vector3.Distance(tank.Position, point);
+        }
+        return null;
     }
 
     public void ApplyElement(Direction direction)
@@ -191,7 +245,7 @@ public class P2_Mirror_Mirror : SplatoonScript
             ImGuiEx.EnumCombo("First Action", ref C.FirstAction);
             ImGui.SetNextItemWidth(150f.Scale());
             ImGuiEx.EnumCombo("Clockwise", ref C.Clockwise);
-            ImGuiComponents.HelpMarker("When the red mirrors distance is equal, choose by clockwise or counterclockwise.");
+            ImGuiComponents.HelpMarker("When the red mirrors distance is equal.");
 
             ImGui.Checkbox("Show precise spot (left/right only)", ref C.PreciseSpot);
             if(C.PreciseSpot)
@@ -214,11 +268,64 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     public class Config : IEzConfig
     {
-        public Clockwise Clockwise = Clockwise.Clockwise;
+        public Clockwise Clockwise = Clockwise.Clockwise_from_your_position;
         public Action FirstAction = Action.OppositeBlueMirror;
         public bool PreciseSpot = false;
         public BaitPosition BaitPosition = BaitPosition.Left;
     }
 
     public enum BaitPosition { Left, Right }
+
+    private static readonly Vector2 Center = new Vector2(100.0f, 100.0f);
+
+    /// <summary>
+    /// Finds the point that is immediately clockwise from your position.
+    /// </summary>
+    /// <param name="myPosition">Your position</param>
+    /// <param name="points">Collection of points to check</param>
+    /// <returns>The point that is immediately clockwise, or null if no points provided</returns>
+    public static Vector2? GetClockwisePoint(Vector2 myPosition, IEnumerable<Vector2> points)
+    {
+        Vector2? closestPoint = null;
+        double smallestDiff = double.MaxValue;
+
+        // Translate my position to center origin
+        Vector2 myRel = myPosition - Center;
+        myRel.Y = -myRel.Y; // Invert Y for proper angle calculation
+
+        double myAngle = Math.Atan2(myRel.Y, myRel.X);
+
+        foreach(var point in points)
+        {
+            // Translate to center origin
+            Vector2 pRel = point - Center;
+            pRel.Y = -pRel.Y; // Invert Y for proper angle calculation
+
+            // Calculate angle
+            double pAngle = Math.Atan2(pRel.Y, pRel.X);
+
+            // Calculate clockwise difference
+            double diff = NormalizeAngle(myAngle - pAngle);
+
+            // Find the smallest positive difference (immediately clockwise)
+            if(diff < smallestDiff)
+            {
+                smallestDiff = diff;
+                closestPoint = point;
+            }
+        }
+
+        return closestPoint;
+    }
+
+    /// <summary>
+    /// Normalizes angle to range [0, 2π]
+    /// </summary>
+    private static double NormalizeAngle(double angle)
+    {
+        double normalized = angle % (2 * Math.PI);
+        if(normalized < 0)
+            normalized += 2 * Math.PI;
+        return normalized;
+    }
 }

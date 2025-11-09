@@ -374,3 +374,4 @@ FodyWeavers.xsd
 /SplatoonScripts/Generic/MitigationFRU.cs
 /SplatoonScripts/Generic/SimpleMitigations.cs
 /SplatoonScripts/Generic/M8S_Mch_Mitigations.cs
+/SplatoonScripts/Generic/ExportUngatheredItems.cs

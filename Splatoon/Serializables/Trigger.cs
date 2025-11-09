@@ -13,6 +13,7 @@ public class Trigger
     /// 2: Show at text |
     /// 3: Hide at text
     /// </summary>
+    [DefaultValue(false)] public bool UserDisabled = false;
     [DefaultValue(0)] public int Type = 0;
     [DefaultValue(0f)] public float TimeBegin = 0;
     [DefaultValue(0f)] public float Duration = 0;

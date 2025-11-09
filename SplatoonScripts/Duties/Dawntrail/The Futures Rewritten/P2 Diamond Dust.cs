@@ -12,6 +12,11 @@ using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ECommons.DalamudServices;
+using System.Linq;
+using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.MathHelpers;
+using ECommons.Throttlers;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -38,7 +43,7 @@ public class P2_Diamond_Dust : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(4, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -48,6 +53,20 @@ public class P2_Diamond_Dust : SplatoonScript
         _firstIcicleImpactDirection = IcicleImpactDirection.None;
         _hasAoe = false;
     }
+
+    Dictionary<Direction, Vector2> CCWShivaCheck = new()
+    {
+        [Direction.North] = new(107, 92),
+        [Direction.NorthEast] = new(110, 100),
+        [Direction.East] = new(106, 106),
+        [Direction.SouthEast] = new(100, 109),
+        [Direction.South] = new(93, 107),
+        [Direction.SouthWest] = new(90, 100),
+        [Direction.West] = new(93, 93),
+        [Direction.NorthWest] = new(100, 90),
+    };
+
+    Direction KBDirection = default;
 
 
     public override void OnVFXSpawn(uint target, string vfxPath)
@@ -64,40 +83,46 @@ public class P2_Diamond_Dust : SplatoonScript
             if(_aoeType == AoeType.Circle)
             {
                 _state = State.Split;
-                var radius = 18f;
                 if(_hasAoe)
+                {
+                    var radius = 19.5f;
+                    var elementRadius = 1f;
                     switch(_firstIcicleImpactDirection)
                     {
                         case IcicleImpactDirection.North:
-                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasAoe, radius, elementRadius);
                             break;
                         case IcicleImpactDirection.NorthEast:
-                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasAoe, radius, elementRadius);
                             break;
                         case IcicleImpactDirection.East:
-                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasAoe, radius, elementRadius);
                             break;
                         case IcicleImpactDirection.SouthEast:
-                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasAoe, radius, elementRadius);
                             break;
                     }
-
+                }
                 else
+                {
+                    var radius = 16.5f;
+                    var elementRadius = 1f;
                     switch(_firstIcicleImpactDirection)
                     {
                         case IcicleImpactDirection.North:
-                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasNoAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthIcicleImpactCircleHasNoAoe, radius, elementRadius);
                             break;
                         case IcicleImpactDirection.NorthEast:
-                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasNoAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenNorthEastIcicleImpactCircleHasNoAoe, radius, elementRadius);
                             break;
                         case IcicleImpactDirection.East:
-                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenEastIcicleImpactCircleHasNoAoe, radius, elementRadius);
                             break;
                         case IcicleImpactDirection.SouthEast:
-                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasNoAoe, radius);
+                            ApplyElement("Bait", C.MoveDirectionWhenSouthEastIcicleImpactCircleHasNoAoe, radius, elementRadius);
                             break;
                     }
+                }
             }
             else if(_aoeType == AoeType.Donut)
             {
@@ -185,36 +210,60 @@ public class P2_Diamond_Dust : SplatoonScript
             if(_firstIcicleImpactDirection == IcicleImpactDirection.SouthEast)
             {
                 if(C.KnockbackDirections.Contains(Direction.SouthEast))
+                {
                     ApplyElement("Bait", Direction.SouthEast, 5f, 1f);
+                    KBDirection = Direction.SouthEast;
+                }
                 else if(C.KnockbackDirections.Contains(Direction.NorthWest))
+                {
                     ApplyElement("Bait", Direction.NorthWest, 5f, 1f);
+                    KBDirection = Direction.NorthWest;
+                }
             }
             else if(_firstIcicleImpactDirection == IcicleImpactDirection.North)
             {
                 if(C.KnockbackDirections.Contains(Direction.North))
+                {
                     ApplyElement("Bait", Direction.North, 5f, 1f);
+                    KBDirection = Direction.North;
+                }
                 else if(C.KnockbackDirections.Contains(Direction.South))
+                {
                     ApplyElement("Bait", Direction.South, 5f, 1f);
+                    KBDirection = Direction.South;
+                }
             }
             else if(_firstIcicleImpactDirection == IcicleImpactDirection.NorthEast)
             {
-                if(C.KnockbackDirections.Contains(Direction.NorthEast))
+                if(C.KnockbackDirections.Contains(Direction.NorthEast)){
                     ApplyElement("Bait", Direction.NorthEast, 5f, 1f);
-                else if(C.KnockbackDirections.Contains(Direction.SouthWest))
+                    KBDirection = Direction.NorthEast;
+                }
+                else if(C.KnockbackDirections.Contains(Direction.SouthWest)){
                     ApplyElement("Bait", Direction.SouthWest, 5f, 1f);
+                    KBDirection = Direction.SouthWest;
+                }
             }
             else if(_firstIcicleImpactDirection == IcicleImpactDirection.East)
             {
-                if(C.KnockbackDirections.Contains(Direction.East))
+                if(C.KnockbackDirections.Contains(Direction.East)){
                     ApplyElement("Bait", Direction.East, 5f, 1f);
-                else if(C.KnockbackDirections.Contains(Direction.West))
+                    KBDirection = Direction.East;
+                }
+                else if(C.KnockbackDirections.Contains(Direction.West)){
                     ApplyElement("Bait", Direction.West, 5f, 1f);
+                    KBDirection = Direction.West;
+                }
             }
         }
     }
 
     public override void OnSetup()
     {
+        Controller.RegisterElementFromCode("HintStay", """{"Name":"HintStay","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":3355443455,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"Stay","refActorType":1}""");
+        Controller.RegisterElementFromCode("HintMove", """{"Name":"HintMove","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278219783,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"Move","refActorType":1}""");
+        Controller.RegisterElementFromCode("SelfCW", """{"Name":"SelfCW","type":3,"refY":5.0,"radius":0.0,"color":3355508223,"Filled":false,"fillIntensity":0.345,"thicc":8.0,"refActorType":1,"includeRotation":true,"LineEndA":1,"AdditionalRotation":5.061455,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}""");
+        Controller.RegisterElementFromCode("SelfCCW", """{"Name":"SelfCW","type":3,"refY":5.0,"radius":0.0,"color":3355508223,"Filled":false,"fillIntensity":0.345,"thicc":8.0,"refActorType":1,"includeRotation":true,"LineEndA":1,"AdditionalRotation":1.2217305,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}""");
         Controller.RegisterElement("Bait", new Element(0)
         {
             tether = true,
@@ -233,9 +282,17 @@ public class P2_Diamond_Dust : SplatoonScript
 
     public override void OnUpdate()
     {
+        if(EzThrottler.Check("NoReset"))
+        {
+            Controller.GetElementByName("SelfCW").Enabled = false;
+            Controller.GetElementByName("SelfCCW").Enabled = false;
+        }
+        ResolveCwCcw();
+        ProcessHint();
         if(_state is State.None or State.End)
         {
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            Controller.GetElementByName("Bait").Enabled = false;
+            Controller.GetElementByName("Predict").Enabled = false;
             return;
         }
 
@@ -243,11 +300,40 @@ public class P2_Diamond_Dust : SplatoonScript
             element.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
     }
 
+    void ProcessHint()
+    {
+        Controller.GetElementByName("HintStay").Enabled = false;
+        Controller.GetElementByName("HintMove").Enabled = false;
+        if(C.Hints)
+        {
+            var e = Controller.GetElementByName("Bait");
+            if(e.Enabled)
+            {
+                var pass = Player.DistanceTo(new Vector2(e.refX + e.offX, e.refY + e.offY)) < e.radius;
+                Controller.GetElementByName(pass ? "HintStay" : "HintMove").Enabled = true;
+            }
+        }
+    }
+
+    void ResolveCwCcw()
+    {
+        if(!C.ResolveBaitDirection) return;
+        if(Svc.Objects.TryGetFirst(x => x is IBattleNpc npc && npc.IsCasting(40208) && npc.CurrentCastTime > 2, out var npc))
+        {
+            var ccw = Vector2.Distance(npc.Position.ToVector2(), this.CCWShivaCheck[this.KBDirection]) < 3f;
+            Controller.GetElementByName($"Self{(ccw ? "CCW" : "CW")}").Enabled = true;
+            EzThrottler.Throttle("NoReset", 5000, true);
+        }
+    }
+
     public override void OnSettingsDraw()
     {
         if(ImGuiEx.CollapsingHeader("General"))
         {
             ImGui.Indent();
+            ImGui.Checkbox("Resolve puddle bait direction", ref C.ResolveBaitDirection);
+            ImGui.Checkbox("Show move/stay hints", ref C.Hints);
+            ImGuiEx.HelpMarker("Will assume you will always rotate clockwise unless Shiva is 45 degrees clockwise to your initial position");
             if(ImGuiEx.CollapsingHeader("Circle"))
             {
                 ImGui.Indent();
@@ -565,6 +651,8 @@ public class P2_Diamond_Dust : SplatoonScript
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public bool ResolveBaitDirection = false;
+        public bool Hints = false;
 
         public List<Direction> KnockbackDirections =
         [

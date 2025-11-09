@@ -1,10 +1,13 @@
+using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
-using Dalamud.Bindings.ImGui;
+using ECommons.MathHelpers;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
@@ -58,7 +61,7 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "Garume");
+    public override Metadata? Metadata => new(4, "Garume, NightmareXIV");
 
     public Config C => Controller.GetConfig<Config>();
 
@@ -95,6 +98,9 @@ public class P2_Mirror_Mirror : SplatoonScript
         };
 
         Controller.RegisterElement("Bait", element);
+
+        Controller.RegisterElementFromCode("SpotLeft", """{"Name":"","type":1,"offX":-3.0,"offY":0.5,"radius":0.5,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"refActorObjectID":1073786597,"refActorComparisonType":2,"includeRotation":true,"tether":true,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}""");
+        Controller.RegisterElementFromCode("SpotRight", """{"Name":"","type":1,"offX":3.0,"offY":0.5,"radius":0.5,"color":3355508496,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"refActorObjectID":1073786597,"refActorComparisonType":2,"includeRotation":true,"tether":true,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}""");
     }
 
     public override void OnReset()
@@ -118,9 +124,13 @@ public class P2_Mirror_Mirror : SplatoonScript
                 ? _blueMirrorDirection.Value
                 : (Direction)(((int)_blueMirrorDirection.Value + 4) % 8);
             if(C.FirstAction == Action.BlueMirror)
-                ApplyElement(_firstActionDirection);
+            { 
+                ApplyElement(_firstActionDirection); 
+            }
             else if(C.FirstAction == Action.OppositeBlueMirror)
-                ApplyElement(_firstActionDirection);
+            {
+                ApplyElement(_firstActionDirection); 
+            }
         }
     }
 
@@ -134,7 +144,29 @@ public class P2_Mirror_Mirror : SplatoonScript
 
     public override void OnUpdate()
     {
-        if(_state.EqualsAny(State.End, State.None) || (_state == State.SecondAction && C.Clockwise == Clockwise.Do_not_display)) Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+        if(_state.EqualsAny(State.End, State.None) || (_state == State.SecondAction && C.Clockwise == Clockwise.Do_not_display)) { Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false); }
+        Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("Spot")).Each(x => x.Value.Enabled = false);
+        if(Controller.TryGetElementByName("Bait", out var e))
+        {
+            if(C.PreciseSpot && e.Enabled)
+            {
+                if(Svc.Objects.TryGetFirst(x => x is IBattleNpc b
+                && b.NameId == 9317
+                && Vector2.Distance(b.Position.ToVector2(), new(e.refX + e.offX, e.refY + e.offY)) < 1, out var obj))
+                {
+                    var element = Controller.GetElementByName($"Spot{C.BaitPosition}");
+                    element.SetRefPosition(obj.Position);
+                    element.refActorObjectID = obj.EntityId;
+                    element.Enabled = true;
+                }
+                e.tether = false;
+            }
+            else
+            {
+                e.tether = true;
+            }
+        }
+
     }
 
     public void ApplyElement(Direction direction)
@@ -155,10 +187,20 @@ public class P2_Mirror_Mirror : SplatoonScript
     {
         if(ImGuiEx.CollapsingHeader("General"))
         {
+            ImGui.SetNextItemWidth(150f.Scale());
             ImGuiEx.EnumCombo("First Action", ref C.FirstAction);
+            ImGui.SetNextItemWidth(150f.Scale());
             ImGuiEx.EnumCombo("Clockwise", ref C.Clockwise);
-            ImGuiComponents.HelpMarker(
-                "When the red mirrors distance is equal, choose by clockwise or counterclockwise.");
+            ImGuiComponents.HelpMarker("When the red mirrors distance is equal, choose by clockwise or counterclockwise.");
+
+            ImGui.Checkbox("Show precise spot (left/right only)", ref C.PreciseSpot);
+            if(C.PreciseSpot)
+            {
+                ImGui.Indent();
+                ImGui.SetNextItemWidth(150f.Scale());
+                ImGuiEx.EnumCombo("Spot", ref C.BaitPosition);
+                ImGui.Unindent();
+            }
         }
 
         if(ImGuiEx.CollapsingHeader("Debug"))
@@ -174,5 +216,9 @@ public class P2_Mirror_Mirror : SplatoonScript
     {
         public Clockwise Clockwise = Clockwise.Clockwise;
         public Action FirstAction = Action.OppositeBlueMirror;
+        public bool PreciseSpot = false;
+        public BaitPosition BaitPosition = BaitPosition.Left;
     }
+
+    public enum BaitPosition { Left, Right }
 }

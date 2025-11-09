@@ -74,9 +74,9 @@ public unsafe class CastExplorer : SplatoonScript
                 Entries.Add(new("Cast ID", () => ImGuiEx.TextCopy(col, $"{x.CastActionId}")));
                 Entries.Add(new("Cast name", () => ImGuiEx.TextCopy(col, $"{ExcelActionHelper.GetActionName(x.CastActionId)}")));
                 Entries.Add(new("Time", () => ImGuiEx.TextCopy(col, $"{x.CurrentCastTime:F1}/{x.BaseCastTime:F1}")));
-                Entries.Add(new("Name ID", () => ImGuiEx.TextCopy(col, x.NameId.ToString())));
-                Entries.Add(new("Data ID", () => ImGuiEx.TextCopy(col, x.DataId.ToString())));
-                Entries.Add(new("Model ID", () => ImGuiEx.TextCopy(col, x.Struct()->ModelContainer.ModelCharaId.ToString())));
+                Entries.Add(new("Name ID", () => ImGuiEx.TextCopy(col, $"{x.NameId}")));
+                Entries.Add(new("Data ID", () => ImGuiEx.TextCopy(col, $"{x.DataId}")));
+                Entries.Add(new("Model ID", () => ImGuiEx.TextCopy(col, $"{x.Struct()->ModelContainer.ModelCharaId}")));
                 Entries.Add(new("Tar", () => ImGuiEx.Text(col, x.IsTargetable.ToString())));
                 Entries.Add(new("Vis", () => ImGuiEx.Text(col, x.IsCharacterVisible().ToString())));
                 Entries.Add(new("Dist", () => ImGuiEx.Text(col, $"{Vector3.Distance(Player.Position, x.Position):F1}")));

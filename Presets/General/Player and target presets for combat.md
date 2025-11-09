@@ -25,7 +25,7 @@ Melee Range~{"ZoneLockH":[],"Elements":{"Auto Attack":{"type":1,"refX":-584.8404
 
 Cardinal positions relative to player
 ```
-Cardinals~{"Elements":{"N":{"type":1,"offY":-0.5,"overlayTextColor":3355443455,"thicc":0.0,"overlayText":"N","refActorType":1},"S":{"type":1,"offY":0.5,"overlayTextColor":3372206336,"thicc":0.0,"overlayText":"S","refActorType":1},"W":{"type":1,"offX":-0.5,"overlayTextColor":3371697391,"thicc":0.0,"overlayText":"W","refActorType":1},"E":{"type":1,"offX":0.5,"overlayTextColor":3355769060,"thicc":0.0,"overlayText":"E","refActorType":1}}}
+~Lv2~{"Name":"Cardinals","ElementsL":[{"Name":"N","type":1,"offY":-1.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4278190335,"overlayFScale":1.5,"thicc":0.0,"overlayText":"N","refActorType":1},{"Name":"S","type":1,"offY":1.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4294953216,"overlayFScale":1.5,"thicc":0.0,"overlayText":"S","refActorType":1},{"Name":"W","type":1,"offX":-1.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4294444271,"overlayFScale":1.5,"thicc":0.0,"overlayText":"W","refActorType":1},{"Name":"E","type":1,"offX":1.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4278515940,"overlayFScale":1.5,"thicc":0.0,"overlayText":"E","refActorType":1}]}
 ```
 
 Attack Range Rings (Universal)

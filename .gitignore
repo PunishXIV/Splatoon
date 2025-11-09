@@ -371,3 +371,6 @@ FodyWeavers.xsd
 /SplatoonScripts/Tests/GenericTest8.cs
 /SplatoonScripts/Generic/AutoTeleport.cs
 /SplatoonScripts/Generic/FCDataViewer.cs
+/SplatoonScripts/Generic/MitigationFRU.cs
+/SplatoonScripts/Generic/SimpleMitigations.cs
+/SplatoonScripts/Generic/M8S_Mch_Mitigations.cs

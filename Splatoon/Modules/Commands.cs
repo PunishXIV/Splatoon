@@ -43,6 +43,7 @@ internal class Commands : IDisposable
                 AttachedInfo.CastInfos.Clear();
                 AttachedInfo.VFXInfos.Clear();
                 AttachedInfo.TetherInfos.Clear();
+                SplatoonScripting.ScriptingProcessor.Scripts.Where(x => x.IsEnabled).Each(x => x.Controller.Reset());
             }
             else if(arguments.StartsWith("enable "))
             {

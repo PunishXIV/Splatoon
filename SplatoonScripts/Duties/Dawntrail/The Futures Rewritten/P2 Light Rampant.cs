@@ -320,7 +320,7 @@ internal class P2_Light_Rampant : SplatoonScript
         {
             ImGuiEx.Text($"Aoe priority adjustment, west to east:");
         }
-            C.AoePriority.Draw();
+        C.AoePriority.Draw();
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");

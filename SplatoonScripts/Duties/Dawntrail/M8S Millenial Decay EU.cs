@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -8,7 +10,6 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
-using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
-    public override Metadata Metadata => new(1, "NightmareXIV");
+    public override Metadata Metadata => new(2, "NightmareXIV");
 
     bool? IsCW = null;
 
@@ -41,6 +42,38 @@ public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
         Controller.RegisterElementFromCode("NorthWest", """{"Name":"","refX":93.0,"refY":93.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("SouthEast", """{"Name":"","refX":107.0,"refY":107.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("SouthWest", """{"Name":"","refX":93.0,"refY":107.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+
+        Controller.RegisterElementFromCode("North_Melee", """
+            {"Name":"","Enabled":false,"refX":100.0,"refY":93.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+
+        Controller.RegisterElementFromCode("South_Melee", """
+            {"Name":"","refX":100.0,"refY":107.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+
+        Controller.RegisterElementFromCode("West_Melee", """
+            {"Name":"","Enabled":false,"refX":93.0,"refY":100.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+
+        Controller.RegisterElementFromCode("East_Melee", """
+            {"Name":"","refX":107.0,"refY":100.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+
+        Controller.RegisterElementFromCode("NorthEast_Melee", """
+            {"Name":"","refX":105.0,"refY":95.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+
+        Controller.RegisterElementFromCode("NorthWest_Melee", """
+            {"Name":"","refX":95.0,"refY":95.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+
+        Controller.RegisterElementFromCode("SouthEast_Melee", """
+            {"Name":"","refX":105.0,"refY":105.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
+
+        Controller.RegisterElementFromCode("SouthWest_Melee", """
+            {"Name":"","Enabled":false,"refX":95.0,"refY":105.0,"radius":2.0,"color":3360882432,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            """);
     }
 
     public override void OnUpdate()
@@ -74,18 +107,18 @@ public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
             {
                 if(!EzThrottler.Check(this.InternalData.FullName + "1"))
                 {
-                    Controller.GetElementByName($"{(IsCW.Value ? C.CWFirst : C.CCWFirst)}")!.Enabled = true;
+                    Controller.GetElementByName($"{(IsCW.Value ? C.CWFirst : C.CCWFirst)}")?.Enabled = true;
                 }
             } 
             else
             {
                 if(!EzThrottler.Check(this.InternalData.FullName + "1"))
                 {
-                    Controller.GetElementByName($"{(IsCW.Value ? C.CWSecondIdle : C.CCWSecondIdle)}")!.Enabled = true;
+                    Controller.GetElementByName($"{(IsCW.Value ? C.CWSecondIdle : C.CCWSecondIdle)}")?.Enabled = true;
                 } 
                 else
                 {
-                    Controller.GetElementByName($"{(IsCW.Value ? C.CWSecond : C.CCWSecond)}")!.Enabled = true;
+                    Controller.GetElementByName($"{(IsCW.Value ? C.CWSecond : C.CCWSecond)}")?.Enabled = true;
                 }
             }
         }
@@ -103,10 +136,10 @@ public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
         //Casting: True, Action ID = 41911, Type = 1, Cast time: 2.9/4.7
         if(vfxPath == "vfx/lockon/eff/loc05sp_05a_se_p.avfx" && Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsCasting(41911)))
         {
-            if(Player.Object.EntityId == target)
+            if(BasePlayer.EntityId == target)
             {
                 DuoLog.Information("Player does first spread");
-                PlayerDoesFirst = true;
+                PlayerDoesFirst = true; 
             }
             CanDisplay = true;
         }
@@ -120,7 +153,16 @@ public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
         South = 5,
         SouthWest = 6,
         West = 7,
-        NorthWest = 8
+        NorthWest = 8,
+        North_Melee,
+        NorthEast_Melee,
+        East_Melee,
+        SouthEast_Melee,
+        South_Melee,
+        SouthWest_Melee,
+        West_Melee,
+        NorthWest_Melee,
+        Disabled
     }
 
     public override void OnSettingsDraw()
@@ -145,6 +187,21 @@ public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
         ImGuiEx.EnumCombo("Drop position if you have 2nd aoe", ref C.CCWSecond);
         ImGui.Unindent();
         ImGui.PopID(); 
+        if(ImGui.CollapsingHeader("Debug"))
+        {
+            ImGui.InputText("BPO", ref C.BPO);
+            if(ImGui.BeginCombo("##sel", "Select base player"))
+            {
+                foreach(var x in Controller.GetPartyMembers())
+                {
+                    if(ImGuiEx.Selectable($"{x.GetNameWithWorld()}"))
+                    {
+                        C.BPO = x.GetNameWithWorld();
+                    }
+                }
+                ImGui.EndCombo();
+            }
+        }
     }
 
     Config C => Controller.GetConfig<Config>();
@@ -157,5 +214,17 @@ public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
         public Direction CCWFirst = Direction.NorthWest;
         public Direction CCWSecond = Direction.SouthWest;
         public Direction CCWSecondIdle = Direction.West;
+        public string BPO = "";
+    }
+    IPlayerCharacter BasePlayer
+    {
+        get
+        {
+            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback] && C.BPO != "" && Controller.GetPartyMembers().TryGetFirst(x => x.GetNameWithWorld() == C.BPO, out var p))
+            {
+                return p;
+            }
+            return Player.Object;
+        }
     }
 }

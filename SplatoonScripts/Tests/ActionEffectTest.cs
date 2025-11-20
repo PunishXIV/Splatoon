@@ -26,13 +26,13 @@ public unsafe class ActionEffectTest : SplatoonScript
         {
             PluginLog.Information($"Cast {set.Action?.RowId} on {set.Source}");
         }
-        if(set.Target?.Address == Player.Object.Address)
+        //if(set.Target?.Address == Player.Object.Address)
         {
             foreach(var effect in set.TargetEffects)
             {
                 for(var i = 0; i < set.Header.TargetCount; i++)
                 {
-                    //PluginLog.Information($"{effect[i]}={effect[i].Damage}/{effect[i].mult}");
+                    PluginLog.Information($"{effect[i]}={effect[i].Damage}/{effect[i].mult}");
                 }
             }
         }

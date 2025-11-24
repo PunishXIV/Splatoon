@@ -376,3 +376,5 @@ FodyWeavers.xsd
 /SplatoonScripts/Generic/M8S_Mch_Mitigations.cs
 /SplatoonScripts/Generic/ExportUngatheredItems.cs
 /SplatoonScripts/Generic/RenameWindow.cs
+/SplatoonScripts/Generic/FarmStones.cs
+/SplatoonScripts/Generic/SimpleMitigations.cs

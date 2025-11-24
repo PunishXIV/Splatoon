@@ -157,7 +157,7 @@ public sealed class SimpleMitigations : SplatoonScript
             if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsTargetable && x.Name.ToString() == "Fatebreaker", out var data))
             {
                 var hp = (float)data.CurrentHp / (float)data.MaxHp;
-                if(hp < 0.15f)
+                /*if(hp < 0.05f)
                 {
                     if(EzThrottler.Throttle("BlockFatebreaker"))
                     {
@@ -167,7 +167,7 @@ public sealed class SimpleMitigations : SplatoonScript
                         this.RequestBlacklist(ActionType.Action, 16501, 1000); //robot
                         if(hp < 0.1f) this.RequestBlacklist(ActionType.Action, 17209, 1000); //hyper
                     }
-                }
+                }*/
             }
         }
         {

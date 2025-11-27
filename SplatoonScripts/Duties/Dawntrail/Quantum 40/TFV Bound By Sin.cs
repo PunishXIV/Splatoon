@@ -15,7 +15,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public unsafe class TFV_Bound_By_Sin : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1311];
-    public override Metadata? Metadata => new(2, "lillylilim, NightmareXIV");
+    public override Metadata? Metadata => new(3, "lillylilim, NightmareXIV");
 
     public override void OnSetup()
     {
@@ -101,6 +101,7 @@ public unsafe class TFV_Bound_By_Sin : SplatoonScript
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
         Sequence = 0;
+        MechanicNum = 0;
     }
 
     public override void OnEnable()

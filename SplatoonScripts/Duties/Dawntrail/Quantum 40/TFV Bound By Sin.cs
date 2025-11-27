@@ -72,6 +72,7 @@ public unsafe class TFV_Bound_By_Sin : SplatoonScript
                         if(C.Bos0Disabled.Contains(pos.Value.Key))
                         {
                             canShow = false;
+                            PluginLog.Debug($"Can't show {Sequence}, {pos.Value.Key}");
                         }
                     }
                 }
@@ -83,6 +84,7 @@ public unsafe class TFV_Bound_By_Sin : SplatoonScript
                         if(C.Bos2Disabled.Contains(pos.Value.Key))
                         {
                             canShow = false;
+                            PluginLog.Debug($"Can't show {Sequence}, {pos.Value.Key}");
                         }
                     }
                 }

@@ -15,7 +15,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public unsafe class TFV_Bound_By_Sin : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1311];
-    public override Metadata? Metadata => new(3, "lillylilim, NightmareXIV");
+    public override Metadata? Metadata => new(4, "lillylilim, NightmareXIV");
 
     public override void OnSetup()
     {
@@ -63,8 +63,30 @@ public unsafe class TFV_Bound_By_Sin : SplatoonScript
             }
             else
             {
-
-                if(Sequence == 11 || Sequence == 12)
+                var canShow = true;
+                if(MechanicNum == 0)
+                {
+                    var pos = this.Directions.FirstOrNull(x => Vector2.Distance(x.Value, source.GetObject().Position.ToVector2()) < 2);
+                    if(pos != null)
+                    {
+                        if(C.Bos0Disabled.Contains(pos.Value.Key))
+                        {
+                            canShow = false;
+                        }
+                    }
+                }
+                if(MechanicNum == 2)
+                {
+                    var pos = this.Directions.FirstOrNull(x => Vector2.Distance(x.Value, source.GetObject().Position.ToVector2()) < 2);
+                    if(pos != null)
+                    {
+                        if(C.Bos2Disabled.Contains(pos.Value.Key))
+                        {
+                            canShow = false;
+                        }
+                    }
+                }
+                if((Sequence == 11 || Sequence == 12) && canShow)
                 {
                     var line = Controller.GetElementByName($"line{Sequence}")!;
 
@@ -81,6 +103,8 @@ public unsafe class TFV_Bound_By_Sin : SplatoonScript
                 e.Enabled = true;
                 this.Controller.Schedule(() => e.Enabled = false, 5000);
                 Sequence = 0;
+                //paired: 0
+                //chained: 2
                 MechanicNum++;
                 if(MechanicNum == 1)
                 {
@@ -92,6 +116,22 @@ public unsafe class TFV_Bound_By_Sin : SplatoonScript
                             this.Controller.Schedule(() => tower.Enabled = false, 7000);
                         }
                     }, 3000);
+                }
+            }
+        }
+    }
+
+    public override void OnMapEffect(uint position, ushort data1, ushort data2)
+    {
+        //> [27.11.2025 20:05:09 +03:00] Message: MapEffect: 27, 1, 2
+        if(position == 27 && data1 == 1 && data2 == 2)
+        {
+            if(MechanicNum == 3)
+            {
+                if(Controller.TryGetElementByName($"Tower{C.Tower}", out var tower))
+                {
+                    tower.Enabled = true;
+                    this.Controller.Schedule(() => tower.Enabled = false, 15000);
                 }
             }
         }
@@ -141,16 +181,40 @@ public unsafe class TFV_Bound_By_Sin : SplatoonScript
 
     public enum Tower { Disabled, TopLeft, TopRight, BottomLeft, BottomRight }
 
+    public enum Direction { Top, Left, Bottom, Right }
+
     Config C => Controller.GetConfig<Config>();
     public class Config: IEzConfig
     {
         public Tower Tower = Tower.Disabled;
+        public HashSet<Direction> Bos0Disabled = [];
+        public HashSet<Direction> Bos2Disabled = [];
     }
+
+    Dictionary<Direction, Vector2> Directions = new()
+    {
+        [Direction.Top] = new(-600.000f, -307.500f),
+        [Direction.Bottom] = new(-600.000f, -293.000f),
+        [Direction.Left] = new(-607.000f, -300.000f),
+        [Direction.Right] = new(-593.000f, -300.000f),
+    };
 
     public override void OnSettingsDraw()
     {
         ImGui.SetNextItemWidth(200f);
         ImGuiEx.EnumCombo("Select tower to take", ref C.Tower);
+        ImGui.Separator();
+        ImGuiEx.Text($"Bounds of Sin 1 (+partners into towers): Highlighted Directions");
+        foreach(var x in Enum.GetValues<Direction>())
+        {
+            ImGuiEx.CollectionCheckbox($"{x}##1", x, C.Bos0Disabled, true);
+        }
+        ImGui.Separator();
+        ImGuiEx.Text($"Bounds of Sin 3 (+chains): Highlighted Directions");
+        foreach(var x in Enum.GetValues<Direction>())
+        {
+            ImGuiEx.CollectionCheckbox($"{x}##2", x, C.Bos2Disabled, true);
+        }
 
         if(ImGui.CollapsingHeader("Debug"))
         {

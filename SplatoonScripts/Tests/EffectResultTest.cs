@@ -28,7 +28,7 @@ public unsafe sealed class EffectResultTest : SplatoonScript
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
     delegate void HandleEffectResultBasicPacket(uint target, nint packet, byte isReplay);
-    [EzHook("40 53 41 54 41 55 48 83 EC 40", false)]
+    [EzHook("40 53 41 54 41 55 48 83 EC 40")]
     EzHook<HandleEffectResultBasicPacket> HandleEffectResultBasicPacketHook;
 
     void HandleEffectResultBasicPacketDetour(uint target, nint packet, byte isReplay)
@@ -36,11 +36,12 @@ public unsafe sealed class EffectResultTest : SplatoonScript
         HandleEffectResultBasicPacketHook.Original(target, packet, isReplay);
         try
         {
+            PluginLog.Information("Basic");
             var num = *(byte*)packet;
             for(int i = 0; i < num; i++)
             {
                 var entry = *(EffectResultBasicEntry*)(packet + 16 * i);
-                PluginLog.Information($"EffectResultBasicEntry: tar={target} ({target.GetObject()}), obj={entry.ObjectID} ({entry.ObjectID.GetObject()}), HP={entry.CurrentHP}, seq={entry.RelatedActionSequence}, idx={entry.RelatedTargetIndex}, Action={ExcelActionHelper.GetActionName(entry.EffectEntry(target)?.ActionId ?? 0, true)} / {entry.EffectEntry(target)?.ActionType}");
+                PluginLog.Information($"EffectResultBasicEntry: tar={target} ({target.GetObject()}), obj={entry.ObjectID} ({entry.ObjectID.GetObject()}), HP={entry.CurrentHP}, seq={entry.RelatedActionSequence}, idx={entry.RelatedTargetIndex}, Action={ExcelActionHelper.GetActionName(entry.EffectEntry(entry.ObjectID)?.ActionId ?? 0, true)} / {entry.EffectEntry(entry.ObjectID)?.ActionType}");
             }
         } 
         catch(Exception ex)
@@ -69,19 +70,22 @@ public unsafe sealed class EffectResultTest : SplatoonScript
 
     public static ActionEffectHandler.EffectEntry? GetEntryForCharacter(uint targetId, uint seq, byte index)
     {
-        var target = (Character*)(targetId.GetObject()?.Address ?? 0);
-        if(target == null)
+        foreach(var result in Effects.Values)
         {
-            return null;
+            foreach(var x in result)
+            {
+                if(x.GlobalSequence == seq && x.TargetIndex == index)
+                {
+                    return x;
+                }
+            }
         }
-        var ret = (ActionEffectHandler.EffectEntry*)FindIncomingEntry(target->GetActionEffectHandler(), seq, index);
-        //PluginLog.Information($"ret: {(ret == null ? "null" : (nint)ret)}");
-        return ret == null?null:*ret;
+        return null;
     }
 
 
     delegate nint HandleEffectResultPacket(uint target, nint packet, byte isReplay);
-    [EzHook("48 8B C4 44 88 40 18 89 48 08", false)]
+    [EzHook("48 8B C4 44 88 40 18 89 48 08")]
     EzHook<HandleEffectResultPacket> HandleEffectResultPacketHook;
 
     nint HandleEffectResultPacketDetour(uint target, nint packet, byte isReplay)
@@ -107,7 +111,7 @@ public unsafe sealed class EffectResultTest : SplatoonScript
                       ShieldValue={entry.ShieldValue}
                       Unk1={entry.Unk1}
                       EffectCount={entry.EffectCount}
-                      Action={ExcelActionHelper.GetActionName(entry.EffectEntry(target)?.ActionId ?? 0, true)} / {entry.EffectEntry(target)?.ActionType}
+                      Action={ExcelActionHelper.GetActionName(entry.EffectEntry(entry.ObjectID)?.ActionId ?? 0, true)} / {entry.EffectEntry(entry.ObjectID)?.ActionType}
                       {new ReadOnlySpan<EffectResultEntry.IncomingStatus>(entry.IncomingStatusList, entry.EffectCount).ToArray().Select(x =>
                     $"""
                       Effect:
@@ -181,30 +185,61 @@ public unsafe sealed class EffectResultTest : SplatoonScript
         }
     }
 
-    public delegate nint FindIncomingEntryDelegate(ActionEffectHandler* handler, uint seq, byte index);
-    public static FindIncomingEntryDelegate FindIncomingEntry = EzDelegate.Get<FindIncomingEntryDelegate>("85 D2 74 26 45 33 D2");
+    static Dictionary<uint, ActionEffectHandler.EffectEntry[]> Effects = [];
 
-    delegate nint ActionEffectHandler_ApplySelfEffects(nint a1, nint a2, nint a3, nint a4, nint a5);
+    delegate nint ActionEffectHandler_ApplySelfEffects(GameObjectId a1, nint a2, nint a3, nint a4, nint a5);
     [EzHook("48 8B C4 55 41 54 41 56 41 57")]
     EzHook<ActionEffectHandler_ApplySelfEffects> ActionEffectHandler_ApplySelfEffectsHook;
 
-
-
-    public override void OnSetup()
+    nint ActionEffectHandler_ApplySelfEffectsDetour(GameObjectId a1, nint a2, nint a3, nint a4, nint a5)
     {
-        EzSignatureHelper.Initialize(this);
+        var ret = ActionEffectHandler_ApplySelfEffectsHook.Original(a1, a2, a3, a4, a5);
+        try
+        {
+            foreach(var obj in Svc.Objects.OfType<ICharacter>())
+            {
+                var eff = ((Character*)obj.Address)->GetActionEffectHandler();
+                if(eff != null)
+                {
+                    if(Effects.TryGetValue(obj.EntityId, out var array))
+                    {
+                        var effects = eff->IncomingEffects;
+                        for(int i = 0; i < effects.Length; i++)
+                        {
+                            if(effects[i].GlobalSequence != 0)
+                            {
+                                array[i] = eff->IncomingEffects[i];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Effects[obj.EntityId] = eff->IncomingEffects.ToArray();
+                    }
+                }
+            }
+        }
+        catch(Exception e)
+        {
+            e.Log();
+        }
+        return ret;
     }
+
 
     public override void OnEnable()
     {
-        HandleEffectResultBasicPacketHook?.Enable();
-        HandleEffectResultPacketHook?.Enable();
+        EzSignatureHelper.Initialize(this);
     }
 
     public override void OnDisable()
     {
         HandleEffectResultBasicPacketHook?.Disable();
         HandleEffectResultPacketHook?.Disable();
+        ActionEffectHandler_ApplySelfEffectsHook?.Disable();
+        HandleEffectResultBasicPacketHook = null;
+        HandleEffectResultPacketHook = null;
+        ActionEffectHandler_ApplySelfEffectsHook = null;
     }
 
     public override void OnSettingsDraw()

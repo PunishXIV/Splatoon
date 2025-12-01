@@ -15,4 +15,5 @@ public static class S
     internal static InfoBar InfoBar { get; private set; }
     //internal static StatusEffectManager StatusEffectManager { get; private set; }
     internal static DataMigrator DataMigrator { get; private set; }
+    internal static MapEffectManager MapEffectManager { get; private set; }
 }

@@ -1,4 +1,5 @@
 SplatoonScriptsOfficial.Duties.Universal@Maps_Auto_Target_Numbers,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Universal/Maps Auto Target Numbers.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers@E7S_Voidgates,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/E7S Voidgates.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Temporal_Stasis,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Temporal Stasis.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Nisi,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Nisi.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P1_Untarget_Doll,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P1 Untarget Doll.cs
@@ -168,6 +169,7 @@ SplatoonScriptsOfficial.Tests@GenericTest,1,https://github.com/PunishXIV/Splatoo
 SplatoonScriptsOfficial.Tests@StatusListMonitoring,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/StatusListMonitoring.cs
 SplatoonScriptsOfficial.Tests@DMParser,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest3.cs
+SplatoonScriptsOfficial.Tests@TestActionRequest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TestActionRequest.cs
 SplatoonScriptsOfficial.Tests@DirectorUpdateTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DirectorUpdateTest.cs
 SplatoonScriptsOfficial.Tests@ShowPID,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ShowPID.cs
 SplatoonScriptsOfficial.Tests@FaceLockTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/FaceLockTest.cs

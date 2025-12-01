@@ -1,5 +1,6 @@
 ﻿using ECommons;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
 using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
 using ECommons.MathHelpers;
@@ -13,7 +14,7 @@ namespace SplatoonScriptsOfficial.Tests;
 
 public class ArkveldMitigations : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1306];
 
     [EzIPC] public Action<ActionType, uint, int> RequestBlacklist;
@@ -35,6 +36,16 @@ public class ArkveldMitigations : SplatoonScript
         public static readonly uint[] MchBursts = [Wildfire, Robot, Stabilizer];
     }
 
+    Dictionary<Job, uint> Mitigations90s = new()
+    {
+        [Job.MCH] = Mch.Tactician
+    };
+
+    Dictionary<Job, uint> Mitigations120s = new()
+    {
+        [Job.MCH] = Mch.Dismantle
+    };
+
     public override void OnSetup()
     {
         EzIPC.Init(this, "WrathCombo.ActionRequest");
@@ -51,30 +62,36 @@ public class ArkveldMitigations : SplatoonScript
 
     public override void OnUpdate()
     {
-        if(Player.Job == ECommons.ExcelServices.Job.MCH)
         {
-            if((
-                IsTime(30)
-                || IsTime(2, 23)
-                || IsTime(3, 55)
-                || IsTime(5, 30)
-                || IsTime(7, 02)
-                || IsTime(8, 36)
-                )
-                && EzThrottler.Throttle($"UseTactician{InternalData.FullName}", 10000))
+            if(Mitigations90s.TryGetValue(Player.Job, out var acId))
             {
-                this.RequestActionUse(ActionType.Action, Mch.Tactician, 5000, false);
+                if((
+                    IsTime(30)
+                    || IsTime(2, 23)
+                    || IsTime(3, 55)
+                    || IsTime(5, 30)
+                    || IsTime(7, 02)
+                    || IsTime(8, 36)
+                    )
+                    && EzThrottler.Throttle($"UseTactician{InternalData.FullName}", 10000))
+                {
+                    this.RequestActionUse(ActionType.Action, acId, 5000, false);
+                }
             }
-
-            if((
-                IsTime(49)
-                || IsTime(3, 32)
-                || IsTime(5, 43)
-                || IsTime(8, 06)
-                )
-                && EzThrottler.Throttle($"UseDismantle{InternalData.FullName}", 10000))
+        }
+        {
+            if(Mitigations120s.TryGetValue(Player.Job, out var acId))
             {
-                this.RequestActionUse(ActionType.Action, Mch.Dismantle, 5000, false);
+                if((
+                    IsTime(49)
+                    || IsTime(3, 32)
+                    || IsTime(5, 43)
+                    || IsTime(8, 06)
+                    )
+                    && EzThrottler.Throttle($"UseDismantle{InternalData.FullName}", 10000))
+                {
+                    this.RequestActionUse(ActionType.Action, acId, 5000, false);
+                }
             }
         }
     }

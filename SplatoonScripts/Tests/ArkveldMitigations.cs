@@ -38,7 +38,8 @@ public class ArkveldMitigations : SplatoonScript
 
     Dictionary<Job, uint> Mitigations90s = new()
     {
-        [Job.MCH] = Mch.Tactician
+        [Job.MCH] = Mch.Tactician,
+        [Job.BLM] = 7560,
     };
 
     Dictionary<Job, uint> Mitigations120s = new()

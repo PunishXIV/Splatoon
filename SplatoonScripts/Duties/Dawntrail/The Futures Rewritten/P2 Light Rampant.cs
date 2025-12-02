@@ -24,7 +24,7 @@ internal class P2_Light_Rampant : SplatoonScript
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(6, "redmoon & Smoothtalk, NightmareXIV");
+    public override Metadata? Metadata => new(7, "redmoon & Smoothtalk, NightmareXIV");
     #endregion
     #region enums
     private enum State
@@ -52,6 +52,7 @@ internal class P2_Light_Rampant : SplatoonScript
         public PriorityData Priority = new();
         public Prio4 AoePriority = new();
         public bool IsDefaultNorth = false;
+        public bool GuessDefault = false;
         public bool IsPuddleCW = true;
         public bool PsychopathMode = false;
     }
@@ -191,7 +192,18 @@ internal class P2_Light_Rampant : SplatoonScript
                     {
                         if(nonTethers[0].IGameObject.AddressEquals(Player.Object))
                         {
-                            isNorthBait = C.IsDefaultNorth;
+                            if(C.GuessDefault)
+                            {
+                                var other = Controller.GetPartyMembers().FirstOrDefault(x => !x.AddressEquals(Player.Object) && !x.StatusList.Any(s => s.StatusId == 4157));
+                                if(other != null)
+                                {
+                                    isNorthBait = Player.Position.X < other.Position.X;
+                                }
+                            }
+                            else
+                            {
+                                isNorthBait = C.IsDefaultNorth;
+                            }
                         }
                     }
                 }
@@ -298,7 +310,12 @@ internal class P2_Light_Rampant : SplatoonScript
         }
         else
         {
-            ImGuiEx.RadioButtonBool("West", "East", ref C.IsDefaultNorth, true);
+            ImGui.Checkbox("Try to guess", ref C.GuessDefault);
+            if(!C.GuessDefault)
+            {
+                ImGui.SameLine();
+                ImGuiEx.RadioButtonBool("West", "East", ref C.IsDefaultNorth, true);
+            }
         }
         ImGuiEx.HelpMarker("Where will you go with puddle if no adjustment is required");
         ImGuiEx.TextV("Puddle drop direction:");

@@ -17,11 +17,35 @@ public class ArkveldMitigations : SplatoonScript
     public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1306];
 
+    /// <summary>
+    /// ActionType,<br />
+    /// action ID<br />
+    /// time in miliseconds for how long to blacklist
+    /// </summary>
     [EzIPC] public Action<ActionType, uint, int> RequestBlacklist;
+    /// <summary>
+    /// ActionType,<br />
+    /// action ID
+    /// </summary>
     [EzIPC] public Action<ActionType, uint> ResetBlacklist;
     [EzIPC] public Action ResetAllBlacklist;
+    /// <summary>
+    /// ActionType, <br />
+    /// action ID, <br />
+    /// remaining cooldown
+    /// </summary>
     [EzIPC] public Func<ActionType, uint, float> GetArtificialCooldown;
+    /// <summary>
+    /// ActionType, <br />
+    /// action ID, <br />
+    /// time in miliseconds for how long request is valid, <br />
+    /// whether to use action as gcd, where true is use only at GCD time, false use only at OGCD time (no clipping), and null - use asap (with clipping)
+    /// </summary>
     [EzIPC] public Action<ActionType, uint, int, bool?> RequestActionUse;
+    /// <summary>
+    /// ActionType,<br />
+    /// action ID
+    /// </summary>
     [EzIPC] public Action<ActionType, uint> ResetRequest;
     [EzIPC] public Action ResetAllRequests;
 

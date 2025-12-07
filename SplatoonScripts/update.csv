@@ -64,7 +64,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Apocalypse,12,
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Fall_of_Faith,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Fall of Faith.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@FRU_Tether_Visualiser,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/FRU Tether Visualiser.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P1_Turn_of_the_Heavens,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P1 Turn of the Heavens.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Light_Rampant,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Light Rampant.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P2_Light_Rampant,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P2 Light Rampant.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P5_Paradise_Regained,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P5 Paradise Regained.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P4_Darklit,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P4 Darklit.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten@P3_Ultimate_Relativity,10,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/P3 Ultimate Relativity.cs
@@ -179,6 +179,7 @@ SplatoonScriptsOfficial.Tests@RedmoonTest1,1,https://github.com/PunishXIV/Splato
 SplatoonScriptsOfficial.Tests@PriorityTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/PriorityTest.cs
 SplatoonScriptsOfficial.Tests@GenericTest5,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest5.cs
 SplatoonScriptsOfficial.Tests@ArkveldMitigations,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ArkveldMitigations.cs
+SplatoonScriptsOfficial.Tests@CustomOpenerTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/CustomOpenerTest.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest2,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest2.cs
 SplatoonScriptsOfficial.Tests@IPCExample,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/IPCExample.cs
 SplatoonScriptsOfficial.Tests@GenericTest7,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs

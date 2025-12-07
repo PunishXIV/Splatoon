@@ -13,3 +13,6 @@
 [submodule "FFXIVClientStructs"]
 	path = FFXIVClientStructs
 	url = https://github.com/Limiana/FFXIVClientStructs
+[submodule "ECommons.IPC"]
+	path = ECommons.IPC
+	url = https://github.com/NightmareXIV/ECommons.IPC

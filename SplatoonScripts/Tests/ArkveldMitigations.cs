@@ -3,6 +3,7 @@ using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
+using ECommons.IPC;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -17,37 +18,6 @@ public class ArkveldMitigations : SplatoonScript
     public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1306];
 
-    /// <summary>
-    /// ActionType,<br />
-    /// action ID<br />
-    /// time in miliseconds for how long to blacklist
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint, int> RequestBlacklist;
-    /// <summary>
-    /// ActionType,<br />
-    /// action ID
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint> ResetBlacklist;
-    [EzIPC] public Action ResetAllBlacklist;
-    /// <summary>
-    /// ActionType, <br />
-    /// action ID, <br />
-    /// remaining cooldown
-    /// </summary>
-    [EzIPC] public Func<ActionType, uint, float> GetArtificialCooldown;
-    /// <summary>
-    /// ActionType, <br />
-    /// action ID, <br />
-    /// time in miliseconds for how long request is valid, <br />
-    /// whether to use action as gcd, where true is use only at GCD time, false use only at OGCD time (no clipping), and null - use asap (with clipping)
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint, int, bool?> RequestActionUse;
-    /// <summary>
-    /// ActionType,<br />
-    /// action ID
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint> ResetRequest;
-    [EzIPC] public Action ResetAllRequests;
 
     public class Mch
     {
@@ -78,8 +48,8 @@ public class ArkveldMitigations : SplatoonScript
 
     public override void OnReset()
     {
-        this.ResetAllBlacklist();
-        this.ResetAllRequests();
+        ECommonsIPC.WrathComboIPC.ResetAllBlacklist();
+        ECommonsIPC.WrathComboIPC.ResetAllRequests();
     }
 
     bool IsTime(float sec) => Controller.CombatSeconds.InRange(sec, sec + 5);
@@ -100,7 +70,7 @@ public class ArkveldMitigations : SplatoonScript
                     )
                     && EzThrottler.Throttle($"UseTactician{InternalData.FullName}", 10000))
                 {
-                    this.RequestActionUse(ActionType.Action, acId, 5000, false);
+                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, acId, 5000, false);
                 }
             }
         }
@@ -115,7 +85,7 @@ public class ArkveldMitigations : SplatoonScript
                     )
                     && EzThrottler.Throttle($"UseDismantle{InternalData.FullName}", 10000))
                 {
-                    this.RequestActionUse(ActionType.Action, acId, 5000, false);
+                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, acId, 5000, false);
                 }
             }
         }

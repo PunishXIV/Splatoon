@@ -384,3 +384,6 @@ FodyWeavers.xsd
 /SplatoonScripts/Duties/Shadowbringers/E7S Voidgates.cs
 /SplatoonScripts/Tests/DebuffRemoveTest.cs
 /SplatoonScripts/Duties/Dawntrail/Quantum 40/Quantum Target Reminder.cs
+/SplatoonScripts/Duties/Dawntrail/Quantum 40/QuantumMitigationsV2.cs
+/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/FruMitV2.cs
+/SplatoonScripts/Duties/Dawntrail/Quantum 40/SgeMigitations.cs

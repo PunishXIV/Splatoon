@@ -1,81 +1,68 @@
-﻿using ECommons;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.Types;
+using ECommons;
 using ECommons.DalamudServices;
+using ECommons.ExcelServices;
 using ECommons.EzIpcManager;
+using ECommons.GameFunctions;
+using ECommons.GameHelpers;
+using ECommons.IPC;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace SplatoonScriptsOfficial.Tests;
 
 public class TestActionRequest : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(1, "-");
     public override HashSet<uint>? ValidTerritories { get; } = [];
 
-    [EzIPC] public Action<ActionType, uint, int> RequestBlacklist;
-    [EzIPC] public Action<ActionType, uint> ResetBlacklist;
-    [EzIPC] public Action ResetAllBlacklist;
-    [EzIPC] public Func<ActionType, uint, float> GetArtificialCooldown;
-    [EzIPC] public Action<ActionType, uint, int, bool?> RequestActionUse;
-    [EzIPC] public Action<ActionType, uint> ResetRequest;
-    [EzIPC] public Action ResetAllRequests; 
 
-    public class Mch
+    public class Sge
     {
-        public static readonly uint Tactician = 16889;
-        public static readonly uint Dismantle = 2887;
-        public static readonly uint Wildfire = 2878;
-        public static readonly uint Robot = 16501;
-        public static readonly uint Stabilizer = 7414;
-
-        public static readonly uint[] MchBursts = [Wildfire, Robot, Stabilizer];
-    }
-
-    public override void OnSetup()
-    {
-        EzIPC.Init(this, "WrathCombo.ActionRequest");
+        public const uint Surecast = 7559;
+        public const uint Eukrasia = 24290;
+        public const uint Panhaima = 24311;
     }
 
     public override void OnReset()
     {
-        this.ResetAllBlacklist();
-        this.ResetAllRequests();
+        ECommonsIPC.WrathComboIPC.ResetAllBlacklist();
+        ECommonsIPC.WrathComboIPC.ResetAllRequests();
+        EzThrottler.Reset($"UseAction1{InternalData.FullName}");
+        EzThrottler.Reset($"UseAction2{InternalData.FullName}");
+    }
+
+    bool IsTime(float sec) => Controller.CombatSeconds.InRange(sec, sec + 5);
+    bool IsTime(float min, float sec) => Controller.CombatSeconds.InRange(min * 60 + sec, min * 60 + sec + 5);
+
+    public override void OnEnable()
+    {
+        DuoLog.Warning("Disable TestActionRequest once you finish testing");
+    }
+
+    void Request(uint action)
+    {
+        if(EzThrottler.Throttle($"UseAction1{InternalData.FullName}{action}", 6000))
+        {
+            ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, action, 5000, (Action.Get(action).CooldownGroup == 58 || Action.Get(action).AdditionalCooldownGroup == 58) ? null : false);
+        }
     }
 
     public override void OnUpdate()
     {
-        //of course don't check for name in real script
-        if(Svc.Targets.Target?.Name.ToString() == "Striking Dummy")
+        if(Player.Job == Job.SGE)
         {
-            if((
-                Controller.CombatSeconds.InRange(30, 35)
-                || Controller.CombatSeconds.InRange(140, 145)
-                )
-                && EzThrottler.Throttle("UseTactician", 10000))
-            {
-                this.RequestActionUse(ActionType.Action, Mch.Tactician, 5000, false);
-            }
-
-            if((
-                Controller.CombatSeconds.InRange(10, 15)
-                || Controller.CombatSeconds.InRange(142, 147)
-                )
-                && EzThrottler.Throttle("UseDismantle", 10000))
-            {
-                this.RequestActionUse(ActionType.Action, Mch.Dismantle, 5000, false);
-            }
-
-            Mch.MchBursts.Each(x => this.ResetBlacklist(ActionType.Action, x));
-            if(
-                Controller.CombatSeconds.InRange(100, 150)
-                || Controller.CombatSeconds.InRange(170, 200)
-                )
-            {
-                Mch.MchBursts.Each(x => this.RequestBlacklist(ActionType.Action, x, 10000));
-            }
+            if(IsTime(10)) Request( Sge.Eukrasia);
+            if(IsTime(20)) Request( Sge.Surecast);
+            if(IsTime(30)) Request( Sge.Panhaima);
         }
     }
 }

@@ -9,6 +9,7 @@ using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
+using ECommons.IPC.Subscribers;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
@@ -114,6 +115,7 @@ public unsafe class Splatoon : IDalamudPlugin
             PluginLog.Fatal("Splatoon is already loaded, could not load again...");
             return;
         }
+        IPCBase.DefaultWrapper = ECommons.EzIpcManager.SafeWrapper.AnyException;
         Loaded = true;
         ECommonsMain.Init(pluginInterface, this, Module.ObjectLife, Module.ObjectFunctions, Module.DalamudReflector);
         Svc.Commands.RemoveHandler("/loadsplatoon");

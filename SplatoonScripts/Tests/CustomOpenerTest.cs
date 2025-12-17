@@ -1,6 +1,8 @@
-﻿using ECommons.EzHookManager;
+﻿using ECommons;
+using ECommons.EzHookManager;
 using ECommons.EzIpcManager;
 using ECommons.ImGuiMethods;
+using ECommons.IPC;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon.SplatoonScripting;
 using System;
@@ -16,60 +18,45 @@ public class CustomOpenerTest : SplatoonScript
     public override Metadata Metadata { get; } = new(1, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = null;
 
-    /// <summary>
-    /// ActionType,<br />
-    /// action ID<br />
-    /// time in miliseconds for how long to blacklist
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint, int> RequestBlacklist;
-    /// <summary>
-    /// ActionType,<br />
-    /// action ID
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint> ResetBlacklist;
-    [EzIPC] public Action ResetAllBlacklist;
-    /// <summary>
-    /// ActionType, <br />
-    /// action ID, <br />
-    /// remaining cooldown
-    /// </summary>
-    [EzIPC] public Func<ActionType, uint, float> GetArtificialCooldown;
-    /// <summary>
-    /// ActionType, <br />
-    /// action ID, <br />
-    /// time in miliseconds for how long request is valid, <br />
-    /// whether to use action as gcd, where true is use only at GCD time, false use only at OGCD time (no clipping), and null - use asap (with clipping)
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint, int, bool?> RequestActionUse;
-    /// <summary>
-    /// ActionType,<br />
-    /// action ID
-    /// </summary>
-    [EzIPC] public Action<ActionType, uint> ResetRequest;
-    [EzIPC] public Action ResetAllRequests;
-
-    List<uint> CurrentGcdSequence = [];
-    List<uint> CurrentOgcdSequence = [];
 
     private delegate void SendActionDelegate(ulong targetObjectId, ActionType actionType, uint actionId, ushort sequence, long a5, long a6, long a7, long a8, long a9);
     [EzHook("48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 48 8B E9 41 0F B7 D9", false)]
     private EzHook<SendActionDelegate> SendActionHook;
+
+    List<OpenerAction> OpenerActions = [];
+
     private unsafe void SendActionDetour(ulong targetObjectId, ActionType actionType, uint actionId, ushort sequence, long a5, long a6, long a7, long a8, long a9)
     {
-        if(CurrentGcdSequence.Count > 0 && actionType == ActionType.Action && actionId == CurrentGcdSequence[0])
+        try
         {
-            CurrentGcdSequence.RemoveAt(0);
+            if(OpenerActions.Count > 0 && actionType == ActionType.Action)
+            {
+                var a = OpenerActions[0];
+                if(a.Gcd == actionId)
+                {
+                    a.Sequence++;
+                    if(a.Ogcd1 == 0) OpenerActions.RemoveAt(0);
+                }
+                else if(a.Ogcd1 == actionId)
+                {
+                    a.Sequence++;
+                    if(a.Ogcd2 == 0) OpenerActions.RemoveAt(0);
+                }
+                else if(a.Ogcd2 == actionId)
+                {
+                    OpenerActions.RemoveAt(0);
+                }
+            }
         }
-
-        if(CurrentOgcdSequence.Count > 0 && actionType == ActionType.Action && actionId == CurrentOgcdSequence[0])
+        catch(Exception e)
         {
-            CurrentOgcdSequence.RemoveAt(0);
+            e.Log();
         }
+        SendActionHook.Original(targetObjectId, actionType, actionId, sequence, a5, a6, a7, a8, a9);
     }
 
     public override void OnSetup()
     {
-        EzIPC.Init(this, "WrathCombo.ActionRequest");
         EzSignatureHelper.Initialize(this);
     }
 
@@ -84,33 +71,26 @@ public class CustomOpenerTest : SplatoonScript
 
     public override void OnUpdate()
     {
-        if(this.CurrentGcdSequence.Count > 0 || this.CurrentOgcdSequence.Count > 0)
+        if(OpenerActions.Count > 0)
         {
-            this.ResetAllRequests(); //first reset all requests so we have clean environment to work with
-            if(this.CurrentGcdSequence.Count > 0)
+            var o = OpenerActions[0];
+            if(o.Sequence == 0)
             {
-                this.RequestActionUse(ActionType.Action, this.CurrentGcdSequence[0], 100, true);
-            }
-            if(this.CurrentOgcdSequence.Count > 0)
-            {
-                this.RequestActionUse(ActionType.Action, this.CurrentOgcdSequence[0], 100, true);
-            }
-        }
-    }
-
-    void RequestSequence(params int[] actionId)
-    {
-        this.CurrentGcdSequence.Clear();
-        this.CurrentOgcdSequence.Clear();
-        foreach(var x in actionId)
-        {
-            if(x > 0)
-            {
-                this.CurrentGcdSequence.Add((uint)x);
+                ECommonsIPC.WrathComboIPC.ResetAllRequests();
+                ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, o.Gcd, 100, true);
             }
             else
             {
-                this.CurrentOgcdSequence.Add((uint)-x);
+                if(o.Sequence == 1 && o.Ogcd1 != 0)
+                {
+                    ECommonsIPC.WrathComboIPC.ResetAllRequests();
+                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, o.Ogcd1, 100, false);
+                }
+                else if(o.Sequence == 2 && o.Ogcd2 != 0)
+                {
+                    ECommonsIPC.WrathComboIPC.ResetAllRequests();
+                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, o.Ogcd2, 100, false);
+                }
             }
         }
     }
@@ -119,7 +99,28 @@ public class CustomOpenerTest : SplatoonScript
     {
         if(ImGuiEx.Button("Try mch opener via sequence request"))
         {
+            this.OpenerActions = [
+                new(7411, 36979, 36980),
+                new(7412, 36979, 36980),
+                new(7413, 36979, 36980),
+                new(16498, 2876, 7414),
+                new(25788, 0, 0),
+                ];
+        }
+    }
 
+    public class OpenerAction
+    {
+        public int Sequence = 0;
+        public uint Gcd;
+        public uint Ogcd1;
+        public uint Ogcd2;
+
+        public OpenerAction(uint gcd, uint ogcd1, uint ogcd2)
+        {
+            Gcd = gcd;
+            Ogcd1 = ogcd1;
+            Ogcd2 = ogcd2;
         }
     }
 }

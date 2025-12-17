@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ECommons.Reflection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Splatoon.Utility

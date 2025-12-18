@@ -14,6 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
 internal class P1_Fall_of_Faith_Full_Tooler_Party : SplatoonScript
@@ -71,7 +73,7 @@ internal class P1_Fall_of_Faith_Full_Tooler_Party : SplatoonScript
 
     #region public Fields
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(8, "Redmoon");
+    public override Metadata? Metadata => new(9, "Redmoon");
     #endregion
 
     #region private Fields

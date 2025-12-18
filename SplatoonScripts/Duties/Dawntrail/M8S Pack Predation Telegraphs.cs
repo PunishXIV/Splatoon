@@ -15,13 +15,15 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe sealed class M8S_Pack_Predation_Telegraphs : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1263];
 
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     public override void OnSetup()
     {

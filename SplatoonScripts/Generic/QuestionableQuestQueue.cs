@@ -6,6 +6,8 @@ using ECommons.DalamudServices;
 using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;

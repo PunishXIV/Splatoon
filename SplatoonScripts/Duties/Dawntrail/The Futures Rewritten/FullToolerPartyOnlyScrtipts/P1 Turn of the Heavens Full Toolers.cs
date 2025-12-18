@@ -15,6 +15,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
 internal class P1_Turn_of_the_Heavens_Full_Toolers : SplatoonScript
@@ -44,7 +46,7 @@ internal class P1_Turn_of_the_Heavens_Full_Toolers : SplatoonScript
     }
 
     public override HashSet<uint>? ValidTerritories { get; } = [1238];
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
 
     private List<PartyData> _partyDataList = [];
     private bool _mechanicActive = false;

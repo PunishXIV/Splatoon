@@ -76,20 +76,20 @@ public class CustomOpenerTest : SplatoonScript
             var o = OpenerActions[0];
             if(o.Sequence == 0)
             {
-                ECommonsIPC.WrathComboIPC.ResetAllRequests();
-                ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, o.Gcd, 100, true);
+                ECommonsIPC.WrathCombo.ResetAllRequests();
+                ECommonsIPC.WrathCombo.RequestActionUse(ActionType.Action, o.Gcd, 100, true);
             }
             else
             {
                 if(o.Sequence == 1 && o.Ogcd1 != 0)
                 {
-                    ECommonsIPC.WrathComboIPC.ResetAllRequests();
-                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, o.Ogcd1, 100, false);
+                    ECommonsIPC.WrathCombo.ResetAllRequests();
+                    ECommonsIPC.WrathCombo.RequestActionUse(ActionType.Action, o.Ogcd1, 100, false);
                 }
                 else if(o.Sequence == 2 && o.Ogcd2 != 0)
                 {
-                    ECommonsIPC.WrathComboIPC.ResetAllRequests();
-                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, o.Ogcd2, 100, false);
+                    ECommonsIPC.WrathCombo.ResetAllRequests();
+                    ECommonsIPC.WrathCombo.RequestActionUse(ActionType.Action, o.Ogcd2, 100, false);
                 }
             }
         }

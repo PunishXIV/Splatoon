@@ -34,8 +34,8 @@ public class TestActionRequest : SplatoonScript
 
     public override void OnReset()
     {
-        ECommonsIPC.WrathComboIPC.ResetAllBlacklist();
-        ECommonsIPC.WrathComboIPC.ResetAllRequests();
+        ECommonsIPC.WrathCombo.ResetAllBlacklist();
+        ECommonsIPC.WrathCombo.ResetAllRequests();
         EzThrottler.Reset($"UseAction1{InternalData.FullName}");
         EzThrottler.Reset($"UseAction2{InternalData.FullName}");
     }
@@ -52,7 +52,7 @@ public class TestActionRequest : SplatoonScript
     {
         if(EzThrottler.Throttle($"UseAction1{InternalData.FullName}{action}", 6000))
         {
-            ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, action, 5000, (Action.Get(action).CooldownGroup == 58 || Action.Get(action).AdditionalCooldownGroup == 58) ? null : false);
+            ECommonsIPC.WrathCombo.RequestActionUse(ActionType.Action, action, 5000, (Action.Get(action).CooldownGroup == 58 || Action.Get(action).AdditionalCooldownGroup == 58) ? null : false);
         }
     }
 

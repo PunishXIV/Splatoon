@@ -40,7 +40,7 @@ public unsafe sealed class UWU_Feather_Rain : SplatoonScript
     //07:45:27.583 | INF | [Splatoon] 400114D0(Garuda - BattleNpc) at 243BE92A350, 54, 0, 0, 0, 0, 0, 0, 3758096384
     //07:45:28.020 | INF | [Splatoon] 400114D0(Garuda - BattleNpc) at 243BE92A350, 407, 7738, 0, 0, 0, 0, 0, 3758096384
 
-    public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
+    public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
     {
         if(sourceId.GetObject() is IBattleNpc n && n.DataId.EqualsAny(8722u, 8723u))
         {

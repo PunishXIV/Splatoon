@@ -49,7 +49,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
     public Config C => Controller.GetConfig<Config>();
 
     public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5,
-        uint p6, ulong targetId,
+        uint p6, uint p7, uint p8, ulong targetId,
         byte replaying)
     {
         if(_state == State.Start)

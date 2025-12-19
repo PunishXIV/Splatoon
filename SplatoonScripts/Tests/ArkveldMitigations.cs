@@ -48,8 +48,8 @@ public class ArkveldMitigations : SplatoonScript
 
     public override void OnReset()
     {
-        ECommonsIPC.WrathComboIPC.ResetAllBlacklist();
-        ECommonsIPC.WrathComboIPC.ResetAllRequests();
+        ECommonsIPC.WrathCombo.ResetAllBlacklist();
+        ECommonsIPC.WrathCombo.ResetAllRequests();
     }
 
     bool IsTime(float sec) => Controller.CombatSeconds.InRange(sec, sec + 5);
@@ -70,7 +70,7 @@ public class ArkveldMitigations : SplatoonScript
                     )
                     && EzThrottler.Throttle($"UseTactician{InternalData.FullName}", 10000))
                 {
-                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, acId, 5000, false);
+                    ECommonsIPC.WrathCombo.RequestActionUse(ActionType.Action, acId, 5000, false);
                 }
             }
         }
@@ -85,7 +85,7 @@ public class ArkveldMitigations : SplatoonScript
                     )
                     && EzThrottler.Throttle($"UseDismantle{InternalData.FullName}", 10000))
                 {
-                    ECommonsIPC.WrathComboIPC.RequestActionUse(ActionType.Action, acId, 5000, false);
+                    ECommonsIPC.WrathCombo.RequestActionUse(ActionType.Action, acId, 5000, false);
                 }
             }
         }

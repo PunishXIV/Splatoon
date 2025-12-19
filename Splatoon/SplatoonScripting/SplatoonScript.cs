@@ -168,9 +168,11 @@ public abstract class SplatoonScript
     /// <param name="p4"></param>
     /// <param name="p5"></param>
     /// <param name="p6"></param>
+    /// <param name="p7"></param>
+    /// <param name="p8"></param>
     /// <param name="targetId"></param>
     /// <param name="replaying"></param>
-    public virtual void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying) { }
+    public virtual void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying) { }
 
     [Obsolete($"Please use {nameof(OnActionEffectEvent)}")]
     public virtual void OnActionEffect(uint ActionID, ushort animationID, ActionEffectType type, uint sourceID, ulong targetOID, uint damage) { }

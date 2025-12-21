@@ -17,7 +17,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class EX6_Arcane_Revelation : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1308];
 
     public override void OnSetup()
@@ -51,6 +51,7 @@ public class EX6_Arcane_Revelation : SplatoonScript
 
     public uint DataId = 18998;
 
+    public uint Move4 = 45658;
     public uint Move3 = 45657;
     public uint Move2 = 45656;
 
@@ -69,7 +70,7 @@ public class EX6_Arcane_Revelation : SplatoonScript
     {
         if(set.Action != null && set.Source is IBattleNpc bnpc && bnpc.Name.ToString() != "Automaton Queen")
         {
-            PluginLog.Information($"Cast from: {bnpc}, {ExcelActionHelper.GetActionName(set.Action?.RowId ?? 0, true)}");
+            //PluginLog.Information($"Cast from: {bnpc}, {ExcelActionHelper.GetActionName(set.Action?.RowId ?? 0, true)}");
             if(set.Action?.RowId.EqualsAny(47527u, 45713u, 45714u) == true)
             {
                 DirectionDetermined = false;
@@ -86,6 +87,11 @@ public class EX6_Arcane_Revelation : SplatoonScript
             {
                 NumMoves = 3;
                 PluginLog.Information($"3 moves");
+            }
+            if(set.Action?.RowId == Move4)
+            {
+                NumMoves = 4;
+                PluginLog.Information($"4 moves");
             }
         }
     }

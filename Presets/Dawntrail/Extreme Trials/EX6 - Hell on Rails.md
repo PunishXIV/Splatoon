@@ -1,3 +1,8 @@
+[Beta] [Script] Arcane Revelation
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/EX6_Arcane_Revelation.cs
+```
+
 > [!IMPORTANT]
 > These presets were made by [ToolerOfLight](https://github.com/ToolerofLight/myfiles/blob/main/Splatoon/%5B7.x%5D%E9%BB%84%E9%87%91%E3%81%AE%E3%83%AC%E3%82%AC%E3%82%B7%E3%83%BC/%E6%A5%B5/%5B7.4%5D%E6%A5%B5%E3%82%B0%E3%83%A9%E3%82%B7%E3%83%A3%E3%83%A9%E3%83%9C%E3%83%A9%E3%82%B9.md) and translated. 
 

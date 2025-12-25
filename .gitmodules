@@ -16,3 +16,6 @@
 [submodule "ECommons.IPC"]
 	path = ECommons.IPC
 	url = https://github.com/NightmareXIV/ECommons.IPC
+[submodule "WrathCombo.API"]
+	path = WrathCombo.API
+	url = https://github.com/PunishXIV/WrathCombo.API

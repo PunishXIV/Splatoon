@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.8.5.2</Version>
+		<Version>3.8.5.3</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -67,6 +67,7 @@
 	  <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
 	  <ProjectReference Include="..\NightmareUI\NightmareUI\NightmareUI.csproj" />
     <ProjectReference Include="..\ffxiv_pictomancy\Pictomancy\Pictomancy.csproj" />
+    <ProjectReference Include="..\WrathCombo.API\WrathCombo.API.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

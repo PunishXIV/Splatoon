@@ -387,3 +387,5 @@ FodyWeavers.xsd
 /SplatoonScripts/Duties/Dawntrail/Quantum 40/QuantumMitigationsV2.cs
 /SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/FruMitV2.cs
 /SplatoonScripts/Duties/Dawntrail/Quantum 40/SgeMigitations.cs
+/SplatoonScripts/Generic/LockFaceEx.cs
+/SplatoonScripts/Generic/BypassRotationCheck.cs

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11222.15 d18.0
+VisualStudioVersion = 18.0.11222.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Splatoon", "Splatoon\Splatoon.csproj", "{B9543CE3-CB0D-41D2-9CEC-17941BBB968E}"
 EndProject
@@ -31,6 +31,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FFXIVClientStructs.Generators", "FFXIVClientStructs\FFXIVClientStructs.Generators\FFXIVClientStructs.Generators.csproj", "{A0FC5391-610E-402B-8598-0CB276E3E39A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ECommons.IPC", "ECommons.IPC\ECommons.IPC\ECommons.IPC.csproj", "{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WrathCombo.API", "WrathCombo.API\WrathCombo.API.csproj", "{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,6 +128,14 @@ Global
 		{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}.Release|Any CPU.Build.0 = Release|x64
 		{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}.Release|x64.ActiveCfg = Release|x64
 		{46BCE827-5FEF-F90B-9FDE-C93AC92B91CB}.Release|x64.Build.0 = Release|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Debug|Any CPU.Build.0 = Debug|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Debug|x64.ActiveCfg = Debug|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Debug|x64.Build.0 = Debug|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Release|Any CPU.ActiveCfg = Release|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Release|Any CPU.Build.0 = Release|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Release|x64.ActiveCfg = Release|x64
+		{5E6A4721-DCDB-B9C8-2C90-09B1028EACCD}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

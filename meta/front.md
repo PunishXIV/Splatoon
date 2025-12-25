@@ -20,6 +20,6 @@
 - [Web API guide](https://github.com/PunishXIV/Splatoon/blob/main/docs/help/WebAPI.md)
 
 ## Information for Chinese players
-Chinese fork of Dalamud currently intentionally prevents usage of Splatoon by adding it into banned plugins list. Banned plugin list was originally created to prevent unstable plugins from loading on updates. However, Chinese forkers of Dalamud decided to abuse it to attempt to prevent you from using the plugin for their personal reasons. 
-### Easy way to unblock Splatoon and all other plugins:
-Simply download this program https://github.com/NightmareXIV/UnbanPluginsCN/releases/latest and run it before you run the game/inject Dalamud. Just keep this program running and you should be good.
+Ottercorp's version currently blocks Splatoon and many other plugins from being loaded.
+Just use Atmo's version of Xivlauncher instead: https://github.com/AtmoOmen/FFXIVQuickLauncher
+Note: ONLY for CN players! Do not use it if you are playing on Japanese, North American, European or Oceanian data centers. 

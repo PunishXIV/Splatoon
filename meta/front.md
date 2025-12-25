@@ -21,5 +21,5 @@
 
 ## Information for Chinese players
 Ottercorp's version currently blocks Splatoon and many other plugins from being loaded.
+
 Just use Atmo's version of Xivlauncher instead: https://github.com/AtmoOmen/FFXIVQuickLauncher
-Note: ONLY for CN players! Do not use it if you are playing on Japanese, North American, European or Oceanian data centers. 

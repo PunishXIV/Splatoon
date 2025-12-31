@@ -1,5 +1,5 @@
 ﻿# Splatoon
-An accessibility tool to assist in gameplay and compensate for human imperfections.
+Redefining FFXIV navigation with unlimited, precise waymarks.
 ## Become a Supporter!
 If you like Splatoon or any of the other plugins I maintain, please consider becoming a supporter on Patreon or via other means! This will help me to continue updating Splatoon and work on new plugins and features.
 - [Subscribe on Patreon (Starts from $1)](https://subscribe.nightmarexiv.com/)

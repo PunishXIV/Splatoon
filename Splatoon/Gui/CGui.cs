@@ -131,6 +131,7 @@ internal unsafe partial class CGui : IDisposable
                             ("Translator".Loc(), TabTranslator.Draw, null, true),
                             ("Logger".Loc(), DisplayLogger, null, true),
                             ("Explorer".Loc(), Explorer.Draw, null, true),
+                            ("Map Effect".Loc(), TabMapEffect.Draw, null, true),
                             ("Archive".Loc(), DrawArchive, null, true),
                             ("Find".Loc(), TabFind.Draw, null, true),
                             ("Debug".Loc(), DisplayDebug, null, true),

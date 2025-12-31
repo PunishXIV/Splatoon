@@ -10,6 +10,8 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.PartyFunctions;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;

@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Action = System.Action;
 
 namespace SplatoonScriptsOfficial.Generic;
 public sealed class SimpleMitigations : SplatoonScript
@@ -32,6 +33,8 @@ public sealed class SimpleMitigations : SplatoonScript
     Dictionary<string, long> TrackedTimes = [];
 
     [EzIPC("WrathCombo.ActionRequest.RequestBlacklist", false)] public Action<ActionType, uint, int> RequestBlacklist;
+    [EzIPC("WrathCombo.ActionRequest.ResetBlacklist", false)] public Action<ActionType, uint> ResetBlacklist;
+    [EzIPC("WrathCombo.ActionRequest.ResetAllBlacklist", false)] public Action ResetAllBlacklist;
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
@@ -154,10 +157,10 @@ public sealed class SimpleMitigations : SplatoonScript
     void ProcessActionBlock()
     {
         {
-            if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsTargetable && x.Name.ToString() == "Fatebreaker", out var data))
+            if(Svc.Objects.OfType<IBattleNpc>().TryGetFirst(x => x.IsTargetable && x.Name.ToString().EqualsAny("Fatebreaker", "Striking Dummy"), out var data))
             {
                 var hp = (float)data.CurrentHp / (float)data.MaxHp;
-                if(hp < 0.15f)
+                /*if(hp < 0.05f)
                 {
                     if(EzThrottler.Throttle("BlockFatebreaker"))
                     {
@@ -167,6 +170,14 @@ public sealed class SimpleMitigations : SplatoonScript
                         this.RequestBlacklist(ActionType.Action, 16501, 1000); //robot
                         if(hp < 0.1f) this.RequestBlacklist(ActionType.Action, 17209, 1000); //hyper
                     }
+                }*/
+                if(Controller.CombatSeconds.InRange(120-20, 120+20) && ExcelActionHelper.GetActionCooldown(25788) > 0)
+                {
+                    this.RequestBlacklist(ActionType.Action, 25788, 20000); //robot
+                }
+                else
+                {
+                    this.ResetBlacklist(ActionType.Action, 25788);
                 }
             }
         }
@@ -196,6 +207,11 @@ public sealed class SimpleMitigations : SplatoonScript
             return (Environment.TickCount64 - ret) / 1000f;
         }
         return -999;
+    }
+
+    public override void OnReset()
+    {
+        this.ResetAllBlacklist();
     }
 
     Config C => Controller.GetConfig<Config>();

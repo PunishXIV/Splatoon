@@ -10,6 +10,8 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 using System.Collections.Generic;
 
 namespace SplatoonScriptsOfficial.Generic;

@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 
 namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class ActionTest : SplatoonScript

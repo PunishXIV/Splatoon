@@ -1,4 +1,5 @@
 ﻿using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -207,6 +208,7 @@ internal unsafe class BuffEffectProcessor : IDisposable
 
         if(gameObjectCharactor->EntityId == Svc.ClientState.LocalPlayer?.EntityId)
         {
+            
             text = $"You gains the effect of {data->StatusId} Param: {data->Param} ([{prefix}]You:{data->StatusId}:{Svc.ClientState.LocalPlayer.GetJob().ToString()})";
             P.ChatMessageQueue.Enqueue(text);
         }

@@ -12,13 +12,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ECommons.Interop;
 
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class InventoryLowNotifier : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
 
-    public override Metadata? Metadata => new(1, "NightmareXIV");
+    public override Metadata? Metadata => new(2, "NightmareXIV");
 
     bool IsNotified = false;
     int GetInventoryFreeSlots()
@@ -52,7 +53,10 @@ public unsafe class InventoryLowNotifier : SplatoonScript
                 IsNotified = true;
                 Splatoon.Splatoon.P.NotificationMasterApi.DisplayTrayNotification("Final Fantasy XIV", "Inventory is almost full!");
                 Splatoon.Splatoon.P.NotificationMasterApi.FlashTaskbarIcon();
-                Splatoon.Splatoon.P.NotificationMasterApi.PlaySound(@"c:\path_to_sound.mp3");
+                if(C.PathToSound != "")
+                {
+                    Splatoon.Splatoon.P.NotificationMasterApi.PlaySound(C.PathToSound);
+                }
             }
         }
         else
@@ -72,10 +76,21 @@ public unsafe class InventoryLowNotifier : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGui.InputInt("Notify when inventory has reached this amount of slots or less", ref C.NumSlots);
         ImGuiEx.Text($"Current: {GetInventoryFreeSlots()}");
+        ImGuiEx.InputWithRightButtonsArea(() =>
+        {
+            if(ImGui.InputTextWithHint("##path", "Path to sound", ref C.PathToSound)) C.PathToSound = C.PathToSound.Replace("\"", "");
+        }, () =>
+        {
+            if(ImGuiEx.Button("Select"))
+            {
+                OpenFileDialog.SelectFile(x => C.PathToSound = x.file);
+            }
+        });
     }
 
     public class Config : IEzConfig
     {
         public int NumSlots = 10;
+        public string PathToSound = "";
     }
 }

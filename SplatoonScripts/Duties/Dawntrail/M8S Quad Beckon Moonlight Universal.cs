@@ -19,12 +19,14 @@ using System.Numerics;
 using System.Text;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class M8S_Quad_Beckon_Moonlight_Universal : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1263];
-    public override Metadata? Metadata => new(2, "NightmareXIV,Alex");
+    public override Metadata? Metadata => new(3, "NightmareXIV,Alex");
 
     public override void OnSetup()
     {

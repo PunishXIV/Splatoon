@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Tests
         public override HashSet<uint>? ValidTerritories => null;
         public override Metadata Metadata => new(1, "NightmareXIV");
 
-        public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
+        public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
         {
             PluginLog.Information($"Source: {sourceId.GetObject()}\ncmd: {command}\n{p1},{p2},{p3},{p4},{p5},{p6},{((uint)targetId).GetObject()},{replaying}");
         }

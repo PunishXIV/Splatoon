@@ -4,6 +4,7 @@ using Dalamud.Utility.Signatures;
 using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Splatoon.Modules;

@@ -226,7 +226,11 @@ public class Element
     [DefaultValue(false)] public bool UseHitboxRadius = false;
     [DefaultValue(0f)] public float HitboxRadiusMin = 0f;
     [DefaultValue(0f)] public float HitboxRadiusMax = 0f;
+    public List<MapEffectData> MapEffects = [];
+    [DefaultValue(false)] public bool MapEffectInvert = false;
+    [DefaultValue(false)] public bool MapEffectAnd = false;
 
+    public bool ShouldSerializeMapEffects() => MapEffects.Count > 0;
     public bool ShouldSerializeHitboxRadiusMin() => HitboxRadiusMin != 0f && UseHitboxRadius;
     public bool ShouldSerializeHitboxRadiusMax() => HitboxRadiusMax != 0f && UseHitboxRadius;
     public bool ShouldSerializeDistanceSourcePlaceholder() => this.LimitDistance && UseDistanceSourcePlaceholder;

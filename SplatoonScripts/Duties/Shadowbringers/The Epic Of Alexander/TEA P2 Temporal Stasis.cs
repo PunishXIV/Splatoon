@@ -38,7 +38,7 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
     private bool _isStartTemporalStasis;
     private bool _shouldDisplayElement;
     public override HashSet<uint>? ValidTerritories => [887];
-    public override Metadata? Metadata => new(2, "Garume");
+    public override Metadata? Metadata => new(3, "Garume");
     private IBattleNpc? CruiseChaser => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.DataId == 0x2C4E);
 
     private Config C => Controller.GetConfig<Config>();
@@ -98,7 +98,7 @@ public class TEA_P2_Temporal_Stasis : SplatoonScript
         _shouldDisplayElement = false;
     }
 
-    private BaitType GetBaitType(IEnumerable<Status> statuses)
+    private BaitType GetBaitType(IEnumerable<IStatus> statuses)
     {
         foreach(var status in statuses)
             switch(status.StatusId)

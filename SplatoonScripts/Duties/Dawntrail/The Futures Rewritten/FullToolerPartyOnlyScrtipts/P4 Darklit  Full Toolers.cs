@@ -3,6 +3,8 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.ExcelServices;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;

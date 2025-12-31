@@ -17,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
 internal class P2_Light_Rampant_Full_Toolers : SplatoonScript
@@ -116,7 +118,7 @@ internal class P2_Light_Rampant_Full_Toolers : SplatoonScript
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(10, "redmoon");
+    public override Metadata? Metadata => new(11, "redmoon");
     #endregion
 
     #region private properties

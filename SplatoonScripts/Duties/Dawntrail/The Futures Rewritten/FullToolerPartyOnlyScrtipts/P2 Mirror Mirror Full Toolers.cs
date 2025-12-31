@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+using ECommons.GameHelpers.LegacyPlayer;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
 internal class P2_Mirror_Mirror_Full_Toolers : SplatoonScript
@@ -64,7 +66,7 @@ internal class P2_Mirror_Mirror_Full_Toolers : SplatoonScript
 
     #region public properties
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(3, "redmoon");
+    public override Metadata? Metadata => new(4, "redmoon");
     #endregion
 
     #region private properties
@@ -169,7 +171,7 @@ internal class P2_Mirror_Mirror_Full_Toolers : SplatoonScript
         if(Controller.GetElementByName($"BaitTether").Enabled) Controller.GetElementByName("BaitTether").color = GradientColor.Get(0xFF00FF00.ToVector4(), 0xFF0000FF.ToVector4()).ToUint();
     }
 
-    public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
+    public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
     {
         if(_state == State.None) return;
         if(_state == State.SpawnMirror)

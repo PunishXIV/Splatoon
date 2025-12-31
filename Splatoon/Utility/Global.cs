@@ -24,3 +24,4 @@ global using static ECommons.GenericHelpers;
 global using static ECommons.LanguageHelpers.Localization;
 global using static Splatoon.Splatoon;
 global using static Splatoon.Utility.Shortcuts;
+global using Player = ECommons.GameHelpers.LegacyPlayer.Player;

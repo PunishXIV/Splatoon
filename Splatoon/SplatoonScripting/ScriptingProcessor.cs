@@ -729,7 +729,7 @@ internal static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, ulong targetId, byte replaying)
+    internal static void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
     {
         for(var i = 0; i < Scripts.Count; i++)
         {
@@ -737,7 +737,7 @@ internal static partial class ScriptingProcessor
             {
                 try
                 {
-                    Scripts[i].OnActorControl(sourceId, command, p1, p2, p3, p4, p5, p6, targetId, replaying);
+                    Scripts[i].OnActorControl(sourceId, command, p1, p2, p3, p4, p5, p6, p7, p8, targetId, replaying);
                 }
                 catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActorControl)); }
             }

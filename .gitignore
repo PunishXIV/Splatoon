@@ -374,3 +374,18 @@ FodyWeavers.xsd
 /SplatoonScripts/Generic/MitigationFRU.cs
 /SplatoonScripts/Generic/SimpleMitigations.cs
 /SplatoonScripts/Generic/M8S_Mch_Mitigations.cs
+/SplatoonScripts/Generic/ExportUngatheredItems.cs
+/SplatoonScripts/Generic/RenameWindow.cs
+/SplatoonScripts/Generic/FarmStones.cs
+/SplatoonScripts/Generic/SimpleMitigations.cs
+/SplatoonScripts/Duties/Dawntrail/M8S P2 Guide.cs
+/SplatoonScripts/Generic/MitigationQ40.cs
+/SplatoonScripts/Duties/Shadowbringers/E7S Voidgates.cs
+/SplatoonScripts/Duties/Shadowbringers/E7S Voidgates.cs
+/SplatoonScripts/Tests/DebuffRemoveTest.cs
+/SplatoonScripts/Duties/Dawntrail/Quantum 40/Quantum Target Reminder.cs
+/SplatoonScripts/Duties/Dawntrail/Quantum 40/QuantumMitigationsV2.cs
+/SplatoonScripts/Duties/Dawntrail/The Futures Rewritten/FruMitV2.cs
+/SplatoonScripts/Duties/Dawntrail/Quantum 40/SgeMigitations.cs
+/SplatoonScripts/Generic/LockFaceEx.cs
+/SplatoonScripts/Generic/BypassRotationCheck.cs

@@ -109,15 +109,22 @@ internal unsafe static class TabMapEffect
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.FileExport, "Generate enum"))
             {
                 StringBuilder sb = new();
-                sb.AppendLine($"""[MapEffectNames("{tt}")]""");
-                sb.AppendLine($"""public enum MapEffect_??? : uint""");
-                sb.AppendLine("""{""");
+                sb.AppendLine($$"""
+                    public static partial class MapEffects
+                    {
+                        [MapEffectNames("{{tt}}")]
+                        public enum ??? : uint
+                        {
+                    """);
                 foreach(var x in P.Config.MapEffectNames.GetOrCreate(tt).OrderBy(x => x.Key))
                 {
                     if(x.Value == "") continue;
-                    sb.AppendLine($"""    {x.Value} = {x.Key},""");
+                    sb.AppendLine($"""        {x.Value} = {x.Key},""");
                 }
-                sb.AppendLine("""}""");
+                sb.AppendLine($$"""
+                        }
+                    }
+                    """);
                 Copy(sb.ToString());
             }
         }

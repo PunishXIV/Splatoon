@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
+using System.DirectoryServices.ActiveDirectory;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 #nullable enable
@@ -368,5 +369,28 @@ public unsafe class Controller
             return cd->MapEffects->Items[(int)mapEffectIndex].State;
         }
         return 0;
+    }
+
+    /// <summary>
+    /// Disables all layouts and elements
+    /// </summary>
+    /// <param name="elements"></param>
+    /// <param name="layouts"></param>
+    public void Hide(bool elements = true, bool layouts = true)
+    {
+        if(elements)
+        {
+            foreach(var x in GetRegisteredElements())
+            {
+                x.Value.Enabled = false;
+            }
+        }
+        if(layouts)
+        {
+            foreach(var x in GetRegisteredLayouts())
+            {
+                x.Value.Enabled = false;
+            }
+        }
     }
 }

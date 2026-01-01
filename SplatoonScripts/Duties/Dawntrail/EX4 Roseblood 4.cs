@@ -96,7 +96,7 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
             else
             {
                 var prefix = IsDropNorthPatternActive() ? "North" : "South";
-                if(AttachedInfo.VFXInfos.TryGetValue(Player.Object.Address, out var vfx) && vfx.TryGetValue("vfx/lockon/eff/x6fd_monyou_lock1v.avfx", out var eff) && eff.AgeF < 6f)
+                if(AttachedInfo.VFXInfos.TryGetValue(Player.Object.Address, out var vfx) && vfx.TryGetValue("vfx/lockon/eff/x6fd_monyou_lock1v.avfx", out var eff) && eff.AgeF < 9f)
                 {
                     //player has rose marker
                     if(Controller.TryGetElementByName($"{prefix}_{C.DropPosition}", out var e))

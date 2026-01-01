@@ -101,6 +101,7 @@ internal class Configuration : IEzConfig
     public List<string> DisabledGroups = [];
     public List<Page> TranslatorPages = [];
     public NightmareUIState NightmareUIState = new();
+    public Dictionary<string, Dictionary<uint, string>> MapEffectNames = [];
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

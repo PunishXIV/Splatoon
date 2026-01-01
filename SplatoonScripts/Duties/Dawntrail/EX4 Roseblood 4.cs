@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Interface.Utility;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -24,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class EX4_Roseblood_4 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1271];
 
     public override void OnSetup()
@@ -46,15 +47,13 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
         Controller.RegisterElementFromCode("ChainWait_South", """{"Name":"","refX":100.0,"refY":105.5,"radius":1.0,"color":3355508731,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("ChainWait_North", """{"Name":"","refX":100.0,"refY":95.0,"radius":1.0,"color":3355508731,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
 
-        Controller.RegisterElementFromCode("SafeNorth_RangedRight", """{"Name":"","refX":111.0,"refY":108.0,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
-        Controller.RegisterElementFromCode("SafeNorth_RangedLeft", """{"Name":"","refX":88.5,"refY":108.5,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
-        Controller.RegisterElementFromCode("SafeNorth_MeleeRight", """{"Name":"","refX":101.0,"refY":107.0,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
-        Controller.RegisterElementFromCode("SafeNorth_MeleeLeft", """{"Name":"","refX":95.5,"refY":108.5,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("SafeNorth_RangedRight", """{"Name":"","refX":87.5,"refY":94.0,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("SafeNorth_RangedLeft", """{"Name":"","refX":112.0,"refY":93.5,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("SafeNorth_Melee", """{"Name":"","refX":99.5,"refY":91.0,"radius":7.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         
-        //Controller.RegisterElementFromCode("SafeSouth_RangedRight", """""");
-        //Controller.RegisterElementFromCode("SafeSouth_RangedLeft", """""");
-        //Controller.RegisterElementFromCode("SafeSouth_MeleeRight", """""");
-        //Controller.RegisterElementFromCode("SafeSouth_MeleeLeft", """""");
+        Controller.RegisterElementFromCode("SafeSouth_RangedRight", """{"Name":"","refX":113.5,"refY":106.0,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("SafeSouth_RangedLeft", """{"Name":"","refX":87.0,"refY":106.5,"radius":1.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("SafeSouth_Melee", """{"Name":"","refX":100.0,"refY":109.0,"radius":7.0,"color":3355508620,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
     }
 
     public override void OnUpdate()
@@ -110,6 +109,12 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
                     if(Controller.GetPartyMembers().Any(x => AttachedInfo.VFXInfos.TryGetValue(x.Address, out var vfx) && vfx.TryGetValue("vfx/lockon/eff/x6fd_monyou_lock1v.avfx", out var eff) && eff.AgeF < 9f))
                     {
                         //player has no rose marker but other players have
+                        var pos = IsDropNorthPatternActive() ? C.SafePositionWhenNorth : C.SafePositionWhenSouth;
+                        var element = $"Safe{(!IsDropNorthPatternActive() ? "North" : "South")}_{pos}";
+                        if(Controller.TryGetElementByName(element, out var e))
+                        {
+                            e.Enabled = true;
+                        }
                     }
                 }
             }
@@ -118,6 +123,7 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
     }
 
     public enum DropPosition { MeleeLeft, MeleeRight, RangedLeft, RangedRight }
+    public enum SafePosition { Disabled, RangedLeft, RangedRight, Melee }
     public enum StackPosition { West, East }
     public enum ChainPosition { North, South }
 
@@ -129,6 +135,8 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
         public StackPosition StackPositionWhenSouth = StackPosition.West;
         public ChainPosition ChainPosWhenNorth = ChainPosition.North;
         public ChainPosition ChainPosWhenSouth = ChainPosition.North;
+        public SafePosition SafePositionWhenNorth = SafePosition.Disabled;
+        public SafePosition SafePositionWhenSouth = SafePosition.Disabled;
     }
 
     public override void OnSettingsDraw()
@@ -141,6 +149,8 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
         ImGuiEx.EnumCombo("Initial chain poisition##1", ref C.ChainPosWhenNorth);
         ImGui.SetNextItemWidth(200f);
         ImGuiEx.EnumCombo("Stack poisition##1", ref C.StackPositionWhenNorth);
+        ImGui.SetNextItemWidth(200f);
+        ImGuiEx.EnumCombo("Spread position, looking at the boss##1", ref C.SafePositionWhenNorth);
         ImGui.Unindent();
         ImGuiEx.Text($"When South is filled with red tiles:");
         ImGui.Indent();
@@ -148,6 +158,8 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
         ImGuiEx.EnumCombo("Initial chain poisition##2", ref C.ChainPosWhenSouth);
         ImGui.SetNextItemWidth(200f);
         ImGuiEx.EnumCombo("Stack poisition##2", ref C.StackPositionWhenSouth);
+        ImGui.SetNextItemWidth(200f);
+        ImGuiEx.EnumCombo("Spread position, looking at the boss##2", ref C.SafePositionWhenSouth);
         ImGui.Unindent();
         if(ImGui.CollapsingHeader("Debug"))
         {

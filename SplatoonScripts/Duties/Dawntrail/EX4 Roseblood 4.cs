@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class EX4_Roseblood_4 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1271];
 
     public override void OnSetup()

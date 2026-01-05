@@ -233,19 +233,29 @@ internal unsafe partial class CGui
             if(el.RotationOverride)
             {
                 ImGui.SameLine();
-                ImGuiEx.TextV("Rotate towards:");
+                ImGuiEx.Checkbox(FontAwesomeIcon.Compass, "##pointMode", ref el.RotationOverrideAngleOnlyMode);
+                ImGuiEx.Tooltip("Fixed angle mode. Face fixed angle.");
                 ImGui.SameLine();
-                ImGuiEx.Text($"X:");
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(50f);
-                ImGui.DragFloat("##rotateTowardsX", ref el.RotationOverridePoint.X, 0.1f);
-                ImGui.SameLine();
-                ImGuiEx.Text($"Y:");
-                ImGui.SameLine();
-                ImGui.SetNextItemWidth(50f);
-                ImGui.DragFloat("##rotateTowardsY", ref el.RotationOverridePoint.Y, 0.1f);
-                ImGui.SameLine();
-                ImGuiEx.Text($"Add angle:");
+                if(!el.RotationOverrideAngleOnlyMode) 
+                    { 
+                    ImGuiEx.TextV("Rotate towards:");
+                    ImGui.SameLine();
+                    ImGuiEx.Text($"X:");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(50f);
+                    ImGui.DragFloat("##rotateTowardsX", ref el.RotationOverridePoint.X, 0.1f);
+                    ImGui.SameLine();
+                    ImGuiEx.Text($"Y:");
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(50f);
+                    ImGui.DragFloat("##rotateTowardsY", ref el.RotationOverridePoint.Y, 0.1f);
+                    ImGui.SameLine();
+                    ImGuiEx.Text($"Add angle:");
+                }
+                else
+                {
+                    ImGuiEx.Text($"Fixed Angle");
+                }
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
                 ImGui.DragFloat("##rotationOverrideAddAngle", ref el.RotationOverrideAddAngle, 0.1f);

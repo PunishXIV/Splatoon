@@ -68,11 +68,15 @@ public unsafe class CastExplorer : SplatoonScript
         {
             if(x.IsCasting || x.CastActionId != 0)
             {
+                var castInfo = x.Struct()->GetCastInfo();
                 if(HideExpired && !x.IsCasting && x.TotalCastTime == x.BaseCastTime) continue;
                 var col = x.IsCasting ? ImGuiColors.DalamudWhite : ImGuiColors.DalamudGrey3;
                 Entries.Add(new("Name", true, () => ImGuiEx.TextCopy(col, x.Name.ToString())));
                 Entries.Add(new("Cast ID", () => ImGuiEx.TextCopy(col, $"{x.CastActionId}")));
                 Entries.Add(new("Cast name", () => ImGuiEx.TextCopy(col, $"{ExcelActionHelper.GetActionName(x.CastActionId)}")));
+                Entries.Add(new("Target", () => ImGuiEx.TextCopy(col, $"{castInfo->TargetId.ObjectId:X8}")));
+                Entries.Add(new("TargetLoc", () => ImGuiEx.TextCopy(col, $"{castInfo->TargetLocation}")));
+                Entries.Add(new("Rot.", () => ImGuiEx.TextCopy(col, $"{castInfo->Rotation}")));
                 Entries.Add(new("Time", () => ImGuiEx.TextCopy(col, $"{x.CurrentCastTime:F1}/{x.BaseCastTime:F1}")));
                 Entries.Add(new("Name ID", () => ImGuiEx.TextCopy(col, $"{x.NameId}")));
                 Entries.Add(new("Data ID", () => ImGuiEx.TextCopy(col, $"{x.DataId}")));

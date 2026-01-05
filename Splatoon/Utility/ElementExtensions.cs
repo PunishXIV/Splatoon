@@ -86,7 +86,7 @@ public static class ElementExtensions
             style.endFillColor = defaultColor;
         }
         style.animation = e.GetAnimationStyle();
-        style.castFraction = e.refActorRequireCast ? LayoutUtils.CastFraction(e, go) : 0f;
+        style.castFraction = e.CastFractionOverride > 0?e.CastFractionOverride:(e.refActorRequireCast ? LayoutUtils.CastFraction(e, go) : 0f);
         if(style.animation.kind is CastAnimationKind.ColorShift)
         {
             style.originFillColor = P.Config.ClampFillColorAlpha(Colors.Lerp(style.originFillColor, style.animation.color, style.castFraction));

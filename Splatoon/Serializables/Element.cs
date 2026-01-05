@@ -231,6 +231,8 @@ public class Element
     [DefaultValue(false)] public bool MapEffectInvert = false;
     [DefaultValue(false)] public bool MapEffectAnd = false;
 
+    internal float CastFractionOverride = 0f;
+
     public bool ShouldSerializeMapEffects() => MapEffects.Count > 0;
     public bool ShouldSerializeHitboxRadiusMin() => HitboxRadiusMin != 0f && UseHitboxRadius;
     public bool ShouldSerializeHitboxRadiusMax() => HitboxRadiusMax != 0f && UseHitboxRadius;

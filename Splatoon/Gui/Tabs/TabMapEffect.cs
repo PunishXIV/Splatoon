@@ -67,8 +67,9 @@ internal unsafe static class TabMapEffect
             {
                 for(int i = 0; i < cd->MapEffects->Items.Length; i++)
                 {
-                    ImGui.PushID($"Item{i}");
                     var eff = cd->MapEffects->Items[i];
+                    if(eff.State == 0) continue;
+                    ImGui.PushID($"Item{i}");
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGuiEx.TextV($"{i}");

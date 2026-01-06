@@ -140,7 +140,7 @@ internal static class LayoutDrawSelector
             for(var i = 0; i < CurrentLayout.GetElementsWithSubconfiguration().Count; i++)
             {
                 var e = CurrentLayout.GetElementsWithSubconfiguration()[i];
-                ImGui.PushID(e.GUID);
+                ImGui.PushID(e.GUID.ToString());
                 ImGui.SetCursorPosX(group == null ? 10 : 20);
                 var col = layout.PushTextColors(e);
                 var curpos = ImGui.GetCursorScreenPos();

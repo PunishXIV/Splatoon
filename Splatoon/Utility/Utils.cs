@@ -14,6 +14,7 @@ using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using TerraFX.Interop.Windows;
@@ -128,6 +129,14 @@ public static unsafe class Utils
                 ? Splatoon.CapturedPositions.SafeSelect(layout.GetName())?.SafeSelect(details[1])
                 : Splatoon.CapturedPositions.SafeSelect(details[1])?.SafeSelect(details[2]);
             return list;
+        }
+        if(placeholder.StartsWith("<objectid:"))
+        {
+            var details = placeholder[1..^1].Split(":");
+            if(uint.TryParse(details[1], details[1].StartsWith("0x") ? NumberStyles.HexNumber : default, null, out var result))
+            {
+                return Svc.Objects.Where(x => x.ObjectId == result).Select(x => x.Position).ToList();
+            }
         }
         if(placeholder == "<tethered>")
         {
@@ -389,9 +398,19 @@ public static unsafe class Utils
 
     private static bool IsNullOrEmpty(this string s) => GenericHelpers.IsNullOrEmpty(s);
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <param name="e"></param>
+    /// <returns>Radians</returns>
     public static float GetRotationWithOverride(this IGameObject obj, Element e)
     {
         if(!e.RotationOverride) return obj.Rotation;
+        if(e.RotationOverrideAngleOnlyMode)
+        {
+            return (180f + e.RotationOverrideAddAngle).DegToRad();
+        }
         return (180f - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), e.RotationOverridePoint.ToVector2()) + e.RotationOverrideAddAngle).DegToRad();
     }
 

@@ -624,7 +624,7 @@ public abstract class SplatoonScript
             }
             foreach(var x in Controller.GetRegisteredElements())
             {
-                ImGui.PushID(x.Value.GUID);
+                ImGui.PushID(x.Value.GUID.ToString());
                 if(InternalData.UnconditionalDraw)
                 {
                     ImGuiEx.CollectionCheckbox($"Preview draw".Loc(), x.Key, InternalData.UnconditionalDrawElements);

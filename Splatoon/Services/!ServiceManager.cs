@@ -1,4 +1,5 @@
-﻿using Splatoon.RenderEngines;
+﻿using Splatoon.Memory;
+using Splatoon.RenderEngines;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,4 +17,6 @@ public static class S
     //internal static StatusEffectManager StatusEffectManager { get; private set; }
     internal static DataMigrator DataMigrator { get; private set; }
     internal static MapEffectManager MapEffectManager { get; private set; }
+    internal static Projection Projection { get; private set; }
+    internal static LogHooks LogHooks { get; private set; }
 }

@@ -101,6 +101,17 @@ internal class Configuration : IEzConfig
     public List<string> DisabledGroups = [];
     public List<Page> TranslatorPages = [];
     public NightmareUIState NightmareUIState = new();
+    public Dictionary<string, Dictionary<uint, string>> MapEffectNames = [];
+
+    public bool EnableProjection = false;
+    public Vector4 ProjectionColor1 = ImGuiEx.Vector4FromRGBA(0xAA0058FF);
+    public Vector4 ProjectionColor2 = ImGuiEx.Vector4FromRGBA(0xFF0084FF);
+    public int ProjectionPulseTime = 1000;
+    public CastAnimationKind ProjectionCastAnimation = CastAnimationKind.Fill;
+    public Vector4 AnimationColor1 = ImGuiEx.Vector4FromRGBA(0xFF000064);
+    public Vector4 AnimationColor2 = ImGuiEx.Vector4FromRGBA(0x44000064);
+    public float ProjectionFillIntensity = 0.2f;
+    public List<BlacklistedAction> ProjectionBlacklistedActions = [];
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

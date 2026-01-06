@@ -3,6 +3,7 @@ using ECommons.Hooks;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
 using FFXIVClientStructs.Interop;
+using Lumina.Excel.Sheets;
 using Splatoon.Memory;
 using System;
 using System.Collections.Generic;
@@ -61,23 +62,23 @@ internal unsafe static class TabMapEffect
                     SavedEffects.Clear();
                 }
             });
-            if(ImGuiEx.BeginDefaultTable("Effects", ["Effect ID", "State", "Flags", "Last call", "Call"]))
+            var tt = TerritoryType.GetRef(Player.Territory).ValueNullable?.Bg.ToString() ?? "";
+            if(ImGuiEx.BeginDefaultTable("Effects", ["Effect ID", "State", "Last call", "Call"]))
             {
                 for(int i = 0; i < cd->MapEffects->Items.Length; i++)
                 {
-                    ImGui.PushID($"Item{i}");
                     var eff = cd->MapEffects->Items[i];
+                    if(eff.State == 0) continue;
+                    ImGui.PushID($"Item{i}");
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
                     ImGuiEx.TextV($"{i}");
                     ImGui.TableNextColumn();
-                    ImGuiEx.TextV($"{eff.State:X4}");
-                    ImGui.TableNextColumn();
-                    ImGuiEx.TextV($"{eff.Flags:X2}");
+                    ImGuiEx.TextV($"{eff.State}");
                     ImGui.TableNextColumn();
                     if(MapEffectProcessor.History.TryGetValue((uint)i, out var ret))
                     {
-                        ImGuiEx.TextV($"{ret.Param1:X4}, {ret.Param2:X4}");
+                        ImGuiEx.TextV($"{ret.Param1}");
                     }
 
                     ImGui.TableNextColumn();
@@ -86,18 +87,46 @@ internal unsafe static class TabMapEffect
                     ImGui.SetNextItemWidth(100f);
                     ImGuiEx.InputHex($"##eff1{i}", ref inp1);
                     ImGui.SameLine();
-                    ref var inp2 = ref Ref<uint>.Get($"EffectEdit2{i}");
-                    ImGui.SetNextItemWidth(100f);
-                    ImGuiEx.InputHex($"##eff2{i}", ref inp2);
-                    ImGui.SameLine();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Check, "Apply2"))
                     {
-                        MapEffect.Delegate((long)cd, (uint)i, (ushort)inp1, (ushort)inp2);
+                        MapEffect.Delegate((long)cd, (uint)i, (ushort)inp1, (ushort)((ushort)inp1*2));
+                    }
+                    if(tt != "")
+                    {
+                        ImGui.SameLine();
+                        var dict = P.Config.MapEffectNames.GetOrCreate(tt);
+                        var name = dict.SafeSelect((uint)i, "");
+                        ImGui.SetNextItemWidth(200f);
+                        if(ImGui.InputTextWithHint("##NameEff", $"Name effect {i}", ref name))
+                        {
+                            dict[(uint)i] = name;
+                        }
                     }
 
                     ImGui.PopID();
                 }
                 ImGui.EndTable();
+            }
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.FileExport, "Generate enum"))
+            {
+                StringBuilder sb = new();
+                sb.AppendLine($$"""
+                    public static partial class MapEffects
+                    {
+                        [MapEffectNames("{{tt}}")]
+                        public enum ??? : uint
+                        {
+                    """);
+                foreach(var x in P.Config.MapEffectNames.GetOrCreate(tt).OrderBy(x => x.Key))
+                {
+                    if(x.Value == "") continue;
+                    sb.AppendLine($"""        {x.Value} = {x.Key},""");
+                }
+                sb.AppendLine($$"""
+                        }
+                    }
+                    """);
+                Copy(sb.ToString());
             }
         }
     }

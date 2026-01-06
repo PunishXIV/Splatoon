@@ -26,6 +26,10 @@ internal class Commands : IDisposable
             {
                 P.LogWindow.IsOpen = true;
             }
+            else if(GenericHelpers.EqualsIgnoreCase(arguments, "pbl"))
+            {
+                S.Projection.Blacklist = true;
+            }
             else if(arguments == "r" || arguments == "reset")
             {
                 var phase = Splatoon.P.Phase;

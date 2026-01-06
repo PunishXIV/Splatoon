@@ -1,4 +1,5 @@
-﻿using ECommons.Hooks.ActionEffectTypes;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.Hooks.ActionEffectTypes;
 using Splatoon.Modules;
 using Splatoon.SplatoonScripting;
 using System;

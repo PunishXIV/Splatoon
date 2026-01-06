@@ -351,7 +351,7 @@ public static unsafe class LayoutUtils
         }
     }
 
-    public static bool IsLayoutVisible(Layout layout)
+    public static bool IsLayoutEnabled(Layout layout)
     {
         if(!layout.Enabled) return false;
         if(!layout.Group.IsNullOrEmpty() && P.Config.DisabledGroups.Contains(layout.Group)) return false;
@@ -368,6 +368,12 @@ public static unsafe class LayoutUtils
         if((layout.DCond == 6 || layout.DCond == 8) && inCombat) return false;
         if((layout.DCond == 7 || layout.DCond == 8) && inDuty) return false;
         if(layout.DCond == 9 && (!inCombat || !inDuty)) return false;
+        return true;
+    }
+
+    public static bool IsLayoutVisible(Layout layout)
+    {
+        if(!IsLayoutEnabled(layout)) return false;
         if(layout.UseDistanceLimit && layout.DistanceLimitType == 0)
         {
             if(Svc.Targets.Target != null)

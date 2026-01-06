@@ -10,6 +10,7 @@ using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using TerraFX.Interop.Windows;
 using Action = Lumina.Excel.Sheets.Action;
 
@@ -119,7 +120,7 @@ internal class Projection : IDisposable
                             element.RotationOverrideAddAngle = rotation;
                             element.RotationOverrideAngleOnlyMode = true;
                             element.RotationOverride = true;
-                            PluginLog.Information($"{JsonConvert.SerializeObject(element)}");
+                            //PluginLog.Information($"{JsonConvert.SerializeObject(element)}");
                         }
                         if(Blacklist)
                         {
@@ -148,8 +149,14 @@ internal class Projection : IDisposable
                         }
                         else if(shape.Shape == Shape.Donut)
                         {
+                            element.refActorObjectID = targetObjectId;
                             element.radius = shape.AngleOrWidth;
                             element.Donut = shape.Range;
+                            if(info->TargetId.ObjectId == 0xE000_0000)
+                            {
+                                element.type = 0;
+                                element.SetRefPosition(info->TargetLocation);
+                            }
                         }
                         else if(shape.Shape == Shape.Rect)
                         {
@@ -239,13 +246,38 @@ internal class Projection : IDisposable
             //6 => custom shapes
             //7 => new AOEShapeCircle(data.EffectRange), - used for player ground-targeted circles a-la asylum
             //8 => new(Shape.Rect, default, data.XAxisModifier * HalfWidth), // charges
-            10 => new(Shape.Donut, 3, data.EffectRange),
+            10 => new(Shape.Donut, DetermineDonutRange(data)?.Outer ?? 0, DetermineDonutRange(data)?.Inner ?? 0),
             11 => new(Shape.Cross, data.EffectRange, data.XAxisModifier * HalfWidth),
             12 => new(Shape.Rect, data.EffectRange, data.XAxisModifier * HalfWidth),
             13 => new(Shape.Cone, data.EffectRange, DetermineConeAngle(data).Rad * HalfWidth),
             _ => default
         };
     }
+
+    Dictionary<string, (float Inner, float Outer)?> DonutCache = [];
+    public (float Inner, float Outer)? DetermineDonutRange(Action data)
+    {
+        var path = data.Omen.Value.Path.ToString();
+        if(DonutCache.TryGetValue(path, out var result))
+        {
+            return result;
+        }
+        var regex = Regex.Match(path, @"sircle_([0-9]{2})([0-9]{2})");
+        if(regex.Success && int.TryParse(regex.Groups[1].Value, out var outer) && int.TryParse(regex.Groups[2].Value, out var inner))
+        {
+            result = (inner, outer - inner);
+            DonutCache[path] = result;
+            PluginLog.Debug($"Omen {path} donut inner radius {inner} outer {outer}");
+            return result;
+        }
+        else
+        {
+            PluginLog.Debug($"Omen {path} failed to parse donut");
+            DonutCache[path] = null;
+            return null;
+        }
+    }
+
     private static Angle DetermineConeAngle(Action data)
     {
         if(data.Omen.ValueNullable == null)

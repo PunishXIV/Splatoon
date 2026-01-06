@@ -25,12 +25,12 @@ public unsafe class LogHooks
         try
         {
             var packet = (PacketActorCast*)packetPtr;
-            PluginLog.Debug($"""
+            /*PluginLog.Debug($"""
                 ActorCast:
                 {ExcelActionHelper.GetActionName(packet->ActionID, true)}
                 Rotation: {packet->RotationRadians} {packet->RotationRadians.RadToDeg()}
                 {MemoryHelper.ReadRaw(packetPtr, sizeof(PacketActorCast)).ToHexString()}
-                """);
+                """);*/
             S.Projection.LastCast[sourceId] = *packet;
         }
         catch(Exception e)

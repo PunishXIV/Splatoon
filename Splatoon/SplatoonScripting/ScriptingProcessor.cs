@@ -1,17 +1,25 @@
-﻿using ECommons.Hooks;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.ExcelServices;
+using ECommons.GameFunctions;
+using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
+using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon.Gui.Scripting;
+using Splatoon.Modules;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.DirectoryServices.ActiveDirectory;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Splatoon.SplatoonScripting;
 
-internal static partial class ScriptingProcessor
+#pragma warning disable
+internal unsafe static partial class ScriptingProcessor
 {
     private static ImmutableList<SplatoonScript> ScriptsInternal = [];
     internal static IReadOnlyList<SplatoonScript> Scripts => ScriptsInternal;
@@ -755,6 +763,37 @@ internal static partial class ScriptingProcessor
                     Scripts[i].OnActionEffectEvent(set);
                 }
                 catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActionEffectEvent)); }
+            }
+        }
+        if(set.Source is IBattleNpc n && set.Action != null)
+        {
+            var printed = false;
+            foreach(var effect in set.TargetEffects)
+            {
+                if(effect.TargetID != 0 && Svc.Objects.TryGetFirst(x => x.ObjectId == (uint)effect.TargetID, out var effectTarget))
+                {
+                    printed = true;
+                    string targetText;
+                    string effectTargetText;
+                    {
+                        targetText = set.Target.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (set.Target is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{set.Target?.DataId}/{set.Target?.Name}" ?? "Unknown");
+                    }
+                    {
+                        effectTargetText = effectTarget.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (effectTarget is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{effectTarget?.DataId}/{effectTarget?.Name}" ?? "Unknown");
+                    }
+                    var text = $"Action {ExcelActionHelper.GetActionName(set.Action.Value.RowId, true)} cast on {targetText} effect on {effectTargetText} npc id={n.NameId}, model id={n.Struct()->ModelContainer.ModelCharaId}, transform={n.GetTransformationID()} data={n.DataId} name={n.Name} ActionEffect|{set.Action.Value.RowId}|{targetText.Split('/')[0]}|{effectTargetText.Split('/')[0]}|{n.NameId}|{n.Struct()->ModelContainer.ModelCharaId}|{n.GetTransformationID()}|{n.DataId}";
+                    P.ChatMessageQueue.Enqueue(text);
+                    if(P.Config.Logging) Logger.Log(text);
+                    P.LogWindow.Log(text);
+                }
+            }
+            if(!printed)
+            {
+                var targetText = set.Target.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (set.Target is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{set.Target?.DataId}/{set.Target?.Name}" ?? "Unknown");
+                var text = $"Action {ExcelActionHelper.GetActionName(set.Action.Value.RowId, true)} cast on {targetText} npc id={n.NameId}, model id={n.Struct()->ModelContainer.ModelCharaId}, transform={n.GetTransformationID()} data={n.DataId} name={n.Name} ActionEffect|{set.Action.Value.RowId}|{targetText.Split('/')[0]}|{n.NameId}|{n.Struct()->ModelContainer.ModelCharaId}|{n.GetTransformationID()}|{n.DataId}";
+                P.ChatMessageQueue.Enqueue(text);
+                if(P.Config.Logging) Logger.Log(text);
+                P.LogWindow.Log(text);
             }
         }
     }

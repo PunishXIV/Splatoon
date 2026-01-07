@@ -405,6 +405,7 @@ public unsafe class Splatoon : IDalamudPlugin
         ScriptingProcessor.TerritoryChanged();
         S.InfoBar.Update(true);
         MapEffectProcessor.History.Clear();
+        S.Projection.LastCast.Clear();
     }
 
     private static void ResetLayout(Layout l)

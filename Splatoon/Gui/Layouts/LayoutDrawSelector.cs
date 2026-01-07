@@ -222,6 +222,18 @@ internal static class LayoutDrawSelector
                         Notify.Error($"{e.Message}");
                     }
                 }
+                ImGui.SameLine();
+                if(ImGuiEx.SmallButton("Clone".Loc(), CurrentElement != null))
+                {
+                    try
+                    {
+                        layout.GetElementsWithSubconfiguration().Add(CurrentElement.DSFClone());
+                    }
+                    catch(Exception e)
+                    {
+                        e.Log();
+                    }
+                }
             });
         }
         ImGui.PopID();

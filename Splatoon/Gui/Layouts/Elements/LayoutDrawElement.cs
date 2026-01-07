@@ -1,9 +1,14 @@
 ﻿using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.Enums;
+using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility.Raii;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.LanguageHelpers;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
@@ -535,6 +540,34 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(WidthCombo);
                 ImGuiEx.InputListUint("##casts", el.refActorCastId, ActionNames);
+                ImGui.SameLine();
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.AngleDoubleDown, "From Casting Entity..."))
+                {
+                    ImGui.OpenPopup("FromCastingEntity");
+                }
+                ImGuiEx.Tooltip("Left click - toggle; shift+click - replace".Loc());
+                if(ImGui.BeginPopup("FromCastingEntity"))
+                {
+                    int i = 0;
+                    foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCasting()))
+                    {
+                        ImGui.PushID(i++);
+                        if(ImGui.Selectable($"{ExcelActionHelper.GetActionName(x.CastActionId, true)} - {x.CurrentCastTime:F1}/{x.TotalCastTime:F1} - from {x.Name} N#{x.NameId} D#{x.DataId}", selected:el.refActorCastId.Contains(x.CastActionId), flags:ImGuiSelectableFlags.DontClosePopups))
+                        {
+                            if(ImGuiEx.Shift) el.refActorCastId.Clear();
+                            el.refActorCastId.Toggle(x.CastActionId);
+                            if(el.refActorComparisonType == 0)
+                            {
+                                el.refActorComparisonType = 6;
+                            }
+                            el.refActorNPCNameID = x.NameId;
+                            el.refActorDataID = x.DataId;
+                            el.refActorModelID = (uint)x.Struct()->ModelContainer.ModelCharaId;
+                        }
+                        ImGui.PopID();
+                    }
+                    ImGui.EndPopup();
+                }
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGuiEx.Text("Add all by name:".Loc());
@@ -582,6 +615,73 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(WidthCombo);
                 ImGuiEx.InputListUint("##buffs", el.refActorBuffId, BuffNames);
+                ImGui.SameLine();
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.AngleDoubleDown, "Select from entity..."))
+                {
+                    ImGui.OpenPopup("AddStatus");
+                }
+                ImGuiEx.Tooltip("Left click - toggle; shift+click - replace");
+                if(ImGui.BeginPopup("AddStatus"))
+                {
+                    foreach(var x in FakeParty.Get())
+                    {
+                        if(ImGui.BeginMenu($"{Player.GetNameWithWorld(x)} {x.GetJob()}"))
+                        {
+                            var list = x.StatusList.Select(Item1 => (Item1, Status.GetRef(Item1.StatusId))).Where(s => s.Item2.ValueNullable != null).ToList();
+                            listItems(list, "Debuffs", s => s.StatusCategory == 2);
+                            listItems(list, "Buffs", s => s.StatusCategory == 1);
+                            listItems(list, "Other", s => s.StatusCategory != 1 && s.StatusCategory != 2);
+                            
+                            ImGui.EndMenu();
+                        }
+                    }
+                    ImGui.Separator();
+                    var nameIds = Svc.Objects.OfType<IBattleNpc>().Select(x => x.NameId).ToHashSet();
+                    foreach(var nameId in nameIds)
+                    {
+                        HashSet<(IStatus, RowRef<Status>)> list = [];
+                        string name = null;
+                        foreach(var x in Svc.Objects.OfType<IBattleNpc>())
+                        {
+                            if(x.NameId == nameId)
+                            {
+                                name ??= $"{x.Name} #{x.NameId}";
+                                list.AddRange(x.StatusList.Select(Item1 => (Item1, Status.GetRef(Item1.StatusId))).Where(s => s.Item2.ValueNullable != null));
+                            }
+                        }
+                        if(list.Count > 0)
+                        {
+                            if(name != null && ImGui.BeginMenu(name))
+                            {
+                                listItems(list, "Debuffs", s => s.StatusCategory == 2);
+                                listItems(list, "Buffs", s => s.StatusCategory == 1);
+                                listItems(list, "Other", s => s.StatusCategory != 1 && s.StatusCategory != 2);
+
+                                ImGui.EndMenu();
+                            }
+                        }
+                    }
+                    void listItems(ICollection<(IStatus, RowRef<Status>)> list, string str, Predicate<Status> predicate)
+                    {
+                        ImGuiEx.Text(str);
+                        ImGui.Indent();
+                        foreach(var s in list.Where(d => predicate(d.Item2.Value)))
+                        {
+                            if(ThreadLoadImageHandler.TryGetIconTextureWrap(s.Item2.Value.Icon, false, out var tex))
+                            {
+                                ImGui.Image(tex.Handle, new Vector2(ImGui.GetTextLineHeight()));
+                                ImGui.SameLine();
+                            }
+                            if(ImGui.Selectable($"{s.Item1.StatusId} {s.Item2.Value.Name}", selected: el.refActorBuffId.Contains(s.Item1.StatusId), flags: ImGuiSelectableFlags.DontClosePopups))
+                            {
+                                if(ImGuiEx.Shift) el.refActorBuffId.Clear();
+                                el.refActorBuffId.Toggle(s.Item1.StatusId);
+                            }
+                        }
+                        ImGui.Unindent();
+                    }
+                    ImGui.EndPopup();
+                }
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGuiEx.Text("Add all by name:".Loc());

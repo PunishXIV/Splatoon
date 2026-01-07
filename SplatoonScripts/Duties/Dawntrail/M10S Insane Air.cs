@@ -76,8 +76,8 @@ public class M10S_Insane_Air : SplatoonScript
         public int ConeAngle = 25;             // 扇形半角 (总角度50° = 2 * 25)
         public float FillIntensity = 0.35f;    // 填充透明度
         public int DelayMs = 3000;             // 触发后延迟绘制时间（毫秒）
-        public int DurationMs = 5000;          // 绘制持续时间（毫秒）
-        public int TimeoutMs = 8000;           // 超时时间（毫秒）
+        public int DurationMs = 6500;          // 绘制持续时间（毫秒）
+        public int TimeoutMs = 9500;           // 超时时间（毫秒）
         public float LineThickness = 3.0f;     // 线条粗细
         public float CircleRadius = 8.0f;      // 火标记上方向圆形半径
 

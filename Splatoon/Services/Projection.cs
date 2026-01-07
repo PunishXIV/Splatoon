@@ -5,10 +5,12 @@ using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
+using Splatoon.Data;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using TerraFX.Interop.Windows;
@@ -21,8 +23,11 @@ internal class Projection : IDisposable
 {
     public static readonly float RaidwideSize = 30f;
     public static readonly float HalfWidth = 0.5f;
-    public Dictionary<uint, PacketActorCast> LastCast = [];
+    public Dictionary<uint, Dictionary<ActionDescriptor, PacketActorCast>> LastCast = [];
     public bool Blacklist = false;
+    public List<ProjectionItemDescriptor> ProjectingItems = [];
+    Stopwatch Stopwatch = new();
+    public long LastSw = 0;
     private Projection()
     {
         Svc.Framework.Update += Framework_Update;
@@ -74,165 +79,197 @@ internal class Projection : IDisposable
 
     private unsafe void Framework_Update(Dalamud.Plugin.Services.IFramework framework)
     {
-        if(P.Config.EnableProjection)
+        Stopwatch.Reset();
+        Stopwatch.Start();
+        if(P.ConfigGui.Open)
         {
-            int elementIndex = 0;
-            List<(IBattleNpc obj, Element element)> injectedElements = [];
-            foreach(var x in Svc.Objects)
+            ProjectingItems.Clear();
+        }
+        int elementIndex = 0;
+        List<(IBattleNpc obj, Element element)> injectedElements = [];
+        foreach(var x in Svc.Objects)
+        {
+            if(x is IBattleNpc b && b.GetNameplateKind() != NameplateKind.FriendlyBattleNPC && b.IsCasting() && b.CastActionType == (int)ActionType.Action && Svc.Data.GetExcelSheet<Action>().TryGetRow(b.CastActionId, out var data))
             {
-                if(x is IBattleNpc b && b.GetNameplateKind() != NameplateKind.FriendlyBattleNPC && b.IsCasting() && b.CastActionType == (int)ActionType.Action && Svc.Data.GetExcelSheet<Action>().TryGetRow(b.CastActionId, out var data))
+                var shape = GuessShapeAndSize(data, b);
+                var info = b.Struct()->GetCastInfo();
+                uint targetObjectId = (info->TargetId.ObjectId != 0xE000_0000) ? info->TargetId.ObjectId : b.ObjectId;
+                if(shape.Range > 0f && (data.EffectRange < RaidwideSize || shape.Shape != Shape.Circle))
                 {
-                    var shape = GuessShapeAndSize(data, b);
-                    var info = b.Struct()->GetCastInfo();
-                    uint targetObjectId = (info->TargetId.ObjectId != 0xE000_0000) ? info->TargetId.ObjectId : b.ObjectId;
-                    if(shape.Range > 0f && (data.EffectRange < RaidwideSize || shape.Shape != Shape.Circle))
+                    var blacklisted = false;
+                    foreach(var a in P.Config.ProjectionBlacklistedActions)
                     {
-                        foreach(var a in P.Config.ProjectionBlacklistedActions)
+                        if(a.Action == data.RowId)
                         {
-                            if(a.Action == data.RowId)
-                            {
-                                goto Next;
-                            }
+                            blacklisted = true;
                         }
-                        foreach(var layout in P.Config.LayoutsL)
+                    }
+                    ProjectionItemDescriptor descriptor = P.ConfigGui.Open ? new(new(b.CastActionType, b.CastActionId), b.ObjectId, blacklisted) : null;
+                    this.ProjectingItems.Add(descriptor);
+                    bool? showOverride = null;
+                    bool isAlreadyProcessed = false;
+                    foreach(var layout in P.Config.LayoutsL)
+                    {
+                        if(LayoutUtils.IsLayoutEnabled(layout))
                         {
-                            if(LayoutUtils.IsLayoutEnabled(layout))
+                            if(layout.ForcedProjectorActions.Contains(b.CastActionId))
+                            {
+                                descriptor?.WhitelistingLayouts.Add(layout.InternationalName.Get(layout.Name));
+                                showOverride = true;
+                            }
+                            if(layout.BlacklistedProjectorActions.Contains(b.CastActionId))
+                            {
+                                descriptor?.BlacklistingLayouts.Add(layout.InternationalName.Get(layout.Name));
+                                showOverride = false;
+                            }
+                            if(!isAlreadyProcessed) 
                             {
                                 foreach(var layoutElement in layout.ElementsL)
                                 {
-                                    if(layoutElement.Enabled 
-                                        && layoutElement.type.EqualsAny(1, 3, 4) 
+                                    if(layoutElement.Enabled
+                                        && layoutElement.type.EqualsAny(1, 3, 4)
                                         && layoutElement.refActorRequireCast
                                         && layoutElement.refActorCastId.Contains(b.CastActionId)
                                         && LayoutUtils.IsAttributeMatches(layoutElement, b)
                                         )
                                     {
-                                        goto Next;
+                                        isAlreadyProcessed = true;
+                                        descriptor?.SuppressingLayouts.Add(layout.InternationalName.Get(layout.Name));
                                     }
                                 }
                             }
                         }
-                        var element = RentElement(elementIndex++, shape, b);
-                        var rotation = 0f;
-                        if(LastCast.TryGetValue(b.ObjectId, out var packet) && packet.ActionID == b.CastActionId && packet.SkillType == b.CastActionType)
-                        {
-                            rotation = 180 + packet.RotationRadians.RadToDeg();
-                            element.RotationOverrideAddAngle = rotation;
-                            element.RotationOverrideAngleOnlyMode = true;
-                            element.RotationOverride = true;
-                            //PluginLog.Information($"{JsonConvert.SerializeObject(element)}");
-                        }
-                        if(Blacklist)
-                        {
-                            if(!P.Config.ProjectionBlacklistedActions.Any(a => a.Action == data.RowId))
-                            {
-                                P.Config.ProjectionBlacklistedActions.Add(new()
-                                {
-                                    Action = data.RowId,
-                                    DataId = b.DataId,
-                                    NameId = b.NameId,
-                                    ModelId = (uint)b.Struct()->ModelContainer.ModelCharaId,
-                                    Territory = Player.Territory
-                                });
-                            }
-                        }
-                        if(shape.Shape == Shape.Circle)
-                        {
-                            element.refActorObjectID = targetObjectId;
-                            element.radius = shape.Range;
-                            element.Donut = 0;
-                            if(info->TargetId.ObjectId == 0xE000_0000)
-                            {
-                                element.type = 0;
-                                element.SetRefPosition(info->TargetLocation);
-                            }
-                        }
-                        else if(shape.Shape == Shape.Donut)
-                        {
-                            element.refActorObjectID = targetObjectId;
-                            element.radius = shape.AngleOrWidth;
-                            element.Donut = shape.Range;
-                            if(info->TargetId.ObjectId == 0xE000_0000)
-                            {
-                                element.type = 0;
-                                element.SetRefPosition(info->TargetLocation);
-                            }
-                        }
-                        else if(shape.Shape == Shape.Rect)
-                        {
-                            element.radius = shape.AngleOrWidth;
-                            element.offY = shape.Range;
-                            if(targetObjectId != b.ObjectId)
-                            {
-                                element.faceplayer = $"<objectid:{targetObjectId}>";
-                            }
-                        }
-                        else if(shape.Shape == Shape.Cross)
-                        {
-                            element.radius = shape.AngleOrWidth;
-                            element.offY = shape.Range;
-                            element.refY = -shape.Range;
-                            var next = RentElement(elementIndex++, shape, b);
-                            next.radius = shape.AngleOrWidth;
-                            next.offY = shape.Range;
-                            next.refY = -shape.Range;
-                            next.RotationOverrideAddAngle = rotation;
-                            next.RotationOverrideAngleOnlyMode = true;
-                            next.RotationOverride = true;
-                            next.AdditionalRotation = 90f.DegToRad();
-                            injectedElements.Add((b, next));
-                        }
-                        else if(shape.Shape == Shape.Cone)
-                        {
-                            element.radius = shape.Range;
-                            element.coneAngleMin = (int)(-shape.AngleOrWidth.RadToDeg());
-                            element.coneAngleMax = (int)(shape.AngleOrWidth.RadToDeg());
+                    }
 
-                            if(targetObjectId != b.ObjectId)
-                            {
-                                element.faceplayer = $"<objectid:{targetObjectId}>";
-                            }
-                        }
-                        injectedElements.Add((b, element));
-                    }
-                }
-            Next:;
-            }
-            List<Guid> skip = [];
-            foreach(var x in injectedElements)
-            {
-                if(x.element.type == 4 || x.element.type == 3) //find opposing cones and lines
-                {
-                    foreach(var y in injectedElements)
+                    var shouldHide = showOverride == false || isAlreadyProcessed || (blacklisted && showOverride != true) || (showOverride != true && !P.Config.EnableProjection);
+
+                    if(shouldHide)
                     {
-                        //now find if there are also cones that are the same but "look" in opposite direction
-                        if(y.element.type == x.element.type)
+                        goto Next;
+                    }
+                    descriptor?.Rendered = true;
+                    var element = RentElement(elementIndex++, shape, b);
+                    var rotation = 0f;
+                    if(LastCast.TryGetValue(b.ObjectId, out var list) && list.TryGetValue(new(b.CastActionType, b.CastActionId), out var packet) && packet.ActionType == b.CastActionType)
+                    {
+                        rotation = 180 + packet.RotationRadians.RadToDeg();
+                        element.RotationOverrideAddAngle = rotation;
+                        element.RotationOverrideAngleOnlyMode = true;
+                        element.RotationOverride = true;
+                        //PluginLog.Information($"{JsonConvert.SerializeObject(element)}");
+                    }
+                    if(Blacklist)
+                    {
+                        if(!P.Config.ProjectionBlacklistedActions.Any(a => a.Action == data.RowId))
                         {
-                            var angle1 = Utils.GetRotationWithOverride(x.obj, x.element);
-                            var angle2 = Utils.GetRotationWithOverride(y.obj, y.element);
-                            if(
-                                Math.Abs((angle1 - angle2).RadToDeg()).ApproximatelyEquals(180, 1)
-                                )
+                            P.Config.ProjectionBlacklistedActions.Add(new()
                             {
-                                if(x.obj.RemainingCastTime - y.obj.RemainingCastTime > 0.2f)
-                                {
-                                    skip.Add(x.element.GUID);
-                                }
-                                else if(!x.obj.RemainingCastTime.ApproximatelyEquals(y.obj.RemainingCastTime, 0.2f))
-                                {
-                                    skip.Add(y.element.GUID);
-                                }
+                                Action = data.RowId,
+                                DataId = b.DataId,
+                                NameId = b.NameId,
+                                ModelId = (uint)b.Struct()->ModelContainer.ModelCharaId,
+                                Territory = Player.Territory
+                            });
+                        }
+                    }
+                    if(shape.Shape == Shape.Circle)
+                    {
+                        element.refActorObjectID = targetObjectId;
+                        element.radius = shape.Range;
+                        element.Donut = 0;
+                        if(info->TargetId.ObjectId == 0xE000_0000)
+                        {
+                            element.type = 0;
+                            element.SetRefPosition(info->TargetLocation);
+                        }
+                    }
+                    else if(shape.Shape == Shape.Donut)
+                    {
+                        element.refActorObjectID = targetObjectId;
+                        element.radius = shape.AngleOrWidth;
+                        element.Donut = shape.Range;
+                        if(info->TargetId.ObjectId == 0xE000_0000)
+                        {
+                            element.type = 0;
+                            element.SetRefPosition(info->TargetLocation);
+                        }
+                    }
+                    else if(shape.Shape == Shape.Rect)
+                    {
+                        element.radius = shape.AngleOrWidth;
+                        element.offY = shape.Range;
+                        if(targetObjectId != b.ObjectId)
+                        {
+                            element.faceplayer = $"<objectid:{targetObjectId}>";
+                        }
+                    }
+                    else if(shape.Shape == Shape.Cross)
+                    {
+                        element.radius = shape.AngleOrWidth;
+                        element.offY = shape.Range;
+                        element.refY = -shape.Range;
+                        var next = RentElement(elementIndex++, shape, b);
+                        next.radius = shape.AngleOrWidth;
+                        next.offY = shape.Range;
+                        next.refY = -shape.Range;
+                        next.RotationOverrideAddAngle = rotation;
+                        next.RotationOverrideAngleOnlyMode = true;
+                        next.RotationOverride = true;
+                        next.AdditionalRotation = 90f.DegToRad();
+                        injectedElements.Add((b, next));
+                    }
+                    else if(shape.Shape == Shape.Cone)
+                    {
+                        element.radius = shape.Range;
+                        element.coneAngleMin = (int)(-shape.AngleOrWidth.RadToDeg());
+                        element.coneAngleMax = (int)(shape.AngleOrWidth.RadToDeg());
+
+                        if(targetObjectId != b.ObjectId)
+                        {
+                            element.faceplayer = $"<objectid:{targetObjectId}>";
+                        }
+                    }
+                    injectedElements.Add((b, element));
+                }
+            }
+        Next:;
+        }
+        List<Guid> skip = [];
+        foreach(var x in injectedElements)
+        {
+            if(x.element.type == 4 || x.element.type == 3) //find opposing cones and lines
+            {
+                foreach(var y in injectedElements)
+                {
+                    //now find if there are also cones that are the same but "look" in opposite direction
+                    if(y.element.type == x.element.type)
+                    {
+                        var angle1 = Utils.GetRotationWithOverride(x.obj, x.element);
+                        var angle2 = Utils.GetRotationWithOverride(y.obj, y.element);
+                        if(
+                            Math.Abs((angle1 - angle2).RadToDeg()).ApproximatelyEquals(180, 1)
+                            )
+                        {
+                            if(x.obj.RemainingCastTime - y.obj.RemainingCastTime > 0.2f)
+                            {
+                                skip.Add(x.element.GUID);
+                            }
+                            else if(!x.obj.RemainingCastTime.ApproximatelyEquals(y.obj.RemainingCastTime, 0.2f))
+                            {
+                                skip.Add(y.element.GUID);
                             }
                         }
                     }
                 }
-            }
-            foreach(var x in injectedElements)
-            {
-                if(!skip.Contains(x.element.GUID)) P.InjectElement(x.element);
             }
         }
+        foreach(var x in injectedElements)
+        {
+            if(!skip.Contains(x.element.GUID)) P.InjectElement(x.element);
+        }
         Blacklist = false;
+        Stopwatch.Stop();
+        LastSw = Stopwatch.ElapsedTicks;
     }
 
     public ShapeData GuessShapeAndSize(Action data, IGameObject actor)

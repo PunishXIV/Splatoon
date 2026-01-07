@@ -31,7 +31,7 @@ public unsafe class LogHooks
                 Rotation: {packet->RotationRadians} {packet->RotationRadians.RadToDeg()}
                 {MemoryHelper.ReadRaw(packetPtr, sizeof(PacketActorCast)).ToHexString()}
                 """);*/
-            S.Projection.LastCast[sourceId] = *packet;
+            S.Projection.LastCast.GetOrCreate(sourceId)[packet->ActionDescriptor] = *packet;
         }
         catch(Exception e)
         {

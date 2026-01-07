@@ -26,3 +26,10 @@
 ~Lv2~{"Name":"Vamp Stop Debuff","Group":"AAC Heavyweight M1 Savage","ZoneLockH":[1321],"MaxDistance":10.0,"UseDistanceLimit":true,"DistanceLimitType":1,"ElementsL":[{"Name":"Curse of the Bombpyre","type":1,"radius":7.0,"Filled":false,"fillIntensity":0.5,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>","<1>"],"refActorRequireBuff":true,"refActorBuffId":[4729],"refActorComparisonType":5,"DistanceSourceX":95.367294,"DistanceSourceY":108.081665}]}
 ~Lv2~{"Name":"Aetherletting","Group":"AAC Heavyweight M1 Savage","ZoneLockH":[1321],"ElementsL":[{"Name":"Cone","type":4,"radius":22.0,"coneAngleMin":-22,"coneAngleMax":22,"fillIntensity":0.5,"castAnimation":3,"animationColor":4294903296,"refActorNPCNameID":14300,"refActorRequireCast":true,"refActorCastId":[45969],"refActorUseCastTime":true,"refActorCastTimeMin":6.0,"refActorCastTimeMax":8.7,"refActorComparisonType":6,"includeRotation":true,"RenderEngineKind":1},{"Name":"Mark","type":1,"radius":5.0,"fillIntensity":0.3,"refActorComparisonType":7,"refActorVFXPath":"vfx/lockon/eff/lockon5_line_1p.avfx","refActorVFXMax":5000}]}
 ```
+
+### [Script] [Beta] Hell in a Cell
+Configuration required. Please read the guide in the settings for more details.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Hell%20In%20a%20Cell.cs
+```

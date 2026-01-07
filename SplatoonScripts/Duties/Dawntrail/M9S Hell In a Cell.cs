@@ -125,7 +125,7 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
             ImGui.BulletText("Tower order is North → clockwise. Tower-side players #1–#4 take towers in that order");
             ImGui.BulletText("Spread is done by the non-tower group (the other 4 players)");
             ImGui.BulletText(
-                "For Spread: the #1 player of the spread-side group (in the 2nd set, MT #1) goes to the open gap (widest gap). That gap becomes 'North', then assignments go counterclockwise");
+                "For Spread: the #1 player of the spread-side group (in the 2nd set, MT #1) goes to the open gap (widest gap). That gap becomes 'North', then assignments go clockwise");
             ImGui.BulletText("If you want counter clockwise instead, uncheck 'Spread Clockwise From Wide Gap'");
 
             ImGui.Spacing();
@@ -320,7 +320,7 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
 
     private float ClockwiseDelta(float fromDeg, float toDeg)
     {
-        var d = C.SpreadClockwiseFromWide ? toDeg - fromDeg : fromDeg - toDeg;
+        var d = C.SpreadClockwiseFromWide ? fromDeg - toDeg : toDeg - fromDeg;
         if (d < 0f) d += 360f;
         return d;
     }

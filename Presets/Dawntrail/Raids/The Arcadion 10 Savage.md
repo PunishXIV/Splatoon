@@ -1,3 +1,8 @@
+[Script] [Beta] Insane Air
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M10S%20Insane%20Air.cs
+```
+
 Projection configuration preset
 ```
 ~Lv2~{"Name":"M10S Projection Configuration","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[],"BlacklistedProjectorActions":[46542,46540,46500],"ForcedProjectorActions":[46547,46587]}

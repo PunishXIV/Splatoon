@@ -2,6 +2,7 @@
 using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.ComponentModel;
+using System.Diagnostics.Contracts;
 
 namespace Splatoon;
 
@@ -69,6 +70,9 @@ public class Layout
     [Obsolete] public Dictionary<string, Element> Elements = []; //never delete
     public List<Trigger> Triggers = [];
     public List<Element> ElementsL = [];
+    public List<uint> BlacklistedProjectorActions = [];
+    public List<uint> ForcedProjectorActions = [];
+    [DefaultValue(null)] public bool? ProjectionState = null;
     [NonSerialized] internal FreezeInfo FreezeInfo = new();
 
     public bool IsVisible() => LastDisplayFrame == P.FrameCounter;
@@ -86,6 +90,8 @@ public class Layout
         return ElementsL;
     }
 
+    public bool ShouldSerializeBlacklistedProjectorActions() => BlacklistedProjectorActions.Count > 0;
+    public bool ShouldSerializeForcedProjectorActions() => ForcedProjectorActions.Count > 0;
     public bool ShouldSerializeJobLockH() => JobLockH.Count > 0;
     public bool ShouldSerializeInternationalDescription() => !InternationalDescription.IsEmpty();
     public bool ShouldSerializeInternationalName() => !InternationalName.IsEmpty();

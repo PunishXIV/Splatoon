@@ -1,10 +1,14 @@
 ﻿using Dalamud.Interface.Components;
+using ECommons.ExcelServices;
 using ECommons.LanguageHelpers;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Splatoon.ConfigGui;
 using Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
 using Splatoon.Gui.Layouts.Header.Sections;
 using Splatoon.Utility;
+using System.Runtime.CompilerServices;
+using Action = Lumina.Excel.Sheets.Action;
 
 namespace Splatoon;
 
@@ -198,6 +202,18 @@ internal partial class CGui
             ImGuiEx.RadioButtonBool("AND##mcc", "OR##mcc", ref layout.ConditionalAnd, true);
 
             ImGui.TableNextColumn();
+            ImGuiEx.TextV($"Projection Whitelist".Loc());
+            ImGuiEx.HelpMarker($"You can add actions into Projection Whitelist. They will be always drawn by Projection, regardless if it's enabled or not or regardless of any other condition. If action is in both blacklist and whitelist, it will be blacklisted. If action is in whitelist and blacklist of different layouts, it will be processed according to layout that is placed more down. ");
+            ImGui.TableNextColumn();
+            DrawActionListSelector("Whitelist", layout.ForcedProjectorActions);
+
+            ImGui.TableNextColumn();
+            ImGuiEx.TextV($"Projection Blacklist".Loc());
+            ImGuiEx.HelpMarker($"You can add actions into Projection Blacklist. They will never be drawn by Projection, regardless if it's enabled or not. If action is in both blacklist and whitelist, it will be blacklisted. If action is in whitelist and blacklist of different layouts, it will be processed according to layout that is placed more down. ");
+            ImGui.TableNextColumn();
+            DrawActionListSelector("Blacklist", layout.BlacklistedProjectorActions);
+
+            ImGui.TableNextColumn();
             ImGui.Checkbox("Freeze".Loc(), ref layout.Freezing);
             ImGuiComponents.HelpMarker(
 @"Freeze is an advanced setting that can have negative side effects.
@@ -259,5 +275,84 @@ New frozen elements are created every refreeze interval.".Loc());
 
         var i = layout.Name;
         var topCursorPos = ImGui.GetCursorPos();
+    }
+
+    static List<uint> ProjectableActions
+    {
+        get
+        {
+            if(field == null)
+            {
+                field = [];
+                foreach(var x in Svc.Data.GetExcelSheet<Action>())
+                {
+                    if(x.Name != "" && !x.IsPlayerAction && !x.IsPvP && x.Cast100ms > 0)
+                    {
+                        field.Add(x.RowId);
+                    } 
+                }
+            }
+            return field;
+        }
+    }
+
+    static void DrawActionListSelector(string id, List<uint> actions)
+    {
+        ImGui.PushID(id);
+        string preview;
+        if(actions.Count == 0)
+        {
+            preview = "No actions";
+        }
+        else
+        {
+            preview = actions.Take(3).Select(x => ExcelActionHelper.GetActionName(x, true)).Print(", ");
+            if(actions.Count > 3)
+            {
+                preview += $" (and {actions.Count - 3} more)";
+            }
+        }
+        ImGuiEx.SetNextItemFullWidth();
+        if(ImGui.BeginCombo("##ActionSelect", preview, ImGuiComboFlags.HeightLarge))
+        {
+            ImGui.SetNextItemWidth(200f);
+            ImGuiEx.FilteringInputTextWithHint($"##projsearch{id}", "Search...", out var filter);
+            ImGui.SameLine();
+            ImGuiEx.FilteringCheckbox($"Show currently projecting##{id}", out var onlyProj);
+            ImGui.SameLine();
+            ImGuiEx.FilteringCheckbox($"Show only selected##{id}", out var onlySel);
+
+            if(onlyProj)
+            {
+                foreach(var x in S.Projection.ProjectingItems)
+                {
+                    if(onlySel && !actions.Contains(x.Descriptor.Id)) continue;
+                    if(filter == "" || ExcelActionHelper.GetActionName(x.Descriptor.Id, true).Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if(ImGui.Selectable(ExcelActionHelper.GetActionName(x.Descriptor.Id, true), actions.Contains(x.Descriptor.Id), ImGuiSelectableFlags.DontClosePopups))
+                        {
+                            actions.Toggle(x.Descriptor.Id);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach(var x in ProjectableActions)
+                {
+                    if(onlySel && !actions.Contains(x)) continue;
+                    if(filter == "" || ExcelActionHelper.GetActionName(x, true).Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if(ImGui.Selectable(ExcelActionHelper.GetActionName(x, true), actions.Contains(x), ImGuiSelectableFlags.DontClosePopups))
+                        {
+                            actions.Toggle(x);
+                        }
+                    }
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+        ImGui.PopID();
     }
 }

@@ -1,5 +1,8 @@
-﻿using System;
+﻿using FFXIVClientStructs;
+using Splatoon.Data;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -12,12 +15,16 @@ public struct PacketActorCast
     public ushort ActionID;
 
     [FieldOffset(2)]
-    public byte SkillType;
+    public byte ActionType;
+
+    public readonly ActionDescriptor ActionDescriptor => new(this);
 
     [FieldOffset(3)]
+    [Obsolete("Unknown")]
     public byte Unknown;
 
     [FieldOffset(4)]
+    [Obsolete("Unknown")]
     public uint Unknown1; // also action ID
 
     [FieldOffset(8)]
@@ -32,6 +39,7 @@ public struct PacketActorCast
     public readonly float RotationRadians => ((Rotation * 0.0095875263f) * 0.0099999998f) - MathF.PI;
 
     [FieldOffset(20)]
+    [Obsolete("Unknown")]
     public uint Unknown2;
 
     [FieldOffset(24)]
@@ -44,5 +52,6 @@ public struct PacketActorCast
     public ushort PosZ;
 
     [FieldOffset(30)]
+    [Obsolete("Unknown")]
     public ushort Unknown3;
 }

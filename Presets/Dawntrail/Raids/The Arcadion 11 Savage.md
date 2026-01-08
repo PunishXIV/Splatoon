@@ -1,5 +1,10 @@
 > [!Warning]
-> Early strats. Will change rapidly. 
+> Early strats. Will change rapidly.
+
+Projection declutter preset. Removes already telegraphed AOEs from projection.
+```
+~Lv2~{"Name":"M11S - Projection declutter","Group":"M11S (2)","ZoneLockH":[1325],"ElementsL":[],"BlacklistedProjectorActions":[46116,46099,46101,46100,46126,46145]}
+```
 
 > [!Important]
 >

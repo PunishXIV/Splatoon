@@ -1,3 +1,7 @@
+> [!Warning]
+> Early strats. Will change rapidly.
+
+
 [Script] [Beta] Insane Air
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M10S%20Insane%20Air.cs

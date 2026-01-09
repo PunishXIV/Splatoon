@@ -16,7 +16,7 @@ public class M12S_Bloodshed : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1327];
 
-    public override Metadata? Metadata => new(4, "Errer");
+    public override Metadata? Metadata => new(5, "Errer");
 
     #region 常量
 
@@ -27,7 +27,7 @@ public class M12S_Bloodshed : SplatoonScript
     private const uint RightKnockback = 0xB4CE;  // 46286 右击退
     private const uint LeftPoison = 0xB4CB;      // 46283 左喷毒
     private const uint RightPoison = 0xB4CD;     // 46285 右喷毒
-    private const uint TriggerCastId = 0xB4DB;   // 46299 启动读条
+    private const uint TriggerCastId = 0xB495;   // 46229 启动读条
 
     #endregion
 
@@ -128,7 +128,6 @@ public class M12S_Bloodshed : SplatoonScript
     public override void OnStartingCast(uint source, uint castId)
     {
         if (castId != TriggerCastId) return;
-        if (source.GetObject() is not IBattleNpc npc || npc.BaseId != BossDataId) return;
 
         _triggerCastCount++;
         if (_triggerCastCount >= 2)

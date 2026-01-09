@@ -152,7 +152,7 @@ internal class Projection : IDisposable
                     var rotation = 0f;
                     if(LastCast.TryGetValue(b.ObjectId, out var list) && list.TryGetValue(new(b.CastActionType, b.CastActionId), out var packet) && packet.ActionType == b.CastActionType)
                     {
-                        rotation = 180 + packet.RotationRadians.RadToDeg();
+                        rotation = 180 + packet.Rotation.RadToDeg();
                         element.RotationOverrideAddAngle = rotation;
                         element.RotationOverrideAngleOnlyMode = true;
                         element.RotationOverride = true;

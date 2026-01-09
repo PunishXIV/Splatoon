@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using Reloaded.Hooks.Definitions.Structs;
 using Splatoon.Gui.Scripting;
+using Splatoon.Memory;
 using System.Diagnostics.CodeAnalysis;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
 
@@ -138,6 +139,13 @@ public abstract class SplatoonScript
     /// <param name="source">Object ID that is source by VFX.</param>
     /// <param name="castId">ID of cast action.</param>
     public virtual void OnStartingCast(uint source, uint castId) { }
+
+    /// <summary>
+    /// Will be called when a hostile object starts casting. This method will only be called if a script is enabled.
+    /// </summary>
+    /// <param name="sourceId">Source entity id</param>
+    /// <param name="packet">Packet</param>
+    public virtual unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet) { }
 
     /// <summary>
     /// Will be called whenever plugin processes a message. These are the same messages which layout trigger system receives. This method will only be called if a script is enabled.

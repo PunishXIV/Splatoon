@@ -16,6 +16,16 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Flame%20Breath.cs
 ```
 
+[Script] [Beta] Meteorain - requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Meteorain.cs
+```
+
+[Script] [Beta] Majestic Meteor - requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Majestic%20Meteor.cs
+```
+
 > [!Important]
 >
 > These presets are contributed by Tetora and are only partially translated. Please check this page later again. 

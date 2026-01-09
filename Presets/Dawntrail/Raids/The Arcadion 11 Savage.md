@@ -6,6 +6,11 @@ Projection declutter preset. Removes already telegraphed AOEs from projection.
 ~Lv2~{"Name":"M11S - Projection declutter","Group":"M11S (2)","ZoneLockH":[1325],"ElementsL":[],"BlacklistedProjectorActions":[46116,46099,46101,46100,46126,46145]}
 ```
 
+[Script] [Beta] Weapons precise positions - requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Weapons.cs
+```
+
 [Script] [Beta] Flame breath
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Flame%20Breath.cs

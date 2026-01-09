@@ -49,6 +49,7 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
     private ResolveKind _resolveKind = ResolveKind.None;
 
     private State _state = State.None;
+    private int _narrowGapIndex;
 
     private IPlayerCharacter BasePlayer
     {
@@ -65,7 +66,7 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
         }
     }
 
-    public override Metadata Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
     public override HashSet<uint>? ValidTerritories => [1321];
 
     private Config C => Controller.GetConfig<Config>();
@@ -88,6 +89,9 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
     {
         C.PriorityData.Draw();
 
+        ImGui.Checkbox("Spread Clockwise From Wide Gap", ref C.SpreadClockwiseFromWide);
+        ImGui.Checkbox("Tower Order: narrow-gap base (2-3-4-1)", ref C.UseNarrowGapTowerOrder);
+        
         ImGui.Text("Bait Color:");
         ImGuiComponents.HelpMarker(
             "Change the color of the bait and the text that will be displayed on your bait.\nSetting different values makes it rainbow.");
@@ -106,12 +110,14 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
             ImGui.BulletText("1回目（前半）は MT組が塔、2回目（後半）は ST組が塔");
             ImGui.BulletText("塔の割り当ては「北→時計回り」。塔担当4人の 1〜4番がその順で入ります");
             ImGui.BulletText("散開（Spread）は「塔に入っていない側の4人」が動きます");
-            ImGui.BulletText("散開側の1番目（後半ならMT組1番目）が『空き（いちばん広い塔間）』に入り、そこを北として反時計回りに割り当てます");
+            ImGui.BulletText("散開側の1番目（後半ならMT組1番目）が『空き（いちばん広い塔間）』に入り、そこを北として時計回りに割り当てます");
+            ImGui.BulletText("反時計回りにしたい場合はSpread Clockwise From Wide Gapのチェックを外してください");
+            ImGui.BulletText("間隔が狭い塔を北にして時計回りに 2,3,4,1 としたい場合は、Tower Order: narrow-gap base (2-3-4-1)にチェックを付けてください。");
 
             ImGui.Spacing();
             ImGui.TextWrapped("Debugの Player override は「このプレイヤーを自分として表示する」機能です。自分が動かなくても他人の表示を確認できます。");
         }
-        
+
         if (ImGuiEx.CollapsingHeader("PriorityList Guide (EN)"))
         {
             ImGui.TextWrapped("This script uses the Priority List (PriorityData) order to assign roles/positions.");
@@ -122,7 +128,10 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
             ImGui.BulletText("Tower order is North → clockwise. Tower-side players #1–#4 take towers in that order");
             ImGui.BulletText("Spread is done by the non-tower group (the other 4 players)");
             ImGui.BulletText(
-                "For Spread: the #1 player of the spread-side group (in the 2nd set, MT #1) goes to the open gap (widest gap). That gap becomes 'North', then assignments go counterclockwise");
+                "For Spread: the #1 player of the spread-side group (in the 2nd set, MT #1) goes to the open gap (widest gap). That gap becomes 'North', then assignments go clockwise");
+            ImGui.BulletText("If you want counter clockwise instead, uncheck 'Spread Clockwise From Wide Gap'");
+            ImGui.BulletText(
+                "If you want to treat the narrowest tower gap as 'North' and assign towers clockwise as 2,3,4,1, check Tower Order: narrow-gap base (2-3-4-1)");
 
             ImGui.Spacing();
             ImGui.TextWrapped("Debug 'Player override' means: treat the selected player as 'you' for marker output.");
@@ -237,13 +246,13 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
         {
             if (firstTowerHolders && isMtGroup)
             {
-                ShowGo(go, _sortedTowers[myIndex]);
+                ShowGo(go, _sortedTowers[TowerIdx(myIndex)]);
                 return;
             }
 
             if (secondTowerHolders && isStGroup)
             {
-                ShowGo(go, _sortedTowers[myIndex - 4]);
+                ShowGo(go, _sortedTowers[TowerIdx(myIndex - 4)]);
                 return;
             }
         }
@@ -258,12 +267,12 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
 
             if (towerGroupIsMt)
             {
-                var pos = isMtGroup ? _sortedTowers[myIndex] : _gaps[myIndex - 4].MidPoint;
+                var pos = isMtGroup ? _sortedTowers[TowerIdx(myIndex)] : _gaps[myIndex - 4].MidPoint;
                 ShowGo(go, pos);
             }
             else
             {
-                var pos = isStGroup ? _sortedTowers[i4] : _gaps[myIndex].MidPoint;
+                var pos = isStGroup ? _sortedTowers[TowerIdx(i4)] : _gaps[myIndex].MidPoint;
                 ShowGo(go, pos);
             }
 
@@ -302,25 +311,21 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
         Vector2 myPos;
 
         if (_resolveKind == ResolveKind.Stack)
-        {
             myPos = tankPos;
-        }
         else
-        {
             myPos = rel switch
             {
                 0 => tankPos,
                 1 or 2 => northGap.MidPoint,
                 _ => nextGap.MidPoint
             };
-        }
 
         ShowGo(go, myPos);
     }
 
-    private static float ClockwiseDelta(float fromDeg, float toDeg)
+    private float ClockwiseDelta(float fromDeg, float toDeg)
     {
-        var d = toDeg - fromDeg;
+        var d = C.SpreadClockwiseFromWide ? fromDeg - toDeg : toDeg - fromDeg;
         if (d < 0f) d += 360f;
         return d;
     }
@@ -371,6 +376,14 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
 
         _sortedTowers.AddRange(towers);
         _gaps.AddRange(BuildGaps(_sortedTowers));
+        _narrowGapIndex = _gaps.OrderBy(g => g.SizeDeg).First().Index;
+    }
+    
+    private int TowerIdx(int role)
+    {
+        if (!C.UseNarrowGapTowerOrder) return role;
+        var off = role switch { 0 => 3, 1 => 0, 2 => 1, 3 => 2, _ => 0 };
+        return (_narrowGapIndex + off) % 4;
     }
 
     private static Vector2 ToXz(Vector3 v)
@@ -448,6 +461,8 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public PriorityData PriorityData = new();
+        public bool SpreadClockwiseFromWide = true;
+        public bool UseNarrowGapTowerOrder = false;
     }
 
     private class Gap

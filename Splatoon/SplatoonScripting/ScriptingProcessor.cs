@@ -8,6 +8,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon.Gui.Scripting;
+using Splatoon.Memory;
 using Splatoon.Modules;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -794,6 +795,21 @@ internal unsafe static partial class ScriptingProcessor
                 P.ChatMessageQueue.Enqueue(text);
                 if(P.Config.Logging) Logger.Log(text);
                 P.LogWindow.Log(text);
+            }
+        }
+    }
+
+    internal static void OnStartingCast(uint sourceId, PacketActorCast* packet)
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnStartingCast(sourceId, packet);
+                }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnStartingCast)); }
             }
         }
     }

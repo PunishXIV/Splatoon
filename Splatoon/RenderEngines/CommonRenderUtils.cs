@@ -22,7 +22,6 @@ public static unsafe class CommonRenderUtils
     internal static string ProcessPlaceholders(this string s, IGameObject go)
     {
         var ret = s
-        .Replace("$NAME", go.Name.ToString())
         .Replace("$OBJECTID", $"{go.EntityId.Format()}")
         .Replace("$DATAID", $"{go.DataId.Format()}")
         .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
@@ -35,8 +34,9 @@ public static unsafe class CommonRenderUtils
         if(go is IBattleChara chr)
         {
             ret = ret
-            .Replace("$MODELID", $"{chr.Struct()->ModelContainer.ModelCharaId.Format()}")
+            .Replace("$MODELID", $"{chr.ModelId.Format()}")
             .Replace("$NAMEID", $"{chr.NameId.Format()}")
+            .Replace("$STLP", $"{chr.StatusLoop.Format()}")
             .Replace("$TETHER", $"{chr.Struct()->Vfx.Tethers.ToArray().Where(x => x.Id != 0).Select(x => $"{x.Id}").Print(",")}")
             .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
             if(ret.Contains("$STREM:"))
@@ -91,6 +91,8 @@ public static unsafe class CommonRenderUtils
                 ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "");
             }
         }
+        ret = ret
+            .Replace("$NAME", go.Name.ToString());
         return ret;
     }
 

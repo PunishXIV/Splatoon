@@ -16,7 +16,7 @@ public class M12S_Bloodshed : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1327];
 
-    public override Metadata? Metadata => new(2, "Errer");
+    public override Metadata? Metadata => new(4, "Errer");
 
     #region 常量
 
@@ -27,6 +27,7 @@ public class M12S_Bloodshed : SplatoonScript
     private const uint RightKnockback = 0xB4CE;  // 46286 右击退
     private const uint LeftPoison = 0xB4CB;      // 46283 左喷毒
     private const uint RightPoison = 0xB4CD;     // 46285 右喷毒
+    private const uint TriggerCastId = 0xB4DB;   // 46299 启动读条
 
     #endregion
 
@@ -37,6 +38,8 @@ public class M12S_Bloodshed : SplatoonScript
     private record struct MechanicState(MechanicType Type, long TriggerTime, bool IsSecond);
 
     private readonly List<MechanicState> _activeMechanics = new();
+    private int _triggerCastCount = 0;
+    private bool _isActive = false;
 
     #endregion
 
@@ -122,8 +125,22 @@ public class M12S_Bloodshed : SplatoonScript
         });
     }
 
+    public override void OnStartingCast(uint source, uint castId)
+    {
+        if (castId != TriggerCastId) return;
+        if (source.GetObject() is not IBattleNpc npc || npc.BaseId != BossDataId) return;
+
+        _triggerCastCount++;
+        if (_triggerCastCount >= 2)
+        {
+            _isActive = true;
+        }
+    }
+
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
+        if (!_isActive) return;
+
         if (set.Source is not IBattleNpc npc || npc.BaseId != BossDataId)
             return;
 
@@ -254,6 +271,8 @@ public class M12S_Bloodshed : SplatoonScript
     public override void OnReset()
     {
         _activeMechanics.Clear();
+        _triggerCastCount = 0;
+        _isActive = false;
     }
 
     #endregion
@@ -315,6 +334,8 @@ public class M12S_Bloodshed : SplatoonScript
         // 调试信息
         if (ImGui.CollapsingHeader("调试信息"))
         {
+            ImGuiEx.Text($"脚本激活: {_isActive}");
+            ImGuiEx.Text($"触发读条次数: {_triggerCastCount}/2");
             ImGuiEx.Text($"活跃机制数: {_activeMechanics.Count}");
             var now = Environment.TickCount64;
             foreach (var mechanic in _activeMechanics)
@@ -329,6 +350,7 @@ public class M12S_Bloodshed : SplatoonScript
 
             ImGui.Separator();
             ImGui.Text("技能ID对照:");
+            ImGui.Text($"  触发读条: 0xB4DB ({TriggerCastId})");
             ImGui.Text($"  左喷毒: 0xB4CB ({LeftPoison})");
             ImGui.Text($"  右喷毒: 0xB4CD ({RightPoison})");
             ImGui.Text($"  左击退: 0xB4CC ({LeftKnockback})");

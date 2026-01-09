@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 #pragma warning disable
 public class M11S_Weapons : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
 
     public enum Weapons : uint
@@ -51,9 +51,10 @@ public class M11S_Weapons : SplatoonScript
         int i = 0;
         foreach(var x in Enum.GetValues<Protean>())
         {
-            Controller.RegisterElementFromCode($"Donut_Scythe{x}", $$"""
-                {"Name":"","type":1,"offY":4.0,"radius":0.5,"Donut":0.2,"color":3356884736,"fillIntensity":0.5,"thicc":5.0,"refActorDataID":19185,"refActorComparisonType":2,"includeRotation":true,"onlyVisible":true,"tether":true,"AdditionalRotation":{{i.DegreesToRadians():F2}}}
+            var e = Controller.RegisterElementFromCode($"Donut_Scythe{x}", $$"""
+                {"Name":"","type":1,"offY":4.0,"radius":0.5,"Donut":0.2,"color":3356884736,"fillIntensity":0.5,"thicc":5.0,"refActorDataID":19185,"refActorComparisonType":2,"includeRotation":true,"onlyVisible":true,"tether":true}
                 """);
+            e.AdditionalRotation = i.DegreesToRadians();
             i += 45;
         }
 

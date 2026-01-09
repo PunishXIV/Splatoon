@@ -9,6 +9,10 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
+using ECommons.Hooks.ActionEffectTypes;
+using ECommons.MathHelpers;
+using ECommons.Throttlers;
+using ECommons.GameHelpers;
 using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -19,23 +23,34 @@ public class M11S_Flame_Breath : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1325];
 
-    public override Metadata? Metadata => new(9, "Errer");
+    public override Metadata? Metadata => new(10, "Errer,slvrky");
 
     #region 常量
 
-    // 火焰吐息相关
+    // 技能ID
+    private const uint TriggerCastId = 46143;   // Flatliner - 机制触发
+    private const uint MeteorCastId = 46145;    // Meteor - 陨石落下
+    private const uint MeteorLineId = 46146;    // MeteorLine - 传送门直线
+    private const uint MeteorWrathId = 46147;   // MeteorWrath - 陨石愤怒(线连)
+    private const uint FireBreathId = 46151;    // FireBreath - 火焰吐息
+
+    // Boss DataID
     private const uint BossDataId = 19180;
-    private const uint TriggerCastId = 46143;  // 触发读条ID
+
+    // VFX
     private const string MarkerVfx = "vfx/lockon/eff/lockon8_t0w.avfx";
 
-    // 传送门直线 MapEffect位置对应的直线X坐标
-    // 22=正左(X=79), 23=正右(X=89), 24=正上(X=111), 25=正下(X=121)
-    private static readonly Dictionary<uint, float> MapEffectToX = new()
+    // 线连ID
+    private const uint TetherDanger = 57;
+    private const uint TetherSafe = 249;
+
+    // 传送门直线 MapEffect位置对应的直线坐标
+    private static readonly Dictionary<uint, Vector2> MapEffectToPos = new()
     {
-        { 22, 79f },   // 正左
-        { 23, 89f },   // 左2
-        { 24, 111f },  // 右1
-        { 25, 121f },  // 右2
+        { 22, new(79f, 75f) },   // 正左
+        { 23, new(89f, 75f) },   // 左2
+        { 24, new(111f, 75f) },  // 右1
+        { 25, new(121f, 75f) },  // 右2
     };
 
     #endregion
@@ -43,16 +58,23 @@ public class M11S_Flame_Breath : SplatoonScript
     #region 状态变量
 
     // 公共状态
-    private bool _isCasting = false;  // 是否已触发读条46143
+    private bool _isMechanicActive = false;
+    private int _meteorCastCount = 0;
+    private int _meteorEndCount = 0;
+    private int _completeCount = 0;
 
     // 火焰吐息状态 (VFX标记)
-    private readonly HashSet<uint> _markedPlayers = new();
-    private long _vfxTime = 0;
-    private bool _vfxActive = false;
+    private readonly List<IPlayerCharacter> _fireBreathTargets = new();
 
     // 传送门直线状态 (MapEffect)
-    private long _mapEffectTime = 0;
-    private readonly HashSet<uint> _activeMapEffects = new();
+    private readonly List<Vector2> _meteorLinePositions = new();
+
+    // 线连状态 (Tether)
+    private record struct TetherInfo(IGameObject Source, IGameObject Target, bool IsDanger);
+    private readonly List<TetherInfo> _meteorWrathTethers = new();
+
+    // 是否达到3次陨石（即将生效）
+    private bool IsMechanicIncoming => _meteorCastCount >= 3;
 
     #endregion
 
@@ -65,19 +87,24 @@ public class M11S_Flame_Breath : SplatoonScript
         // 火焰吐息配置
         public float BreathLineWidth = 3.0f;
         public float BreathLineLength = 30.0f;
-        public int BreathDelayMs = 5000;
-        public int BreathDurationMs = 3700;
-        public float BreathFillIntensity = 0.35f;
-        public float BreathLineThickness = 3.0f;
-        public uint BreathLineColor = 0xC8FF0000;
+        public float BreathFillIntensity = 0.125f;
+        public float BreathLineThickness = 1.0f;
 
         // 传送门直线配置
         public float PortalLineWidth = 5.0f;
-        public int PortalDelayMs = 23000;
-        public int PortalDurationMs = 5000;
-        public float PortalFillIntensity = 0.35f;
-        public float PortalLineThickness = 3.0f;
-        public uint PortalLineColor = 0xC8FF0000;
+        public float PortalFillIntensity = 0.1f;
+        public float PortalLineThickness = 1.0f;
+
+        // 线连扇形配置
+        public float WrathRadius = 5.0f;
+        public float WrathLength = 75.0f;
+        public float WrathFillIntensity = 0.125f;
+        public float WrathLineThickness = 1.0f;
+
+        // 颜色配置
+        public uint ColorSelf = 0xFF00FF00;      // 绿色 - 自己
+        public uint ColorOther = 0xFF0000FF;     // 红色 - 他人
+        public uint ColorPending = 0xFF00A5FF;   // 橙色 - 等待中
     }
 
     #endregion
@@ -86,28 +113,44 @@ public class M11S_Flame_Breath : SplatoonScript
 
     public override void OnSetup()
     {
-        // 注册火焰吐息直线元素 (4个)
+        // 注册火焰吐息扇形元素 (4个) - type=3 扇形
         for (int i = 0; i < 4; i++)
         {
-            Controller.RegisterElement($"Breath_{i}", new Element(2)
+            Controller.RegisterElement($"Breath_{i}", new Element(3)
             {
                 radius = C.BreathLineWidth,
+                offY = C.BreathLineLength,
                 thicc = C.BreathLineThickness,
-                Filled = true,
                 fillIntensity = C.BreathFillIntensity,
+                includeRotation = true,
+                refActorComparisonType = 2,
                 Enabled = false,
             });
         }
 
-        // 注册传送门直线元素 (4个)
-        for (int i = 0; i < 4; i++)
+        // 注册传送门直线元素 (2个) - type=2 直线
+        for (int i = 0; i < 2; i++)
         {
             Controller.RegisterElement($"Portal_{i}", new Element(2)
             {
                 radius = C.PortalLineWidth,
                 thicc = C.PortalLineThickness,
-                Filled = true,
                 fillIntensity = C.PortalFillIntensity,
+                Enabled = false,
+            });
+        }
+
+        // 注册线连扇形元素 (4个) - type=3 扇形
+        for (int i = 0; i < 4; i++)
+        {
+            Controller.RegisterElement($"Wrath_{i}", new Element(3)
+            {
+                radius = C.WrathRadius,
+                offY = C.WrathLength,
+                thicc = C.WrathLineThickness,
+                fillIntensity = C.WrathFillIntensity,
+                includeRotation = true,
+                refActorComparisonType = 2,
                 Enabled = false,
             });
         }
@@ -115,203 +158,202 @@ public class M11S_Flame_Breath : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if (castId != TriggerCastId) return;
-        _isCasting = true;
+        if (castId == TriggerCastId)
+        {
+            _isMechanicActive = true;
+            return;
+        }
+
+        if (!_isMechanicActive) return;
+
+        if (castId == MeteorCastId)
+        {
+            if (!EzThrottler.Throttle("M11S_Meteor_Cast", 100)) return;
+            _meteorCastCount++;
+        }
+    }
+
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if (!_isMechanicActive) return;
+        if (set.Action == null) return;
+
+        var actionId = set.Action.Value.RowId;
+
+        switch (actionId)
+        {
+            case MeteorLineId:
+                _meteorLinePositions.Clear();
+                break;
+
+            case MeteorWrathId:
+                _meteorWrathTethers.Clear();
+                break;
+
+            case FireBreathId:
+                _fireBreathTargets.Clear();
+                break;
+
+            case MeteorCastId:
+                if (!EzThrottler.Throttle("M11S_Meteor_End", 100)) return;
+                _meteorEndCount++;
+                if (_meteorEndCount == 3)
+                {
+                    _completeCount++;
+                    if (_completeCount >= 2)
+                        OnReset();
+                    else
+                        ResetState();
+                }
+                break;
+        }
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        // 只有在读条46143后才监听VFX
-        if (!_isCasting) return;
+        if (!_isMechanicActive) return;
         if (vfxPath != MarkerVfx) return;
 
-        // 验证目标是玩家
-        if (target.GetObject() is not IPlayerCharacter player) return;
-
-        // 记录被点名玩家
-        _markedPlayers.Add(player.EntityId);
-
-        // 首次检测到VFX时记录时间并激活
-        if (!_vfxActive)
+        if (target.GetObject() is IPlayerCharacter player)
         {
-            _vfxActive = true;
-            _vfxTime = Environment.TickCount64;
+            _fireBreathTargets.Add(player);
         }
     }
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        // 只有在读条46143后才监听MapEffect
-        if (!_isCasting) return;
+        if (!_isMechanicActive) return;
 
-        // 检查是否是我们关心的MapEffect位置 (22, 23, 24, 25)
-        if (!MapEffectToX.ContainsKey(position)) return;
-
-        // data1=1, data2=2 表示激活
-        if (data1 == 1 && data2 == 2)
+        if (position is >= 22 and <= 25 && data1 == 1 && MapEffectToPos.TryGetValue(position, out var pos))
         {
-            // 首次检测到MapEffect时记录时间
-            if (_activeMapEffects.Count == 0)
-            {
-                _mapEffectTime = Environment.TickCount64;
-            }
-            _activeMapEffects.Add(position);
+            _meteorLinePositions.Add(pos);
         }
+    }
+
+    public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
+    {
+        if (!_isMechanicActive) return;
+
+        // 检查是否是我们关心的线连类型
+        if (data3 != TetherDanger && data3 != TetherSafe) return;
+
+        if (!source.TryGetObject(out var sourceObj) || !target.TryGetObject(out var targetObj))
+            return;
+
+        _meteorWrathTethers.Add(new TetherInfo(sourceObj, targetObj, data3 == TetherDanger));
+    }
+
+    public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
+    {
+        if (!_isMechanicActive) return;
+
+        _meteorWrathTethers.RemoveAll(x => x.Source.EntityId == source);
     }
 
     public override void OnUpdate()
     {
-        // 隐藏所有元素（默认状态）
-        for (int i = 0; i < 4; i++)
-        {
-            if (Controller.TryGetElementByName($"Breath_{i}", out var breath))
-                breath.Enabled = false;
-            if (Controller.TryGetElementByName($"Portal_{i}", out var portal))
-                portal.Enabled = false;
-        }
+        // 隐藏所有元素
+        Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
 
-        // 更新火焰吐息绘制
-        UpdateBreathLines();
+        if (!_isMechanicActive) return;
 
-        // 更新传送门直线绘制
-        UpdatePortalLines();
+        DrawPortalLines();
+        DrawWrathAoE();
+        DrawFireBreathAoE();
     }
 
-    private void UpdateBreathLines()
+    private void DrawPortalLines()
     {
-        if (!_vfxActive || _markedPlayers.Count == 0) return;
-
-        var now = Environment.TickCount64;
-        var elapsed = now - _vfxTime;
-
-        // 延迟期间不绘制
-        if (elapsed < C.BreathDelayMs) return;
-
-        // 超过持续时间后清除本轮
-        if (elapsed > C.BreathDelayMs + C.BreathDurationMs)
+        int i = 0;
+        foreach (var pos in _meteorLinePositions)
         {
-            ClearBreathRound();
-            return;
-        }
+            if (i >= 2) break;
 
-        // 获取Boss
+            if (Controller.TryGetElementByName($"Portal_{i}", out var line))
+            {
+                line.Enabled = true;
+                line.refX = pos.X;
+                line.refY = pos.Y;
+                line.offX = pos.X;
+                line.offY = pos.Y + 50f;
+
+                // 即将生效时变红，否则橙色
+                line.color = IsMechanicIncoming ? C.ColorOther : C.ColorPending;
+                line.fillIntensity = IsMechanicIncoming ? 0.2f : C.PortalFillIntensity;
+            }
+            i++;
+        }
+    }
+
+    private void DrawWrathAoE()
+    {
+        if (!IsMechanicIncoming) return;
+
+        int i = 0;
+        foreach (var tether in _meteorWrathTethers)
+        {
+            if (i >= 4) break;
+
+            if (Controller.TryGetElementByName($"Wrath_{i}", out var e))
+            {
+                e.Enabled = true;
+                e.refActorObjectID = tether.Source.EntityId;
+                e.AdditionalRotation = GetRelativeAngle(tether.Source.Position.ToVector2(), tether.Target.Position.ToVector2()) + tether.Source.Rotation;
+
+                // 自己的绿色，他人的红色
+                e.color = tether.Target == Player.Object ? C.ColorSelf : C.ColorOther;
+            }
+            i++;
+        }
+    }
+
+    private void DrawFireBreathAoE()
+    {
+        if (!IsMechanicIncoming) return;
+
         var boss = Svc.Objects.OfType<IBattleNpc>()
-            .FirstOrDefault(x => x.BaseId == BossDataId && x.IsTargetable);
+            .FirstOrDefault(x => x.BaseId == BossDataId);
         if (boss == null) return;
 
-        // 绘制直线AOE
-        int index = 0;
-        foreach (var entityId in _markedPlayers)
+        int i = 0;
+        foreach (var target in _fireBreathTargets)
         {
-            if (index >= 4) break;
+            if (i >= 4) break;
 
-            var player = Svc.Objects.FirstOrDefault(x => x.EntityId == entityId);
-            if (player == null) continue;
-
-            if (Controller.TryGetElementByName($"Breath_{index}", out var line))
+            if (Controller.TryGetElementByName($"Breath_{i}", out var e))
             {
-                // 计算从Boss到玩家的方向，并延长到指定长度
-                var direction = Vector3.Normalize(player.Position - boss.Position);
-                var endPosition = boss.Position + direction * C.BreathLineLength;
+                e.Enabled = true;
+                e.refActorObjectID = boss.EntityId;
+                e.AdditionalRotation = GetRelativeAngle(boss.Position.ToVector2(), target.Position.ToVector2()) + boss.Rotation;
 
-                line.SetRefPosition(boss.Position);
-                line.SetOffPosition(endPosition);
-                line.color = C.BreathLineColor;
-                line.radius = C.BreathLineWidth;
-                line.fillIntensity = C.BreathFillIntensity;
-                line.thicc = C.BreathLineThickness;
-                line.Enabled = true;
+                // 自己的绿色，他人的红色
+                e.color = target == Player.Object ? C.ColorSelf : C.ColorOther;
             }
-            index++;
-        }
-    }
-
-    private void UpdatePortalLines()
-    {
-        if (_activeMapEffects.Count == 0) return;
-
-        var now = Environment.TickCount64;
-        var elapsed = now - _mapEffectTime;
-
-        // 延迟期间不绘制
-        if (elapsed < C.PortalDelayMs) return;
-
-        // 超过持续时间后清除本轮
-        if (elapsed > C.PortalDelayMs + C.PortalDurationMs)
-        {
-            ClearPortalRound();
-            return;
-        }
-
-        // 绘制直线AOE
-        int index = 0;
-        foreach (var position in _activeMapEffects)
-        {
-            if (index >= 4) break;
-            if (!MapEffectToX.TryGetValue(position, out var xPos)) continue;
-
-            if (Controller.TryGetElementByName($"Portal_{index}", out var line))
-            {
-                // 绘制南北方向的直线 (Y从80到120)
-                line.SetRefPosition(new Vector3(xPos, 0, 80f));
-                line.SetOffPosition(new Vector3(xPos, 0, 120f));
-                line.color = C.PortalLineColor;
-                line.radius = C.PortalLineWidth;
-                line.fillIntensity = C.PortalFillIntensity;
-                line.thicc = C.PortalLineThickness;
-                line.Enabled = true;
-            }
-            index++;
+            i++;
         }
     }
 
     public override void OnReset()
     {
-        _isCasting = false;
-
-        // 重置火焰吐息
-        _markedPlayers.Clear();
-        _vfxTime = 0;
-        _vfxActive = false;
-
-        // 重置传送门直线
-        _mapEffectTime = 0;
-        _activeMapEffects.Clear();
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (Controller.TryGetElementByName($"Breath_{i}", out var breath))
-                breath.Enabled = false;
-            if (Controller.TryGetElementByName($"Portal_{i}", out var portal))
-                portal.Enabled = false;
-        }
+        _isMechanicActive = false;
+        _completeCount = 0;
+        ResetState();
     }
 
-    private void ClearBreathRound()
+    private void ResetState()
     {
-        _markedPlayers.Clear();
-        _vfxTime = 0;
-        _vfxActive = false;
-        // 不重置 _isCasting，继续监听
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (Controller.TryGetElementByName($"Breath_{i}", out var line))
-                line.Enabled = false;
-        }
+        _fireBreathTargets.Clear();
+        _meteorLinePositions.Clear();
+        _meteorWrathTethers.Clear();
+        _meteorCastCount = 0;
+        _meteorEndCount = 0;
     }
 
-    private void ClearPortalRound()
+    private static float GetRelativeAngle(Vector2 origin, Vector2 target)
     {
-        _mapEffectTime = 0;
-        _activeMapEffects.Clear();
-        // 不重置 _isCasting，继续监听
-
-        for (int i = 0; i < 4; i++)
-        {
-            if (Controller.TryGetElementByName($"Portal_{i}", out var line))
-                line.Enabled = false;
-        }
+        var vector2 = target - origin;
+        var vector1 = new Vector2(0, 1);
+        return MathF.Atan2(vector2.Y, vector2.X) - MathF.Atan2(vector1.Y, vector1.X);
     }
 
     #endregion
@@ -328,20 +370,8 @@ public class M11S_Flame_Breath : SplatoonScript
             C.BreathLineWidth = breathWidth;
 
         var breathLength = C.BreathLineLength;
-        if (ImGui.SliderFloat("直线长度##breath", ref breathLength, 10f, 50f))
+        if (ImGui.SliderFloat("直线长度##breath", ref breathLength, 10f, 100f))
             C.BreathLineLength = breathLength;
-
-        var breathDelay = C.BreathDelayMs;
-        if (ImGui.SliderInt("延迟绘制(ms)##breath", ref breathDelay, 0, 10000))
-            C.BreathDelayMs = breathDelay;
-
-        var breathDuration = C.BreathDurationMs;
-        if (ImGui.SliderInt("持续时间(ms)##breath", ref breathDuration, 1000, 10000))
-            C.BreathDurationMs = breathDuration;
-
-        var breathColor = ImGuiEx.Vector4FromRGBA(C.BreathLineColor);
-        if (ImGui.ColorEdit4("直线颜色##breath", ref breathColor))
-            C.BreathLineColor = breathColor.ToUint();
 
         ImGui.Separator();
 
@@ -352,17 +382,35 @@ public class M11S_Flame_Breath : SplatoonScript
         if (ImGui.SliderFloat("直线宽度##portal", ref portalWidth, 1f, 15f))
             C.PortalLineWidth = portalWidth;
 
-        var portalDelay = C.PortalDelayMs;
-        if (ImGui.SliderInt("延迟绘制(ms)##portal", ref portalDelay, 0, 30000))
-            C.PortalDelayMs = portalDelay;
+        ImGui.Separator();
 
-        var portalDuration = C.PortalDurationMs;
-        if (ImGui.SliderInt("持续时间(ms)##portal", ref portalDuration, 1000, 10000))
-            C.PortalDurationMs = portalDuration;
+        // === 线连扇形设置 ===
+        ImGui.Text("=== 陨石愤怒 (线连) ===");
 
-        var portalColor = ImGuiEx.Vector4FromRGBA(C.PortalLineColor);
-        if (ImGui.ColorEdit4("直线颜色##portal", ref portalColor))
-            C.PortalLineColor = portalColor.ToUint();
+        var wrathRadius = C.WrathRadius;
+        if (ImGui.SliderFloat("直线宽度##wrath", ref wrathRadius, 1f, 15f))
+            C.WrathRadius = wrathRadius;
+
+        var wrathLength = C.WrathLength;
+        if (ImGui.SliderFloat("直线长度##wrath", ref wrathLength, 10f, 100f))
+            C.WrathLength = wrathLength;
+
+        ImGui.Separator();
+
+        // === 颜色设置 ===
+        ImGui.Text("=== 颜色设置 ===");
+
+        var colorSelf = ImGuiEx.Vector4FromRGBA(C.ColorSelf);
+        if (ImGui.ColorEdit4("自己的AOE", ref colorSelf))
+            C.ColorSelf = colorSelf.ToUint();
+
+        var colorOther = ImGuiEx.Vector4FromRGBA(C.ColorOther);
+        if (ImGui.ColorEdit4("他人的AOE", ref colorOther))
+            C.ColorOther = colorOther.ToUint();
+
+        var colorPending = ImGuiEx.Vector4FromRGBA(C.ColorPending);
+        if (ImGui.ColorEdit4("等待中的AOE", ref colorPending))
+            C.ColorPending = colorPending.ToUint();
 
         ImGui.Separator();
 
@@ -370,7 +418,7 @@ public class M11S_Flame_Breath : SplatoonScript
             Controller.SaveConfig();
 
         ImGui.SameLine();
-        if (ImGui.Button("清除标记"))
+        if (ImGui.Button("重置状态"))
         {
             OnReset();
         }
@@ -378,30 +426,34 @@ public class M11S_Flame_Breath : SplatoonScript
         // 调试信息
         if (ImGui.CollapsingHeader("调试信息"))
         {
-            ImGuiEx.Text($"读条监听: {_isCasting}");
+            ImGuiEx.Text($"机制激活: {_isMechanicActive}");
+            ImGuiEx.Text($"陨石计数(开始): {_meteorCastCount}");
+            ImGuiEx.Text($"陨石计数(结束): {_meteorEndCount}");
+            ImGuiEx.Text($"完成轮数: {_completeCount}");
+            ImGuiEx.Text($"即将生效: {IsMechanicIncoming}");
 
             ImGui.Separator();
-            ImGuiEx.Text("火焰吐息:");
-            ImGuiEx.Text($"  VFX激活: {_vfxActive}");
-            ImGuiEx.Text($"  被点名玩家数: {_markedPlayers.Count}");
-            if (_vfxActive)
+            ImGuiEx.Text($"火焰吐息目标: {_fireBreathTargets.Count}");
+            foreach (var t in _fireBreathTargets)
             {
-                var elapsed = Environment.TickCount64 - _vfxTime;
-                var state = elapsed < C.BreathDelayMs ? "等待中" :
-                           elapsed < C.BreathDelayMs + C.BreathDurationMs ? "绘制中" : "已结束";
-                ImGuiEx.Text($"  状态: {state} ({elapsed}ms)");
+                var isSelf = t == Player.Object;
+                ImGuiEx.Text(isSelf ? EColor.GreenBright : EColor.White, $"  - {t.Name}{(isSelf ? " (自己)" : "")}");
             }
 
             ImGui.Separator();
-            ImGuiEx.Text("传送门直线:");
-            ImGuiEx.Text($"  激活MapEffect数: {_activeMapEffects.Count}");
-            if (_activeMapEffects.Count > 0)
+            ImGuiEx.Text($"传送门直线: {_meteorLinePositions.Count}");
+            foreach (var p in _meteorLinePositions)
             {
-                ImGuiEx.Text($"  激活位置: {string.Join(", ", _activeMapEffects)}");
-                var elapsed = Environment.TickCount64 - _mapEffectTime;
-                var state = elapsed < C.PortalDelayMs ? "等待中" :
-                           elapsed < C.PortalDelayMs + C.PortalDurationMs ? "绘制中" : "已结束";
-                ImGuiEx.Text($"  状态: {state} ({elapsed}ms)");
+                ImGuiEx.Text($"  - X={p.X}, Y={p.Y}");
+            }
+
+            ImGui.Separator();
+            ImGuiEx.Text($"陨石愤怒线连: {_meteorWrathTethers.Count}");
+            foreach (var t in _meteorWrathTethers)
+            {
+                var isSelf = t.Target == Player.Object;
+                ImGuiEx.Text(t.IsDanger ? EColor.RedBright : EColor.White,
+                    $"  - {t.Source.Name} -> {t.Target.Name} ({(t.IsDanger ? "危险" : "安全")}){(isSelf ? " (自己)" : "")}");
             }
 
             ImGui.Separator();

@@ -81,7 +81,7 @@ public static unsafe class LayoutUtils
     {
         if(e.refTargetYou)
         {
-            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != Svc.ClientState.LocalPlayer.EntityId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId));
+            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != BasePlayer.EntityId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == BasePlayer.EntityId));
         }
 
         return false;
@@ -378,7 +378,7 @@ public static unsafe class LayoutUtils
         {
             if(Svc.Targets.Target != null)
             {
-                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (layout.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (layout.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
+                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (layout.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (layout.DistanceLimitMyHitbox ? BasePlayer.HitboxRadius : 0);
                 if(!(dist >= layout.MinDistance && dist < layout.MaxDistance)) return false;
             }
             else

@@ -28,7 +28,7 @@ public static unsafe class CommonRenderUtils
         .Replace("$KIND", $"{go.ObjectKind}")
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
         .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
-        .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
+        .Replace("$DISTANCE", $"{Vector3.Distance((BasePlayer?.Position ?? Vector3.Zero), go.Position):F1}")
         .Replace("\\n", "\n")
         .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
         if(go is IBattleChara chr)
@@ -110,12 +110,12 @@ public static unsafe class CommonRenderUtils
                     -angle + e.AdditionalRotation, new Vector3(
                     tPos.X + -e.refX,
                     tPos.Y + e.refY,
-                    tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
+                    tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? BasePlayer.HitboxRadius : 0f));
         var pointB = Utils.RotatePoint(tPos.X, tPos.Y,
             -angle + e.AdditionalRotation, new Vector3(
             tPos.X + -e.offX,
             tPos.Y + e.offY,
-            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
+            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? BasePlayer.HitboxRadius : 0f));
         return (pointA, pointB);
     }
 
@@ -124,11 +124,11 @@ public static unsafe class CommonRenderUtils
         var pointA = new Vector3(
                 tPos.X + e.refX,
                 tPos.Y + e.refY,
-                tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
+                tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? BasePlayer.HitboxRadius : 0f);
         var pointB = new Vector3(
             tPos.X + e.offX,
             tPos.Y + e.offY,
-            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
+            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? BasePlayer.HitboxRadius : 0f);
         return (pointA, pointB);
     }
 

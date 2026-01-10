@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Plugin.Services;
@@ -8,6 +9,7 @@ using ECommons.Automation.NeoTaskManager;
 using ECommons.Configuration;
 using ECommons.Events;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.IPC.Subscribers;
 using ECommons.LanguageHelpers;
@@ -44,6 +46,32 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Commands CommandManager;
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
+    public static string BasePlayerOverride = "";
+    public static IPlayerCharacter BasePlayer
+    {
+        get
+        {
+            if(!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            {
+                return Svc.Objects.LocalPlayer;
+            }
+            else
+            {
+                if(BasePlayerOverride == "")
+                {
+                    return Svc.Objects.LocalPlayer;
+                }
+                foreach(var x in Svc.Objects)
+                {
+                    if(x is IPlayerCharacter pc && pc.GetNameWithWorld() == BasePlayerOverride)
+                    {
+                        return pc;
+                    }
+                }
+                return Svc.Objects.LocalPlayer;
+            }
+        }
+    }
     internal long CombatStarted
     {
         get
@@ -439,7 +467,7 @@ public unsafe class Splatoon : IDalamudPlugin
             PlaceholderCache.Clear();
             LayoutAmount = 0;
             ElementAmount = 0;
-            if(LogObjects && Svc.ClientState.LocalPlayer != null)
+            if(LogObjects && BasePlayer != null)
             {
                 foreach(var t in Svc.Objects)
                 {
@@ -460,7 +488,7 @@ public unsafe class Splatoon : IDalamudPlugin
                         loggedObjectList[obj].Targetable = t.Struct()->GetIsTargetable();
                         if(loggedObjectList[obj].Targetable) loggedObjectList[obj].TargetableTicks++;
                     }
-                    loggedObjectList[obj].Distance = Vector3.Distance(Svc.ClientState.LocalPlayer.Position, t.Position);
+                    loggedObjectList[obj].Distance = Vector3.Distance(BasePlayer.Position, t.Position);
                     loggedObjectList[obj].HitboxRadius = t.HitboxRadius;
                     loggedObjectList[obj].Life = t.GetLifeTimeSeconds();
                 }
@@ -494,7 +522,6 @@ public unsafe class Splatoon : IDalamudPlugin
                     }
                 }
                 //if (CurrentChatMessages.Count > 0) PluginLog.Verbose($"Messages dequeued: {CurrentChatMessages.Count}");
-                var pl = Svc.ClientState.LocalPlayer;
                 if(Svc.ClientState.LocalPlayer.Address == nint.Zero)
                 {
                     Log("Pointer to LocalPlayer.Address is zero");

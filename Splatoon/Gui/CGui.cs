@@ -15,6 +15,9 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Web;
 using ECommons.Interop;
+using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.GameHelpers;
 
 namespace Splatoon;
 
@@ -98,6 +101,28 @@ internal unsafe partial class CGui : IDisposable
                     ImGui.SetCursorPosX(ImGui.GetContentRegionAvail().X - RightWidth);
                     RightWidth = ImGuiEx.Measure(delegate
                     {
+                        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                        {
+                            ImGui.SetNextItemWidth(100f);
+                            var col = BasePlayer.AddressEquals(Svc.Objects.LocalPlayer);
+                            if(col) ImGui.PushStyleColor(ImGuiCol.Text, EColor.GreenBright);
+                            if(ImGui.BeginCombo("##bpo", BasePlayerOverride == ""?"No Override" : BasePlayerOverride, ImGuiComboFlags.HeightLarge))
+                            {
+                                if(ImGui.Selectable("No Override", BasePlayerOverride == "")) BasePlayerOverride = "";
+                                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
+                                {
+                                    if(ImGui.Selectable($"{x.GetNameWithWorld()}", x.GetNameWithWorld() == BasePlayerOverride))
+                                    {
+                                        BasePlayerOverride = x.GetNameWithWorld();
+                                    }
+                                }
+                                if(col) ImGui.PopStyleColor();
+                            }
+                            else
+                            {
+                                if(col) ImGui.PopStyleColor();
+                            }
+                        }
                         ImGui.SetNextItemWidth(80f);
                         if(ImGui.BeginCombo("##phaseSelector", $"Phase ??".Loc(p.Phase)))
                         {
@@ -125,10 +150,10 @@ internal unsafe partial class CGui : IDisposable
                         ("Scripts".Loc(), TabScripting.Draw, Colors.Yellow.ToVector4(), true),
                         ("Configurations".Loc(), CGuiConfigurations.Draw, EColor.PurpleBright, true),
                         ("Projection".Loc(), TabProjection.Draw, EColor.CyanBright, true),
-                        ("Mass Import".Loc(), RapidImport.Draw, null, true),
                         ("Tools".Loc(), delegate
                         {
                             ImGuiEx.EzTabBar("Tools",
+                            ("Mass Import".Loc(), RapidImport.Draw, null, true),
                             ("Translator".Loc(), TabTranslator.Draw, null, true),
                             ("Logger".Loc(), DisplayLogger, null, true),
                             ("Explorer".Loc(), Explorer.Draw, null, true),

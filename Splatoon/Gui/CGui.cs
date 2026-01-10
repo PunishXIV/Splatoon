@@ -104,10 +104,11 @@ internal unsafe partial class CGui : IDisposable
                         if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
                         {
                             ImGui.SetNextItemWidth(100f);
-                            var col = BasePlayer.AddressEquals(Svc.Objects.LocalPlayer);
+                            var col = !BasePlayer.AddressEquals(Svc.Objects.LocalPlayer);
                             if(col) ImGui.PushStyleColor(ImGuiCol.Text, EColor.GreenBright);
                             if(ImGui.BeginCombo("##bpo", BasePlayerOverride == ""?"No Override" : BasePlayerOverride, ImGuiComboFlags.HeightLarge))
                             {
+                                if(col) ImGui.PopStyleColor();
                                 if(ImGui.Selectable("No Override", BasePlayerOverride == "")) BasePlayerOverride = "";
                                 foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
                                 {
@@ -116,12 +117,13 @@ internal unsafe partial class CGui : IDisposable
                                         BasePlayerOverride = x.GetNameWithWorld();
                                     }
                                 }
-                                if(col) ImGui.PopStyleColor();
+                                ImGui.EndCombo();
                             }
                             else
                             {
                                 if(col) ImGui.PopStyleColor();
                             }
+                            ImGui.SameLine();
                         }
                         ImGui.SetNextItemWidth(80f);
                         if(ImGui.BeginCombo("##phaseSelector", $"Phase ??".Loc(p.Phase)))

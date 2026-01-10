@@ -23,14 +23,6 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
-    static void Test()
-    {
-        Svc.ClientState.LocalPlayer;
-        Svc.Objects.LocalPlayer;
-        ECommons.GameHelpers.Player;
-        ECommons.GameHelpers.LegacyPlayer.Player;
-    }
-
     public static Vector3 ToXZY(this Vector3 xyzVector)
     {
         return new(xyzVector.X, xyzVector.Z, xyzVector.Y);

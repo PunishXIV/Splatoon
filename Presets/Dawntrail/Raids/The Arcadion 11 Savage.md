@@ -6,17 +6,27 @@ Projection declutter preset. Removes already telegraphed AOEs from projection.
 ~Lv2~{"Name":"M11S - Projection declutter","Group":"M11S (2)","ZoneLockH":[1325],"ElementsL":[],"BlacklistedProjectorActions":[46116,46099,46101,46100,46126,46145,46165,46167,46166],"ForcedProjectorActions":[46136]}
 ```
 
-[Script] [Beta] Weapons precise positions - requires configuration
+[Script] Weapons precise positions - requires configuration
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Weapons.cs
 ```
 
-[Script] [Beta] Flame breath
+[Script] Flame breath
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Flame%20Breath.cs
 ```
 
-DPS/Tank towers highlight
+[Script] [Beta] Meteorain - requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Meteorain.cs
+```
+
+[Script] [Beta] Majestic Meteor - requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Majestic%20Meteor.cs
+```
+
+[Temporary] DPS/Tank towers highlight
 ```
 ~Lv2~{"Name":"M11S Tower","Group":"M11S (2)","ZoneLockH":[1325],"ElementsL":[{"Name":"Dps tower highlight","type":1,"radius":4.0,"Donut":0.5,"color":3356425984,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":14305,"refActorRequireCast":true,"refActorCastId":[46167],"refActorComparisonType":6},{"Name":"Tank tower highlight","type":1,"radius":4.0,"Donut":0.5,"color":3372156928,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":14305,"refActorRequireCast":true,"refActorCastId":[46166],"refActorComparisonType":6}]}
 ```

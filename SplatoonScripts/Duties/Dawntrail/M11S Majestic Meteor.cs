@@ -55,7 +55,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private int _puddleCount;
 
     private State _state = State.Idle;
-    public override Metadata Metadata => new(2, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
@@ -77,7 +77,8 @@ public class M11S_Majestic_Meteor : SplatoonScript
             radius = 1.5f,
             thicc = 10f,
             overlayVOffset = 3f,
-            overlayFScale = 3f
+            overlayFScale = 3f,
+            tether = true,
         });
 
         _eGuide ??= Controller.GetElementByName("Guide");
@@ -110,6 +111,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
 
         _latchedTethers = false;
         _flipLR = false;
+        _gimmicCount = 0;
 
         if (_eGuide != null)
             _eGuide.Enabled = false;

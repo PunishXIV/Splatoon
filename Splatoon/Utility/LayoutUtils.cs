@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.MathHelpers;
 using Splatoon.Memory;
 using Splatoon.Structures;
@@ -359,7 +360,7 @@ public static unsafe class LayoutUtils
         if((layout.ZoneLockH.Count > 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)) return false;
         if(layout.Scenes.Count > 0 && !layout.Scenes.Contains(*Scene.ActiveScene)) return false;
         if(layout.Phase != 0 && layout.Phase != P.Phase) return false;
-        if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(Player.Job)) return false;
+        if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(BasePlayer.GetJob())) return false;
         var inCombat = Svc.Condition[ConditionFlag.InCombat];
         var inDuty = Svc.Condition[ConditionFlag.BoundByDuty];
         if((layout.DCond == 1 || layout.DCond == 3) && !inCombat) return false;

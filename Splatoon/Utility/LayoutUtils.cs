@@ -72,7 +72,7 @@ public static unsafe class LayoutUtils
         }
         else
         {
-            var result = (nint)ExtendedPronoun.Resolve(ph);
+            var result = (nint)Utils.ResolvePronounBPO(ph);
             PlaceholderCache[ph] = result;
             return result;
         }
@@ -121,7 +121,7 @@ public static unsafe class LayoutUtils
                             {
                                 foreach(var p in e.refActorTetherConnectedWithPlayer)
                                 {
-                                    var tar = ExtendedPronoun.Resolve(p);
+                                    var tar = Utils.ResolvePronounBPO(p);
                                     if(tar != null)
                                     {
                                         if(t.TargetId.ObjectId == tar->EntityId) return true;
@@ -152,7 +152,7 @@ public static unsafe class LayoutUtils
                             {
                                 foreach(var p in e.refActorTetherConnectedWithPlayer)
                                 {
-                                    var tar = ExtendedPronoun.Resolve(p);
+                                    var tar = Utils.ResolvePronounBPO(p);
                                     if(tar != null)
                                     {
                                         if(t.Target == tar->EntityId) return true;
@@ -188,7 +188,7 @@ public static unsafe class LayoutUtils
                                 {
                                     foreach(var p in e.refActorTetherConnectedWithPlayer)
                                     {
-                                        var tar = ExtendedPronoun.Resolve(p);
+                                        var tar = Utils.ResolvePronounBPO(p);
                                         if(tar != null)
                                         {
                                             if(tar->EntityId == chr.EntityId) return true;
@@ -222,7 +222,7 @@ public static unsafe class LayoutUtils
                             {
                                 foreach(var p in e.refActorTetherConnectedWithPlayer)
                                 {
-                                    var tar = ExtendedPronoun.Resolve(p);
+                                    var tar = Utils.ResolvePronounBPO(p);
                                     if(tar != null)
                                     {
                                         if(x.Key == (nint)tar) return true;

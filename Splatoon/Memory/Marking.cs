@@ -64,7 +64,7 @@ public class Marking
 
     public static unsafe IGameObject GetPlayer(string pronoun)
     {
-        var ph = ExtendedPronoun.Resolve(pronoun);
+        var ph = Utils.ResolvePronounBPO(pronoun);
         if(ph != null)
         {
             var obj = Svc.Objects.CreateObjectReference((nint)ph);

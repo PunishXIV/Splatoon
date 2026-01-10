@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Statuses;
 using Dalamud.Utility;
 using ECommons;
@@ -6,6 +7,7 @@ using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
@@ -23,6 +25,23 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static GameObject* ResolvePronounBPO(string p)
+    {
+        var ret = ExtendedPronoun.Resolve(p);
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback] && BasePlayerOverride != "")
+        {
+            if(p == "<me>")
+            {
+                return (GameObject*)BasePlayer.Struct();
+            }
+            else if(p == "<target>")
+            {
+                return (GameObject*)(BasePlayer.TargetObject?.Address);
+            }
+        }
+        return ret;
+    }
+
     public static Vector3 ToXZY(this Vector3 xyzVector)
     {
         return new(xyzVector.X, xyzVector.Z, xyzVector.Y);
@@ -177,7 +196,7 @@ public static unsafe class Utils
             }
             return ret;
         }
-        var obj = ExtendedPronoun.Resolve(placeholder);
+        var obj = Utils.ResolvePronounBPO(placeholder);
         if(obj != null)
         {
             return [obj->Position];

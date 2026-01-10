@@ -64,19 +64,19 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         }
         else if(element.type == 1 || element.type == 3 || element.type == 4)
         {
-            if(element.includeOwnHitbox) radius += Svc.ClientState.LocalPlayer.HitboxRadius;
-            if(element.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(element, Svc.ClientState.LocalPlayer, true))
+            if(element.includeOwnHitbox) radius += BasePlayer.HitboxRadius;
+            if(element.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(element, BasePlayer, true))
             {
                 ret = true;
                 if(element.type == 1)
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
-                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? Svc.ClientState.LocalPlayer.GetRotationWithOverride(element) : 0f,
-                        element.overlayPlaceholders ? Svc.ClientState.LocalPlayer : null);
+                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? BasePlayer.GetRotationWithOverride(element) : 0f,
+                        element.overlayPlaceholders ? BasePlayer : null);
                 }
                 else if(element.type == 3)
                 {
-                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.GetRotationWithOverride(element), element, radius, 0f);
+                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), element, radius, 0f);
                     //Svc.Chat.Print(Svc.ClientState.LocalPlayer.Rotation.ToString());
                 }
                 else if(element.type == 4)
@@ -85,9 +85,9 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     {
                         for(var x = element.coneAngleMin; x < element.coneAngleMax; x += GetFillStepCone(element.FillStep))
                         {
-                            AddConeLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.GetRotationWithOverride(element), (Svc.ClientState.LocalPlayer.GetRotationWithOverride(element).RadiansToDegrees() - x.Float()).DegreesToRadians(), element, radius, x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity, false);
+                            AddConeLine(Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), (BasePlayer.GetRotationWithOverride(element).RadiansToDegrees() - x.Float()).DegreesToRadians(), element, radius, x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity, false);
                         }
-                        AddConeLine(Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.GetRotationWithOverride(element), (Svc.ClientState.LocalPlayer.GetRotationWithOverride(element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians(), element, radius, 1f, true);
+                        AddConeLine(Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), (BasePlayer.GetRotationWithOverride(element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians(), element, radius, 1f, true);
                     }
                 }
             }

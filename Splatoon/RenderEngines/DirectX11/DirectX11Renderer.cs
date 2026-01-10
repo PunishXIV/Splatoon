@@ -247,23 +247,23 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         else if(element.type == 1 || element.type == 3 || element.type == 4)
         {
-            if(element.includeOwnHitbox) radius += Svc.ClientState.LocalPlayer.HitboxRadius;
-            if(element.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(element, Svc.ClientState.LocalPlayer, true))
+            if(element.includeOwnHitbox) radius += BasePlayer.HitboxRadius;
+            if(element.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(element, BasePlayer, true))
             {
                 ret = true;
                 if(element.type == 1)
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
-                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? Svc.ClientState.LocalPlayer.GetRotationWithOverride(element) : 0f,
-                        Svc.ClientState.LocalPlayer);
+                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? BasePlayer.GetRotationWithOverride(element) : 0f,
+                        BasePlayer);
                 }
                 else if(element.type == 3)
                 {
-                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.GetRotationWithOverride(element), element, radius, 0f, Svc.ClientState.LocalPlayer);
+                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), element, radius, 0f, BasePlayer);
                 }
                 else if(element.type == 4)
                 {
-                    DrawCone(layout, element, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.GetRotationWithOverride(element), Svc.ClientState.LocalPlayer);
+                    DrawCone(layout, element, Utils.GetPlayerPositionXZY(), radius, BasePlayer.GetRotationWithOverride(element), BasePlayer);
                 }
             }
             else if(element.refActorType == 2 && Svc.Targets.Target != null

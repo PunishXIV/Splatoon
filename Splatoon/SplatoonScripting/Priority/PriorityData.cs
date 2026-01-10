@@ -184,14 +184,14 @@ public class PriorityData
     /// <returns></returns>
     public int GetOwnIndex(Predicate<UniversalPartyMember> predicate, bool fromEnd = false)
     {
-        if(!Player.Available) return -1;
+        if(BasePlayer == null) return -1;
         var list = GetPlayers(predicate);
         if(list == null) return -1;
         for(var i = 0; i < list.Count; i++)
         {
             var index = fromEnd ? list.Count - 1 - i : i;
             var p = list[index];
-            if(p.IGameObject.AddressEquals(Player.Object)) return i;
+            if(p.IGameObject.AddressEquals(BasePlayer)) return i;
         }
         return -1;
     }

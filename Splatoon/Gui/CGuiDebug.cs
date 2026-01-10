@@ -209,7 +209,7 @@ internal unsafe partial class CGui
                 ImGuiEx.Text($"{x}");
                 ImGui.SameLine();
                 ImGui.SetCursorPosX(60f);
-                var ph = ExtendedPronoun.Resolve(x);
+                var ph = Utils.ResolvePronounBPO(x);
                 if(ph != null)
                 {
                     var obj = Svc.Objects.CreateObjectReference((nint)ph);

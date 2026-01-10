@@ -206,10 +206,10 @@ internal unsafe class BuffEffectProcessor : IDisposable
             ElementTrigger = $"[{prefix}]{gameObjectCharactor->NameId}:{data->StatusId}";
         }
 
-        if(gameObjectCharactor->EntityId == Svc.ClientState.LocalPlayer?.EntityId)
+        if(gameObjectCharactor->EntityId == BasePlayer?.EntityId)
         {
             
-            text = $"You gains the effect of {data->StatusId} Param: {data->Param} ([{prefix}]You:{data->StatusId}:{Svc.ClientState.LocalPlayer.GetJob().ToString()})";
+            text = $"You gains the effect of {data->StatusId} Param: {data->Param} ([{prefix}]You:{data->StatusId}:{BasePlayer.GetJob().ToString()})";
             P.ChatMessageQueue.Enqueue(text);
         }
 

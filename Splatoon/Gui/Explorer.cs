@@ -52,8 +52,8 @@ internal static unsafe class Explorer
         ImGuiEx.TextCopy($"ObjectKind: {obj.ObjectKind}");
         ImGuiEx.TextCopy($"{"Position".Loc()}: {obj.Position.X} {obj.Position.Y} {obj.Position.Z}");
         ImGuiEx.TextCopy($"{"Rotation".Loc()}: {obj.Rotation}/{360 - (obj.Rotation.RadiansToDegrees() + 180)}");
-        ImGuiEx.TextCopy($"Vector3 {"distance".Loc()}: {Vector3.Distance(obj.Position, Svc.ClientState.LocalPlayer.Position)}");
-        ImGuiEx.TextCopy($"Vector2 {"distance".Loc()}: {Vector2.Distance(obj.Position.ToVector2(), Svc.ClientState.LocalPlayer.Position.ToVector2())}");
+        ImGuiEx.TextCopy($"Vector3 {"distance".Loc()}: {Vector3.Distance(obj.Position, BasePlayer.Position)}");
+        ImGuiEx.TextCopy($"Vector2 {"distance".Loc()}: {Vector2.Distance(obj.Position.ToVector2(), BasePlayer.Position.ToVector2())}");
         ImGuiEx.TextCopy($"{"Object ID".Loc()} long: {((ulong)obj.Struct()->GetGameObjectId()).Format()}");
         ImGuiEx.TextCopy($"{"Object ID".Loc()}: {obj.EntityId.Format()}");
         ImGuiEx.TextCopy($"{"Data ID".Loc()}: {obj.DataId.Format()}");

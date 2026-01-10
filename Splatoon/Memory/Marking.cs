@@ -13,7 +13,7 @@ public class Marking
     {
         if(obj.Struct()->ModelContainer.ModelCharaId != 0)
         {
-            if(Svc.ClientState.LocalPlayer.EntityId == GetMarker(index))
+            if(BasePlayer.EntityId == GetMarker(index))
             {
                 return true;
             }
@@ -64,7 +64,7 @@ public class Marking
 
     public static unsafe IGameObject GetPlayer(string pronoun)
     {
-        var ph = ExtendedPronoun.Resolve(pronoun);
+        var ph = Utils.ResolvePronounBPO(pronoun);
         if(ph != null)
         {
             var obj = Svc.Objects.CreateObjectReference((nint)ph);

@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Direction { N, NE, E, SE, S, SW, W, NW }
@@ -405,7 +405,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 ImGui.SameLine(0, 2);
                 ImGuiEx.IconButton(FontAwesomeIcon.MousePointer);
                 if(ImGui.IsItemHovered() || ImGui.IsItemActive()) active = true;
-                GetDebugElement(x, $"Phase{num} {id} {e}", id == "LP1" ? EColor.GreenBright : EColor.YellowBright, active);
+                if(this.IsEnabled) GetDebugElement(x, $"Phase{num} {id} {e}", id == "LP1" ? EColor.GreenBright : EColor.YellowBright, active);
                 if(ImGui.BeginDragDropSource())
                 {
                     if(Svc.GameGui.ScreenToWorld(ImGui.GetIO().MousePos, out var pos))

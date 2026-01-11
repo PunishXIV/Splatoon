@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Direction { N, NE, E, SE, S, SW, W, NW }
@@ -470,14 +470,14 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             [TetherKind.Stack] = new(94, 94.5f),
             [TetherKind.Fan] = new(91.5f, 97.5f),
             [TetherKind.Defamation] = new(94, 94.5f),
-            [TetherKind.Boss] = new(94, 94.5f)
+            [TetherKind.Boss] = new(94, 104.5f)
         },
         new()
         {
             [TetherKind.Stack] = new(94, 104.5f),
             [TetherKind.Fan] = new(91.5f, 102.5f),
             [TetherKind.Defamation] = new(94, 104.5f),
-            [TetherKind.Nothing] = new(94, 104.5f)
+            [TetherKind.Nothing] = new(94, 94.5f)
         },
     };
 

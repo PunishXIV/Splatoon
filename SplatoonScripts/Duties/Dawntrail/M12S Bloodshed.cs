@@ -10,6 +10,7 @@ using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using System.Numerics;
+using Splatoon.Serializables;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -17,7 +18,7 @@ public class M12S_Bloodshed : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1327];
 
-    public override Metadata? Metadata => new(6, "Errer");
+    public override Metadata? Metadata => new(7, "Errer");
 
     #region 常量
 
@@ -50,9 +51,9 @@ public class M12S_Bloodshed : SplatoonScript
 
     public class Config : IEzConfig
     {
-        public int DelayMs = 10000;          // 延迟绘制时间(毫秒)
-        public int DurationMs = 4000;        // 持续显示时间(毫秒)
-        public int SecondDelayMs = 1000;     // 第二次绘制延迟(毫秒)
+        public int DelayMs = 8000;          // 延迟绘制时间(毫秒)
+        public int DurationMs = 6000;        // 持续显示时间(毫秒)
+        public int SecondDelayMs = 0;     // 第二次绘制延迟(毫秒)
         public float CleaveFillIntensity = 0.5f;
         public float CleaveThickness = 4.0f;
         public Vector4 CleaveColorV4 = 0xC8FF5500.ToVector4();  // 橙色
@@ -107,7 +108,8 @@ public class M12S_Bloodshed : SplatoonScript
             includeRotation = true,
             Enabled = false,
             tether = true,
-            ExtraTetherLength = 25
+            ExtraTetherLength = 30,
+            LineEndB = LineEnd.Arrow,
         });
 
         // 右击退
@@ -126,7 +128,8 @@ public class M12S_Bloodshed : SplatoonScript
             includeRotation = true,
             Enabled = false,
             tether = true,
-            ExtraTetherLength = 25
+            ExtraTetherLength = 30,
+            LineEndB = LineEnd.Arrow,
         });
     }
 

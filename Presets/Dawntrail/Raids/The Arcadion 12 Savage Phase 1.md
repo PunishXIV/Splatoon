@@ -9,6 +9,10 @@ Projection settings
 ```
 ~Lv2~{"Name":"M12S P1 Projection settings","Group":"M12S P1","ZoneLockH":[1327],"ElementsL":[],"BlacklistedProjectorActions":[46238],"ForcedProjectorActions":[46237]}
 ```
+[Script] Bloodshed knockback/line aoe mechanic script:
+```
+https://github.com/PunishXIV/Splatoon/raw/d9235c20523bcabef88bedbe4ef9f4afcccc395a/SplatoonScripts/Duties/Dawntrail/M12S%20Bloodshed.cs
+```
 
 # Act 1
 Puddle on the ground (beta)

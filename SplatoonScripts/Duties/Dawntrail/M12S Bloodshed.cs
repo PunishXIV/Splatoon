@@ -9,6 +9,7 @@ using ECommons.ImGuiMethods;
 using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -16,18 +17,18 @@ public class M12S_Bloodshed : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1327];
 
-    public override Metadata? Metadata => new(5, "Errer");
+    public override Metadata? Metadata => new(6, "Errer");
 
     #region 常量
 
     private const uint BossDataId = 19195;
 
     // 技能ID
-    private const uint LeftKnockback = 0xB4CC;   // 46284 左击退
-    private const uint RightKnockback = 0xB4CE;  // 46286 右击退
-    private const uint LeftPoison = 0xB4CB;      // 46283 左喷毒
-    private const uint RightPoison = 0xB4CD;     // 46285 右喷毒
-    private const uint TriggerCastId = 0xB495;   // 46229 启动读条
+    private const uint LeftKnockback = 0xB4CC;   // 46284 左击退 Left knockback
+    private const uint RightKnockback = 0xB4CE;  // 46286 右击退 Right knockback
+    private const uint LeftPoison = 0xB4CB;      // 46283 左喷毒 Left AOE
+    private const uint RightPoison = 0xB4CD;     // 46285 右喷毒 Right AOE
+    private const uint TriggerCastId = 0xB495;   // 46229 启动读条 Start cast
 
     #endregion
 
@@ -54,8 +55,8 @@ public class M12S_Bloodshed : SplatoonScript
         public int SecondDelayMs = 1000;     // 第二次绘制延迟(毫秒)
         public float CleaveFillIntensity = 0.5f;
         public float CleaveThickness = 4.0f;
-        public uint CleaveColor = 0xC8FF5500;  // 橙色
-        public uint KnockbackColor = 0xC8FF5500;  // 橙色
+        public Vector4 CleaveColorV4 = 0xC8FF5500.ToVector4();  // 橙色
+        public Vector4 KnockbackColorV4 = 0xC8FF5500.ToVector4();  // 橙色
     }
 
     #endregion
@@ -98,7 +99,7 @@ public class M12S_Bloodshed : SplatoonScript
             radius = 8.45f,
             coneAngleMin = -60,
             coneAngleMax = -40,
-            color = C.KnockbackColor,
+            color = C.KnockbackColorV4.ToUint(),
             fillIntensity = 0.5f,
             thicc = 4.1f,
             overlayText = "击退",
@@ -115,7 +116,7 @@ public class M12S_Bloodshed : SplatoonScript
             radius = 8.45f,
             coneAngleMin = 40,
             coneAngleMax = 60,
-            color = C.KnockbackColor,
+            color = C.KnockbackColorV4.ToUint(),
             fillIntensity = 0.5f,
             thicc = 4.1f,
             overlayText = "击退",
@@ -222,7 +223,7 @@ public class M12S_Bloodshed : SplatoonScript
                 case MechanicType.LeftPoison:
                     if (cleaveLeft != null)
                     {
-                        cleaveLeft.color = C.CleaveColor;
+                        cleaveLeft.color = C.CleaveColorV4.ToUint();
                         cleaveLeft.fillIntensity = C.CleaveFillIntensity;
                         cleaveLeft.thicc = C.CleaveThickness;
                         cleaveLeft.Enabled = true;
@@ -232,7 +233,7 @@ public class M12S_Bloodshed : SplatoonScript
                 case MechanicType.RightPoison:
                     if (cleaveRight != null)
                     {
-                        cleaveRight.color = C.CleaveColor;
+                        cleaveRight.color = C.CleaveColorV4.ToUint() ;
                         cleaveRight.fillIntensity = C.CleaveFillIntensity;
                         cleaveRight.thicc = C.CleaveThickness;
                         cleaveRight.Enabled = true;
@@ -242,7 +243,7 @@ public class M12S_Bloodshed : SplatoonScript
                 case MechanicType.LeftKnockback:
                     if (kbLeft != null)
                     {
-                        kbLeft.color = C.KnockbackColor;
+                        kbLeft.color = C.KnockbackColorV4.ToUint();
                         kbLeft.Enabled = true;
                     }
                     break;
@@ -250,7 +251,7 @@ public class M12S_Bloodshed : SplatoonScript
                 case MechanicType.RightKnockback:
                     if (kbRight != null)
                     {
-                        kbRight.color = C.KnockbackColor;
+                        kbRight.color = C.KnockbackColorV4.ToUint();
                         kbRight.Enabled = true;
                     }
                     break;
@@ -280,54 +281,59 @@ public class M12S_Bloodshed : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Text("M12S Bloodshed 半场刀/击退");
+        ImGui.Text("M12S Bloodshed 半场刀/击退/AOE/Knockback");
 
         ImGui.Separator();
-        ImGui.Text("时间设置:");
+        ImGui.Text("时间设置/Timings:");
 
         var delay = C.DelayMs;
-        if (ImGui.SliderInt("第一次延迟(ms)", ref delay, 0, 15000))
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderInt("第一次延迟/First mechanic delay(ms)", ref delay, 0, 15000))
             C.DelayMs = delay;
 
         var duration = C.DurationMs;
-        if (ImGui.SliderInt("持续时间(ms)", ref duration, 1000, 10000))
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderInt("持续时间/Duration(ms)", ref duration, 1000, 10000))
             C.DurationMs = duration;
 
         var secondDelay = C.SecondDelayMs;
-        if (ImGui.SliderInt("第二次延迟(ms)", ref secondDelay, 0, 5000))
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderInt("第二次延迟/Second mechanic delay(ms)", ref secondDelay, 0, 5000))
             C.SecondDelayMs = secondDelay;
 
         ImGui.Separator();
-        ImGui.Text("半场刀设置:");
+        ImGui.Text("半场刀设置/Cleave:");
 
         var cleaveFill = C.CleaveFillIntensity;
-        if (ImGui.SliderFloat("填充透明度##cleave", ref cleaveFill, 0.1f, 1f))
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderFloat("填充透明度/Fill percentage##cleave", ref cleaveFill, 0.1f, 1f))
             C.CleaveFillIntensity = cleaveFill;
 
         var cleaveThick = C.CleaveThickness;
-        if (ImGui.SliderFloat("线条粗细##cleave", ref cleaveThick, 1f, 10f))
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.SliderFloat("线条粗细//Thickness##cleave", ref cleaveThick, 1f, 10f))
             C.CleaveThickness = cleaveThick;
 
-        var cleaveColor = ImGuiEx.Vector4FromRGBA(C.CleaveColor);
-        if (ImGui.ColorEdit4("半场刀颜色", ref cleaveColor))
-            C.CleaveColor = ImGui.ColorConvertFloat4ToU32(cleaveColor);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.ColorEdit4("半场刀颜色/Color", ref C.CleaveColorV4);
 
         ImGui.Separator();
-        ImGui.Text("击退设置:");
+        ImGui.Text("击退设置/Knockback:");
 
-        var kbColor = ImGuiEx.Vector4FromRGBA(C.KnockbackColor);
-        if (ImGui.ColorEdit4("击退颜色", ref kbColor))
-            C.KnockbackColor = ImGui.ColorConvertFloat4ToU32(kbColor);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.ColorEdit4("击退颜色/Color", ref C.KnockbackColorV4);
 
         ImGui.Separator();
 
-        if (ImGui.Button("保存配置"))
+        if (ImGui.Button("保存配置/Save"))
             Controller.SaveConfig();
 
         ImGui.SameLine();
-        if (ImGui.Button("重置状态"))
+        if (ImGui.Button("重置状态/Reset mechanic"))
         {
-            OnReset();
+            this.Controller.Reset();
         }
 
         // 调试信息

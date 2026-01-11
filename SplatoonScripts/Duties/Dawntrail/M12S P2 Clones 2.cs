@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Direction { N, NE, E, SE, S, SW, W, NW }
@@ -188,7 +188,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
     IBattleNpc[] TetherCandidates => Svc.Objects.OfType<IBattleNpc>().Where(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.Id == (uint)GetDesiredTether())).OrderBy(x =>
     {
-        var a = (MathHelper.GetRelativeAngle(new(100, 0, 100), x.Position) + 90) % 360;
+        var a = (MathHelper.GetRelativeAngle(new(100, 0, 100), x.Position) + (C.NorthIsAbsolute ? 0 : 90)) % 360;
         //PluginLog.Information($"Tether at {a} {x.Position}");
         return a;
     }).ToArray();
@@ -268,6 +268,112 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         }
         if(AgreedToConfigure)
         {
+            if (ImGui.Button("Configure Jp strat"))
+            {
+                C.LP1 = [Direction.N, Direction.NE, Direction.E, Direction.SE];
+                C.LP2 = [Direction.NW, Direction.W, Direction.SW, Direction.S];
+                C.LP1Tethers = [TetherKind.Boss, TetherKind.Fan, TetherKind.Stack, TetherKind.Defamation];
+                C.LP2Tethers = [TetherKind.Fan, TetherKind.Stack, TetherKind.Defamation, TetherKind.Nothing];
+                C.NorthIsAbsolute = true;
+                C.Phase1Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(104f, 81f),
+                        [TetherKind.Fan] = new(108f, 82.5f),
+                        [TetherKind.Defamation] = new(119.5f, 100f),
+                        [TetherKind.Boss] = new(100f, 89f),
+                    },
+
+                    new()
+                    {
+                        [TetherKind.Stack] = new(97.5f, 81f),
+                        [TetherKind.Fan] = new(93f, 82f),
+                        [TetherKind.Defamation] = new(80.5f, 100f),
+                        [TetherKind.Nothing] = new(100f, 119.5f),
+                    }
+
+                ];
+                C.Phase2Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(105.5f, 94f),
+                        [TetherKind.Fan] = new(102.5f, 91.5f),
+                        [TetherKind.Defamation] = new(105.5f, 94f),
+                        [TetherKind.Boss] = new(95.5f, 94f),
+                    },
+
+                    new()
+                    {
+                        [TetherKind.Stack] = new(95.5f, 94f),
+                        [TetherKind.Fan] = new(97.5f, 91.5f),
+                        [TetherKind.Defamation] = new(95.5f, 94f),
+                        [TetherKind.Nothing] = new(105.5f, 94f),
+                    }
+
+                ];
+                C.Phase3Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(103.5f, 89f),
+                        [TetherKind.Fan] = new(109f, 89f),
+                        [TetherKind.Defamation] = new(99.5f, 82.5f),
+                        [TetherKind.Boss] = new(99.5f, 82.5f),
+                    },
+
+                    new()
+                    {
+                        [TetherKind.Stack] = new(96.5f, 89f),
+                        [TetherKind.Fan] = new(91f, 89f),
+                        [TetherKind.Defamation] = new(99.5f, 82.5f),
+                        [TetherKind.Nothing] = new(99.5f, 82.5f),
+                    }
+
+                ];
+                C.Phase4Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(104f, 81f),
+                        [TetherKind.Fan] = new(108f, 82.5f),
+                        [TetherKind.Defamation] = new(90f, 90f),
+                        [TetherKind.Boss] = new(90f, 90f),
+                    },
+
+                    new()
+                    {
+                        [TetherKind.Stack] = new(97.5f, 81f),
+                        [TetherKind.Fan] = new(93f, 82f),
+                        [TetherKind.Defamation] = new(90f, 90f),
+                        [TetherKind.Nothing] = new(90f, 90f),
+                    }
+
+                ];
+                C.Phase5Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(104f, 81f),
+                        [TetherKind.Fan] = new(108f, 82.5f),
+                        [TetherKind.Defamation] = new(110f, 90f),
+                        [TetherKind.Boss] = new(110f, 90f),
+                    },
+
+                    new()
+                    {
+                        [TetherKind.Stack] = new(97.5f, 81f),
+                        [TetherKind.Fan] = new(93f, 82f),
+                        [TetherKind.Defamation] = new(110f, 90f),
+                        [TetherKind.Nothing] = new(110f, 90f),
+                    }
+
+                ];
+            }
+            
+            ImGui.Checkbox("North is absolute north (not relative to boss facing)", ref C.NorthIsAbsolute);
+            
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 positions", () =>
             {
                 for(int i = 0; i < C.LP1.Length; i++)
@@ -444,6 +550,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         public Direction[] LP2 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
         public TetherKind[] LP1Tethers = [TetherKind.Boss, TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation];
         public TetherKind[] LP2Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];
+        public bool NorthIsAbsolute = false;
         public List<Dictionary<TetherKind, Vector2>> Phase1Positions = new()
     {
         new()

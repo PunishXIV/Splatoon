@@ -106,6 +106,8 @@ public class M12S_Bloodshed : SplatoonScript
             overlayFScale = 2.0f,
             includeRotation = true,
             Enabled = false,
+            tether = true,
+            ExtraTetherLength = 25
         });
 
         // 右击退
@@ -123,6 +125,8 @@ public class M12S_Bloodshed : SplatoonScript
             overlayFScale = 2.0f,
             includeRotation = true,
             Enabled = false,
+            tether = true,
+            ExtraTetherLength = 25
         });
     }
 

@@ -16,6 +16,9 @@ Replication 1 Debuff and aoe size highlight
 
 # 2
 [Script] [Beta] Clones 1 (Replication 1) script
+
+** KNOWN ISSUE: Tether position may not be valid, work in progress, look for your tether yourself **
+
 > [!Warning]
 >
 > Default configuration is for Banana Codex raidplan. You may reconfigure this script for ANY strat, however, it's not easy.

@@ -11,7 +11,7 @@ Projection settings
 ```
 [Script] Bloodshed knockback/line aoe mechanic script:
 ```
-https://github.com/PunishXIV/Splatoon/raw/d9235c20523bcabef88bedbe4ef9f4afcccc395a/SplatoonScripts/Duties/Dawntrail/M12S%20Bloodshed.cs
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20Bloodshed.cs
 ```
 
 # Act 1

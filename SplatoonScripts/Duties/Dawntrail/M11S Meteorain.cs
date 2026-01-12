@@ -127,6 +127,9 @@ public class M11S_Meteorain : SplatoonScript
     private void ResetAll()
     {
         _state = State.Idle;
+        _tetherCount = 0;
+        _tetherMaps.Clear();
+        _correctSources = 0;
         DisableAll();
     }
 
@@ -168,24 +171,8 @@ public class M11S_Meteorain : SplatoonScript
         {
             _tetherCount++;
             _tetherMaps.Add((source, target));
-            if (_tetherCount == 2)
-            {
-                var desiredDirections = C.UseSecondMeteorDirection
-                    ? new[]
-                    {
-                        C.MyTetherOrigin,
-                        C.MySecondTetherOrigin
-                    }
-                    : new[] { C.MyTetherOrigin };
-                var normalizedDirections = desiredDirections.Select(Dir).ToArray();
-                foreach (var (s, t) in _tetherMaps)
-                {
-                    var targetObject = t.GetObject();
-                    var targetDirection = Dir(targetObject!.Position.ToVector2());
-
-                    if (normalizedDirections.Any(d => Vector2.Dot(d, targetDirection) > 0.95f)) _correctSources　= s;
-                }
-            }
+            if (_tetherMaps.Count >= 2)
+                TryUpdateCorrectSource();
         }
     }
 
@@ -235,6 +222,8 @@ public class M11S_Meteorain : SplatoonScript
 
         if (C.MyRole == Role.Tether && (wave == 2 || wave == 3 || wave == 4))
         {
+            if (_correctSources == 0 && _tetherMaps.Count >= 2)
+                TryUpdateCorrectSource();
             ApplyCommonStyle(_eTether, grad);
             var t = GetTetherInstruction();
             _eTether.SetOffPosition(new Vector3(t.sourcePos.X, 0f, t.sourcePos.Y));
@@ -267,6 +256,28 @@ public class M11S_Meteorain : SplatoonScript
         return (sourcePos, targetPos, text);
     }
 
+    private void TryUpdateCorrectSource()
+    {
+        var desiredDirections = C.UseSecondMeteorDirection
+            ? new[] { C.MyTetherOrigin, C.MySecondTetherOrigin }
+            : new[] { C.MyTetherOrigin };
+        var normalizedDirections = desiredDirections.Select(Dir).ToArray();
+
+        foreach (var (s, t) in _tetherMaps)
+        {
+            var targetObj = t.GetObject();
+            if (targetObj == null)
+                continue;
+
+            var targetDirection = Dir(targetObj.Position.ToVector2());
+            if (normalizedDirections.Any(d => Vector2.Dot(d, targetDirection) > 0.95f))
+            {
+                _correctSources = s;
+                return;
+            }
+        }
+    }
+
     private (Vector2 pos, string text) GetNavInstruction(int wave, Phase phase)
     {
         if (phase == Phase.Final)
@@ -285,13 +296,13 @@ public class M11S_Meteorain : SplatoonScript
             p = CornerToPos(C.Stack4);
             return (p, "Stack4");
         }
-        
+
         var isMyMeteorWave = C.MyMeteorWave == wave switch
-                             {
-                                 1 => MeteorWave.Wave1,
-                                 2 => MeteorWave.Wave2,
-                                 _ => MeteorWave.Wave3
-                             };
+        {
+            1 => MeteorWave.Wave1,
+            2 => MeteorWave.Wave2,
+            _ => MeteorWave.Wave3
+        };
         var isPrepareMeteorWave = C.MyMeteorWave == (wave == 1 ? MeteorWave.Wave2 : MeteorWave.Wave3);
         if (phase == Phase.Prepare)
         {

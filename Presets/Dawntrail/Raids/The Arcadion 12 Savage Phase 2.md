@@ -17,7 +17,7 @@ Replication 1 Debuff and aoe size highlight
 # 2
 [Script] [Beta] Clones 1 (Replication 1) script
 
-** KNOWN ISSUE: Tether position may not be valid, work in progress, look for your tether yourself **
+Version 4 should have tether fixed and now both tethers are highlighted, but still watch it and verify it
 
 > [!Warning]
 >

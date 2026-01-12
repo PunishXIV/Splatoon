@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -26,6 +26,14 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private readonly uint _actionPuddleTick = 46145;
     private readonly uint _actionTowerResolve = 46148;
     private readonly uint _castChampionsMeteorStart = 46144;
+    private readonly HashSet<uint> _castArcadianCrash = new() { 46154, 46156, 46158, 46160 };
+    private static readonly Dictionary<uint, Vector2> MapEffectToPos = new()
+    {
+        { 22, new(79f, 75f) },
+        { 23, new(89f, 75f) },
+        { 24, new(111f, 75f) },
+        { 25, new(121f, 75f) }
+    };
 
     private readonly Vector2 _center = new(100f, 100f);
     private readonly float _finalLateralXOffset = 1.5f;
@@ -37,7 +45,6 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private readonly float _puddleStep1Offset = 0.0f;
     private readonly float _puddleStep2Offset = 6.0f;
     private readonly float _puddleStep3Offset = 12.0f;
-    private readonly List<Vector3> _tetherOrigins = new();
     private readonly Vector2 _towerNWBase = new(84f, 89f);
     private readonly float _towerStandOff = 2f;
     private readonly string _vfxPuddleStartPrefix = "vfx/lockon/eff/lockon8_t0w.avfx";
@@ -53,9 +60,12 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private List<(uint, Direction)> _lineOrder = new();
     private List<uint> _noLineOrder = new();
     private int _puddleCount;
+    private readonly Dictionary<uint, Direction> _finalSafeTowerDir = new();
+    private bool _showFinalTowerBait;
+    private readonly List<Vector2> _mapEffectPositions = new();
 
     private State _state = State.Idle;
-    public override Metadata Metadata => new(4, "Garume");
+    public override Metadata Metadata => new(5, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
@@ -78,7 +88,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
             thicc = 10f,
             overlayVOffset = 3f,
             overlayFScale = 3f,
-            tether = true,
+            tether = true
         });
 
         _eGuide ??= Controller.GetElementByName("Guide");
@@ -112,7 +122,10 @@ public class M11S_Majestic_Meteor : SplatoonScript
         _latchedTethers = false;
         _flipLR = false;
         _gimmicCount = 0;
-        
+        _finalSafeTowerDir.Clear();
+        _showFinalTowerBait = false;
+        _mapEffectPositions.Clear();
+
         if (_eGuide != null)
             _eGuide.Enabled = false;
     }
@@ -127,6 +140,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
             _noLineOrder = new List<uint>();
             _latchedTethers = false;
             _flipLR = false;
+            _mapEffectPositions.Clear();
         }
         else if (castId == _actionPuddleTick && _state is State.Puddles1 or State.Puddles2 or State.Puddles3)
         {
@@ -134,14 +148,18 @@ public class M11S_Majestic_Meteor : SplatoonScript
             if (_puddleCount >= 8)
             {
                 _puddleCount = 0;
-                _state = _state switch
-                {
-                    State.Puddles1 => State.Puddles2,
-                    State.Puddles2 => State.Puddles3,
-                    State.Puddles3 => State.FinalSafe,
-                    _ => _state
-                };
+                    _state = _state switch
+                    {
+                        State.Puddles1 => State.Puddles2,
+                        State.Puddles2 => State.Puddles3,
+                        State.Puddles3 => State.FinalSafe,
+                        _ => _state
+                    };
             }
+        }
+        else if (_state == State.FinalTowerBait && _castArcadianCrash.Contains(castId))
+        {
+            _showFinalTowerBait = true;
         }
     }
 
@@ -161,12 +179,10 @@ public class M11S_Majestic_Meteor : SplatoonScript
         else
             dir = srcObj.Position.Z > _center.Y ? Direction.SouthWest : Direction.NorthWest;
         _linePlayers.Add((target, dir));
-        _tetherOrigins.Add(srcObj.Position);
 
         if (_linePlayers.Count >= 4)
         {
             _latchedTethers = true;
-            _flipLR = _tetherOrigins.Any(pos => pos.X < _center.X && pos.Z < 90f);
 
             BuildRoleOrders();
             _state = State.TowerBait;
@@ -200,16 +216,32 @@ public class M11S_Majestic_Meteor : SplatoonScript
                 _state = State.WaitTethers;
                 _linePlayers.Clear();
                 _lineOrder.Clear();
-                _tetherOrigins.Clear();
                 _noLineOrder.Clear();
                 _latchedTethers = false;
                 _flipLR = false;
+                _mapEffectPositions.Clear();
             }
             else
             {
-                _state = State.Done;
+                _state = State.FinalTowerBait;
+                _showFinalTowerBait = false;
             }
         }
+        else if (_state == State.FinalTowerBait && _castArcadianCrash.Contains(actionId))
+        {
+            _state = State.Done;
+        }
+    }
+
+    public override void OnMapEffect(uint position, ushort data1, ushort data2)
+    {
+        if (_state is State.Idle or State.Done) return;
+        if (position is < 22 or > 25) return;
+        if (data1 != 1) return;
+        if (!MapEffectToPos.TryGetValue(position, out var pos)) return;
+
+        _mapEffectPositions.Add(pos);
+        _flipLR = _mapEffectPositions.Any(p => Math.Abs(p.X - 79f) < 0.01f);
     }
 
     public override void OnUpdate()
@@ -383,6 +415,25 @@ public class M11S_Majestic_Meteor : SplatoonScript
             }
 
             SetGuide(pos);
+            _finalSafeTowerDir[myId] = GetDirectionFromPosition(pos);
+            return;
+        }
+
+        if (_state == State.FinalTowerBait)
+        {
+            if (!C.ShowFinalTowerBait) return;
+            if (!_showFinalTowerBait) return;
+            if (!_finalSafeTowerDir.TryGetValue(myId, out var dir)) return;
+
+            var pos = dir switch
+            {
+                Direction.NorthEast => TowerNE(),
+                Direction.SouthEast => TowerSE(),
+                Direction.SouthWest => TowerSW(),
+                _ => TowerNW()
+            };
+
+            SetGuide(pos);
         }
     }
 
@@ -504,11 +555,32 @@ public class M11S_Majestic_Meteor : SplatoonScript
         return new Vector2(2f * _center.X - p.X, 2f * _center.Y - p.Y);
     }
 
+    private Direction GetDirectionFromPosition(Vector2 pos)
+    {
+        var isEast = pos.X > _center.X;
+        var isSouth = pos.Y > _center.Y;
+        if (isEast && !isSouth) return Direction.NorthEast;
+        if (isEast && isSouth) return Direction.SouthEast;
+        if (!isEast && isSouth) return Direction.SouthWest;
+        return Direction.NorthWest;
+    }
+
 
     public override void OnSettingsDraw()
     {
         ImGuiEx.Text("■ 設定 / Settings");
         ImGui.Checkbox("Tether should go North", ref C.TetherShouldGoNorth);
+        ImGui.Checkbox("Show Final Tower bait (after Arcadian Crash cast)", ref C.ShowFinalTowerBait);
+        ImGui.SameLine();
+        ImGuiEx.HelpMarker("""
+            アルカディアンクラッシュの詠唱後
+            2回目ギミック終了時に立っていた方角の塔の位置にガイドを出します。
+            オフにするとこの再表示を行いません。
+            
+            After Arcadian Crash starts casting,
+            shows a marker on the same tower side where you stood when the second tower mechanic ended.
+            Turn off to disable this re-display.
+        """);
 
         ImGuiEx.Text("Gradient (2 colors)");
         ImGui.ColorEdit4("Color A", ref C.GradientA, ImGuiColorEditFlags.NoInputs);
@@ -577,6 +649,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
         public Vector4 GradientB = ImGuiColors.DalamudRed;
         public PriorityData PlayerData = new();
         public bool TetherShouldGoNorth;
+        public bool ShowFinalTowerBait = true;
     }
 
 
@@ -590,6 +663,8 @@ public class M11S_Majestic_Meteor : SplatoonScript
         Puddles2,
         Puddles3,
         FinalSafe,
+        FinalTowerBait,
         Done
     }
 }
+

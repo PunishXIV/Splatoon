@@ -171,8 +171,24 @@ public class M11S_Meteorain : SplatoonScript
         {
             _tetherCount++;
             _tetherMaps.Add((source, target));
-            if (_tetherMaps.Count >= 2)
-                TryUpdateCorrectSource();
+            if (_tetherCount == 2)
+            {
+                var desiredDirections = C.UseSecondMeteorDirection
+                    ? new[]
+                    {
+                        C.MyTetherOrigin,
+                        C.MySecondTetherOrigin
+                    }
+                    : new[] { C.MyTetherOrigin };
+                var normalizedDirections = desiredDirections.Select(Dir).ToArray();
+                foreach (var (s, t) in _tetherMaps)
+                {
+                    var targetObject = t.GetObject();
+                    var targetDirection = Dir(targetObject!.Position.ToVector2());
+
+                    if (normalizedDirections.Any(d => Vector2.Dot(d, targetDirection) > 0.95f)) _correctSources　= s;
+                }
+            }
         }
     }
 
@@ -222,8 +238,6 @@ public class M11S_Meteorain : SplatoonScript
 
         if (C.MyRole == Role.Tether && (wave == 2 || wave == 3 || wave == 4))
         {
-            if (_correctSources == 0 && _tetherMaps.Count >= 2)
-                TryUpdateCorrectSource();
             ApplyCommonStyle(_eTether, grad);
             var t = GetTetherInstruction();
             _eTether.SetOffPosition(new Vector3(t.sourcePos.X, 0f, t.sourcePos.Y));
@@ -254,28 +268,6 @@ public class M11S_Meteorain : SplatoonScript
         var sourcePos = sourceObj.Position.ToVector2();
         var targetPos = targetObj.Position.ToVector2();
         return (sourcePos, targetPos, text);
-    }
-
-    private void TryUpdateCorrectSource()
-    {
-        var desiredDirections = C.UseSecondMeteorDirection
-            ? new[] { C.MyTetherOrigin, C.MySecondTetherOrigin }
-            : new[] { C.MyTetherOrigin };
-        var normalizedDirections = desiredDirections.Select(Dir).ToArray();
-
-        foreach (var (s, t) in _tetherMaps)
-        {
-            var targetObj = t.GetObject();
-            if (targetObj == null)
-                continue;
-
-            var targetDirection = Dir(targetObj.Position.ToVector2());
-            if (normalizedDirections.Any(d => Vector2.Dot(d, targetDirection) > 0.95f))
-            {
-                _correctSources = s;
-                return;
-            }
-        }
     }
 
     private (Vector2 pos, string text) GetNavInstruction(int wave, Phase phase)

@@ -16,10 +16,21 @@ Replication 1 Debuff and aoe size highlight
 
 # 2
 [Script] [Beta] Clones 1 (Replication 1) script
+
+** KNOWN ISSUE: Tether position may not be valid, work in progress, look for your tether yourself **
+
 > [!Warning]
 >
 > Default configuration is for Banana Codex raidplan. You may reconfigure this script for ANY strat, however, it's not easy.
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Clones%202.cs
+```
+
+# 3
+
+Netherworld-far and Netherworld-near
+```
+~Lv2~{"Name":"三运 alpha 远近分摊","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"buff alpha1","type":1,"refActorRequireBuff":true,"refActorBuffId":[4769],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界远景","type":1,"radius":5.0,"color":3355508525,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"靠近","overlayTextIntl":{"En":"In"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46380,46380],"refActorComparisonType":1,"onlyVisible":true},{"Name":"buff alpha2","type":1,"refActorRequireBuff":true,"refActorBuffId":[4769],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界近景","type":1,"radius":5.0,"color":3355508570,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"远离","overlayTextIntl":{"En":"Out"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46379,46379],"refActorComparisonType":1,"onlyVisible":true}]}
+~Lv2~{"Name":"三运 beta 远近分摊","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"buff beta1","type":1,"refActorRequireBuff":true,"refActorBuffId":[4771],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界远景","type":1,"radius":5.0,"color":3372155132,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"远离分摊","overlayTextIntl":{"En":"Out + Stack"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46380,46380],"refActorComparisonType":1,"onlyVisible":true},{"Name":"buff beta2","type":1,"refActorRequireBuff":true,"refActorBuffId":[4771],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界近景","type":1,"radius":5.0,"color":3371564800,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"靠近分摊","overlayTextIntl":{"En":"In + Stack"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46379,46379],"refActorComparisonType":1,"onlyVisible":true}]}
 ```

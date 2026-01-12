@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using ECommons;
@@ -7,11 +8,14 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Newtonsoft.Json;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Direction { N, NE, E, SE, S, SW, W, NW }
@@ -42,11 +46,20 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
     public override void OnSetup()
     {
+        Controller.RegisterElementFromCode("Beacon", """
+            {"Name":"","type":2,"refX":80.0,"refY":100.0,"offX":80.0,"offY":100.0,"offZ":30.0,"radius":0.0,"color":3355506687,"fillIntensity":0.345,"thicc":40.0}
+            """);
         Controller.RegisterElementFromCode("TetherWanted", """
-            {"Name":"","type":2,"refX":92.782196,"refY":113.39666,"refZ":-3.8146973E-06,"offX":83.49066,"offY":106.54342,"radius":0.0,"fillIntensity":0.345,"thicc":6.0}
+            {"Name":"","type":2,"refX":92.782196,"refY":113.39666,"refZ":-3.8146973E-06,"offX":83.49066,"offY":106.54342,"radius":0.0,"fillIntensity":0.345,"thicc":10}
+            """);
+        Controller.RegisterElementFromCode("TetherWantedPartners", """
+            {"Name":"","type":2,"refX":92.782196,"refY":113.39666,"refZ":-3.8146973E-06,"offX":83.49066,"offY":106.54342,"radius":0.0,"fillIntensity":0.345,"thicc":2}
             """);
         Controller.RegisterElementFromCode("TetherValid", """
-            {"Name":"","type":2,"refX":92.782196,"refY":113.39666,"refZ":-3.8146973E-06,"offX":83.49066,"offY":106.54342,"radius":0.0,"color":3355639552,"fillIntensity":0.345,"thicc":4.0}
+            {"Name":"","type":2,"refX":92.782196,"refY":113.39666,"refZ":-3.8146973E-06,"offX":83.49066,"offY":106.54342,"radius":0.0,"color":3355639552,"fillIntensity":0.345,"thicc":8.0}
+            """);
+        Controller.RegisterElementFromCode("TetherValidPartners", """
+            {"Name":"","type":2,"refX":92.782196,"refY":113.39666,"refZ":-3.8146973E-06,"offX":83.49066,"offY":106.54342,"radius":0.0,"color":3355639552,"fillIntensity":0.345,"thicc":2}
             """);
         Controller.RegisterElementFromCode("GoTo", """
             {"Name":"","refX":102.4791,"refY":97.90576,"radius":0.75,"Filled":false,"fillIntensity":0.5,"thicc":6.0,"tether":true}
@@ -88,8 +101,16 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                     PlayerDirection = GetDirection(x.Position);
                 }
             }
+
             if(PlayerDirection != null)
             {
+
+                var relAngle = 45 * (int)BaseDirection;
+                var point = MathHelper.RotateWorldPoint(new(100, 0, 100), relAngle.DegreesToRadians(), new(100, 0, 80));
+                var e = Controller.GetElementByName("Beacon");
+                e.SetRefPosition(point);
+                e.SetOffPosition(point with { Y = 30});
+                e.Enabled = true;
                 if(Svc.Objects.OfType<IBattleNpc>().Count(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.Id != 0 && Enum.GetValues<TetherKind>().Contains((TetherKind)t.Id))) == 7)
                 {
                     IBattleNpc wantTetherFrom = null;
@@ -117,13 +138,33 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                             v.Enabled = true;
                             v.SetRefPosition(BasePlayer.Position);
                             v.SetOffPosition(wantTetherFrom.Position);
+
+                            VfxContainer.Tether otherTetherStruct = default;
+                            var otherTether = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.Id == (uint)GetDesiredTether() && x.TargetId != BasePlayer.ObjectId, out otherTetherStruct));
+                            if(otherTether != null && otherTetherStruct.TargetId.ObjectId.TryGetPlayer(out var otherPlayer) && Controller.TryGetElementByName("TetherValidPartners", out var others))
+                            {
+                                others.Enabled = true;
+                                others.SetRefPosition(otherPlayer.Position);
+                                others.SetOffPosition(otherTether.Position);
+                            }
                         }
                         if(!haveTetherFromWanted && Controller.TryGetElementByName("TetherWanted", out var w))
                         {
                             w.Enabled = true;
                             w.SetRefPosition(wantTetherFrom.Position);
-                            w.SetOffPosition(wantTetherFrom.Struct()->Vfx.Tethers.ToArray().FirstOrDefault(x => x.Id == (uint)GetDesiredTether()).TargetId.ObjectId.TryGetPlayer(out var pc) ? pc.Position : default);
+                            IPlayerCharacter pc = null;
+                            w.SetOffPosition(wantTetherFrom.Struct()->Vfx.Tethers.ToArray().FirstOrDefault(x => x.Id == (uint)GetDesiredTether()).TargetId.ObjectId.TryGetPlayer(out pc) ? pc.Position : default);
                             w.color = GetRainbowColor(3).ToUint();
+
+                            VfxContainer.Tether otherTetherStruct = default;
+                            var otherTether = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.Id == (uint)GetDesiredTether() && x.TargetId != pc?.ObjectId, out otherTetherStruct));
+                            if(otherTether != null && otherTetherStruct.TargetId.ObjectId.TryGetPlayer(out var otherPlayer) && Controller.TryGetElementByName("TetherWantedPartners", out var others))
+                            {
+                                others.Enabled = true;
+                                others.SetRefPosition(otherPlayer.Position);
+                                others.SetOffPosition(otherTether.Position);
+                                others.color = w.color;
+                            }
                         }
                     }
                 }
@@ -188,8 +229,9 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
     IBattleNpc[] TetherCandidates => Svc.Objects.OfType<IBattleNpc>().Where(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.Id == (uint)GetDesiredTether())).OrderBy(x =>
     {
-        var a = (MathHelper.GetRelativeAngle(new(100, 0, 100), x.Position) + 90) % 360;
-        //PluginLog.Information($"Tether at {a} {x.Position}");
+        var relAngle = 45 * (int)BaseDirection;
+        var a = (MathHelper.GetRelativeAngle(new(100, 0, 100), x.Position) + relAngle + 180 - 5) % 360;
+        PluginLog.Information($"Tether at {a} {x.Position}");
         return a;
     }).ToArray();
 
@@ -256,10 +298,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             ImGuiEx.HelpMarker("", color: EColor.RedBright, symbolOverride: FontAwesomeIcon.ExclamationTriangle.ToIconString(), sameLine: false);
             ImGui.SameLine();
             ImGuiEx.TextWrapped(EColor.RedBright, $"""
-            Warning, warning, warning!
-            This mechanic has unfathomable difficulty. 
-            It can be reconfigured for ANY strat, however, reconfiguring it requires DEEP UNDERSTANDING of both mechanic and how things work. For your convenience, debug markers will be added.
-            ANY incorrect change will break this script.
+            Warning! Configuring this script requires you to fully understand mechanic and either have a recording of the battle or being in the zone.
             """);
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Play, "Proceed"))
             {
@@ -268,6 +307,23 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         }
         if(AgreedToConfigure)
         {
+            ImGuiEx.TextV("Relative North on position");
+            ImGui.SameLine();
+            if(ImGui.RadioButton("1", C.BaseNum == 0)) C.BaseNum = 0;
+            ImGui.SameLine();
+            if(ImGui.RadioButton("2", C.BaseNum == 1)) C.BaseNum = 1;
+            ImGui.SameLine();
+            if(ImGui.RadioButton("3", C.BaseNum == 2)) C.BaseNum = 2;
+            ImGui.SameLine();
+            if(ImGui.RadioButton("4", C.BaseNum == 3)) C.BaseNum = 3;
+            ImGui.SameLine();
+            ImGuiEx.TextV("of");
+            ImGui.SameLine();
+            if(ImGui.RadioButton("Light Party 1", C.BaseLP1)) C.BaseLP1 = true;
+            ImGui.SameLine();
+            if(ImGui.RadioButton("Light Party 2", !C.BaseLP1)) C.BaseLP1 = false;
+            ImGui.SameLine();
+            ImGuiEx.Text($"Currently: {BaseDirection}");
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 positions", () =>
             {
                 for(int i = 0; i < C.LP1.Length; i++)
@@ -352,6 +408,8 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             }
         }
     }
+
+    Direction BaseDirection => (C.BaseLP1 ? C.LP1 : C.LP2).SafeSelect(C.BaseNum);
 
     void LpPositionsEdit(int num, List<Dictionary<TetherKind, Vector2>> positions)
     {
@@ -440,6 +498,8 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     public Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
     {
+        public bool BaseLP1 = true;
+        public int BaseNum = 0;
         public Direction[] LP1 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
         public Direction[] LP2 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
         public TetherKind[] LP1Tethers = [TetherKind.Boss, TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation];

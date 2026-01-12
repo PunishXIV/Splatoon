@@ -7,12 +7,10 @@ using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
-using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -51,17 +49,18 @@ public class M11S_Meteorain : SplatoonScript
         Tether
     }
 
+    private const float _distStack = 10f; // 配置距離（頭割り）
+    private const float _distMeteor = 8f; // 配置距離（通常隕石）
+    private const float _distFinal = 22.0f; // 最終隕石配置距離
+    private const float _distSWAlt1 = 14.0f; // SW 近め配置距離
+    private const float _distSWAlt2 = 20.0f; // SW 遠め配置距離
+
     private readonly uint _actionAfterWave3 = 46134;
     private readonly uint _actionEnd = 46139;
     private readonly uint _actionMeteorPlace = 46133;
     private readonly uint _castMeteorainStart = 46132;
 
     private readonly Vector2 _center = new(100f, 100f);
-    private const float _distStack = 10f; // 配置距離（頭割り）
-    private const float _distMeteor = 8f; // 配置距離（通常隕石）
-    private const float _distFinal = 22.0f; // 最終隕石配置距離
-    private const float _distSWAlt1 = 14.0f; // SW 近め配置距離
-    private const float _distSWAlt2 = 20.0f; // SW 遠め配置距離
 
     private readonly float _northPullDist = 18f;
     private readonly Vector2 _posNE = new(107f, 93f);
@@ -70,18 +69,18 @@ public class M11S_Meteorain : SplatoonScript
     private readonly Vector2 _posSW = new(93f, 107f);
     private readonly float _southPullDist = 18f;
 
-    private HashSet<(uint source,uint target)> _tetherMaps = new();
-    private int _tetherCount = 0;
-    private uint _correctSources;
+    private readonly HashSet<(uint source, uint target)> _tetherMaps = new();
 
     private readonly string _vfxLockon = "vfx/lockon/eff/lockon8_t0w.avfx";
+    private uint _correctSources;
 
     private Element? _eNav;
     private Element? _eTether;
 
     private State _state = State.Idle;
+    private int _tetherCount;
 
-    public override Metadata Metadata => new(2, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
 
     private Config C => Controller.GetConfig<Config>();
@@ -154,7 +153,7 @@ public class M11S_Meteorain : SplatoonScript
         if (!vfxPath.Equals(_vfxLockon, StringComparison.OrdinalIgnoreCase) &&
             !vfxPath.StartsWith(_vfxLockon, StringComparison.OrdinalIgnoreCase))
             return;
-        
+
 
         if (_state == State.Wave1Prepare) _state = State.Wave1Active;
         else if (_state == State.Wave2Prepare) _state = State.Wave2Active;
@@ -171,21 +170,20 @@ public class M11S_Meteorain : SplatoonScript
             _tetherMaps.Add((source, target));
             if (_tetherCount == 2)
             {
-                var desiredDirections = C.UseSecondMeteorDirection ? new[]
-                {
-                    C.MyTetherOrigin,
-                    C.MySecondTetherOrigin
-                }: new []{ C.MyTetherOrigin};
+                var desiredDirections = C.UseSecondMeteorDirection
+                    ? new[]
+                    {
+                        C.MyTetherOrigin,
+                        C.MySecondTetherOrigin
+                    }
+                    : new[] { C.MyTetherOrigin };
                 var normalizedDirections = desiredDirections.Select(Dir).ToArray();
                 foreach (var (s, t) in _tetherMaps)
                 {
                     var targetObject = t.GetObject();
                     var targetDirection = Dir(targetObject!.Position.ToVector2());
-                    
-                    if (normalizedDirections.Any(d => Vector2.Dot(d, targetDirection) > 0.95f))
-                    {
-                        _correctSources　= s;
-                    }
+
+                    if (normalizedDirections.Any(d => Vector2.Dot(d, targetDirection) > 0.95f)) _correctSources　= s;
                 }
             }
         }
@@ -234,7 +232,7 @@ public class M11S_Meteorain : SplatoonScript
 
         var grad = GradientColor.Get(C.GradientA, C.GradientB, 333).ToUint();
         var (wave, phase) = GetWavePhase();
-        
+
         if (C.MyRole == Role.Tether && (wave == 2 || wave == 3 || wave == 4))
         {
             ApplyCommonStyle(_eTether, grad);
@@ -251,33 +249,29 @@ public class M11S_Meteorain : SplatoonScript
         }
     }
 
-    private unsafe (Vector2 sourcePos,Vector2 targetPos, string text) GetTetherInstruction()
+    private unsafe (Vector2 sourcePos, Vector2 targetPos, string text) GetTetherInstruction()
     {
         var sourceObj = _correctSources.GetObject() as IBattleNpc;
         if (sourceObj == null)
             return (Vector2.Zero, Vector2.Zero, "");
         var targetObj = sourceObj.Struct()->Vfx.Tethers.ToArray().ToArray().First().TargetId.ObjectId.GetObject();
-        
-        var text = targetObj != null && targetObj.EntityId == Controller.BasePlayer.EntityId ? "Correct !!!" : "Pick this";
+
+        var text = targetObj != null && targetObj.EntityId == Controller.BasePlayer.EntityId
+            ? "Correct !!!"
+            : "Pick this";
         if (targetObj == null)
             return (Vector2.Zero, Vector2.Zero, text);
-        
+
         var sourcePos = sourceObj.Position.ToVector2();
         var targetPos = targetObj.Position.ToVector2();
         return (sourcePos, targetPos, text);
     }
 
-    private (Vector2 pos,  string text) GetNavInstruction(int wave, Phase phase)
+    private (Vector2 pos, string text) GetNavInstruction(int wave, Phase phase)
     {
         if (phase == Phase.Final)
             return (PosDir(Dir(MeteorSpot.SouthWest), _distFinal), "Final");
 
-        
-        var p = CornerToPos(C.Stack4);
-        if (phase == Phase.StackOnly)
-        {
-            return (p, $"Stack4");
-        }
 
         var stackCorner = wave switch
         {
@@ -285,49 +279,48 @@ public class M11S_Meteorain : SplatoonScript
             2 => C.Stack2,
             _ => C.Stack3
         };
-
-        var isMyMeteorWave = C.MyMeteorWave ==
-            (wave == 1 ? MeteorWave.Wave1 : wave == 2 ? MeteorWave.Wave2 : MeteorWave.Wave3);
-        var isPrepareMeteorWave = C.MyMeteorWave ==
-            (wave == 1 ? MeteorWave.Wave2 : MeteorWave.Wave3);
+        var p = CornerToPos(stackCorner);
+        if (phase == Phase.StackOnly)
+        {
+            p = CornerToPos(C.Stack4);
+            return (p, "Stack4");
+        }
+        
+        var isMyMeteorWave = C.MyMeteorWave == wave switch
+                             {
+                                 1 => MeteorWave.Wave1,
+                                 2 => MeteorWave.Wave2,
+                                 _ => MeteorWave.Wave3
+                             };
+        var isPrepareMeteorWave = C.MyMeteorWave == (wave == 1 ? MeteorWave.Wave2 : MeteorWave.Wave3);
         if (phase == Phase.Prepare)
         {
             if (isMyMeteorWave)
                 return (_center, $"Wave{wave}: {C.NearBoss.Get()}");
-            return (p, $"Stack");
-        }
-        else
-        {
-            if (isMyMeteorWave)
-            {
-                var (mp, mt) = MeteorToNav(C.MyMeteorSpot, wave);
-                return (mp, mt);
-            }
-            else if (isPrepareMeteorWave)
-            {
-                return (p, $"Wave{wave}: {C.PrepareNearBoss.Get()}");
-            }
-            else
-            {
-                return (p, $"Stack");
-            }
+            return (p, "Stack");
         }
 
-        var sp = CornerToPos(stackCorner);
-        return (sp, $"Stack");
+        if (isMyMeteorWave) return MeteorToNav(C.MyMeteorSpot, wave);
+
+        if (isPrepareMeteorWave) return (p, $"Wave{wave}: {C.PrepareNearBoss.Get()}");
+
+        return (p, "Stack");
     }
 
     private (int wave, Phase phase) GetWavePhase()
     {
-        if (_state == State.Wave1Prepare) return (1, Phase.Prepare);
-        if (_state == State.Wave1Active) return (1, Phase.Active);
-        if (_state == State.Wave2Prepare) return (2, Phase.Prepare);
-        if (_state == State.Wave2Active) return (2, Phase.Active);
-        if (_state == State.Wave3Prepare) return (3, Phase.Prepare);
-        if (_state == State.Wave3Active) return (3, Phase.Active);
-        if (_state == State.Wave4StackOnly) return (4, Phase.StackOnly);
-        if (_state == State.FinalSW) return (4, Phase.Final);
-        return (0, Phase.None);
+        return _state switch
+        {
+            State.Wave1Prepare => (1, Phase.Prepare),
+            State.Wave1Active => (1, Phase.Active),
+            State.Wave2Prepare => (2, Phase.Prepare),
+            State.Wave2Active => (2, Phase.Active),
+            State.Wave3Prepare => (3, Phase.Prepare),
+            State.Wave3Active => (3, Phase.Active),
+            State.Wave4StackOnly => (4, Phase.StackOnly),
+            State.FinalSW => (4, Phase.Final),
+            _ => (0, Phase.None)
+        };
     }
 
     private (Vector2 pos, string text) MeteorToNav(MeteorSpot spot, int wave)
@@ -410,18 +403,19 @@ public class M11S_Meteorain : SplatoonScript
         ImGui.ColorEdit4("Color A", ref C.GradientA, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Color B", ref C.GradientB, ImGuiColorEditFlags.NoInputs);
         ImGui.Separator();
-        
+
         var prepareNearBoss = C.PrepareNearBoss.Get();
         C.PrepareNearBoss.ImGuiEdit(ref prepareNearBoss);
         var nearBoss = C.NearBoss.Get();
         C.NearBoss.ImGuiEdit(ref nearBoss);
-        
+
         if (ImGui.CollapsingHeader("Guide (JP)"))
         {
             ImGui.BulletText("頭割りの位置は 1〜4回目すべて選択してください。");
             ImGui.BulletText("例：1回目の頭割りを北東で受ける場合は NorthEast を選びます。");
             ImGui.BulletText("隕石を誘導する場合は、MyRole を Meteor に変更し、何回目（Wave）に、どの方角へ置くかを選択してください。");
-            ImGui.BulletText("例：2回目の隕石を南西に置きたい場合は、Wave2 を選び、配置先を SouthWest / SouthWestAlt1 / SouthWestAlt2 のいずれかに設定します。");
+            ImGui.BulletText(
+                "例：2回目の隕石を南西に置きたい場合は、Wave2 を選び、配置先を SouthWest / SouthWestAlt1 / SouthWestAlt2 のいずれかに設定します。");
             ImGui.BulletText("なお、南西の配置位置は SouthWest < SouthWestAlt1 < SouthWestAlt2 の順に外周寄り（外側）になります。");
         }
 
@@ -429,9 +423,12 @@ public class M11S_Meteorain : SplatoonScript
         {
             ImGui.BulletText(" Please select the stack position for all four stacks (Stack 1–4).");
             ImGui.BulletText(" Example: If you take the first stack at the northeast, choose NorthEast.");
-            ImGui.BulletText(" If you are baiting/placing a meteor, set MyRole to Meteor, then choose which wave (1–3) and which direction you will place it.");
-            ImGui.BulletText(" Example: If you want to place the second meteor to the southwest, select Wave2 and then choose one of SouthWest / SouthWestAlt1 / SouthWestAlt2.");
-            ImGui.BulletText(" For the southwest options, the placement is farther out in this order: SouthWest < SouthWestAlt1 < SouthWestAlt2.");
+            ImGui.BulletText(
+                " If you are baiting/placing a meteor, set MyRole to Meteor, then choose which wave (1–3) and which direction you will place it.");
+            ImGui.BulletText(
+                " Example: If you want to place the second meteor to the southwest, select Wave2 and then choose one of SouthWest / SouthWestAlt1 / SouthWestAlt2.");
+            ImGui.BulletText(
+                " For the southwest options, the placement is farther out in this order: SouthWest < SouthWestAlt1 < SouthWestAlt2.");
         }
 
         if (ImGui.CollapsingHeader("Debug"))
@@ -441,58 +438,6 @@ public class M11S_Meteorain : SplatoonScript
             ImGui.Text($"VFX: {_vfxLockon}");
             ImGui.Text($"ActionPlace: {_actionMeteorPlace}  AfterWave3: {_actionAfterWave3}  End: {_actionEnd}");
         }
-    }
-
-    private enum State
-    {
-        Idle = 0,
-        Wave1Prepare,
-        Wave1Active,
-        Wave2Prepare,
-        Wave2Active,
-        Wave3Prepare,
-        Wave3Active,
-        Wave4StackOnly,
-        FinalSW,
-        Done
-    }
-
-    public class Config : IEzConfig
-    {
-        public Vector4 GradientA = ImGuiColors.DalamudYellow;
-        public Vector4 GradientB = ImGuiColors.DalamudRed;
-        public MeteorSpot MyMeteorSpot = MeteorSpot.NorthWest;
-        public MeteorWave MyMeteorWave = MeteorWave.Wave1;
-        public Role MyRole = Role.Meteor;
-        public MeteorSpot MyTetherOrigin = MeteorSpot.NorthEast;
-        public MeteorSpot MySecondTetherOrigin = MeteorSpot.SouthEast;
-        public bool UseSecondMeteorDirection;
-
-        public Corner Stack1 = Corner.NorthEast;
-        public Corner Stack2 = Corner.NorthWest;
-        public Corner Stack3 = Corner.SouthEast;
-        public Corner Stack4 = Corner.NorthEast;
-        
-        public InternationalString PrepareNearBoss = new()
-        {
-            En = "Next, near boss",
-            Jp = "次はボスの足元へ"
-        };
-
-        public InternationalString NearBoss = new()
-        {
-            En = "Near boss",
-            Jp = "足元へ"
-        };
-    }
-
-    private enum Phase
-    {
-        None,
-        Prepare,
-        Active,
-        StackOnly,
-        Final
     }
 
     private Vector2 Dir(Corner c)
@@ -525,5 +470,56 @@ public class M11S_Meteorain : SplatoonScript
     {
         return _center + dir * dist;
     }
-}
 
+    private enum State
+    {
+        Idle = 0,
+        Wave1Prepare,
+        Wave1Active,
+        Wave2Prepare,
+        Wave2Active,
+        Wave3Prepare,
+        Wave3Active,
+        Wave4StackOnly,
+        FinalSW,
+        Done
+    }
+
+    public class Config : IEzConfig
+    {
+        public Vector4 GradientA = ImGuiColors.DalamudYellow;
+        public Vector4 GradientB = ImGuiColors.DalamudRed;
+        public MeteorSpot MyMeteorSpot = MeteorSpot.NorthWest;
+        public MeteorWave MyMeteorWave = MeteorWave.Wave1;
+        public Role MyRole = Role.Meteor;
+        public MeteorSpot MySecondTetherOrigin = MeteorSpot.SouthEast;
+        public MeteorSpot MyTetherOrigin = MeteorSpot.NorthEast;
+
+        public InternationalString NearBoss = new()
+        {
+            En = "Near boss",
+            Jp = "足元へ"
+        };
+
+        public InternationalString PrepareNearBoss = new()
+        {
+            En = "Next, near boss",
+            Jp = "次はボスの足元へ"
+        };
+
+        public Corner Stack1 = Corner.NorthEast;
+        public Corner Stack2 = Corner.NorthWest;
+        public Corner Stack3 = Corner.SouthEast;
+        public Corner Stack4 = Corner.NorthEast;
+        public bool UseSecondMeteorDirection;
+    }
+
+    private enum Phase
+    {
+        None,
+        Prepare,
+        Active,
+        StackOnly,
+        Final
+    }
+}

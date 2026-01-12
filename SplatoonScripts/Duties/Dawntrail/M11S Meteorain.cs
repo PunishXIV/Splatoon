@@ -1,13 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
+using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
+using ECommons.MathHelpers;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
@@ -45,12 +51,6 @@ public class M11S_Meteorain : SplatoonScript
         Tether
     }
 
-    public enum TetherOrigin
-    {
-        NorthWest,
-        SouthEast
-    }
-
     private readonly uint _actionAfterWave3 = 46134;
     private readonly uint _actionEnd = 46139;
     private readonly uint _actionMeteorPlace = 46133;
@@ -70,6 +70,10 @@ public class M11S_Meteorain : SplatoonScript
     private readonly Vector2 _posSW = new(93f, 107f);
     private readonly float _southPullDist = 18f;
 
+    private HashSet<(uint source,uint target)> _tetherMaps = new();
+    private int _tetherCount = 0;
+    private uint _correctSources;
+
     private readonly string _vfxLockon = "vfx/lockon/eff/lockon8_t0w.avfx";
 
     private Element? _eNav;
@@ -77,7 +81,7 @@ public class M11S_Meteorain : SplatoonScript
 
     private State _state = State.Idle;
 
-    public override Metadata Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(2, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
 
     private Config C => Controller.GetConfig<Config>();
@@ -89,7 +93,8 @@ public class M11S_Meteorain : SplatoonScript
             radius = 2f,
             thicc = 10f,
             overlayVOffset = 3f,
-            overlayFScale = 2.6f
+            overlayFScale = 2.6f,
+            tether = true
         });
 
         Controller.RegisterElement("Tether", new Element(2)
@@ -149,10 +154,48 @@ public class M11S_Meteorain : SplatoonScript
         if (!vfxPath.Equals(_vfxLockon, StringComparison.OrdinalIgnoreCase) &&
             !vfxPath.StartsWith(_vfxLockon, StringComparison.OrdinalIgnoreCase))
             return;
+        
 
         if (_state == State.Wave1Prepare) _state = State.Wave1Active;
         else if (_state == State.Wave2Prepare) _state = State.Wave2Active;
         else if (_state == State.Wave3Prepare) _state = State.Wave3Active;
+    }
+
+    public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
+    {
+        if (data3 != 356) return;
+
+        if (_state != State.Idle && _state != State.Done)
+        {
+            _tetherCount++;
+            _tetherMaps.Add((source, target));
+            if (_tetherCount == 2)
+            {
+                var desiredDirections = C.UseSecondMeteorDirection ? new[]
+                {
+                    C.MyTetherOrigin,
+                    C.MySecondTetherOrigin
+                }: new []{ C.MyTetherOrigin};
+                var normalizedDirections = desiredDirections.Select(Dir).ToArray();
+                foreach (var (s, t) in _tetherMaps)
+                {
+                    var targetObject = t.GetObject();
+                    var targetDirection = Dir(targetObject!.Position.ToVector2());
+                    
+                    if (normalizedDirections.Any(d => Vector2.Dot(d, targetDirection) > 0.95f))
+                    {
+                        _correctSources　= s;
+                    }
+                }
+            }
+        }
+    }
+
+    public override void OnTetherRemoval(uint source, uint data2, uint data3, uint data5)
+    {
+        if (data2 != 356) return;
+
+        _tetherMaps.RemoveWhere(x => x.source == source);
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
@@ -163,6 +206,7 @@ public class M11S_Meteorain : SplatoonScript
 
         if (actionId == _actionMeteorPlace)
         {
+            _tetherCount = 0;
             if (_state == State.Wave1Active) _state = State.Wave2Prepare;
             else if (_state == State.Wave2Active) _state = State.Wave3Prepare;
             else if (_state == State.Wave3Active) _state = State.Wave4StackOnly;
@@ -189,60 +233,50 @@ public class M11S_Meteorain : SplatoonScript
         if (_state is State.Idle or State.Done) return;
 
         var grad = GradientColor.Get(C.GradientA, C.GradientB, 333).ToUint();
-
-        if (_eNav != null)
+        var (wave, phase) = GetWavePhase();
+        
+        if (C.MyRole == Role.Tether && (wave == 2 || wave == 3 || wave == 4))
+        {
+            ApplyCommonStyle(_eTether, grad);
+            var t = GetTetherInstruction();
+            _eTether.SetOffPosition(new Vector3(t.sourcePos.X, 0f, t.sourcePos.Y));
+            _eTether.SetRefPosition(new Vector3(t.targetPos.X, 0f, t.targetPos.Y));
+        }
+        else
         {
             ApplyCommonStyle(_eNav, grad);
 
-            var nav = GetNavInstruction();
+            var nav = GetNavInstruction(wave, phase);
             SetElement(_eNav, nav.pos, nav.text);
         }
-
-        if (_eTether != null)
-            if (ShouldShowTether())
-            {
-                ApplyCommonStyle(_eTether, grad);
-                var t = GetTetherInstruction();
-                SetElement(_eTether, t.pos, t.text);
-            }
     }
 
-    private bool ShouldShowTether()
+    private unsafe (Vector2 sourcePos,Vector2 targetPos, string text) GetTetherInstruction()
     {
-        if (C.MyRole != Role.Tether) return false;
-        return _state == State.Wave2Active || _state == State.Wave3Active;
+        var sourceObj = _correctSources.GetObject() as IBattleNpc;
+        if (sourceObj == null)
+            return (Vector2.Zero, Vector2.Zero, "");
+        var targetObj = sourceObj.Struct()->Vfx.Tethers.ToArray().ToArray().First().TargetId.ObjectId.GetObject();
+        
+        var text = targetObj != null && targetObj.EntityId == Controller.BasePlayer.EntityId ? "Correct !!!" : "Pick this";
+        if (targetObj == null)
+            return (Vector2.Zero, Vector2.Zero, text);
+        
+        var sourcePos = sourceObj.Position.ToVector2();
+        var targetPos = targetObj.Position.ToVector2();
+        return (sourcePos, targetPos, text);
     }
 
-    private (Vector2 pos, string text) GetTetherInstruction()
+    private (Vector2 pos,  string text) GetNavInstruction(int wave, Phase phase)
     {
-        var originPos = C.MyTetherOrigin == TetherOrigin.NorthWest
-            ? PosDir(Dir(Corner.NorthWest), _distMeteor)
-            : PosDir(Dir(Corner.SouthEast), _distMeteor);
-        var pullPos = C.MyTetherOrigin == TetherOrigin.NorthWest
-            ? _center with { Y = _center.Y - _northPullDist }
-            : _center with { Y = _center.Y + _southPullDist };
-
-        var txt = C.MyTetherOrigin == TetherOrigin.NorthWest
-            ? "Tether: Take NW -> Pull N"
-            : "Tether: Take SE -> Pull S";
-
-        var useOrigin = true;
-        if (_state == State.Wave2Active || _state == State.Wave3Active) useOrigin = true;
-
-        return useOrigin ? (originPos, txt) : (pullPos, txt);
-    }
-
-    private (Vector2 pos,  string text) GetNavInstruction()
-    {
-        var (wave, phase) = GetWavePhase();
-
         if (phase == Phase.Final)
-            return (PosDir(Dir(MeteorSpot.SouthWest), _distFinal), "Final: SW");
+            return (PosDir(Dir(MeteorSpot.SouthWest), _distFinal), "Final");
 
+        
+        var p = CornerToPos(C.Stack4);
         if (phase == Phase.StackOnly)
         {
-            var p = CornerToPos(C.Stack4);
-            return (p, $"Stack4 {Short(C.Stack4)}");
+            return (p, $"Stack4");
         }
 
         var stackCorner = wave switch
@@ -252,25 +286,35 @@ public class M11S_Meteorain : SplatoonScript
             _ => C.Stack3
         };
 
-        var isMyMeteorWave = C.MyRole == Role.Meteor && C.MyMeteorWave ==
+        var isMyMeteorWave = C.MyMeteorWave ==
             (wave == 1 ? MeteorWave.Wave1 : wave == 2 ? MeteorWave.Wave2 : MeteorWave.Wave3);
-
+        var isPrepareMeteorWave = C.MyMeteorWave ==
+            (wave == 1 ? MeteorWave.Wave2 : MeteorWave.Wave3);
         if (phase == Phase.Prepare)
         {
             if (isMyMeteorWave)
-                return (_center, $"Wave{wave}: Near Boss");
-            var p = CornerToPos(stackCorner);
-            return (p, $"Stack{wave} {Short(stackCorner)}");
+                return (_center, $"Wave{wave}: {C.NearBoss.Get()}");
+            return (p, $"Stack");
         }
-
-        if (isMyMeteorWave)
+        else
         {
-            var (mp, mt) = MeteorToNav(C.MyMeteorSpot, wave);
-            return (mp, mt);
+            if (isMyMeteorWave)
+            {
+                var (mp, mt) = MeteorToNav(C.MyMeteorSpot, wave);
+                return (mp, mt);
+            }
+            else if (isPrepareMeteorWave)
+            {
+                return (p, $"Wave{wave}: {C.PrepareNearBoss.Get()}");
+            }
+            else
+            {
+                return (p, $"Stack");
+            }
         }
 
         var sp = CornerToPos(stackCorner);
-        return (sp, $"Stack{wave} {Short(stackCorner)}");
+        return (sp, $"Stack");
     }
 
     private (int wave, Phase phase) GetWavePhase()
@@ -322,16 +366,6 @@ public class M11S_Meteorain : SplatoonScript
         e.Enabled = true;
     }
 
-    private string Short(Corner c)
-    {
-        return c switch
-        {
-            Corner.NorthWest => "NW",
-            Corner.NorthEast => "NE",
-            _ => "SE"
-        };
-    }
-
     private string Short(MeteorSpot s)
     {
         return s switch
@@ -353,8 +387,10 @@ public class M11S_Meteorain : SplatoonScript
 
         if (C.MyRole == Role.Tether)
         {
-            ImGui.TextColored(ImGuiColors.DalamudRed, "対応していません。/ Not supported.");
-            ImGuiEx.EnumCombo("Tether Origin", ref C.MyTetherOrigin);
+            ImGuiEx.EnumCombo("Meteor Direction", ref C.MyTetherOrigin);
+            ImGuiEx.HelpMarker("Please select which direction’s meteor tether to track.\nどの方角のメテオについたテザーを見るか選択してください");
+            ImGui.Checkbox("Use Second Direction", ref C.UseSecondMeteorDirection);
+            ImGuiEx.EnumCombo("Second Meteor Direction", ref C.MySecondTetherOrigin);
         }
         else
         {
@@ -373,8 +409,13 @@ public class M11S_Meteorain : SplatoonScript
         ImGuiEx.Text("Gradient (2 colors)");
         ImGui.ColorEdit4("Color A", ref C.GradientA, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Color B", ref C.GradientB, ImGuiColorEditFlags.NoInputs);
-
         ImGui.Separator();
+        
+        var prepareNearBoss = C.PrepareNearBoss.Get();
+        C.PrepareNearBoss.ImGuiEdit(ref prepareNearBoss);
+        var nearBoss = C.NearBoss.Get();
+        C.NearBoss.ImGuiEdit(ref nearBoss);
+        
         if (ImGui.CollapsingHeader("Guide (JP)"))
         {
             ImGui.BulletText("頭割りの位置は 1〜4回目すべて選択してください。");
@@ -388,9 +429,9 @@ public class M11S_Meteorain : SplatoonScript
         {
             ImGui.BulletText(" Please select the stack position for all four stacks (Stack 1–4).");
             ImGui.BulletText(" Example: If you take the first stack at the northeast, choose NorthEast.");
-            ImGui.BulletText("  If you are baiting/placing a meteor, set MyRole to Meteor, then choose which wave (1–3) and which direction you will place it.");
+            ImGui.BulletText(" If you are baiting/placing a meteor, set MyRole to Meteor, then choose which wave (1–3) and which direction you will place it.");
             ImGui.BulletText(" Example: If you want to place the second meteor to the southwest, select Wave2 and then choose one of SouthWest / SouthWestAlt1 / SouthWestAlt2.");
-            ImGui.BulletText("  For the southwest options, the placement is farther out in this order: SouthWest < SouthWestAlt1 < SouthWestAlt2.");
+            ImGui.BulletText(" For the southwest options, the placement is farther out in this order: SouthWest < SouthWestAlt1 < SouthWestAlt2.");
         }
 
         if (ImGui.CollapsingHeader("Debug"))
@@ -421,17 +462,28 @@ public class M11S_Meteorain : SplatoonScript
         public Vector4 GradientA = ImGuiColors.DalamudYellow;
         public Vector4 GradientB = ImGuiColors.DalamudRed;
         public MeteorSpot MyMeteorSpot = MeteorSpot.NorthWest;
-
         public MeteorWave MyMeteorWave = MeteorWave.Wave1;
-
         public Role MyRole = Role.Meteor;
-
-        public TetherOrigin MyTetherOrigin = TetherOrigin.NorthWest;
+        public MeteorSpot MyTetherOrigin = MeteorSpot.NorthEast;
+        public MeteorSpot MySecondTetherOrigin = MeteorSpot.SouthEast;
+        public bool UseSecondMeteorDirection;
 
         public Corner Stack1 = Corner.NorthEast;
         public Corner Stack2 = Corner.NorthWest;
         public Corner Stack3 = Corner.SouthEast;
         public Corner Stack4 = Corner.NorthEast;
+        
+        public InternationalString PrepareNearBoss = new()
+        {
+            En = "Next, near boss",
+            Jp = "次はボスの足元へ"
+        };
+
+        public InternationalString NearBoss = new()
+        {
+            En = "Near boss",
+            Jp = "足元へ"
+        };
     }
 
     private enum Phase

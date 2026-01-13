@@ -27,8 +27,9 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
+    int IsHovering = -1;
 
     public enum Direction { N, NE, E, SE, S, SW, W, NW }
     public enum TetherKind
@@ -87,6 +88,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             if(Controller.TryGetElementByName($"Debug{i}", out var e)) e.Enabled = true;
         }
         DebugCnt = 0;
+        IsHovering = -1;
         var go = Controller.GetElementByName("GoTo");
         if(PlayerDirection != null)
         {
@@ -209,6 +211,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         if(Phase > 5)
         {
             this.Controller.Reset();
+            Phase = -1;
         }
     }
 
@@ -218,10 +221,13 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         var ret = Controller.GetElementByName($"Debug{DebugCnt}");
         ret.SetRefPosition(position.ToVector3(0));
         ret.overlayText = str;
-        ret.Enabled = true;
         ret.overlayVOffset = 2;
         ret.color = color.ToUint();
-        if(current) ret.color = GradientColor.Get(EColor.RedBright, color, 500).ToUint();
+        if(current)
+        {
+            ret.color = GradientColor.Get(EColor.RedBright, color, 500).ToUint();
+            IsHovering = DebugCnt;
+        }
         ret.overlayTextColor = ret.color;
         DebugCnt++;
         return ret;
@@ -307,6 +313,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         }
         if(AgreedToConfigure)
         {
+            ImGuiEx.TextWrapped(EColor.OrangeBright, "There was an issue that light parties 1 and 2 were flipped. It is now fixed, you should not need any reconfiguration, fix is purely visual. Report any inconsistencies, thank you. ");
             ImGuiEx.TextV("Relative North on position");
             ImGui.SameLine();
             if(ImGui.RadioButton("1", C.BaseNum == 0)) C.BaseNum = 0;
@@ -319,20 +326,12 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             ImGui.SameLine();
             ImGuiEx.TextV("of");
             ImGui.SameLine();
-            if(ImGui.RadioButton("Light Party 1", C.BaseLP1)) C.BaseLP1 = true;
+            if(ImGui.RadioButton("Light Party 1", !C.BaseLP1)) C.BaseLP1 = false;
             ImGui.SameLine();
-            if(ImGui.RadioButton("Light Party 2", !C.BaseLP1)) C.BaseLP1 = false;
+            if(ImGui.RadioButton("Light Party 2", C.BaseLP1)) C.BaseLP1 = true;
             ImGui.SameLine();
             ImGuiEx.Text($"Currently: {BaseDirection}");
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 positions", () =>
-            {
-                for(int i = 0; i < C.LP1.Length; i++)
-                {
-                    ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Position {i + 1} clockwise from rel. north, incl. north", ref C.LP1[i]);
-                }
-            });
-            ImGuiEx.TreeNodeCollapsingHeader("Light Party 2 positions", () =>
             {
                 for(int i = 0; i < C.LP2.Length; i++)
                 {
@@ -340,21 +339,29 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                     ImGuiEx.EnumCombo($"Position {i + 1} counter-clockwise from rel.north, excl. north", ref C.LP2[i]);
                 }
             });
-
-            ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 Tethers", () =>
+            ImGuiEx.TreeNodeCollapsingHeader("Light Party 2 positions", () =>
             {
-                for(int i = 0; i < C.LP1Tethers.Length; i++)
+                for(int i = 0; i < C.LP1.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Tether for {C.LP1[i]} ({i + 1} CW from rel. north incl. north)", ref C.LP1Tethers[i]);
+                    ImGuiEx.EnumCombo($"Position {i + 1} clockwise from rel. north, incl. north", ref C.LP1[i]);
                 }
             });
-            ImGuiEx.TreeNodeCollapsingHeader("Light Party 2 Tethers", () =>
+            ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 Tethers", () =>
             {
                 for(int i = 0; i < C.LP2Tethers.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
                     ImGuiEx.EnumCombo($"Tether for {C.LP2[i]} ({i + 1} CCW from rel. north excl. north)", ref C.LP2Tethers[i]);
+                }
+            });
+
+            ImGuiEx.TreeNodeCollapsingHeader("Light Party 2 Tethers", () =>
+            {
+                for(int i = 0; i < C.LP1Tethers.Length; i++)
+                {
+                    ImGui.SetNextItemWidth(150f);
+                    ImGuiEx.EnumCombo($"Tether for {C.LP1[i]} ({i + 1} CW from rel. north incl. north)", ref C.LP1Tethers[i]);
                 }
             });
 
@@ -416,11 +423,11 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         ImGui.PushID(num.ToString());
         ImGuiEx.Text("Light Party 1 Positions:");
         ImGui.Indent();
-        this.PhaseEdit(num, "LP1", positions[0]);
+        this.PhaseEdit(num, "LP1", positions[1]);
         ImGui.Unindent();
         ImGuiEx.Text("Light Party 2 Positions:");
         ImGui.Indent();
-        this.PhaseEdit(num, "LP2", positions[1]);
+        this.PhaseEdit(num, "LP2", positions[0]);
         ImGui.Unindent();
         ImGui.PopID();
     }
@@ -463,7 +470,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 ImGui.SameLine(0, 2);
                 ImGuiEx.IconButton(FontAwesomeIcon.MousePointer);
                 if(ImGui.IsItemHovered() || ImGui.IsItemActive()) active = true;
-                if(this.IsEnabled) GetDebugElement(x, $"Phase{num} {id} {e}", id == "LP1" ? EColor.GreenBright : EColor.YellowBright, active);
+                if(this.IsEnabled) GetDebugElement(x, $"Phase{num} {id} {e}", id == "LP2" ? EColor.GreenBright : EColor.YellowBright, active);
                 if(ImGui.BeginDragDropSource())
                 {
                     if(Svc.GameGui.ScreenToWorld(ImGui.GetIO().MousePos, out var pos))

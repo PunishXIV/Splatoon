@@ -5,6 +5,7 @@ using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using Splatoon.Serializables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -94,6 +95,39 @@ public static unsafe class CommonRenderUtils
         ret = ret
             .Replace("$NAME", go.Name.ToString());
         return ret;
+    }
+
+    internal static void HandleEnumeration(Element element, ref List<IGameObject> objectList)
+    {
+        if(element.Enumeration == EnumerationType.Clockwise || element.Enumeration == EnumerationType.Counter_Clockwise)
+        {
+            var orderedList = objectList.OrderBy(x =>
+            {
+                var relAngle = MathHelper.GetRelativeAngle(element.EnumerationCenter.ToVector2().ToVector3(0), element.EnumerationStart.ToVector2().ToVector3(0));
+                var a = (MathHelper.GetRelativeAngle(element.EnumerationCenter.ToVector2().ToVector3(0), x.Position) + relAngle) % 360;
+                return a;
+            }).ToList();
+            if(element.Enumeration == EnumerationType.Counter_Clockwise) orderedList.Reverse();
+            List<IGameObject> newObjectList = [];
+            foreach(var x in element.EnumerationOrder)
+            {
+                if(x > 0)
+                {
+                    if(orderedList.Count > x - 1)
+                    {
+                        newObjectList.Add(orderedList[x - 1]);
+                    }
+                }
+                if(x < 0)
+                {
+                    if(orderedList.Count >= -x)
+                    {
+                        newObjectList.Add(orderedList[^-x]);
+                    }
+                }
+            }
+            objectList = newObjectList;
+        }
     }
 
     /// <summary>

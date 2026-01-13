@@ -7,11 +7,13 @@ using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using Newtonsoft.Json;
+using Splatoon.Memory;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.Structures;
@@ -20,6 +22,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using TerraFX.Interop.Windows;
+using S = Splatoon.Services.S;
 
 namespace Splatoon.Utility;
 
@@ -425,7 +428,39 @@ public static unsafe class Utils
     /// <returns>Radians</returns>
     public static float GetRotationWithOverride(this IGameObject obj, Element e)
     {
-        if(!e.RotationOverride) return obj.Rotation;
+        if(!e.RotationOverride)
+        {
+            if(e.UseCastRotation && obj is IBattleChara b)
+            {
+                if(b.IsCasting() && b.CastActionId.EqualsAny(e.refActorCastId))
+                {
+                    if(S.Projection.LastCast.TryGetValue(obj.ObjectId, out var casts) && casts.TryGetValue(new(ActionType.Action, b.CastActionId), out var packet))
+                    {
+                        return packet.Rotation;
+                    }
+                }
+                else
+                {
+                    foreach(var castId in e.refActorCastId)
+                    {
+                        if(S.Projection.LastCast.TryGetValue(obj.ObjectId, out var casts))
+                        {
+                            if(casts.TryGetValue(new(ActionType.Action, castId), out var packet))
+                            {
+                                if(AttachedInfo.TryGetCastTime(b.Address, castId, out var castTime))
+                                {
+                                    if(castTime.InRange(e.refActorCastTimeMin, e.refActorCastTimeMax))
+                                    {
+                                        return packet.Rotation;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return obj.Rotation;
+        }
         if(e.RotationOverrideAngleOnlyMode)
         {
             return (180f + e.RotationOverrideAddAngle).DegToRad();

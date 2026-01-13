@@ -11,9 +11,14 @@ Configuration required. Please read the guide in the settings for more details.
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Hell%20In%20a%20Cell.cs
 ```
 
-[Beta] Vamp Stomp script:
+### [Script] [Beta] Vamp Stomp script:
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Vamp%20Stomp.cs
+```
+
+### [Script] [Beta] Target enforcer:
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Target%20Enforcer.cs
 ```
 
 > [!Important]

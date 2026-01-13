@@ -65,7 +65,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private readonly List<Vector2> _mapEffectPositions = new();
 
     private State _state = State.Idle;
-    public override Metadata Metadata => new(5, "Garume");
+    public override Metadata Metadata => new(6, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
@@ -263,10 +263,45 @@ public class M11S_Majestic_Meteor : SplatoonScript
         if (_state == State.TowerBait)
         {
             if (!isLine && !isNoLine) return;
+            
             var originalSideIsEast =
                 _linePlayers.FirstOrDefault(x => x.Item1 == myId).Item2 == Direction.NorthEast ||
                 _linePlayers.FirstOrDefault(x => x.Item1 == myId).Item2 == Direction.SouthEast;
             var same = isEast == originalSideIsEast;
+            
+            if (C.RealtimeTowerBaitSecond && _gimmicCount == 1)
+            {
+                var dir = GetDirectionFromWorld(BasePlayer.Position);
+                var tower = dir switch
+                {
+                    Direction.NorthEast => TowerNE(),
+                    Direction.SouthEast => TowerSE(),
+                    Direction.SouthWest => TowerSW(),
+                    _ => TowerNW()
+                };
+
+                var isNorthTower = dir is Direction.NorthEast or Direction.NorthWest;
+                Vector2 stand;
+                if (isLine)
+                {
+                    if (same)
+                    {
+                        var offset = (tower.X > _center.X) ? -_towerStandOff : _towerStandOff;
+                        stand = tower with { X = tower.X + offset };
+                    }
+                    else
+                    {
+                        stand = tower with { Y = tower.Y + (isNorthTower ? _towerStandOff : -_towerStandOff) };
+                    }
+                }
+                else
+                {
+                    stand = tower with { Y = tower.Y + (isNorthTower ? _towerStandOff : -_towerStandOff) };
+                }
+
+                SetGuide(stand);
+                return;
+            }
 
             if (C.TetherShouldGoNorth)
             {
@@ -554,6 +589,16 @@ public class M11S_Majestic_Meteor : SplatoonScript
     {
         return new Vector2(2f * _center.X - p.X, 2f * _center.Y - p.Y);
     }
+    
+    private Direction GetDirectionFromWorld(Vector3 pos)
+    {
+        var isEast = pos.X > _center.X;
+        var isSouth = pos.Z > _center.Y;
+        if (isEast && !isSouth) return Direction.NorthEast;
+        if (isEast && isSouth) return Direction.SouthEast;
+        if (!isEast && isSouth) return Direction.SouthWest;
+        return Direction.NorthWest;
+    }
 
     private Direction GetDirectionFromPosition(Vector2 pos)
     {
@@ -570,6 +615,17 @@ public class M11S_Majestic_Meteor : SplatoonScript
     {
         ImGuiEx.Text("■ 設定 / Settings");
         ImGui.Checkbox("Tether should go North", ref C.TetherShouldGoNorth);
+        ImGui.Checkbox("2nd TowerBait: Realtime by direction", ref C.RealtimeTowerBaitSecond);
+        ImGui.SameLine();
+        ImGuiEx.HelpMarker("""
+            2回目のTowerBaitのみ
+            自分が今立っている方角（北東/南東/南西/北西）に応じて、ガイド先の塔をリアルタイムで切り替えます。
+            1回目のTowerBaitは従来どおり（優先順位）です。
+
+            Second TowerBait only
+            Switches the guided tower in real time based on your current direction (NE/SE/SW/NW).
+            The first TowerBait remains unchanged (priority).
+        """);
         ImGui.Checkbox("Show Final Tower bait (after Arcadian Crash cast)", ref C.ShowFinalTowerBait);
         ImGui.SameLine();
         ImGuiEx.HelpMarker("""
@@ -650,6 +706,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
         public PriorityData PlayerData = new();
         public bool TetherShouldGoNorth;
         public bool ShowFinalTowerBait = true;
+        public bool RealtimeTowerBaitSecond = false;
     }
 
 

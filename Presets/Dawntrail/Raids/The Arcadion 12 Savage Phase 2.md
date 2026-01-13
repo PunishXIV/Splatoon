@@ -21,7 +21,7 @@ Version 4 should have tether fixed and now both tethers are highlighted, but sti
 
 > [!Warning]
 >
-> Default configuration is for Banana Codex raidplan. You may reconfigure this script for ANY strat, however, it's not easy.
+> Configuration required. You may reconfigure this script for ANY strat, however, it's not easy.
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Clones%202.cs

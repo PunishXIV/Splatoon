@@ -17,11 +17,11 @@ Replication 1 Debuff and aoe size highlight
 # 2
 [Script] [Beta] Clones 1 (Replication 1) script
 
-** KNOWN ISSUE: Tether position may not be valid, work in progress, look for your tether yourself **
+Version 4 should have tether fixed and now both tethers are highlighted, but still watch it and verify it
 
 > [!Warning]
 >
-> Default configuration is for Banana Codex raidplan. You may reconfigure this script for ANY strat, however, it's not easy.
+> Configuration required. You may reconfigure this script for ANY strat, however, it's not easy.
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Clones%202.cs
@@ -33,4 +33,15 @@ Netherworld-far and Netherworld-near
 ```
 ~Lv2~{"Name":"三运 alpha 远近分摊","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"buff alpha1","type":1,"refActorRequireBuff":true,"refActorBuffId":[4769],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界远景","type":1,"radius":5.0,"color":3355508525,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"靠近","overlayTextIntl":{"En":"In"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46380,46380],"refActorComparisonType":1,"onlyVisible":true},{"Name":"buff alpha2","type":1,"refActorRequireBuff":true,"refActorBuffId":[4769],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界近景","type":1,"radius":5.0,"color":3355508570,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"远离","overlayTextIntl":{"En":"Out"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46379,46379],"refActorComparisonType":1,"onlyVisible":true}]}
 ~Lv2~{"Name":"三运 beta 远近分摊","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"buff beta1","type":1,"refActorRequireBuff":true,"refActorBuffId":[4771],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界远景","type":1,"radius":5.0,"color":3372155132,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"远离分摊","overlayTextIntl":{"En":"Out + Stack"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46380,46380],"refActorComparisonType":1,"onlyVisible":true},{"Name":"buff beta2","type":1,"refActorRequireBuff":true,"refActorBuffId":[4771],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"阴界近景","type":1,"radius":5.0,"color":3371564800,"Filled":false,"fillIntensity":0.5,"overlayFScale":3.0,"thicc":20.0,"overlayText":"靠近分摊","overlayTextIntl":{"En":"In + Stack"},"refActorModelID":4659,"refActorRequireCast":true,"refActorCastId":[46379,46379],"refActorComparisonType":1,"onlyVisible":true}]}
+```
+
+# Idyllic Dream
+> [!Warning]
+>
+> Testing versions may fail
+
+Stored AOEs:
+```
+~Lv2~{"Name":"M12S P2 Twisted Vision (1st set of stored aoes)","Group":"M12S P2","ZoneLockH":[1327],"ConditionalAnd":true,"Freezing":true,"FreezeFor":33.0,"IntervalBetweenFreezes":5.0,"FreezeDisplayDelay":28.0,"ElementsL":[{"Name":"","type":1,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[48098],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":2.0,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[46354],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true},{"Name":"","type":1,"radius":10.0,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46353],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6}]}
+~Lv2~{"Name":"M12S P2 Twisted Vision (2nd set of stored aoes)","Group":"M12S P2","ZoneLockH":[1327],"Freezing":true,"FreezeFor":25.0,"IntervalBetweenFreezes":5.0,"FreezeDisplayDelay":11.0,"ElementsL":[{"Name":"","type":1,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[48098],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":2.0,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46352],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true},{"Name":"","type":1,"radius":10.0,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[48303],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46352],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927},{"Name":"","type":1,"offY":28.0,"radius":10.0,"Donut":40.0,"color":3355506687,"fillIntensity":0.2,"thicc":4.0,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[48303],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46351],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46351],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":4.712389}],"ForcedProjectorActions":[48303]}
 ```

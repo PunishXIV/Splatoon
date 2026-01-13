@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M9S_Target_Enforcer : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1321];
 
     public enum Enemies
@@ -66,6 +66,7 @@ public class M9S_Target_Enforcer : SplatoonScript
 
     IBattleNpc? GetWantedTarget()
     {
+        if(Svc.Targets.Target is IBattleNpc n && n.NameId == 14304) return null;
         if(C.DontSwitchOffPlayers && Svc.Targets.Target is IPlayerCharacter) return null;
         if(C.DontSwitchWhenSoftTarget && Svc.Targets.SoftTarget != null) return null;
         if(C.OnlyNullTarget && Svc.Targets.Target != null) return null;

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
@@ -12,10 +9,13 @@ using ECommons.GameFunctions;
 using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -43,7 +43,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
     private const uint CloneLeftRight = 46351;  // 面相左右双刀
     private const uint CloneCircle = 46353;     // 脚下圆形AOE
 
-     private const uint CloneCircle2 = 48303;     // 脚下圆形AOE
+    private const uint CloneCircle2 = 48303;     // 脚下圆形AOE
     private const uint CloneFrontBack = 46352;  // 面相前后双刀
 
     // VFX
@@ -166,7 +166,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
     public override void OnSetup()
     {
         // 为每个可能的分身位置注册元素 (最多8个分身)
-        for (int i = 0; i < 8; i++)
+        for(int i = 0; i < 8; i++)
         {
             // 圆形AOE (钢铁) - type 0 = 固定坐标圆形
             Controller.RegisterElement($"Circle_{i}", new Element(0)
@@ -281,7 +281,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         });
 
         // 连线指路元素 (8个玩家)
-        for (int i = 0; i < 8; i++)
+        for(int i = 0; i < 8; i++)
         {
             Controller.RegisterElement($"PlayerTether_{i}", new Element(2) // type 2 = 连线
             {
@@ -301,7 +301,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         }
 
         // 第6/8次心象投影: 19210大圈 (2个)
-        for (int i = 0; i < 2; i++)
+        for(int i = 0; i < 2; i++)
         {
             Controller.RegisterElement($"SpawnCircle_{i}", new Element(0)
             {
@@ -321,7 +321,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
 
         // 检测四运开始
-        if (castId == MirrorCastId)
+        if(castId == MirrorCastId)
         {
             _isMechanicActive = true;
             AddLog($"[{timestamp}] === 四运开始 === (镜中奇梦 {castId})");
@@ -337,10 +337,10 @@ public class M12S_Idyllic_Dream : SplatoonScript
             return;
         }
 
-        if (!_isMechanicActive) return;
+        if(!_isMechanicActive) return;
 
         // 获取source对象信息
-        if (source.GetObject() is IBattleNpc npc)
+        if(source.GetObject() is IBattleNpc npc)
         {
             var baseId = npc.BaseId;
             var pos = npc.Position;
@@ -350,9 +350,9 @@ public class M12S_Idyllic_Dream : SplatoonScript
             AddLog($"[{timestamp}] StartCast: {npc.Name} (BaseId:{baseId}) 读条:{castId} 位置:({pos.X:F1},{pos.Z:F1}) 朝向:{rot:F2} {pointType}");
 
             // 记录分身技能
-            if (baseId == CloneDataId)
+            if(baseId == CloneDataId)
             {
-                if (castId is CloneLeftRight or CloneFrontBack or CloneCircle or CloneCircle2)
+                if(castId is CloneLeftRight or CloneFrontBack or CloneCircle or CloneCircle2)
                 {
                     string actionName = castId switch
                     {
@@ -363,13 +363,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     };
 
                     // 根据阶段记录到不同列表
-                    if (_recordingSecondRound)
+                    if(_recordingSecondRound)
                     {
                         _secondRoundCloneInfos.Add(new CloneInfo(castId, pos, rot));
                         AddLog($"  -> [第二轮] 分身技能: {actionName} (共{_secondRoundCloneInfos.Count}个)");
 
                         // 记录刀的类型用于第三轮绘制
-                        if (castId is CloneLeftRight or CloneFrontBack)
+                        if(castId is CloneLeftRight or CloneFrontBack)
                         {
                             _fifthRoundBladeType = castId;
                             var bladeType = castId == CloneLeftRight ? "左右双刀" : "前后双刀";
@@ -383,7 +383,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     }
 
                     // 记录前后刀位置
-                    if (castId == CloneFrontBack)
+                    if(castId == CloneFrontBack)
                     {
                         _frontBackClonePos = pos;
                         AddLog($"  -> 记录前后刀位置: ({pos.X:F1},{pos.Z:F1})");
@@ -392,13 +392,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
 
             // Boss执行读条 (仅记录，不触发绘制)
-            if (baseId == BossDataId && castId == ExecuteCastId)
+            if(baseId == BossDataId && castId == ExecuteCastId)
             {
                 AddLog($"  -> Boss执行读条 ({castId})");
             }
 
             // 时空重现 - 触发第6次大圈绘制
-            if (baseId == BossDataId && castId == TimeWarpCastId && _waitingForTimeWarp)
+            if(baseId == BossDataId && castId == TimeWarpCastId && _waitingForTimeWarp)
             {
                 _waitingForTimeWarp = false;
                 _sixthRoundCirclePositions.Clear();
@@ -406,12 +406,12 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     ? new[] { WaymarkC, WaymarkD }
                     : new[] { Waymark1, Waymark2 };
 
-                foreach (var waymark in targetWaymarks)
+                foreach(var waymark in targetWaymarks)
                 {
                     var nearby = Svc.Objects.OfType<IBattleNpc>()
                         .FirstOrDefault(x => x.BaseId == FirstSpawnId && x.IsCharacterVisible()
                             && Vector3.Distance(x.Position, waymark) < 6f);
-                    if (nearby != null)
+                    if(nearby != null)
                         _sixthRoundCirclePositions.Add(nearby.Position);
                 }
 
@@ -421,12 +421,12 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
 
             // Boss心象投影读条 - 第4次触发引导，第5次开始记录第二轮，第7次绘制
-            if (baseId == BossDataId && castId == ProjectionCastId)
+            if(baseId == BossDataId && castId == ProjectionCastId)
             {
                 _projectionCastCount++;
                 AddLog($"  -> 心象投影读条 第{_projectionCastCount}次 ({castId})");
 
-                if (_projectionCastCount == 4)
+                if(_projectionCastCount == 4)
                 {
                     // 第4次读条，计算引导并设置延迟触发
                     CalculateGuidanceSequence();
@@ -439,23 +439,23 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     AddLog($"  -> 第4次心象投影! {C.GuidanceDelayMs}ms后开始引导绘制");
                     AddLog($"  -> 引导顺序: {string.Join(" → ", _guidanceSequence)}");
                 }
-                else if (_projectionCastCount == 5)
+                else if(_projectionCastCount == 5)
                 {
                     // 第5次：开始记录第二轮分身技能
                     _secondRoundCloneInfos.Clear();
                     _recordingSecondRound = true;
                     // 第5次：触发小世界站位绘制
                     _fifthRoundStandDrawTime = Environment.TickCount64 + C.FifthStandDelayMs;
-                    AddLog($"  -> 第5次心象投影! 开始记录第二轮分身技能, {C.FifthStandDelayMs/1000f}秒后绘制小世界站位");
+                    AddLog($"  -> 第5次心象投影! 开始记录第二轮分身技能, {C.FifthStandDelayMs / 1000f}秒后绘制小世界站位");
                 }
-                else if (_projectionCastCount == 6)
+                else if(_projectionCastCount == 6)
                 {
                     // 第6次：设置标志，等待时空重现时再搜索19210
                     _waitingForTimeWarp = true;
                     var waymarkNames = _firstSpawnType == "正点" ? "C/D" : "1/2";
                     AddLog($"  -> 第6次心象投影! 等待时空重现触发{waymarkNames}附近19210大圈");
                 }
-                else if (_projectionCastCount == 7)
+                else if(_projectionCastCount == 7)
                 {
                     // 第7次：触发第二轮AOE绘制，延迟3秒，并根据第5次记录的刀类型确定缺少的刀
                     _recordingSecondRound = false;
@@ -469,11 +469,11 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     AddLog($"  -> 第7次心象投影! 3秒后绘制第二轮AOE (共{_secondRoundCloneInfos.Count}个分身)");
                     AddLog($"  -> 第5次是{fifthName}，缺少的刀: {missingName}");
                 }
-                else if (_projectionCastCount == 8)
+                else if(_projectionCastCount == 8)
                 {
                     // 第8次：绘制缺少的刀
                     _thirdRoundDrawTime = Environment.TickCount64 + C.MissingBladeDelayMs;
-                    AddLog($"  -> 第8次心象投影! {C.MissingBladeDelayMs/1000f}秒后绘制缺少的刀");
+                    AddLog($"  -> 第8次心象投影! {C.MissingBladeDelayMs / 1000f}秒后绘制缺少的刀");
 
                     // 第8次：根据正点先/斜点先绘制19210大圈
                     _eighthRoundCirclePositions.Clear();
@@ -481,18 +481,18 @@ public class M12S_Idyllic_Dream : SplatoonScript
                         ? new[] { Waymark1, Waymark2 }  // 正点先: 1/2
                         : new[] { WaymarkA, WaymarkB }; // 斜点先: A/B
 
-                    foreach (var waymark in targetWaymarks)
+                    foreach(var waymark in targetWaymarks)
                     {
                         var nearby = Svc.Objects.OfType<IBattleNpc>()
                             .FirstOrDefault(x => x.BaseId == FirstSpawnId && x.IsCharacterVisible()
                                 && Vector3.Distance(x.Position, waymark) < 6f);
-                        if (nearby != null)
+                        if(nearby != null)
                             _eighthRoundCirclePositions.Add(nearby.Position);
                     }
 
                     _eighthRoundDrawTime = Environment.TickCount64 + C.EighthCircleDelayMs;
                     var waymarkNames = _firstSpawnType == "正点" ? "1/2" : "A/B";
-                    AddLog($"  -> 第8次心象投影! {C.EighthCircleDelayMs/1000f}秒后绘制{waymarkNames}附近19210大圈 (找到{_eighthRoundCirclePositions.Count}个)");
+                    AddLog($"  -> 第8次心象投影! {C.EighthCircleDelayMs / 1000f}秒后绘制{waymarkNames}附近19210大圈 (找到{_eighthRoundCirclePositions.Count}个)");
                 }
             }
         }
@@ -504,14 +504,14 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (!_isMechanicActive) return;
-        if (set.Action == null) return;
+        if(!_isMechanicActive) return;
+        if(set.Action == null) return;
 
         var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
         var actionId = set.Action.Value.RowId;
         var actionName = set.Action.Value.Name.ToString();
 
-        if (set.Source is IBattleNpc npc)
+        if(set.Source is IBattleNpc npc)
         {
             var baseId = npc.BaseId;
             AddLog($"[{timestamp}] ActionEffect: {npc.Name} (BaseId:{baseId}) {actionId} {actionName}");
@@ -520,22 +520,22 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if (!_isMechanicActive) return;
+        if(!_isMechanicActive) return;
 
         var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
 
         // 第一阶段: 连线VFX - 记录连线玩家 (VFX在19204上)
-        if (vfxPath == VfxTether)
+        if(vfxPath == VfxTether)
         {
             // 第一次VfxTether触发阶段1
-            if (_currentPhase == 0)
+            if(_currentPhase == 0)
             {
                 _currentPhase = 1;
                 AddLog($"[{timestamp}] === 进入阶段1: 连线检测 ===");
             }
 
             var sourceObj = target.GetObject();
-            if (sourceObj is IBattleNpc npc && npc.BaseId == CloneDataId)
+            if(sourceObj is IBattleNpc npc && npc.BaseId == CloneDataId)
             {
                 var npcPos = npc.Position;
                 var pointName = GetPointName(npcPos);
@@ -543,12 +543,12 @@ public class M12S_Idyllic_Dream : SplatoonScript
                 AddLog($"[{timestamp}] 连线VFX: 19204 {npcPointType} 位置:({npcPos.X:F1},{npcPos.Z:F1})");
 
                 // 通过 AttachedInfo.TetherInfos 查找该分身连线的玩家
-                if (AttachedInfo.TetherInfos.TryGetValue(npc.Address, out var tethers) && tethers.Count > 0)
+                if(AttachedInfo.TetherInfos.TryGetValue(npc.Address, out var tethers) && tethers.Count > 0)
                 {
-                    foreach (var tether in tethers)
+                    foreach(var tether in tethers)
                     {
                         var tetherTarget = Svc.Objects.FirstOrDefault(x => x.EntityId == tether.Target);
-                        if (tetherTarget is IPlayerCharacter player)
+                        if(tetherTarget is IPlayerCharacter player)
                         {
                             var playerName = player.Name.ToString();
                             _round1Tethers[pointName] = playerName;
@@ -561,7 +561,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     // 如果 AttachedInfo 还没有数据，使用 npc.TargetObjectId
                     var npcTargetId = npc.TargetObjectId;
                     var npcTargetObj = Svc.Objects.FirstOrDefault(x => x.EntityId == npcTargetId);
-                    if (npcTargetObj is IPlayerCharacter player)
+                    if(npcTargetObj is IPlayerCharacter player)
                     {
                         var playerName = player.Name.ToString();
                         _round1Tethers[pointName] = playerName;
@@ -571,10 +571,10 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
         }
         // 第二阶段: 分摊/大圈VFX - 记录VFX类型和位置 (VFX在19204上)
-        else if (vfxPath == VfxShare || vfxPath == VfxCircle)
+        else if(vfxPath == VfxShare || vfxPath == VfxCircle)
         {
             // 第一次VfxShare/VfxCircle触发阶段2
-            if (_currentPhase == 1)
+            if(_currentPhase == 1)
             {
                 _currentPhase = 2;
                 AddLog($"[{timestamp}] === 进入阶段2: VFX类型检测 ===");
@@ -591,13 +591,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
             AddLog($"[{timestamp}] VFX: {vfxTypeDisplay} 目标:{targetName} 位置:({pos.X:F1},{pos.Z:F1}) {pointType}");
 
             // 记录到 _round2VfxTypes (19204分身)
-            if (targetObj is IBattleNpc npc && npc.BaseId == CloneDataId)
+            if(targetObj is IBattleNpc npc && npc.BaseId == CloneDataId)
             {
                 _round2VfxTypes[pointName] = vfxType;
                 AddLog($"  -> 记录VFX类型: {pointName}点【{vfxType}】 (共{_round2VfxTypes.Count}/8)");
 
                 // VfxShare/VfxCircle 出现时触发绘制
-                if (_executeTime == 0)
+                if(_executeTime == 0)
                 {
                     _executeTime = Environment.TickCount64;
                     AddLog($"  -> VFX触发绘制! 将在{C.DelayMs}ms后绘制AOE");
@@ -606,7 +606,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                 // 注: 引导现在由第4次心象投影(48098)触发，不再由VFX触发
             }
         }
-        else if (vfxPath.Contains("channeling") || vfxPath.Contains("lockon"))
+        else if(vfxPath.Contains("channeling") || vfxPath.Contains("lockon"))
         {
             var targetObj = target.GetObject();
             var targetName = targetObj?.Name.ToString() ?? target.ToString();
@@ -616,7 +616,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if (!_isMechanicActive) return;
+        if(!_isMechanicActive) return;
 
         var timestamp = DateTime.Now.ToString("HH:mm:ss.fff");
         var sourceObj = source.GetObject();
@@ -629,19 +629,19 @@ public class M12S_Idyllic_Dream : SplatoonScript
         AddLog($"[{timestamp}] Tether: {sourceName} -> {targetName} data2:{data2} data3:{data3} 位置:({sourcePos.X:F1},{sourcePos.Z:F1})");
 
         // 检测人形分身(19204)连线玩家
-        if (sourceObj is IBattleNpc npc && npc.BaseId == CloneDataId && targetObj is IPlayerCharacter player)
+        if(sourceObj is IBattleNpc npc && npc.BaseId == CloneDataId && targetObj is IPlayerCharacter player)
         {
             var pointName = GetPointName(sourcePos);
             var playerName = player.Name.ToString();
 
             // 根据data3区分阶段: 368=第一阶段, 369/373=第二阶段
-            if (data3 == 368)
+            if(data3 == 368)
             {
                 // 第一阶段连线
                 _round1Tethers[pointName] = playerName;
                 AddLog($"  -> 第一阶段(data3=368): {pointName}点——>{playerName}");
             }
-            else if (data3 == 369 || data3 == 373)
+            else if(data3 == 369 || data3 == 373)
             {
                 // 第二阶段连线，从 _round2VfxTypes 获取VFX类型
                 var vfxType = _round2VfxTypes.TryGetValue(pointName, out var type) ? type : "未知";
@@ -657,17 +657,17 @@ public class M12S_Idyllic_Dream : SplatoonScript
         // 调试: 输出NPC的VFX信息
         AddLog($"    [VFX检测] NPC:{npc.Name} BaseId:{npc.BaseId} Address:{npc.Address:X}");
 
-        if (AttachedInfo.VFXInfos.TryGetValue(npc.Address, out var vfxDict))
+        if(AttachedInfo.VFXInfos.TryGetValue(npc.Address, out var vfxDict))
         {
             AddLog($"    [VFX检测] 找到VFX字典，共{vfxDict.Count}个VFX");
-            foreach (var kvp in vfxDict)
+            foreach(var kvp in vfxDict)
             {
                 AddLog($"      - {kvp.Key}");
             }
 
-            if (vfxDict.ContainsKey(VfxShare))
+            if(vfxDict.ContainsKey(VfxShare))
                 return "分摊";
-            if (vfxDict.ContainsKey(VfxCircle))
+            if(vfxDict.ContainsKey(VfxCircle))
                 return "大圈";
         }
         else
@@ -694,7 +694,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         var firstVfxType = _round2VfxTypes.TryGetValue(firstRoundPoint, out var type) ? type : "未知";
 
         // 固定交替模式
-        if (firstVfxType == "大圈")
+        if(firstVfxType == "大圈")
         {
             _guidanceSequence.AddRange(new[] { "大圈", "分摊", "大圈", "分摊" });
         }
@@ -713,7 +713,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         _playerGroups.Clear();
         _playerPoints.Clear();
 
-        foreach (var kvp in _round2Tethers)
+        foreach(var kvp in _round2Tethers)
         {
             var point = kvp.Key;
             var playerName = kvp.Value.PlayerName;
@@ -723,9 +723,9 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
             // 右组: A, 1, B, 2 (4A1顺序)
             // 左组: C, 3, D, 4
-            if (point == "A" || point == "1" || point == "B" || point == "2")
+            if(point == "A" || point == "1" || point == "B" || point == "2")
                 _playerGroups[playerName] = "右组";
-            else if (point == "C" || point == "3" || point == "D" || point == "4")
+            else if(point == "C" || point == "3" || point == "D" || point == "4")
                 _playerGroups[playerName] = "左组";
         }
 
@@ -743,7 +743,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         // 大圈时：只显示该轮需要出去放圈的组的分散点
         bool isSpread = action == "大圈";
 
-        if (isSpread && roundIndex < _roundPoints.Count)
+        if(isSpread && roundIndex < _roundPoints.Count)
         {
             // 大圈：只显示分散点
             var currentPoints = _roundPoints[roundIndex];
@@ -752,25 +752,25 @@ public class M12S_Idyllic_Dream : SplatoonScript
             // 左组点: C, D, 3, 4
             bool leftNeedsSpread = currentPoints.Any(p => p == "C" || p == "D" || p == "3" || p == "4");
 
-            if (Controller.TryGetElementByName("RightGroup_Share", out var rs))
+            if(Controller.TryGetElementByName("RightGroup_Share", out var rs))
                 rs.Enabled = false;
-            if (Controller.TryGetElementByName("RightGroup_Spread", out var rsp))
+            if(Controller.TryGetElementByName("RightGroup_Spread", out var rsp))
                 rsp.Enabled = rightNeedsSpread;
-            if (Controller.TryGetElementByName("LeftGroup_Share", out var ls))
+            if(Controller.TryGetElementByName("LeftGroup_Share", out var ls))
                 ls.Enabled = false;
-            if (Controller.TryGetElementByName("LeftGroup_Spread", out var lsp))
+            if(Controller.TryGetElementByName("LeftGroup_Spread", out var lsp))
                 lsp.Enabled = leftNeedsSpread;
         }
         else
         {
             // 分摊：显示两组分摊点
-            if (Controller.TryGetElementByName("RightGroup_Share", out var rs))
+            if(Controller.TryGetElementByName("RightGroup_Share", out var rs))
                 rs.Enabled = true;
-            if (Controller.TryGetElementByName("RightGroup_Spread", out var rsp))
+            if(Controller.TryGetElementByName("RightGroup_Spread", out var rsp))
                 rsp.Enabled = false;
-            if (Controller.TryGetElementByName("LeftGroup_Share", out var ls))
+            if(Controller.TryGetElementByName("LeftGroup_Share", out var ls))
                 ls.Enabled = true;
-            if (Controller.TryGetElementByName("LeftGroup_Spread", out var lsp))
+            if(Controller.TryGetElementByName("LeftGroup_Spread", out var lsp))
                 lsp.Enabled = false;
         }
     }
@@ -787,26 +787,26 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
         // 只在轮次切换时输出一次日志
         bool shouldLog = _lastLoggedRound != roundIndex;
-        if (shouldLog)
+        if(shouldLog)
         {
             _lastLoggedRound = roundIndex;
-            AddLog($"[连线Debug] 轮次{roundIndex+1} action={action} currentPoints=[{string.Join(",", currentPoints)}]");
+            AddLog($"[连线Debug] 轮次{roundIndex + 1} action={action} currentPoints=[{string.Join(",", currentPoints)}]");
         }
 
-        foreach (var player in party)
+        foreach(var player in party)
         {
             var playerName = player.Name.ToString();
 
             // 获取玩家对应的标点
-            if (!_playerPoints.TryGetValue(playerName, out var playerPoint))
+            if(!_playerPoints.TryGetValue(playerName, out var playerPoint))
                 continue;
 
             // 获取玩家所属组
-            if (!_playerGroups.TryGetValue(playerName, out var group))
+            if(!_playerGroups.TryGetValue(playerName, out var group))
                 continue;
 
             // 非Debug模式下只连线自己
-            if (!C.DebugTetherAll && player.EntityId != localPlayer?.EntityId)
+            if(!C.DebugTetherAll && player.EntityId != localPlayer?.EntityId)
                 continue;
 
             Vector3 targetPos;
@@ -817,13 +817,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
             bool isSpreadPlayer = action == "大圈" && currentPoints.Contains(playerPoint);
 
             // 只在轮次切换时输出每个玩家的判断结果
-            if (shouldLog)
+            if(shouldLog)
             {
                 var vfxType = _round2VfxTypes.TryGetValue(playerPoint, out var t) ? t : "无";
                 AddLog($"  [{playerName}] point={playerPoint} vfx={vfxType} action={action} isSpread={isSpreadPlayer}");
             }
 
-            if (isSpreadPlayer)
+            if(isSpreadPlayer)
             {
                 // 当前轮次放大圈的玩家 -> 分散点
                 targetPos = group == "右组"
@@ -841,7 +841,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
 
             // 设置连线
-            if (Controller.TryGetElementByName($"PlayerTether_{tetherIndex}", out var tether))
+            if(Controller.TryGetElementByName($"PlayerTether_{tetherIndex}", out var tether))
             {
                 tether.Enabled = true;
                 tether.SetRefPosition(player.Position);
@@ -850,10 +850,10 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
 
             // 大圈玩家身上绘制圆形
-            if (Controller.TryGetElementByName($"PlayerCircle_{tetherIndex}", out var circle))
+            if(Controller.TryGetElementByName($"PlayerCircle_{tetherIndex}", out var circle))
             {
                 circle.Enabled = isSpreadPlayer;
-                if (isSpreadPlayer)
+                if(isSpreadPlayer)
                 {
                     circle.refActorObjectID = player.EntityId;
                     circle.refActorComparisonType = 2; // ObjectID
@@ -864,11 +864,11 @@ public class M12S_Idyllic_Dream : SplatoonScript
         }
 
         // 隐藏未使用的连线和圆形
-        for (int i = tetherIndex; i < 8; i++)
+        for(int i = tetherIndex; i < 8; i++)
         {
-            if (Controller.TryGetElementByName($"PlayerTether_{i}", out var t))
+            if(Controller.TryGetElementByName($"PlayerTether_{i}", out var t))
                 t.Enabled = false;
-            if (Controller.TryGetElementByName($"PlayerCircle_{i}", out var c))
+            if(Controller.TryGetElementByName($"PlayerCircle_{i}", out var c))
                 c.Enabled = false;
         }
     }
@@ -876,16 +876,16 @@ public class M12S_Idyllic_Dream : SplatoonScript
     // 隐藏引导元素
     private void HideGuidanceElements()
     {
-        if (Controller.TryGetElementByName("RightGroup_Share", out var rs)) rs.Enabled = false;
-        if (Controller.TryGetElementByName("RightGroup_Spread", out var rsp)) rsp.Enabled = false;
-        if (Controller.TryGetElementByName("LeftGroup_Share", out var ls)) ls.Enabled = false;
-        if (Controller.TryGetElementByName("LeftGroup_Spread", out var lsp)) lsp.Enabled = false;
+        if(Controller.TryGetElementByName("RightGroup_Share", out var rs)) rs.Enabled = false;
+        if(Controller.TryGetElementByName("RightGroup_Spread", out var rsp)) rsp.Enabled = false;
+        if(Controller.TryGetElementByName("LeftGroup_Share", out var ls)) ls.Enabled = false;
+        if(Controller.TryGetElementByName("LeftGroup_Spread", out var lsp)) lsp.Enabled = false;
 
-        for (int i = 0; i < 8; i++)
+        for(int i = 0; i < 8; i++)
         {
-            if (Controller.TryGetElementByName($"PlayerTether_{i}", out var t))
+            if(Controller.TryGetElementByName($"PlayerTether_{i}", out var t))
                 t.Enabled = false;
-            if (Controller.TryGetElementByName($"PlayerCircle_{i}", out var c))
+            if(Controller.TryGetElementByName($"PlayerCircle_{i}", out var c))
                 c.Enabled = false;
         }
     }
@@ -893,15 +893,15 @@ public class M12S_Idyllic_Dream : SplatoonScript
     public override void OnUpdate()
     {
         // 四运激活后检测19210的位置
-        if (_isMechanicActive && _firstSpawnPositions.Count == 0)
+        if(_isMechanicActive && _firstSpawnPositions.Count == 0)
         {
             var firstSpawns = Svc.Objects.OfType<IBattleNpc>()
                 .Where(x => x.DataId == FirstSpawnId && x.IsCharacterVisible())
                 .ToList();
 
-            if (firstSpawns.Count > 0)
+            if(firstSpawns.Count > 0)
             {
-                foreach (var spawn in firstSpawns)
+                foreach(var spawn in firstSpawns)
                 {
                     var pointType = GetPointType(spawn.Position);
                     _firstSpawnPositions.Add((spawn.EntityId, spawn.Position, pointType));
@@ -909,14 +909,14 @@ public class M12S_Idyllic_Dream : SplatoonScript
                 }
 
                 // 判断先出现的是正点还是斜点
-                if (_firstSpawnPositions.Count > 0)
+                if(_firstSpawnPositions.Count > 0)
                 {
                     var firstPoint = _firstSpawnPositions[0].PointType;
-                    if (firstPoint.Contains("正点"))
+                    if(firstPoint.Contains("正点"))
                     {
                         _firstSpawnType = "正点";
                     }
-                    else if (firstPoint.Contains("斜点"))
+                    else if(firstPoint.Contains("斜点"))
                     {
                         _firstSpawnType = "斜点";
                     }
@@ -925,7 +925,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
         }
 
-        if (!_isMechanicActive && !_manualDrawTest)
+        if(!_isMechanicActive && !_manualDrawTest)
         {
             // 非激活状态：隐藏所有元素
             HideAllElements();
@@ -933,7 +933,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         }
 
         // 绘制AOE (正常触发或手动测试)
-        if ((C.EnableDraw && _executeTime > 0) || _manualDrawTest)
+        if((C.EnableDraw && _executeTime > 0) || _manualDrawTest)
         {
             _drawDebugLog.Clear();
             _drawDebugLog.Add($"=== 绘制调试 ===");
@@ -942,13 +942,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
             _drawDebugLog.Add($"_manualDrawTest: {_manualDrawTest}");
             _drawDebugLog.Add($"_cloneInfos.Count: {_cloneInfos.Count}");
 
-            if (!_manualDrawTest)
+            if(!_manualDrawTest)
             {
                 var elapsed = Environment.TickCount64 - _executeTime;
                 _drawDebugLog.Add($"elapsed: {elapsed}ms");
 
                 // 延迟期间不绘制
-                if (elapsed < C.DelayMs)
+                if(elapsed < C.DelayMs)
                 {
                     _drawDebugLog.Add($"等待延迟... ({elapsed}/{C.DelayMs})");
                     HideAllElements();
@@ -956,7 +956,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                 }
 
                 // 超过持续时间后清空执行时间
-                if (elapsed > C.DelayMs + C.DurationMs)
+                if(elapsed > C.DelayMs + C.DurationMs)
                 {
                     _drawDebugLog.Add($"超时，重置");
                     _executeTime = 0;
@@ -967,15 +967,15 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
             // 绘制所有记录的分身AOE
             int drawnCount = 0;
-            for (int i = 0; i < _cloneInfos.Count && i < 8; i++)
+            for(int i = 0; i < _cloneInfos.Count && i < 8; i++)
             {
                 var clone = _cloneInfos[i];
                 _drawDebugLog.Add($"--- 分身 {i}: ActionId={clone.ActionId}, Pos=({clone.Position.X:F1},{clone.Position.Z:F1}), Rot={clone.Rotation:F2}");
 
-                switch (clone.ActionId)
+                switch(clone.ActionId)
                 {
                     case CloneCircle:
-                        if (Controller.TryGetElementByName($"Circle_{i}", out var circle))
+                        if(Controller.TryGetElementByName($"Circle_{i}", out var circle))
                         {
                             circle.Enabled = true;
                             circle.SetRefPosition(clone.Position);
@@ -991,7 +991,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
                     case CloneLeftRight:
                         bool lrRightOk = false, lrLeftOk = false;
-                        if (Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lrRight))
+                        if(Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lrRight))
                         {
                             lrRight.Enabled = true;
                             lrRight.SetRefPosition(clone.Position);
@@ -1000,7 +1000,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                             lrRightOk = true;
                             drawnCount++;
                         }
-                        if (Controller.TryGetElementByName($"LeftRight_Left_{i}", out var lrLeft))
+                        if(Controller.TryGetElementByName($"LeftRight_Left_{i}", out var lrLeft))
                         {
                             lrLeft.Enabled = true;
                             lrLeft.SetRefPosition(clone.Position);
@@ -1014,7 +1014,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
                     case CloneFrontBack:
                         bool fbFrontOk = false, fbBackOk = false;
-                        if (Controller.TryGetElementByName($"FrontBack_Front_{i}", out var fbFront))
+                        if(Controller.TryGetElementByName($"FrontBack_Front_{i}", out var fbFront))
                         {
                             fbFront.Enabled = true;
                             fbFront.SetRefPosition(clone.Position);
@@ -1023,7 +1023,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                             fbFrontOk = true;
                             drawnCount++;
                         }
-                        if (Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fbBack))
+                        if(Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fbBack))
                         {
                             fbBack.Enabled = true;
                             fbBack.SetRefPosition(clone.Position);
@@ -1044,13 +1044,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
             _drawDebugLog.Add($"=== 总共绘制了 {drawnCount} 个元素 ===");
 
             // 隐藏未使用的元素
-            for (int i = _cloneInfos.Count; i < 8; i++)
+            for(int i = _cloneInfos.Count; i < 8; i++)
             {
-                if (Controller.TryGetElementByName($"Circle_{i}", out var c)) c.Enabled = false;
-                if (Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lr)) lr.Enabled = false;
-                if (Controller.TryGetElementByName($"LeftRight_Left_{i}", out var ll)) ll.Enabled = false;
-                if (Controller.TryGetElementByName($"FrontBack_Front_{i}", out var ff)) ff.Enabled = false;
-                if (Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fb)) fb.Enabled = false;
+                if(Controller.TryGetElementByName($"Circle_{i}", out var c)) c.Enabled = false;
+                if(Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lr)) lr.Enabled = false;
+                if(Controller.TryGetElementByName($"LeftRight_Left_{i}", out var ll)) ll.Enabled = false;
+                if(Controller.TryGetElementByName($"FrontBack_Front_{i}", out var ff)) ff.Enabled = false;
+                if(Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fb)) fb.Enabled = false;
             }
         }
         else
@@ -1060,19 +1060,19 @@ public class M12S_Idyllic_Dream : SplatoonScript
         }
 
         // 第二轮AOE绘制 (第7次心象投影触发，延迟1秒，持续5秒)
-        if (_secondRoundDrawTime > 0)
+        if(_secondRoundDrawTime > 0)
         {
             var now = Environment.TickCount64;
-            if (now >= _secondRoundDrawTime && now < _secondRoundDrawTime + 7000)
+            if(now >= _secondRoundDrawTime && now < _secondRoundDrawTime + 7000)
             {
-                for (int i = 0; i < _secondRoundCloneInfos.Count && i < 8; i++)
+                for(int i = 0; i < _secondRoundCloneInfos.Count && i < 8; i++)
                 {
                     var clone = _secondRoundCloneInfos[i];
-                    switch (clone.ActionId)
+                    switch(clone.ActionId)
                     {
                         case CloneCircle:
                         case CloneCircle2:
-                            if (Controller.TryGetElementByName($"Circle_{i}", out var circle))
+                            if(Controller.TryGetElementByName($"Circle_{i}", out var circle))
                             {
                                 circle.Enabled = true;
                                 circle.SetRefPosition(clone.Position);
@@ -1080,13 +1080,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
                             }
                             break;
                         case CloneLeftRight:
-                            if (Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lrRight))
+                            if(Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lrRight))
                             {
                                 lrRight.Enabled = true;
                                 lrRight.SetRefPosition(clone.Position);
                                 lrRight.color = C.ColorDanger;
                             }
-                            if (Controller.TryGetElementByName($"LeftRight_Left_{i}", out var lrLeft))
+                            if(Controller.TryGetElementByName($"LeftRight_Left_{i}", out var lrLeft))
                             {
                                 lrLeft.Enabled = true;
                                 lrLeft.SetRefPosition(clone.Position);
@@ -1094,13 +1094,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
                             }
                             break;
                         case CloneFrontBack:
-                            if (Controller.TryGetElementByName($"FrontBack_Front_{i}", out var fbFront))
+                            if(Controller.TryGetElementByName($"FrontBack_Front_{i}", out var fbFront))
                             {
                                 fbFront.Enabled = true;
                                 fbFront.SetRefPosition(clone.Position);
                                 fbFront.color = C.ColorDanger;
                             }
-                            if (Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fbBack))
+                            if(Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fbBack))
                             {
                                 fbBack.Enabled = true;
                                 fbBack.SetRefPosition(clone.Position);
@@ -1110,7 +1110,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     }
                 }
             }
-            else if (now >= _secondRoundDrawTime + 7000)
+            else if(now >= _secondRoundDrawTime + 7000)
             {
                 _secondRoundDrawTime = 0;
                 HideAllElements();
@@ -1118,36 +1118,36 @@ public class M12S_Idyllic_Dream : SplatoonScript
         }
 
         // 第三轮: 缺少的刀绘制
-        if (_thirdRoundDrawTime > 0 && _missingBladeType != 0)
+        if(_thirdRoundDrawTime > 0 && _missingBladeType != 0)
         {
             var now = Environment.TickCount64;
-            if (now >= _thirdRoundDrawTime && now < _thirdRoundDrawTime + C.MissingBladeDurationMs)
+            if(now >= _thirdRoundDrawTime && now < _thirdRoundDrawTime + C.MissingBladeDurationMs)
             {
                 // 绘制缺少的刀 (使用索引7，避免与其他元素冲突)
-                if (_missingBladeType == CloneLeftRight)
+                if(_missingBladeType == CloneLeftRight)
                 {
-                    if (Controller.TryGetElementByName("LeftRight_Right_7", out var lrRight))
+                    if(Controller.TryGetElementByName("LeftRight_Right_7", out var lrRight))
                     {
                         lrRight.Enabled = true;
                         lrRight.SetRefPosition(ThirdRoundPosition);
                         lrRight.color = C.ColorDanger;
                     }
-                    if (Controller.TryGetElementByName("LeftRight_Left_7", out var lrLeft))
+                    if(Controller.TryGetElementByName("LeftRight_Left_7", out var lrLeft))
                     {
                         lrLeft.Enabled = true;
                         lrLeft.SetRefPosition(ThirdRoundPosition);
                         lrLeft.color = C.ColorDanger;
                     }
                 }
-                else if (_missingBladeType == CloneFrontBack)
+                else if(_missingBladeType == CloneFrontBack)
                 {
-                    if (Controller.TryGetElementByName("FrontBack_Front_7", out var fbFront))
+                    if(Controller.TryGetElementByName("FrontBack_Front_7", out var fbFront))
                     {
                         fbFront.Enabled = true;
                         fbFront.SetRefPosition(ThirdRoundPosition);
                         fbFront.color = C.ColorDanger;
                     }
-                    if (Controller.TryGetElementByName("FrontBack_Back_7", out var fbBack))
+                    if(Controller.TryGetElementByName("FrontBack_Back_7", out var fbBack))
                     {
                         fbBack.Enabled = true;
                         fbBack.SetRefPosition(ThirdRoundPosition);
@@ -1155,7 +1155,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     }
                 }
             }
-            else if (now >= _thirdRoundDrawTime + C.MissingBladeDurationMs)
+            else if(now >= _thirdRoundDrawTime + C.MissingBladeDurationMs)
             {
                 _thirdRoundDrawTime = 0;
                 HideAllElements();
@@ -1163,14 +1163,14 @@ public class M12S_Idyllic_Dream : SplatoonScript
         }
 
         // 第6次心象投影: 19210大圈绘制 (时空重现触发，延迟0秒，持续5秒)
-        if (_sixthRoundDrawTime > 0)
+        if(_sixthRoundDrawTime > 0)
         {
             var now = Environment.TickCount64;
-            if (now >= _sixthRoundDrawTime && now < _sixthRoundDrawTime + 5000)
+            if(now >= _sixthRoundDrawTime && now < _sixthRoundDrawTime + 5000)
             {
-                for (int i = 0; i < _sixthRoundCirclePositions.Count && i < 2; i++)
+                for(int i = 0; i < _sixthRoundCirclePositions.Count && i < 2; i++)
                 {
-                    if (Controller.TryGetElementByName($"SpawnCircle_{i}", out var circle))
+                    if(Controller.TryGetElementByName($"SpawnCircle_{i}", out var circle))
                     {
                         circle.Enabled = true;
                         circle.SetRefPosition(_sixthRoundCirclePositions[i]);
@@ -1178,23 +1178,23 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     }
                 }
             }
-            else if (now >= _sixthRoundDrawTime + 5000)
+            else if(now >= _sixthRoundDrawTime + 5000)
             {
                 _sixthRoundDrawTime = 0;
-                for (int i = 0; i < 2; i++)
-                    if (Controller.TryGetElementByName($"SpawnCircle_{i}", out var c)) c.Enabled = false;
+                for(int i = 0; i < 2; i++)
+                    if(Controller.TryGetElementByName($"SpawnCircle_{i}", out var c)) c.Enabled = false;
             }
         }
 
         // 第8次心象投影: 19210大圈绘制
-        if (_eighthRoundDrawTime > 0)
+        if(_eighthRoundDrawTime > 0)
         {
             var now = Environment.TickCount64;
-            if (now >= _eighthRoundDrawTime && now < _eighthRoundDrawTime + C.EighthCircleDurationMs)
+            if(now >= _eighthRoundDrawTime && now < _eighthRoundDrawTime + C.EighthCircleDurationMs)
             {
-                for (int i = 0; i < _eighthRoundCirclePositions.Count && i < 2; i++)
+                for(int i = 0; i < _eighthRoundCirclePositions.Count && i < 2; i++)
                 {
-                    if (Controller.TryGetElementByName($"SpawnCircle_{i}", out var circle))
+                    if(Controller.TryGetElementByName($"SpawnCircle_{i}", out var circle))
                     {
                         circle.Enabled = true;
                         circle.SetRefPosition(_eighthRoundCirclePositions[i]);
@@ -1202,21 +1202,21 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     }
                 }
             }
-            else if (now >= _eighthRoundDrawTime + C.EighthCircleDurationMs)
+            else if(now >= _eighthRoundDrawTime + C.EighthCircleDurationMs)
             {
                 _eighthRoundDrawTime = 0;
-                for (int i = 0; i < 2; i++)
-                    if (Controller.TryGetElementByName($"SpawnCircle_{i}", out var c)) c.Enabled = false;
+                for(int i = 0; i < 2; i++)
+                    if(Controller.TryGetElementByName($"SpawnCircle_{i}", out var c)) c.Enabled = false;
             }
         }
 
         // 阶段3: 引导绘制
-        if (C.EnableGuidance && _currentPhase == 3 && _guidanceSequence.Count == 4)
+        if(C.EnableGuidance && _currentPhase == 3 && _guidanceSequence.Count == 4)
         {
             var now = Environment.TickCount64;
 
             // 等待延迟时间过去
-            if (now < _guidanceStartTime)
+            if(now < _guidanceStartTime)
             {
                 // 延迟期间隐藏引导元素
                 HideGuidanceElements();
@@ -1227,11 +1227,11 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
             // 计算当前轮次 (第一轮8秒，后续轮6秒)
             // 轮次0: 0-8000ms, 轮次1: 8000-14000ms, 轮次2: 14000-20000ms, 轮次3: 20000-26000ms
-            if (elapsed < FirstRoundDurationMs)
+            if(elapsed < FirstRoundDurationMs)
                 _currentGuidanceRound = 0;
-            else if (elapsed < FirstRoundDurationMs + OtherRoundDurationMs)
+            else if(elapsed < FirstRoundDurationMs + OtherRoundDurationMs)
                 _currentGuidanceRound = 1;
-            else if (elapsed < FirstRoundDurationMs + OtherRoundDurationMs * 2)
+            else if(elapsed < FirstRoundDurationMs + OtherRoundDurationMs * 2)
                 _currentGuidanceRound = 2;
             else
                 _currentGuidanceRound = 3;
@@ -1247,13 +1247,13 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
             // 4轮结束后隐藏 (总时长: 8 + 6*3 = 26秒)
             var totalDuration = FirstRoundDurationMs + OtherRoundDurationMs * 3;
-            if (_currentGuidanceRound >= 3 && elapsed > totalDuration)
+            if(_currentGuidanceRound >= 3 && elapsed > totalDuration)
             {
                 HideGuidanceElements();
                 _currentPhase = 0; // 重置阶段
             }
         }
-        else if (_currentPhase != 3)
+        else if(_currentPhase != 3)
         {
             // 非阶段3时隐藏引导元素
             HideGuidanceElements();
@@ -1262,17 +1262,17 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
     private void HideAllElements()
     {
-        for (int i = 0; i < 8; i++)
+        for(int i = 0; i < 8; i++)
         {
-            if (Controller.TryGetElementByName($"Circle_{i}", out var c)) c.Enabled = false;
-            if (Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lr)) lr.Enabled = false;
-            if (Controller.TryGetElementByName($"LeftRight_Left_{i}", out var ll)) ll.Enabled = false;
-            if (Controller.TryGetElementByName($"FrontBack_Front_{i}", out var ff)) ff.Enabled = false;
-            if (Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fb)) fb.Enabled = false;
+            if(Controller.TryGetElementByName($"Circle_{i}", out var c)) c.Enabled = false;
+            if(Controller.TryGetElementByName($"LeftRight_Right_{i}", out var lr)) lr.Enabled = false;
+            if(Controller.TryGetElementByName($"LeftRight_Left_{i}", out var ll)) ll.Enabled = false;
+            if(Controller.TryGetElementByName($"FrontBack_Front_{i}", out var ff)) ff.Enabled = false;
+            if(Controller.TryGetElementByName($"FrontBack_Back_{i}", out var fb)) fb.Enabled = false;
         }
-        for (int i = 0; i < 2; i++)
+        for(int i = 0; i < 2; i++)
         {
-            if (Controller.TryGetElementByName($"SpawnCircle_{i}", out var sc)) sc.Enabled = false;
+            if(Controller.TryGetElementByName($"SpawnCircle_{i}", out var sc)) sc.Enabled = false;
         }
     }
 
@@ -1320,7 +1320,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
     private void AddLog(string entry)
     {
         _eventLog.Insert(0, entry);
-        while (_eventLog.Count > MaxLogEntries)
+        while(_eventLog.Count > MaxLogEntries)
             _eventLog.RemoveAt(_eventLog.Count - 1);
     }
 
@@ -1348,23 +1348,23 @@ public class M12S_Idyllic_Dream : SplatoonScript
         bool onZAxis = Math.Abs(z - center) < threshold;  // Z≈100 -> B或D点
 
         // A(北): X≈100, Z<100
-        if (onXAxis && z < center) return "[正点-A(北)]";
+        if(onXAxis && z < center) return "[正点-A(北)]";
         // C(南): X≈100, Z>100
-        if (onXAxis && z > center) return "[正点-C(南)]";
+        if(onXAxis && z > center) return "[正点-C(南)]";
         // B(东): Z≈100, X>100
-        if (onZAxis && x > center) return "[正点-B(东)]";
+        if(onZAxis && x > center) return "[正点-B(东)]";
         // D(西): Z≈100, X<100
-        if (onZAxis && x < center) return "[正点-D(西)]";
+        if(onZAxis && x < center) return "[正点-D(西)]";
 
         // 斜点判断 (4A1顺序)
         // 4(西北): X<100, Z<100
-        if (x < center && z < center) return "[斜点-4(西北)]";
+        if(x < center && z < center) return "[斜点-4(西北)]";
         // 1(东北): X>100, Z<100
-        if (x > center && z < center) return "[斜点-1(东北)]";
+        if(x > center && z < center) return "[斜点-1(东北)]";
         // 2(东南): X>100, Z>100
-        if (x > center && z > center) return "[斜点-2(东南)]";
+        if(x > center && z > center) return "[斜点-2(东南)]";
         // 3(西南): X<100, Z>100
-        if (x < center && z > center) return "[斜点-3(西南)]";
+        if(x < center && z > center) return "[斜点-3(西南)]";
 
         return "[未知位置]";
     }
@@ -1381,16 +1381,16 @@ public class M12S_Idyllic_Dream : SplatoonScript
         bool onZAxis = Math.Abs(z - center) < threshold;
 
         // 正点
-        if (onXAxis && z < center) return "A";
-        if (onXAxis && z > center) return "C";
-        if (onZAxis && x > center) return "B";
-        if (onZAxis && x < center) return "D";
+        if(onXAxis && z < center) return "A";
+        if(onXAxis && z > center) return "C";
+        if(onZAxis && x > center) return "B";
+        if(onZAxis && x < center) return "D";
 
         // 斜点 (4A1顺序)
-        if (x < center && z < center) return "4";  // 西北
-        if (x > center && z < center) return "1";  // 东北
-        if (x > center && z > center) return "2";  // 东南
-        if (x < center && z > center) return "3";  // 西南
+        if(x < center && z < center) return "4";  // 西北
+        if(x > center && z < center) return "1";  // 东北
+        if(x > center && z > center) return "2";  // 东南
+        if(x < center && z > center) return "3";  // 西南
 
         return "?";
     }
@@ -1409,23 +1409,23 @@ public class M12S_Idyllic_Dream : SplatoonScript
         var playerEntityId = player.EntityId;
 
         // 坦克: MT, ST
-        for (int i = 0; i < tanks.Count; i++)
+        for(int i = 0; i < tanks.Count; i++)
         {
-            if (tanks[i].EntityId == playerEntityId)
+            if(tanks[i].EntityId == playerEntityId)
                 return i == 0 ? "MT" : "ST";
         }
 
         // 治疗: H1, H2
-        for (int i = 0; i < healers.Count; i++)
+        for(int i = 0; i < healers.Count; i++)
         {
-            if (healers[i].EntityId == playerEntityId)
+            if(healers[i].EntityId == playerEntityId)
                 return $"H{i + 1}";
         }
 
         // DPS: D1, D2, D3, D4
-        for (int i = 0; i < dps.Count; i++)
+        for(int i = 0; i < dps.Count; i++)
         {
-            if (dps[i].EntityId == playerEntityId)
+            if(dps[i].EntityId == playerEntityId)
                 return $"D{i + 1}";
         }
 
@@ -1476,66 +1476,66 @@ public class M12S_Idyllic_Dream : SplatoonScript
         ImGui.Text("M12S 四运 绘制设置");
 
         var enableDraw = C.EnableDraw;
-        if (ImGui.Checkbox("启用AOE绘制", ref enableDraw))
+        if(ImGui.Checkbox("启用AOE绘制", ref enableDraw))
             C.EnableDraw = enableDraw;
 
         var enableGuidance = C.EnableGuidance;
-        if (ImGui.Checkbox("启用指路绘制", ref enableGuidance))
+        if(ImGui.Checkbox("启用指路绘制", ref enableGuidance))
             C.EnableGuidance = enableGuidance;
 
         ImGui.Separator();
         ImGui.Text("延迟设置:");
 
         var delay = C.DelayMs;
-        if (ImGui.SliderInt("AOE延迟绘制(ms)", ref delay, 0, 5000))
+        if(ImGui.SliderInt("AOE延迟绘制(ms)", ref delay, 0, 5000))
             C.DelayMs = delay;
 
         var duration = C.DurationMs;
-        if (ImGui.SliderInt("AOE持续时间(ms)", ref duration, 1000, 10000))
+        if(ImGui.SliderInt("AOE持续时间(ms)", ref duration, 1000, 10000))
             C.DurationMs = duration;
 
         var guidanceDelay = C.GuidanceDelayMs;
-        if (ImGui.SliderInt("引导延迟(ms)", ref guidanceDelay, 0, 5000))
+        if(ImGui.SliderInt("引导延迟(ms)", ref guidanceDelay, 0, 5000))
             C.GuidanceDelayMs = guidanceDelay;
 
         var eighthCircleDelay = C.EighthCircleDelayMs;
-        if (ImGui.SliderInt("第8次大圈延迟(ms)", ref eighthCircleDelay, 0, 15000))
+        if(ImGui.SliderInt("第8次大圈延迟(ms)", ref eighthCircleDelay, 0, 15000))
             C.EighthCircleDelayMs = eighthCircleDelay;
 
         var eighthCircleDuration = C.EighthCircleDurationMs;
-        if (ImGui.SliderInt("第8次大圈持续(ms)", ref eighthCircleDuration, 1000, 15000))
+        if(ImGui.SliderInt("第8次大圈持续(ms)", ref eighthCircleDuration, 1000, 15000))
             C.EighthCircleDurationMs = eighthCircleDuration;
 
         var missingBladeDelay = C.MissingBladeDelayMs;
-        if (ImGui.SliderInt("缺少的刀延迟(ms)", ref missingBladeDelay, 0, 20000))
+        if(ImGui.SliderInt("缺少的刀延迟(ms)", ref missingBladeDelay, 0, 20000))
             C.MissingBladeDelayMs = missingBladeDelay;
 
         var missingBladeDuration = C.MissingBladeDurationMs;
-        if (ImGui.SliderInt("缺少的刀持续(ms)", ref missingBladeDuration, 1000, 15000))
+        if(ImGui.SliderInt("缺少的刀持续(ms)", ref missingBladeDuration, 1000, 15000))
             C.MissingBladeDurationMs = missingBladeDuration;
 
         var fifthStandDelay = C.FifthStandDelayMs;
-        if (ImGui.SliderInt("小世界站位延迟(ms)", ref fifthStandDelay, 0, 15000))
+        if(ImGui.SliderInt("小世界站位延迟(ms)", ref fifthStandDelay, 0, 15000))
             C.FifthStandDelayMs = fifthStandDelay;
 
         var fifthStandDuration = C.FifthStandDurationMs;
-        if (ImGui.SliderInt("小世界站位持续(ms)", ref fifthStandDuration, 1000, 15000))
+        if(ImGui.SliderInt("小世界站位持续(ms)", ref fifthStandDuration, 1000, 15000))
             C.FifthStandDurationMs = fifthStandDuration;
 
         var color = C.ColorDanger.ToVector4();
-        if (ImGui.ColorEdit4("AOE颜色", ref color))
+        if(ImGui.ColorEdit4("AOE颜色", ref color))
             C.ColorDanger = color.ToUint();
 
         ImGui.Separator();
         var debugTether = C.DebugTetherAll;
-        if (ImGui.Checkbox("Debug模式 (连线所有玩家)", ref debugTether))
+        if(ImGui.Checkbox("Debug模式 (连线所有玩家)", ref debugTether))
             C.DebugTetherAll = debugTether;
 
-        if (ImGui.Button("保存配置"))
+        if(ImGui.Button("保存配置"))
             Controller.SaveConfig();
 
         // ========== Debug内容 (仅在Debug模式下显示) ==========
-        if (!C.DebugTetherAll) return;
+        if(!C.DebugTetherAll) return;
 
         ImGui.Separator();
         ImGuiEx.Text(EColor.YellowBright, "===== Debug信息 =====");
@@ -1562,7 +1562,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         ImGuiEx.Text($"前后刀位置: ({_frontBackClonePos.X:F1},{_frontBackClonePos.Z:F1})");
 
         var now = Environment.TickCount64;
-        if (_executeTime > 0)
+        if(_executeTime > 0)
         {
             var elapsed = now - _executeTime;
             var state = elapsed < C.DelayMs ? "等待中" :
@@ -1572,14 +1572,14 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
         ImGui.Separator();
         ImGui.Text($"19210位置 ({_firstSpawnPositions.Count}):");
-        foreach (var (entityId, pos, pointType) in _firstSpawnPositions)
+        foreach(var (entityId, pos, pointType) in _firstSpawnPositions)
         {
             ImGuiEx.Text($"  ({pos.X:F1},{pos.Z:F1}) {pointType}");
         }
 
         ImGui.Separator();
         ImGui.Text($"分身技能 ({_cloneInfos.Count}):");
-        foreach (var clone in _cloneInfos)
+        foreach(var clone in _cloneInfos)
         {
             string actionName = clone.ActionId switch
             {
@@ -1593,12 +1593,12 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
         ImGui.Separator();
         ImGui.Text($"第一阶段连线 ({_round1Tethers.Count}):");
-        if (_round1Tethers.Count > 0)
+        if(_round1Tethers.Count > 0)
         {
             var pointOrder = new[] { "A", "B", "C", "D", "1", "2", "3", "4" };
-            foreach (var point in pointOrder)
+            foreach(var point in pointOrder)
             {
-                if (_round1Tethers.TryGetValue(point, out var playerName))
+                if(_round1Tethers.TryGetValue(point, out var playerName))
                 {
                     ImGuiEx.Text(EColor.PurpleBright, $"  {point}点小怪——>{playerName}");
                 }
@@ -1607,12 +1607,12 @@ public class M12S_Idyllic_Dream : SplatoonScript
 
         ImGui.Separator();
         ImGui.Text($"第二阶段连线 ({_round2Tethers.Count}):");
-        if (_round2Tethers.Count > 0)
+        if(_round2Tethers.Count > 0)
         {
             var pointOrder = new[] { "A", "B", "C", "D", "1", "2", "3", "4" };
-            foreach (var point in pointOrder)
+            foreach(var point in pointOrder)
             {
-                if (_round2Tethers.TryGetValue(point, out var info))
+                if(_round2Tethers.TryGetValue(point, out var info))
                 {
                     var displayColor = info.VfxType == "分摊" ? EColor.CyanBright : EColor.OrangeBright;
                     ImGuiEx.Text(displayColor, $"  {point}点【{info.VfxType}】——>{info.PlayerName}");
@@ -1623,16 +1623,16 @@ public class M12S_Idyllic_Dream : SplatoonScript
         ImGui.Separator();
         ImGui.Text("引导状态:");
         ImGuiEx.Text($"当前阶段: {_currentPhase} (0=未开始, 1=连线, 2=VFX, 3=引导中)");
-        if (_guidanceSequence.Count == 4 && _roundPoints.Count == 4)
+        if(_guidanceSequence.Count == 4 && _roundPoints.Count == 4)
         {
             var pointsDisplay = string.Join(" → ", _roundPoints.Select(p => $"[{string.Join(",", p)}]"));
             ImGuiEx.Text($"标点顺序: {pointsDisplay}");
             ImGuiEx.Text(EColor.YellowBright, $"VFX顺序: {string.Join(" → ", _guidanceSequence)}");
 
-            if (_currentPhase == 3)
+            if(_currentPhase == 3)
             {
                 var currentTime = Environment.TickCount64;
-                if (currentTime < _guidanceStartTime)
+                if(currentTime < _guidanceStartTime)
                 {
                     var delayRemaining = _guidanceStartTime - currentTime;
                     ImGuiEx.Text(EColor.YellowBright, $"引导延迟: {delayRemaining / 1000f:F1}秒后开始");
@@ -1641,11 +1641,11 @@ public class M12S_Idyllic_Dream : SplatoonScript
                 {
                     var elapsed = currentTime - _guidanceStartTime;
                     long nextRoundIn;
-                    if (_currentGuidanceRound == 0)
+                    if(_currentGuidanceRound == 0)
                         nextRoundIn = FirstRoundDurationMs - elapsed;
-                    else if (_currentGuidanceRound == 1)
+                    else if(_currentGuidanceRound == 1)
                         nextRoundIn = FirstRoundDurationMs + OtherRoundDurationMs - elapsed;
-                    else if (_currentGuidanceRound == 2)
+                    else if(_currentGuidanceRound == 2)
                         nextRoundIn = FirstRoundDurationMs + OtherRoundDurationMs * 2 - elapsed;
                     else
                         nextRoundIn = FirstRoundDurationMs + OtherRoundDurationMs * 3 - elapsed;
@@ -1656,12 +1656,12 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     ImGuiEx.Text(EColor.GreenBright, $"当前轮次: 第{_currentGuidanceRound + 1}轮 ({durationText}) - [{string.Join(",", currentPoints)}] - {currentAction}");
                     ImGuiEx.Text($"下一轮倒计时: {Math.Max(0, nextRoundIn) / 1000f:F1}秒");
 
-                    if (currentAction == "大圈")
+                    if(currentAction == "大圈")
                     {
                         var spreadPlayers = new List<string>();
-                        foreach (var point in currentPoints)
+                        foreach(var point in currentPoints)
                         {
-                            if (_round2Tethers.TryGetValue(point, out var info))
+                            if(_round2Tethers.TryGetValue(point, out var info))
                                 spreadPlayers.Add($"{point}:{info.PlayerName}");
                         }
                         ImGuiEx.Text(EColor.OrangeBright, $"  需要出去放圈: {string.Join(", ", spreadPlayers)}");
@@ -1674,7 +1674,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
         }
 
-        if (_playerGroups.Count > 0)
+        if(_playerGroups.Count > 0)
         {
             ImGui.Separator();
             ImGui.Text("玩家分组:");
@@ -1685,15 +1685,15 @@ public class M12S_Idyllic_Dream : SplatoonScript
         }
 
         ImGui.Separator();
-        if (ImGui.Button("清除日志"))
+        if(ImGui.Button("清除日志"))
             _eventLog.Clear();
         ImGui.SameLine();
-        if (ImGui.Button("重置状态"))
+        if(ImGui.Button("重置状态"))
             OnReset();
 
         ImGui.Separator();
         ImGui.Text("测试功能:");
-        if (ImGui.Button(_manualDrawTest ? "停止测试绘制" : "开始测试绘制"))
+        if(ImGui.Button(_manualDrawTest ? "停止测试绘制" : "开始测试绘制"))
         {
             _manualDrawTest = !_manualDrawTest;
             AddLog(_manualDrawTest ? "[测试] 手动开启绘制测试" : "[测试] 停止绘制测试");
@@ -1702,18 +1702,18 @@ public class M12S_Idyllic_Dream : SplatoonScript
         ImGuiEx.Text(_manualDrawTest ? EColor.GreenBright : EColor.RedBright,
             _manualDrawTest ? "● 测试中" : "○ 未测试");
 
-        if (_drawDebugLog.Count > 0)
+        if(_drawDebugLog.Count > 0)
         {
             ImGui.Separator();
             ImGui.Text("绘制调试信息:");
             ImGui.BeginChild("DrawDebug", new System.Numerics.Vector2(0, 200), true);
-            foreach (var log in _drawDebugLog)
+            foreach(var log in _drawDebugLog)
             {
-                if (log.Contains("✓"))
+                if(log.Contains("✓"))
                     ImGuiEx.Text(EColor.GreenBright, log);
-                else if (log.Contains("✗"))
+                else if(log.Contains("✗"))
                     ImGuiEx.Text(EColor.RedBright, log);
-                else if (log.Contains("==="))
+                else if(log.Contains("==="))
                     ImGuiEx.Text(EColor.YellowBright, log);
                 else
                     ImGui.Text(log);
@@ -1724,17 +1724,17 @@ public class M12S_Idyllic_Dream : SplatoonScript
         ImGui.Separator();
         ImGui.Text($"事件日志 ({_eventLog.Count}):");
         ImGui.BeginChild("EventLog", new System.Numerics.Vector2(0, 400), true);
-        foreach (var log in _eventLog)
+        foreach(var log in _eventLog)
         {
-            if (log.Contains("四运开始"))
+            if(log.Contains("四运开始"))
                 ImGuiEx.Text(EColor.GreenBright, log);
-            else if (log.Contains("分身技能") || log.Contains("执行读条"))
+            else if(log.Contains("分身技能") || log.Contains("执行读条"))
                 ImGuiEx.Text(EColor.YellowBright, log);
-            else if (log.Contains("VFX"))
+            else if(log.Contains("VFX"))
                 ImGuiEx.Text(EColor.CyanBright, log);
-            else if (log.Contains("Tether"))
+            else if(log.Contains("Tether"))
                 ImGuiEx.Text(EColor.OrangeBright, log);
-            else if (log.Contains("19210"))
+            else if(log.Contains("19210"))
                 ImGuiEx.Text(EColor.PurpleBright, log);
             else
                 ImGui.Text(log);

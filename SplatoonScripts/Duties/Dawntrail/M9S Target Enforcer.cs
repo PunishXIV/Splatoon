@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M9S_Target_Enforcer : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1321];
 
     public enum Enemies
@@ -28,6 +28,7 @@ public class M9S_Target_Enforcer : SplatoonScript
         Vamp_Fatale = 14300,
         Deadly_Doornail = 14303,
         Fatal_Flail = 14302,
+        Charnel_Cell = 14304,
     }
 
     string LastMsg;
@@ -66,10 +67,24 @@ public class M9S_Target_Enforcer : SplatoonScript
 
     IBattleNpc? GetWantedTarget()
     {
-        if(Svc.Targets.Target is IBattleNpc n && n.NameId == 14304) return null;
         if(C.DontSwitchOffPlayers && Svc.Targets.Target is IPlayerCharacter) return null;
         if(C.DontSwitchWhenSoftTarget && Svc.Targets.SoftTarget != null) return null;
         if(C.OnlyNullTarget && Svc.Targets.Target != null) return null;
+
+        if(C.CellTarget)
+        {
+            foreach(var x in Svc.Objects.OfType<IBattleNpc>())
+            {
+                if(x.NameId == (uint)Enemies.Charnel_Cell && x.IsTargetable && !x.IsDead && Vector3.Distance(BasePlayer.Position, x.Position) < 4)
+                {
+                    return x;
+                }
+            }
+        }
+        else
+        {
+            if(Svc.Targets.Target is IBattleNpc n && n.NameId == (uint)Enemies.Charnel_Cell) return null;
+        }
         foreach(var e in C.List)
         {
             var candidates = Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsTargetable && !x.IsDead && Vector3.Distance(x.Position, BasePlayer.Position) < C.Range + BasePlayer.HitboxRadius + x.HitboxRadius && x.NameId == (uint)e).OrderBy(x => Vector3.Distance(BasePlayer.Position, x.Position));
@@ -103,6 +118,7 @@ public class M9S_Target_Enforcer : SplatoonScript
         }
         DragDrop.End();
         ImGui.Separator();
+        ImGui.Checkbox("Target your Charnel Cell", ref C.CellTarget);
         ImGui.Checkbox("Don't switch off players (healers/target buffers w/o reaction enable)", ref C.DontSwitchOffPlayers);
         ImGui.Checkbox("Don't switch off when have soft target", ref C.DontSwitchWhenSoftTarget);
         ImGui.Checkbox("Only target if no other target is set at all", ref C.OnlyNullTarget);
@@ -121,6 +137,7 @@ public class M9S_Target_Enforcer : SplatoonScript
         public bool DontSwitchWhenSoftTarget = false;
         public bool OnlyNullTarget = false;
         public bool NoEarly = true;
+        public bool CellTarget = true;
     }
     public Config C => Controller.GetConfig<Config>();
 }

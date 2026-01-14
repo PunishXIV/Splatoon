@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.MathHelpers;
 using Splatoon.Memory;
 using Splatoon.Structures;
@@ -71,7 +72,7 @@ public static unsafe class LayoutUtils
         }
         else
         {
-            var result = (nint)ExtendedPronoun.Resolve(ph);
+            var result = (nint)Utils.ResolvePronounBPO(ph);
             PlaceholderCache[ph] = result;
             return result;
         }
@@ -81,7 +82,7 @@ public static unsafe class LayoutUtils
     {
         if(e.refTargetYou)
         {
-            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != Svc.ClientState.LocalPlayer.EntityId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == Svc.ClientState.LocalPlayer.EntityId));
+            return ((e.refActorTargetingYou == 1 && a.TargetObjectId != BasePlayer.EntityId) || (e.refActorTargetingYou == 2 && a.TargetObjectId == BasePlayer.EntityId));
         }
 
         return false;
@@ -120,7 +121,7 @@ public static unsafe class LayoutUtils
                             {
                                 foreach(var p in e.refActorTetherConnectedWithPlayer)
                                 {
-                                    var tar = ExtendedPronoun.Resolve(p);
+                                    var tar = Utils.ResolvePronounBPO(p);
                                     if(tar != null)
                                     {
                                         if(t.TargetId.ObjectId == tar->EntityId) return true;
@@ -151,7 +152,7 @@ public static unsafe class LayoutUtils
                             {
                                 foreach(var p in e.refActorTetherConnectedWithPlayer)
                                 {
-                                    var tar = ExtendedPronoun.Resolve(p);
+                                    var tar = Utils.ResolvePronounBPO(p);
                                     if(tar != null)
                                     {
                                         if(t.Target == tar->EntityId) return true;
@@ -187,7 +188,7 @@ public static unsafe class LayoutUtils
                                 {
                                     foreach(var p in e.refActorTetherConnectedWithPlayer)
                                     {
-                                        var tar = ExtendedPronoun.Resolve(p);
+                                        var tar = Utils.ResolvePronounBPO(p);
                                         if(tar != null)
                                         {
                                             if(tar->EntityId == chr.EntityId) return true;
@@ -221,7 +222,7 @@ public static unsafe class LayoutUtils
                             {
                                 foreach(var p in e.refActorTetherConnectedWithPlayer)
                                 {
-                                    var tar = ExtendedPronoun.Resolve(p);
+                                    var tar = Utils.ResolvePronounBPO(p);
                                     if(tar != null)
                                     {
                                         if(x.Key == (nint)tar) return true;
@@ -359,7 +360,7 @@ public static unsafe class LayoutUtils
         if((layout.ZoneLockH.Count > 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)) return false;
         if(layout.Scenes.Count > 0 && !layout.Scenes.Contains(*Scene.ActiveScene)) return false;
         if(layout.Phase != 0 && layout.Phase != P.Phase) return false;
-        if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(Player.Job)) return false;
+        if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(BasePlayer.GetJob())) return false;
         var inCombat = Svc.Condition[ConditionFlag.InCombat];
         var inDuty = Svc.Condition[ConditionFlag.BoundByDuty];
         if((layout.DCond == 1 || layout.DCond == 3) && !inCombat) return false;
@@ -378,7 +379,7 @@ public static unsafe class LayoutUtils
         {
             if(Svc.Targets.Target != null)
             {
-                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (layout.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (layout.DistanceLimitMyHitbox ? Svc.ClientState.LocalPlayer.HitboxRadius : 0);
+                var dist = Vector3.Distance(Svc.Targets.Target.GetPositionXZY(), Utils.GetPlayerPositionXZY()) - (layout.DistanceLimitTargetHitbox ? Svc.Targets.Target.HitboxRadius : 0) - (layout.DistanceLimitMyHitbox ? BasePlayer.HitboxRadius : 0);
                 if(!(dist >= layout.MinDistance && dist < layout.MaxDistance)) return false;
             }
             else

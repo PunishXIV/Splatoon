@@ -83,7 +83,7 @@ public static unsafe class AttachedInfo
             {
                 if(obj is ICharacter c)
                 {
-                    var targetText = c.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
+                    var targetText = c.AddressEquals(BasePlayer) ? "me" : (c is IPlayerCharacter pc ? pc.GetJob().ToString() : c.DataId.ToString() ?? "Unknown");
                     var text = $"VFX {vfxPath} spawned on {targetText} npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}";
                     P.ChatMessageQueue.Enqueue(text);
                     if(P.Config.Logging) Logger.Log(text);
@@ -205,6 +205,20 @@ public static unsafe class AttachedInfo
         if(CastInfos.TryGetValue(ptr, out var info))
         {
             if(castId.Contains(info.ID))
+            {
+                castTime = (float)(Environment.TickCount64 - info.StartTime) / 1000f;
+                return true;
+            }
+        }
+        castTime = default;
+        return false;
+    }
+
+    public static bool TryGetCastTime(nint ptr, uint castId, out float castTime)
+    {
+        if(CastInfos.TryGetValue(ptr, out var info))
+        {
+            if(castId == info.ID)
             {
                 castTime = (float)(Environment.TickCount64 - info.StartTime) / 1000f;
                 return true;

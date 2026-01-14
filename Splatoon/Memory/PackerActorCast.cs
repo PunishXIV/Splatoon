@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
 
+#nullable enable
 namespace Splatoon.Memory;
 
 [StructLayout(LayoutKind.Explicit, Pack = 1)]
@@ -34,9 +35,22 @@ public struct PacketActorCast
     public uint TargetID;
 
     [FieldOffset(16)]
-    public ushort Rotation;
-
-    public readonly float RotationRadians => ((Rotation * 0.0095875263f) * 0.0099999998f) - MathF.PI;
+    public ushort RawRotation;
+    
+    /// <summary>
+    /// Radians
+    /// </summary>
+    public readonly float Rotation => ((RawRotation * 0.0095875263f) * 0.0099999998f) - MathF.PI;
+    /// <summary>
+    /// Radians
+    /// </summary>
+    public readonly float RotationFromNorth
+    {
+        get 
+        {
+            return -Rotation + MathF.PI;
+        }
+    }
 
     [FieldOffset(20)]
     [Obsolete("Unknown")]
@@ -50,6 +64,14 @@ public struct PacketActorCast
 
     [FieldOffset(28)]
     public ushort PosZ;
+
+    public readonly Vector3 Position
+    {
+        get
+        {
+            return new(((PosX * 3.0518043f) * 0.0099999998f) - 1000.0f, ((PosY * 3.0518043f) * 0.0099999998f) - 1000.0f, ((PosZ * 3.0518043f) * 0.0099999998f) - 1000.0f);
+        }
+    }
 
     [FieldOffset(30)]
     [Obsolete("Unknown")]

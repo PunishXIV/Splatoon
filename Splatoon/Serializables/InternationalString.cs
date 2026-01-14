@@ -1,10 +1,9 @@
-﻿using Dalamud;
-using Dalamud.Game;
+﻿using Dalamud.Game;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using ECommons.LanguageHelpers;
-using Splatoon.Utility;
 using System.ComponentModel;
+using TerraFX.Interop.Windows;
 
 namespace Splatoon;
 
@@ -21,10 +20,22 @@ public class InternationalString
     public string Get(string defaultString = "", ClientLanguage? language = null)
     {
         language ??= Svc.Data.Language;
-        if(language == ClientLanguage.English) return En == string.Empty ? defaultString : En;
-        else if(language == ClientLanguage.Japanese) return Jp == string.Empty ? defaultString : Jp;
-        else if(language == ClientLanguage.German) return De == string.Empty ? defaultString : De;
-        else if(language == ClientLanguage.French) return Fr == string.Empty ? defaultString : Fr;
+        if(language == ClientLanguage.English)
+        {
+            return En == string.Empty ? defaultString : En; 
+        }
+        else if(language == ClientLanguage.Japanese)
+        {
+            return Jp == string.Empty ? defaultString : Jp; 
+        }
+        else if(language == ClientLanguage.German)
+        {
+            return De == string.Empty ? defaultString : De; 
+        }
+        else if(language == ClientLanguage.French)
+        {
+            return Fr == string.Empty ? defaultString : Fr; 
+        }
         else return Other == string.Empty ? defaultString : Other;
     }
 
@@ -64,12 +75,17 @@ public class InternationalString
                 ImGuiEx.Text("International string".Loc());
             });
             EditLangSpecificString(ClientLanguage.English, ref En);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", En, x => En = x);
             EditLangSpecificString(ClientLanguage.Japanese, ref Jp);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", Jp, x => Jp = x);
             EditLangSpecificString(ClientLanguage.French, ref Fr);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", Fr, x => Fr = x);
             EditLangSpecificString(ClientLanguage.German, ref De);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", De, x => De = x);
             if(!Svc.Data.Language.EqualsAny(ClientLanguage.English, ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French))
             {
                 EditLangSpecificString(Svc.Data.Language, ref Other);
+                ImGuiEx.DragDropRepopulateClass("RepopIStr", Other, x => Other = x);
             }
             else
             {

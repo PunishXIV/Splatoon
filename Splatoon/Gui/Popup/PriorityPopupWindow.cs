@@ -5,6 +5,7 @@ using Dalamud.Interface.Windowing;
 using ECommons.ChatMethods;
 using ECommons.ExcelServices;
 using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.ImGuiMethods.TerritorySelection;
 using ECommons.LanguageHelpers;
 using ECommons.PartyFunctions;
@@ -220,7 +221,7 @@ public class PriorityPopupWindow : Window
             Assignments.Clear();
             Assignments.AddRange([new(), new(), new(), new(), new(), new(), new(), new()]);
 
-            var preferred = P.Config.PreferredPositions.SafeSelect(Player.Job, RolePosition.Not_Selected);
+            var preferred = P.Config.PreferredPositions.SafeSelect(BasePlayer.GetJob(), RolePosition.Not_Selected);
             if(preferred != RolePosition.Not_Selected)
             {
                 var index = RolePositions.IndexOf(preferred);
@@ -228,10 +229,10 @@ public class PriorityPopupWindow : Window
                 {
                     Assignments[index] = new()
                     {
-                        Jobs = [Player.Job],
-                        Name = Player.NameWithWorld
+                        Jobs = [BasePlayer.GetJob()],
+                        Name = Player.GetNameWithWorld(BasePlayer)
                     };
-                    jobs.RemoveAll(x => x.Name == Player.NameWithWorld);
+                    jobs.RemoveAll(x => x.Name == Player.GetNameWithWorld(BasePlayer));
                 }
             }
 

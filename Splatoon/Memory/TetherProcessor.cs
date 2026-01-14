@@ -72,8 +72,8 @@ internal unsafe class TetherProcessor
                 else
                 {
                     ScriptingProcessor.OnTetherCreate(a1->OwnerObject->EntityId, (uint)targetOID, a2, a3, a5);
-                    var isSourceYou = (nint)a1->OwnerObject == Player.Object.Address;
-                    var isTargetYou = (uint)targetOID == Player.Object.EntityId;
+                    var isSourceYou = (nint)a1->OwnerObject == BasePlayer.Address;
+                    var isTargetYou = (uint)targetOID == BasePlayer.EntityId;
                     var sourceText = isSourceYou ? "YOU" : (a1->OwnerObject->ObjectKind == ObjectKind.Pc ? ((Job)a1->OwnerObject->ClassJob).ToString() : a1->OwnerObject->BaseId.ToString());
                     IGameObject targetObj = null;
                     foreach(var x in Svc.Objects)

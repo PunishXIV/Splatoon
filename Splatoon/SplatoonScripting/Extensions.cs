@@ -1,4 +1,5 @@
-﻿using ECommons.GameFunctions;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.GameFunctions;
 using System.Diagnostics.CodeAnalysis;
 #nullable enable
 namespace Splatoon.SplatoonScripting;
@@ -24,6 +25,30 @@ public static unsafe class Extensions
     public static bool TryGetObject(this uint objectID, [NotNullWhen(true)] out IGameObject? obj)
     {
         obj = objectID.GetObject();
+        return obj != null;
+    }
+
+    /// <summary>
+    /// Attempts to get battle npc by it's object ID.
+    /// </summary>
+    /// <param name="objectID">Object ID to search.</param>
+    /// <param name="obj">Resulting IBattleNpc if found; null otherwise.</param>
+    /// <returns>Whether object was found.</returns>
+    public static bool TryGetBattleNpc(this uint objectID, [NotNullWhen(true)] out IBattleNpc? obj)
+    {
+        obj = objectID.GetObject() as IBattleNpc;
+        return obj != null;
+    }
+
+    /// <summary>
+    /// Attempts to get player by it's object ID.
+    /// </summary>
+    /// <param name="objectID">Object ID to search.</param>
+    /// <param name="obj">Resulting IPlayerCharacter if found; null otherwise.</param>
+    /// <returns>Whether object was found.</returns>
+    public static bool TryGetPlayer(this uint objectID, [NotNullWhen(true)] out IPlayerCharacter? obj)
+    {
+        obj = objectID.GetObject() as IPlayerCharacter;
         return obj != null;
     }
 

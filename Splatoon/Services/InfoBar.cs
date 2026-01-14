@@ -41,7 +41,7 @@ public class InfoBar : IDisposable
                 for(var i = 0; i < P.PriorityPopupWindow.Assignments.Count; i++)
                 {
                     var ass = P.PriorityPopupWindow.Assignments[i];
-                    if(ass.IsInParty(false, out var m) && m.NameWithWorld == Player.NameWithWorld)
+                    if(ass.IsInParty(false, out var m) && m.NameWithWorld == BasePlayer.GetNameWithWorld())
                     {
                         newRole = i;
                         break;

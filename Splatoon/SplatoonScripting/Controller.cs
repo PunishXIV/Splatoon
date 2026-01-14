@@ -31,6 +31,8 @@ public unsafe class Controller
 
     public Splatoon Plugin => Splatoon.P;
 
+    public IPlayerCharacter BasePlayer => Splatoon.BasePlayer;
+
     /// <summary>
     /// Indicates whether player is in combat.
     /// </summary>

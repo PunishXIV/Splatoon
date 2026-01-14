@@ -247,23 +247,23 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         else if(element.type == 1 || element.type == 3 || element.type == 4)
         {
-            if(element.includeOwnHitbox) radius += Svc.ClientState.LocalPlayer.HitboxRadius;
-            if(element.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(element, Svc.ClientState.LocalPlayer, true))
+            if(element.includeOwnHitbox) radius += BasePlayer.HitboxRadius;
+            if(element.refActorType == 1 && LayoutUtils.CheckCharacterAttributes(element, BasePlayer, true))
             {
                 ret = true;
                 if(element.type == 1)
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
-                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? Svc.ClientState.LocalPlayer.GetRotationWithOverride(element) : 0f,
-                        Svc.ClientState.LocalPlayer);
+                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? BasePlayer.GetRotationWithOverride(element) : 0f,
+                        BasePlayer);
                 }
                 else if(element.type == 3)
                 {
-                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), Svc.ClientState.LocalPlayer.GetRotationWithOverride(element), element, radius, 0f, Svc.ClientState.LocalPlayer);
+                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), element, radius, 0f, BasePlayer);
                 }
                 else if(element.type == 4)
                 {
-                    DrawCone(layout, element, Utils.GetPlayerPositionXZY(), radius, Svc.ClientState.LocalPlayer.GetRotationWithOverride(element), Svc.ClientState.LocalPlayer);
+                    DrawCone(layout, element, Utils.GetPlayerPositionXZY(), radius, BasePlayer.GetRotationWithOverride(element), BasePlayer);
                 }
             }
             else if(element.refActorType == 2 && Svc.Targets.Target != null
@@ -323,6 +323,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             }
             else if(element.refActorType == 0)
             {
+                List<IGameObject> objectList = [];
                 foreach(var a in Svc.Objects)
                 {
                     var targetable = a.Struct()->GetIsTargetable();
@@ -332,57 +333,63 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                         if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, a.GetPositionXZY()))
                         {
                             ret = true;
-                            foreach(var obj in Utils.AlterTargetIfNeeded(element, a))
+                            objectList.Add(a);
+                            
+                        }
+                    }
+                }
+                CommonRenderUtils.HandleEnumeration(element, ref objectList);
+                foreach(var a in objectList)
+                {
+                    foreach(var obj in Utils.AlterTargetIfNeeded(element, a))
+                    {
+                        var aradius = radius;
+                        if(element.includeHitbox) aradius += obj.HitboxRadius;
+                        if(element.type == 1)
+                        {
+                            DrawCircle(layout, element, obj.GetPositionXZY().X, obj.GetPositionXZY().Y, obj.GetPositionXZY().Z, aradius,
+                                element.includeRotation ? obj.GetRotationWithOverride(element) : 0f,
+                                obj);
+                        }
+                        else if(element.type == 3)
+                        {
+                            if(element.FaceMe)
                             {
-                                var aradius = radius;
-                                if(element.includeHitbox) aradius += obj.HitboxRadius;
-                                if(element.type == 1)
+                                var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
+                                if(list != null)
                                 {
-                                    DrawCircle(layout, element, obj.GetPositionXZY().X, obj.GetPositionXZY().Y, obj.GetPositionXZY().Z, aradius,
-                                        element.includeRotation ? obj.GetRotationWithOverride(element) : 0f,
-                                        obj);
+                                    foreach(var pos in list)
+                                    {
+                                        var angle = ((element.FaceInvert ? 0 : 180) - (MathHelper.GetRelativeAngle(obj.Position.ToVector2(), pos.ToVector2()))).DegreesToRadians();
+                                        AddRotatedLine(layout, element.FaceInvert ? pos.ToXZY() : obj.GetPositionXZY(), angle, element, aradius, obj.HitboxRadius, obj);
+                                    }
                                 }
-                                else if(element.type == 3)
-                                {
-                                    if(element.FaceMe)
-                                    {
-                                        var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
-                                        if(list != null)
-                                        {
-                                            foreach(var pos in list)
-                                            {
-                                                var angle = ((element.FaceInvert ? 0 : 180) - (MathHelper.GetRelativeAngle(obj.Position.ToVector2(), pos.ToVector2()))).DegreesToRadians();
-                                                AddRotatedLine(layout, element.FaceInvert ? pos.ToXZY() : obj.GetPositionXZY(), angle, element, aradius, obj.HitboxRadius, obj);
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var angle = obj.GetRotationWithOverride(element);
-                                        AddRotatedLine(layout, obj.GetPositionXZY(), angle, element, aradius, obj.HitboxRadius, obj);
-                                    }
+                            }
+                            else
+                            {
+                                var angle = obj.GetRotationWithOverride(element);
+                                AddRotatedLine(layout, obj.GetPositionXZY(), angle, element, aradius, obj.HitboxRadius, obj);
+                            }
 
-                                }
-                                else if(element.type == 4)
+                        }
+                        else if(element.type == 4)
+                        {
+                            if(element.FaceMe)
+                            {
+                                var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
+                                if(list != null)
                                 {
-                                    if(element.FaceMe)
+                                    foreach(var pos in list)
                                     {
-                                        var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
-                                        if(list != null)
-                                        {
-                                            foreach(var pos in list)
-                                            {
-                                                var baseAngle = ((element.FaceInvert ? 0 : 180) - (MathHelper.GetRelativeAngle(obj.Position.ToVector2(), pos.ToVector2()))).DegreesToRadians();
-                                                DrawCone(layout, element, element.FaceInvert ? pos.ToXZY() : obj.GetPositionXZY(), aradius, baseAngle, obj);
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        var baseAngle = obj.GetRotationWithOverride(element);
-                                        DrawCone(layout, element, obj.GetPositionXZY(), aradius, baseAngle, obj);
+                                        var baseAngle = ((element.FaceInvert ? 0 : 180) - (MathHelper.GetRelativeAngle(obj.Position.ToVector2(), pos.ToVector2()))).DegreesToRadians();
+                                        DrawCone(layout, element, element.FaceInvert ? pos.ToXZY() : obj.GetPositionXZY(), aradius, baseAngle, obj);
                                     }
                                 }
+                            }
+                            else
+                            {
+                                var baseAngle = obj.GetRotationWithOverride(element);
+                                DrawCone(layout, element, obj.GetPositionXZY(), aradius, baseAngle, obj);
                             }
                         }
                     }

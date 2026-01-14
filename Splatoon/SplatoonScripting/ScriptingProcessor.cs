@@ -8,6 +8,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon.Gui.Scripting;
+using Splatoon.Memory;
 using Splatoon.Modules;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -776,10 +777,10 @@ internal unsafe static partial class ScriptingProcessor
                     string targetText;
                     string effectTargetText;
                     {
-                        targetText = set.Target.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (set.Target is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{set.Target?.DataId}/{set.Target?.Name}" ?? "Unknown");
+                        targetText = set.Target.AddressEquals(BasePlayer) ? "me" : (set.Target is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{set.Target?.DataId}/{set.Target?.Name}" ?? "Unknown");
                     }
                     {
-                        effectTargetText = effectTarget.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (effectTarget is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{effectTarget?.DataId}/{effectTarget?.Name}" ?? "Unknown");
+                        effectTargetText = effectTarget.AddressEquals(BasePlayer) ? "me" : (effectTarget is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{effectTarget?.DataId}/{effectTarget?.Name}" ?? "Unknown");
                     }
                     var text = $"Action {ExcelActionHelper.GetActionName(set.Action.Value.RowId, true)} cast on {targetText} effect on {effectTargetText} npc id={n.NameId}, model id={n.Struct()->ModelContainer.ModelCharaId}, transform={n.GetTransformationID()} data={n.DataId} name={n.Name} ActionEffect|{set.Action.Value.RowId}|{targetText.Split('/')[0]}|{effectTargetText.Split('/')[0]}|{n.NameId}|{n.Struct()->ModelContainer.ModelCharaId}|{n.GetTransformationID()}|{n.DataId}";
                     P.ChatMessageQueue.Enqueue(text);
@@ -789,11 +790,26 @@ internal unsafe static partial class ScriptingProcessor
             }
             if(!printed)
             {
-                var targetText = set.Target.AddressEquals(Svc.ClientState.LocalPlayer) ? "me" : (set.Target is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{set.Target?.DataId}/{set.Target?.Name}" ?? "Unknown");
+                var targetText = set.Target.AddressEquals(BasePlayer) ? "me" : (set.Target is IPlayerCharacter pc ? pc.GetJob().ToString() : $"{set.Target?.DataId}/{set.Target?.Name}" ?? "Unknown");
                 var text = $"Action {ExcelActionHelper.GetActionName(set.Action.Value.RowId, true)} cast on {targetText} npc id={n.NameId}, model id={n.Struct()->ModelContainer.ModelCharaId}, transform={n.GetTransformationID()} data={n.DataId} name={n.Name} ActionEffect|{set.Action.Value.RowId}|{targetText.Split('/')[0]}|{n.NameId}|{n.Struct()->ModelContainer.ModelCharaId}|{n.GetTransformationID()}|{n.DataId}";
                 P.ChatMessageQueue.Enqueue(text);
                 if(P.Config.Logging) Logger.Log(text);
                 P.LogWindow.Log(text);
+            }
+        }
+    }
+
+    internal static void OnStartingCast(uint sourceId, PacketActorCast* packet)
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnStartingCast(sourceId, packet);
+                }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnStartingCast)); }
             }
         }
     }

@@ -242,7 +242,7 @@ internal unsafe partial class CGui
                 ImGuiEx.Tooltip("Fixed angle mode. Face fixed angle.");
                 ImGui.SameLine();
                 if(!el.RotationOverrideAngleOnlyMode) 
-                    { 
+                { 
                     ImGuiEx.TextV("Rotate towards:");
                     ImGui.SameLine();
                     ImGuiEx.Text($"X:");
@@ -462,6 +462,83 @@ internal unsafe partial class CGui
                 ImGui.SetNextItemWidth(200f);
                 ImGuiEx.EnumCombo("##alter", ref el.TargetAlteration);
 
+                if(el.refActorType == 0)
+                {
+                    ImGuiUtils.SizedText("Enumeration:".Loc(), WidthElement);
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(200f);
+                    ImGuiEx.EnumCombo("##enumerate", ref el.Enumeration);
+                    if(el.Enumeration != EnumerationType.None)
+                    {
+                        ImGuiUtils.SizedText("Center:".Loc(), WidthElement);
+                        ImGui.SameLine();
+                        ImGuiEx.Text($"X:");
+                        ImGui.SameLine();
+                        ImGui.SetNextItemWidth(50f);
+                        ImGui.DragFloat("##enumCx", ref el.EnumerationCenter.X, 0.1f);
+                        ImGui.SameLine();
+                        ImGuiEx.Text($"Y:");
+                        ImGui.SameLine();
+                        ImGui.SetNextItemWidth(50f);
+                        ImGui.DragFloat("##enumCy", ref el.EnumerationCenter.Y, 0.1f);
+
+                        ImGuiUtils.SizedText("Starting Position:".Loc(), WidthElement);
+                        ImGui.SameLine();
+                        ImGuiEx.Text($"X:");
+                        ImGui.SameLine();
+                        ImGui.SetNextItemWidth(50f);
+                        ImGui.DragFloat("##enumSx", ref el.EnumerationStart.X, 0.1f);
+                        ImGui.SameLine();
+                        ImGuiEx.Text($"Y:");
+                        ImGui.SameLine();
+                        ImGui.SetNextItemWidth(50f);
+                        ImGui.DragFloat("##enumSy", ref el.EnumerationStart.Y, 0.1f);
+                    }
+                    ImGuiUtils.SizedText("Enumeration Positions:".Loc(), WidthElement);
+                    ImGui.SameLine();
+                    ImGuiEx.SetNextItemFullWidth();
+                    if(ImGui.BeginCombo($"##positions", el.EnumerationOrder.Count == 0?"Enter Enumeration Positions".Loc() : $"{el.EnumerationOrder.Print()}", ImGuiComboFlags.HeightLarge))
+                    {
+                        ref var inp = ref Ref<int>.Get("EnumerationInput");
+                        ImGui.SetNextItemWidth(150f);
+                        ImGui.InputInt("Add Position", ref inp);
+                        ImGui.SameLine();
+                        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add"))
+                        {
+                            if(inp == 0)
+                            {
+                                Notify.Error("Enumeration starts with 1 or -1");
+                            }
+                            else if(el.EnumerationOrder.Contains(inp))
+                            {
+                                Notify.Error("This value is already added");
+                            }
+                            else
+                            {
+                                el.EnumerationOrder.Add(inp);
+                                el.EnumerationOrder.Sort();
+                                inp = 0;
+                            }
+                        }
+                        if(ImGuiEx.BeginDefaultTable("EnumTable", ["Point", "Func"], drawHeader: false))
+                        {
+                            foreach(var x in el.EnumerationOrder)
+                            {
+                                ImGui.TableNextRow();
+                                ImGui.TableNextColumn();
+                                ImGuiEx.Text($"{x}");
+                                ImGui.TableNextColumn();
+                                if(ImGuiEx.SmallIconButton(FontAwesomeIcon.Trash, $"Del{x}"))
+                                {
+                                    new TickScheduler(() => el.EnumerationOrder.Remove(x));
+                                }
+                            }
+                            ImGui.EndTable();
+                        }
+                        ImGui.EndCombo();
+                    }
+                }
+
                 ImGuiUtils.SizedText("Targetability: ".Loc(), WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
@@ -552,7 +629,7 @@ internal unsafe partial class CGui
                     foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCasting()))
                     {
                         ImGui.PushID(i++);
-                        if(ImGui.Selectable($"{ExcelActionHelper.GetActionName(x.CastActionId, true)} - {x.CurrentCastTime:F1}/{x.TotalCastTime:F1} - from {x.Name} N#{x.NameId} D#{x.DataId}", selected:el.refActorCastId.Contains(x.CastActionId), flags:ImGuiSelectableFlags.DontClosePopups))
+                        if(ImGui.Selectable($"{ExcelActionHelper.GetActionName(x.CastActionId, true)} - {x.CurrentCastTime:F1}/{x.TotalCastTime:F1} - from {x.Name} N#{x.NameId} D#{x.DataId}", selected: el.refActorCastId.Contains(x.CastActionId), flags: ImGuiSelectableFlags.DontClosePopups))
                         {
                             if(ImGuiEx.Shift) el.refActorCastId.Clear();
                             el.refActorCastId.Toggle(x.CastActionId);
@@ -605,9 +682,24 @@ internal unsafe partial class CGui
                     ImGui.Checkbox("Overcast".Loc(), ref el.refActorUseOvercast);
                     ImGuiComponents.HelpMarker("Enable use of cast values that exceed cast time, effectively behaving like cast bar would continue to be displayed after cast already happened".Loc());
                 }
+                if(el.includeRotation && !el.RotationOverride)
+                {
+                    ImGuiUtils.SizedText("", WidthElement);
+                    ImGui.SameLine();
+                    ImGui.Checkbox("Derive rotation from cast info", ref el.UseCastRotation);
+                }
+                /*
+                ImGuiUtils.SizedText("", WidthElement);
+                ImGui.SameLine();
+                ImGui.Checkbox("Derive position from cast info", ref el.UseCastPosition);
+                if(el.TargetAlteration != TargetAlteration.None)
+                {
+                    ImGuiUtils.SizedText("", WidthElement);
+                    ImGui.SameLine();
+                    ImGui.Checkbox("Draw elements on cast targets", ref el.UseCastTarget);
+                }*/
             }
-
-            ImGuiUtils.SizedText("Status requirement:".Loc(), WidthElement);
+                ImGuiUtils.SizedText("Status requirement:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.Checkbox("##buffreq", ref el.refActorRequireBuff);
             if(el.refActorRequireBuff)

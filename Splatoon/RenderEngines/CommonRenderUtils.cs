@@ -5,6 +5,7 @@ using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using Splatoon.Serializables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,21 +23,21 @@ public static unsafe class CommonRenderUtils
     internal static string ProcessPlaceholders(this string s, IGameObject go)
     {
         var ret = s
-        .Replace("$NAME", go.Name.ToString())
         .Replace("$OBJECTID", $"{go.EntityId.Format()}")
         .Replace("$DATAID", $"{go.DataId.Format()}")
         .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
         .Replace("$KIND", $"{go.ObjectKind}")
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
         .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
-        .Replace("$DISTANCE", $"{Vector3.Distance((Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero), go.Position):F1}")
+        .Replace("$DISTANCE", $"{Vector3.Distance((BasePlayer?.Position ?? Vector3.Zero), go.Position):F1}")
         .Replace("\\n", "\n")
         .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
         if(go is IBattleChara chr)
         {
             ret = ret
-            .Replace("$MODELID", $"{chr.Struct()->ModelContainer.ModelCharaId.Format()}")
+            .Replace("$MODELID", $"{chr.ModelId.Format()}")
             .Replace("$NAMEID", $"{chr.NameId.Format()}")
+            .Replace("$STLP", $"{chr.StatusLoop.Format()}")
             .Replace("$TETHER", $"{chr.Struct()->Vfx.Tethers.ToArray().Where(x => x.Id != 0).Select(x => $"{x.Id}").Print(",")}")
             .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
             if(ret.Contains("$STREM:"))
@@ -91,7 +92,42 @@ public static unsafe class CommonRenderUtils
                 ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "");
             }
         }
+        ret = ret
+            .Replace("$NAME", go.Name.ToString());
         return ret;
+    }
+
+    internal static void HandleEnumeration(Element element, ref List<IGameObject> objectList)
+    {
+        if(element.Enumeration == EnumerationType.Clockwise || element.Enumeration == EnumerationType.Counter_Clockwise)
+        {
+            var orderedList = objectList.OrderBy(x =>
+            {
+                var relAngle = MathHelper.GetRelativeAngle(element.EnumerationCenter.ToVector2().ToVector3(0), element.EnumerationStart.ToVector2().ToVector3(0));
+                var a = (MathHelper.GetRelativeAngle(element.EnumerationCenter.ToVector2().ToVector3(0), x.Position) + relAngle) % 360;
+                return a;
+            }).ToList();
+            if(element.Enumeration == EnumerationType.Counter_Clockwise) orderedList.Reverse();
+            List<IGameObject> newObjectList = [];
+            foreach(var x in element.EnumerationOrder)
+            {
+                if(x > 0)
+                {
+                    if(orderedList.Count > x - 1)
+                    {
+                        newObjectList.Add(orderedList[x - 1]);
+                    }
+                }
+                if(x < 0)
+                {
+                    if(orderedList.Count >= -x)
+                    {
+                        newObjectList.Add(orderedList[^-x]);
+                    }
+                }
+            }
+            objectList = newObjectList;
+        }
     }
 
     /// <summary>
@@ -108,12 +144,12 @@ public static unsafe class CommonRenderUtils
                     -angle + e.AdditionalRotation, new Vector3(
                     tPos.X + -e.refX,
                     tPos.Y + e.refY,
-                    tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
+                    tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? BasePlayer.HitboxRadius : 0f));
         var pointB = Utils.RotatePoint(tPos.X, tPos.Y,
             -angle + e.AdditionalRotation, new Vector3(
             tPos.X + -e.offX,
             tPos.Y + e.offY,
-            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f));
+            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? BasePlayer.HitboxRadius : 0f));
         return (pointA, pointB);
     }
 
@@ -122,11 +158,11 @@ public static unsafe class CommonRenderUtils
         var pointA = new Vector3(
                 tPos.X + e.refX,
                 tPos.Y + e.refY,
-                tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
+                tPos.Z + e.refZ) + new Vector3(e.LineAddHitboxLengthXA ? hitboxRadius : 0f, e.LineAddHitboxLengthYA ? hitboxRadius : 0f, e.LineAddHitboxLengthZA ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthXA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthYA ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZA ? BasePlayer.HitboxRadius : 0f);
         var pointB = new Vector3(
             tPos.X + e.offX,
             tPos.Y + e.offY,
-            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? Svc.ClientState.LocalPlayer.HitboxRadius : 0f);
+            tPos.Z + e.offZ) + new Vector3(e.LineAddHitboxLengthX ? hitboxRadius : 0f, e.LineAddHitboxLengthY ? hitboxRadius : 0f, e.LineAddHitboxLengthZ ? hitboxRadius : 0f) + new Vector3(e.LineAddPlayerHitboxLengthX ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthY ? BasePlayer.HitboxRadius : 0f, e.LineAddPlayerHitboxLengthZ ? BasePlayer.HitboxRadius : 0f);
         return (pointA, pointB);
     }
 

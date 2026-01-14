@@ -1,5 +1,6 @@
 ﻿using ECommons.ExcelServices;
 using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using NightmareUI;
@@ -13,9 +14,9 @@ internal static class JlockSelector
     internal static string jobFilter = "";
     internal static void DrawJlockSelector(this Layout layout)
     {
-        if(Player.Available)
+        if(BasePlayer != null)
         {
-            if(layout.JobLockH.Count == 0 || layout.JobLockH.Contains(Player.Job))
+            if(layout.JobLockH.Count == 0 || layout.JobLockH.Contains(BasePlayer.GetJob()))
             {
                 ImGuiEx.HelpMarker("Player's job matches this selection".Loc(), EColor.GreenBright, FontAwesomeIcon.Check.ToIconString(), false);
             }

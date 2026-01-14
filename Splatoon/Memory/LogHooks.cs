@@ -3,6 +3,7 @@ using Dalamud.Memory;
 using ECommons.ExcelServices;
 using ECommons.EzHookManager;
 using ECommons.MathHelpers;
+using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -32,6 +33,7 @@ public unsafe class LogHooks
                 {MemoryHelper.ReadRaw(packetPtr, sizeof(PacketActorCast)).ToHexString()}
                 """);*/
             S.Projection.LastCast.GetOrCreate(sourceId)[packet->ActionDescriptor] = *packet;
+            ScriptingProcessor.OnStartingCast(sourceId, packet);
         }
         catch(Exception e)
         {

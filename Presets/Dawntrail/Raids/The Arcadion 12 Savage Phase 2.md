@@ -46,6 +46,25 @@ Netherworld-far and Netherworld-near
 >
 > Testing versions may fail
 
+### [Script] M12S Idyllic Dream
+> [!IMPORTANT]
+>
+> Supports 4A1 waymark order.
+   Script auto-detects cardinal/intercardinal first and assigns players to left group (C3D4) or right group (A1B2) based on tethers.
+
+Features:
+- Boss clone AOE
+- First Defamation Stack guidance (Warning: currently only supports CN server strat)
+- Clone AOEs display
+- Last boss clone AOE
+
+Video demo:
+https://youtu.be/GJApjyNryQo 
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20Idyllic%20Dream.cs
+```
+
 Stored AOEs:
 ```
 ~Lv2~{"Name":"M12S P2 Twisted Vision (1st set of stored aoes)","Group":"M12S P2","ZoneLockH":[1327],"ConditionalAnd":true,"Freezing":true,"FreezeFor":33.0,"IntervalBetweenFreezes":5.0,"FreezeDisplayDelay":28.0,"ElementsL":[{"Name":"","type":1,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[48098],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":2.0,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[46354],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true},{"Name":"","type":1,"radius":10.0,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46353],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6}]}

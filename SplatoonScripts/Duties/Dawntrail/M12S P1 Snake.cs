@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M12S_P1_Snake : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV, Garume");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Debuff

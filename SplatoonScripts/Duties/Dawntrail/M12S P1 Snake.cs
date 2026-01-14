@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M12S_P1_Snake : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV, Garume");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Debuff
@@ -162,6 +162,7 @@ public class M12S_P1_Snake : SplatoonScript
     int RotationCount = 0;
     bool CoilSeen = false;
     int LastExitSector = -1;
+    bool RotationStarted = false;
     Dictionary<uint, PlayerData> PlayerDatas = new();
     const float CenterX = 100f;
     const float CenterZ = 100f;
@@ -171,6 +172,7 @@ public class M12S_P1_Snake : SplatoonScript
     public override void OnReset()
     {
         Towers.Clear(); BlackTowers.Clear(); MyDebuff = null; LastExitRot = 0f; RotationCount = 0; CoilSeen = false;
+        RotationStarted = false;
         LastExitSector = -1; PlayerDatas.Clear();
     }
 
@@ -178,23 +180,30 @@ public class M12S_P1_Snake : SplatoonScript
     {
         Controller.Hide();
         var exitActor = GetExitActor();
-        if(exitActor != null)
+        if(exitActor != null )
         {
-            if(!CoilSeen)
-            {
-                CoilSeen = true;
-                LastExitRot = exitActor.Rotation;
-                LastExitSector = GetExitSector(exitActor.Rotation);
-                RotationCount = 0;
-            }
+            if (!RotationStarted)
+                RotationStarted = FakeParty.Get().All(x =>
+                    x.StatusList.FirstOrDefault(s => s.StatusId == (uint)Debuff.Alpha) is { RemainingTime: < 22 } ||
+                    x.StatusList.FirstOrDefault(s => s.StatusId == (uint)Debuff.Beta) is { RemainingTime: < 22 });
             else
             {
-                var sector = GetExitSector(exitActor.Rotation);
-                if(sector != LastExitSector)
+                if (!CoilSeen)
                 {
-                    RotationCount = Math.Min(RotationCount + 1, 7);
+                    CoilSeen = true;
                     LastExitRot = exitActor.Rotation;
-                    LastExitSector = sector;
+                    LastExitSector = GetExitSector(exitActor.Rotation);
+                    RotationCount = 0;
+                }
+                else
+                {
+                    var sector = GetExitSector(exitActor.Rotation);
+                    if (sector != LastExitSector)
+                    {
+                        RotationCount = Math.Min(RotationCount + 1, 7);
+                        LastExitRot = exitActor.Rotation;
+                        LastExitSector = sector;
+                    }
                 }
             }
         }

@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(6, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 
@@ -314,6 +314,198 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         if(AgreedToConfigure)
         {
             ImGuiEx.TextWrapped(EColor.OrangeBright, "There was an issue that light parties 1 and 2 were flipped. It is now fixed, you should not need any reconfiguration, fix is purely visual. Report any inconsistencies, thank you. ");
+
+            if (ImGui.Button("Configure Jp strat"))
+            {
+                C.BaseLP1 = false;
+                C.BaseNum = 3;
+                C.LP1 = [Direction.W, Direction.SW, Direction.S, Direction.SE];
+                C.LP2 = [Direction.NW, Direction.N, Direction.NE, Direction.E];
+                C.LP1Tethers = [TetherKind.Nothing, TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack];
+                C.LP2Tethers = [TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack, TetherKind.Boss];
+                C.Phase1Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(119, 104),
+                        [TetherKind.Fan] = new(117.5f, 108),
+                        [TetherKind.Defamation] = new(100, 119.5f),
+                        [TetherKind.Boss] = new(111, 100)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(119, 97.5f),
+                        [TetherKind.Fan] = new(118, 93),
+                        [TetherKind.Defamation] = new(100, 80.5f),
+                        [TetherKind.Nothing] = new(80.5f, 100)
+                    }
+                ];
+                C.Phase2Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(106, 105.5f),
+                        [TetherKind.Fan] = new(108.5f, 102.5f),
+                        [TetherKind.Defamation] = new(106, 105.5f),
+                        [TetherKind.Boss] = new(106, 95.5f)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(106, 95.5f),
+                        [TetherKind.Fan] = new(108.5f, 97.5f),
+                        [TetherKind.Defamation] = new(106, 95.5f),
+                        [TetherKind.Nothing] = new(106, 105.5f)
+                    }
+                ];
+                C.Phase3Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(114, 102.5f),
+                        [TetherKind.Fan] = new(117.5f, 105.5f),
+                        [TetherKind.Defamation] = new(108f, 99.5f),
+                        [TetherKind.Boss] = new(108f, 99.5f)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(113.75f, 97f),
+                        [TetherKind.Fan] = new(117.5f, 94.5f),
+                        [TetherKind.Defamation] = new(108f, 99.5f),
+                        [TetherKind.Nothing] = new(108f, 99.5f)
+                    }
+                ];
+                C.Phase4Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(119, 104),
+                        [TetherKind.Fan] = new(117.5f, 108),
+                        [TetherKind.Defamation] = new(110, 90),
+                        [TetherKind.Boss] = new(110, 90)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(119, 97.5f),
+                        [TetherKind.Fan] = new(118, 93),
+                        [TetherKind.Defamation] = new(110, 90),
+                        [TetherKind.Nothing] = new(110, 90)
+                    }
+                ];
+                C.Phase5Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(119, 104),
+                        [TetherKind.Fan] = new(117.5f, 108),
+                        [TetherKind.Defamation] = new(110, 110),
+                        [TetherKind.Boss] = new(110, 110)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(119, 97.5f),
+                        [TetherKind.Fan] = new(118, 93),
+                        [TetherKind.Defamation] = new(110, 110),
+                        [TetherKind.Nothing] = new(110, 110)
+                    }
+                ];
+            }
+            
+            ImGui.SameLine();
+            if (ImGui.Button("Configure Codex Banana strat"))
+            {
+                C.BaseLP1 = true;
+                C.BaseNum = 0;
+                C.LP1 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
+                C.LP2 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
+                C.LP1Tethers = [TetherKind.Boss, TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation];
+                C.LP2Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];
+                C.Phase1Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(81, 96),
+                        [TetherKind.Fan] = new(82.5f, 92),
+                        [TetherKind.Defamation] = new(100, 80.5f),
+                        [TetherKind.Boss] = new(89, 100)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(81, 102.5f),
+                        [TetherKind.Fan] = new(82, 107),
+                        [TetherKind.Defamation] = new(100, 119.5f),
+                        [TetherKind.Nothing] = new(119.5f, 100)
+                    }
+                ];
+                C.Phase2Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(94, 94.5f),
+                        [TetherKind.Fan] = new(91.5f, 97.5f),
+                        [TetherKind.Defamation] = new(94, 94.5f),
+                        [TetherKind.Boss] = new(94, 104.5f)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(94, 104.5f),
+                        [TetherKind.Fan] = new(91.5f, 102.5f),
+                        [TetherKind.Defamation] = new(94, 104.5f),
+                        [TetherKind.Nothing] = new(94, 94.5f)
+                    },
+                ];
+                C.Phase3Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(89, 96.5f),
+                        [TetherKind.Fan] = new(89, 91),
+                        [TetherKind.Defamation] = new(82.5f, 100.5f),
+                        [TetherKind.Boss] = new(82.5f, 100.5f)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(89, 103.5f),
+                        [TetherKind.Fan] = new(89f, 109),
+                        [TetherKind.Defamation] = new(82.5f, 100.5f),
+                        [TetherKind.Nothing] = new(82.5f, 100.5f)
+                    },
+                ];
+                C.Phase4Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(81, 96),
+                        [TetherKind.Fan] = new(82.5f, 92),
+                        [TetherKind.Defamation] = new(90, 110),
+                        [TetherKind.Boss] = new(90, 110)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(81, 102.5f),
+                        [TetherKind.Fan] = new(82, 107),
+                        [TetherKind.Defamation] = new(90, 110),
+                        [TetherKind.Nothing] = new(90, 110)
+                    },
+                ];
+                C.Phase5Positions =
+                [
+                    new()
+                    {
+                        [TetherKind.Stack] = new(81, 96),
+                        [TetherKind.Fan] = new(82.5f, 92),
+                        [TetherKind.Defamation] = new(90, 90),
+                        [TetherKind.Boss] = new(90, 90)
+                    },
+                    new()
+                    {
+                        [TetherKind.Stack] = new(81, 102.5f),
+                        [TetherKind.Fan] = new(82, 107),
+                        [TetherKind.Defamation] = new(90, 90),
+                        [TetherKind.Nothing] = new(90, 90)
+                    },
+                ];
+            }
+
             ImGuiEx.TextV("Relative North on position");
             ImGui.SameLine();
             if(ImGui.RadioButton("1", C.BaseNum == 0)) C.BaseNum = 0;

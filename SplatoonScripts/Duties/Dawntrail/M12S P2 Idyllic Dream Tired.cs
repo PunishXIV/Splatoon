@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -358,10 +358,20 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         {
             if(DefamationAttack < 5)
             {
-                processStored(0);
-                processStored(1);
-                processStored(4);
-                processStored(5);
+                if(IsCardinalFirst == true)
+                {
+                    processStored(0);
+                    processStored(1);
+                    processStored(4);
+                    processStored(5);
+                }
+                else
+                {
+                    processStored(2);
+                    processStored(3);
+                    processStored(6);
+                    processStored(7);
+                }
             }
         }
 
@@ -369,10 +379,20 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         {
             if(DefamationAttack < 6)
             {
-                processStored(2);
-                processStored(3);
-                processStored(6);
-                processStored(7);
+                if(IsCardinalFirst == true)
+                {
+                    processStored(2);
+                    processStored(3);
+                    processStored(6);
+                    processStored(7);
+                }
+                else
+                {
+                    processStored(0);
+                    processStored(1);
+                    processStored(4);
+                    processStored(5);
+                }
             }
         }
 

@@ -8,13 +8,13 @@ using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.LanguageHelpers;
+using ECommons.MathHelpers;
 using Lumina.Excel;
 using Lumina.Excel.Sheets;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
-using Splatoon.SplatoonScripting;
+using System.Linq;
 
 namespace Splatoon;
 
@@ -22,6 +22,9 @@ internal unsafe partial class CGui
 {
     private string ActionName = "";
     private string BuffName = "";
+    private float CenterX;
+    private float CenterY;
+    private float RotationAngle;
     internal void LayoutDrawElement(Layout l, Element el, bool forceEnable = false)
     {
         ImGui.Checkbox("Enabled".Loc(), ref el.Enabled);
@@ -34,30 +37,31 @@ internal unsafe partial class CGui
             ImGuiEx.HelpMarker("This element is currently not being rendered".Loc(), EColor.White, FontAwesomeIcon.EyeSlash.ToIconString());
         }
         ImGui.SameLine();
-        if(ImGui.Button("Copy as HTTP param".Loc()))
+        if(ImGuiEx.IconButton(FontAwesomeIcon.Globe))
         {
             HTTPExportToClipboard(el);
         }
         if(ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Hold ALT to copy raw JSON (for usage with post body or you'll have to urlencode it yourself)\nHold CTRL and click to copy urlencoded raw".Loc());
+            ImGui.SetTooltip("Copy as HTTP param. Hold ALT to copy raw JSON (for usage with post body or you'll have to urlencode it yourself)\nHold CTRL and click to copy urlencoded raw".Loc());
         }
         ImGui.SameLine();
-        if(ImGui.Button("Copy to clipboard".Loc()))
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy".Loc()))
         {
             ImGui.SetClipboardText(JsonConvert.SerializeObject(el, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore }));
             Notify.Success("Copied to clipboard".Loc());
         }
 
         ImGui.SameLine();
-        if(ImGui.Button("Copy style".Loc()))
+        if(ImGuiEx.IconButton(FontAwesomeIcon.EyeDropper))
         {
             p.Clipboard = JsonConvert.DeserializeObject<Element>(JsonConvert.SerializeObject(el));
         }
+        ImGuiEx.Tooltip("Copy style");
         if(p.Clipboard != null)
         {
             ImGui.SameLine();
-            if(ImGui.Button("Paste style".Loc()))
+            if(ImGuiEx.IconButton(FontAwesomeIcon.FillDrip))
             {
                 el.color = p.Clipboard.color;
                 el.thicc = p.Clipboard.thicc;
@@ -107,6 +111,7 @@ internal unsafe partial class CGui
             if(ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
+                ImGuiEx.Text("Paste style".Loc());
                 ImGuiEx.Text("Copied style:".Loc());
                 ImGuiEx.Text($"Color: 0x{p.Clipboard.color:X8}");
                 ImGui.SameLine();
@@ -166,6 +171,45 @@ internal unsafe partial class CGui
                 ImGui.EndTooltip();
             }
         }
+        ImGui.SameLine();
+        ImGuiEx.Text($"X:");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(50f);
+        ImGui.DragFloat("##rotateX", ref this.CenterX, 0.1f);
+        ImGui.SameLine();
+        ImGuiEx.Text($"Y:");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(50f);
+        ImGui.DragFloat("##rotateY", ref this.CenterY, 0.1f);
+        ImGui.SameLine();
+        if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "SelOnScreenRot"))
+        {
+            P.BeginS2W(this, "CenterX", "CenterY", null);
+        }
+        ImGuiEx.Tooltip("Select on screen");
+        ImGui.SameLine();
+        ImGuiEx.Text($"Angle:");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(50f);
+        ImGui.DragFloat("##angleRot", ref this.RotationAngle, 0.1f);
+        ImGui.SameLine();
+        if(ImGuiEx.IconButton("\uf2f9"))
+        {
+            var point = MathHelper.RotateWorldPoint(new(CenterX, 0, CenterY), RotationAngle.DegToRad(), new(el.refX, el.refZ, el.refY));
+            el.refX = point.X;
+            el.refY = point.Z;
+            el.refZ = point.Y;
+        }
+        ImGuiEx.Tooltip($"Rotate {RotationAngle} degrees clockwise");
+        ImGui.SameLine();
+        if(ImGuiEx.IconButton("\uf2ea"))
+        {
+            var point = MathHelper.RotateWorldPoint(new(CenterX, 0, CenterY), -RotationAngle.DegToRad(), new(el.refX, el.refZ, el.refY));
+            el.refX = point.X;
+            el.refY = point.Z;
+            el.refZ = point.Y;
+        }
+        ImGuiEx.Tooltip($"Rotate {RotationAngle} degrees counter-clockwise");
 
 
         ImGuiUtils.SizedText("Conditional:".Loc(), WidthElement);
@@ -241,8 +285,8 @@ internal unsafe partial class CGui
                 ImGuiEx.Checkbox(FontAwesomeIcon.Compass, "##pointMode", ref el.RotationOverrideAngleOnlyMode);
                 ImGuiEx.Tooltip("Fixed angle mode. Face fixed angle.");
                 ImGui.SameLine();
-                if(!el.RotationOverrideAngleOnlyMode) 
-                { 
+                if(!el.RotationOverrideAngleOnlyMode)
+                {
                     ImGuiEx.TextV("Rotate towards:");
                     ImGui.SameLine();
                     ImGuiEx.Text($"X:");
@@ -251,6 +295,11 @@ internal unsafe partial class CGui
                     ImGui.DragFloat("##rotateTowardsX", ref el.RotationOverridePoint.X, 0.1f);
                     ImGui.SameLine();
                     ImGuiEx.Text($"Y:");
+                    ImGui.SameLine();
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "RotateTowards"))
+                    {
+                        P.BeginS2W(el.RotationOverridePoint, "X", "Y", null);
+                    }
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(50f);
                     ImGui.DragFloat("##rotateTowardsY", ref el.RotationOverridePoint.Y, 0.1f);
@@ -481,6 +530,11 @@ internal unsafe partial class CGui
                         ImGui.SameLine();
                         ImGui.SetNextItemWidth(50f);
                         ImGui.DragFloat("##enumCy", ref el.EnumerationCenter.Y, 0.1f);
+                        ImGui.SameLine();
+                        if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "SelEnumCenter"))
+                        {
+                            P.BeginS2W(el.EnumerationCenter, "X", "Y", null);
+                        }
 
                         ImGuiUtils.SizedText("Starting Position:".Loc(), WidthElement);
                         ImGui.SameLine();
@@ -493,49 +547,55 @@ internal unsafe partial class CGui
                         ImGui.SameLine();
                         ImGui.SetNextItemWidth(50f);
                         ImGui.DragFloat("##enumSy", ref el.EnumerationStart.Y, 0.1f);
-                    }
-                    ImGuiUtils.SizedText("Enumeration Positions:".Loc(), WidthElement);
-                    ImGui.SameLine();
-                    ImGuiEx.SetNextItemFullWidth();
-                    if(ImGui.BeginCombo($"##positions", el.EnumerationOrder.Count == 0?"Enter Enumeration Positions".Loc() : $"{el.EnumerationOrder.Print()}", ImGuiComboFlags.HeightLarge))
-                    {
-                        ref var inp = ref Ref<int>.Get("EnumerationInput");
-                        ImGui.SetNextItemWidth(150f);
-                        ImGui.InputInt("Add Position", ref inp);
                         ImGui.SameLine();
-                        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add"))
+                        if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "SelEnumStart"))
                         {
-                            if(inp == 0)
-                            {
-                                Notify.Error("Enumeration starts with 1 or -1");
-                            }
-                            else if(el.EnumerationOrder.Contains(inp))
-                            {
-                                Notify.Error("This value is already added");
-                            }
-                            else
-                            {
-                                el.EnumerationOrder.Add(inp);
-                                el.EnumerationOrder.Sort();
-                                inp = 0;
-                            }
+                            P.BeginS2W(el.EnumerationStart, "X", "Y", null);
                         }
-                        if(ImGuiEx.BeginDefaultTable("EnumTable", ["Point", "Func"], drawHeader: false))
+
+                        ImGuiUtils.SizedText("Enumeration Positions:".Loc(), WidthElement);
+                        ImGui.SameLine();
+                        ImGuiEx.SetNextItemFullWidth();
+                        if(ImGui.BeginCombo($"##positions", el.EnumerationOrder.Count == 0 ? "Enter Enumeration Positions".Loc() : $"{el.EnumerationOrder.Print()}", ImGuiComboFlags.HeightLarge))
                         {
-                            foreach(var x in el.EnumerationOrder)
+                            ref var inp = ref Ref<int>.Get("EnumerationInput");
+                            ImGui.SetNextItemWidth(150f);
+                            ImGui.InputInt("Add Position", ref inp);
+                            ImGui.SameLine();
+                            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add"))
                             {
-                                ImGui.TableNextRow();
-                                ImGui.TableNextColumn();
-                                ImGuiEx.Text($"{x}");
-                                ImGui.TableNextColumn();
-                                if(ImGuiEx.SmallIconButton(FontAwesomeIcon.Trash, $"Del{x}"))
+                                if(inp == 0)
                                 {
-                                    new TickScheduler(() => el.EnumerationOrder.Remove(x));
+                                    Notify.Error("Enumeration starts with 1 or -1");
+                                }
+                                else if(el.EnumerationOrder.Contains(inp))
+                                {
+                                    Notify.Error("This value is already added");
+                                }
+                                else
+                                {
+                                    el.EnumerationOrder.Add(inp);
+                                    el.EnumerationOrder.Sort();
+                                    inp = 0;
                                 }
                             }
-                            ImGui.EndTable();
+                            if(ImGuiEx.BeginDefaultTable("EnumTable", ["Point", "Func"], drawHeader: false))
+                            {
+                                foreach(var x in el.EnumerationOrder)
+                                {
+                                    ImGui.TableNextRow();
+                                    ImGui.TableNextColumn();
+                                    ImGuiEx.Text($"{x}");
+                                    ImGui.TableNextColumn();
+                                    if(ImGuiEx.SmallIconButton(FontAwesomeIcon.Trash, $"Del{x}"))
+                                    {
+                                        new TickScheduler(() => el.EnumerationOrder.Remove(x));
+                                    }
+                                }
+                                ImGui.EndTable();
+                            }
+                            ImGui.EndCombo();
                         }
-                        ImGui.EndCombo();
                     }
                 }
 
@@ -699,7 +759,7 @@ internal unsafe partial class CGui
                     ImGui.Checkbox("Draw elements on cast targets", ref el.UseCastTarget);
                 }*/
             }
-                ImGuiUtils.SizedText("Status requirement:".Loc(), WidthElement);
+            ImGuiUtils.SizedText("Status requirement:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.Checkbox("##buffreq", ref el.refActorRequireBuff);
             if(el.refActorRequireBuff)
@@ -723,7 +783,7 @@ internal unsafe partial class CGui
                             listItems(list, "Debuffs", s => s.StatusCategory == 2);
                             listItems(list, "Buffs", s => s.StatusCategory == 1);
                             listItems(list, "Other", s => s.StatusCategory != 1 && s.StatusCategory != 2);
-                            
+
                             ImGui.EndMenu();
                         }
                     }
@@ -1364,7 +1424,7 @@ internal unsafe partial class CGui
             {
                 ImGuiEx.HelpMarker("Radius is not changed; is this intended?", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString(), preserveCursor: true);
             }
-            else if(!el.type.EqualsAny(0,1) && el.radius == 0f)
+            else if(!el.type.EqualsAny(0, 1) && el.radius == 0f)
             {
                 ImGuiEx.HelpMarker("Radius is not changed; is this intended?", EColor.RedBright, FontAwesomeIcon.ExclamationTriangle.ToIconString(), preserveCursor: true);
             }
@@ -1427,7 +1487,7 @@ internal unsafe partial class CGui
                     ImGui.SetTooltip("Add extra length to the tether to visualize knockbacks.".Loc());
             }
 
-            if(((el.type == 2 || el.type == 3 ) && el.radius == 0) || el.tether)
+            if(((el.type == 2 || el.type == 3) && el.radius == 0) || el.tether)
             {
                 ImGuiUtils.SizedText("Line End Style:".Loc(), WidthElement);
                 ImGui.SameLine();
@@ -1548,5 +1608,75 @@ internal unsafe partial class CGui
             el.FillStep.ValidateRange(0.01f, float.MaxValue);
         }
 
+        if(l.ZoneLockH.Count == 0 || l.ZoneLockH.Contains((ushort)Player.Territory))
+        {
+            if(el.Enumeration != EnumerationType.None)
+            {
+                P.InjectElement(new(0)
+                {
+                    Filled = false,
+                    overlayVOffset = 2,
+                    overlayText = "Enum. Center",
+                    color = GradientColor.Get(EColor.CyanBright, Vector4.One).ToUint(),
+                    refX = el.EnumerationCenter.X,
+                    refY = el.EnumerationCenter.Y,
+                    refZ = BasePlayer?.Position.Y ?? 0
+                });
+                P.InjectElement(new(0)
+                {
+                    Filled = false,
+                    overlayVOffset = 2,
+                    overlayText = "Enum. Start",
+                    color = GradientColor.Get(EColor.PurpleBright, Vector4.One).ToUint(),
+                    refX = el.EnumerationStart.X,
+                    refY = el.EnumerationStart.Y,
+                    refZ = BasePlayer?.Position.Y ?? 0
+                });
+            }
+            if(el.LimitDistance)
+            {
+                if(!el.UseDistanceSourcePlaceholder)
+                {
+                    P.InjectElement(new(0)
+                    {
+                        Filled = false,
+                        overlayVOffset = 2,
+                        overlayText = "",
+                        color = GradientColor.Get(el.LimitDistanceInvert ? EColor.OrangeBright : EColor.GreenBright, Vector4.One).ToUint(),
+                        refX = el.DistanceSourceX,
+                        refY = el.DistanceSourceY,
+                        refZ = el.DistanceSourceZ,
+                        radius = el.DistanceMin,
+                    });
+                    P.InjectElement(new(0)
+                    {
+                        Filled = false,
+                        overlayVOffset = 2,
+                        overlayText = "",
+                        color = GradientColor.Get(el.LimitDistanceInvert ? EColor.OrangeBright : EColor.GreenBright, Vector4.One).ToUint(),
+                        refX = el.DistanceSourceX,
+                        refY = el.DistanceSourceY,
+                        refZ = el.DistanceSourceZ,
+                        radius = el.DistanceMax,
+                    });
+                }
+            }
+            if(el.RotationOverride)
+            {
+                if(!el.RotationOverrideAngleOnlyMode)
+                {
+                    P.InjectElement(new(0)
+                    {
+                        Filled = false,
+                        overlayVOffset = 2,
+                        overlayText = "Rotation Override",
+                        color = GradientColor.Get(EColor.GreenBright, Vector4.One).ToUint(),
+                        refX = el.RotationOverridePoint.X,
+                        refY = el.RotationOverridePoint.Y,
+                        refZ = BasePlayer?.Position.Y ?? 0,
+                    });
+                }
+            }
+        }
     }
 }

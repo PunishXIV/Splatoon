@@ -104,7 +104,7 @@ public static unsafe class CommonRenderUtils
             var orderedList = objectList.OrderBy(x =>
             {
                 var relAngle = MathHelper.GetRelativeAngle(element.EnumerationCenter.ToVector2().ToVector3(0), element.EnumerationStart.ToVector2().ToVector3(0));
-                var a = (MathHelper.GetRelativeAngle(element.EnumerationCenter.ToVector2().ToVector3(0), x.Position) + relAngle) % 360;
+                var a = (MathHelper.GetRelativeAngle(element.EnumerationCenter.ToVector2().ToVector3(0), x.Position) - relAngle + 360) % 360;
                 return a;
             }).ToList();
             if(element.Enumeration == EnumerationType.Counter_Clockwise) orderedList.Reverse();

@@ -36,7 +36,7 @@ public class M9S_Vamp_Stomp : SplatoonScript
      */
     #region Public Fields
     public override HashSet<uint>? ValidTerritories => [1321];
-    public override Metadata? Metadata => new(1, "Redmoon");
+    public override Metadata? Metadata => new(2, "Redmoon");
     #endregion
 
     /*
@@ -116,7 +116,7 @@ public class M9S_Vamp_Stomp : SplatoonScript
                     if(baseObj == default) return;
                     var rotatedPos = Vector3.Zero;
                     ClockWise rotation = CheckRotateAroundCenterXZ(baseObj.Item2, objList[i].Position);
-                    DuoLog.Information($"BasePos:{baseObj.Item2} NewPos:{objList[i].Position} Rotation:{rotation}");
+                    PluginLog.Information($"BasePos:{baseObj.Item2} NewPos:{objList[i].Position} Rotation:{rotation}");
                     // 近い2匹 45度ずつ回転
                     if(i < 2)
                     {

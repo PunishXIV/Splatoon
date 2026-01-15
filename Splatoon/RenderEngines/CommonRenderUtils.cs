@@ -171,6 +171,7 @@ public static unsafe class CommonRenderUtils
         return 
             (!element.onlyTargetable || isTargetable)
             && (!element.onlyUnTargetable || !isTargetable)
+            && (element.IsDead == null || element.IsDead == gameObject.IsDead)
             && (!element.LimitRotation || (gameObject.Rotation >= element.RotationMax && gameObject.Rotation <= element.RotationMin))
             && (!element.UseHitboxRadius || (gameObject.HitboxRadius >= element.HitboxRadiusMin && gameObject.HitboxRadius <= element.HitboxRadiusMax))
             && (!element.refTargetYou || LayoutUtils.CheckTargetingOption(element, gameObject))

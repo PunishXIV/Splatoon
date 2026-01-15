@@ -627,6 +627,9 @@ internal unsafe partial class CGui
                 {
                     ImGui.SetTooltip("Setting this checkbox will also restrict search to characters ONLY. \n(character - is a player, companion or friendly/hostile NPC that can fight and have HP)".Loc());
                 }
+                ImGui.SameLine();
+                ImGuiEx.Checkbox($"Alive", ref el.IsDead, true, true);
+                ImGuiEx.Tooltip($"Dot - any status\nChecked - only alive\nUnchecked - only dead");
             }
 
             ImGuiUtils.SizedText("Object Kind:".Loc(), WidthElement);

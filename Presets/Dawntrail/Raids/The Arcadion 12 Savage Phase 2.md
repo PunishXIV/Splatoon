@@ -71,7 +71,7 @@ Idyllic Dream - [based on Tired guide](https://www.youtube.com/watch?v=pL5NGwkaT
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Idyllic%20Dream%20Tired.cs
 ```
 - Can probably be reconfigured for other guides too
-- Will show: defamation and stack AOEs, stored clone AOEs
+- Will show: which tether to pick up, defamation and stack AOEs, stored clone AOEs
 - In progress: towers and precise positions for stacks/spreads
 
 Stored AOEs (don't need with either scripts):

@@ -44,7 +44,7 @@ Netherworld-far and Netherworld-near
 # Idyllic Dream
 > [!Warning]
 >
-> Testing versions may fail
+> Do not install both scripts! Pick one.
 
 ### [Script] M12S Idyllic Dream
 > [!IMPORTANT]
@@ -65,7 +65,16 @@ https://youtu.be/GJApjyNryQo
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20Idyllic%20Dream.cs
 ```
 
-Stored AOEs:
+### [Script] [WIP] [Beta]
+Idyllic Dream - [based on Tired guide](https://www.youtube.com/watch?v=pL5NGwkaTFs).
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Idyllic%20Dream%20Tired.cs
+```
+- Can probably be reconfigured for other guides too
+- Will show: which tether to pick up, defamation and stack AOEs, stored clone AOEs
+- In progress: towers and precise positions for stacks/spreads
+
+Stored AOEs (don't need with either scripts):
 ```
 ~Lv2~{"Name":"M12S P2 Twisted Vision (1st set of stored aoes)","Group":"M12S P2","ZoneLockH":[1327],"ConditionalAnd":true,"Freezing":true,"FreezeFor":33.0,"IntervalBetweenFreezes":5.0,"FreezeDisplayDelay":28.0,"ElementsL":[{"Name":"","type":1,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[48098],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":2.0,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[46354],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true},{"Name":"","type":1,"radius":10.0,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46353],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6}]}
 ~Lv2~{"Name":"M12S P2 Twisted Vision (2nd set of stored aoes)","Group":"M12S P2","ZoneLockH":[1327],"Freezing":true,"FreezeFor":25.0,"IntervalBetweenFreezes":5.0,"FreezeDisplayDelay":11.0,"ElementsL":[{"Name":"","type":1,"refActorNPCNameID":14379,"refActorRequireCast":true,"refActorCastId":[48098],"refActorUseCastTime":true,"refActorCastTimeMin":1.0,"refActorCastTimeMax":2.0,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46352],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true},{"Name":"","type":1,"radius":10.0,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[48303],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46352],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":3.1415927},{"Name":"","type":1,"offY":28.0,"radius":10.0,"Donut":40.0,"color":3355506687,"fillIntensity":0.2,"thicc":4.0,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[48303],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46351],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964},{"Name":"","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.4,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46351],"refActorCastTimeMin":1.0,"refActorCastTimeMax":999.0,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":4.712389}],"ForcedProjectorActions":[48303]}

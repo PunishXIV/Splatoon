@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M12S_P1_Snake : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV, Garume");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Debuff
@@ -31,6 +31,7 @@ public class M12S_P1_Snake : SplatoonScript
         Pos4 = 3451,
         Alpha = 4752,
         Beta = 4754,
+        AfterBeta = 4755,
     }
 
     public enum DebuffGroup
@@ -301,9 +302,13 @@ public class M12S_P1_Snake : SplatoonScript
             }
             else if(me.Group == DebuffGroup.Beta)
             {
-                var bt = GetBlackTowerInfo(me.TowerOrder);
-                var soakDone = (bt != null && bt.Removed) || (me.SoakRotation != null && RotationCount > me.SoakRotation);
-                if(soakDone)
+                // var bt = GetBlackTowerInfo(me.TowerOrder);
+                // var soakDone = (bt != null && bt.Removed) || (me.SoakRotation != null && RotationCount > me.SoakRotation);
+                // var allowCut = soakDone || me.SoakRotation == null || me.CutRotation <= me.SoakRotation;
+                // var hasBetaNow = BasePlayer != null && HasStatus(Debuff.Beta);
+                // if(allowCut && hasBetaNow)
+                var betaRemaining = GetRemainingTime(Debuff.Beta);
+                if ((betaRemaining < 3f && betaRemaining != 0f) || HasStatus(Debuff.AfterBeta))
                 {
                     ShowCutIfDue(me, cutGuide, nextColor, nowColor);
                 }

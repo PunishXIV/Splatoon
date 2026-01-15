@@ -33,7 +33,7 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
     private PlayerData[] _playerOrderForBalls = [];
     private List<(BallKind Kind, Direction Dir, int Wave)> _spawnedBalls = [];
     private int _waveState;
-    public override Metadata Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(2, "Garume");
     public override HashSet<uint>? ValidTerritories => [1327];
 
     public Config C => Controller.GetConfig<Config>();
@@ -96,17 +96,105 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
     {
         var prio = C.PriorityData.GetPlayers(_ => true)?.ToList();
         if (prio?.Count < 8) { DuoLog.Warning($"PriorityData.GetPlayers() returned insufficient players. Count={prio?.Count ?? 0}"); return false; }
-        var ordered = _spawnedBalls.Chunk(2).SelectMany(chunk => chunk.OrderBy(b => b.Dir == Direction.West ? 0 : 1)).ToArray();
-        var ret = new PlayerData[ordered.Length];
-        var purpleSlot = 0; var greenSlot = 2;
-        for (var i = 0; i < ordered.Length; i++)
-        {
-            var b = ordered[i];
-            var idx = b.Kind == BallKind.Purple ? purpleSlot++ : greenSlot++;
-            if ((uint)idx >= (uint)prio.Count) { DuoLog.Warning($"Priority index out of range. idx={idx}, prioCount={prio.Count}"); return false; }
-            var p = prio[idx];
-            ret[i] = new PlayerData { Direction = b.Dir, Kind = b.Kind, ObjectId = p.IGameObject.EntityId, Name = p.IGameObject.Name.ToString() };
-        }
+
+           var westTank  = prio[0]; // MT
+   var westHealer= prio[1]; // H1
+   var westMelee = prio[2]; // D1
+   var westRanged= prio[3]; // D3
+   var eastTank  = prio[4]; // ST
+   var eastHealer= prio[5]; // H2
+   var eastMelee = prio[6]; // D2
+   var eastRanged= prio[7]; // D4
+
+   // Purple is always on one side (strategy assumption)
+   var purpleBalls = _spawnedBalls.Where(x => x.Kind == BallKind.Purple).ToList();
+   if (purpleBalls.Count != 2)
+   {
+       DuoLog.Warning($"Purple ball count is not 2. Count={purpleBalls.Count}");
+       return false;
+   }
+   var purpleSide = purpleBalls[0].Dir;
+
+   // Build per-side assignment queues (this is the key change)
+   List<(uint ObjectId, string Name)> westPurple = new();
+   List<(uint ObjectId, string Name)> eastPurple = new();
+   List<(uint ObjectId, string Name)> westGreen  = new();
+   List<(uint ObjectId, string Name)> eastGreen  = new();
+
+   if (purpleSide == Direction.West)
+   {
+       // West has 2 purples, East has 4 greens.
+       // Tank without purple (EastTank) swaps with ranged on purple side (WestRanged).
+       westPurple.Add((westTank.IGameObject.EntityId,  westTank.IGameObject.Name.ToString())); // 1st purple
+       westPurple.Add((eastTank.IGameObject.EntityId,  eastTank.IGameObject.Name.ToString())); // 2nd purple (swapped tank)
+
+       westGreen.Add((westHealer.IGameObject.EntityId, westHealer.IGameObject.Name.ToString())); // green #1
+       westGreen.Add((westMelee.IGameObject.EntityId,  westMelee.IGameObject.Name.ToString()));  // green #2
+
+       eastGreen.Add((eastHealer.IGameObject.EntityId, eastHealer.IGameObject.Name.ToString())); // green #1
+       eastGreen.Add((eastMelee.IGameObject.EntityId,  eastMelee.IGameObject.Name.ToString()));  // green #2
+       eastGreen.Add((eastRanged.IGameObject.EntityId, eastRanged.IGameObject.Name.ToString())); // green #3
+       eastGreen.Add((westRanged.IGameObject.EntityId, westRanged.IGameObject.Name.ToString())); // green #4 (swapped ranged)
+   }
+   else
+   {
+       // East has 2 purples, West has 4 greens.
+       // Tank without purple (WestTank) swaps with ranged on purple side (EastRanged).
+       eastPurple.Add((eastTank.IGameObject.EntityId,  eastTank.IGameObject.Name.ToString())); // 1st purple
+       eastPurple.Add((westTank.IGameObject.EntityId,  westTank.IGameObject.Name.ToString())); // 2nd purple (swapped tank)
+
+       eastGreen.Add((eastHealer.IGameObject.EntityId, eastHealer.IGameObject.Name.ToString())); // green #1
+       eastGreen.Add((eastMelee.IGameObject.EntityId,  eastMelee.IGameObject.Name.ToString()));  // green #2
+
+       westGreen.Add((westHealer.IGameObject.EntityId, westHealer.IGameObject.Name.ToString())); // green #1
+       westGreen.Add((westMelee.IGameObject.EntityId,  westMelee.IGameObject.Name.ToString()));  // green #2
+       westGreen.Add((westRanged.IGameObject.EntityId, westRanged.IGameObject.Name.ToString())); // green #3
+       westGreen.Add((eastRanged.IGameObject.EntityId, eastRanged.IGameObject.Name.ToString())); // green #4 (swapped ranged)
+   }
+
+   var ret = new PlayerData[_spawnedBalls.Count];
+   var wp = 0; var wg = 0; var ep = 0; var eg = 0;
+   for (var i = 0; i < _spawnedBalls.Count; i++)
+   {
+       var b = _spawnedBalls[i];
+       (uint ObjectId, string Name) pick;
+
+       if (b.Dir == Direction.West)
+       {
+           if (b.Kind == BallKind.Purple)
+           {
+               if (wp >= westPurple.Count) { DuoLog.Warning("West purple overflow"); return false; }
+               pick = westPurple[wp++];
+           }
+           else
+           {
+               if (wg >= westGreen.Count) { DuoLog.Warning("West green overflow"); return false; }
+               pick = westGreen[wg++];
+           }
+       }
+       else
+       {
+           if (b.Kind == BallKind.Purple)
+           {
+               if (ep >= eastPurple.Count) { DuoLog.Warning("East purple overflow"); return false; }
+               pick = eastPurple[ep++];
+           }
+           else
+           {
+               if (eg >= eastGreen.Count) { DuoLog.Warning("East green overflow"); return false; }
+               pick = eastGreen[eg++];
+           }
+       }
+
+       ret[i] = new PlayerData
+       {            Direction = b.Dir,
+           Kind = b.Kind,
+           ObjectId = pick.ObjectId,
+           Name = pick.Name
+       };
+   }
+
+        
         for (var i = 0; i < ret.Length; i += 2)
         {
             var a = ret[i]; var b = ret[i + 1]; var w = i / 2 + 1; var off = a.Direction == b.Direction ? 3f : 0f;
@@ -129,9 +217,7 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
             if (_spawnedBalls.Count % 2 == 0) BuildPlayerOrder();
             if (_spawnedBalls.Count < 8) return;
             _waveState = 1;
-            _spawnedBalls = _spawnedBalls.Chunk(2)
-                .SelectMany(chunk => chunk.OrderBy(b => b.Dir == Direction.West ? 0 : 1)).ToList();
-        });
+          });
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
@@ -148,12 +234,12 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
         if (ImGui.CollapsingHeader("Guide (JP)"))
         {
             ImGui.TextWrapped("西側をMT組、東側をST組と見ます。優先順位の1・2番は紫球を受け、それ以降は順番に緑球を受けます。");
-            ImGui.TextWrapped("例：紫球が MT → OT、緑球の優先が H→近接→遠隔 の場合は「MT OT H1 H2 M1 M2 R1 R2」と入力してください。");
+            ImGui.TextWrapped("例：紫球が MT → OT、緑球の優先が H→近接→遠隔 の場合は「MT H1 M1 R1 OT H2 M2 R2」と入力してください。");
         }
         if (ImGui.CollapsingHeader("Guide (EN)"))
         {
             ImGui.TextWrapped("West = MT, East = OT. Priority 1–2 take purple orbs; everyone after that takes green orbs in order.");
-            ImGui.TextWrapped("Example: if purple is MT → OT and green priority is H → Melee → Ranged, enter: \"MT OT H1 H2 M1 M2 R1 R2\".");
+            ImGui.TextWrapped("Example: if purple is MT → OT and green priority is H → Melee → Ranged, enter: \"MT H1 M1 R1 OT H2 M2 R2\".");
         }
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
@@ -177,6 +263,13 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
             ImGui.Text($"My index: {Array.FindIndex(_playerOrderForBalls, x => x.ObjectId == Controller.BasePlayer.EntityId)}");
         }
     }
+
+    public override Dictionary<int, string>? Changelog => new()
+    {
+        { 2, "プレイヤーの選出ロジックを修正しました。それに伴い優先順位の設定方法が変わったので一度確認してください。\n" +
+             "I’ve fixed the player selection logic. Because of that, the way you set the priority order has changed, so please review it once.\n" }
+    };
+
     public class PlayerData { public Direction Direction; public bool First; public BallKind Kind; public string Name = ""; public uint ObjectId; public float Offset; public string Text = ""; public int Wave, Order; }
 
     public class Config : IEzConfig

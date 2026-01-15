@@ -99,8 +99,6 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     Dictionary<uint, int> PlayerOrder = [];
     public int DefamationAttack = 0;
 
-    bool IsDefamationFirst => DefamationPlayers.SafeSelect(PlayerOrder.FindKeysByValue(0).FirstOrDefault());
-
     public override void OnReset()
     {
         PlayerPosition = -1;
@@ -513,7 +511,6 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             ImGuiEx.Text($"Next AOE: {NextAOE}");
             ImGui.Separator();
             ImGuiEx.Text($"NextCleavesNorthSouth: {NextCleavesNorthSouth}");
-            ImGuiEx.Text($"IsDefamationFirst: {IsDefamationFirst}");
             ImGuiEx.Text($"Order: \n{this.PlayerOrder.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGuiEx.Text($"Defa: \n{this.DefamationPlayers.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGuiEx.Text($"Clone: \n{this.ClonePositions.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");

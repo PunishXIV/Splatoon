@@ -65,6 +65,14 @@ public struct PacketActorCast
     [FieldOffset(28)]
     public ushort PosZ;
 
+    public readonly Vector3 Position
+    {
+        get
+        {
+            return new(((PosX * 3.0518043f) * 0.0099999998f) - 1000.0f, ((PosY * 3.0518043f) * 0.0099999998f) - 1000.0f, ((PosZ * 3.0518043f) * 0.0099999998f) - 1000.0f);
+        }
+    }
+
     [FieldOffset(30)]
     [Obsolete("Unknown")]
     public ushort Unknown3;

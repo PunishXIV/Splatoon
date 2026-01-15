@@ -19,13 +19,13 @@ internal class S2WInfo
 
     internal void Apply(float xf, float yf, float zf)
     {
-        cls.SetFoP(x, xf);
-        cls.SetFoP(y, yf);
-        cls.SetFoP(z, zf);
+        if(x != null) cls.SetFoP(x, xf);
+        if(y != null) cls.SetFoP(y, yf);
+        if(z != null) cls.SetFoP(z, zf);
     }
 
     internal (float x, float y, float z) GetValues()
     {
-        return (cls.GetFoP<float>(x), cls.GetFoP<float>(y), cls.GetFoP<float>(z));
+        return (cls.GetFoP(x) as float? ?? 0, cls.GetFoP(y) as float? ?? 0, cls.GetFoP(z) as float? ?? 0);
     }
 }

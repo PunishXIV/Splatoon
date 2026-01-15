@@ -1,15 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
-using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -17,7 +17,7 @@ public class M10S_Insane_Air : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1323];
 
-    public override Metadata? Metadata => new(3, "Errer");
+    public override Metadata? Metadata => new(4, "Errer");
 
     #region 数据结构
 
@@ -31,28 +31,29 @@ public class M10S_Insane_Air : SplatoonScript
     // Position 到 Vector3 坐标映射 (3x3 网格)
     private static readonly Dictionary<uint, Vector3> PositionToCoord = new()
     {
-        { 14, new Vector3(87f, 0f, 87f) },   // 左下角
-        { 15, new Vector3(100f, 0f, 87f) },  // 下排中间
-        { 16, new Vector3(113f, 0f, 87f) },  // 右下角
-        { 17, new Vector3(87f, 0f, 100f) },  // 左排中间
-        { 18, new Vector3(100f, 0f, 100f) }, // 正中心
-        { 19, new Vector3(113f, 0f, 100f) }, // 右排中间
-        { 20, new Vector3(87f, 0f, 113f) },  // 左上角
-        { 21, new Vector3(100f, 0f, 113f) }, // 上排中间
-        { 22, new Vector3(113f, 0f, 113f) }, // 右上角
+        { 14, new Vector3(87f, 0f, 87f) },   // 左下角 (Bottom-left corner)
+        { 15, new Vector3(100f, 0f, 87f) },  // 下排中间 (Bottom row center)
+        { 16, new Vector3(113f, 0f, 87f) },  // 右下角 (Bottom-right corner)
+        { 17, new Vector3(87f, 0f, 100f) },  // 左排中间 (Left column center)
+        { 18, new Vector3(100f, 0f, 100f) }, // 正中心 (Exact center)
+        { 19, new Vector3(113f, 0f, 100f) }, // 右排中间 (Right column center)
+        { 20, new Vector3(87f, 0f, 113f) },  // 左上角 (Top-left corner)
+        { 21, new Vector3(100f, 0f, 113f) }, // 上排中间 (Top row center)
+        { 22, new Vector3(113f, 0f, 113f) }, // 右上角 (Top-right corner)
     };
 
     // Data2 到方向的映射
     private static readonly Dictionary<ushort, MarkerDirection> Data2ToDirection = new()
     {
-        // 水标记
-        { 2, MarkerDirection.Down },      // 水-左下
-        { 32, MarkerDirection.Middle },   // 水-正左
-        { 128, MarkerDirection.Up },      // 水-左上
-        // 火标记
-        { 512, MarkerDirection.Down },    // 火-左下
-        { 2048, MarkerDirection.Middle }, // 火-正左
-        { 8192, MarkerDirection.Up },     // 火-左上
+        // 水标记 (Water markers)
+        { 2, MarkerDirection.Down },      // 水-左下 (Water – bottom-left)
+        { 32, MarkerDirection.Middle },   // 水-正左 (Water – left / middle)
+        { 128, MarkerDirection.Up },      // 水-左上 (Water – top-left)
+
+        // 火标记 (Fire markers)
+        { 512, MarkerDirection.Down },    // 火-左下 (Fire – bottom-left)
+        { 2048, MarkerDirection.Middle }, // 火-正左 (Fire – left / middle)
+        { 8192, MarkerDirection.Up },     // 火-左上 (Fire – top-left)
     };
 
     // 火标记的data2值集合（用于判断是否绘制圆形）
@@ -95,9 +96,9 @@ public class M10S_Insane_Air : SplatoonScript
     {
         // 9个位置 × 最多4个扇形 = 36个扇形元素
         // 命名格式: Cone_{position}_{index}
-        for (uint pos = 14; pos <= 22; pos++)
+        for(uint pos = 14; pos <= 22; pos++)
         {
-            for (int i = 0; i < 4; i++)
+            for(int i = 0; i < 4; i++)
             {
                 Controller.RegisterElement($"Cone_{pos}_{i}", new Element(5) // type 5 = 固定坐标锥形
                 {
@@ -129,10 +130,10 @@ public class M10S_Insane_Air : SplatoonScript
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
         // 验证 position 有效 (14-22)
-        if (position < 14 || position > 22) return;
+        if(position < 14 || position > 22) return;
 
         // 验证 data2 是有效的水火标记值
-        if (!Data2ToDirection.TryGetValue(data2, out var direction)) return;
+        if(!Data2ToDirection.TryGetValue(data2, out var direction)) return;
 
         // 记录是否为火标记
         _isFireMarker[position] = FireMarkerData2.Contains(data2);
@@ -151,57 +152,57 @@ public class M10S_Insane_Air : SplatoonScript
             .Select(x => x.Key)
             .ToList();
 
-        foreach (var key in expiredKeys)
+        foreach(var key in expiredKeys)
         {
             _activeMarkers.Remove(key);
             _isFireMarker.Remove(key);
             // 隐藏该位置的扇形和圆形
-            for (int i = 0; i < 4; i++)
+            for(int i = 0; i < 4; i++)
             {
-                if (Controller.TryGetElementByName($"Cone_{key}_{i}", out var cone))
+                if(Controller.TryGetElementByName($"Cone_{key}_{i}", out var cone))
                     cone.Enabled = false;
             }
-            if (Controller.TryGetElementByName($"Circle_{key}", out var circle))
+            if(Controller.TryGetElementByName($"Circle_{key}", out var circle))
                 circle.Enabled = false;
         }
 
-        if (_activeMarkers.Count == 0) return;
+        if(_activeMarkers.Count == 0) return;
 
-        foreach (var (position, (direction, triggerAt)) in _activeMarkers)
+        foreach(var (position, (direction, triggerAt)) in _activeMarkers)
         {
             var elapsed = now - triggerAt;
             // 上方向都是圆形死刑（火标记和水标记都一样）
             var isUpDirection = direction == MarkerDirection.Up;
 
             // 延迟期间不绘制
-            if (elapsed < C.DelayMs)
+            if(elapsed < C.DelayMs)
             {
                 // 确保扇形和圆形隐藏
-                for (int i = 0; i < 4; i++)
+                for(int i = 0; i < 4; i++)
                 {
-                    if (Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
+                    if(Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
                         cone.Enabled = false;
                 }
-                if (Controller.TryGetElementByName($"Circle_{position}", out var circle))
+                if(Controller.TryGetElementByName($"Circle_{position}", out var circle))
                     circle.Enabled = false;
                 continue;
             }
 
             // 超过绘制持续时间后隐藏
-            if (elapsed > C.DelayMs + C.DurationMs)
+            if(elapsed > C.DelayMs + C.DurationMs)
             {
-                for (int i = 0; i < 4; i++)
+                for(int i = 0; i < 4; i++)
                 {
-                    if (Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
+                    if(Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
                         cone.Enabled = false;
                 }
-                if (Controller.TryGetElementByName($"Circle_{position}", out var circle))
+                if(Controller.TryGetElementByName($"Circle_{position}", out var circle))
                     circle.Enabled = false;
                 continue;
             }
 
             // 在绘制时间窗口内
-            if (!PositionToCoord.TryGetValue(position, out var coord)) continue;
+            if(!PositionToCoord.TryGetValue(position, out var coord)) continue;
 
             // 根据方向确定扇形数量和颜色
             // 上=死刑(1个), 中=分摊(1个), 下=分散(4个)
@@ -221,17 +222,17 @@ public class M10S_Insane_Air : SplatoonScript
                 .ToList();
 
             // 上方向：绘制圆形死刑（火/水标记都一样）
-            if (isUpDirection)
+            if(isUpDirection)
             {
                 // 隐藏所有扇形
-                for (int i = 0; i < 4; i++)
+                for(int i = 0; i < 4; i++)
                 {
-                    if (Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
+                    if(Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
                         cone.Enabled = false;
                 }
 
                 // 绘制圆形在最近玩家位置
-                if (nearestPlayers.Count > 0 && Controller.TryGetElementByName($"Circle_{position}", out var circle))
+                if(nearestPlayers.Count > 0 && Controller.TryGetElementByName($"Circle_{position}", out var circle))
                 {
                     circle.refActorObjectID = nearestPlayers[0].EntityId;
                     circle.color = color;
@@ -244,15 +245,15 @@ public class M10S_Insane_Air : SplatoonScript
             else
             {
                 // 隐藏圆形
-                if (Controller.TryGetElementByName($"Circle_{position}", out var circle))
+                if(Controller.TryGetElementByName($"Circle_{position}", out var circle))
                     circle.Enabled = false;
 
                 // 更新该位置的扇形
-                for (int i = 0; i < 4; i++)
+                for(int i = 0; i < 4; i++)
                 {
-                    if (Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
+                    if(Controller.TryGetElementByName($"Cone_{position}_{i}", out var cone))
                     {
-                        if (i < coneCount && i < nearestPlayers.Count)
+                        if(i < coneCount && i < nearestPlayers.Count)
                         {
                             cone.SetRefPosition(coord);
                             cone.faceplayer = $"<{GetPlayerOrder(nearestPlayers[i])}>";
@@ -287,9 +288,9 @@ public class M10S_Insane_Air : SplatoonScript
 
     private unsafe int GetPlayerOrder(IPlayerCharacter player)
     {
-        for (var i = 1; i <= 8; i++)
+        for(var i = 1; i <= 8; i++)
         {
-            if ((nint)FakePronoun.Resolve($"<{i}>") == player.Address)
+            if((nint)FakePronoun.Resolve($"<{i}>") == player.Address)
                 return i;
         }
         return 0;
@@ -297,14 +298,14 @@ public class M10S_Insane_Air : SplatoonScript
 
     private void HideAllElements()
     {
-        for (uint pos = 14; pos <= 22; pos++)
+        for(uint pos = 14; pos <= 22; pos++)
         {
-            for (int i = 0; i < 4; i++)
+            for(int i = 0; i < 4; i++)
             {
-                if (Controller.TryGetElementByName($"Cone_{pos}_{i}", out var cone))
+                if(Controller.TryGetElementByName($"Cone_{pos}_{i}", out var cone))
                     cone.Enabled = false;
             }
-            if (Controller.TryGetElementByName($"Circle_{pos}", out var circle))
+            if(Controller.TryGetElementByName($"Circle_{pos}", out var circle))
                 circle.Enabled = false;
         }
     }
@@ -315,89 +316,90 @@ public class M10S_Insane_Air : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Text("扇形参数:");
+        ImGui.Text("扇形参数: (Cone parameters)");
 
         var radius = C.ConeRadius;
-        if (ImGui.SliderFloat("扇形半径", ref radius, 5f, 50f))
+        if(ImGui.SliderFloat("扇形半径 (Cone radius)", ref radius, 5f, 50f))
             C.ConeRadius = radius;
 
         var angle = C.ConeAngle;
-        if (ImGui.SliderInt("角度 (半角)", ref angle, 10, 90))
+        if(ImGui.SliderInt("角度 (半角) (Angle - half)", ref angle, 10, 90))
             C.ConeAngle = angle;
         ImGui.SameLine();
-        ImGui.TextDisabled($"(总角度: {angle * 2}°)");
+        ImGui.TextDisabled($"(总角度: {angle * 2}°) (Total angle)");
 
         var circleRadius = C.CircleRadius;
-        if (ImGui.SliderFloat("圆形半径 (火标记上)", ref circleRadius, 1f, 10f))
+        if(ImGui.SliderFloat("圆形半径 (火标记上) (Circle radius - on fire marker)", ref circleRadius, 1f, 10f))
             C.CircleRadius = circleRadius;
 
         var fill = C.FillIntensity;
-        if (ImGui.SliderFloat("填充透明度", ref fill, 0.1f, 1f))
+        if(ImGui.SliderFloat("填充透明度 (Fill opacity)", ref fill, 0.1f, 1f))
             C.FillIntensity = fill;
 
         var thickness = C.LineThickness;
-        if (ImGui.SliderFloat("线条粗细", ref thickness, 1f, 10f))
+        if(ImGui.SliderFloat("线条粗细 (Line thickness)", ref thickness, 1f, 10f))
             C.LineThickness = thickness;
 
         ImGui.Separator();
-        ImGui.Text("时间设置:");
+        ImGui.Text("时间设置: (Timing settings)");
 
         var delay = C.DelayMs;
-        if (ImGui.SliderInt("延迟绘制(ms)", ref delay, 0, 10000))
+        if(ImGui.SliderInt("延迟绘制(ms) (Draw delay)", ref delay, 0, 10000))
             C.DelayMs = delay;
 
         var duration = C.DurationMs;
-        if (ImGui.SliderInt("持续时间(ms)", ref duration, 1000, 15000))
+        if(ImGui.SliderInt("持续时间(ms) (Duration)", ref duration, 1000, 15000))
             C.DurationMs = duration;
 
         var timeout = C.TimeoutMs;
-        if (ImGui.SliderInt("超时清除(ms)", ref timeout, 1000, 30000))
+        if(ImGui.SliderInt("超时清除(ms) (Timeout clear)", ref timeout, 1000, 30000))
             C.TimeoutMs = timeout;
 
         ImGui.Separator();
-        ImGui.Text("颜色设置:");
+        ImGui.Text("颜色设置: (Color settings)");
 
-        // 上方向 - 红色
-        var colorUp = ImGuiEx.Vector4FromRGBA(C.ColorUp);
-        if (ImGui.ColorEdit4("上方向 (红)", ref colorUp))
+        // 上方向 - 红色 (Up direction - Red)
+        var colorUp = C.ColorUp.ToVector4();
+        if(ImGui.ColorEdit4("上方向 (红) (Up - Red)", ref colorUp))
             C.ColorUp = colorUp.ToUint();
 
-        // 中方向 - 黄色
-        var colorMiddle = ImGuiEx.Vector4FromRGBA(C.ColorMiddle);
-        if (ImGui.ColorEdit4("中方向 (黄)", ref colorMiddle))
+        // 中方向 - 黄色 (Middle direction - Yellow)
+        var colorMiddle = C.ColorMiddle.ToVector4();
+        if(ImGui.ColorEdit4("中方向 (黄) (Middle - Yellow)", ref colorMiddle))
             C.ColorMiddle = colorMiddle.ToUint();
 
-        // 下方向 - 绿色
-        var colorDown = ImGuiEx.Vector4FromRGBA(C.ColorDown);
-        if (ImGui.ColorEdit4("下方向 (绿)", ref colorDown))
+        // 下方向 - 绿色 (Down direction - Green)
+        var colorDown = C.ColorDown.ToVector4();
+        if(ImGui.ColorEdit4("下方向 (绿) (Down - Green)", ref colorDown))
             C.ColorDown = colorDown.ToUint();
 
         ImGui.Separator();
 
-        if (ImGui.Button("保存配置"))
+        if(ImGui.Button("保存配置 (Save config)"))
             Controller.SaveConfig();
 
         ImGui.SameLine();
-        if (ImGui.Button("清除所有标记"))
+        if(ImGui.Button("清除所有标记 (Clear all markers)"))
         {
             _activeMarkers.Clear();
             _isFireMarker.Clear();
             HideAllElements();
         }
 
-        // 调试信息
-        if (ImGui.CollapsingHeader("调试信息"))
+        // 调试信息 (Debug information)
+        if(ImGui.CollapsingHeader("调试信息 (Debug info)"))
         {
-            ImGuiEx.Text($"活跃标记数: {_activeMarkers.Count}");
+            ImGuiEx.Text($"活跃标记数: {_activeMarkers.Count} (Active markers)");
             var now = Environment.TickCount64;
-            foreach (var (pos, (dir, triggerAt)) in _activeMarkers)
+            foreach(var (pos, (dir, triggerAt)) in _activeMarkers)
             {
                 var elapsed = now - triggerAt;
-                var state = elapsed < C.DelayMs ? "等待中" :
-                           elapsed < C.DelayMs + C.DurationMs ? "绘制中" : "已结束";
+                var state = elapsed < C.DelayMs ? "等待中 (Waiting)" :
+                           elapsed < C.DelayMs + C.DurationMs ? "绘制中 (Drawing)" : "已结束 (Finished)";
                 ImGuiEx.Text($"  Position {pos}: {dir} - {state} ({elapsed}ms)");
             }
         }
+
     }
 
     #endregion

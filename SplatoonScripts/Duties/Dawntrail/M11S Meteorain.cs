@@ -80,7 +80,7 @@ public class M11S_Meteorain : SplatoonScript
     private State _state = State.Idle;
     private int _tetherCount;
 
-    public override Metadata Metadata => new(3, "Garume");
+    public override Metadata Metadata => new(4, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
 
     private Config C => Controller.GetConfig<Config>();
@@ -275,7 +275,6 @@ public class M11S_Meteorain : SplatoonScript
         if (phase == Phase.Final)
             return (PosDir(Dir(MeteorSpot.SouthWest), _distFinal), "Final");
 
-
         var stackCorner = wave switch
         {
             1 => C.Stack1,
@@ -283,6 +282,8 @@ public class M11S_Meteorain : SplatoonScript
             _ => C.Stack3
         };
         var p = CornerToPos(stackCorner);
+        if (C.MyRole == Role.Tether && wave == 1)
+            return (p, "Stack1");
         if (phase == Phase.StackOnly)
         {
             p = CornerToPos(C.Stack4);

@@ -20,8 +20,14 @@ Puddle on the ground (beta)
 ~Lv2~{"Name":"M12S P1 Act5 Puddle on the ground","Group":"M12S P1","ZoneLockH":[1327],"ConditionalAnd":true,"DCond":5,"UseTriggers":true,"Triggers":[{"TimeBegin":300.0,"Duration":999.0}],"ElementsL":[{"Name":"Casting entity","type":1,"radius":12.0,"fillIntensity":0.237,"castAnimation":3,"animationColor":1660944384,"refActorNPCNameID":14378,"refActorRequireCast":true,"refActorCastId":[46239],"refActorComparisonType":6,"Conditional":true,"ConditionalInvert":true},{"Name":"Casting entity","type":1,"radius":12.0,"fillIntensity":0.259,"castAnimation":3,"animationColor":1660944384,"refActorNPCNameID":14378,"refActorRequireCast":true,"refActorCastId":[46239],"refActorUseCastTime":true,"refActorCastTimeMax":5.0,"refActorUseOvercast":true,"refActorComparisonType":6,"Conditional":true,"ConditionalInvert":true,"Nodraw":true},{"Name":"Event object","type":1,"radius":12.0,"color":3355506687,"fillIntensity":0.226,"refActorDataID":2015017,"refActorObjectLife":true,"refActorLifetimeMin":5.0,"refActorLifetimeMax":99.0,"refActorComparisonType":3}]}
 ```
 
+# Mortal Slayer
+[Script] [Beta] requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P1%20Mortal%20Slayer.cs
+```
+
 # Act 2
-[Script] [WIP] Alpha players tower assigner and highlighter. Assigns tower for alpha debuffs and highlights it, tethers to it when it's soon time to take it.
+[Script] [WIP] Alpha and Beta players tower assigner and highlighter. Assigns tower for alpha debuffs and highlights it, tethers to it when it's soon time to take it.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P1%20Snake.cs
 ```

@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -166,23 +166,20 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
 
 
-            var clones = MathHelper.EnumerateObjectsClockwise(Svc.Objects.OfType<IBattleNpc>().Where(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(a => a.ObjectId)))), x => x.Position.ToVector2(), new(100, 100), new(96, 86));
+            var clones = MathHelper.EnumerateObjectsClockwise(Svc.Objects.OfType<IBattleNpc>().Where(x => x.DataId == (uint)DataIds.PlayerClone && x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(a => a.ObjectId)))), x => x.Position.ToVector2(), new(100, 100), new(96, 86));
             if(clones.Count == 8)
             {
                 for(int i = 0; i < clones.Count; i++)
                 {
                     IBattleNpc? x = clones[i];
-                    if(x.DataId == (uint)DataIds.PlayerClone)
+                    if(x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId == BasePlayer.ObjectId))
                     {
-                        if(x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId == BasePlayer.ObjectId))
-                        {
-                            PlayerPosition = i;
-                            PluginLog.Information($"Determined player position: {i + 1}");
-                        }
-                        if(x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(s => s.ObjectId)), out var tetheredPlayer))
-                        {
-                            this.ClonePositions[tetheredPlayer.TargetId.ObjectId] = x.Position;
-                        }
+                        PlayerPosition = i;
+                        PluginLog.Information($"Determined player position: {i + 1}");
+                    }
+                    if(x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(s => s.ObjectId)), out var tetheredPlayer))
+                    {
+                        this.ClonePositions[tetheredPlayer.TargetId.ObjectId] = x.Position;
                     }
                 }
             }
@@ -218,7 +215,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         }
         if(Phase == 5 || Phase == 6)
         {
-            var clones = MathHelper.EnumerateObjectsClockwise(Svc.Objects.OfType<IBattleNpc>().Where(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(a => a.ObjectId)))), x => x.Position.ToVector2(), new(100, 100), new(96, 86));
+            var clones = GetBossClones();
             if(clones.Count == 8)
             {
                 var playersSupposedPickup = C.Pickups[PlayerPosition];
@@ -459,6 +456,11 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         }
     }
 
+    private List<IBattleNpc> GetBossClones()
+    {
+        return MathHelper.EnumerateObjectsClockwise(Svc.Objects.OfType<IBattleNpc>().Where(x => x.NameId == 14380 && x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(a => a.ObjectId)))), x => x.Position.ToVector2(), new(100, 100), new(96, 86));
+    }
+
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if(set.Action?.RowId == 46345)
@@ -534,6 +536,8 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             ImGuiEx.Text($"Order: \n{this.PlayerOrder.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGuiEx.Text($"Defa: \n{this.DefamationPlayers.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGuiEx.Text($"Clone: \n{this.ClonePositions.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
+            ImGui.Separator();
+            ImGuiEx.Text($"GetBossClones: \n{GetBossClones().Print("\n")}");
         }
     }
 

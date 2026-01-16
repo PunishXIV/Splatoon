@@ -275,7 +275,6 @@ public class M11S_Meteorain : SplatoonScript
         if (phase == Phase.Final)
             return (PosDir(Dir(MeteorSpot.SouthWest), _distFinal), "Final");
 
-
         var stackCorner = wave switch
         {
             1 => C.Stack1,
@@ -283,6 +282,8 @@ public class M11S_Meteorain : SplatoonScript
             _ => C.Stack3
         };
         var p = CornerToPos(stackCorner);
+        if (C.MyRole == Role.Tether && wave == 1)
+            return (p, "Stack1");
         if (phase == Phase.StackOnly)
         {
             p = CornerToPos(C.Stack4);

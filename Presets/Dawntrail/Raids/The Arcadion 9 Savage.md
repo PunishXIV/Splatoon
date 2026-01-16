@@ -15,6 +15,11 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Target%20Enforcer.cs
 ```
 
+### [Script] [Beta] Sanguine Scratch protean highlight:
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Sanguine%20Scratch.cs
+```
+
 ### ToolerOfLight's set
 > [!Important]
 > These presets are made by [ToolerOfLight](https://github.com/ToolerofLight/myfiles/blob/main/Splatoon/%5B7.x%5D%E9%BB%84%E9%87%91%E3%81%AE%E3%83%AC%E3%82%AC%E3%82%B7%E3%83%BC/%E9%9B%B6%E5%BC%8F/%5B7.4%5D%E3%82%A2%E3%83%AB%E3%82%AB%E3%83%87%E3%82%A3%E3%82%A2%E3%83%98%E3%83%93%E3%83%BC%E7%B4%9A1%E5%B1%A4%E9%9B%B6%E5%BC%8F%20.md) and translated. Check the link for possible updates.

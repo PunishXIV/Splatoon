@@ -33,7 +33,7 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
     private PlayerData[] _playerOrderForBalls = [];
     private List<(BallKind Kind, Direction Dir, int Wave)> _spawnedBalls = [];
     private int _waveState;
-    public override Metadata Metadata => new(2, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
     public override HashSet<uint>? ValidTerritories => [1327];
 
     public Config C => Controller.GetConfig<Config>();
@@ -54,6 +54,14 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
             radius = 2f, thicc = 10f, tether = true, overlayBGColor = 0xFF000000, overlayTextColor = 0xFFFFFFFF,
             overlayVOffset = 2f, overlayFScale = 2f
         });
+    }
+
+    public override void OnReset()
+    {
+        _waveState = -1;
+        _spawnedBalls.Clear();
+        _actiondBallCount = 0;
+        _playerOrderForBalls = [];
     }
 
     public override void OnUpdate()

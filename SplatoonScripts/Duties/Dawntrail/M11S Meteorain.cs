@@ -80,7 +80,7 @@ public class M11S_Meteorain : SplatoonScript
     private State _state = State.Idle;
     private int _tetherCount;
 
-    public override Metadata Metadata => new(3, "Garume");
+    public override Metadata Metadata => new(4, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
 
     private Config C => Controller.GetConfig<Config>();

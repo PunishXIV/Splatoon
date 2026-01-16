@@ -71,8 +71,12 @@ Idyllic Dream - [based on Tired guide](https://www.youtube.com/watch?v=pL5NGwkaT
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Idyllic%20Dream%20Tired.cs
 ```
 - Can probably be reconfigured for other guides too
-- Will show: which tether to pick up, defamation and stack AOEs, stored clone AOEs
-- In progress: towers and precise positions for stacks/spreads
+- Will show: which tether to pick up, defamation and stack AOEs, stored clone AOEs, positions for defa/stacks
+- By default, positions for defamations and stacks are shown for uptime strat, you can relocate elements in elements tab
+- - Group 1 is considered: North to SouthEast
+- - Group 2 is considered: South to NorthWest
+  - Order is as when you pick up a tether. 
+- In progress: towers and precise positions for rewind aoes
 
 Stored AOEs (don't need with either scripts):
 ```

@@ -26,12 +26,33 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
     public override void OnSetup()
     {
+        Controller.RegisterElementFromCode("DefamationGroup1", """
+            {"Name":"Change my position!","refX":86.5,"refY":113.5,"radius":1.0,"Donut":0.5,"fillIntensity":0.548,"thicc":4,"tether":true,"overlayText":"Defamation 1"}
+            """);
+        Controller.RegisterElementFromCode("DefamationGroup2", """
+            {"Name":"Change my position!","refX":113.5,"refY":113.5,"radius":1.0,"Donut":0.5,"fillIntensity":0.548,"thicc":4,"tether":true,"overlayText":"Defamation 2"}
+            """);
+        Controller.RegisterElementFromCode("StackGroup1", """
+            {"Name":"Change my position!","refX":92.0,"refY":100.0,"radius":1.0,"Donut":0.5,"fillIntensity":0.548,"thicc":4,"tether":true,"overlayText":"Stack 1"}
+            """);
+        Controller.RegisterElementFromCode("StackGroup2", """
+            {"Name":"Change my position!","refX":108.0,"refY":100.0,"radius":1.0,"Donut":0.5,"fillIntensity":0.548,"thicc":4,"tether":true,"overlayText":"Stack 2"}
+            """);
+        Controller.RegisterElementFromCode("SafespotGroup1", """
+            {"Name":"Change my position!","refX":100.0,"refY":91.0,"radius":1.0,"Donut":0.5,"fillIntensity":0.548,"thicc":4,"tether":true,"overlayText":"Safe 1"}
+            """);
+        Controller.RegisterElementFromCode("SafespotGroup2", """
+            {"Name":"Change my position!","refX":100.0,"refY":91.0,"radius":1.0,"Donut":0.5,"fillIntensity":0.548,"thicc":4,"tether":true,"overlayText":"Safe 2"}
+            """);
+        Controller.RegisterElementFromCode("DefamationOnYou", """
+            {"Name":"","type":1,"radius":0.0,"Donut":0,"fillIntensity":0.548,"overlayBGColor":4286382206,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayText":"<<< Defamation>>\\n  <<< on YOU! >>>","refActorType":1}
+            """);
         for(int i = 0; i < 2; i++)
         {
             Controller.RegisterElementFromCode($"Defamation{i+1}", """
@@ -283,36 +304,72 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         if(Phase == 9 && DefamationAttack < 4)
         {
-            var player1 = this.PlayerOrder.FindKeysByValue(0 + 1 * this.DefamationAttack).FirstOrDefault().GetObject();
-            var player2 = this.PlayerOrder.FindKeysByValue(4 + 1 * this.DefamationAttack).FirstOrDefault().GetObject();
-            var isDefamationPlayer1 = this.DefamationPlayers[player1.ObjectId];
-            var isDefamationPlayer2 = this.DefamationPlayers[player2.ObjectId];
+            var playerGroup2 = this.PlayerOrder.FindKeysByValue(0 + 1 * this.DefamationAttack).FirstOrDefault().GetObject();
+            var playerGroup1 = this.PlayerOrder.FindKeysByValue(4 + 1 * this.DefamationAttack).FirstOrDefault().GetObject();
+            var isDefamationPlayerGroup2 = this.DefamationPlayers[playerGroup2.ObjectId];
+            var isDefamationPlayerGroup1 = this.DefamationPlayers[playerGroup1.ObjectId];
+            var party = this.PlayerOrder.OrderBy(x => x.Value).Take(4).Any(x => x.Key == BasePlayer.ObjectId) ? 2 : 1;
+            if((playerGroup2.AddressEquals(BasePlayer) && isDefamationPlayerGroup2) || (playerGroup1.ObjectId == BasePlayer.ObjectId && isDefamationPlayerGroup1))
             {
-                if(isDefamationPlayer1 && Controller.TryGetElementByName($"Defamation1", out var e))
+                if(Controller.TryGetElementByName($"DefamationOnYou", out var e))
                 {
                     e.Enabled = true;
-                    e.SetRefPosition(player1.Position);
+                }
+            }
+            if(isDefamationPlayerGroup2 && !Controller.GetElementByName("DefamationOnYou")!.Enabled)
+            {
+                if(Controller.TryGetElementByName($"SafespotGroup{party}", out var e))
+                {
+                    e.Enabled = true;
+                    e.color = GetRainbowColor(1f).ToUint();
                 }
             }
             {
-                if(isDefamationPlayer2 && Controller.TryGetElementByName($"Defamation2", out var e))
+                if(isDefamationPlayerGroup2 && Controller.TryGetElementByName($"Defamation2", out var e))
                 {
                     e.Enabled = true;
-                    e.SetRefPosition(player2.Position);
+                    e.SetRefPosition(playerGroup2.Position);
+                    if(playerGroup2.AddressEquals(BasePlayer) && Controller.TryGetElementByName("DefamationGroup2", out var el))
+                    {
+                        el.Enabled = true;
+                        el.color = GetRainbowColor(1f).ToUint();
+                    }
                 }
             }
             {
-                if(!isDefamationPlayer1 && Controller.TryGetElementByName($"Stack1", out var e))
+                if(isDefamationPlayerGroup1 && Controller.TryGetElementByName($"Defamation1", out var e))
                 {
                     e.Enabled = true;
-                    e.SetRefPosition(player1.Position);
+                    e.SetRefPosition(playerGroup1.Position);
+                    if(playerGroup1.AddressEquals(BasePlayer) && Controller.TryGetElementByName("DefamationGroup1", out var el))
+                    {
+                        el.Enabled = true;
+                        el.color = GetRainbowColor(1f).ToUint();
+                    }
                 }
             }
             {
-                if(!isDefamationPlayer2 && Controller.TryGetElementByName($"Stack2", out var e))
+                if(!isDefamationPlayerGroup2 && Controller.TryGetElementByName($"Stack2", out var e))
                 {
                     e.Enabled = true;
-                    e.SetRefPosition(player2.Position);
+                    e.SetRefPosition(playerGroup2.Position);
+                    if(party == 2 && Controller.TryGetElementByName("StackGroup2", out var el))
+                    {
+                        el.Enabled = true;
+                        el.color = GetRainbowColor(1f).ToUint();
+                    }
+                }
+            }
+            {
+                if(!isDefamationPlayerGroup1 && Controller.TryGetElementByName($"Stack1", out var e))
+                {
+                    e.Enabled = true;
+                    e.SetRefPosition(playerGroup1.Position);
+                    if(party == 1 && Controller.TryGetElementByName("StackGroup1", out var el))
+                    {
+                        el.Enabled = true;
+                        el.color = GetRainbowColor(1f).ToUint();
+                    }
                 }
             }
         }
@@ -551,4 +608,39 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         public List<PickupOrder> Pickups = [PickupOrder.Stack_1, PickupOrder.Stack_2, PickupOrder.Stack_3, PickupOrder.Stack_4, PickupOrder.Defamation_1, PickupOrder.Defamation_2, PickupOrder.Defamation_3, PickupOrder.Defamation_4];
     }
     Config C => Controller.GetConfig<Config>();
+
+    public static Vector4 GetRainbowColor(double cycleSeconds)
+    {
+        if(cycleSeconds <= 0d)
+        {
+            cycleSeconds = 1d;
+        }
+
+        var ms = Environment.TickCount64;
+        var t = (ms / 1000d) / cycleSeconds;
+        var hue = t % 1f;
+        return HsvToVector4(hue, 1f, 1f);
+    }
+
+    public static Vector4 HsvToVector4(double h, double s, double v)
+    {
+        double r = 0f, g = 0f, b = 0f;
+        var i = (int)(h * 6f);
+        var f = h * 6f - i;
+        var p = v * (1f - s);
+        var q = v * (1f - f * s);
+        var t = v * (1f - (1f - f) * s);
+
+        switch(i % 6)
+        {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+        }
+
+        return new Vector4((float)r, (float)g, (float)b, 1f);
+    }
 }

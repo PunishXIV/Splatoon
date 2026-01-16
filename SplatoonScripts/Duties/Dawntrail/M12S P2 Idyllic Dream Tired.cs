@@ -8,6 +8,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.StringHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon.Data;
@@ -20,13 +21,14 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Text.RegularExpressions;
 using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -302,10 +304,10 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if(Phase == 9 && DefamationAttack < 4)
+        if(Phase == 9 && GetAdjustedDefamationNumber() < 4)
         {
-            var playerGroup2 = this.PlayerOrder.FindKeysByValue(0 + 1 * this.DefamationAttack).FirstOrDefault().GetObject();
-            var playerGroup1 = this.PlayerOrder.FindKeysByValue(4 + 1 * this.DefamationAttack).FirstOrDefault().GetObject();
+            var playerGroup2 = this.PlayerOrder.FindKeysByValue(0 + 1 * GetAdjustedDefamationNumber()).FirstOrDefault().GetObject();
+            var playerGroup1 = this.PlayerOrder.FindKeysByValue(4 + 1 * GetAdjustedDefamationNumber()).FirstOrDefault().GetObject();
             var isDefamationPlayerGroup2 = this.DefamationPlayers[playerGroup2.ObjectId];
             var isDefamationPlayerGroup1 = this.DefamationPlayers[playerGroup1.ObjectId];
             var party = this.PlayerOrder.OrderBy(x => x.Value).Take(4).Any(x => x.Key == BasePlayer.ObjectId) ? 2 : 1;
@@ -376,12 +378,13 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         void processStored(int num)
         {
-            var player1 = this.PlayerOrder.FindKeysByValue(num).FirstOrDefault().GetObject();
+            var orderedClones = MathHelper.EnumerateObjectsClockwise(this.ClonePositions, x => x.Value.ToVector2(), new(100, 100), new(98, 86));
+            var player1 = orderedClones[num].Key.GetObject();
             var isDefamationPlayer1 = this.DefamationPlayers[player1.ObjectId];
-            if(Controller.GetRegisteredElements().TryGetFirst(x => !x.Value.Enabled && x.Key.StartsWith(isDefamationPlayer1?"Defamation":"Stack"), out var e))
+            if(Controller.GetRegisteredElements().TryGetFirst(x => !x.Value.Enabled && x.Key.EqualsAny(isDefamationPlayer1 ? ["Defamation1", "Defamation2"] : ["Stack1","Stack2"]), out var e))
             {
                 e.Value.Enabled = true;
-                e.Value.SetRefPosition(this.ClonePositions[player1.ObjectId]);
+                e.Value.SetRefPosition(orderedClones[num].Value);
             }
         }
 
@@ -410,20 +413,20 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         if(Phase == 13 || Phase == 14)
         {
-            if(DefamationAttack < 5)
+            if(GetAdjustedDefamationNumber() < 5)
             {
                 if(IsCardinalFirst == true)
                 {
                     processStored(0);
-                    processStored(1);
-                    processStored(4);
-                    processStored(5);
-                }
-                else
-                {
                     processStored(2);
-                    processStored(3);
+                    processStored(4);
                     processStored(6);
+                }
+                else if(IsCardinalFirst == false)
+                {
+                    processStored(1);
+                    processStored(3);
+                    processStored(5);
                     processStored(7);
                 }
             }
@@ -431,21 +434,21 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         if(Phase == 16 || Phase == 17)
         {
-            if(DefamationAttack < 6)
+            if(GetAdjustedDefamationNumber() < 6)
             {
                 if(IsCardinalFirst == true)
                 {
-                    processStored(2);
+                    processStored(1);
                     processStored(3);
-                    processStored(6);
+                    processStored(5);
                     processStored(7);
                 }
-                else
+                else if(IsCardinalFirst == false)
                 {
                     processStored(0);
-                    processStored(1);
+                    processStored(2);
                     processStored(4);
-                    processStored(5);
+                    processStored(6);
                 }
             }
         }
@@ -458,14 +461,14 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     if(Controller.TryGetElementByName("PortalConeNS1", out var e))
                     {
                         e.Enabled = true;
-                        e.fillIntensity = DefamationAttack < 6 ? 0.2f : 0.5f;
+                        e.fillIntensity = GetAdjustedDefamationNumber() < 6 ? 0.2f : 0.5f;
                     }
                 }
                 {
                     if(Controller.TryGetElementByName("PortalConeNS2", out var e))
                     {
                         e.Enabled = true;
-                        e.fillIntensity = DefamationAttack < 6 ? 0.2f : 0.5f;
+                        e.fillIntensity = GetAdjustedDefamationNumber() < 6 ? 0.2f : 0.5f;
                     }
                 }
             }
@@ -475,14 +478,14 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     if(Controller.TryGetElementByName("PortalConeEW1", out var e))
                     {
                         e.Enabled = true;
-                        e.fillIntensity = DefamationAttack < 6 ? 0.1f : 0.5f;
+                        e.fillIntensity = GetAdjustedDefamationNumber() < 6 ? 0.1f : 0.5f;
                     }
                 }
                 {
                     if(Controller.TryGetElementByName("PortalConeEW2", out var e))
                     {
                         e.Enabled = true;
-                        e.fillIntensity = DefamationAttack < 6 ? 0.2f : 0.5f;
+                        e.fillIntensity = GetAdjustedDefamationNumber() < 6 ? 0.2f : 0.5f;
                     }
                 }
             }
@@ -539,18 +542,17 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         }
         if(Phase == 9 && set.Action?.RowId.EqualsAny<uint>(46360, 46361) == true)
         {
-            if(EzThrottler.Throttle(this.InternalData.FullName + "IncDefCnt"))
-            {
-                DefamationAttack++;
-            }
+            DefamationAttack++;
         }
         if(Phase.EqualsAny(13,14,16,17) && set.Action?.RowId.EqualsAny<uint>(48099) == true)
         {
-            if(EzThrottler.Throttle(this.InternalData.FullName + "IncDefCnt"))
-            {
-                DefamationAttack++;
-            }
+            DefamationAttack++;
         }
+    }
+
+    int GetAdjustedDefamationNumber()
+    {
+        return DefamationAttack / 2;
     }
 
     public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
@@ -582,6 +584,8 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.InputInt("Phase", ref Phase);
+            ImGui.InputInt("Defamation num", ref DefamationAttack);
+            ImGuiEx.Text($"Adjusted defamation num {GetAdjustedDefamationNumber()}");
             ImGuiEx.Checkbox("NextCleavesNorthSouth", ref this.NextCleavesNorthSouth);
             ImGuiEx.Checkbox("IsCardinalFirst", ref this.IsCardinalFirst);
             ImGui.Separator();
@@ -592,7 +596,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             ImGuiEx.Text($"NextCleavesNorthSouth: {NextCleavesNorthSouth}");
             ImGuiEx.Text($"Order: \n{this.PlayerOrder.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGuiEx.Text($"Defa: \n{this.DefamationPlayers.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
-            ImGuiEx.Text($"Clone: \n{this.ClonePositions.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
+            ImGuiEx.Text($"ClonePositions: \n{this.ClonePositions.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGui.Separator();
             ImGuiEx.Text($"GetBossClones: \n{GetBossClones().Print("\n")}");
         }

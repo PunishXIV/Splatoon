@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M12S_P1_Snake : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV, Garume");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Debuff
@@ -147,9 +147,9 @@ public class M12S_P1_Snake : SplatoonScript
 
     public override void OnSetup()
     {
-        Controller.RegisterElementFromCode("TowerWaiting", """{"Name":"","refX":96.0,"refY":96.0,"radius":1.5,"Donut":0.5,"color":3355508719,"fillIntensity":0.281}""");
+        Controller.RegisterElementFromCode("TowerWaiting", """{"Name":"","refX":96.0,"refY":96.0,"radius":2,"Donut":0.5,"color":3355508719,"fillIntensity":0.281}""");
         Controller.RegisterElementFromCode("TowerGet", """
-            {"Name":"","refX":96.0,"refY":96.0,"radius":1.5,"Donut":0.5,"color":3357277952,"fillIntensity":1.0,"thicc":5.0,"tether":true}
+            {"Name":"","refX":96.0,"refY":96.0,"radius":2,"Donut":0.5,"color":3357277952,"fillIntensity":1.0,"thicc":4.0,"tether":true}
             """);
         Controller.RegisterElementFromCode("CutGuide", """{"Name":"","type":0,"radius":2.0,"thicc":10.0,"tether":true}""");
         Controller.RegisterElementFromCode("ExitDoor", """{"Name":"","type":1,"offY":10.0,"radius":2.35,"refActorDataID":19195,"refActorComparisonType":3,"includeRotation":true,"color":4294967040,"fillIntensity":0.25,"thicc":3.0}""");
@@ -237,7 +237,7 @@ public class M12S_P1_Snake : SplatoonScript
             if(x.IsCasting(46259))
             {
                 activeBlackCastingIds.Add(x.EntityId);
-                if(!BlackTowers.Any(a => a.EntityId == x.EntityId))
+                if(BlackTowers.All(a => a.EntityId != x.EntityId))
                 {
                     BlackTowers.Add(new BlackTowerInfo
                     {
@@ -289,10 +289,13 @@ public class M12S_P1_Snake : SplatoonScript
                     {
                         var forceNow = me.PosNumber is 3 or 4;
                         var ready = RotationCount >= me.SoakRotation;
-                        var te = ready ? Controller.GetElementByName("TowerGet") : Controller.GetElementByName("TowerWaiting");
+                        var forceGet = forceNow && RotationStarted;
+                        var afterCut = (me.PosNumber is 1 or 2) && RotationCount >= me.CutRotation + 1;
+                        var useGet = ready || forceGet || afterCut;
+                        var te = useGet ? Controller.GetElementByName("TowerGet") : Controller.GetElementByName("TowerWaiting");
                         if(te != null)
                         {
-                            te.color = (ready || forceNow) ? nowColor : nextColor;
+                            te.color = useGet ? nowColor : nextColor;
                             te.SetRefPosition(Towers.SafeSelect(idx));
                             te.Enabled = true;
                         }
@@ -305,11 +308,6 @@ public class M12S_P1_Snake : SplatoonScript
             }
             else if(me.Group == DebuffGroup.Beta)
             {
-                // var bt = GetBlackTowerInfo(me.TowerOrder);
-                // var soakDone = (bt != null && bt.Removed) || (me.SoakRotation != null && RotationCount > me.SoakRotation);
-                // var allowCut = soakDone || me.SoakRotation == null || me.CutRotation <= me.SoakRotation;
-                // var hasBetaNow = BasePlayer != null && HasStatus(Debuff.Beta);
-                // if(allowCut && hasBetaNow)
                 var betaRemaining = GetRemainingTime(Debuff.Beta);
                 if ((betaRemaining < 3f && betaRemaining != 0f) || HasStatus(Debuff.AfterBeta))
                 {
@@ -354,24 +352,10 @@ public class M12S_P1_Snake : SplatoonScript
         return BasePlayer != null && PlayerDatas.TryGetValue(BasePlayer.EntityId, out var pd) ? pd : null;
     }
 
-    BlackTowerInfo? GetBlackTowerInfo(int? order)
-    {
-        if(order == null) return null;
-        int idx = order.Value - 1;
-        if(idx < 0 || idx >= BlackTowers.Count) return null;
-        return BlackTowers[idx];
-    }
-
     Vector3 GetBlackTowerPos(int idx)
     {
         if(idx < 0 || idx >= BlackTowers.Count) return default;
         return BlackTowers[idx].Position;
-    }
-
-    int GetBlackTowerSpawnRotation(int idx)
-    {
-        if(idx < 0 || idx >= BlackTowers.Count) return -1;
-        return BlackTowers[idx].SpawnRotation;
     }
 
     bool IsBlackTowerActive(int idx)

@@ -124,11 +124,11 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                     {
                         //
                     }
-                    else if(C.LP1.Contains(PlayerDirection.Value))
+                    else if(C.LP2.Contains(PlayerDirection.Value))
                     {
                         wantTetherFrom = TetherCandidates[0];
                     }
-                    else if(C.LP2.Contains(PlayerDirection.Value))
+                    else if(C.LP1.Contains(PlayerDirection.Value))
                     {
                         wantTetherFrom = TetherCandidates.Reverse().First();
                     }
@@ -175,35 +175,35 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
         if(Phase == 1 && PlayerDirection != null)
         {
-            var lpNumber = C.LP1.Contains(PlayerDirection.Value) ? 0 : 1;
+            var lpNumber = C.LP2.Contains(PlayerDirection.Value) ? 0 : 1;
             go.Enabled = true;
             go.SetRefPosition(C.Phase1Positions[lpNumber][GetDesiredTether()].ToVector3());
         }
 
         if(Phase == 2 && PlayerDirection != null)
         {
-            var lpNumber = C.LP1.Contains(PlayerDirection.Value) ? 0 : 1;
+            var lpNumber = C.LP2.Contains(PlayerDirection.Value) ? 0 : 1;
             go.Enabled = true;
             go.SetRefPosition(C.Phase2Positions[lpNumber][GetDesiredTether()].ToVector3());
         }
 
         if(Phase == 3 && PlayerDirection != null)
         {
-            var lpNumber = C.LP1.Contains(PlayerDirection.Value) ? 0 : 1;
+            var lpNumber = C.LP2.Contains(PlayerDirection.Value) ? 0 : 1;
             go.Enabled = true;
             go.SetRefPosition(C.Phase3Positions[lpNumber][GetDesiredTether()].ToVector3());
         }
 
         if(Phase == 4 && PlayerDirection != null)
         {
-            var lpNumber = C.LP1.Contains(PlayerDirection.Value) ? 0 : 1;
+            var lpNumber = C.LP2.Contains(PlayerDirection.Value) ? 0 : 1;
             go.Enabled = true;
             go.SetRefPosition(C.Phase4Positions[lpNumber][GetDesiredTether()].ToVector3());
         }
 
         if(Phase == 5 && PlayerDirection != null)
         {
-            var lpNumber = C.LP1.Contains(PlayerDirection.Value) ? 0 : 1;
+            var lpNumber = C.LP2.Contains(PlayerDirection.Value) ? 0 : 1;
             go.Enabled = true;
             go.SetRefPosition(C.Phase5Positions[lpNumber][GetDesiredTether()].ToVector3());
         }
@@ -245,8 +245,8 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     {
         if(PlayerDirection != null)
         {
-            if(C.LP1.Contains(PlayerDirection.Value)) return C.LP1Tethers[C.LP1.IndexOf(x => x == PlayerDirection.Value)];
             if(C.LP2.Contains(PlayerDirection.Value)) return C.LP2Tethers[C.LP2.IndexOf(x => x == PlayerDirection.Value)];
+            if(C.LP1.Contains(PlayerDirection.Value)) return C.LP1Tethers[C.LP1.IndexOf(x => x == PlayerDirection.Value)];
         }
         return default;
     }
@@ -319,10 +319,10 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             {
                 C.BaseLP1 = false;
                 C.BaseNum = 3;
-                C.LP1 = [Direction.W, Direction.SW, Direction.S, Direction.SE];
-                C.LP2 = [Direction.NW, Direction.N, Direction.NE, Direction.E];
-                C.LP1Tethers = [TetherKind.Nothing, TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack];
-                C.LP2Tethers = [TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack, TetherKind.Boss];
+                C.LP2 = [Direction.W, Direction.SW, Direction.S, Direction.SE];
+                C.LP1 = [Direction.NW, Direction.N, Direction.NE, Direction.E];
+                C.LP2Tethers = [TetherKind.Nothing, TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack];
+                C.LP1Tethers = [TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack, TetherKind.Boss];
                 C.Phase1Positions =
                 [
                     new()
@@ -415,10 +415,10 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             {
                 C.BaseLP1 = true;
                 C.BaseNum = 0;
-                C.LP1 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
-                C.LP2 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
-                C.LP1Tethers = [TetherKind.Boss, TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation];
-                C.LP2Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];
+                C.LP2 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
+                C.LP1 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
+                C.LP2Tethers = [TetherKind.Boss, TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation];
+                C.LP1Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];
                 C.Phase1Positions =
                 [
                     new()
@@ -525,35 +525,35 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             ImGuiEx.Text($"Currently: {BaseDirection}");
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 positions", () =>
             {
-                for(int i = 0; i < C.LP2.Length; i++)
+                for(int i = 0; i < C.LP1.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Position {i + 1} counter-clockwise from rel.north, incl. north", ref C.LP2[i]);
+                    ImGuiEx.EnumCombo($"Position {i + 1} counter-clockwise from rel.north, incl. north", ref C.LP1[i]);
                 }
             });
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 2 positions", () =>
             {
-                for(int i = 0; i < C.LP1.Length; i++)
+                for(int i = 0; i < C.LP2.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Position {i + 1} clockwise from rel. north, excl. north", ref C.LP1[i]);
+                    ImGuiEx.EnumCombo($"Position {i + 1} clockwise from rel. north, excl. north", ref C.LP2[i]);
                 }
             });
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 Tethers", () =>
             {
-                for(int i = 0; i < C.LP2Tethers.Length; i++)
+                for(int i = 0; i < C.LP1Tethers.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Tether for {C.LP2[i]} ({i + 1} CCW from rel. north excl. north)", ref C.LP2Tethers[i]);
+                    ImGuiEx.EnumCombo($"Tether for {C.LP1[i]} ({i + 1} CCW from rel. north excl. north)", ref C.LP1Tethers[i]);
                 }
             });
 
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 2 Tethers", () =>
             {
-                for(int i = 0; i < C.LP1Tethers.Length; i++)
+                for(int i = 0; i < C.LP2Tethers.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Tether for {C.LP1[i]} ({i + 1} CW from rel. north incl. north)", ref C.LP1Tethers[i]);
+                    ImGuiEx.EnumCombo($"Tether for {C.LP2[i]} ({i + 1} CW from rel. north incl. north)", ref C.LP2Tethers[i]);
                 }
             });
 
@@ -593,11 +593,11 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             ImGuiEx.EnumCombo("Direction", ref PlayerDirection);
             if(PlayerDirection != null)
             {
-                if(C.LP1.Contains(PlayerDirection.Value))
+                if(C.LP2.Contains(PlayerDirection.Value))
                 {
                     ImGuiEx.Text("LP1");
                 }
-                if(C.LP2.Contains(PlayerDirection.Value))
+                if(C.LP1.Contains(PlayerDirection.Value))
                 {
                     ImGuiEx.Text("LP2");
                 }
@@ -608,7 +608,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         }
     }
 
-    Direction BaseDirection => (C.BaseLP1 ? C.LP1 : C.LP2).SafeSelect(C.BaseNum);
+    Direction BaseDirection => (C.BaseLP1 ? C.LP2 : C.LP1).SafeSelect(C.BaseNum);
 
     void LpPositionsEdit(int num, List<Dictionary<TetherKind, Vector2>> positions)
     {
@@ -699,10 +699,10 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     {
         public bool BaseLP1 = true;
         public int BaseNum = 0;
-        public Direction[] LP1 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
-        public Direction[] LP2 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
-        public TetherKind[] LP1Tethers = [TetherKind.Boss, TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation];
-        public TetherKind[] LP2Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];
+        [JsonProperty("LP2")] public Direction[] LP1 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
+        [JsonProperty("LP1")] public Direction[] LP2 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
+        [JsonProperty("LP2Tethers")] public TetherKind[] LP1Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];
+        [JsonProperty("LP1Tethers")] public TetherKind[] LP2Tethers = [TetherKind.Boss, TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation];
         public List<Dictionary<TetherKind, Vector2>> Phase1Positions = new()
     {
         new()

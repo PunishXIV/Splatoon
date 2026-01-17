@@ -46,6 +46,16 @@ Netherworld-far and Netherworld-near
 >
 > Do not install both scripts! Pick one.
 
+Green Tower Knockback Position
+```
+~Lv2~{"Name":"风塔击飞站位","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"FAR TOWER","type":1,"offX":2.5,"refActorDataID":2015013,"refActorComparisonType":3,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMin":15.0,"DistanceMax":25.0},{"Name":"CLOSE TOWER","type":1,"offX":-2.5,"refActorDataID":2015013,"refActorComparisonType":3,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":15.0}]}
+```
+
+Heat buff notify
+```
+~Lv2~{"Name":"热病","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"热病点名","type":1,"radius":1.0,"overlayVOffset":1.0,"overlayFScale":2.0,"overlayText":"Don't MOVE","overlayTextIntl":{"En":"Don't MOVE","Jp":"Don't MOVE","De":"Don't MOVE","Fr":"Don't MOVE","Other":"热病别动"},"refActorRequireBuff":true,"refActorBuffId":[4768],"refActorType":1}]}
+```
+
 ### [Script] M12S Idyllic Dream
 > [!IMPORTANT]
 >

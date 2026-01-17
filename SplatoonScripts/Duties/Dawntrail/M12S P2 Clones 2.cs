@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(6, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(7, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 
@@ -528,7 +528,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 for(int i = 0; i < C.LP2.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Position {i + 1} counter-clockwise from rel.north, excl. north", ref C.LP2[i]);
+                    ImGuiEx.EnumCombo($"Position {i + 1} counter-clockwise from rel.north, incl. north", ref C.LP2[i]);
                 }
             });
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 2 positions", () =>
@@ -536,7 +536,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 for(int i = 0; i < C.LP1.Length; i++)
                 {
                     ImGui.SetNextItemWidth(150f);
-                    ImGuiEx.EnumCombo($"Position {i + 1} clockwise from rel. north, incl. north", ref C.LP1[i]);
+                    ImGuiEx.EnumCombo($"Position {i + 1} clockwise from rel. north, excl. north", ref C.LP1[i]);
                 }
             });
             ImGuiEx.TreeNodeCollapsingHeader("Light Party 1 Tethers", () =>

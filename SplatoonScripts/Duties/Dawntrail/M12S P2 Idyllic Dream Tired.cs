@@ -30,7 +30,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(6, "NightmareXIV, Redmoon");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 

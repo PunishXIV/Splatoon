@@ -22,13 +22,15 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Splatoon;
 using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(6, "NightmareXIV, Redmoon");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -52,6 +54,16 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         Controller.RegisterElementFromCode("SafespotGroup2", """
             {"Name":"Change my position!","refX":100.0,"refY":91.0,"radius":1.0,"Donut":0.5,"fillIntensity":0.548,"thicc":4,"tether":true,"overlayText":"Safe 2"}
             """);
+        
+        Controller.RegisterElementFromCode("Given Far",
+            """{"Name":"Change my position!","refX":108.669846,"refY":92.17644,"Donut":0.2}""");
+        Controller.RegisterElementFromCode("Given Near",
+            """{"Name":"Change my position!","refX":108.56247,"refY":97.35193,"Donut":0.2}""");
+        Controller.RegisterElementFromCode("Taken Far",
+            """{"Name":"Change my position!","refX":108.244225,"refY":107.46305,"refZ":3.8146973E-06,"Donut":0.2}""");
+        Controller.RegisterElementFromCode("Taken Near",
+            """{"Name":"Change my position!","refX":110.42621,"refY":97.36201,"refZ":3.8146973E-06,"Donut":0.2}""");
+
         Controller.RegisterElementFromCode("DefamationOnYou", """
             {"Name":"","type":1,"radius":0.0,"Donut":0,"fillIntensity":0.548,"overlayBGColor":4286382206,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayText":"<<< Defamation>>\\n  <<< on YOU! >>>","refActorType":1}
             """);
@@ -91,6 +103,29 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         Controller.RegisterElementFromCode("Cone4", """{"Name":"","type":5,"refX":100.0,"refY":92.5,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"includeRotation":true,"AdditionalRotation":1.5707964}""");
         Controller.RegisterElementFromCode("Circle", """{"Name":"","Enabled":false,"refX":86.0,"refY":100.0,"radius":10.0,"tether":false}""");
+
+        Controller.RegisterElementFromCode("TowerTether",
+            "{\"Name\":\"\",\"refX\":81.732285,\"refY\":95.71492,\"radius\":3.0,\"Donut\":0.4,\"color\":3355508509,\"fillIntensity\":0.5,\"thicc\":5.0,\"tether\":true}");
+        Controller.RegisterElementFromCode("Cone1", """{"Name":"","type":5,"refX":100.0,"refY":92.5,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"includeRotation":true,"AdditionalRotation":1.5707964}""");
+
+        Controller.RegisterElementFromCode("P7AOERadius",
+            "{\"Name\":\"\",\"type\":1,\"radius\":6.3,\"Donut\":0.2,\"fillIntensity\":0.5,\"thicc\":5.0,\"refActorType\":1,\"DistanceMax\":25.199999}");
+
+        Controller.RegisterElementFromCode("FarCone1",
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+        Controller.RegisterElementFromCode("FarCone2",
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+        Controller.RegisterElementFromCode("NearCone1",
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+        Controller.RegisterElementFromCode("NearCone2",
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+
+        Controller.RegisterElement("stack tether", new Element(0)
+        {
+            thicc = 5f,
+            radius = 4.5f,
+            tether = true,
+        });
     }
 
     public enum DataIds
@@ -116,11 +151,14 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     Vector3? NextAOE = null;
     bool? NextCleavesNorthSouth = null;
     bool? IsCardinalFirst = null;
+    bool? IsThDecreasingResistance = null;
     HashSet<(Vector3 Pos, float Rot)> NextCleavesList = [];
     Dictionary<uint, Vector3> ClonePositions = [];
     Dictionary<uint, bool> DefamationPlayers = [];
     Dictionary<uint, int> PlayerOrder = [];
     public int DefamationAttack = 0;
+    public int Phase11Sub = 0; // 0 - Taken Tower, 1 - Taken Cone, 2 - End
+    private (string, IGameObject)[]? TowersDebug;
 
     public override void OnReset()
     {
@@ -129,11 +167,16 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         NextAOE = null;
         NextCleavesNorthSouth = null;
         IsCardinalFirst = null;
+        IsThDecreasingResistance = null;
         NextCleavesList.Clear();
         ClonePositions.Clear();
         DefamationPlayers.Clear();
         PlayerOrder.Clear();
         DefamationAttack = 0;
+        Phase11Sub = 0;
+
+        // debugs
+        TowersDebug = null;
     }
 
     /// <summary>
@@ -294,6 +337,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     e.SetRefPosition(x.Pos);
                 }
             }
+
             {
                 if(this.NextAOE != null && Controller.TryGetElementByName($"Circle", out var e))
                 {
@@ -302,6 +346,30 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     e.SetRefPosition(this.NextAOE.Value);
                 }
             }
+        }
+
+        if (Phase == 7)
+        {
+            var baseMeleePos = new Vector3(90.243f, 0f, 95.757f); // West Melee Left
+            var baseRangedPos = new Vector3(81.757f, 0f, 95.757f); // West Ranged Left
+            var pos = C.TowerPosition switch
+            {
+                TowerPosition.MeleeLeft => baseMeleePos,
+                TowerPosition.MeleeRight => baseMeleePos with { Z = 200f - baseMeleePos.Z, },
+                TowerPosition.RangedLeft => baseRangedPos,
+                TowerPosition.RangedRight => baseRangedPos with { Z = 200f - baseRangedPos.Z, },
+                _ => throw new Exception("Invalid tower position"),
+            };
+
+            pos = C.IsGroup1 ? pos : pos with { X = 200f - pos.X, Z = 200f - pos.Z, };
+            if (Controller.TryGetElementByName("TowerTether", out var ep7))
+            {
+                ep7.Enabled = true;
+                ep7.color = GetRainbowColor(1f).ToUint();
+                ep7.SetRefPosition(pos);
+            }
+
+            if (Controller.TryGetElementByName("P7AOERadius", out var e)) e.Enabled = true;
         }
 
         if(Phase == 9 && GetAdjustedDefamationNumber() < 4)
@@ -372,6 +440,146 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                         el.Enabled = true;
                         el.color = GetRainbowColor(1f).ToUint();
                     }
+                }
+            }
+        }
+
+        if (Phase is 10 or 11)
+        {
+            if (Phase11Sub == 0) // tower goes
+            {
+                var nonLightTowers =
+                    Svc.Objects.Where(x => x.Struct()->GetNameId() is (uint)Towers.Fire or (uint)Towers.Earth);
+                var assignedNonLightTowers = C.IsGroup1
+                    ? nonLightTowers.Where(x => x.Position.X < 100)
+                    : nonLightTowers.Where(x => x.Position.X > 100);
+                var lightTowers = Svc.Objects.Where(x =>
+                    x.Struct()->GetNameId() is (uint)Towers.WindLight or (uint)Towers.DoomLight);
+                var assignedLightTowers = C.IsGroup1
+                    ? lightTowers.Where(x => x.Position.X < 100)
+                    : lightTowers.Where(x => x.Position.X > 100);
+
+                TowersDebug =
+                [
+                    ("Assigned Non-Light Towers", assignedNonLightTowers.FirstOrDefault() ?? null),
+                    ("Assigned Non-Light Towers", assignedNonLightTowers.Skip(1).FirstOrDefault() ?? null),
+                    ("Assigned Light Towers", assignedLightTowers.FirstOrDefault() ?? null),
+                    ("Assigned Light Towers", assignedLightTowers.Skip(1).FirstOrDefault() ?? null),
+                ];
+
+                if (assignedNonLightTowers.Count() + assignedLightTowers.Count() != 4)
+                    throw new Exception("Invalid number of assigned non-light-towers");
+
+                var isDps = BasePlayer.GetRole() == CombatRole.DPS;
+                if (!IsThDecreasingResistance.HasValue) throw new Exception("DPS is not set");
+                var canTakingLightTowers = isDps == IsThDecreasingResistance;
+                var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
+                var shouldTakeTower = (isMelee, canTakingLightTowers) switch
+                {
+                    // Melee(The tower closest to the coordinates 100, 0, 100)
+                    // Fire/Earth
+                    (true, false) => assignedNonLightTowers
+                        .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100))).FirstOrDefault(),
+                    // Wind/Doom
+                    (true, true) => assignedLightTowers
+                        .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100))).FirstOrDefault(),
+                    // Ranged(The tower farthest from the coordinates 100, 0, 100)
+                    // Fire/Earth
+                    (false, false) => assignedNonLightTowers
+                        .OrderByDescending(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100)))
+                        .FirstOrDefault(),
+                    // Wind/Doom
+                    (false, true) => assignedLightTowers
+                        .OrderByDescending(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100)))
+                        .FirstOrDefault(),
+                };
+
+                if (shouldTakeTower == null)
+                    throw new Exception("Could not determine which tower to take");
+                {
+                    if (Controller.TryGetElementByName("TowerTether", out var e))
+                    {
+                        e.Enabled = true;
+                        e.color = GetRainbowColor(1f).ToUint();
+                        e.SetRefPosition(shouldTakeTower.Position);
+                    }
+                }
+            }
+
+            if (Phase11Sub == 1) // cone goes
+            {
+                var pcs = Svc.Objects.OfType<IPlayerCharacter>().ToList();
+
+                var farBuffer = pcs.Where(x => x.StatusList.Any(y => y.StatusId == 4766)).ToList();
+                var nearBuffer = pcs.Where(x => x.StatusList.Any(y => y.StatusId == 4767)).ToList();
+
+                if (farBuffer.Count + nearBuffer.Count != 4) return;
+
+                for (var i = 0; i < farBuffer.Count; i++)
+                {
+                    var buffer = farBuffer[i];
+                    // Find the farthest object in pcs
+                    var farthest = pcs.OrderByDescending(x =>
+                        Vector3.DistanceSquared(x.Position, buffer.Position)).FirstOrDefault();
+                    if (farthest == null) return;
+                    {
+                        if (Controller.TryGetElementByName($"FarCone{i + 1}", out var e))
+                        {
+                            e.refActorComparisonType = 2;
+                            e.refActorObjectID = buffer.EntityId;
+                            e.faceplayer = GetPlayerOrder(farthest);
+                            e.Enabled = true;
+                        }
+                    }
+                }
+
+                for (var i = 0; i < nearBuffer.Count; i++)
+                {
+                    var buffer = nearBuffer[i];
+                    // Find the nearest object in pcs
+                    var nearest = pcs.OrderBy(x =>
+                        Vector3.Distance(x.Position, buffer.Position)).Skip(1).FirstOrDefault();
+                    if (nearest == null) return;
+                    if (Controller.TryGetElementByName($"NearCone{i + 1}", out var e11))
+                    {
+                        e11.refActorComparisonType = 2;
+                        e11.refActorObjectID = buffer.EntityId;
+                        e11.faceplayer = GetPlayerOrder(nearest);
+                        e11.Enabled = true;
+                    }
+                }
+
+                var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
+                var elementName = (C.TakenFarIsMelee, isMelee) switch
+                {
+                    (true, true) => "Taken Far",
+                    (true, false) => "Taken Near",
+                    (false, true) => "Taken Near",
+                    (false, false) => "Taken Far",
+                };
+
+                // Has Far
+                if (BasePlayer.StatusList.Any(y => y.StatusId == 4766)) elementName = "Given Far";
+                else if (BasePlayer.StatusList.Any(y => y.StatusId == 4767)) elementName = "Given Near";
+                {
+                    if (Controller.TryGetElementByName(elementName, out var e))
+                    {
+                        if ((BasePlayer.Position.X > 100 && e.refX < 100) ||
+                            (BasePlayer.Position.X < 100 && e.refX > 100))
+                            e.refX = 200 - e.refX; // mirror
+                        e.color = GetRainbowColor(1f).ToUint();
+                        e.tether = true;
+                        e.thicc = 5f;
+                        e.Enabled = true;
+                    }
+                }
+
+                string GetPlayerOrder(IPlayerCharacter c)
+                {
+                    for (var i = 1; i <= 8; i++)
+                        if ((nint)FakePronoun.Resolve($"<{i}>") == c.Address)
+                            return $"<{i}>";
+                    throw new Exception("Could not determine player order");
                 }
             }
         }
@@ -449,6 +657,35 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     processStored(2);
                     processStored(4);
                     processStored(6);
+                }
+            }
+        }
+
+        if (Phase is 13 or 16 or 17)
+        {
+            var stack1Pos = Vector3.Zero;
+            var stack2Pos = Vector3.Zero;
+            {
+                if (Controller.TryGetElementByName($"Stack1", out var e))
+                    stack1Pos = new Vector3(e.refX, e.refZ, e.refY);
+            }
+            {
+                if (Controller.TryGetElementByName($"Stack2", out var e))
+                    stack2Pos = new Vector3(e.refX, e.refZ, e.refY);
+            }
+
+            if (Vector2.Distance(stack1Pos.ToVector2(), new Vector2(100f, 86f)) < 2)
+            {
+                (stack1Pos, stack2Pos) = (stack2Pos, stack1Pos);
+            }
+            
+            {
+                if (Controller.TryGetElementByName("stack tether", out var e))
+                {
+                    e.Enabled = true;
+                    e.color = GetRainbowColor(1f).ToUint();
+                    e.SetRefPosition(C.IsStackLeft ? stack2Pos : stack1Pos);
+                    e.Enabled = true;
                 }
             }
         }
@@ -548,6 +785,18 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         {
             DefamationAttack++;
         }
+        if (Phase is 10 or 11 && Phase11Sub == 1 && set.Action?.RowId == 46330) Phase11Sub++;
+    }
+
+    public override void OnGainBuffEffect(uint sourceId, Status Status)
+    {
+        if (Phase == 7 && Status.StatusId == 4164 && !IsThDecreasingResistance.HasValue) // light tower debuff
+        {
+            if (sourceId.TryGetPlayer(out var pc))
+                IsThDecreasingResistance = pc.GetRole() != CombatRole.DPS;
+        }
+
+        if (Phase is 10 or 11 && Phase11Sub == 0 && Status.StatusId is 4766 or 4767) Phase11Sub++;
     }
 
     int GetAdjustedDefamationNumber()
@@ -569,6 +818,10 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.EnumCombo("My tower position, looking at boss", ref C.TowerPosition);
         ImGuiEx.RadioButtonBool("West platform", "East platform", ref C.IsGroup1);
+        ImGuiEx.RadioButtonBool("Taken far is Melee", "Taken far is Ranged", ref C.TakenFarIsMelee);
+        ImGuiEx.RadioButtonBool("Stack left", "Stack right", ref C.IsStackLeft);
+        ImGuiEx.HelpMarker(
+            "After processing the tower, look at the center from the outside and decide which stack to enter (left or right)");
         ImGui.Separator();
         ImGuiEx.Text($"Defamation Pickup order, starting from North clockwise:");
         PickupDrag.Begin();
@@ -585,9 +838,11 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         {
             ImGui.InputInt("Phase", ref Phase);
             ImGui.InputInt("Defamation num", ref DefamationAttack);
+            ImGui.InputInt("Phase11Sub", ref Phase11Sub);
             ImGuiEx.Text($"Adjusted defamation num {GetAdjustedDefamationNumber()}");
             ImGuiEx.Checkbox("NextCleavesNorthSouth", ref this.NextCleavesNorthSouth);
             ImGuiEx.Checkbox("IsCardinalFirst", ref this.IsCardinalFirst);
+            ImGuiEx.Checkbox("IsThDecreasingResistance", ref IsThDecreasingResistance);
             ImGui.Separator();
             ImGuiEx.Text($"Next cleaves: \n{NextCleavesList.Select(x => $"{x.Pos} {x.Rot.RadToDeg()}").Print("\n")}");
             ImGui.Separator();
@@ -599,6 +854,19 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             ImGuiEx.Text($"ClonePositions: \n{this.ClonePositions.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGui.Separator();
             ImGuiEx.Text($"GetBossClones: \n{GetBossClones().Print("\n")}");
+            ImGui.Separator();
+            ImGui.Text("Towers Debug:");
+            if (TowersDebug != null)
+            {
+                foreach (var (name, obj) in TowersDebug)
+                    ImGuiEx.Text($"{name}: NPCID: {obj.Struct()->GetNameId()} Pos: {obj?.Position}");
+            }
+
+            ImGui.Separator();
+            ImGui.Text("Elements:");
+            foreach (var e in Controller.GetRegisteredElements())
+                ImGuiEx.Text(
+                    $"{e.Key}: Enabled={e.Value.Enabled} Pos=({e.Value.refX}, {e.Value.refZ}, {e.Value.refY})");
         }
     }
 
@@ -609,6 +877,8 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     {
         public TowerPosition TowerPosition = default;
         public bool IsGroup1 = true;
+        public bool TakenFarIsMelee = true;
+        public bool IsStackLeft = true;
         public List<PickupOrder> Pickups = [PickupOrder.Stack_1, PickupOrder.Stack_2, PickupOrder.Stack_3, PickupOrder.Stack_4, PickupOrder.Defamation_1, PickupOrder.Defamation_2, PickupOrder.Defamation_3, PickupOrder.Defamation_4];
     }
     Config C => Controller.GetConfig<Config>();

@@ -344,17 +344,17 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 [
                     new()
                     {
-                        [TetherKind.Stack] = new(106, 105.5f),
+                        [TetherKind.Stack] = new(106, 104.5f),
                         [TetherKind.Fan] = new(108.5f, 102.5f),
-                        [TetherKind.Defamation] = new(106, 105.5f),
-                        [TetherKind.Boss] = new(106, 95.5f)
+                        [TetherKind.Defamation] = new(106, 104.5f),
+                        [TetherKind.Boss] = new(106, 104.5f)
                     },
                     new()
                     {
                         [TetherKind.Stack] = new(106, 95.5f),
                         [TetherKind.Fan] = new(108.5f, 97.5f),
                         [TetherKind.Defamation] = new(106, 95.5f),
-                        [TetherKind.Nothing] = new(106, 105.5f)
+                        [TetherKind.Nothing] = new(106, 95.5f)
                     }
                 ];
                 C.Phase3Positions =

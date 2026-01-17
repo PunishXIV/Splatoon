@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M12S_P1_Snake : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV, Garume");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public enum Debuff
@@ -147,12 +147,13 @@ public class M12S_P1_Snake : SplatoonScript
 
     public override void OnSetup()
     {
-        Controller.RegisterElementFromCode("TowerWaiting", """{"Name":"","refX":96.0,"refY":96.0,"radius":4.5,"Donut":0.5,"color":3355508719,"fillIntensity":0.281}""");
+        Controller.RegisterElementFromCode("TowerWaiting", """{"Name":"","refX":96.0,"refY":96.0,"radius":2,"Donut":0.5,"color":3355508719,"fillIntensity":0.281}""");
         Controller.RegisterElementFromCode("TowerGet", """
-            {"Name":"","refX":96.0,"refY":96.0,"radius":4.5,"Donut":0.5,"color":3357277952,"fillIntensity":1.0,"thicc":5.0,"tether":true}
+            {"Name":"","refX":96.0,"refY":96.0,"radius":2,"Donut":0.5,"color":3357277952,"fillIntensity":1.0,"thicc":4.0,"tether":true}
             """);
         Controller.RegisterElementFromCode("CutGuide", """{"Name":"","type":0,"radius":2.0,"thicc":10.0,"tether":true}""");
         Controller.RegisterElementFromCode("ExitDoor", """{"Name":"","type":1,"offY":10.0,"radius":2.35,"refActorDataID":19195,"refActorComparisonType":3,"includeRotation":true,"color":4294967040,"fillIntensity":0.25,"thicc":3.0}""");
+        Controller.RegisterElementFromCode("CutCountdown", """{"Name":"","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"3","refActorType":1}""");
     }
 
     bool MechanicActive => Controller.GetPartyMembers().Any(x => x.StatusList.Any(s => HasStatus(x, Debuff.Pos4)));
@@ -180,6 +181,7 @@ public class M12S_P1_Snake : SplatoonScript
     public override void OnUpdate()
     {
         Controller.Hide();
+        UpdateCutCountdown();
         var exitActor = GetExitActor();
         if(exitActor != null )
         {
@@ -235,7 +237,7 @@ public class M12S_P1_Snake : SplatoonScript
             if(x.IsCasting(46259))
             {
                 activeBlackCastingIds.Add(x.EntityId);
-                if(!BlackTowers.Any(a => a.EntityId == x.EntityId))
+                if(BlackTowers.All(a => a.EntityId != x.EntityId))
                 {
                     BlackTowers.Add(new BlackTowerInfo
                     {
@@ -273,7 +275,6 @@ public class M12S_P1_Snake : SplatoonScript
         {
             var close = Controller.GetElementByName("Close");
             var cutGuide = Controller.GetElementByName("CutGuide");
-            var blackWait = Controller.GetElementByName("TowerWaiting");
             var blackGet = Controller.GetElementByName("TowerGet");
             var nextColor = C.NextColor.ToUint();
             var nowColor = GradientColor.Get(C.NowColorA, C.NowColorB).ToUint();
@@ -286,10 +287,15 @@ public class M12S_P1_Snake : SplatoonScript
                     int idx = me.TowerOrder.Value - 1;
                     if(Towers.SafeSelect(idx) != default)
                     {
-                        var te = RotationCount >= me.SoakRotation ? Controller.GetElementByName("TowerGet") : Controller.GetElementByName("TowerWaiting");
+                        var forceNow = me.PosNumber is 3 or 4;
+                        var ready = RotationCount >= me.SoakRotation;
+                        var forceGet = forceNow && RotationStarted;
+                        var afterCut = (me.PosNumber is 1 or 2) && RotationCount >= me.CutRotation + 1;
+                        var useGet = ready || forceGet || afterCut;
+                        var te = useGet ? Controller.GetElementByName("TowerGet") : Controller.GetElementByName("TowerWaiting");
                         if(te != null)
                         {
-                            te.color = RotationCount >= me.SoakRotation ? nowColor : nextColor;
+                            te.color = useGet ? nowColor : nextColor;
                             te.SetRefPosition(Towers.SafeSelect(idx));
                             te.Enabled = true;
                         }
@@ -302,11 +308,6 @@ public class M12S_P1_Snake : SplatoonScript
             }
             else if(me.Group == DebuffGroup.Beta)
             {
-                // var bt = GetBlackTowerInfo(me.TowerOrder);
-                // var soakDone = (bt != null && bt.Removed) || (me.SoakRotation != null && RotationCount > me.SoakRotation);
-                // var allowCut = soakDone || me.SoakRotation == null || me.CutRotation <= me.SoakRotation;
-                // var hasBetaNow = BasePlayer != null && HasStatus(Debuff.Beta);
-                // if(allowCut && hasBetaNow)
                 var betaRemaining = GetRemainingTime(Debuff.Beta);
                 if ((betaRemaining < 3f && betaRemaining != 0f) || HasStatus(Debuff.AfterBeta))
                 {
@@ -321,14 +322,11 @@ public class M12S_P1_Snake : SplatoonScript
                     }
                     else if(IsBlackTowerActive(idx))
                     {
-                        var spawnRot = GetBlackTowerSpawnRotation(idx);
-                        var shouldGet = me.SoakRotation != null && RotationCount >= me.SoakRotation && RotationCount > spawnRot;
-                        var be = shouldGet ? blackGet : blackWait;
-                        if(be != null)
+                        if(blackGet != null)
                         {
-                            be.color = shouldGet ? nowColor : nextColor;
-                            be.SetRefPosition(GetBlackTowerPos(idx));
-                            be.Enabled = true;
+                            blackGet.color = nowColor;
+                            blackGet.SetRefPosition(GetBlackTowerPos(idx));
+                            blackGet.Enabled = true;
                         }
                     }
                 }
@@ -354,24 +352,10 @@ public class M12S_P1_Snake : SplatoonScript
         return BasePlayer != null && PlayerDatas.TryGetValue(BasePlayer.EntityId, out var pd) ? pd : null;
     }
 
-    BlackTowerInfo? GetBlackTowerInfo(int? order)
-    {
-        if(order == null) return null;
-        int idx = order.Value - 1;
-        if(idx < 0 || idx >= BlackTowers.Count) return null;
-        return BlackTowers[idx];
-    }
-
     Vector3 GetBlackTowerPos(int idx)
     {
         if(idx < 0 || idx >= BlackTowers.Count) return default;
         return BlackTowers[idx].Position;
-    }
-
-    int GetBlackTowerSpawnRotation(int idx)
-    {
-        if(idx < 0 || idx >= BlackTowers.Count) return -1;
-        return BlackTowers[idx].SpawnRotation;
     }
 
     bool IsBlackTowerActive(int idx)
@@ -451,6 +435,36 @@ public class M12S_P1_Snake : SplatoonScript
         return b.StatusList.Any(x => x.StatusId == (uint)d);
     }
 
+    void UpdateCutCountdown()
+    {
+        var countdown = Controller.GetElementByName("CutCountdown");
+        if(countdown == null || BasePlayer == null) return;
+        if(C.CutCountdownSeconds <= 0f)
+        {
+            countdown.Enabled = false;
+            return;
+        }
+        float remaining = 0f;
+        if(HasStatus(Debuff.Alpha))
+        {
+            remaining = GetRemainingTime(Debuff.Alpha);
+        }
+        else if(HasStatus(Debuff.Beta))
+        {
+            remaining = GetRemainingTime(Debuff.Beta);
+        }
+
+        if(remaining > 0f && remaining <= C.CutCountdownSeconds)
+        {
+            countdown.overlayText = MathF.Ceiling(remaining).ToString();
+            countdown.Enabled = true;
+        }
+        else
+        {
+            countdown.Enabled = false;
+        }
+    }
+
     public override void OnSettingsDraw()
     {
         ImGui.Separator();
@@ -466,6 +480,8 @@ public class M12S_P1_Snake : SplatoonScript
         ImGui.ColorEdit4("Next (Waiting)", ref C.NextColor, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Now Color A", ref C.NowColorA, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Now Color B", ref C.NowColorB, ImGuiColorEditFlags.NoInputs);
+        ImGui.SetNextItemWidth(150);
+        ImGui.DragFloat("Cut countdown seconds", ref C.CutCountdownSeconds, 0.1f, 0f, 10f);
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -497,5 +513,6 @@ public class M12S_P1_Snake : SplatoonScript
         public Vector4 NextColor = ImGuiColors.DalamudYellow;
         public Vector4 NowColorA = 0xFF00FF00.ToVector4();
         public Vector4 NowColorB = 0xFF0000FF.ToVector4();
+        public float CutCountdownSeconds = 3f;
     }
 }

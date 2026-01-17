@@ -2,12 +2,12 @@
 > Early strats. Will change rapidly.
 
 
-[Script] [Beta] Insane Air
+### [Script] [Beta] Insane Air
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M10S%20Insane%20Air.cs
 ```
 
-**Projection configuration preset**
+### Projection configuration preset
 ```
 ~Lv2~{"Name":"M10S Projection Configuration","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[],"BlacklistedProjectorActions":[46542,46540,46500,46512,46513],"ForcedProjectorActions":[46547,46587]}
 ```
@@ -65,12 +65,12 @@ If you are tank, must reconfigure it.
 
 ### Correct boss bait - requires configuration
 ```
-~Lv2~{"Name":"M10S Boss Bait","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[{"Name":"Blue","type":1,"radius":2.0,"Donut":40.0,"color":3371826944,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14369,"refActorRequireCast":true,"refActorCastId":[45954],"refActorComparisonType":6,"tether":true},{"Name":"Red","type":1,"Enabled":false,"radius":2.0,"Donut":40.0,"color":3355481343,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14370,"refActorRequireCast":true,"refActorCastId":[45953],"refActorComparisonType":6,"tether":true}]}
+~Lv2~{"Name":"M10S Boss Bait","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[{"Name":"Blue","type":1,"Enabled":false,"radius":2.0,"Donut":40.0,"color":3371826944,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14369,"refActorRequireCast":true,"refActorCastId":[45954,46511],"refActorComparisonType":6,"tether":true},{"Name":"Red","type":1,"Enabled":false,"radius":2.0,"Donut":40.0,"color":3355481343,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14370,"refActorRequireCast":true,"refActorCastId":[45953,46510],"refActorComparisonType":6,"tether":true}]}
 ```
 
 ### Primary boss to attack
 ```
-~Lv2~{"Name":"M10S Primary Target","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[{"Name":"red","type":1,"refActorRequireBuff":true,"refActorBuffId":[4974],"refActorType":1,"Conditional":true,"ConditionalReset":true,"Nodraw":true},{"Name":"red","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190335,"overlayTextColor":4294967295,"overlayVOffset":2.0,"thicc":0.0,"overlayText":"Primary Target","refActorNPCNameID":14370,"refActorComparisonType":6,"onlyTargetable":true},{"Name":"b","type":1,"refActorRequireBuff":true,"refActorBuffId":[4975],"refActorType":1,"Conditional":true,"ConditionalReset":true,"Nodraw":true},{"Name":"b","type":1,"radius":0.0,"color":3372155392,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4294901776,"overlayTextColor":4294967295,"overlayVOffset":2.0,"thicc":0.0,"overlayText":"Primary Target","refActorNPCNameID":14369,"refActorComparisonType":6,"onlyTargetable":true,"tether":true}]}
+~Lv2~{"Name":"M10S Primary Target","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[{"Name":"red","type":1,"refActorRequireBuff":true,"refActorBuffId":[4974,4827],"refActorType":1,"Conditional":true,"ConditionalReset":true,"Nodraw":true},{"Name":"red","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4278190335,"overlayTextColor":4294967295,"overlayVOffset":2.0,"thicc":0.0,"overlayText":"Primary Target","refActorNPCNameID":14370,"refActorComparisonType":6,"onlyTargetable":true},{"Name":"b","type":1,"refActorRequireBuff":true,"refActorBuffId":[4975,4828],"refActorType":1,"Conditional":true,"ConditionalReset":true,"Nodraw":true},{"Name":"b","type":1,"radius":0.0,"color":3372155392,"Filled":false,"fillIntensity":0.5,"overlayBGColor":4294901776,"overlayTextColor":4294967295,"overlayVOffset":2.0,"thicc":0.0,"overlayText":"Primary Target","refActorNPCNameID":14369,"refActorComparisonType":6,"onlyTargetable":true,"tether":true}]}
 ```
 
 ### Alley op inferno - tether to boss
@@ -82,6 +82,15 @@ If you are tank, must reconfigure it.
 ```
 ~Lv2~{"Name":"M10S Deep Varial LP stack","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"DCond":5,"UseTriggers":true,"Triggers":[{"Type":2,"Duration":10.0,"Match":"MapEffect: 4, 64, 128"},{"Type":2,"Duration":16.0,"Match":"VFX vfx/common/eff/m0982stlp3c0c.avfx spawned on 19288"},{"Type":2,"Duration":10.0,"Match":"MapEffect: 2, 64, 128"}],"ElementsL":[{"Name":"check debuff","type":1,"refActorRequireBuff":true,"refActorBuffId":[4975],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"","type":1,"radius":4.5,"Donut":0.5,"color":3359702784,"fillIntensity":0.456,"overlayBGColor":3472883712,"overlayTextColor":4278255376,"overlayVOffset":2.0,"overlayText":">> Water Stack <<","refActorType":1},{"Name":"","type":1,"radius":0.0,"Donut":0.5,"color":3359702784,"Filled":false,"fillIntensity":0.456,"overlayBGColor":2130706432,"overlayTextColor":3590389520,"overlayVOffset":2.0,"overlayFScale":0.8,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorRequireBuff":true,"refActorBuffId":[4975],"refActorComparisonType":5,"tether":true}],"ForcedProjectorActions":[46547]}
 ~Lv2~{"Name":"M10S Deep Varial spread","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"DCond":5,"UseTriggers":true,"MaxDistance":5.1,"UseDistanceLimit":true,"DistanceLimitType":1,"Triggers":[{"Type":2,"Duration":10.0,"Match":"MapEffect: 4, 1024, 2048"},{"Type":2,"Duration":16.0,"Match":"VFX vfx/common/eff/m0982stlp4c0c.avfx spawned on 19288"},{"Type":2,"Duration":10.0,"Match":"MapEffect: 2, 1024, 2048"}],"ElementsL":[{"Name":"check debuff","type":1,"refActorRequireBuff":true,"refActorBuffId":[4975],"refActorType":1,"Conditional":true,"Nodraw":true},{"Name":"Self","type":1,"radius":5.0,"color":3355508223,"Filled":false,"fillIntensity":0.456,"overlayBGColor":3472883712,"overlayTextColor":4278255103,"overlayVOffset":2.0,"thicc":3.0,"overlayText":"<<< Water Spread >>>","refActorType":1},{"Name":"Others","type":1,"radius":5.0,"fillIntensity":0.182,"overlayBGColor":3472883712,"overlayTextColor":4278255103,"overlayVOffset":2.0,"thicc":3.0,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorComparisonType":5}],"ForcedProjectorActions":[46547]}
+```
+
+### Hot Aerial baits - configuration required (nomnom)
+Enable number of bait according to your bait order.
+
+For raidplan https://raidplan.io/plan/Cmo_RpCDbsUSMV5c#6
+
+```
+(work in progress)
 ```
 
 ### Water prison tethers

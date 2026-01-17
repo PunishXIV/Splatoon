@@ -65,7 +65,7 @@ If you are tank, must reconfigure it.
 
 ### Correct boss bait - requires configuration
 ```
-~Lv2~{"Name":"M10S Boss Bait","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[{"Name":"Blue","type":1,"radius":2.0,"Donut":40.0,"color":3371826944,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14369,"refActorRequireCast":true,"refActorCastId":[45954,46511],"refActorComparisonType":6,"tether":true},{"Name":"Red","type":1,"Enabled":false,"radius":2.0,"Donut":40.0,"color":3355481343,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14370,"refActorRequireCast":true,"refActorCastId":[45953,46510],"refActorComparisonType":6,"tether":true}]}
+~Lv2~{"Name":"M10S Boss Bait","Group":"AAC Heavyweight M2 Savage","ZoneLockH":[1323],"ElementsL":[{"Name":"Blue","type":1,"Enabled":false,"radius":2.0,"Donut":40.0,"color":3371826944,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14369,"refActorRequireCast":true,"refActorCastId":[45954,46511],"refActorComparisonType":6,"tether":true},{"Name":"Red","type":1,"Enabled":false,"radius":2.0,"Donut":40.0,"color":3355481343,"fillIntensity":0.5,"thicc":8.0,"refActorNPCNameID":14370,"refActorRequireCast":true,"refActorCastId":[45953,46510],"refActorComparisonType":6,"tether":true}]}
 ```
 
 ### Primary boss to attack

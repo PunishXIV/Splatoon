@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(7, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(8, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 

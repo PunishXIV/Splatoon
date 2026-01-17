@@ -17,7 +17,9 @@ using System.Web;
 using ECommons.Interop;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
-using ECommons.GameHelpers;
+using ECommons.GameHelpers.LegacyPlayer;
+using ECommons.ExcelServices;
+using ECommons.GameFunctions;
 
 namespace Splatoon;
 
@@ -110,8 +112,13 @@ internal unsafe partial class CGui : IDisposable
                             {
                                 if(col) ImGui.PopStyleColor();
                                 if(ImGui.Selectable("No Override", BasePlayerOverride == "")) BasePlayerOverride = "";
-                                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
+                                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => x.GetRole()).ThenBy(x => x.GetJob().IsRangedDps()).ThenBy(x => x.GetJob().IsMagicalRangedDps()))
                                 {
+                                    if(ThreadLoadImageHandler.TryGetIconTextureWrap(x.GetJob().GetIcon(), false, out var tex))
+                                    {
+                                        ImGui.Image(tex.Handle, new(ImGui.GetTextLineHeight()));
+                                        ImGui.SameLine();
+                                    }
                                     if(ImGui.Selectable($"{x.GetNameWithWorld()}", x.GetNameWithWorld() == BasePlayerOverride))
                                     {
                                         BasePlayerOverride = x.GetNameWithWorld();

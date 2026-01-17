@@ -230,9 +230,20 @@ public class Element
     public List<MapEffectData> MapEffects = [];
     [DefaultValue(false)] public bool MapEffectInvert = false;
     [DefaultValue(false)] public bool MapEffectAnd = false;
+    [DefaultValue(false)] public bool UseCastRotation = false;
+    [DefaultValue(false)] public bool UseCastPosition = false;
+    [DefaultValue(false)] public bool UseCastTarget = false;
+    [DefaultValue(null)] public bool? IsDead = null;
+    [DefaultValue(EnumerationType.None)] public EnumerationType Enumeration = EnumerationType.None;
+    public List<int> EnumerationOrder = [];
+    public Point2 EnumerationCenter = Vector2.Zero.ToPoint2();
+    public Point2 EnumerationStart = Vector2.Zero.ToPoint2();
 
     internal float CastFractionOverride = 0f;
 
+    public bool ShouldSerializeEnumerationCenter() => Enumeration != EnumerationType.None;
+    public bool ShouldSerializeEnumerationStart() => Enumeration != EnumerationType.None;
+    public bool ShouldSerializeEnumerationOrder() => Enumeration != EnumerationType.None;
     public bool ShouldSerializeMapEffects() => MapEffects.Count > 0;
     public bool ShouldSerializeHitboxRadiusMin() => HitboxRadiusMin != 0f && UseHitboxRadius;
     public bool ShouldSerializeHitboxRadiusMax() => HitboxRadiusMax != 0f && UseHitboxRadius;

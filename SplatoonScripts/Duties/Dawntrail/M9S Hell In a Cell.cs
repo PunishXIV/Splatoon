@@ -14,6 +14,7 @@ using ECommons.ImGuiMethods;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -45,28 +46,12 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
     private readonly List<Vector2> _sortedTowers = []; // 北→時計回りで4つ
     private readonly Dictionary<uint, IBattleNpc> _towerById = new();
 
-    private string _basePlayerOverride = "";
     private ResolveKind _resolveKind = ResolveKind.None;
 
     private State _state = State.None;
     private int _narrowGapIndex;
 
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(_basePlayerOverride))
-                return Player.Object;
-
-            var p = Svc.Objects
-                .OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().Equals(_basePlayerOverride, StringComparison.OrdinalIgnoreCase));
-
-            return p ?? Player.Object;
-        }
-    }
-
-    public override Metadata Metadata => new(3, "Garume");
+    public override Metadata Metadata => new(4, "Garume, NightmareXIV");
     public override HashSet<uint>? ValidTerritories => [1321];
 
     private Config C => Controller.GetConfig<Config>();
@@ -87,9 +72,22 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        C.PriorityData.Draw();
+        ImGui.Checkbox($"Simple mode", ref C.SimpleMode);
+        ImGuiEx.HelpMarker("Instead of priority list, use fixed number and party");
+        if(!C.SimpleMode)
+        {
+            C.PriorityData.Draw();
+        }
+        else
+        {
+            ImGui.SetNextItemWidth(150f);
+            ImGui.SliderInt("Your position", ref C.SimpleModeCnt, 1, 4);
+            ImGuiEx.TextV($"Your tower set:");
+            ImGui.SameLine();
+            ImGuiEx.RadioButtonBool("1", "2", ref C.SimpleModeGroup1, true);
+        }
 
-        ImGui.Checkbox("Spread Clockwise From Wide Gap", ref C.SpreadClockwiseFromWide);
+            ImGui.Checkbox("Spread Clockwise From Wide Gap", ref C.SpreadClockwiseFromWide);
         ImGui.Checkbox("Tower Order: narrow-gap base (2-3-4-1)", ref C.UseNarrowGapTowerOrder);
         
         ImGui.Text("Bait Color:");
@@ -113,9 +111,6 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
             ImGui.BulletText("散開側の1番目（後半ならMT組1番目）が『空き（いちばん広い塔間）』に入り、そこを北として時計回りに割り当てます");
             ImGui.BulletText("反時計回りにしたい場合はSpread Clockwise From Wide Gapのチェックを外してください");
             ImGui.BulletText("間隔が狭い塔を北にして時計回りに 2,3,4,1 としたい場合は、Tower Order: narrow-gap base (2-3-4-1)にチェックを付けてください。");
-
-            ImGui.Spacing();
-            ImGui.TextWrapped("Debugの Player override は「このプレイヤーを自分として表示する」機能です。自分が動かなくても他人の表示を確認できます。");
         }
 
         if (ImGuiEx.CollapsingHeader("PriorityList Guide (EN)"))
@@ -132,9 +127,6 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
             ImGui.BulletText("If you want counter clockwise instead, uncheck 'Spread Clockwise From Wide Gap'");
             ImGui.BulletText(
                 "If you want to treat the narrowest tower gap as 'North' and assign towers clockwise as 2,3,4,1, check Tower Order: narrow-gap base (2-3-4-1)");
-
-            ImGui.Spacing();
-            ImGui.TextWrapped("Debug 'Player override' means: treat the selected player as 'you' for marker output.");
         }
 
         if (ImGuiEx.CollapsingHeader("Debug"))
@@ -145,19 +137,6 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
             ImGui.Text($"Gaps: {_gaps.Count}");
             ImGui.Text($"Center: {Center.X:0.0}, {Center.Y:0.0}");
             ImGui.Text($"NorthEdge: {NorthEdge.X:0.0}, {NorthEdge.Y:0.0}");
-
-            ImGui.Separator();
-            ImGui.SetNextItemWidth(220);
-            ImGui.InputText("Player override", ref _basePlayerOverride, 50);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(220);
-            if (ImGui.BeginCombo("Select..", "Select..."))
-            {
-                foreach (var x in Svc.Objects.OfType<IPlayerCharacter>())
-                    if (ImGui.Selectable(x.GetNameWithWorld()))
-                        _basePlayerOverride = x.Name.ToString();
-                ImGui.EndCombo();
-            }
         }
     }
 
@@ -227,14 +206,22 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
         Controller.GetRegisteredElements()
             .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
 
-        var prios = C.PriorityData.GetPlayers(_ => true)?.ToArray();
-        if (prios == null || prios.Length < 8)
-            return;
+        int myIndex;
+        if(!C.SimpleMode)
+        {
+            var prios = C.PriorityData.GetPlayers(_ => true)?.ToArray();
+            if(prios == null || prios.Length < 8)
+                return;
 
-        var baseId = BasePlayer.EntityId;
-        var myIndex = Array.FindIndex(prios, p => p.IGameObject?.EntityId == baseId);
-        if (myIndex is < 0 or >= 8)
-            return;
+            var baseId = BasePlayer.EntityId;
+            myIndex = Array.FindIndex(prios, p => p.IGameObject?.EntityId == baseId);
+            if(myIndex is < 0 or >= 8)
+                return;
+        }
+        else
+        {
+            myIndex = C.SimpleModeCnt - 1 + (C.SimpleModeGroup1 ? 0 : 4);
+        }
 
         var isMtGroup = myIndex < 4;
         var isStGroup = !isMtGroup;
@@ -463,6 +450,9 @@ public class M9S_Hell_In_a_Cell : SplatoonScript
         public PriorityData PriorityData = new();
         public bool SpreadClockwiseFromWide = true;
         public bool UseNarrowGapTowerOrder = false;
+        public bool SimpleMode = false;
+        public int SimpleModeCnt = 1;
+        public bool SimpleModeGroup1 = true;
     }
 
     private class Gap

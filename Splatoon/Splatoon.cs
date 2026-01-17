@@ -786,7 +786,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
             if(!lmbdown && prevMouseState)
-            {
+            { 
                 s2wInfo = null;
             }
             prevMouseState = lmbdown;

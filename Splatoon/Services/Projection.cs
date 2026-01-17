@@ -141,7 +141,7 @@ internal class Projection : IDisposable
                         }
                     }
 
-                    var shouldHide = showOverride == false || isAlreadyProcessed || (blacklisted && showOverride != true) || (showOverride != true && !P.Config.EnableProjection);
+                    var shouldHide = showOverride == false || (isAlreadyProcessed && showOverride != true) || (blacklisted && showOverride != true) || (showOverride != true && !P.Config.EnableProjection);
 
                     if(shouldHide)
                     {

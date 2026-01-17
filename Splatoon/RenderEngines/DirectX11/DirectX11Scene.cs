@@ -1,6 +1,8 @@
-﻿using Pictomancy;
+﻿using ECommons.Reflection;
+using Pictomancy;
 using Splatoon.Serializables;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
+using CImGui = ECommons.ImGuiMethods.CImGui;
 
 
 namespace Splatoon.RenderEngines.DirectX11;
@@ -120,7 +122,14 @@ internal unsafe class DirectX11Scene : IDisposable
             }
             foreach(var zone in P.Config.ClipZones)
             {
-                drawList.AddClipZone(zone.Rect);
+                try
+                {
+                    drawList.Call("AddClipZone", [zone.Rect]);
+                }
+                catch(Exception e)
+                {
+                    e.LogInternal();
+                }
             }
             texture = drawList.DrawToTexture();
         }

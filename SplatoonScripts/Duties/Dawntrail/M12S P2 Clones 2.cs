@@ -173,6 +173,13 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             }
         }
 
+        if (SnakingKickSafePosition is not null)
+        {
+            go.Enabled = true;
+            go.SetRefPosition(SnakingKickSafePosition.Value.ToVector3());
+            return;
+        }
+
         if(Phase == 1 && PlayerDirection != null)
         {
             var lpNumber = C.LP1.Contains(PlayerDirection.Value) ? 0 : 1;
@@ -695,6 +702,19 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
     bool AgreedToConfigure = false;
     public Config C => Controller.GetConfig<Config>();
+    public Vector2? SnakingKickSafePosition
+    {
+        get
+        {
+            var target = Svc.Objects.OfType<IBattleNpc>()
+                .Where(x => x.IsCasting && x.CastActionId == 46375)
+                .FirstOrDefault();
+            if (target == null) return null;
+
+            return MathHelper.GetPointFromAngleAndDistance(target.Position.ToVector2(), target.Rotation + MathF.PI, 3f);
+        }
+    }
+
     public class Config : IEzConfig
     {
         public bool BaseLP1 = true;

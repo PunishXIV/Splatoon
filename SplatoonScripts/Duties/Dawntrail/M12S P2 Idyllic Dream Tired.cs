@@ -30,7 +30,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(6, "NightmareXIV, Redmoon");
+    public override Metadata Metadata { get; } = new(7, "NightmareXIV, Redmoon");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -112,19 +112,21 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             "{\"Name\":\"\",\"type\":1,\"radius\":6.3,\"Donut\":0.2,\"fillIntensity\":0.5,\"thicc\":5.0,\"refActorType\":1,\"DistanceMax\":25.199999}");
 
         Controller.RegisterElementFromCode("FarCone1",
-            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.15,\"includeRotation\":true,\"FaceMe\":true}");
         Controller.RegisterElementFromCode("FarCone2",
-            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.15,\"includeRotation\":true,\"FaceMe\":true}");
         Controller.RegisterElementFromCode("NearCone1",
-            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.15,\"includeRotation\":true,\"FaceMe\":true}");
         Controller.RegisterElementFromCode("NearCone2",
-            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.5,\"includeRotation\":true,\"FaceMe\":true}");
+            "{\"Name\":\"\",\"type\":4,\"radius\":60.0,\"coneAngleMin\":-15,\"coneAngleMax\":15,\"color\":3372155131,\"fillIntensity\":0.15,\"includeRotation\":true,\"FaceMe\":true}");
 
         Controller.RegisterElement("stack tether", new Element(0)
         {
             thicc = 5f,
             radius = 4.5f,
             tether = true,
+            Filled = false,
+            Donut = 0.5f,
         });
     }
 
@@ -663,29 +665,49 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         if (Phase is 13 or 16 or 17)
         {
-            var stack1Pos = Vector3.Zero;
-            var stack2Pos = Vector3.Zero;
+            Vector3 finalPosition;
+            Vector3 getPosition(string element)
             {
-                if (Controller.TryGetElementByName($"Stack1", out var e))
-                    stack1Pos = new Vector3(e.refX, e.refZ, e.refY);
+                var e = Controller.GetElementByName(element);
+                return new(e?.refX ?? 0, e?.refZ ?? 0, e?.refY ?? 0);
             }
+            List<Vector3> stackPos = [getPosition("Stack1"), getPosition("Stack2")];
+
+            if(C.StackEnumPrioHorizontal)
             {
-                if (Controller.TryGetElementByName($"Stack2", out var e))
-                    stack2Pos = new Vector3(e.refX, e.refZ, e.refY);
+                if(stackPos[0].X.ApproximatelyEquals(stackPos[1].X, 1)) //horizontally equal
+                {
+                    //apply vertical prio
+                    stackPos = stackPos.OrderBy(x => x.Z).ToList();
+                    finalPosition = stackPos[C.StackEnumVerticalNorth ? 0 : 1];
+                }
+                else
+                {
+                    stackPos = stackPos.OrderBy(x => x.X).ToList();
+                    finalPosition = stackPos[C.StackEnumHorizontalWest ? 0 : 1];
+                }
+            }
+            else
+            {
+                if(stackPos[0].Z.ApproximatelyEquals(stackPos[1].Z, 1)) //vertically equal
+                {
+                    //apply horizontal prio
+                    stackPos = stackPos.OrderBy(x => x.X).ToList();
+                    finalPosition = stackPos[C.StackEnumHorizontalWest ? 0 : 1];
+                }
+                else
+                {
+                    stackPos = stackPos.OrderBy(x => x.Z).ToList();
+                    finalPosition = stackPos[C.StackEnumVerticalNorth ? 0 : 1];
+                }
             }
 
-            if (Vector2.Distance(stack1Pos.ToVector2(), new Vector2(100f, 86f)) < 2)
             {
-                (stack1Pos, stack2Pos) = (stack2Pos, stack1Pos);
-            }
-            
-            {
-                if (Controller.TryGetElementByName("stack tether", out var e))
+                if(Controller.TryGetElementByName("stack tether", out var e))
                 {
                     e.Enabled = true;
                     e.color = GetRainbowColor(1f).ToUint();
-                    e.SetRefPosition(C.IsStackLeft ? stack2Pos : stack1Pos);
-                    e.Enabled = true;
+                    e.SetRefPosition(finalPosition);
                 }
             }
         }
@@ -815,14 +837,10 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     ImGuiEx.RealtimeDragDrop<PickupOrder> PickupDrag = new("DePiOrd", x => x.ToString());
     public override void OnSettingsDraw()
     {
-        ImGui.SetNextItemWidth(150f);
-        ImGuiEx.EnumCombo("My tower position, looking at boss", ref C.TowerPosition);
-        ImGuiEx.RadioButtonBool("West platform", "East platform", ref C.IsGroup1);
-        ImGuiEx.RadioButtonBool("Taken far is Melee", "Taken far is Ranged", ref C.TakenFarIsMelee);
-        ImGuiEx.RadioButtonBool("Stack left", "Stack right", ref C.IsStackLeft);
-        ImGuiEx.HelpMarker(
-            "After processing the tower, look at the center from the outside and decide which stack to enter (left or right)");
+        ImGuiEx.TextWrapped(EColor.OrangeBright, "Defaults are for tired guide with uptime defamations/stacks. Go to Registered Elements tab and change positions as you want, this script can be adapted for the most strats that are here.");
         ImGui.Separator();
+        ImGuiEx.Text(EColor.YellowBright, "Tethers:");
+        ImGui.Indent();
         ImGuiEx.Text($"Defamation Pickup order, starting from North clockwise:");
         PickupDrag.Begin();
         for(int i = 0; i < C.Pickups.Count; i++)
@@ -830,9 +848,40 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             PickupOrder x = C.Pickups[i];
             PickupDrag.DrawButtonDummy(x.ToString(), C.Pickups, i);
             ImGui.SameLine();
-            ImGuiEx.Text($"{x}");
+            ImGuiEx.TextV($"{x}");
         }
         PickupDrag.End();
+        ImGui.Unindent();
+
+        ImGuiEx.Text(EColor.YellowBright, "Towers:");
+        ImGui.Indent();
+        ImGui.SetNextItemWidth(150f);
+        ImGuiEx.EnumCombo("My tower position, looking at boss", ref C.TowerPosition);
+
+        ImGuiEx.TextV("Platform:");
+        ImGui.SameLine();
+        ImGuiEx.RadioButtonBool("West", "East", ref C.IsGroup1, true);
+
+        ImGuiEx.TextV("Taken far is:");
+        ImGui.SameLine();
+        ImGuiEx.RadioButtonBool("Melee", "Ranged", ref C.TakenFarIsMelee, true);
+        ImGui.Unindent();
+
+        ImGuiEx.Text(EColor.YellowBright, $"Reenactment stacks");
+        ImGui.Indent();
+        ImGuiEx.TextV($"When stack clones are arranged horizontally (west to east):");
+        ImGui.Indent();
+        ImGuiEx.RadioButtonBool("Take west stack", "Take east stack", ref C.StackEnumHorizontalWest, false);
+        ImGui.Unindent();
+        ImGuiEx.TextV($"When stack clones are arranged vertically (north to south):");
+        ImGui.Indent();
+        ImGuiEx.RadioButtonBool("Take north stack", "Take south stack", ref C.StackEnumVerticalNorth, false);
+        ImGui.Unindent();
+        ImGuiEx.TextV($"When stack clones are not directly horizontal or vertical to each other:");
+        ImGui.Indent();
+        ImGuiEx.RadioButtonBool("Use horizontal enumeration (west to east)", "Use vertical enumeration (north to south)", ref C.StackEnumPrioHorizontal, false);
+        ImGui.Unindent();
+        ImGui.Unindent();
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -880,6 +929,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         public bool TakenFarIsMelee = true;
         public bool IsStackLeft = true;
         public List<PickupOrder> Pickups = [PickupOrder.Stack_1, PickupOrder.Stack_2, PickupOrder.Stack_3, PickupOrder.Stack_4, PickupOrder.Defamation_1, PickupOrder.Defamation_2, PickupOrder.Defamation_3, PickupOrder.Defamation_4];
+        public bool StackEnumPrioHorizontal = false;
+        public bool StackEnumVerticalNorth = true;
+        public bool StackEnumHorizontalWest = true;
     }
     Config C => Controller.GetConfig<Config>();
 

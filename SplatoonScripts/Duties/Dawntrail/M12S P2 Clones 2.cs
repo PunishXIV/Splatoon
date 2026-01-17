@@ -317,12 +317,12 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
             if (ImGui.Button("Configure Jp strat"))
             {
-                C.BaseLP1 = false;
+                C.BaseLP1 = true;
                 C.BaseNum = 3;
-                C.LP1 = [Direction.W, Direction.SW, Direction.S, Direction.SE];
-                C.LP2 = [Direction.NW, Direction.N, Direction.NE, Direction.E];
-                C.LP1Tethers = [TetherKind.Nothing, TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack];
-                C.LP2Tethers = [TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack, TetherKind.Boss];
+                C.LP1 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
+                C.LP2 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
+                C.LP1Tethers = [TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack, TetherKind.Boss];
+                C.LP2Tethers = [TetherKind.Nothing, TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack];
                 C.Phase1Positions =
                 [
                     new()
@@ -330,7 +330,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                         [TetherKind.Stack] = new(119, 104),
                         [TetherKind.Fan] = new(117.5f, 108),
                         [TetherKind.Defamation] = new(100, 119.5f),
-                        [TetherKind.Boss] = new(111, 100)
+                        [TetherKind.Boss] = new(113.75f, 100)
                     },
                     new()
                     {
@@ -361,14 +361,14 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 [
                     new()
                     {
-                        [TetherKind.Stack] = new(114, 102.5f),
+                        [TetherKind.Stack] = new(115.8f, 102.5f),
                         [TetherKind.Fan] = new(117.5f, 105.5f),
                         [TetherKind.Defamation] = new(108f, 99.5f),
                         [TetherKind.Boss] = new(108f, 99.5f)
                     },
                     new()
                     {
-                        [TetherKind.Stack] = new(113.75f, 97f),
+                        [TetherKind.Stack] = new(115.8f, 97.5f),
                         [TetherKind.Fan] = new(117.5f, 94.5f),
                         [TetherKind.Defamation] = new(108f, 99.5f),
                         [TetherKind.Nothing] = new(108f, 99.5f)

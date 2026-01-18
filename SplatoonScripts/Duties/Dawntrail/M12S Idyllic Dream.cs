@@ -23,7 +23,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1327];
 
-    public override Metadata? Metadata => new(1, "Errer");
+    public override Metadata? Metadata => new(2, "Errer");
 
     #region 常量 (Constants)
 
@@ -156,7 +156,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
         public uint ColorDanger = 0xFFFF0000;  // 红色 (Red)
         public bool EnableDraw = true; // 是否启用绘制 (Enable drawing)
         public bool EnableGuidance = true; // 是否启用指路绘制 (Enable guidance drawing)
-        public bool DebugTetherAll = true; // Debug模式: 连线所有玩家; 正常模式: 只连线自己 (Debug mode: tether all players; Normal mode: only tether self)
+        public bool DebugTetherAll = false; // Debug模式: 连线所有玩家; 正常模式: 只连线自己 (Debug mode: tether all players; Normal mode: only tether self)
     }
 
     #endregion
@@ -403,8 +403,8 @@ public class M12S_Idyllic_Dream : SplatoonScript
                 _waitingForTimeWarp = false;
                 _sixthRoundCirclePositions.Clear();
                 Vector3[] targetWaymarks = _firstSpawnType == "正点"
-                    ? new[] { WaymarkC, WaymarkD }
-                    : new[] { Waymark1, Waymark2 };
+                    ? new[] { WaymarkC, WaymarkD } // 正点先 (Cardinal first): C/D
+                    : new[] { Waymark1, Waymark2 }; // 斜点先 (Intercardinal first): 1/2
 
                 foreach(var waymark in targetWaymarks)
                 {
@@ -479,7 +479,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     _eighthRoundCirclePositions.Clear();
                     Vector3[] targetWaymarks = _firstSpawnType == "正点"
                         ? new[] { Waymark1, Waymark2 }  // 正点先 (Cardinal first): 1/2
-                        : new[] { WaymarkA, WaymarkB }; // 斜点先 (Intercardinal first): A/B
+                        : new[] { WaymarkC, WaymarkD }; // 斜点先 (Intercardinal first): C/D
 
                     foreach(var waymark in targetWaymarks)
                     {
@@ -491,7 +491,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     }
 
                     _eighthRoundDrawTime = Environment.TickCount64 + C.EighthCircleDelayMs;
-                    var waymarkNames = _firstSpawnType == "正点" ? "1/2" : "A/B";
+                    var waymarkNames = _firstSpawnType == "正点" ? "1/2" : "C/D";
                     AddLog($"  -> 第8次心象投影 (8th Mental Projection)! {C.EighthCircleDelayMs / 1000f}秒后绘制 (sec until drawing) {waymarkNames}附近 (nearby) 19210大圈 (large circles) (找到 (found){_eighthRoundCirclePositions.Count}个)");
                 }
             }

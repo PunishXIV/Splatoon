@@ -2,7 +2,7 @@
 >
 >[Also import ToolerOfLight's presets. ](https://github.com/ToolerofLight/myfiles/blob/main/Splatoon/%5B7.x%5D%E9%BB%84%E9%87%91%E3%81%AE%E3%83%AC%E3%82%AC%E3%82%B7%E3%83%BC/%E9%9B%B6%E5%BC%8F/%5B7.4%5D%E3%82%A2%E3%83%AB%E3%82%AB%E3%83%87%E3%82%A3%E3%82%A2%E3%83%98%E3%83%93%E3%83%BC%E7%B4%9A4%E5%B1%A4%E9%9B%B6%E5%BC%8F.md) 
 
-# 1
+# Replication 1
 
 [Script] Clones highlight for Replication 1
 ```
@@ -14,8 +14,8 @@ Replication 1 Debuff and aoe size highlight
 ~Lv2~{"Name":"M12S P2 Stack/spread on clones","Group":"M12S P2","ZoneLockH":[1327],"ConditionalAnd":true,"ElementsL":[{"Name":"","type":1,"radius":2.5,"Donut":0.5,"color":3355508223,"fillIntensity":0.5,"overlayTextColor":3355506687,"overlayVOffset":2.0,"thicc":4.0,"overlayText":"Stack","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[3323],"Conditional":true,"Nodraw":true},{"Name":"fire down","type":1,"radius":0.0,"color":3355487743,"Filled":false,"fillIntensity":0.5,"overlayTextColor":3355506687,"overlayVOffset":3.0,"thicc":0.0,"overlayText":"Go to dark clone","refActorRequireBuff":true,"refActorBuffId":[3323],"refActorRequireBuffsInvert":true,"refActorType":1},{"Name":"dark down","type":1,"radius":0.0,"Donut":0.2,"color":3358850816,"Filled":false,"fillIntensity":0.5,"overlayTextColor":3355508484,"overlayVOffset":3.0,"thicc":0.0,"overlayText":"Go to fire clone","refActorRequireBuff":true,"refActorBuffId":[3323],"refActorType":1},{"Name":"","type":1,"refActorNPCNameID":14380,"refActorRequireCast":true,"refActorCastId":[46303,46303,46304,46347,46349,46350,47576,46303,46304,46347,46349,46350,47576],"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"dark down","type":1,"radius":4.5,"Donut":0.5,"color":3358850816,"fillIntensity":0.5,"overlayTextColor":3355508484,"overlayVOffset":2.0,"thicc":4.0,"overlayText":"Stack","refActorRequireBuff":true,"refActorBuffId":[3323],"refActorType":1},{"Name":"fire down","type":1,"radius":5.0,"color":3355487743,"Filled":false,"fillIntensity":0.5,"overlayTextColor":3355506687,"overlayVOffset":2.0,"thicc":4.0,"overlayText":"Spread","refActorRequireBuff":true,"refActorBuffId":[3323],"refActorRequireBuffsInvert":true,"refActorType":1}]}
 ```
 
-# 2
-[Script] [Beta] Clones 1 (Replication 1) script
+# Replication 2
+[Script] [Beta] Clones 2 (Replication 2) script
 
 Version 4 should have tether fixed and now both tethers are highlighted, but still watch it and verify it
 
@@ -56,7 +56,7 @@ Heat buff notify
 ~Lv2~{"Name":"热病","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"热病点名","type":1,"radius":1.0,"overlayVOffset":1.0,"overlayFScale":2.0,"overlayText":"Don't MOVE","overlayTextIntl":{"En":"Don't MOVE","Jp":"Don't MOVE","De":"Don't MOVE","Fr":"Don't MOVE","Other":"热病别动"},"refActorRequireBuff":true,"refActorBuffId":[4768],"refActorType":1}]}
 ```
 
-### [Script] M12S Idyllic Dream
+### [Script] M12S Idyllic Dream CN
 > [!IMPORTANT]
 >
 > Supports 4A1 waymark order.
@@ -75,18 +75,16 @@ https://youtu.be/GJApjyNryQo
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20Idyllic%20Dream.cs
 ```
 
-### [Script] [WIP] [Beta]
-Idyllic Dream - [based on Tired guide](https://www.youtube.com/watch?v=pL5NGwkaTFs).
+### [Script] [WIP] [Beta] Idyllic Dream Global.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Idyllic%20Dream%20Tired.cs
 ```
-- Can probably be reconfigured for other guides too
-- Will show: which tether to pick up, defamation and stack AOEs, stored clone AOEs, positions for defa/stacks
-- By default, positions for defamations and stacks are shown for uptime strat, you can relocate elements in elements tab
-- - Group 1 is considered: North to SouthEast
-- - Group 2 is considered: South to NorthWest
-  - Order is as when you pick up a tether. 
-- In progress: towers and precise positions for rewind aoes
+For this script, you NEED to either configure it or import configuration.
+Config for tired guide: https://www.youtube.com/watch?v=pL5NGwkaTFs
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Idyllic_Dream_Tired","ConfigurationName":"EU Pastebin","Configuration":"iyCA77u/eyJUb3dlclBvc2l0aW9uIjoxLCJJc0dyb3VwMSI6dHJ1ZSwiUGlja3VwcyI6WzAsNCw1LDEsMiw2LDcsM119Aw==","Overrides":"G6KHAKwKbGNp0G9oDtc033e4pEG6rvd2f98tq+nrS3l3AjOtiITpmSUnUAmR0CmuPl1MUvnqlksCATBzs/L3G3uViML1VdZW1v3PtuQrVFU5yV2KOGC8uwyQPJL2QFYCkrB7E2bezG0Zs7w4Jzhg5zXEdsIG1VAL78e2Pd/K7AO1UyfE0ZV3PDhUV3Z+czCkVn/MbjzHy5eoCtD2skrP348lECijII0XqVBuH/L9/eABcQoTNrSYCqI5pk1odBlp1Put80y7Kst+u1GqBnA2XQPktd+uzycOr31toV+z17rGKO4c8oE8tUAnBTXeIftIQlFDw5b9EiqRJeq7BGJVhSdNmqvOinuMy9Vh5Di8Ardcl5t9XybMaXzD0VTOpijxc5oiwgDI5PbhSE8IZGXrD9ryBonYwAa6KtKj4mMFNHTuDCQUMy439NlUXgtO2w266TuJ0LykPsM68TWBTA38ci7SNTaLoPhDahrfl+/TSNN2laoSm+Ma4MErtR4xVyBPSMbpLqGRDYBABvLlQJbHBTXmfyYSXceiWCtGUZY0C6oAbaZ+pG06XVrJ7MLsiG3fJelbcgchBqkHfLkttSkbrBXLMZ7atZeOSntQpI2sX3fEr0wZCBArHqGDboMLxDSNWIaVaJxWfQBphy7YuL+znAcMAatN3jfKwMG3ovhUUPqiHxYkBKxkzch9sOChgMZ1mYmNI7WsJlFdBBmXv9M9xdcUMThz/+BLkcezRdnD7WBTeRcwQ2qHUt0egT2YcsyylOjxWV4eCTAoqRElolViFqj0edMxqGrS5iKBbQlCnziOxJDP8XqJZ+MDp1aABNTI3CkxFTkBTkQ4y7T8eRV/jzOy1UWxOpB0q3if2CuCBB9FDBGJUSPQeeMNmAR6WetgZacQyQB6FzHloGpZuTZIJhdtU0JWWahzUwWj9UuMhOX6TaycoyMpXQArwlURplaLM9fU2L44BbGmioFOXVvrPh00Wfxw5t/7rLTlJBJvk5E0uh73M0/MbR+mlgiMkDaxtdqvvLSAm82+wduKVOGS2zWW/VVI3s+PHliaYH6oUY9P2cIrPbcKbitoKcEfeIG+AzL2D5aYRNweYvSAzfV6NMSSbib377rL7KH9GBywAgMixNuhyqTCnx2BssdYeIoT0Ogf3o+68cvStSqm9U9wT/rMjeDh/SkRrMdtYRWbslP8R/mJOEzW9v/FdT94e2g/EgdfaCIrFJOT+qSEfgWiIilckl3ybQlVb2magwALoCN+Q7JzGnw3Gh5wbFNk2U4eD5AE+h/cxORazOHsEX7lVn7rJVmUYJT+cVnH2yL0piuBla2+kxkUwylcXyLzOIReA4M0Ic52362FwUOu6XohStpW3YNqbD4eroW4GSkXD8sMgczDNP8ggduC+uwqlrZzJfSvdKWr69GFS360z+vrKzO7Kd/ffSNjErMSMphtauy9eACAh0eAfEgZ4zV4ira0qnV36c9yPgSt9tRTYB6n/XoEAEC4wDSJMu4WEI40Hatj0oFIH9ybRuEeCQQAfNfAeHtnwRLkhUsCSxdVG8kLlHkZKLcRbVK/NAEAfPqFTiywHcfNa8/lGGVd+2OhfwEEAGzzrrdQtrZf"}
+```
+For EU
 
 Stored AOEs (don't need with either scripts):
 ```

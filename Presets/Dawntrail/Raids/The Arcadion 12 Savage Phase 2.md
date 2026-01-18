@@ -48,7 +48,17 @@ Netherworld-far and Netherworld-near
 
 Green Tower Knockback Position
 ```
-~Lv2~{"Name":"风塔击飞站位","Group":"M12S P2","ZoneLockH":[1327],"ElementsL":[{"Name":"FAR TOWER","type":1,"offX":2.5,"refActorDataID":2015013,"refActorComparisonType":3,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMin":15.0,"DistanceMax":25.0},{"Name":"CLOSE TOWER","type":1,"offX":-2.5,"refActorDataID":2015013,"refActorComparisonType":3,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":15.0}]}
+~Lv2~{"Name":"风塔击飞站位","Group":"M12S P2","ZoneLockH":[1327],"DCond":5,"UseTriggers":true,"Triggers":[{"TimeBegin":395.0,"Duration":20.0}],"ElementsL":[{"Name":"FAR TOWER","type":1,"offX":2.5,"refActorDataID":2015013,"refActorComparisonType":3,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMin":15.0,"DistanceMax":25.0},{"Name":"CLOSE TOWER","type":1,"offX":-2.5,"refActorDataID":2015013,"refActorComparisonType":3,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":15.0}]}
+```
+
+Green Knockback tower tether
+```
+~Lv2~{"Name":"风塔击飞预测","Group":"M12S P2","ZoneLockH":[1327],"MaxDistance":3.0,"UseDistanceLimit":true,"DistanceLimitType":1,"ElementsL":[{"Name":"击飞预测","type":1,"radius":0.0,"color":4288413440,"Filled":false,"fillIntensity":0.0,"overlayBGColor":4294914815,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":1.4,"thicc":3.0,"refActorDataID":2015013,"refActorComparisonType":3,"tether":true,"ExtraTetherLength":25.0,"LineEndB":1,"DistanceSourceX":83.93563,"DistanceSourceY":96.76696,"DistanceSourceZ":-7.1526574E-07,"DistanceMax":10.0,"UseDistanceSourcePlaceholder":true,"mechanicType":5}]}
+```
+
+Brown Tower Reminder
+```
+~Lv2~{"Name":"土塔注意","Group":"M12S P2","ZoneLockH":[1327],"DCond":5,"UseTriggers":true,"Freezing":true,"FreezeFor":5.0,"IntervalBetweenFreezes":9999.0,"Triggers":[{"TimeBegin":400.0,"Duration":20.0}],"ElementsL":[{"Name":"土塔","type":1,"radius":3.0,"refActorDataID":2015015,"refActorComparisonType":3}]}
 ```
 
 Heat buff notify

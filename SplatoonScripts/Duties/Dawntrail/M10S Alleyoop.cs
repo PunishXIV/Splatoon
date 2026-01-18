@@ -73,11 +73,7 @@ internal class M10S_Alleyoop : SplatoonScript
     {
         get
         {
-            if (C.basePlayerOverride == "") return Player.Object;
-            if (!Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback])
-                return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(C.basePlayerOverride)) ?? Player.Object;
+            return Splatoon.Splatoon.BasePlayer;
         }
     }
 
@@ -164,7 +160,6 @@ internal class M10S_Alleyoop : SplatoonScript
 
     public class Config : IEzConfig
     {
-        public string basePlayerOverride;
     }
 
     public override void OnSettingsDraw()

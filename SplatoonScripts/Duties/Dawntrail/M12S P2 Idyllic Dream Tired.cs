@@ -510,69 +510,74 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
             if (Phase11Sub == 1) // cone goes
             {
-                var pcs = Svc.Objects.OfType<IPlayerCharacter>().ToList();
-
-                var farBuffer = pcs.Where(x => x.StatusList.Any(y => y.StatusId == 4766)).ToList();
-                var nearBuffer = pcs.Where(x => x.StatusList.Any(y => y.StatusId == 4767)).ToList();
-
-                if (farBuffer.Count + nearBuffer.Count != 4) return;
-
-                for (var i = 0; i < farBuffer.Count; i++)
+                if (!C.DontShowElementsP11S1) // preliminary
                 {
-                    var buffer = farBuffer[i];
-                    // Find the farthest object in pcs
-                    var farthest = pcs.OrderByDescending(x =>
-                        Vector3.DistanceSquared(x.Position, buffer.Position)).FirstOrDefault();
-                    if (farthest == null) return;
+                    var pcs = Svc.Objects.OfType<IPlayerCharacter>().ToList();
+
+                    var farBuffer = pcs.Where(x => x.StatusList.Any(y => y.StatusId == 4766)).ToList();
+                    var nearBuffer = pcs.Where(x => x.StatusList.Any(y => y.StatusId == 4767)).ToList();
+
+                    if (farBuffer.Count + nearBuffer.Count != 4) return;
+
+                    for (var i = 0; i < farBuffer.Count; i++)
                     {
-                        if (Controller.TryGetElementByName($"FarCone{i + 1}", out var e))
+                        var buffer = farBuffer[i];
+                        // Find the farthest object in pcs
+                        var farthest = pcs.OrderByDescending(x =>
+                            Vector3.DistanceSquared(x.Position, buffer.Position)).FirstOrDefault();
+                        if (farthest == null) return;
                         {
-                            e.refActorComparisonType = 2;
-                            e.refActorObjectID = buffer.EntityId;
-                            e.faceplayer = GetPlayerOrder(farthest);
-                            e.Enabled = true;
+                            if (Controller.TryGetElementByName($"FarCone{i + 1}", out var e))
+                            {
+                                e.refActorComparisonType = 2;
+                                e.refActorObjectID = buffer.EntityId;
+                                e.faceplayer = GetPlayerOrder(farthest);
+                                e.Enabled = true;
+                            }
                         }
                     }
-                }
 
-                for (var i = 0; i < nearBuffer.Count; i++)
-                {
-                    var buffer = nearBuffer[i];
-                    // Find the nearest object in pcs
-                    var nearest = pcs.OrderBy(x =>
-                        Vector3.Distance(x.Position, buffer.Position)).Skip(1).FirstOrDefault();
-                    if (nearest == null) return;
-                    if (Controller.TryGetElementByName($"NearCone{i + 1}", out var e11))
+                    for (var i = 0; i < nearBuffer.Count; i++)
                     {
-                        e11.refActorComparisonType = 2;
-                        e11.refActorObjectID = buffer.EntityId;
-                        e11.faceplayer = GetPlayerOrder(nearest);
-                        e11.Enabled = true;
+                        var buffer = nearBuffer[i];
+                        // Find the nearest object in pcs
+                        var nearest = pcs.OrderBy(x =>
+                            Vector3.Distance(x.Position, buffer.Position)).Skip(1).FirstOrDefault();
+                        if (nearest == null) return;
+                        if (Controller.TryGetElementByName($"NearCone{i + 1}", out var e11))
+                        {
+                            e11.refActorComparisonType = 2;
+                            e11.refActorObjectID = buffer.EntityId;
+                            e11.faceplayer = GetPlayerOrder(nearest);
+                            e11.Enabled = true;
+                        }
                     }
-                }
 
-                var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
-                var elementName = (C.TakenFarIsMelee, isMelee) switch
-                {
-                    (true, true) => "Taken Far",
-                    (true, false) => "Taken Near",
-                    (false, true) => "Taken Near",
-                    (false, false) => "Taken Far",
-                };
-
-                // Has Far
-                if (BasePlayer.StatusList.Any(y => y.StatusId == 4766)) elementName = "Given Far";
-                else if (BasePlayer.StatusList.Any(y => y.StatusId == 4767)) elementName = "Given Near";
-                {
-                    if (Controller.TryGetElementByName(elementName, out var e))
+                    var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
+                    var elementName = (C.TakenFarIsMelee, isMelee) switch
                     {
-                        if ((BasePlayer.Position.X > 100 && e.refX < 100) ||
-                            (BasePlayer.Position.X < 100 && e.refX > 100))
-                            e.refX = 200 - e.refX; // mirror
-                        e.color = GetRainbowColor(1f).ToUint();
-                        e.tether = true;
-                        e.thicc = 5f;
-                        e.Enabled = true;
+                        (true, true) => "Taken Far",
+                        (true, false) => "Taken Near",
+                        (false, true) => "Taken Near",
+                        (false, false) => "Taken Far",
+                    };
+
+                    // Has Far
+                    if (BasePlayer.StatusList.Any(y => y.StatusId == 4766)) elementName = "Given Far";
+                    else if (BasePlayer.StatusList.Any(y => y.StatusId == 4767)) elementName = "Given Near";
+                    {
+
+                        if (Controller.TryGetElementByName(elementName, out var e))
+                        {
+                            if ((BasePlayer.Position.X > 100 && e.refX < 100) ||
+                                (BasePlayer.Position.X < 100 && e.refX > 100))
+                                e.refX = 200 - e.refX; // mirror
+                            e.color = GetRainbowColor(1f).ToUint();
+                            e.tether = true;
+                            e.thicc = 5f;
+                            e.Enabled = true;
+                        }
+
                     }
                 }
 
@@ -895,6 +900,12 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         ImGuiEx.RadioButtonBool("Use horizontal enumeration (west to east)", "Use vertical enumeration (north to south)", ref C.StackEnumPrioHorizontal, false);
         ImGui.Unindent();
         ImGui.Unindent();
+        
+        ImGui.Separator();
+        ImGuiEx.Text(EColor.YellowBright, "Preliminary:");
+        ImGui.Indent();
+        ImGuiEx.Checkbox("Don't show elements in P11S1 (cones and tether)", ref C.DontShowElementsP11S1);
+        ImGui.Unindent();
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -945,6 +956,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         public bool StackEnumPrioHorizontal = false;
         public bool StackEnumVerticalNorth = true;
         public bool StackEnumHorizontalWest = true;
+        
+        // preliminary
+        public bool DontShowElementsP11S1 = false;
     }
     Config C => Controller.GetConfig<Config>();
 

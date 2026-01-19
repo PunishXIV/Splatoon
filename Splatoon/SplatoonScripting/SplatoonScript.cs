@@ -6,6 +6,7 @@ using ECommons.Configuration;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
+using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,6 +26,16 @@ public abstract class SplatoonScript
     {
         Controller = new(this);
     }
+
+    /// <summary>
+    /// Provides per-script throttlers on demand
+    /// </summary>
+    public EzThrottler<string> EzThrottler => field ??= new();
+
+    /// <summary>
+    /// Provides per-script throttlers on demand
+    /// </summary>
+    public FrameThrottler<string> FrameThrottler => field ??= new();
 
     /// <summary>
     /// Controller provides easy access to various helper functions that may be helpful for your script.

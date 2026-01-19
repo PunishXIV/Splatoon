@@ -240,13 +240,23 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         return ret;
     }
 
-    IBattleNpc[] TetherCandidates => Svc.Objects.OfType<IBattleNpc>().Where(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.Id == (uint)GetDesiredTether())).OrderBy(x =>
+    IBattleNpc[] TetherCandidates
     {
-        var relAngle = 45 * (int)BaseDirection;
-        var a = (MathHelper.GetRelativeAngle(new(100, 0, 100), x.Position) + relAngle + 180 - 5) % 360;
-        PluginLog.Information($"Tether at {a} {x.Position}");
-        return a;
-    }).ToArray();
+        get
+        {
+            var relAngle = 45 * (int)BaseDirection;
+            var objects = Svc.Objects.OfType<IBattleNpc>().Where(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.Id == (uint)GetDesiredTether()));
+            var ordered = MathHelper.EnumerateObjectsClockwise(objects, x => x.Position.ToVector2(), new(100, 100), relAngle - 5);
+
+            for(int i = 0; i < ordered.Count; i++)
+            {
+                var x = ordered[i];
+                var e = GetDebugElement(x.Position.ToVector2(), $"Ordered: {i+1}", EColor.RedBright);
+                e.Enabled = true;
+            }
+            return ordered.ToArray();
+        }
+    }
 
     TetherKind GetDesiredTether()
     {

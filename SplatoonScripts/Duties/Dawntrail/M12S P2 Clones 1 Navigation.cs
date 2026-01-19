@@ -35,35 +35,34 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
     }
 
     private const uint DebuffId = 3323;
-    private const float AnchorDetectRadius = 3.5f;
+    private const float PosDetectRadius = 3.5f;
     private const uint DarknessCast = 46303;
+    private const int DebugElementCount = 8;
+    
+    private static readonly Vector3 PosNE = new(108f, 0f, 92f);
+    private static readonly Vector3 PosSE = new(108f, 0f, 108f);
+    private static readonly Vector3 PosSW = new(92f, 0f, 108f);
+    private static readonly Vector3 PosNW = new(92f, 0f, 92f);
 
-    // TODO: Update placeholder coordinates (wait/anchor/center).
-    private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
-
-    private static readonly Vector3 WaitNE = new(108f, 0f, 92f);
-    private static readonly Vector3 WaitSE = new(108f, 0f, 108f);
-    private static readonly Vector3 WaitSW = new(92f, 0f, 108f);
-    private static readonly Vector3 WaitNW = new(92f, 0f, 92f);
-
-    private static readonly Vector3 AnchorNE = new(108f, 0f, 92f);
-    private static readonly Vector3 AnchorSE = new(108f, 0f, 108f);
-    private static readonly Vector3 AnchorSW = new(92f, 0f, 108f);
-    private static readonly Vector3 AnchorNW = new(92f, 0f, 92f);
-
-    // Base positions are calibrated with South-East treated as "north".
     private static readonly Vector3 NavMeleeLeft = new(102.5f, 0f, 93.2f);
-    private static readonly Vector3 NavMeleeRight = new(93f, 0f, 101.3f);
+    private static readonly Vector3 NavMeleeRight = new(93.5f, 0f, 101.8f);
     private static readonly Vector3 NavRangeLeft = new(113.5f, 0f, 99f);
     private static readonly Vector3 NavRangeRight = new(99f, 0f, 114f);
     private static readonly Vector3 NavMeleeDebuff = new(101f, 0f, 101.5f);
-    private static readonly Vector3 NavRangeDebuff = new(86f, 0f, 101f);
+    private static readonly Vector3 NavRangeDebuff = new(86.5f, 0f, 100.5f);
+    private static readonly RoleSlot[] DebugRoleOrder =
+    [
+        RoleSlot.MeleeLeft,
+        RoleSlot.MeleeRight,
+        RoleSlot.RangeLeft,
+        RoleSlot.RangeRight
+    ];
 
     private Phase CurrentPhase = Phase.Idle;
     private List<uint> DarknessClones = [];
     private Corner? DetectedNorth;
     private uint MasterDarknessClone;
-    public override Metadata Metadata { get; } = new(1, "Garume");
+    public override Metadata Metadata { get; } = new(2, "Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     private Config C => Controller.GetConfig<Config>();
@@ -72,6 +71,13 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
     {
         Controller.RegisterElementFromCode("Nav",
             """{"Name":"","refX":100.0,"refY":100.0,"radius":0.7,"color":3357671168,"Filled":false,"fillIntensity":0.5,"thicc":9.0,"tether":true}""");
+        for (var i = 0; i < DebugElementCount; i++)
+        {
+            Controller.RegisterElementFromCode($"Debug{i}",
+                """{"Name":"","radius":0.7,"Filled":false,"fillIntensity":0.5,"thicc":9.0}""");
+            if (Controller.TryGetElementByName($"Debug{i}", out var e))
+                e.color = EColor.RedBright.ToUint();
+        }
     }
 
     public override void OnReset()
@@ -104,6 +110,7 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
         ImGui.SameLine();
         ImGui.ColorEdit4("Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
         ImGui.Unindent();
+        ImGui.Checkbox("Show Debug", ref C.ShowDebug);
 
         if (ImGui.CollapsingHeader("Debug"))
         {
@@ -119,6 +126,7 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
         Controller.Hide();
         UpdateDarkClones();
         UpdateNavigation();
+        UpdateDebug();
     }
 
     private void UpdateDarkClones()
@@ -152,11 +160,11 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
                     e.Enabled = true;
                     var pos = C.WaitSpot switch
                     {
-                        Corner.NE => WaitNE,
-                        Corner.SE => WaitSE,
-                        Corner.SW => WaitSW,
-                        Corner.NW => WaitNW,
-                        _ => WaitNE
+                        Corner.NE => PosNE,
+                        Corner.SE => PosSE,
+                        Corner.SW => PosSW,
+                        Corner.NW => PosNW,
+                        _ => PosNE
                     };
                     e.SetRefPosition(pos);
                 }
@@ -176,29 +184,29 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
                 foreach (var cloneId in DarknessClones)
                 {
                     if (!cloneId.TryGetBattleNpc(out var clone)) continue;
-                    var dist = Vector3.Distance(clone.Position, AnchorNE);
-                    if (dist <= AnchorDetectRadius && dist < bestDistance)
+                    var dist = Vector3.Distance(clone.Position, PosNE);
+                    if (dist <= PosDetectRadius && dist < bestDistance)
                     {
                         bestDistance = dist;
                         north = Corner.NE;
                     }
 
-                    dist = Vector3.Distance(clone.Position, AnchorSE);
-                    if (dist <= AnchorDetectRadius && dist < bestDistance)
+                    dist = Vector3.Distance(clone.Position, PosSE);
+                    if (dist <= PosDetectRadius && dist < bestDistance)
                     {
                         bestDistance = dist;
                         north = Corner.SE;
                     }
 
-                    dist = Vector3.Distance(clone.Position, AnchorSW);
-                    if (dist <= AnchorDetectRadius && dist < bestDistance)
+                    dist = Vector3.Distance(clone.Position, PosSW);
+                    if (dist <= PosDetectRadius && dist < bestDistance)
                     {
                         bestDistance = dist;
                         north = Corner.SW;
                     }
 
-                    dist = Vector3.Distance(clone.Position, AnchorNW);
-                    if (dist <= AnchorDetectRadius && dist < bestDistance)
+                    dist = Vector3.Distance(clone.Position, PosNW);
+                    if (dist <= PosDetectRadius && dist < bestDistance)
                     {
                         bestDistance = dist;
                         north = Corner.NW;
@@ -222,29 +230,68 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
 
                 if (DetectedNorth == null) break;
                 var hasDebuff = BasePlayer.StatusList.Any(s => s.StatusId == DebuffId);
-                var basePos = hasDebuff
-                    ? C.RoleSlot is RoleSlot.MeleeLeft or RoleSlot.MeleeRight ? NavMeleeDebuff : NavRangeDebuff
-                    : C.RoleSlot switch
-                    {
-                        RoleSlot.MeleeLeft => NavMeleeLeft,
-                        RoleSlot.MeleeRight => NavMeleeRight,
-                        RoleSlot.RangeLeft => NavRangeLeft,
-                        RoleSlot.RangeRight => NavRangeRight,
-                        _ => NavMeleeLeft
-                    };
-                var rotation = DetectedNorth.Value switch
-                {
-                    Corner.SE => 0f,
-                    Corner.SW => 90f,
-                    Corner.NW => 180f,
-                    Corner.NE => 270f,
-                    _ => 0f
-                };
-                var rotated = MathHelper.RotateWorldPoint(ArenaCenter, rotation.DegToRad(), basePos);
+                var basePos = GetBasePosition(C.RoleSlot, hasDebuff);
+                var rotation = GetRotation(DetectedNorth.Value);
+                var rotated = MathHelper.RotateWorldPoint(new Vector3(100,0,100), rotation.DegToRad(), basePos);
                 e.Enabled = true;
                 e.SetRefPosition(rotated);
                 break;
         }
+    }
+
+    private void UpdateDebug()
+    {
+        if (!C.ShowDebug) return;
+
+        var north = DetectedNorth ?? Corner.SE;
+        var rotation = GetRotation(north);
+        var index = 0;
+        foreach (var role in DebugRoleOrder)
+        {
+            SetDebugElement(index++, GetBasePosition(role, false), rotation);
+        }
+
+        foreach (var role in DebugRoleOrder)
+        {
+            SetDebugElement(index++, GetBasePosition(role, true), rotation);
+        }
+    }
+
+    private void SetDebugElement(int index, Vector3 basePos, float rotation)
+    {
+        if (!Controller.TryGetElementByName($"Debug{index}", out var e)) return;
+        e.Enabled = true;
+        var rotated = MathHelper.RotateWorldPoint(new Vector3(100,0,100),rotation.DegToRad(), basePos);
+        e.SetRefPosition(rotated);
+    }
+
+    private static Vector3 GetBasePosition(RoleSlot roleSlot, bool hasDebuff)
+    {
+        if (hasDebuff)
+        {
+            return roleSlot is RoleSlot.MeleeLeft or RoleSlot.MeleeRight ? NavMeleeDebuff : NavRangeDebuff;
+        }
+
+        return roleSlot switch
+        {
+            RoleSlot.MeleeLeft => NavMeleeLeft,
+            RoleSlot.MeleeRight => NavMeleeRight,
+            RoleSlot.RangeLeft => NavRangeLeft,
+            RoleSlot.RangeRight => NavRangeRight,
+            _ => NavMeleeLeft
+        };
+    }
+
+    private static float GetRotation(Corner north)
+    {
+        return north switch
+        {
+            Corner.SE => 0f,
+            Corner.SW => 90f,
+            Corner.NW => 180f,
+            Corner.NE => 270f,
+            _ => 0f
+        };
     }
 
     private bool TryGetDarkDebuffHolder(out float remaining)
@@ -252,11 +299,9 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
         foreach (var player in Svc.Objects.OfType<IPlayerCharacter>())
         {
             var status = player.StatusList.FirstOrDefault(s => s.StatusId == DebuffId);
-            if (status != null)
-            {
-                remaining = status.RemainingTime;
-                return true;
-            }
+            if (status == null) continue;
+            remaining = status.RemainingTime;
+            return true;
         }
 
         remaining = 0f;
@@ -278,5 +323,6 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public RoleSlot RoleSlot = RoleSlot.MeleeLeft;
         public Corner WaitSpot = Corner.NE;
+        public bool ShowDebug = false;
     }
 }

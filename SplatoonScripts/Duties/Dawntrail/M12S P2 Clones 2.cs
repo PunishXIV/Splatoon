@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(10, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(10, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 
@@ -143,7 +143,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
                             VfxContainer.Tether otherTetherStruct = default;
                             var otherTether = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.Id == (uint)GetDesiredTether() && x.TargetId != BasePlayer.ObjectId, out otherTetherStruct));
-                            if(otherTether != null && otherTetherStruct.TargetId.ObjectId.TryGetPlayer(out var otherPlayer) && Controller.TryGetElementByName("TetherValidPartners", out var others))
+                            if(otherTether != null && otherTetherStruct.TargetId.ObjectId.TryGetPlayer(out var otherPlayer) && Controller.TryGetElementByName("TetherValidPartners", out var others) && !C.DontShowValidPartners)
                             {
                                 others.Enabled = true;
                                 others.SetRefPosition(otherPlayer.Position);
@@ -173,7 +173,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             }
         }
 
-        if (SnakingKickSafePosition is not null)
+        if (SnakingKickSafePosition is not null && Phase == 3)
         {
             go.Enabled = true;
             go.SetRefPosition(SnakingKickSafePosition.Value.ToVector3());
@@ -288,7 +288,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             {
                 Phase = 2;
             }
-            if(Phase == 2 && set.Action?.RowId == 46312)
+            if(Phase == 2 && set.Action?.RowId == 46315 /*46312*/ )
             {
                 Phase = 3;
             }
@@ -296,7 +296,11 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             {
                 Phase = 4;
             }
-            if(Phase >= 4 && set.Action?.RowId == 48733)
+            if(Phase == 4 && set.Action?.RowId == 47329)
+            {
+                Phase++;
+            }
+            if(Phase >= 5 && set.Action?.RowId == 48733)
             {
                 Phase++;
             }
@@ -593,6 +597,9 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 ImGuiEx.TextWrapped($"Phase 5 is considered when first stack has been taken and players need to take second stack.");
                 LpPositionsEdit(5, C.Phase5Positions);
             });
+            
+            ImGuiEx.TreeNodeCollapsingHeader("Options",
+                () => { ImGui.Checkbox("Don't show valid tether partners", ref C.DontShowValidPartners); });
         }
         ImGui.Separator();
         if(ImGui.CollapsingHeader("Debug"))
@@ -612,6 +619,11 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 ImGuiEx.Text($"Candidates: {TetherCandidates.Print()}");
                 ImGui.InputInt("Phase", ref Phase);
             }
+            
+            Controller.GetRegisteredElements().Each(x =>
+            {
+                ImGuiEx.Text($"{x.Key} - Enabled: {x.Value.Enabled} - Posion: ({x.Value.refX}, {x.Value.refZ}, {x.Value.refY})");
+            });
         }
     }
 
@@ -719,6 +731,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     {
         public bool BaseLP1 = true;
         public int BaseNum = 0;
+        public bool DontShowValidPartners = false;
         [JsonProperty("LP2")] public Direction[] LP1 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
         [JsonProperty("LP1")] public Direction[] LP2 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
         [JsonProperty("LP2Tethers")] public TetherKind[] LP1Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];

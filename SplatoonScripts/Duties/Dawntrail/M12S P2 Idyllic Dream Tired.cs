@@ -847,19 +847,6 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         ImGuiEx.Text(EColor.YellowBright, "Tethers:");
         ImGui.Indent();
         ImGuiEx.Text($"Defamation Pickup order, starting from North clockwise:");
-        if(ImGui.Button("Tired strat"))
-            C.Pickups =
-            [
-                PickupOrder.Stack_1, PickupOrder.Stack_2, PickupOrder.Stack_3, PickupOrder.Stack_4,
-                PickupOrder.Defamation_1, PickupOrder.Defamation_2, PickupOrder.Defamation_3, PickupOrder.Defamation_4,
-            ];
-        ImGui.SameLine();
-        if(ImGui.Button("JP strat"))
-            C.Pickups =
-            [
-                PickupOrder.Stack_1, PickupOrder.Defamation_1, PickupOrder.Defamation_4, PickupOrder.Defamation_2,
-                PickupOrder.Defamation_3, PickupOrder.Stack_3, PickupOrder.Stack_4, PickupOrder.Stack_2,
-            ];
         PickupDrag.Begin();
         for(int i = 0; i < C.Pickups.Count; i++)
         {

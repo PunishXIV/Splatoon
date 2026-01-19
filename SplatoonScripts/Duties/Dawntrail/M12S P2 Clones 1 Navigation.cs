@@ -90,7 +90,7 @@ public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript
 
     public override void OnStartingCast(uint sourceId, PacketActorCast* packet)
     {
-        if (packet->ActionID == 46296) CurrentPhase = Phase.WaitForDebuff;
+        if (packet->ActionID == 46296 && CurrentPhase == Phase.Idle) CurrentPhase = Phase.WaitForDebuff;
 
         if (packet->ActionID == 46368) CurrentPhase = Phase.End;
     }

@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(8, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(10, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 
@@ -326,10 +326,10 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             {
                 C.BaseLP1 = true;
                 C.BaseNum = 3;
-                C.LP1 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
-                C.LP2 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
-                C.LP1Tethers = [TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack, TetherKind.Boss];
-                C.LP2Tethers = [TetherKind.Nothing, TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack];
+                C.LP2 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
+                C.LP1 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
+                C.LP2Tethers = [TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack, TetherKind.Boss];
+                C.LP1Tethers = [TetherKind.Nothing, TetherKind.Defamation, TetherKind.Fan, TetherKind.Stack];
                 C.Phase1Positions =
                 [
                     new()

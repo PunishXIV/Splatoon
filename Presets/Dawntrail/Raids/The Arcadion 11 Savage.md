@@ -1,6 +1,3 @@
-> [!Warning]
-> Early strats. Will change rapidly.
-
 ### Projection declutter preset. Removes already telegraphed AOEs from projection.
 ```
 ~Lv2~{"Name":"M11S - Projection declutter","Group":"M11S (2)","ZoneLockH":[1325],"ElementsL":[],"BlacklistedProjectorActions":[46116,46099,46101,46100,46126,46145,46165,46167,46166],"ForcedProjectorActions":[46136]}
@@ -25,6 +22,14 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ### (Phase 2) [Script] [Beta] Majestic Meteor - requires configuration
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Majestic%20Meteor.cs
+```
+
+### (Phase 2) [Script] [Beta] Fixed Stampede
+- Warning! Early script based on this raidplan: https://raidplan.io/plan/KXVlSGwV3zqON3CJ Watch out for bugs!!!!
+- Towers only
+- Requires configuration
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Fixed%20Stampede.cs
 ```
 
 # Phase 1 (until end of tornadoes):

@@ -37,12 +37,12 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 >
 > These are presets submitted by the community. Because script is also still in progress, configurations aren't guaranteed to be accurate and aren't guaranteed not to be broken as development continues.
 
-## EU & NA https://raidplan.io/plan/SFa6J6wDrU9PlCJ4 
+### EU & NA https://raidplan.io/plan/SFa6J6wDrU9PlCJ4 
 ```
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Clones_2","ConfigurationName":"","Configuration":"GygGAJwHduwASt1dPTyr3P19V22ViAdH0fPZhB+ritBq1lvqD+1HKGaSmU0hfnbFEE7oGLW2+lp/vtLolMLViokkt8U9kWikRImYW8NaJilF0A7njvmrfqxPPKukgsK7chHz30FXUbX/uYam1n+lSfZ0dbSD+JMvJPSaSutaa+9O0wiIHA2r7eq78mUvC76GpED985PIBz5pEB42PT2r0gFuB+Q9lSCTd8ho4MmgOTIf7ualUB+P1VnVWJ53jqf5PNBPzfqrijN7L1Ks1XN/8jOn8afSIBzJCYQM+9PHM3CmsgQVOzrUAbYBvthixclkeWSRNMYBfrxM41CN+RtBaQ8MQNRsRutbUdZSsF5Lw95NvHR4W+9toGl+/pIRNg1n0bzO7DM4yFNjWTgAo98HwImAqQMJs5vtvFrfWRvBRFrEEhWhIDKFdFau+1OglD5NUbUNN0QghiK/p7A5r3FrqSPduJAJnU15VTaT0JJqKnASwinXkg31J57avogpt+SJlnpwKWeh4QE=","Overrides":null}
 ```
 
-## CN strat (?)
+### CN strat (?)
 ```
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Clones_2","ConfigurationName":"盗火","Configuration":"G2QEIJyHsRsiYnrf+V0qRcrd33ed7XmVf/pCjrYANX5umVomJ9TP05Ol/hQFSbApRNlGuNAZuqb+CX5bFVhsExoeDijToijLooSKqkBecEIzt4bzrkH53jFU9rTop/WBeT7f9+TB4c/pAOI5feqomF9/b0FEGRnl6LDHgOOrMGA9mj3X/Qe60nnEySv65+eJ79/B50nknUg3r85TWATW9Hse7fVpBDE9EGQkW8Hfbo//105IrMuNVDED6Vu8g3xqcqRuxg7nLKFdB2aFd8vcVowou4zTuytkPKBq21BqOQuLkJ0Asi1f3mrBD0aFl4pcnO1qZTrklXrfrXQBfZruhZ0bXY25iRJyip5M1AoZUJe0a7brUPcsAgnrVd0GscDNMahLX76BamHPjLp3YtBmj5bNAFQW3wDbYwElq9TwKaeB2wUOUtNZjm6KwGC4KH4l1+2d7EymhvZGcDKrGNDRWOsyq12RzECut6l7TUbeqqNqXMBoigxkPtW2RkA4CNrG7l7VolnV93yCDir2Ag==","Overrides":null}
 ```
@@ -66,12 +66,12 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 For this script, you NEED to either configure it or import configuration.
 
-For EU
+### For EU
 ```
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Idyllic_Dream_Tired","ConfigurationName":"EU Pastebin","Configuration":"iyCA77u/eyJUb3dlclBvc2l0aW9uIjoxLCJJc0dyb3VwMSI6dHJ1ZSwiUGlja3VwcyI6WzAsNCw1LDEsMiw2LDcsM119Aw==","Overrides":"G6KHAKwKbGNp0G9oDtc033e4pEG6rvd2f98tq+nrS3l3AjOtiITpmSUnUAmR0CmuPl1MUvnqlksCATBzs/L3G3uViML1VdZW1v3PtuQrVFU5yV2KOGC8uwyQPJL2QFYCkrB7E2bezG0Zs7w4Jzhg5zXEdsIG1VAL78e2Pd/K7AO1UyfE0ZV3PDhUV3Z+czCkVn/MbjzHy5eoCtD2skrP348lECijII0XqVBuH/L9/eABcQoTNrSYCqI5pk1odBlp1Put80y7Kst+u1GqBnA2XQPktd+uzycOr31toV+z17rGKO4c8oE8tUAnBTXeIftIQlFDw5b9EiqRJeq7BGJVhSdNmqvOinuMy9Vh5Di8Ardcl5t9XybMaXzD0VTOpijxc5oiwgDI5PbhSE8IZGXrD9ryBonYwAa6KtKj4mMFNHTuDCQUMy439NlUXgtO2w266TuJ0LykPsM68TWBTA38ci7SNTaLoPhDahrfl+/TSNN2laoSm+Ma4MErtR4xVyBPSMbpLqGRDYBABvLlQJbHBTXmfyYSXceiWCtGUZY0C6oAbaZ+pG06XVrJ7MLsiG3fJelbcgchBqkHfLkttSkbrBXLMZ7atZeOSntQpI2sX3fEr0wZCBArHqGDboMLxDSNWIaVaJxWfQBphy7YuL+znAcMAatN3jfKwMG3ovhUUPqiHxYkBKxkzch9sOChgMZ1mYmNI7WsJlFdBBmXv9M9xdcUMThz/+BLkcezRdnD7WBTeRcwQ2qHUt0egT2YcsyylOjxWV4eCTAoqRElolViFqj0edMxqGrS5iKBbQlCnziOxJDP8XqJZ+MDp1aABNTI3CkxFTkBTkQ4y7T8eRV/jzOy1UWxOpB0q3if2CuCBB9FDBGJUSPQeeMNmAR6WetgZacQyQB6FzHloGpZuTZIJhdtU0JWWahzUwWj9UuMhOX6TaycoyMpXQArwlURplaLM9fU2L44BbGmioFOXVvrPh00Wfxw5t/7rLTlJBJvk5E0uh73M0/MbR+mlgiMkDaxtdqvvLSAm82+wduKVOGS2zWW/VVI3s+PHliaYH6oUY9P2cIrPbcKbitoKcEfeIG+AzL2D5aYRNweYvSAzfV6NMSSbib377rL7KH9GBywAgMixNuhyqTCnx2BssdYeIoT0Ogf3o+68cvStSqm9U9wT/rMjeDh/SkRrMdtYRWbslP8R/mJOEzW9v/FdT94e2g/EgdfaCIrFJOT+qSEfgWiIilckl3ybQlVb2magwALoCN+Q7JzGnw3Gh5wbFNk2U4eD5AE+h/cxORazOHsEX7lVn7rJVmUYJT+cVnH2yL0piuBla2+kxkUwylcXyLzOIReA4M0Ic52362FwUOu6XohStpW3YNqbD4eroW4GSkXD8sMgczDNP8ggduC+uwqlrZzJfSvdKWr69GFS360z+vrKzO7Kd/ffSNjErMSMphtauy9eACAh0eAfEgZ4zV4ira0qnV36c9yPgSt9tRTYB6n/XoEAEC4wDSJMu4WEI40Hatj0oFIH9ybRuEeCQQAfNfAeHtnwRLkhUsCSxdVG8kLlHkZKLcRbVK/NAEAfPqFTiywHcfNa8/lGGVd+2OhfwEEAGzzrrdQtrZf"}
 ```
 
-For JP kanatan
+### For JP kanatan
 
 http://kanatan.info/archives/41400296.html
 ```

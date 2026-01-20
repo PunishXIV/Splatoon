@@ -27,7 +27,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(10, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(11, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 
@@ -320,6 +320,11 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     uint? W2S = null;
     public override void OnSettingsDraw()
     {
+        ImGui.Checkbox("Disable rainbow coloring", ref C.NoRainbow);
+        if(C.NoRainbow)
+        {
+            ImGui.ColorEdit4("Alternative color", ref C.FixedColor, ImGuiColorEditFlags.NoInputs);
+        }
         if(!AgreedToConfigure)
         {
             ImGuiEx.HelpMarker("", color: EColor.RedBright, symbolOverride: FontAwesomeIcon.ExclamationTriangle.ToIconString(), sameLine: false);
@@ -739,6 +744,8 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
     public class Config : IEzConfig
     {
+        public bool NoRainbow = false;
+        public Vector4 FixedColor = EColor.RedBright;
         public bool BaseLP1 = true;
         public int BaseNum = 0;
         public bool DontShowValidPartners = false;
@@ -839,8 +846,9 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     };
     }
 
-    public static Vector4 GetRainbowColor(double cycleSeconds)
+    public Vector4 GetRainbowColor(double cycleSeconds)
     {
+        if(C.NoRainbow) return C.FixedColor;
         if(cycleSeconds <= 0d)
         {
             cycleSeconds = 1d;

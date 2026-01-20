@@ -25,12 +25,13 @@ using System.Text.RegularExpressions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Splatoon;
 using static Splatoon.Splatoon;
+using TerraFX.Interop.Windows;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(7, "NightmareXIV, Redmoon");
+    public override Metadata Metadata { get; } = new(8, "NightmareXIV, Redmoon");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -129,6 +130,18 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             Donut = 0.5f,
         });
     }
+
+    Dictionary<Direction, Vector2> ReenactmentDirections = new()
+    {
+        [Direction.N] = new(100, 86),
+        [Direction.NE] = new(110, 90),
+        [Direction.E] = new(114, 100),
+        [Direction.SE] = new(110, 110),
+        [Direction.S] = new(100, 114),
+        [Direction.SW] = new(90, 110),
+        [Direction.W] = new(86, 110),
+        [Direction.NW] = new(90, 90),
+    };
 
     public enum DataIds
     {
@@ -670,7 +683,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         if (Phase is 13 or 16 or 17)
         {
-            Vector3 finalPosition;
+            Vector3? finalPosition = null;
             Vector3 getPosition(string element)
             {
                 var e = Controller.GetElementByName(element);
@@ -678,41 +691,53 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
             List<Vector3> stackPos = [getPosition("Stack1"), getPosition("Stack2")];
 
-            if(C.StackEnumPrioHorizontal)
+            if(C.AltCloneResolution)
             {
-                if(stackPos[0].X.ApproximatelyEquals(stackPos[1].X, 1)) //horizontally equal
+                var position = stackPos.FirstOrDefault(x => C.AltCloneDirections.Any(a => Vector2.Distance(x.ToVector2(), this.ReenactmentDirections[a]) < 2));
+                if(position != default)
                 {
-                    //apply vertical prio
-                    stackPos = stackPos.OrderBy(x => x.Z).ToList();
-                    finalPosition = stackPos[C.StackEnumVerticalNorth ? 0 : 1];
-                }
-                else
-                {
-                    stackPos = stackPos.OrderBy(x => x.X).ToList();
-                    finalPosition = stackPos[C.StackEnumHorizontalWest ? 0 : 1];
+                    finalPosition = position;
                 }
             }
             else
             {
-                if(stackPos[0].Z.ApproximatelyEquals(stackPos[1].Z, 1)) //vertically equal
+                if(C.StackEnumPrioHorizontal)
                 {
-                    //apply horizontal prio
-                    stackPos = stackPos.OrderBy(x => x.X).ToList();
-                    finalPosition = stackPos[C.StackEnumHorizontalWest ? 0 : 1];
+                    if(stackPos[0].X.ApproximatelyEquals(stackPos[1].X, 1)) //horizontally equal
+                    {
+                        //apply vertical prio
+                        stackPos = stackPos.OrderBy(x => x.Z).ToList();
+                        finalPosition = stackPos[C.StackEnumVerticalNorth ? 0 : 1];
+                    }
+                    else
+                    {
+                        stackPos = stackPos.OrderBy(x => x.X).ToList();
+                        finalPosition = stackPos[C.StackEnumHorizontalWest ? 0 : 1];
+                    }
                 }
                 else
                 {
-                    stackPos = stackPos.OrderBy(x => x.Z).ToList();
-                    finalPosition = stackPos[C.StackEnumVerticalNorth ? 0 : 1];
+                    if(stackPos[0].Z.ApproximatelyEquals(stackPos[1].Z, 1)) //vertically equal
+                    {
+                        //apply horizontal prio
+                        stackPos = stackPos.OrderBy(x => x.X).ToList();
+                        finalPosition = stackPos[C.StackEnumHorizontalWest ? 0 : 1];
+                    }
+                    else
+                    {
+                        stackPos = stackPos.OrderBy(x => x.Z).ToList();
+                        finalPosition = stackPos[C.StackEnumVerticalNorth ? 0 : 1];
+                    }
                 }
             }
 
+            if(finalPosition != null)
             {
                 if(Controller.TryGetElementByName("stack tether", out var e))
                 {
                     e.Enabled = true;
                     e.color = GetRainbowColor(1f).ToUint();
-                    e.SetRefPosition(finalPosition);
+                    e.SetRefPosition(finalPosition.Value);
                 }
             }
         }
@@ -842,7 +867,12 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     ImGuiEx.RealtimeDragDrop<PickupOrder> PickupDrag = new("DePiOrd", x => x.ToString());
     public override void OnSettingsDraw()
     {
-        ImGuiEx.TextWrapped(EColor.OrangeBright, "Defaults are for tired guide with uptime defamations/stacks. Go to Registered Elements tab and change positions as you want, this script can be adapted for the most strats that are here.");
+        ImGui.Checkbox("Disable rainbow coloring", ref C.NoRainbow);
+        if(C.NoRainbow)
+        {
+            ImGui.ColorEdit4("Alternative color", ref C.FixedColor, ImGuiColorEditFlags.NoInputs);
+        }
+        ImGuiEx.TextWrapped(EColor.OrangeBright, "Defaults are for tired guide with zenith uptime defamations/stacks. Go to Registered Elements tab and change positions as you want, this script can be adapted for the most strats that are here.");
         ImGui.Separator();
         ImGuiEx.Text(EColor.YellowBright, "Tethers:");
         ImGui.Indent();
@@ -860,6 +890,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         ImGuiEx.Text(EColor.YellowBright, "Towers:");
         ImGui.Indent();
+        ImGuiEx.Checkbox("Don't visualise tower debuffs (cones and tethers)", ref C.DontShowElementsP11S1);
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.EnumCombo("My tower position, looking at boss", ref C.TowerPosition);
 
@@ -874,24 +905,110 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         ImGuiEx.Text(EColor.YellowBright, $"Reenactment stacks");
         ImGui.Indent();
-        ImGuiEx.TextV($"When stack clones are arranged horizontally (west to east):");
-        ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Take west stack", "Take east stack", ref C.StackEnumHorizontalWest, false);
-        ImGui.Unindent();
-        ImGuiEx.TextV($"When stack clones are arranged vertically (north to south):");
-        ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Take north stack", "Take south stack", ref C.StackEnumVerticalNorth, false);
-        ImGui.Unindent();
-        ImGuiEx.TextV($"When stack clones are not directly horizontal or vertical to each other:");
-        ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Use horizontal enumeration (west to east)", "Use vertical enumeration (north to south)", ref C.StackEnumPrioHorizontal, false);
-        ImGui.Unindent();
-        ImGui.Unindent();
-        
-        ImGui.Separator();
-        ImGuiEx.Text(EColor.YellowBright, "Preliminary:");
-        ImGui.Indent();
-        ImGuiEx.Checkbox("Don't show elements in P11S1 (cones and tether)", ref C.DontShowElementsP11S1);
+        ImGuiEx.RadioButtonBool("Fixed positions (recommended)", "Direction based", ref C.AltCloneResolution, true);
+        if(C.AltCloneResolution)
+        {
+            ImGuiEx.TextWrapped($"Pick two positions according to your raidplan. One must be on cardinals, another - intercardinals.");
+            if(C.AltCloneDirections.Count != 2)
+            {
+                ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain two elements.");
+            }
+            else if(C.AltCloneDirections.Count(x => (int)x % 2 == 1) != 1)
+            {
+                ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain exactly one intercardinal cirection.");
+            }
+            else if(C.AltCloneDirections.Count(x => (int)x % 2 == 0) != 1)
+            {
+                ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain exactly one cardinal cirection.");
+            }
+            else
+            {
+                ImGuiEx.Text(EColor.GreenBright, "Configuration valid.");
+            }
+            if(ImGuiEx.BeginDefaultTable("FixedPositions", ["0", "1", "2", "3", "4", "5", "6"], false))
+            {
+                void choice(Direction d)
+                {
+                    ImGuiEx.CollectionCheckbox($"##{d}", d, C.AltCloneDirections);
+                    ImGuiEx.Tooltip(d.ToString());
+                }
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGuiEx.Text("  N");
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                choice(Direction.N);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                choice(Direction.NW);
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                choice(Direction.NE);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGuiEx.TextV("W");
+                ImGui.TableNextColumn();
+                choice(Direction.W);
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                choice(Direction.E);
+                ImGui.TableNextColumn();
+                ImGuiEx.TextV("E");
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                choice(Direction.SW);
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                choice(Direction.SE);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                choice(Direction.S);
+
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGui.TableNextColumn();
+                ImGuiEx.Text("  S");
+
+                ImGui.EndTable();
+            }
+        }
+        else
+        {
+            ImGuiEx.TextV($"When stack clones are arranged horizontally (west to east):");
+            ImGui.Indent();
+            ImGuiEx.RadioButtonBool("Take west stack", "Take east stack", ref C.StackEnumHorizontalWest, false);
+            ImGui.Unindent();
+            ImGuiEx.TextV($"When stack clones are arranged vertically (north to south):");
+            ImGui.Indent();
+            ImGuiEx.RadioButtonBool("Take north stack", "Take south stack", ref C.StackEnumVerticalNorth, false);
+            ImGui.Unindent();
+            ImGuiEx.TextV($"When stack clones are not directly horizontal or vertical to each other:");
+            ImGui.Indent();
+            ImGuiEx.RadioButtonBool("Use horizontal enumeration (west to east)", "Use vertical enumeration (north to south)", ref C.StackEnumPrioHorizontal, false);
+            ImGui.Unindent();
+        }
         ImGui.Unindent();
 
         if(ImGui.CollapsingHeader("Debug"))
@@ -931,7 +1048,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     }
 
     public enum TowerPosition { MeleeLeft, MeleeRight, RangedLeft, RangedRight }
-    public enum PickupOrder {Defamation_1, Defamation_2, Defamation_3, Defamation_4, Stack_1, Stack_2, Stack_3, Stack_4}
+    public enum PickupOrder {Defamation_1, Defamation_2, Defamation_3, Defamation_4, Stack_1, Stack_2, Stack_3, Stack_4 }
 
     public class Config : IEzConfig
     {
@@ -943,14 +1060,19 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         public bool StackEnumPrioHorizontal = false;
         public bool StackEnumVerticalNorth = true;
         public bool StackEnumHorizontalWest = true;
+        public bool NoRainbow = false;
+        public Vector4 FixedColor = EColor.RedBright;
+        public bool AltCloneResolution = false;
+        public List<Direction> AltCloneDirections = [];
         
         // preliminary
         public bool DontShowElementsP11S1 = false;
     }
     Config C => Controller.GetConfig<Config>();
 
-    public static Vector4 GetRainbowColor(double cycleSeconds)
+    public Vector4 GetRainbowColor(double cycleSeconds)
     {
+        if(C.NoRainbow) return C.FixedColor;
         if(cycleSeconds <= 0d)
         {
             cycleSeconds = 1d;

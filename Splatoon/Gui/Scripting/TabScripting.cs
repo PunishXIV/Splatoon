@@ -169,7 +169,7 @@ internal static class TabScripting
 
         void DrawScriptGroup(IEnumerable<SplatoonScript> scripts)
         {
-            if(ImGui.BeginTable("##scriptsTable", 7, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
+            if(ImGui.BeginTable("##scriptsTable", 8, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
             {
                 ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
                 ImGui.TableSetupColumn("Configuration", ImGuiTableColumnFlags.WidthFixed, 120);
@@ -306,6 +306,11 @@ internal static class TabScripting
                         ImGui.PopStyleVar();
                         //ImGuiEx.Tooltip("This script contains no settings");
                     }
+
+                    ImGui.TableNextColumn();
+
+                    ImGuiEx.CollectionButtonCheckbox((FontAwesomeIcon)'\uf127', script.InternalData.FullName, P.Config.NoAutoUpdateScript, ImGuiColors.DalamudRed);
+                    ImGuiEx.Tooltip($"Disable auto-updates for this script. You will have to update it manually. It will never auto-update, not even if you select \"Force update\" checkbox, even if it will become outdated and incompatible. ");
 
                     ImGui.TableNextColumn();
 

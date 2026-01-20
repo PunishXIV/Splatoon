@@ -113,6 +113,8 @@ internal class Configuration : IEzConfig
     public float ProjectionFillIntensity = 0.2f;
     public List<BlacklistedAction> ProjectionBlacklistedActions = [];
 
+    public List<string> NoAutoUpdateScript = [];
+
     public uint ClampFillColorAlpha(uint fillColor)
     {
         var alpha = fillColor >> 24;

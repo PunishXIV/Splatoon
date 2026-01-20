@@ -157,6 +157,7 @@ internal unsafe static partial class ScriptingProcessor
 
             try
             {
+                var noUpdate = P.Config.NoAutoUpdateScript.ToImmutableList();
                 PluginLog.Debug($"Starting downloading update list...");
                 var result = P.HttpClient.GetAsync("https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/update.csv").Result;
                 result.EnsureSuccessStatusCode();
@@ -193,8 +194,15 @@ internal unsafe static partial class ScriptingProcessor
                         PluginLog.Debug($"Found new valid update data: {data[0]} v{ver} = {data[2]}");
                         if((ForceUpdate != null && ForceUpdate.Contains(data[0])) || Scripts.Any(x => x.InternalData.FullName == data[0] && ((x.Metadata?.Version ?? 0) < ver || TabScripting.ForceUpdate))) // possible CME
                         {
-                            PluginLog.Debug($"Adding  {data[2]} to download list");
-                            Updates.Add(new(data[2]));
+                            if(noUpdate.Contains(data[0]))
+                            {
+                                PluginLog.Warning($"Script {data[0]} is on no update list and will not be updated");
+                            }
+                            else
+                            {
+                                PluginLog.Debug($"Adding  {data[2]} to download list");
+                                Updates.Add(new(data[2]));
+                            }
                         }
                     }
                     else

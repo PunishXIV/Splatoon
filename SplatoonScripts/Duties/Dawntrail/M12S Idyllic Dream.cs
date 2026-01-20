@@ -23,7 +23,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1327];
 
-    public override Metadata? Metadata => new(1, "Errer");
+    public override Metadata? Metadata => new(3, "Errer");
 
     #region 常量 (Constants)
 
@@ -135,6 +135,18 @@ public class M12S_Idyllic_Dream : SplatoonScript
     private static readonly Vector3 WaymarkD = new(89.11f, 0f, 99.93f);   // 西 (West)
     private static readonly Vector3 Waymark1 = new(108.28f, 0f, 91.70f);  // 东北 (Northeast)
     private static readonly Vector3 Waymark2 = new(108.43f, 0f, 108.10f); // 东南 (Southeast)
+    private static readonly Vector3 Waymark3 = new(91.80f, 0f, 108.17f);  // 西南 (Southwest)
+    private static readonly Vector3 Waymark4 = new(91.62f, 0f, 91.75f);   // 西北 (Northwest)
+
+    // 19210 固定坐标 (19210 Fixed Positions)
+    private static readonly Vector3 Spawn19210_A = new(100.00f, 0f, 86.00f);   // A点 (北)
+    private static readonly Vector3 Spawn19210_B = new(114.00f, 0f, 100.00f);  // B点 (东)
+    private static readonly Vector3 Spawn19210_C = new(100.00f, 0f, 114.00f);  // C点 (南)
+    private static readonly Vector3 Spawn19210_D = new(86.00f, 0f, 100.00f);   // D点 (西)
+    private static readonly Vector3 Spawn19210_1 = new(109.90f, 0f, 90.10f);   // 1点 (东北)
+    private static readonly Vector3 Spawn19210_2 = new(109.90f, 0f, 109.90f);  // 2点 (东南)
+    private static readonly Vector3 Spawn19210_3 = new(90.10f, 0f, 109.90f);   // 3点 (西南)
+    private static readonly Vector3 Spawn19210_4 = new(90.10f, 0f, 90.10f);    // 4点 (西北)
 
     #endregion
 
@@ -398,26 +410,29 @@ public class M12S_Idyllic_Dream : SplatoonScript
             }
 
             // 时空重现 - 触发第6次大圈绘制 (Time Warp - Triggers 6th circle drawing)
+            // 正点先刷影子：第一次大圈 C/D，斜点先刷影子：第一次大圈 1/2
             if(baseId == BossDataId && castId == TimeWarpCastId && _waitingForTimeWarp)
             {
                 _waitingForTimeWarp = false;
                 _sixthRoundCirclePositions.Clear();
-                Vector3[] targetWaymarks = _firstSpawnType == "正点"
-                    ? new[] { WaymarkC, WaymarkD }
-                    : new[] { Waymark1, Waymark2 };
 
-                foreach(var waymark in targetWaymarks)
+                // 使用固定坐标
+                if(_firstSpawnType == "正点")
                 {
-                    var nearby = Svc.Objects.OfType<IBattleNpc>()
-                        .FirstOrDefault(x => x.BaseId == FirstSpawnId && x.IsCharacterVisible()
-                            && Vector3.Distance(x.Position, waymark) < 6f);
-                    if(nearby != null)
-                        _sixthRoundCirclePositions.Add(nearby.Position);
+                    // 正点先: 第一次大圈是C/D
+                    _sixthRoundCirclePositions.Add(Spawn19210_C);
+                    _sixthRoundCirclePositions.Add(Spawn19210_D);
+                }
+                else
+                {
+                    // 斜点先: 第一次大圈是1/2
+                    _sixthRoundCirclePositions.Add(Spawn19210_1);
+                    _sixthRoundCirclePositions.Add(Spawn19210_2);
                 }
 
                 _sixthRoundDrawTime = Environment.TickCount64;
                 var waymarkNames = _firstSpawnType == "正点" ? "C/D" : "1/2";
-                AddLog($"  -> 时空重现 (Time Warp)! 立即绘制第6次大圈 (Immediately draw 6th circles) {waymarkNames}附近 (nearby) (找到 (found){_sixthRoundCirclePositions.Count}个)");
+                AddLog($"  -> 时空重现 (Time Warp)! 立即绘制第6次大圈 (Immediately draw 6th circles) {waymarkNames} (使用固定坐标)");
             }
 
             // Boss心象投影读条 - 第4次触发引导，第5次开始记录第二轮，第7次绘制 (Boss Mental Projection cast - 4th triggers guidance, 5th starts recording second round, 7th draws)
@@ -475,24 +490,28 @@ public class M12S_Idyllic_Dream : SplatoonScript
                     _thirdRoundDrawTime = Environment.TickCount64 + C.MissingBladeDelayMs;
                     AddLog($"  -> 第8次心象投影 (8th Mental Projection)! {C.MissingBladeDelayMs / 1000f}秒后绘制缺少的刀 (sec until missing cleave drawing)");
 
-                    // 第8次：根据正点先/斜点先绘制19210大圈 (8th: Draw 19210 circles based on cardinal first/intercardinal first)
+                    // 第8次：根据正点先/斜点先绘制19210大圈 (使用固定坐标)
+                    // 正点先刷影子：第二次大圈 1/2
+                    // 斜点先刷影子：第二次大圈 C/D
                     _eighthRoundCirclePositions.Clear();
-                    Vector3[] targetWaymarks = _firstSpawnType == "正点"
-                        ? new[] { Waymark1, Waymark2 }  // 正点先 (Cardinal first): 1/2
-                        : new[] { WaymarkA, WaymarkB }; // 斜点先 (Intercardinal first): A/B
 
-                    foreach(var waymark in targetWaymarks)
+                    // 使用固定坐标，不再搜索
+                    if(_firstSpawnType == "正点")
                     {
-                        var nearby = Svc.Objects.OfType<IBattleNpc>()
-                            .FirstOrDefault(x => x.BaseId == FirstSpawnId && x.IsCharacterVisible()
-                                && Vector3.Distance(x.Position, waymark) < 6f);
-                        if(nearby != null)
-                            _eighthRoundCirclePositions.Add(nearby.Position);
+                        // 正点先: 第二次大圈是1/2
+                        _eighthRoundCirclePositions.Add(Spawn19210_1);
+                        _eighthRoundCirclePositions.Add(Spawn19210_2);
+                    }
+                    else
+                    {
+                        // 斜点先: 第二次大圈是C/D
+                        _eighthRoundCirclePositions.Add(Spawn19210_C);
+                        _eighthRoundCirclePositions.Add(Spawn19210_D);
                     }
 
                     _eighthRoundDrawTime = Environment.TickCount64 + C.EighthCircleDelayMs;
-                    var waymarkNames = _firstSpawnType == "正点" ? "1/2" : "A/B";
-                    AddLog($"  -> 第8次心象投影 (8th Mental Projection)! {C.EighthCircleDelayMs / 1000f}秒后绘制 (sec until drawing) {waymarkNames}附近 (nearby) 19210大圈 (large circles) (找到 (found){_eighthRoundCirclePositions.Count}个)");
+                    var waymarkNames = _firstSpawnType == "正点" ? "1/2" : "C/D";
+                    AddLog($"  -> 第8次心象投影 (8th Mental Projection)! {C.EighthCircleDelayMs / 1000f}秒后绘制 (sec until drawing) {waymarkNames} 19210大圈 (使用固定坐标)");
                 }
             }
         }
@@ -1690,6 +1709,21 @@ public class M12S_Idyllic_Dream : SplatoonScript
         ImGui.SameLine();
         if(ImGui.Button("重置状态 (Reset State)"))
             OnReset();
+        ImGui.SameLine();
+        if(ImGui.Button("打印19210位置 (Print 19210 Positions)"))
+        {
+            var spawns = Svc.Objects.OfType<IBattleNpc>()
+                .Where(x => x.BaseId == FirstSpawnId && x.IsCharacterVisible())
+                .ToList();
+            AddLog($"[Debug] === 当前可见19210列表 (Current Visible 19210 List) ({spawns.Count}个) ===");
+            foreach(var spawn in spawns)
+            {
+                var pointName = GetPointName(spawn.Position);
+                AddLog($"  [{pointName}] Pos:({spawn.Position.X:F2}, {spawn.Position.Z:F2}) EntityId:{spawn.EntityId}");
+            }
+            if(spawns.Count == 0)
+                AddLog("  (未找到任何可见的19210)");
+        }
 
         ImGui.Separator();
         ImGui.Text("测试功能 (Test Functions):");

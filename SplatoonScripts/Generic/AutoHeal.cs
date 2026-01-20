@@ -51,10 +51,11 @@ public unsafe class AutoHeal : SplatoonScript
                 if (Svc.Condition[ConditionFlag.DutyRecorderPlayback]) DuoLog.Information("Used Bloodbath");
             }
         }
+
         // Second Wind
-        else if (basePlayer.GetJob() is Job.MNK or Job.DRG or Job.NIN or Job.SAM or Job.RPR or Job.VPR or Job.BRD
-                 or Job.MCH
-                 or Job.DNC)
+        if (basePlayer.GetJob() is Job.MNK or Job.DRG or Job.NIN or Job.SAM or Job.RPR or Job.VPR or Job.BRD
+            or Job.MCH
+            or Job.DNC)
         {
             if (!ActionManager->IsRecastTimerActive(ActionType.Action, 7541u))
             {

@@ -248,12 +248,12 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             var objects = Svc.Objects.OfType<IBattleNpc>().Where(x => x.Struct()->Vfx.Tethers.ToArray().Any(t => t.Id == (uint)GetDesiredTether()));
             var ordered = MathHelper.EnumerateObjectsClockwise(objects, x => x.Position.ToVector2(), new(100, 100), relAngle - 5);
 
-            for(int i = 0; i < ordered.Count; i++)
+            /*for(int i = 0; i < ordered.Count; i++)
             {
                 var x = ordered[i];
                 var e = GetDebugElement(x.Position.ToVector2(), $"Ordered: {i+1}", EColor.RedBright);
                 e.Enabled = true;
-            }
+            }*/
             return ordered.ToArray();
         }
     }

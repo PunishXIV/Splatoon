@@ -2,6 +2,7 @@
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
+using Splatoon.Data;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -13,7 +14,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M9S_Sanguine_Scratch : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1321];
 
     public override void OnSetup()
@@ -39,7 +40,7 @@ public class M9S_Sanguine_Scratch : SplatoonScript
             }
             ElementNum++;
         }
-        if(packet->ActionDescriptor == new Splatoon.Data.ActionDescriptor(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, 45992))
+        if(packet->ActionDescriptor == new ActionDescriptor(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, 45992) || packet->ActionDescriptor == new ActionDescriptor(FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action, 45994))
         {
             this.Controller.Reset();
         }
@@ -49,6 +50,10 @@ public class M9S_Sanguine_Scratch : SplatoonScript
     {
         CastNum = 0;
         ElementNum = 0;
+        foreach(var x in Controller.GetRegisteredElements())
+        {
+            x.Value.AdditionalRotation = 0;
+        }
     }
 
     public override void OnUpdate()

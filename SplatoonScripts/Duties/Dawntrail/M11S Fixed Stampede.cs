@@ -1,11 +1,17 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers.LegacyPlayer;
+using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
+using ECommons.MathHelpers;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +22,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M11S_Fixed_Stampede : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
 
     public override void OnSetup()
@@ -29,6 +35,16 @@ public class M11S_Fixed_Stampede : SplatoonScript
         Controller.RegisterElementFromCode("Melee2h", """{"Name":"Melee Dps tower highlight - 1st ccw","type":1,"radius":2.5,"Donut":1.5,"color":3356425984,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":14305,"refActorRequireCast":true,"refActorCastId":[46167],"refActorComparisonType":6,"tether":true,"Enumeration":2,"EnumerationOrder":[1],"EnumerationCenter":{"X":100.0,"Y":100.0},"EnumerationStart":{"X":100.0,"Y":90.0}}""");
         Controller.RegisterElementFromCode("Tank1", """{"Name":"Tank tower highlight - 1st cw","type":1,"radius":3.0,"Donut":1.0,"color":3369795328,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":14305,"refActorRequireCast":true,"refActorCastId":[46166],"refActorComparisonType":6,"tether":true,"Enumeration":1,"EnumerationOrder":[1],"EnumerationCenter":{"X":100.0,"Y":100.0},"EnumerationStart":{"X":100.0,"Y":90.0}}""");
         Controller.RegisterElementFromCode("Tank2", """{"Name":"Tank tower highlight - 1st ccw","type":1,"radius":3.0,"Donut":1.0,"color":3369795328,"fillIntensity":0.5,"thicc":4.0,"refActorNPCNameID":14305,"refActorRequireCast":true,"refActorCastId":[46166],"refActorComparisonType":6,"tether":true,"Enumeration":2,"EnumerationOrder":[1],"EnumerationCenter":{"X":100.0,"Y":100.0},"EnumerationStart":{"X":100.0,"Y":90.0}}""");
+
+        Controller.RegisterElementFromCode("4NW", """{"Name":"","refX":97.5,"refY":97.5,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("4NE", """{"Name":"","refX":102.5,"refY":97.5,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("4SE", """{"Name":"","refX":102.5,"refY":102.5,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("4SW", """{"Name":"","refX":97.5,"refY":102.5,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+
+        Controller.RegisterElementFromCode($"2{TwoWayDirection.W_Inside}", """{"Name":"","refX":96.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode($"2{TwoWayDirection.E_Inside}", """{"Name":"","refX":104.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode($"2{TwoWayDirection.E_Outside}", """{"Name":"","refX":108.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode($"2{TwoWayDirection.W_Outside}", """{"Name":"","refX":92.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
     }
 
     public override void OnSettingsDraw()
@@ -40,6 +56,26 @@ public class M11S_Fixed_Stampede : SplatoonScript
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.EnumCombo("My role", ref C.MyRole);
 
+        ImGuiEx.Text(EColor.YellowBright, "Setup 4-way bait directions for meteor baiters:");
+        ImGui.Indent();
+        for(int i = 0; i < C.BaitFourWay.Count; i++)
+        {
+            FourWayDirection x = C.BaitFourWay[i];
+            ImGui.SetNextItemWidth(150f);
+            if(ImGuiEx.EnumCombo($"{(CardinalDirection)i}", ref x)) C.BaitFourWay[i] = x;
+        }
+        ImGui.Unindent();
+
+        ImGuiEx.Text(EColor.YellowBright, "Setup 2-way bait directions for meteor baiters:");
+        ImGui.Indent();
+        for(int i = 0; i < C.BaitTwoWay.Count; i++)
+        {
+            TwoWayDirection x = C.BaitTwoWay[i];
+            ImGui.SetNextItemWidth(150f);
+            if(ImGuiEx.EnumCombo($"{(CardinalDirection)i}", ref x)) C.BaitTwoWay[i] = x;
+        }
+        ImGui.Unindent();
+
         if(ImGui.CollapsingHeader("Debug"))
         {
             foreach(var x in Controller.GetPartyMembers())
@@ -50,9 +86,11 @@ public class M11S_Fixed_Stampede : SplatoonScript
     }
 
     List<uint> Baiters = [];
+    Dictionary<uint, CardinalDirection> BaiterDirections = [];
 
     public override void OnReset()
     {
+        BaiterDirections.Clear();
         Baiters.Clear();
     }
 
@@ -97,6 +135,33 @@ public class M11S_Fixed_Stampede : SplatoonScript
                 if(Controller.TryGetElementByName($"Tank{GetTankTowerNumber()}", out var e))
                 {
                     e.Enabled = true;
+                }
+            }
+        }
+        if(this.BaiterDirections.TryGetValue(BasePlayer.ObjectId, out var d))
+        {
+            foreach(var x in Svc.Objects)
+            {
+                if(x is IBattleNpc n)
+                {
+                    if(n.IsCasting(46170))
+                    {
+                        //4-way
+                        var dir = C.BaitFourWay.SafeSelect((int)d);
+                        if(Controller.TryGetElementByName($"4{dir}", out var e))
+                        {
+                            e.Enabled = true;
+                        }
+                    }
+                    if(n.IsCasting(47037))
+                    {
+                        //2-way
+                        var dir = C.BaitTwoWay.SafeSelect((int)d);
+                        if(Controller.TryGetElementByName($"2{dir}", out var e))
+                        {
+                            e.Enabled = true;
+                        }
+                    }
                 }
             }
         }
@@ -178,8 +243,24 @@ public class M11S_Fixed_Stampede : SplatoonScript
         return default;
     }
 
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if(set.Action?.RowId == 46164 && set.Target is IPlayerCharacter pc)
+        {
+            var targetDirection = MathHelper.GetCardinalDirection(new(100,0,100), pc.Position);
+            if(!this.BaiterDirections.ContainsKey(pc.ObjectId))
+            {
+                this.BaiterDirections[pc.ObjectId] = targetDirection;
+                PluginLog.Information($"Determined direction for {pc.GetNameWithWorld()}: {targetDirection}");
+            }
+        }
+    }
+
     public enum PrioType { H1_H2_R1_R2, R1_R2_H1_H2 }
     public enum MyRole { Disabled, H1, H2, R1, R2, Melee_CW, Melee_CCW, Tank_CW, Tank_CCW }
+
+    public enum FourWayDirection { NE, SE, SW, NW }
+    public enum TwoWayDirection { W_Inside, W_Outside, E_Inside, E_Outside }
 
     public Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
@@ -187,5 +268,7 @@ public class M11S_Fixed_Stampede : SplatoonScript
         public bool ReadTos = false;
         public PrioType PrioType = PrioType.H1_H2_R1_R2;
         public MyRole MyRole = MyRole.Disabled;
+        public List<FourWayDirection> BaitFourWay = [FourWayDirection.NW, FourWayDirection.NE, FourWayDirection.NW, FourWayDirection.NE];
+        public List<TwoWayDirection> BaitTwoWay = [TwoWayDirection.W_Outside, TwoWayDirection.E_Outside, TwoWayDirection.W_Outside, TwoWayDirection.E_Outside];
     }
 }

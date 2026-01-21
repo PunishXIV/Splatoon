@@ -5,12 +5,12 @@ Configuration required. Please read the guide in the settings for more details.
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Hell%20In%20a%20Cell.cs
 ```
 
-### [Script] [Beta] Vamp Stomp script:
+### [Script] Vamp Stomp script:
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Vamp%20Stomp.cs
 ```
 
-### [Script] [Beta] Target enforcer:
+### [Script] Target enforcer:
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Target%20Enforcer.cs
 ```
@@ -18,6 +18,12 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ### [Script] [Beta] Sanguine Scratch protean highlight:
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M9S%20Sanguine%20Scratch.cs
+```
+
+### Aetherletting cast highlight + Static aetherletting spot
+Static aetherletting spot must be configured according to this guide https://www.youtube.com/watch?v=qhDlfk56ELc Look at markers 
+```
+~Lv2~{"Name":"M9S Aetherletting highlight","Group":"M9S","ZoneLockH":[1321],"ElementsL":[{"Name":"","type":4,"radius":20.0,"coneAngleMin":-23,"coneAngleMax":22,"fillIntensity":0.2,"castAnimation":3,"animationColor":2516582400,"refActorNPCNameID":14300,"refActorRequireCast":true,"refActorCastId":[45969],"refActorCastTimeMax":6.5899997,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":0.008726646,"Conditional":true},{"Name":"","type":4,"radius":20.0,"coneAngleMin":-23,"coneAngleMax":22,"fillIntensity":0.2,"castAnimation":3,"animationColor":2516582400,"refActorNPCNameID":14300,"refActorRequireCast":true,"refActorCastId":[45967],"refActorCastTimeMax":6.5899997,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":0.008726646,"Conditional":true,"Nodraw":true},{"Name":"Position: A-2","Enabled":false,"refX":107.5,"refY":82.0,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"Position: 2-B","Enabled":false,"refX":118.03122,"refY":92.57538,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"Position: B-3","Enabled":false,"refX":118.0,"refY":107.5,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"Position: 3-C","Enabled":false,"refX":107.42462,"refY":118.03122,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"Position: C-4","Enabled":false,"refX":92.5,"refY":118.0,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"Position: 4-D","Enabled":false,"refX":81.96878,"refY":107.42462,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"Position: D-1","Enabled":false,"refX":82.0,"refY":92.5,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true},{"Name":"Position: 1-A","Enabled":false,"refX":92.57538,"refY":81.96878,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}]}
 ```
 
 ### ToolerOfLight's set

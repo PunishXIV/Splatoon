@@ -139,7 +139,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         [Direction.SE] = new(110, 110),
         [Direction.S] = new(100, 114),
         [Direction.SW] = new(90, 110),
-        [Direction.W] = new(86, 110),
+        [Direction.W] = new(86, 100),
         [Direction.NW] = new(90, 90),
     };
 

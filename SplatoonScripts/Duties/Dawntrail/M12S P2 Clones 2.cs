@@ -13,6 +13,7 @@ using ECommons.MathHelpers;
 using ECommons.Schedulers;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using Newtonsoft.Json;
+using Splatoon;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
@@ -27,7 +28,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(11, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(12, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 
@@ -65,6 +66,18 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         Controller.RegisterElementFromCode("GoTo", """
             {"Name":"","refX":102.4791,"refY":97.90576,"radius":0.75,"Filled":false,"fillIntensity":0.5,"thicc":6.0,"tether":true}
             """);
+        Controller.RegisterElement("NothingGuide", new Element(0)
+        {
+            Enabled = false,
+            radius = 1.5f,
+            thicc = 8f,
+            overlayVOffset = 3f,
+            overlayFScale = 2.0f,
+            tether = true,
+            color = EColor.RedBright.ToUint(),
+            overlayTextColor = EColor.RedBright.ToUint(),
+            overlayBGColor = 0xB0000000
+        });
         for(int i = 0; i < 100; i++)
         {
             Controller.RegisterElementFromCode($"Debug{i}", """{"Name":"","radius":0.5,"color":3372220415,"fillIntensity":0.5,"thicc":4.0,"overlayText":"Dbg"}""");
@@ -123,6 +136,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                     else if(GetDesiredTether() == TetherKind.Nothing)
                     {
                         //
+                        ShowNothingGuide(PlayerDirection.Value);
                     }
                     else if(C.LP2.Contains(PlayerDirection.Value))
                     {
@@ -280,6 +294,22 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             }
         }
         return 0;
+    }
+
+    void ShowNothingGuide(Direction direction)
+    {
+        if(!C.ShowNothingGuide) return;
+        if(!Controller.TryGetElementByName("NothingGuide", out var guide)) return;
+
+        guide.Enabled = true;
+        guide.overlayText = C.NothingGuideText.Get();
+        var clone = Svc.Objects
+            .OfType<IBattleNpc>()
+            .FirstOrDefault(x => x.DataId == (uint)ObjectDataId.PlayerClone && GetDirection(x.Position) == direction);
+        if(clone != null)
+        {
+            guide.SetRefPosition(clone.Position);
+        }
     }
 
     public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
@@ -615,6 +645,16 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
             
             ImGuiEx.TreeNodeCollapsingHeader("Options",
                 () => { ImGui.Checkbox("Don't show valid tether partners", ref C.DontShowValidPartners); });
+            ImGuiEx.TreeNodeCollapsingHeader("Nothing Guide",
+                () =>
+                {
+                    ImGui.Checkbox("Show \"Nothing\" guide", ref C.ShowNothingGuide);
+                    if(C.ShowNothingGuide)
+                    {
+                        var showString = C.NothingGuideText.Get();
+                        C.NothingGuideText.ImGuiEdit(ref showString, "Message shown on the Nothing guide.");
+                    }
+                });
         }
         ImGui.Separator();
         if(ImGui.CollapsingHeader("Debug"))
@@ -749,6 +789,12 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         public bool BaseLP1 = true;
         public int BaseNum = 0;
         public bool DontShowValidPartners = false;
+        public bool ShowNothingGuide = true;
+        public InternationalString NothingGuideText = new()
+        {
+            En = "Don't take tether",
+            Jp = "\u7dda\u3092\u3068\u308b\u306a"
+        };
         [JsonProperty("LP2")] public Direction[] LP1 = [Direction.SW, Direction.S, Direction.SE, Direction.E];
         [JsonProperty("LP1")] public Direction[] LP2 = [Direction.W, Direction.NW, Direction.N, Direction.NE];
         [JsonProperty("LP2Tethers")] public TetherKind[] LP1Tethers = [TetherKind.Stack, TetherKind.Fan, TetherKind.Defamation, TetherKind.Nothing];

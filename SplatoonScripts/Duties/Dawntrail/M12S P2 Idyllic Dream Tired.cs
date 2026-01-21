@@ -31,7 +31,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(8, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(8, "NightmareXIV, Redmoon");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -78,7 +78,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                 """);
         }
         Controller.RegisterElementFromCode("PickTether", """
-                {"Name":"","type":1,"offY":2.0,"radius":2.5,"Donut":0.5,"color":3356425984,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4278255376,"thicc":6.0,"overlayText":"Pick this tether","refActorComparisonType":2,"includeRotation":true}
+                {"Name":"","type":2,"refX":100.0,"refY":100.0,"offX":100.0,"offY":100.0,"radius":0.0,"color":3356425984,"fillIntensity":0.5,"thicc":8.0}
                 """);
 
         Controller.RegisterElementFromCode("PortalConeNS1", """
@@ -139,7 +139,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         [Direction.SE] = new(110, 110),
         [Direction.S] = new(100, 114),
         [Direction.SW] = new(90, 110),
-        [Direction.W] = new(86, 110),
+        [Direction.W] = new(86, 100),
         [Direction.NW] = new(90, 90),
     };
 
@@ -309,6 +309,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     IBattleNpc? x = clones[i];
                     if(x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(s => s.ObjectId)), out var tether))
                     {
+                        var tetherTargetPosition = tether.TargetId.ObjectId.TryGetPlayer(out var tetherTarget)
+                            ? tetherTarget.Position
+                            : BasePlayer.Position;
                         if(x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(s => s.ObjectId)), out var tetheredPlayer))
                         {
                             this.PlayerOrder[tetheredPlayer.TargetId.ObjectId] = i;
@@ -319,7 +322,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                             if(playerPickupsDefamation && defaClone == playerPickupOrder && Controller.TryGetElementByName("PickTether", out var e))
                             {
                                 e.Enabled = true;
-                                e.refActorObjectID = x.ObjectId;
+                                e.color = GetRainbowColor(1f).ToUint();
+                                e.SetRefPosition(x.Position);
+                                e.SetOffPosition(tetherTargetPosition);
                             }
                             defaClone++;
                         }
@@ -329,7 +334,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                             if(!playerPickupsDefamation && stackClone == playerPickupOrder && Controller.TryGetElementByName("PickTether", out var e))
                             {
                                 e.Enabled = true;
-                                e.refActorObjectID = x.ObjectId;
+                                e.color = GetRainbowColor(1f).ToUint();
+                                e.SetRefPosition(x.Position);
+                                e.SetOffPosition(tetherTargetPosition);
                             }
                             stackClone++;
                         }

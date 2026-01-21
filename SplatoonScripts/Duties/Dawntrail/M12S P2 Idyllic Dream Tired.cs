@@ -31,7 +31,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(8, "NightmareXIV, Redmoon");
+    public override Metadata Metadata { get; } = new(10, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -79,6 +79,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         }
         Controller.RegisterElementFromCode("PickTether", """
                 {"Name":"","type":2,"refX":100.0,"refY":100.0,"offX":100.0,"offY":100.0,"radius":0.0,"color":3356425984,"fillIntensity":0.5,"thicc":8.0}
+                """);
+        Controller.RegisterElementFromCode("PickTetherCircle", """
+                {"Name":"","type":1,"offY":2.0,"radius":2.5,"Donut":0.5,"color":3356425984,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4278255376,"thicc":6.0,"overlayText":"Pick this tether","refActorComparisonType":2,"includeRotation":true}
                 """);
 
         Controller.RegisterElementFromCode("PortalConeNS1", """
@@ -321,10 +324,15 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                             this.DefamationPlayers[tether.TargetId.ObjectId] = true;
                             if(playerPickupsDefamation && defaClone == playerPickupOrder && Controller.TryGetElementByName("PickTether", out var e))
                             {
-                                e.Enabled = true;
+                                e.Enabled = C.ShowTetherLine;
                                 e.color = GetRainbowColor(1f).ToUint();
                                 e.SetRefPosition(x.Position);
                                 e.SetOffPosition(tetherTargetPosition);
+                                if(Controller.TryGetElementByName("PickTetherCircle", out var e2))
+                                {
+                                    e2.Enabled = C.ShowTetherCircle;
+                                    e2.refActorObjectID = x.ObjectId;
+                                }
                             }
                             defaClone++;
                         }
@@ -883,6 +891,11 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         ImGui.Separator();
         ImGuiEx.Text(EColor.YellowBright, "Tethers:");
         ImGui.Indent();
+        ImGuiEx.TextV($"Visualize suggested tether:");
+        ImGui.SameLine();
+        ImGui.Checkbox("As line", ref C.ShowTetherLine);
+        ImGui.SameLine();
+        ImGui.Checkbox("As circle", ref C.ShowTetherCircle);
         ImGuiEx.Text($"Defamation Pickup order, starting from North clockwise:");
         PickupDrag.Begin();
         for(int i = 0; i < C.Pickups.Count; i++)
@@ -1071,7 +1084,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         public Vector4 FixedColor = EColor.RedBright;
         public bool AltCloneResolution = false;
         public List<Direction> AltCloneDirections = [];
-        
+        public bool ShowTetherLine = true;
+        public bool ShowTetherCircle = true;
+
         // preliminary
         public bool DontShowElementsP11S1 = false;
     }

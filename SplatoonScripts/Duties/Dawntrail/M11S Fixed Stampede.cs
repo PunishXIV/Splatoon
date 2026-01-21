@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.ExcelServices;
@@ -183,6 +184,7 @@ public class M11S_Fixed_Stampede : SplatoonScript
     public Config C => Controller.GetConfig<Config>();
     public class Config : IEzConfig
     {
+        public bool ReadTos = false;
         public PrioType PrioType = PrioType.H1_H2_R1_R2;
         public MyRole MyRole = MyRole.Disabled;
     }

@@ -138,7 +138,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), center, end, 0, e.GetDisplayStyleWithOverride(), e.LineEndA, e.LineEndB));
             }
 
-            DisplayObjects.Add(new DisplayObjectFan(e.GetUniqueId(go), center, innerRadius, outerRadius, angleMin, angleMax, e.GetDisplayStyleWithOverride()));
+            DisplayObjects.Add(new DisplayObjectFan(e.GetUniqueId(go), center, innerRadius, outerRadius, angleMin, angleMax, e.GetDisplayStyleWithOverride(go)));
             DrawText(e, null, center.X, center.Z, center.Y);
         }
     }

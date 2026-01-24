@@ -201,7 +201,7 @@ internal unsafe partial class CGui
             el.refZ = point.Y;
         }
         ImGuiEx.Tooltip($"Rotate {RotationAngle} degrees clockwise");
-        ImGui.SameLine();
+        ImGui.SameLine(0, 2);
         if(ImGuiEx.IconButton("\uf2ea"))
         {
             var point = MathHelper.RotateWorldPoint(new(CenterX, 0, CenterY), -RotationAngle.DegToRad(), new(el.refX, el.refZ, el.refY));
@@ -210,6 +210,18 @@ internal unsafe partial class CGui
             el.refZ = point.Y;
         }
         ImGuiEx.Tooltip($"Rotate {RotationAngle} degrees counter-clockwise");
+        ImGui.SameLine();
+        if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowsLeftRight))
+        {
+            el.refX = CenterX - (el.refX - CenterX);
+        }
+        ImGuiEx.Tooltip($"Mirror horizontally");
+        ImGui.SameLine(0,2);
+        if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowsUpDown))
+        {
+            el.refX = CenterY - (el.refY - CenterY);
+        }
+        ImGuiEx.Tooltip($"Mirror vertically");
 
 
         ImGuiUtils.SizedText("Conditional:".Loc(), WidthElement);

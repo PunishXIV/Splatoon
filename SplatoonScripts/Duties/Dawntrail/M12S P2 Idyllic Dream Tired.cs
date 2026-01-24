@@ -26,12 +26,13 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Splatoon;
 using static Splatoon.Splatoon;
 using TerraFX.Interop.Windows;
+using Dalamud.Interface.Colors;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(12, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(14, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -259,7 +260,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     if(x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId == BasePlayer.ObjectId))
                     {
                         PlayerPosition = i;
-                        PluginLog.Information($"Determined player position: {i + 1}");
+                        //PluginLog.Information($"Determined player position: {i + 1}");
                     }
                     if(x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(s => s.ObjectId)), out var tetheredPlayer))
                     {
@@ -324,13 +325,19 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                             this.DefamationPlayers[tether.TargetId.ObjectId] = true;
                             if(playerPickupsDefamation && defaClone == playerPickupOrder && Controller.TryGetElementByName("PickTether", out var e))
                             {
-                                e.Enabled = C.ShowTetherLine;
+                                if(!C.SkipIndiMechs)
+                                {
+                                    e.Enabled = C.ShowTetherLine;
+                                }
                                 e.color = GetRainbowColor(1f).ToUint();
                                 e.SetRefPosition(x.Position);
                                 e.SetOffPosition(tetherTargetPosition);
                                 if(Controller.TryGetElementByName("PickTetherCircle", out var e2))
                                 {
-                                    e2.Enabled = C.ShowTetherCircle;
+                                    if(!C.SkipIndiMechs)
+                                    {
+                                        e2.Enabled = C.ShowTetherCircle;
+                                    }
                                     e2.refActorObjectID = x.ObjectId;
                                 }
                             }
@@ -341,13 +348,19 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                             this.DefamationPlayers[tether.TargetId.ObjectId] = false;
                             if(!playerPickupsDefamation && stackClone == playerPickupOrder && Controller.TryGetElementByName("PickTether", out var e))
                             {
-                                e.Enabled = true;
+                                if(!C.SkipIndiMechs)
+                                {
+                                    e.Enabled = true;
+                                }
                                 e.color = GetRainbowColor(1f).ToUint();
                                 e.SetRefPosition(x.Position);
                                 e.SetOffPosition(tetherTargetPosition);
                                 if(Controller.TryGetElementByName("PickTetherCircle", out var e2))
                                 {
-                                    e2.Enabled = C.ShowTetherCircle;
+                                    if(!C.SkipIndiMechs)
+                                    {
+                                        e2.Enabled = C.ShowTetherCircle;
+                                    }
                                     e2.refActorObjectID = x.ObjectId;
                                 }
                             }
@@ -399,7 +412,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             pos = C.IsGroup1 ? pos : pos with { X = 200f - pos.X, Z = 200f - pos.Z, };
             if (Controller.TryGetElementByName("TowerTether", out var ep7))
             {
-                ep7.Enabled = true;
+                ep7.Enabled = !C.SkipIndiMechs;
                 ep7.color = GetRainbowColor(1f).ToUint();
                 ep7.SetRefPosition(pos);
             }
@@ -427,7 +440,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             {
                 if(Controller.TryGetElementByName($"SafespotGroup{party}", out var e))
                 {
-                    e.Enabled = true;
+                    e.Enabled = !C.SkipIndiMechs;
                     e.color = GetRainbowColor(1f).ToUint();
                 }
             }
@@ -438,7 +451,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     e.SetRefPosition(playerGroup2.Position);
                     if(Controller.GetElementByName("DefamationOnYou")!.Enabled && party == 2 && Controller.TryGetElementByName("DefamationGroup2", out var el))
                     {
-                        el.Enabled = true;
+                        el.Enabled = !C.SkipIndiMechs;
                         el.color = GetRainbowColor(1f).ToUint();
                     }
                 }
@@ -450,7 +463,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     e.SetRefPosition(playerGroup1.Position);
                     if(Controller.GetElementByName("DefamationOnYou")!.Enabled && party == 1 && Controller.TryGetElementByName("DefamationGroup1", out var el))
                     {
-                        el.Enabled = true;
+                        el.Enabled = !C.SkipIndiMechs;
                         el.color = GetRainbowColor(1f).ToUint();
                     }
                 }
@@ -462,7 +475,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     e.SetRefPosition(playerGroup2.Position);
                     if(party == 2 && Controller.TryGetElementByName("StackGroup2", out var el))
                     {
-                        el.Enabled = true;
+                        el.Enabled = !C.SkipIndiMechs;
                         el.color = GetRainbowColor(1f).ToUint();
                     }
                 }
@@ -474,7 +487,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     e.SetRefPosition(playerGroup1.Position);
                     if(party == 1 && Controller.TryGetElementByName("StackGroup1", out var el))
                     {
-                        el.Enabled = true;
+                        el.Enabled = !C.SkipIndiMechs;
                         el.color = GetRainbowColor(1f).ToUint();
                     }
                 }
@@ -504,41 +517,49 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     ("Assigned Light Towers", assignedLightTowers.Skip(1).FirstOrDefault() ?? null),
                 ];
 
-                if (assignedNonLightTowers.Count() + assignedLightTowers.Count() != 4)
-                    throw new Exception("Invalid number of assigned non-light-towers");
-
-                var isDps = BasePlayer.GetRole() == CombatRole.DPS;
-                if (!IsThDecreasingResistance.HasValue) throw new Exception("DPS is not set");
-                var canTakingLightTowers = isDps == IsThDecreasingResistance;
-                var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
-                var shouldTakeTower = (isMelee, canTakingLightTowers) switch
+                if(assignedNonLightTowers.Count() + assignedLightTowers.Count() != 4)
                 {
-                    // Melee(The tower closest to the coordinates 100, 0, 100)
-                    // Fire/Earth
-                    (true, false) => assignedNonLightTowers
-                        .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100))).FirstOrDefault(),
-                    // Wind/Doom
-                    (true, true) => assignedLightTowers
-                        .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100))).FirstOrDefault(),
-                    // Ranged(The tower farthest from the coordinates 100, 0, 100)
-                    // Fire/Earth
-                    (false, false) => assignedNonLightTowers
-                        .OrderByDescending(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100)))
-                        .FirstOrDefault(),
-                    // Wind/Doom
-                    (false, true) => assignedLightTowers
-                        .OrderByDescending(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100)))
-                        .FirstOrDefault(),
-                };
-
-                if (shouldTakeTower == null)
-                    throw new Exception("Could not determine which tower to take");
+                    PluginLog.Error("Invalid number of assigned non-light-towers");
+                }
+                else
                 {
-                    if (Controller.TryGetElementByName("TowerTether", out var e))
+
+                    var isDps = BasePlayer.GetRole() == CombatRole.DPS;
+                    if(!IsThDecreasingResistance.HasValue) throw new Exception("DPS is not set");
+                    var canTakingLightTowers = isDps == IsThDecreasingResistance;
+                    var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
+                    var shouldTakeTower = (isMelee, canTakingLightTowers) switch
                     {
-                        e.Enabled = true;
-                        e.color = GetRainbowColor(1f).ToUint();
-                        e.SetRefPosition(shouldTakeTower.Position);
+                        // Melee(The tower closest to the coordinates 100, 0, 100)
+                        // Fire/Earth
+                        (true, false) => assignedNonLightTowers
+                            .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100))).FirstOrDefault(),
+                        // Wind/Doom
+                        (true, true) => assignedLightTowers
+                            .OrderBy(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100))).FirstOrDefault(),
+                        // Ranged(The tower farthest from the coordinates 100, 0, 100)
+                        // Fire/Earth
+                        (false, false) => assignedNonLightTowers
+                            .OrderByDescending(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100)))
+                            .FirstOrDefault(),
+                        // Wind/Doom
+                        (false, true) => assignedLightTowers
+                            .OrderByDescending(x => Vector2.Distance(x.Position.ToVector2(), new Vector2(100, 100)))
+                            .FirstOrDefault(),
+                    };
+
+                    if(shouldTakeTower == null)
+                    {
+                        PluginLog.Error("Could not determine which tower to take");
+                    }
+                    else
+                    {
+                        if(Controller.TryGetElementByName("TowerTether", out var e))
+                        {
+                            e.Enabled = !C.SkipIndiMechs;
+                            e.color = GetRainbowColor(1f).ToUint();
+                            e.SetRefPosition(shouldTakeTower.Position);
+                        }
                     }
                 }
             }
@@ -610,7 +631,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                             e.color = GetRainbowColor(1f).ToUint();
                             e.tether = true;
                             e.thicc = 5f;
-                            e.Enabled = true;
+                            e.Enabled = !C.SkipIndiMechs;
                         }
 
                     }
@@ -757,7 +778,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             {
                 if(Controller.TryGetElementByName("stack tether", out var e))
                 {
-                    e.Enabled = true;
+                    e.Enabled = !C.SkipIndiMechs;
                     e.color = GetRainbowColor(1f).ToUint();
                     e.SetRefPosition(finalPosition.Value);
                 }
@@ -894,198 +915,220 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         {
             ImGui.ColorEdit4("Alternative color", ref C.FixedColor, ImGuiColorEditFlags.NoInputs);
         }
-        ImGuiEx.TextWrapped(EColor.OrangeBright, "Defaults are for tired guide with zenith uptime defamations/stacks. Go to Registered Elements tab and change positions as you want, this script can be adapted for the most strats that are here.");
-        ImGui.Separator();
-        ImGuiEx.Text(EColor.YellowBright, "Tethers:");
-        ImGui.Indent();
-        ImGuiEx.TextV($"Visualize suggested tether:");
-        ImGui.SameLine();
-        ImGui.Checkbox("As line", ref C.ShowTetherLine);
-        ImGui.SameLine();
-        ImGui.Checkbox("As circle", ref C.ShowTetherCircle);
-        ImGuiEx.Text($"Tether Pickup order, starting from North clockwise:");
-        ImGui.Indent();
-        PickupDrag.Begin();
-        if(ImGuiEx.BeginDefaultTable("DefaPickup", ["##reorder", "Name", "~Dir"], false))
+        ImGuiEx.Checkbox("Don't resolve individual mechanics", ref C.SkipIndiMechs);
+        ImGuiEx.HelpMarker("Should you activate this mode, individual mechanics will not be resolved. Plugin will show you stacks and defamation AOEs as well as stored AOEs, but will not point you towards your tether, will not show your stack/spread positions and will not show you tower assignments.");
+        if(C.SkipIndiMechs)
         {
-            for(int i = 0; i < C.Pickups.Count; i++)
-            {
-                ImGui.TableNextRow();
-                PickupOrder x = C.Pickups[i];
-                PickupDrag.SetRowColor(x);
-                ImGui.TableNextColumn();
-                PickupDrag.DrawButtonDummy(x.ToString(), C.Pickups, i);
-                ImGui.TableNextColumn();
-                ImGuiEx.TextV($"{x}");
-                ImGui.TableNextColumn();
-                ImGuiEx.TextV($"{(Direction)i}");
-            }
-            ImGui.EndTable();
+            ImGuiEx.Checkbox("Don't visualise tower debuffs (cones and tethers)", ref C.DontShowElementsP11S1);
         }
-        PickupDrag.End();
-        ImGui.Unindent();
-
-        void defaStackAssignLp(string which, HashSet<Direction> collection)
+        else 
         {
-            ImGui.PushID(which);
-            ImGuiEx.Text(EColor.YellowBright, $"Light Party assignments when {which} tether is at cardinals:");
-            ImGuiEx.HelpMarker($"This will define which players assigned to which light party to drop defamations and stacks during regular mechanic resolution. These assignments will be used when boss clones with {which} will spawn at cardinal directions. This does NOT affects reenactments. These light party assignents are based on which BOSS clone's tether player has taken, NOT initial player clones.");
+            ImGuiEx.Text($"Notes for this strategy:");
+            ImGuiEx.InputTextMultilineExpanding("##desc", ref C.Comment, 2000, 2, 40);
+            ImGuiEx.TextWrapped(EColor.OrangeBright, "Defaults are for tired guide with zenith uptime defamations/stacks. Go to Registered Elements tab and change positions as you want, this script can be adapted for the most strats that are here.");
+            ImGui.Separator();
+            ImGuiEx.Text(EColor.YellowBright, "Tethers:");
             ImGui.Indent();
-            if(collection.Count == 4)
+            ImGuiEx.TextV($"Visualize suggested tether:");
+            ImGui.SameLine();
+            ImGui.Checkbox("As line", ref C.ShowTetherLine);
+            ImGui.SameLine();
+            ImGui.Checkbox("As circle", ref C.ShowTetherCircle);
+            ImGuiEx.Text($"Tether Pickup order, starting from North clockwise:");
+            ImGui.Indent();
+            PickupDrag.Begin();
+            if(ImGuiEx.BeginDefaultTable("DefaPickup", ["##reorder", "Tether Kind & Order", "Tether pickup direction", "LP w/Stack first", "LP w/Defamation first"]))
             {
-                ImGuiEx.Text(EColor.GreenBright, "Configuration appears to be valid");
-            }
-            else
-            {
-                ImGuiEx.Text(EColor.RedBright, "Configuration is invalid. Each light party must contain 4 players.");
-            }
-            if(ImGuiEx.BeginDefaultTable("LpStackAssign", ["Direction", "~Assignment"], false))
-            {
-                for(int i = 0; i < Enum.GetValues<Direction>().Length; i++)
+                for(int i = 0; i < C.Pickups.Count; i++)
                 {
-                    var item = Enum.GetValues<Direction>()[i];
-                    ImGui.PushID(item.ToString());
+                    ImGui.TableNextRow();
+                    PickupOrder x = C.Pickups[i];
+                    PickupDrag.SetRowColor(x);
+                    ImGui.TableNextColumn();
+                    PickupDrag.DrawButtonDummy(x.ToString(), C.Pickups, i);
+                    ImGui.TableNextColumn();
+                    ImGuiEx.TextV($"{x}");
+                    ImGui.TableNextColumn();
+                    ImGuiEx.TextV(ImGuiColors.DalamudGrey, $"{(Direction)i}");
+                    ImGui.TableNextColumn();
+                    ImGuiEx.TextV(ImGuiColors.DalamudGrey, C.LP2CardinalStackFirst.Contains((Direction)i) ? "Group 2" : "Group 1");
+                    ImGui.TableNextColumn();
+                    if(C.LP2CardinalStackFirst.Contains((Direction)i) != C.LP2CardinalDefamationFirst.Contains((Direction)i))
+                    {
+                        ImGuiEx.TextV(ImGuiColors.DalamudGrey, C.LP2CardinalDefamationFirst.Contains((Direction)i) ? "Group 2" : "Group 1");
+                    }
+                    else
+                    {
+                        ImGuiEx.TextV(ImGuiColors.DalamudGrey3, $"Same as Stacks");
+                    }
+                }
+                ImGui.EndTable();
+            }
+            PickupDrag.End();
+            ImGui.Unindent();
+
+            void defaStackAssignLp(string which, HashSet<Direction> collection)
+            {
+                ImGui.PushID(which);
+                ImGuiEx.Text(EColor.YellowBright, $"Light Party assignments when {which} tether is at cardinals:");
+                ImGuiEx.HelpMarker($"This will define which players assigned to which light party to drop defamations and stacks during regular mechanic resolution. These assignments will be used when boss clones with {which} will spawn at cardinal directions. This does NOT affects reenactments. These light party assignents are based on which BOSS clone's tether player has taken, NOT initial player clones.");
+                ImGui.Indent();
+                if(collection.Count == 4)
+                {
+                    ImGuiEx.Text(EColor.GreenBright, "Configuration appears to be valid");
+                }
+                else
+                {
+                    ImGuiEx.Text(EColor.RedBright, "Configuration is invalid. Each light party must contain 4 players.");
+                }
+                if(ImGuiEx.BeginDefaultTable("LpStackAssign", ["Direction", "~Assignment"], false))
+                {
+                    for(int i = 0; i < Enum.GetValues<Direction>().Length; i++)
+                    {
+                        var item = Enum.GetValues<Direction>()[i];
+                        ImGui.PushID(item.ToString());
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGuiEx.TextV($"{item}");
+                        ImGui.TableNextColumn();
+                        if(ImGui.RadioButton("Light Party 1", !collection.Contains(item))) collection.Remove(item);
+                        ImGui.SameLine();
+                        if(ImGui.RadioButton("Light Party 2", collection.Contains(item))) collection.Add(item);
+                        ImGui.PopID();
+                    }
+                    ImGui.EndTable();
+                }
+                ImGui.Unindent();
+                ImGui.PopID();
+            }
+            defaStackAssignLp("Stack", C.LP2CardinalStackFirst);
+            defaStackAssignLp("Defamation", C.LP2CardinalDefamationFirst);
+
+            ImGui.Unindent();
+
+            ImGuiEx.Text(EColor.YellowBright, "Towers:");
+            ImGui.Indent();
+            ImGuiEx.Checkbox("Don't visualise tower debuffs (cones and tethers)", ref C.DontShowElementsP11S1);
+            ImGui.SetNextItemWidth(150f);
+            ImGuiEx.EnumCombo("My tower position, looking at boss", ref C.TowerPosition);
+
+            ImGuiEx.TextV("Platform:");
+            ImGui.SameLine();
+            ImGuiEx.RadioButtonBool("West", "East", ref C.IsGroup1, true);
+
+            ImGuiEx.TextV("Taken far is:");
+            ImGui.SameLine();
+            ImGuiEx.RadioButtonBool("Melee", "Ranged", ref C.TakenFarIsMelee, true);
+            ImGui.Unindent();
+
+            ImGuiEx.Text(EColor.YellowBright, $"Reenactment stacks");
+            ImGui.Indent();
+            ImGuiEx.RadioButtonBool("Fixed positions (recommended)", "Direction based", ref C.AltCloneResolution, true);
+            if(C.AltCloneResolution)
+            {
+                ImGuiEx.TextWrapped($"Pick two positions according to your raidplan. One must be on cardinals, another - intercardinals.");
+                if(C.AltCloneDirections.Count != 2)
+                {
+                    ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain two elements.");
+                }
+                else if(C.AltCloneDirections.Count(x => (int)x % 2 == 1) != 1)
+                {
+                    ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain exactly one intercardinal cirection.");
+                }
+                else if(C.AltCloneDirections.Count(x => (int)x % 2 == 0) != 1)
+                {
+                    ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain exactly one cardinal cirection.");
+                }
+                else
+                {
+                    ImGuiEx.Text(EColor.GreenBright, "Configuration valid.");
+                }
+                if(ImGuiEx.BeginDefaultTable("FixedPositions", ["0", "1", "2", "3", "4", "5", "6"], false))
+                {
+                    void choice(Direction d)
+                    {
+                        ImGuiEx.CollectionCheckbox($"##{d}", d, C.AltCloneDirections);
+                        ImGuiEx.Tooltip(d.ToString());
+                    }
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGuiEx.TextV($"{item}");
                     ImGui.TableNextColumn();
-                    if(ImGui.RadioButton("Light Party 1", !collection.Contains(item))) collection.Remove(item);
-                    ImGui.SameLine();
-                    if(ImGui.RadioButton("Light Party 2", collection.Contains(item))) collection.Add(item);
-                    ImGui.PopID();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGuiEx.Text("  N");
+
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    choice(Direction.N);
+
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    choice(Direction.NW);
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    choice(Direction.NE);
+
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGuiEx.TextV("W");
+                    ImGui.TableNextColumn();
+                    choice(Direction.W);
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    choice(Direction.E);
+                    ImGui.TableNextColumn();
+                    ImGuiEx.TextV("E");
+
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    choice(Direction.SW);
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    choice(Direction.SE);
+
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    choice(Direction.S);
+
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGui.TableNextColumn();
+                    ImGuiEx.Text("  S");
+
+                    ImGui.EndTable();
                 }
-                ImGui.EndTable();
-            }
-            ImGui.Unindent();
-            ImGui.PopID();
-        }
-        defaStackAssignLp("Stack", C.LP2CardinalStackFirst);
-        defaStackAssignLp("Defamation", C.LP2CardinalDefamationFirst);
-
-        ImGui.Unindent();
-
-        ImGuiEx.Text(EColor.YellowBright, "Towers:");
-        ImGui.Indent();
-        ImGuiEx.Checkbox("Don't visualise tower debuffs (cones and tethers)", ref C.DontShowElementsP11S1);
-        ImGui.SetNextItemWidth(150f);
-        ImGuiEx.EnumCombo("My tower position, looking at boss", ref C.TowerPosition);
-
-        ImGuiEx.TextV("Platform:");
-        ImGui.SameLine();
-        ImGuiEx.RadioButtonBool("West", "East", ref C.IsGroup1, true);
-
-        ImGuiEx.TextV("Taken far is:");
-        ImGui.SameLine();
-        ImGuiEx.RadioButtonBool("Melee", "Ranged", ref C.TakenFarIsMelee, true);
-        ImGui.Unindent();
-
-        ImGuiEx.Text(EColor.YellowBright, $"Reenactment stacks");
-        ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Fixed positions (recommended)", "Direction based", ref C.AltCloneResolution, true);
-        if(C.AltCloneResolution)
-        {
-            ImGuiEx.TextWrapped($"Pick two positions according to your raidplan. One must be on cardinals, another - intercardinals.");
-            if(C.AltCloneDirections.Count != 2)
-            {
-                ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain two elements.");
-            }
-            else if(C.AltCloneDirections.Count(x => (int)x % 2 == 1) != 1)
-            {
-                ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain exactly one intercardinal cirection.");
-            }
-            else if(C.AltCloneDirections.Count(x => (int)x % 2 == 0) != 1)
-            {
-                ImGuiEx.Text(EColor.RedBright, "Configuration invalid. Must contain exactly one cardinal cirection.");
             }
             else
             {
-                ImGuiEx.Text(EColor.GreenBright, "Configuration valid.");
+                ImGuiEx.TextV($"When stack clones are arranged horizontally (west to east):");
+                ImGui.Indent();
+                ImGuiEx.RadioButtonBool("Take west stack", "Take east stack", ref C.StackEnumHorizontalWest, false);
+                ImGui.Unindent();
+                ImGuiEx.TextV($"When stack clones are arranged vertically (north to south):");
+                ImGui.Indent();
+                ImGuiEx.RadioButtonBool("Take north stack", "Take south stack", ref C.StackEnumVerticalNorth, false);
+                ImGui.Unindent();
+                ImGuiEx.TextV($"When stack clones are not directly horizontal or vertical to each other:");
+                ImGui.Indent();
+                ImGuiEx.RadioButtonBool("Use horizontal enumeration (west to east)", "Use vertical enumeration (north to south)", ref C.StackEnumPrioHorizontal, false);
+                ImGui.Unindent();
             }
-            if(ImGuiEx.BeginDefaultTable("FixedPositions", ["0", "1", "2", "3", "4", "5", "6"], false))
-            {
-                void choice(Direction d)
-                {
-                    ImGuiEx.CollectionCheckbox($"##{d}", d, C.AltCloneDirections);
-                    ImGuiEx.Tooltip(d.ToString());
-                }
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGuiEx.Text("  N");
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                choice(Direction.N);
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                choice(Direction.NW);
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                choice(Direction.NE);
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGuiEx.TextV("W");
-                ImGui.TableNextColumn();
-                choice(Direction.W);
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                choice(Direction.E);
-                ImGui.TableNextColumn();
-                ImGuiEx.TextV("E");
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                choice(Direction.SW);
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                choice(Direction.SE);
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                choice(Direction.S);
-
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGui.TableNextColumn();
-                ImGuiEx.Text("  S");
-
-                ImGui.EndTable();
-            }
-        }
-        else
-        {
-            ImGuiEx.TextV($"When stack clones are arranged horizontally (west to east):");
-            ImGui.Indent();
-            ImGuiEx.RadioButtonBool("Take west stack", "Take east stack", ref C.StackEnumHorizontalWest, false);
-            ImGui.Unindent();
-            ImGuiEx.TextV($"When stack clones are arranged vertically (north to south):");
-            ImGui.Indent();
-            ImGuiEx.RadioButtonBool("Take north stack", "Take south stack", ref C.StackEnumVerticalNorth, false);
-            ImGui.Unindent();
-            ImGuiEx.TextV($"When stack clones are not directly horizontal or vertical to each other:");
-            ImGui.Indent();
-            ImGuiEx.RadioButtonBool("Use horizontal enumeration (west to east)", "Use vertical enumeration (north to south)", ref C.StackEnumPrioHorizontal, false);
             ImGui.Unindent();
         }
-        ImGui.Unindent();
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -1144,6 +1187,8 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         public bool ShowTetherCircle = true;
         public HashSet<Direction> LP2CardinalStackFirst = [Direction.N, Direction.NE, Direction.E, Direction.SE];
         public HashSet<Direction> LP2CardinalDefamationFirst = [Direction.N, Direction.NE, Direction.E, Direction.SE];
+        public bool SkipIndiMechs = false;
+        public string Comment = "";
 
         // preliminary
         public bool DontShowElementsP11S1 = false;

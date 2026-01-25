@@ -34,7 +34,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(15, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(16, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int Phase = 0;
 
@@ -1262,20 +1262,18 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             ImGui.SameLine();
             ImGuiEx.RadioButtonBool("West", "East", ref C.IsGroup1, true);
 
-            ImGui.Text("Near/Far Taken Condition:");
-            ImGuiEx.RadioButtonBool("Base Taken Tower", "Base Role", ref C.TakenCheckConditionIsTakenTower, true);
+            ImGui.Text("Near/Far Baits:");
+            ImGuiEx.RadioButtonBool("Based on Taken Tower", "Based on Role", ref C.TakenCheckConditionIsTakenTower, true);
             ImGui.Indent();
+            ImGuiEx.TextV(("# Wind tower (far debuff) is baited by:"));
+            ImGui.SameLine();
             if (C.TakenCheckConditionIsTakenTower) // tower based
             {
-                ImGuiEx.TextV(("# Taken far is:"));
-                ImGui.SameLine();
-                ImGuiEx.RadioButtonBool("Taken Earth Player", "Taken Fire Player", ref C.TakenFarIsEarth, true);
+                ImGuiEx.RadioButtonBool("Earth tower Player", "Fire tower Player", ref C.TakenFarIsEarth, true);
             }
             else // role based
             {
-                ImGuiEx.TextV("# Taken far is:");
-                ImGui.SameLine();
-                ImGuiEx.RadioButtonBool("Melee", "Ranged", ref C.TakenFarIsMelee, true);
+                ImGuiEx.RadioButtonBool("Earth/Fire Melee", "Earth/Fire Ranged", ref C.TakenFarIsMelee, true);
             }
             ImGui.Unindent();
             ImGui.Unindent();

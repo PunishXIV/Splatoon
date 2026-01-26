@@ -29,14 +29,14 @@ using static Splatoon.Splatoon;
 using TerraFX.Interop.Windows;
 using Dalamud.Interface.Colors;
 using ECommons.GameHelpers;
+using Newtonsoft.Json;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(16, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(17, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
-    int Phase = 0;
 
     public override void OnSetup()
     {
@@ -189,66 +189,45 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         Stack = 369,
         Defamation = 368,
     }
-    int PlayerPosition = -1;
-    Vector3? NextAOE = null;
-    bool? NextCleavesNorthSouth = null;
-    bool? IsCardinalFirst = null;
-    bool? IsThDecreasingResistance = null;
-    bool? IsConeSafeNorth = null;
-    HashSet<(Vector3 Pos, float Rot)> NextCleavesList = [];
-    Dictionary<uint, Vector3> ClonePositions = [];
-    Dictionary<uint, bool> DefamationPlayers = [];
-    Dictionary<uint, int> PlayerOrder = [];
-    public int DefamationAttack = 0;
-    public int Phase7Sub = 0; // 0 - Avoid Cone, 1 - Tower Tether
-    public int Phase11Sub = 0; // 0 - Taken Tower, 1 - Wait Tower Effects, 2 - Taken Cone, 3 - End
-    private (string, IGameObject)[]? TowersDebug;
-    private Towers? DebugOverWriteTower = null;
-    
-    public TowerData[] TowerDataArray =
-    [
-        new(Direction.W, Towers.Fire),
-        new(Direction.W, Towers.Earth),
-        new(Direction.W, Towers.WindLight),
-        new(Direction.W, Towers.DoomLight),
-        new(Direction.E, Towers.Fire),
-        new(Direction.E, Towers.Earth),
-        new(Direction.E, Towers.WindLight),
-        new(Direction.E, Towers.DoomLight),
-    ];
+
+    public class StateDef
+    {
+        public int PlayerPosition = -1;
+        public Vector3? NextAOE = null;
+        public bool? NextCleavesNorthSouth = null;
+        public bool? IsCardinalFirst = null;
+        public bool? IsThDecreasingResistance = null;
+        public bool? IsConeSafeNorth = null;
+        public HashSet<(Vector3 Pos, float Rot)> NextCleavesList = [];
+        public Dictionary<uint, Vector3> ClonePositions = [];
+        public Dictionary<uint, bool> DefamationPlayers = [];
+        public Dictionary<uint, int> PlayerOrder = [];
+        public int DefamationAttack = 0;
+        public int Phase7Sub = 0; // 0 - Avoid Cone, 1 - Tower Tether
+        public int Phase11Sub = 0; // 0 - Taken Tower, 1 - Wait Tower Effects, 2 - Taken Cone, 3 - End
+        public int Phase = 0;
+        public (string, uint)[]? TowersDebug;
+        public Towers? DebugOverWriteTower = null;
+
+        public TowerData[] TowerDataArray =
+        [
+            new(Direction.W, Towers.Fire),
+            new(Direction.W, Towers.Earth),
+            new(Direction.W, Towers.WindLight),
+            new(Direction.W, Towers.DoomLight),
+            new(Direction.E, Towers.Fire),
+            new(Direction.E, Towers.Earth),
+            new(Direction.E, Towers.WindLight),
+            new(Direction.E, Towers.DoomLight),
+        ];
+    }
+
+
+    public StateDef State = new();
 
     public override void OnReset()
     {
-        PlayerPosition = -1;
-        Phase = 0;
-        NextAOE = null;
-        NextCleavesNorthSouth = null;
-        IsCardinalFirst = null;
-        IsThDecreasingResistance = null;
-        IsConeSafeNorth = null;
-        NextCleavesList.Clear();
-        ClonePositions.Clear();
-        DefamationPlayers.Clear();
-        PlayerOrder.Clear();
-        DefamationAttack = 0;
-        Phase7Sub = 0;
-        Phase11Sub = 0;
-        
-        TowerDataArray =
-        [
-            new TowerData(Direction.W, Towers.Fire),
-            new TowerData(Direction.W, Towers.Earth),
-            new TowerData(Direction.W, Towers.WindLight),
-            new TowerData(Direction.W, Towers.DoomLight),
-            new TowerData(Direction.E, Towers.Fire),
-            new TowerData(Direction.E, Towers.Earth),
-            new TowerData(Direction.E, Towers.WindLight),
-            new TowerData(Direction.E, Towers.DoomLight),
-        ];
-
-        // debugs
-        TowersDebug = null;
-        DebugOverWriteTower = null;
+        State = new();
     }
 
     /// <summary>
@@ -288,18 +267,18 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     public override void OnUpdate()
     {
         Controller.Hide();
-        if(Phase == 1)
+        if(State.Phase == 1)
         {
             var allClones = Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCharacterVisible() && x.DataId == (uint)DataIds.PlayerClone);
             if(allClones.Count() == 4)
             {
                 if(allClones.Any(x => Vector2.Distance(x.Position.ToVector2(), new(100,86)) < 2))
                 {
-                    this.IsCardinalFirst = true;
+                    State.IsCardinalFirst = true;
                 }
                 else
                 {
-                    this.IsCardinalFirst = false;
+                    State.IsCardinalFirst = false;
                 }
             }
 
@@ -312,51 +291,51 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     IBattleNpc? x = clones[i];
                     if(x.Struct()->Vfx.Tethers.ToArray().Any(t => t.TargetId.ObjectId == BasePlayer.ObjectId))
                     {
-                        PlayerPosition = i;
+                        State.PlayerPosition = i;
                         //PluginLog.Information($"Determined player position: {i + 1}");
                     }
                     if(x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(s => s.ObjectId)), out var tetheredPlayer))
                     {
-                        this.ClonePositions[tetheredPlayer.TargetId.ObjectId] = x.Position;
+                        State.ClonePositions[tetheredPlayer.TargetId.ObjectId] = x.Position;
                     }
                 }
             }
-            NextCleavesList.Clear();
+            State.NextCleavesList.Clear();
         }
-        if(Phase == 2)
+        if(State.Phase == 2)
         {
             foreach(var x in Svc.Objects.OfType<IBattleNpc>())
             {
                 if(x.IsCasting(46354) && x.CurrentCastTime.InRange(1, 2)) //cone aoes
                 {
-                    NextCleavesList.Add((x.Position, x.Rotation));
+                    State.NextCleavesList.Add((x.Position, x.Rotation));
                 }
                 if(x.IsCasting(46353) && x.CurrentCastTime.InRange(1, 2))
                 {
-                    NextAOE = x.Position;
+                    State.NextAOE = x.Position;
                 }
             }
         }
-        if(Phase == 4)
+        if(State.Phase == 4)
         {
             foreach(var x in Svc.Objects.OfType<IBattleNpc>())
             {
                 if(x.IsCasting(46354) && x.CurrentCastTime > 1)
                 {
-                    this.NextCleavesList.Add((x.Position, x.Rotation));
+                    State.NextCleavesList.Add((x.Position, x.Rotation));
                 }
                 if(x.IsCasting(46353))
                 {
-                    this.NextAOE = x.Position;
+                    State.NextAOE = x.Position;
                 }
             }
         }
-        if(Phase == 5 || Phase == 6)
+        if(State.Phase == 5 || State.Phase == 6)
         {
             var clones = GetBossClones();
             if(clones.Count == 8)
             {
-                var playersSupposedPickup = C.Pickups[PlayerPosition];
+                var playersSupposedPickup = C.Pickups[State.PlayerPosition];
                 var playerPickupsDefamation = ((int)playersSupposedPickup).InRange(0, 3, true);
                 var playerPickupOrder = playerPickupsDefamation ? (int)playersSupposedPickup : (int)playersSupposedPickup - 4;
                 var defaClone = 0;
@@ -371,11 +350,11 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                             : BasePlayer.Position;
                         if(x.Struct()->Vfx.Tethers.ToArray().TryGetFirst(x => x.TargetId.ObjectId.EqualsAny(Controller.GetPartyMembers().Select(s => s.ObjectId)), out var tetheredPlayer))
                         {
-                            this.PlayerOrder[tetheredPlayer.TargetId.ObjectId] = i;
+                            State.PlayerOrder[tetheredPlayer.TargetId.ObjectId] = i;
                         }
                         if(tether.Id == (uint)TetherKind.Defamation)
                         {
-                            this.DefamationPlayers[tether.TargetId.ObjectId] = true;
+                            State.DefamationPlayers[tether.TargetId.ObjectId] = true;
                             if(playerPickupsDefamation && defaClone == playerPickupOrder && Controller.TryGetElementByName("PickTether", out var e))
                             {
                                 if(!C.SkipIndiMechs)
@@ -398,7 +377,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                         }
                         if(tether.Id == (uint)TetherKind.Stack)
                         {
-                            this.DefamationPlayers[tether.TargetId.ObjectId] = false;
+                            State.DefamationPlayers[tether.TargetId.ObjectId] = false;
                             if(!playerPickupsDefamation && stackClone == playerPickupOrder && Controller.TryGetElementByName("PickTether", out var e))
                             {
                                 if(!C.SkipIndiMechs)
@@ -424,39 +403,39 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if(Phase == 6 || Phase == 7)
+        if(State.Phase == 6 || State.Phase == 7 || State.Phase == 8)
         {
             int i = 0;
-            foreach(var x in this.NextCleavesList)
+            foreach(var x in State.NextCleavesList)
             {
                 i++;
                 if(Controller.TryGetElementByName($"Cone{i}", out var e))
                 {
                     e.Enabled = true;
                     e.AdditionalRotation = x.Rot;
-                    e.fillIntensity = Phase == 6 ? 0.2f : 0.5f;
+                    e.fillIntensity = State.Phase == 6 ? 0.2f : 0.5f;
                     e.SetRefPosition(x.Pos);
                 }
             }
 
             {
-                if(this.NextAOE != null && Controller.TryGetElementByName($"Circle", out var e))
+                if(State.NextAOE != null && Controller.TryGetElementByName($"Circle", out var e))
                 {
                     e.Enabled = true;
-                    e.fillIntensity = Phase == 6 ? 0.2f : 0.5f;
-                    e.SetRefPosition(this.NextAOE.Value);
+                    e.fillIntensity = State.Phase == 6 ? 0.2f : 0.5f;
+                    e.SetRefPosition(State.NextAOE.Value);
                 }
             }
         }
 
-        if (Phase == 7 && Phase7Sub == 0)
+        if (State.Phase == 7 && State.Phase7Sub == 0)
         {
-            if (IsConeSafeNorth.HasValue) ;
+            if (State.IsConeSafeNorth.HasValue)
             {
                 {
                     if (Controller.TryGetElementByName("p7sub1 tether", out var e))
                     {
-                        if (IsConeSafeNorth.Value)
+                        if (State.IsConeSafeNorth.Value)
                         {
                             if (C.IsGroup1) // West
                                 e.SetRefPosition(new Vector3(90, 0, 90));
@@ -478,7 +457,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if (Phase == 7 && Phase7Sub == 1)
+        if (State.Phase == 7 && State.Phase7Sub == 1)
         {
             var baseMeleePos = new Vector3(90.243f, 0f, 95.757f); // West Melee Left
             var baseRangedPos = new Vector3(81.757f, 0f, 95.757f); // West Ranged Left
@@ -509,15 +488,15 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if(Phase == 9 && GetAdjustedDefamationNumber() < 4)
+        if(State.Phase == 9 && GetAdjustedDefamationNumber() < 4)
         {
-            var playerGroup2 = this.PlayerOrder.FindKeysByValue(0 + 1 * GetAdjustedDefamationNumber()).FirstOrDefault().GetObject();
-            var playerGroup1 = this.PlayerOrder.FindKeysByValue(4 + 1 * GetAdjustedDefamationNumber()).FirstOrDefault().GetObject();
-            var isDefamationPlayerGroup2 = this.DefamationPlayers[playerGroup2.ObjectId];
-            var isDefamationPlayerGroup1 = this.DefamationPlayers[playerGroup1.ObjectId];
+            var playerGroup2 = State.PlayerOrder.FindKeysByValue(0 + 1 * GetAdjustedDefamationNumber()).FirstOrDefault().GetObject();
+            var playerGroup1 = State.PlayerOrder.FindKeysByValue(4 + 1 * GetAdjustedDefamationNumber()).FirstOrDefault().GetObject();
+            var isDefamationPlayerGroup2 = State.DefamationPlayers[playerGroup2.ObjectId];
+            var isDefamationPlayerGroup1 = State.DefamationPlayers[playerGroup1.ObjectId];
             //var party = this.PlayerOrder.OrderBy(x => x.Value).Take(4).Any(x => x.Key == BasePlayer.ObjectId) ? 2 : 1;
-            var playersDirection = (Direction)this.PlayerOrder[BasePlayer.ObjectId];
-            var party = (this.DefamationPlayers[this.PlayerOrder.FindKeysByValue(0).First()] ? C.LP2CardinalDefamationFirst : C.LP2CardinalStackFirst).Contains(playersDirection) ? 2 : 1;
+            var playersDirection = (Direction)State.PlayerOrder[BasePlayer.ObjectId];
+            var party = (State.DefamationPlayers[State.PlayerOrder.FindKeysByValue(0).First()] ? C.LP2CardinalDefamationFirst : C.LP2CardinalStackFirst).Contains(playersDirection) ? 2 : 1;
             if((playerGroup2.AddressEquals(BasePlayer) && isDefamationPlayerGroup2) || (playerGroup1.ObjectId == BasePlayer.ObjectId && isDefamationPlayerGroup1))
             {
                 if(Controller.TryGetElementByName($"DefamationOnYou", out var e))
@@ -583,9 +562,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if (Phase is 10 or 11)
+        if (State.Phase is 10 or 11)
         {
-            if (Phase11Sub == 0) // tower goes
+            if (State.Phase11Sub == 0) // tower goes
             {
                 var tower = GetShouldTakeTower();
                 // Get tower kind
@@ -595,8 +574,8 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     {
                         var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
                         var nameId = tower.Struct()->GetNameId();
-                        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback] && DebugOverWriteTower.HasValue)
-                            nameId = (uint)DebugOverWriteTower.Value;
+                        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback] && State.DebugOverWriteTower.HasValue)
+                            nameId = (uint)State.DebugOverWriteTower.Value;
 
                         // if Wind, offset position a bit
                         if (nameId is (uint)Towers.DoomLight)
@@ -637,7 +616,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                 }
             }
 
-            if (Phase11Sub == 1) // wait for tower effects
+            if (State.Phase11Sub == 1) // wait for tower effects
             {
                 // Fire
                 if (BasePlayer.StatusList.Any(y => y.StatusId == 4768))
@@ -656,7 +635,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                 }
 
                 // Earth
-                var earthTowers = TowerDataArray.Where(x => x.kinds == Towers.Earth);
+                var earthTowers = State.TowerDataArray.Where(x => x.kinds == Towers.Earth);
                 for (var i = 0; i < earthTowers.Count(); i++)
                 {
                     var tower = earthTowers.ElementAt(i);
@@ -670,7 +649,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                 }
             }
 
-            if (Phase11Sub == 2 && !C.DontShowElementsP11S1) // cone goes
+            if (State.Phase11Sub == 2 && !C.DontShowElementsP11S1) // cone goes
             {
                 var pcs = Svc.Objects.OfType<IPlayerCharacter>().ToList();
 
@@ -747,47 +726,34 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     else // base taken tower
                     {
                         var earthPlayerId = C.IsGroup1 ?
-                            TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Earth, Side: Direction.W })?.AssignToPlayerEntityId : // West
-                            TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Earth, Side: Direction.E })?.AssignToPlayerEntityId;  // East
+                            State.TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Earth, Side: Direction.W })?.AssignToPlayerEntityId : // West
+                            State.TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Earth, Side: Direction.E })?.AssignToPlayerEntityId;  // East
                         var firePlayerId = C.IsGroup1 ?
-                            TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Fire, Side: Direction.W })?.AssignToPlayerEntityId : // West
-                            TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Fire, Side: Direction.E })?.AssignToPlayerEntityId;  // East
+                            State.TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Fire, Side: Direction.W })?.AssignToPlayerEntityId : // West
+                            State.TowerDataArray.FirstOrDefault(x => x is { kinds: Towers.Fire, Side: Direction.E })?.AssignToPlayerEntityId;  // East
                         if (earthPlayerId != null && firePlayerId != null)
                         {
                             var isEarth = BasePlayer.ObjectId == earthPlayerId;
-                            var elementName = isEarth && C.TakenFarIsEarth || !isEarth && !C.TakenFarIsEarth
+                            var elementName = (isEarth && C.TakenFarIsEarth) || (!isEarth && !C.TakenFarIsEarth)
                                 ? "Taken Far"
                                 : "Taken Near";
                             // Has Far
                             if (isEarth && BasePlayer.StatusList.Any(y => y.StatusId == 4767)) elementName = "Given Near";
                             else if (!isEarth && BasePlayer.StatusList.Any(y => y.StatusId == 4766)) elementName = "Given Far";
-                            {
-                                if (Controller.TryGetElementByName(elementName, out var e))
-                                {
-                                    if ((BasePlayer.Position.X > 100 && e.refX < 100) ||
-                                        (BasePlayer.Position.X < 100 && e.refX > 100))
-                                        e.refX = 200 - e.refX; // mirror
-                                    e.color = GetRainbowColor(1f).ToUint();
-                                    e.tether = true;
-                                    e.thicc = 5f;
-                                    e.Enabled = true;
-                                }
-                            }
                             
                             // Has Far
                             if (BasePlayer.StatusList.Any(y => y.StatusId == 4766)) elementName = "Given Far";
                             else if (BasePlayer.StatusList.Any(y => y.StatusId == 4767)) elementName = "Given Near";
+
+                            if(Controller.TryGetElementByName(elementName, out var e))
                             {
-                                if (Controller.TryGetElementByName(elementName, out var e))
-                                {
-                                    if ((BasePlayer.Position.X > 100 && e.refX < 100) ||
-                                        (BasePlayer.Position.X < 100 && e.refX > 100))
-                                        e.refX = 200 - e.refX; // mirror
-                                    e.color = GetRainbowColor(1f).ToUint();
-                                    e.tether = true;
-                                    e.thicc = 5f;
-                                    e.Enabled = true;
-                                }
+                                if((BasePlayer.Position.X > 100 && e.refX < 100) ||
+                                    (BasePlayer.Position.X < 100 && e.refX > 100))
+                                    e.refX = 200 - e.refX; // mirror
+                                e.color = GetRainbowColor(1f).ToUint();
+                                e.tether = true;
+                                e.thicc = 5f;
+                                e.Enabled = true;
                             }
                         }
                     }
@@ -815,20 +781,20 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     ? lightTowers.Where(x => x.Position.X < 100)
                     : lightTowers.Where(x => x.Position.X > 100);
 
-                TowersDebug =
+                State.TowersDebug =
                 [
-                    ("Assigned Non-Light Towers", assignedNonLightTowers.FirstOrDefault() ?? null),
-                    ("Assigned Non-Light Towers", assignedNonLightTowers.Skip(1).FirstOrDefault() ?? null),
-                    ("Assigned Light Towers", assignedLightTowers.FirstOrDefault() ?? null),
-                    ("Assigned Light Towers", assignedLightTowers.Skip(1).FirstOrDefault() ?? null),
+                    ("Assigned Non-Light Towers", assignedNonLightTowers.FirstOrDefault()?.EntityId ?? 0),
+                    ("Assigned Non-Light Towers", assignedNonLightTowers.Skip(1).FirstOrDefault()?.EntityId ?? 0),
+                    ("Assigned Light Towers", assignedLightTowers.FirstOrDefault()?.EntityId ?? 0),
+                    ("Assigned Light Towers", assignedLightTowers.Skip(1).FirstOrDefault() ?.EntityId ?? 0),
                 ];
 
                 if (assignedNonLightTowers.Count() + assignedLightTowers.Count() != 4)
                     throw new Exception("Invalid number of assigned non-light-towers");
 
                 var isDps = BasePlayer.GetRole() == CombatRole.DPS;
-                if (!IsThDecreasingResistance.HasValue) throw new Exception("DPS is not set");
-                var canTakingLightTowers = isDps == IsThDecreasingResistance;
+                if (!State.IsThDecreasingResistance.HasValue) throw new Exception("DPS is not set");
+                var canTakingLightTowers = isDps == State.IsThDecreasingResistance;
                 var isMelee = C.TowerPosition is TowerPosition.MeleeRight or TowerPosition.MeleeLeft;
                 return (isMelee, canTakingLightTowers) switch
                 {
@@ -854,9 +820,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         void processStored(int num)
         {
-            var orderedClones = MathHelper.EnumerateObjectsClockwise(this.ClonePositions, x => x.Value.ToVector2(), new(100, 100), new(98, 86));
+            var orderedClones = MathHelper.EnumerateObjectsClockwise(State.ClonePositions, x => x.Value.ToVector2(), new(100, 100), new(98, 86));
             var player1 = orderedClones[num].Key.GetObject();
-            var isDefamationPlayer1 = this.DefamationPlayers[player1.ObjectId];
+            var isDefamationPlayer1 = State.DefamationPlayers[player1.ObjectId];
             if(Controller.GetRegisteredElements().TryGetFirst(x => !x.Value.Enabled && x.Key.EqualsAny(isDefamationPlayer1 ? ["Defamation1", "Defamation2"] : ["Stack1","Stack2"]), out var e))
             {
                 e.Value.Enabled = true;
@@ -864,41 +830,41 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if(Phase == 12)
+        if(State.Phase == 12)
         {
             foreach(var x in Svc.Objects.OfType<IBattleNpc>())
             {
                 if(x.IsCasting(46352) && x.CurrentCastTime.InRange(1, 2)) //cone aoes n/s
                 {
-                    NextCleavesList.Add((x.Position, 0.DegreesToRadians()));
-                    NextCleavesList.Add((x.Position, 180.DegreesToRadians()));
-                    NextCleavesNorthSouth = false;
+                    State.NextCleavesList.Add((x.Position, 0.DegreesToRadians()));
+                    State.NextCleavesList.Add((x.Position, 180.DegreesToRadians()));
+                    State.NextCleavesNorthSouth = false;
                 }
                 if(x.IsCasting(46351) && x.CurrentCastTime.InRange(1, 2)) //cone aoes e/w
                 {
-                    NextCleavesList.Add((x.Position, 90.DegreesToRadians()));
-                    NextCleavesList.Add((x.Position, 270.DegreesToRadians()));
-                    NextCleavesNorthSouth = true;
+                    State.NextCleavesList.Add((x.Position, 90.DegreesToRadians()));
+                    State.NextCleavesList.Add((x.Position, 270.DegreesToRadians()));
+                    State.NextCleavesNorthSouth = true;
                 }
                 if(x.IsCasting(48303) && x.CurrentCastTime.InRange(1, 2))
                 {
-                    NextAOE = x.Position;
+                    State.NextAOE = x.Position;
                 }
             }
         }
 
-        if(Phase == 13 || Phase == 14)
+        if(State.Phase == 13 || State.Phase == 14)
         {
             if(GetAdjustedDefamationNumber() < 5)
             {
-                if(IsCardinalFirst == true)
+                if(State.IsCardinalFirst == true)
                 {
                     processStored(0);
                     processStored(2);
                     processStored(4);
                     processStored(6);
                 }
-                else if(IsCardinalFirst == false)
+                else if(State.IsCardinalFirst == false)
                 {
                     processStored(1);
                     processStored(3);
@@ -908,18 +874,18 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if(Phase == 16 || Phase == 17)
+        if(State.Phase == 16 || State.Phase == 17)
         {
             if(GetAdjustedDefamationNumber() < 6)
             {
-                if(IsCardinalFirst == true)
+                if(State.IsCardinalFirst == true)
                 {
                     processStored(1);
                     processStored(3);
                     processStored(5);
                     processStored(7);
                 }
-                else if(IsCardinalFirst == false)
+                else if(State.IsCardinalFirst == false)
                 {
                     processStored(0);
                     processStored(2);
@@ -929,7 +895,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if (Phase is 13 or 16 or 17)
+        if (State.Phase is 13 or 16 or 17)
         {
             Vector3? finalPosition = null;
             Vector3 getPosition(string element)
@@ -990,9 +956,9 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if(Phase == 17)
+        if(State.Phase == 17)
         {
-            if(this.NextCleavesNorthSouth == true)
+            if(State.NextCleavesNorthSouth == true)
             {
                 {
                     if(Controller.TryGetElementByName("PortalConeNS1", out var e))
@@ -1009,7 +975,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                     }
                 }
             }
-            if(this.NextCleavesNorthSouth == false)
+            if(this.State.NextCleavesNorthSouth == false)
             {
                 {
                     if(Controller.TryGetElementByName("PortalConeEW1", out var e))
@@ -1028,26 +994,26 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if(Phase == 14 || Phase == 15)
+        if(State.Phase == 14 || State.Phase == 15 || State.Phase == 16)
         {
             int i = 0;
-            foreach(var x in this.NextCleavesList)
+            foreach(var x in this.State.NextCleavesList)
             {
                 i++;
                 if(Controller.TryGetElementByName($"Cone{i}", out var e))
                 {
                     e.Enabled = true;
                     e.AdditionalRotation = x.Rot;
-                    e.fillIntensity = Phase == 14 ? 0.2f : 0.5f;
+                    e.fillIntensity = State.Phase == 14 ? 0.2f : 0.5f;
                     e.SetRefPosition(x.Pos);
                 }
             }
             {
-                if(this.NextAOE != null && Controller.TryGetElementByName($"Circle", out var e))
+                if(this.State.NextAOE != null && Controller.TryGetElementByName($"Circle", out var e))
                 {
                     e.Enabled = true;
-                    e.fillIntensity = Phase == 14 ? 0.2f : 0.5f;
-                    e.SetRefPosition(this.NextAOE.Value);
+                    e.fillIntensity = State.Phase == 14 ? 0.2f : 0.5f;
+                    e.SetRefPosition(this.State.NextAOE.Value);
                 }
             }
         }
@@ -1062,31 +1028,32 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     {
         if(set.Action?.RowId == 46345)
         {
-            Phase = 1;
+            State.Phase = 1;
         }
         if(set.Action?.RowId == 48098)
         {
-            Phase++;
+            State.Phase++;
         }
-        if(set.Action?.RowId == 46358 || set.Action?.RowId == 46357)
+        if(set.Action?.RowId == 46358)
         {
-            this.NextAOE = null;
-            this.NextCleavesList.Clear();
+            this.State.NextAOE = null;
+            this.State.NextCleavesList.Clear();
+            if(State.Phase == 17)
+            {
+                this.State.NextCleavesNorthSouth = null;
+                Controller.Reset();
+            }
         }
-        if(set.Action?.RowId == 46362)
+        if(State.Phase == 9 && set.Action?.RowId.EqualsAny<uint>(46360, 46361) == true)
         {
-            this.NextCleavesNorthSouth = null;
+            State.DefamationAttack++;
         }
-        if(Phase == 9 && set.Action?.RowId.EqualsAny<uint>(46360, 46361) == true)
+        if(State.Phase.EqualsAny(13,14,16,17) && set.Action?.RowId.EqualsAny<uint>(48099) == true)
         {
-            DefamationAttack++;
+            State.DefamationAttack++;
         }
-        if(Phase.EqualsAny(13,14,16,17) && set.Action?.RowId.EqualsAny<uint>(48099) == true)
-        {
-            DefamationAttack++;
-        }
-        if (Phase == 7 && Phase7Sub == 0 && set.Action?.RowId == 46356) Phase7Sub++;
-        if (Phase == 7 && set.Action?.RowId == 46367)
+        if (State.Phase == 7 && State.Phase7Sub == 0 && set.Action?.RowId == 46356) State.Phase7Sub++;
+        if (State.Phase == 7 && set.Action?.RowId == 46367)
         {
             Controller.Schedule(() =>
             {
@@ -1096,17 +1063,17 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
                 foreach (var t in tower)
                 {
                     var ew = t.Position.X > 100 ? Direction.E : Direction.W;
-                    TowerDataArray.FirstOrDefault(x => x.Side == ew && (uint)x.kinds == t.Struct()->GetNameId())
+                    State.TowerDataArray.FirstOrDefault(x => x.Side == ew && (uint)x.kinds == t.Struct()->GetNameId())
                         ?.Position = t.Position;
                 }
             }, 1000);
         }
         
-        if (Phase is 10 or 11 && Phase11Sub == 1 && set.Action?.RowId == 46327) Phase11Sub++;
-        if (Phase is 10 or 11 && Phase11Sub == 2 && set.Action?.RowId == 46330) Phase11Sub++;
-        if (Phase is 10 or 11 && set.Action?.RowId == 46324)
+        if (State.Phase is 10 or 11 && State.Phase11Sub == 1 && set.Action?.RowId == 46327) State.Phase11Sub++;
+        if (State.Phase is 10 or 11 && State.Phase11Sub == 2 && set.Action?.RowId == 46330) State.Phase11Sub++;
+        if (State.Phase is 10 or 11 && set.Action?.RowId == 46324)
         {
-            var tower = TowerDataArray.FirstOrDefault(x => Vector2.Distance(x.Position.ToVector2(), set.Source.Position.ToVector2()) < 2);
+            var tower = State.TowerDataArray.FirstOrDefault(x => Vector2.Distance(x.Position.ToVector2(), set.Source.Position.ToVector2()) < 2);
             if (tower == null)
             {
                 PluginLog.Error("TowerDataArray is null");
@@ -1124,32 +1091,32 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        if (Phase == 7 && Status.StatusId == 4164 && !IsThDecreasingResistance.HasValue) // light tower debuff
+        if (State.Phase == 7 && Status.StatusId == 4164 && !State.IsThDecreasingResistance.HasValue) // light tower debuff
         {
             if (sourceId.TryGetPlayer(out var pc))
-                IsThDecreasingResistance = pc.GetRole() != CombatRole.DPS;
+                State.IsThDecreasingResistance = pc.GetRole() != CombatRole.DPS;
         }
 
-        if (Phase is 10 or 11 && Phase11Sub == 0 && Status.StatusId is 4766 or 4767) Phase11Sub++;
+        if (State.Phase is 10 or 11 && State.Phase11Sub == 0 && Status.StatusId is 4766 or 4767) State.Phase11Sub++;
     }
 
     int GetAdjustedDefamationNumber()
     {
-        return DefamationAttack / 2;
+        return State.DefamationAttack / 2;
     }
 
     public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
     {
         if(packet->ActionDescriptor == new ActionDescriptor(ActionType.Action, 48098))
         {
-            Phase++;
+            State.Phase++;
         }
-        if (packet->ActionDescriptor == new ActionDescriptor(ActionType.Action, 46352) && Phase is 3 or 4)
+        if (packet->ActionDescriptor == new ActionDescriptor(ActionType.Action, 46352) && State.Phase is 3 or 4)
         {
             if (packet->Position.Z < 100)
-                IsConeSafeNorth = true;
+                State.IsConeSafeNorth = true;
             else
-                IsConeSafeNorth = false;
+                State.IsConeSafeNorth = false;
         }
     }
 
@@ -1390,36 +1357,52 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         if(ImGui.CollapsingHeader("Debug"))
         {
-            ImGui.InputInt("Phase", ref Phase);
-            ImGui.InputInt("Defamation num", ref DefamationAttack);
-            ImGui.InputInt("Phase11Sub", ref Phase11Sub);
+            if(ImGui.Button("Copy state"))
+            {
+                GenericHelpers.Copy(JsonConvert.SerializeObject(State));
+            }
+            if(ImGui.Button("Paste state"))
+            {
+                try
+                {
+                    var state = JsonConvert.DeserializeObject<StateDef>(GenericHelpers.Paste()!) ?? throw new NullReferenceException();
+                    State = state;
+                }
+                catch(Exception e)
+                {
+                    e.Log();
+                }
+            }
+            ImGui.InputInt("Phase", ref State.Phase);
+            ImGui.InputInt("Defamation num", ref State.DefamationAttack);
+            ImGui.InputInt("Phase11Sub", ref State.Phase11Sub);
             ImGuiEx.Text($"Adjusted defamation num {GetAdjustedDefamationNumber()}");
-            ImGuiEx.Checkbox("NextCleavesNorthSouth", ref this.NextCleavesNorthSouth);
-            ImGuiEx.Checkbox("IsCardinalFirst", ref this.IsCardinalFirst);
-            ImGuiEx.Checkbox("IsThDecreasingResistance", ref IsThDecreasingResistance);
-            ImGuiEx.Checkbox("IsConeSafeNorth", ref IsConeSafeNorth);
+            ImGuiEx.Checkbox("NextCleavesNorthSouth", ref this.State.NextCleavesNorthSouth);
+            ImGuiEx.Checkbox("IsCardinalFirst", ref this.State.IsCardinalFirst);
+            ImGuiEx.Checkbox("IsThDecreasingResistance", ref State.IsThDecreasingResistance);
+            ImGuiEx.Checkbox("IsConeSafeNorth", ref State.IsConeSafeNorth);
             ImGui.Separator();
-            ImGuiEx.Text($"Next cleaves: \n{NextCleavesList.Select(x => $"{x.Pos} {x.Rot.RadToDeg()}").Print("\n")}");
+            ImGuiEx.Text($"Next cleaves: \n{State.NextCleavesList.Select(x => $"{x.Pos} {x.Rot.RadToDeg()}").Print("\n")}");
             ImGui.Separator();
-            ImGuiEx.Text($"Next AOE: {NextAOE}");
+            ImGuiEx.Text($"Next AOE: {State.NextAOE}");
             ImGui.Separator();
-            ImGuiEx.Text($"NextCleavesNorthSouth: {NextCleavesNorthSouth}");
-            ImGuiEx.Text($"Order: \n{this.PlayerOrder.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
-            ImGuiEx.Text($"Defa: \n{this.DefamationPlayers.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
-            ImGuiEx.Text($"ClonePositions: \n{this.ClonePositions.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
+            ImGuiEx.Text($"NextCleavesNorthSouth: {State.NextCleavesNorthSouth}");
+            ImGuiEx.Text($"Order: \n{this.State.PlayerOrder.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
+            ImGuiEx.Text($"Defa: \n{this.State.DefamationPlayers.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
+            ImGuiEx.Text($"ClonePositions: \n{this.State.ClonePositions.Select(x => $"{x.Key.GetObject()}: {x.Value}").Print("\n")}");
             ImGui.Separator();
             ImGuiEx.Text($"GetBossClones: \n{GetBossClones().Print("\n")}");
             ImGui.Separator();
             ImGui.Text("Towers Debug:");
-            if (TowersDebug != null)
+            if (State.TowersDebug != null)
             {
-                foreach (var (name, obj) in TowersDebug)
-                    ImGuiEx.Text($"{name}: NPCID: {obj.Struct()->GetNameId()} Pos: {obj?.Position}");
+                foreach (var (name, obj) in State.TowersDebug.Where(x => x.Item2.GetObject() != null))
+                    ImGuiEx.Text($"{name}: NPCID: {obj.GetObject().Struct()->GetNameId()} Pos: {obj.GetObject()?.Position}");
             }
             
             ImGui.Separator();
             ImGuiEx.Text("TowerDataArray:");
-            foreach (var t in TowerDataArray)
+            foreach (var t in State.TowerDataArray)
             {
                 ImGuiEx.Text(t.AssignToPlayerEntityId.TryGetPlayer(out var p)
                     ? $"{t.kinds} ({t.Side}): Pos={t.Position}, AssignedTo={p.GetNameWithWorld()}"
@@ -1430,14 +1413,14 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             {
                 ImGui.Separator();
                 ImGuiEx.Text("DebugOverWritesTower:");
-                if (ImGui.BeginCombo("OverWritesTower##overwrite", DebugOverWriteTower.ToString()))
+                if (ImGui.BeginCombo("OverWritesTower##overwrite", State.DebugOverWriteTower.ToString()))
                 {
                     // if "", set null
-                    if (ImGui.Selectable("None", DebugOverWriteTower == null)) DebugOverWriteTower = null;
+                    if (ImGui.Selectable("None", State.DebugOverWriteTower == null)) State.DebugOverWriteTower = null;
 
                     foreach (Towers t in Enum.GetValues(typeof(Towers)))
-                        if (ImGui.Selectable(t.ToString(), DebugOverWriteTower == (Towers)t))
-                            DebugOverWriteTower = (Towers)t;
+                        if (ImGui.Selectable(t.ToString(), State.DebugOverWriteTower == (Towers)t))
+                            State.DebugOverWriteTower = (Towers)t;
 
                     ImGui.EndCombo();
                 }

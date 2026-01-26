@@ -25,9 +25,14 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 
 ### (Phase 2) [Script] [Beta] Fixed Stampede
-- Warning! Early script based on this raidplan: https://raidplan.io/plan/KXVlSGwV3zqON3CJ Watch out for bugs!!!!
-- Towers only
-- Requires configuration
+- Warning! Script is based on this raidplan: https://raidplan.io/plan/KXVlSGwV3zqON3CJ
+- Some flexibility is supported, but not much.
+- By default, confiured for this raidplan, you just have to configure your role.
+- For healers/ranged taking towers: displays your tower and your direction to bait 2/4 way
+- For melee/tanks: displays your tower as well as hint not to stay in the middle
+
+> [!Important]
+> This strategy is really bad. Priority system never should be used for mechanics that can be resolved without it. Please use this script only as a last resort. If possible, instead please consider using safer strats that do not require priority. 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Fixed%20Stampede.cs
 ```

@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Tests
             Svc.GameNetwork.NetworkMessage -= GameNetwork_NetworkMessage;
         }
 
-        private void GameNetwork_NetworkMessage(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, Dalamud.Game.Network.NetworkMessageDirection direction)
+        private void GameNetwork_NetworkMessage(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
         {
             PluginLog.Information($"opCode: {opCode}, dir: {direction}");
         }

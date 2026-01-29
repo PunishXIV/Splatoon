@@ -28,9 +28,11 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(12, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(13, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
+
+    public bool IsNetherwrathFar = false;
 
     public enum Direction { N, NE, E, SE, S, SW, W, NW }
     public enum TetherKind
@@ -90,6 +92,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     public override void OnReset()
     {
         PlayerDirection = null;
+        IsNetherwrathFar = false;
         Phase = 0;
     }
 
@@ -212,7 +215,8 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         {
             var lpNumber = C.LP2.Contains(PlayerDirection.Value) ? 0 : 1;
             go.Enabled = true;
-            go.SetRefPosition(C.Phase3Positions[lpNumber][GetDesiredTether()].ToVector3());
+            var pos = (IsNetherwrathFar && C.DifferentNetherwrath) ? C.Phase3PositionsFar : C.Phase3Positions;
+            go.SetRefPosition(pos[lpNumber][GetDesiredTether()].ToVector3());
         }
 
         if(Phase == 4 && PlayerDirection != null)
@@ -314,9 +318,14 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
 
     public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
     {
+        if(packet->ActionDescriptor.Type != FFXIVClientStructs.FFXIV.Client.Game.ActionType.Action) return;
         if(Phase == 0 && packet->ActionID == 46307)
         {
             Phase = 1;
+        }
+        if(packet->ActionID == 46383)
+        {
+            IsNetherwrathFar = true;
         }
     }
 
@@ -625,11 +634,28 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 LpPositionsEdit(2, C.Phase2Positions);
             });
 
-            ImGuiEx.TreeNodeCollapsingHeader("Phase 3 Positions", () =>
+            ImGui.Checkbox("Differentiate Netherwrath Far/Near for Phase 3", ref C.DifferentNetherwrath);
+            if(C.DifferentNetherwrath)
             {
-                ImGuiEx.TextWrapped($"Phase 3 is considered when time rewind begins.");
-                LpPositionsEdit(3, C.Phase3Positions);
-            });
+                ImGuiEx.TreeNodeCollapsingHeader("Phase 3 Positions (Netherwrath Near)", () =>
+                {
+                    ImGuiEx.TextWrapped($"Phase 3 is considered when time rewind begins.");
+                    LpPositionsEdit(3, C.Phase3Positions);
+                });
+                ImGuiEx.TreeNodeCollapsingHeader("Phase 3 Positions (Netherwrath Far)", () =>
+                {
+                    ImGuiEx.TextWrapped($"Phase 3 is considered when time rewind begins.");
+                    LpPositionsEdit(3, C.Phase3PositionsFar);
+                });
+            }
+            else
+            {
+                ImGuiEx.TreeNodeCollapsingHeader("Phase 3 Positions", () =>
+                {
+                    ImGuiEx.TextWrapped($"Phase 3 is considered when time rewind begins.");
+                    LpPositionsEdit(3, C.Phase3Positions);
+                });
+            }
 
             ImGuiEx.TreeNodeCollapsingHeader("Phase 4 Positions", () =>
             {
@@ -674,11 +700,15 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                 ImGuiEx.Text($"Candidates: {TetherCandidates.Print()}");
                 ImGui.InputInt("Phase", ref Phase);
             }
-            
-            Controller.GetRegisteredElements().Each(x =>
+            ImGuiEx.Text($"IsNetherwrathFar: {IsNetherwrathFar}");
+
+            if(ImGui.CollapsingHeader("Elements"))
             {
-                ImGuiEx.Text($"{x.Key} - Enabled: {x.Value.Enabled} - Posion: ({x.Value.refX}, {x.Value.refZ}, {x.Value.refY})");
-            });
+                Controller.GetRegisteredElements().Each(x =>
+                {
+                    ImGuiEx.Text($"{x.Key} - Enabled: {x.Value.Enabled} - Posion: ({x.Value.refX}, {x.Value.refZ}, {x.Value.refY})");
+                });
+            }
         }
     }
 
@@ -790,6 +820,7 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         public int BaseNum = 0;
         public bool DontShowValidPartners = false;
         public bool ShowNothingGuide = true;
+        public bool DifferentNetherwrath = false;
         public InternationalString NothingGuideText = new()
         {
             En = "Don't take tether",
@@ -837,6 +868,25 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
     };
 
         public List<Dictionary<TetherKind, Vector2>> Phase3Positions = new() //rewind 1
+    {
+
+        new()
+        {
+            [TetherKind.Stack] = new(89, 96.5f),
+            [TetherKind.Fan] = new(89, 91),
+            [TetherKind.Defamation] = new(82.5f, 100.5f),
+            [TetherKind.Boss] = new(82.5f, 100.5f)
+        },
+        new()
+        {
+            [TetherKind.Stack] = new(89, 103.5f),
+            [TetherKind.Fan] = new(89f, 109),
+            [TetherKind.Defamation] = new(82.5f, 100.5f),
+            [TetherKind.Nothing] = new(82.5f, 100.5f)
+        },
+    };
+
+        public List<Dictionary<TetherKind, Vector2>> Phase3PositionsFar = new() //rewind 1
     {
 
         new()

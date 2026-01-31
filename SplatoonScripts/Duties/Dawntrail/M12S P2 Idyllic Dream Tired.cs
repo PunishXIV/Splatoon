@@ -35,7 +35,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(17, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(18, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public override void OnSetup()
@@ -208,6 +208,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         public int Phase = 0;
         public (string, uint)[]? TowersDebug;
         public Towers? DebugOverWriteTower = null;
+        public int NumVisibleClones = 0;
 
         public TowerData[] TowerDataArray =
         [
@@ -229,6 +230,8 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
     {
         State = new();
     }
+
+    IEnumerable<IBattleNpc> AllClones => Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCharacterVisible() && x.DataId == (uint) DataIds.PlayerClone);
 
     /// <summary>
     /// Phase list:
@@ -269,16 +272,21 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         Controller.Hide();
         if(State.Phase == 1)
         {
-            var allClones = Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCharacterVisible() && x.DataId == (uint)DataIds.PlayerClone);
-            if(allClones.Count() == 4)
+            var cloneCnt = AllClones.Count();
+            if(cloneCnt != State.NumVisibleClones)
             {
-                if(allClones.Any(x => Vector2.Distance(x.Position.ToVector2(), new(100,86)) < 2))
+                State.NumVisibleClones = cloneCnt;
+                PluginLog.Information($"Clones count is now: {cloneCnt}");
+            }
+            if(cloneCnt == 4)
+            {
+                if(AllClones.Any(x => Vector2.Distance(x.Position.ToVector2(), new(100,86)) < 2))
                 {
-                    State.IsCardinalFirst = true;
+                    State.IsCardinalFirst ??= true;
                 }
                 else
                 {
-                    State.IsCardinalFirst = false;
+                    State.IsCardinalFirst ??= false;
                 }
             }
 
@@ -1357,6 +1365,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
         if(ImGui.CollapsingHeader("Debug"))
         {
+            ImGuiEx.Text($"Clones visible: {this.AllClones.Count()}");
             if(ImGui.Button("Copy state"))
             {
                 GenericHelpers.Copy(JsonConvert.SerializeObject(State));

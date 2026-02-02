@@ -35,7 +35,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(18, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(19, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public override void OnSetup()
@@ -233,6 +233,28 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 
     IEnumerable<IBattleNpc> AllClones => Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCharacterVisible() && x.DataId == (uint) DataIds.PlayerClone);
 
+
+
+    public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5, uint p6, uint p7, uint p8, ulong targetId, byte replaying)
+    {
+        if(State.Phase == 1 && State.IsCardinalFirst == null)
+        {
+            if(command == 407 && p1 == 4562 && sourceId.TryGetBattleNpc(out var x))
+            {
+                if(Vector2.Distance(x.Position.ToVector2(), new(100, 86)) < 2)
+                {
+                    State.IsCardinalFirst ??= true;
+                    PluginLog.Information($"Detected cardinal first clones");
+                }
+                if(Vector2.Distance(x.Position.ToVector2(), new(110, 90)) < 2)
+                {
+                    State.IsCardinalFirst ??= false;
+                    PluginLog.Information($"Detected intercardinal first clones");
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Phase list:
     /// 0 - mechanic not yet started
@@ -277,17 +299,6 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             {
                 State.NumVisibleClones = cloneCnt;
                 PluginLog.Information($"Clones count is now: {cloneCnt}");
-            }
-            if(cloneCnt == 4)
-            {
-                if(AllClones.Any(x => Vector2.Distance(x.Position.ToVector2(), new(100,86)) < 2))
-                {
-                    State.IsCardinalFirst ??= true;
-                }
-                else
-                {
-                    State.IsCardinalFirst ??= false;
-                }
             }
 
 

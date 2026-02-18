@@ -19,3 +19,6 @@
 [submodule "WrathCombo.API"]
 	path = WrathCombo.API
 	url = https://github.com/PunishXIV/WrathCombo.API
+[submodule "AutoRetainerAPI"]
+	path = AutoRetainerAPI
+	url = https://github.com/PunishXIV/AutoRetainerAPI

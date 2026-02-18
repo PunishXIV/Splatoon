@@ -9,7 +9,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@M5S_Lets_Dance,2,https://github.com/Pun
 SplatoonScriptsOfficial.Duties.Dawntrail@R1S_Raining_Cats,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R1S Raining Cats.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Quad_Beckon_Moonlight_Universal,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Quad Beckon Moonlight Universal.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M6S_Taste_of_Thunder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M6S Taste of Thunder.cs
-SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P1_Mortal_Slayer,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M12S P1 Mortal Slayer.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P1_Mortal_Slayer,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M12S P1 Mortal Slayer.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@EX5_Relentless_Reaping,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX5 Relentless Reaping.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Millennial_Decay,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Millennial Decay.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Quad_Beckon_Moonlight,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Quad Beckon Moonlight.cs
@@ -229,9 +229,11 @@ SplatoonScriptsOfficial.Generic@ScriptEventLogger,9,https://github.com/PunishXIV
 SplatoonScriptsOfficial.Generic@AutoHeal,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoHeal.cs
 SplatoonScriptsOfficial.Generic@Toast2Log,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Toast2Log.cs
 SplatoonScriptsOfficial.Generic@Makeplace2List,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Makeplace2List.cs
+SplatoonScriptsOfficial.Generic@ValentineCounter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ValentineCounter.cs
 SplatoonScriptsOfficial.Generic@ActReminder,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ActReminder.cs
 SplatoonScriptsOfficial.Generic@SimpleMitigations,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/SimpleMitigations.cs
 SplatoonScriptsOfficial.Generic@WorldWaiter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/WorldWaiter.cs
+SplatoonScriptsOfficial.Generic@CustomResolutionSwitcher,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CustomResolutionSwitcher.cs
 SplatoonScriptsOfficial.Generic@AutoFateSync,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoFateSync.cs
 SplatoonScriptsOfficial.Generic@TargetCircle,0,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/TargetCircle.cs
 SplatoonScriptsOfficial.Generic@QuestionableQuestQueue,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestionableQuestQueue.cs
@@ -257,7 +259,7 @@ SplatoonScriptsOfficial.Generic@AutoTeleport,1,https://github.com/PunishXIV/Spla
 SplatoonScriptsOfficial.Generic@KillConnection,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/KillConnection.cs
 SplatoonScriptsOfficial.Generic@TargetingMe,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/TargetingMe.cs
 SplatoonScriptsOfficial.Generic@HighlightDeadgePlayers,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/HighlightDeadgePlayers.cs
-SplatoonScriptsOfficial.Generic@ARealmRecordedWhitelistMod,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs
+SplatoonScriptsOfficial.Generic@ARealmRecordedWhitelistMod,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs
 SplatoonScriptsOfficial.Generic@ZoneNameToast,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ZoneNameToast.cs
 SplatoonScriptsOfficial.Generic@ExportBlacklist,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ExportBlacklist.cs
 SplatoonScriptsOfficial.Generic@StatusbarFpsSwitcher,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/StatusbarFpsSwitcher.cs

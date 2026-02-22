@@ -32,10 +32,18 @@ Version 4 should have tether fixed and now both tethers are highlighted, but sti
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M12S%20P2%20Clones%202.cs
 ```
-## Community configurations
-> [!Important]
->
-> These are presets submitted by the community. Because script is also still in progress, configurations aren't guaranteed to be accurate and aren't guaranteed not to be broken as development continues.
+## Configurations
+
+### [Complete, unverified] EU strat https://raidplan.io/plan/SFa6J6wDrU9PlCJ4
+
+For melee group:
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Clones_2","ConfigurationName":"EU Melee +netherwrath","Configuration":"GzoIQCwKbMdl44EmTV/iEhkUVOPvqq4K8eIqsvOb8GWnQ2jUdefyH77vcviLPCjNwoBaIEGQYanDQmfOmfJnql9hq0qpsOkYDEaTkWT0aK3Vd4mezELDQiMSKel2/m9QsWUQjebxKYXsIVYojRBxAm52s32IUVgz3/dBxSnVv+Tg5CuF+QjMRW/CdwJouCcBFsoscQlb3j1OpJE+eRRPdS3j3zNxDwi73QjMVaLdCSsxLP2ZSeBfEpuBxqetf29+4ij5M+cymKOJcaxC7rNiNeF7SKUnetHh75Xzz9SGurYlvXgDWriFuYEU7FZs/Ha5R6Yff3P71s3/Q6QMx+X1G7X+K1BsQFf03E2pWvcCzkrtJIYIA3C3VUa/l7Bc+B1zul6hV2OM6kDq/c26+Sr07iHizly38OnphdAYnenfIF+6L0hibBLXmBVMNX0kMM6TrF3MwlZJJs5GL3FlPpv+tqG2SW4llXpPsZu9Kk3PXdsqJHJjIH08JfpEslXCuLHeaYvHVAJHtGqYlOWwo95TMs+prozs80prAcsWvOoGinQ66kWhhFCS3EHhs6h7fDInB4WjCKfJZ6bBnGavgAr3yYn1ar+cKnS/EhyupUGWzjWg9LnHN56qjExAfV9qq27OdpVUlQ8NB50H2f7bjXS8gWGdWr9AZaLcQ7ARwrzP22LYf0UrSrlN2xbulbSez2QquGll1TszfTQZUlJdYMQfpfI4ZSYJGDhSKMGPCkIdKBx0Qua/jAAKkr3yRe0wPLdj1aNjcELDIDU94cWg038iMXY1XPIA","Overrides":null}
+```
+For ranged group:
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Clones_2","ConfigurationName":"EU Ranged +netherwrath","Configuration":"GyoIICwKbMdl44EmTV/iEhkUVOPvqq4K8eIqcpzXhC87HUKjrjuX//B9l8Nf5EFpFgbUAgmCDEsdFjpzzpQ/U/0KW1VKhU3HYDCajCSjx+83K2rdk1loGhqRSEn/Hf8fMBW5iUbzyEpZ9hDrVtpCnI3Y1M1MeMFb1K2mv++DClWqb8nB6VcC9hGwi96E7wS44Z4E6OS5xEXN7x4q0nCffljPrjGNf0/HPSDsfCNgVwl8JzTFhPyHJgGBSdgIMp82/7/58aPkT7slCKM0MScrkVNmrTp8F6nkkA50+Hvl/DO1oa4ZUc9viRpurtWRAt+KlW+Xe2Ty+Jvbt27+rxK7L65f3qjhz0LeJJ3RcyditeyFPNrVk6jDZUBvq4iEL66f/x1zul6kV2LM1YEE/JulcRV69xDxYTYtOD2Jl5tHJ/8j5Ev2JUlQjvA1zwrPbn44MPTTrE3M9FZIJp+NJHxlnE2+bXzbIFpJpeQpdjOp1CS22laGyI2B8GMpOSvRVgplQ70TF3dVBHO0ashdlnl7vQdl0qm2zNvnldYIlq70Kg0+0uERMEpMICXKHVg+gzrZLjTiQSsgCqfJ56aBnPYkTQU5MbGs+OVUodMKOHGtG3DpWIOYPvs4h6kq6gkodaa26uZswqSoFG44SEfI+G830nKdh3VqeYkq5iIDsWGHsc/cgt5/RSsKug3bFmSlX89nekK4YWXVO1M/mgxBqSxQ4D6BBf5yOgAYfCSkhHuEEqJAyAEkdPsXWUckYutmk2bB8GTHKqF1sKLFADBZbUWBDv3jnGLXu4UH","Overrides":null}
+```
 
 ### EU & NA https://raidplan.io/plan/SFa6J6wDrU9PlCJ4 
 ```

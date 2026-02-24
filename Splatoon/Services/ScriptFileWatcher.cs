@@ -67,11 +67,11 @@ public class ScriptFileWatcher : IDisposable
         {
             try
             {
-                S.ThreadPool.Run(() =>
+                new Thread(() =>
                 {
                     try
                     {
-                        Thread.Sleep(1000);
+                        Thread.Sleep(1000); 
                         using var reader = new FileStream(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                         using var sreader = new StreamReader(reader);
                         var text = sreader.ReadToEnd();
@@ -100,7 +100,7 @@ public class ScriptFileWatcher : IDisposable
                     {
                         ex.Log();
                     }
-                });
+                }).Start();
             }
             catch(Exception ex)
             {

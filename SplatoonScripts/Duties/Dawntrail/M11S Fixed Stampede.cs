@@ -15,6 +15,7 @@ using ECommons.MathHelpers;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using TerraFX.Interop.Windows;
 using static Splatoon.Splatoon;
 
@@ -22,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M11S_Fixed_Stampede : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
 
     public override void OnSetup()
@@ -41,11 +42,19 @@ public class M11S_Fixed_Stampede : SplatoonScript
         Controller.RegisterElementFromCode("4SE", """{"Name":"","refX":102.5,"refY":102.5,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode("4SW", """{"Name":"","refX":97.5,"refY":102.5,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
 
+        Controller.RegisterElementFromCode("4NWo", """{"Name":"","refX":95,"refY":95,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("4NEo", """{"Name":"","refX":105,"refY":95,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("4SEo", """{"Name":"","refX":105,"refY":105,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+        Controller.RegisterElementFromCode("4SWo", """{"Name":"","refX":95,"refY":105,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
+
         Controller.RegisterElementFromCode($"2{TwoWayDirection.W_Inside}", """{"Name":"","refX":96.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode($"2{TwoWayDirection.E_Inside}", """{"Name":"","refX":104.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode($"2{TwoWayDirection.E_Outside}", """{"Name":"","refX":108.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
         Controller.RegisterElementFromCode($"2{TwoWayDirection.W_Outside}", """{"Name":"","refX":92.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3355639552,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
     }
+
+    bool HaveTether = false;
+    Vector3 TetherPos;
 
     public override void OnSettingsDraw()
     {
@@ -82,6 +91,7 @@ public class M11S_Fixed_Stampede : SplatoonScript
             {
                 ImGuiEx.CollectionCheckbox(x.GetNameWithWorld(), x.ObjectId, this.Baiters);
             }
+            ImGuiEx.Text($"Tethers: {BasePlayer.GetTethers().Print()}");
         }
     }
 
@@ -92,6 +102,7 @@ public class M11S_Fixed_Stampede : SplatoonScript
     {
         BaiterDirections.Clear();
         Baiters.Clear();
+        HaveTether = false;
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
@@ -138,29 +149,62 @@ public class M11S_Fixed_Stampede : SplatoonScript
                 }
             }
         }
-        if(this.BaiterDirections.TryGetValue(BasePlayer.ObjectId, out var d))
+        foreach(var x in Svc.Objects)
         {
-            foreach(var x in Svc.Objects)
+            if(x is IBattleNpc n)
             {
-                if(x is IBattleNpc n)
+                if(n.IsCasting(46170))
                 {
-                    if(n.IsCasting(46170))
+                    //4-way
+                    if(this.BaiterDirections.TryGetValue(BasePlayer.ObjectId, out var d))
                     {
-                        //4-way
                         var dir = C.BaitFourWay.SafeSelect((int)d);
                         if(Controller.TryGetElementByName($"4{dir}", out var e))
                         {
                             e.Enabled = true;
                         }
                     }
-                    if(n.IsCasting(47037))
+                    if(BasePlayer.GetTethers().Where(x => x.Pair is ICharacter c && c.NameId == 14305).Any())
                     {
-                        //2-way
+                        HaveTether = true;
+                        TetherPos = BasePlayer.Position;
+                    }
+                    else if(HaveTether)
+                    {
+                        string direction;
+                        if(TetherPos.Z < 100)
+                        {
+                            direction = TetherPos.X < 100 ? "NW" : "NE";
+                        }
+                        else
+                        {
+                            direction = TetherPos.X < 100 ? "SW" : "SE";
+                        }
+                        if(Controller.TryGetElementByName($"4{direction}o", out var e))
+                        {
+                            e.Enabled = true;
+                        }
+                    }
+                }
+                if(n.IsCasting(47037))
+                {
+                    //2-way
+                    if(this.BaiterDirections.TryGetValue(BasePlayer.ObjectId, out var d))
+                    {
                         var dir = C.BaitTwoWay.SafeSelect((int)d);
                         if(Controller.TryGetElementByName($"2{dir}", out var e))
                         {
                             e.Enabled = true;
                         }
+                    }
+                    if(BasePlayer.GetTethers().Where(x => x.Pair is ICharacter c && c.NameId == 14305).Any())
+                    {
+                        HaveTether = true;
+                        TetherPos = BasePlayer.Position;
+                    }
+                    else if(HaveTether && Controller.TryGetElementByName($"2{(TetherPos.X < 100 ? "W" : "E")}_Outside", out var e))
+                    {
+                        e.Enabled = true;
                     }
                 }
             }

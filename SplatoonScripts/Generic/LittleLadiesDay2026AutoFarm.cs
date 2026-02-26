@@ -6,17 +6,19 @@ using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
+using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV, Knightmore");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV, Knightmore");
     public override HashSet<uint>? ValidTerritories { get; } = [130];
 
     Dictionary<uint, uint> DataIdToActionId = new()
@@ -32,9 +34,9 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
         if(Player.Status.Any(x => x.StatusId == 1494))
         {
             var fate = FateManager.Instance()->CurrentFate;
-            if(fate != null && fate->FateId == 2044)
+            if(fate != null && fate->FateId != 0 && Vector2.Distance(new(-37.500f, -140.000f), Player.Position.ToVector2()) < 20)
             {
-                var allChara = Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsTargetable && Player.DistanceTo(x) < 35f).ToList();
+                var allChara = Svc.Objects.OfType<IBattleChara>().Where(x => x.IsTargetable && Player.DistanceTo(x) < 35f).ToList();
                 foreach(var (baseId, actionId) in this.DataIdToActionId)
                 {
                     var target = allChara.FirstOrDefault(x => x.BaseId == baseId);

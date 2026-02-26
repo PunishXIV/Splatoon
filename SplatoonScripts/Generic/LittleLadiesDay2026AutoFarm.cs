@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
@@ -7,9 +8,11 @@ using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.Schedulers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using Splatoon.SplatoonScripting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -29,27 +32,38 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
         [18862] = 44504
     };
 
+    List<IBattleChara> AllChara => Svc.Objects.OfType<IBattleChara>().Where(x => x.BaseId.EqualsAny(this.DataIdToActionId.Keys) && x.IsTargetable && Player.DistanceTo(x) < 35f).ToList();
+
     public override void OnUpdate()
     {
-        if(Player.Status.Any(x => x.StatusId == 1494))
+        if(Vector2.Distance(new(-37.500f, -140.000f), Player.Position.ToVector2()) < 20)
         {
-            var fate = FateManager.Instance()->CurrentFate;
-            if(fate != null && fate->FateId != 0 && Vector2.Distance(new(-37.500f, -140.000f), Player.Position.ToVector2()) < 20)
+            if(Player.Status.Any(x => x.StatusId == 1494))
             {
-                var allChara = Svc.Objects.OfType<IBattleChara>().Where(x => x.IsTargetable && Player.DistanceTo(x) < 35f).ToList();
-                foreach(var (baseId, actionId) in this.DataIdToActionId)
+                var fate = FateManager.Instance()->CurrentFate;
+                if(fate != null && fate->FateId != 0)
                 {
-                    var target = allChara.FirstOrDefault(x => x.BaseId == baseId);
-                    if(target == null) continue;
-
-                    if(EzThrottler.Check("UseAction") && EzThrottler.Check($"Use{target.DataId}"))
+                    foreach(var (baseId, actionId) in this.DataIdToActionId)
                     {
-                        EzThrottler.Throttle("UseAction", 1000);
-                        Svc.Targets.Target = target;
-                        ActionManager.Instance()->UseAction(ActionType.Action, actionId, target.ObjectId);
-                        DuoLog.Information($"Use action {ExcelActionHelper.GetActionName(actionId, true)}");
+                        var target = AllChara.Shuffle().FirstOrDefault(x => x.BaseId == baseId);
+                        if(target == null) continue;
+
+                        if(EzThrottler.Check("UseAction") && EzThrottler.Check($"Use{AllChara.Select(x => x.DataId).Print()}"))
+                        {
+                            EzThrottler.Throttle("UseAction", 3000);
+                            Svc.Targets.Target = target;
+                            Controller.Schedule(() =>
+                            {
+                                if(Svc.Targets.Target != null)
+                                {
+                                    ActionManager.Instance()->UseAction(ActionType.Action, actionId, target.ObjectId);
+                                }
+                            }, Random.Shared.Next(1000));
+
+                            DuoLog.Information($"Use action {ExcelActionHelper.GetActionName(actionId, true)}");
+                        }
+                        break;
                     }
-                    break;
                 }
             }
         }
@@ -59,7 +73,15 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
     {
         if(set.Source.AddressEquals(Player.Object) && set.Target?.DataId.EqualsAny(this.DataIdToActionId.Keys) == true)
         {
-            EzThrottler.Throttle($"Use{set.Target?.DataId}", 10000, true);
+            EzThrottler.Throttle($"Use{AllChara.Select(x => x.DataId).Print()}", 12000, true);
+        }
+    }
+
+    public override void OnSettingsDraw()
+    {
+        if(ImGui.CollapsingHeader("Debug"))
+        {
+            EzThrottler.ImGuiPrintDebugInfo();
         }
     }
 }

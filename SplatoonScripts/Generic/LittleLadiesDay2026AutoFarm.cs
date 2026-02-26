@@ -68,7 +68,7 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
                                 }
                             }, Random.Shared.Next(1000));
 
-                            DuoLog.Information($"Use action {ExcelActionHelper.GetActionName(actionId, true)}");
+                            //DuoLog.Information($"Use action {ExcelActionHelper.GetActionName(actionId, true)}");
                         }
                         break;
                     }

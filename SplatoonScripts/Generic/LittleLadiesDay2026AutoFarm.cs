@@ -9,6 +9,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Schedulers;
+using ECommons.UIHelpers.AddonMasterImplementations;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Fate;
 using Splatoon.SplatoonScripting;
@@ -21,7 +22,7 @@ namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV, Knightmore");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV, Knightmore");
     public override HashSet<uint>? ValidTerritories { get; } = [130];
 
     Dictionary<uint, uint> DataIdToActionId = new()
@@ -32,10 +33,16 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
         [18862] = 44504
     };
 
+    public override void OnSetup()
+    {
+        Controller.RegisterElementFromCode("NPC", """{"Name":"","type":1,"offZ":-0.5,"radius":6.8,"color":3356425984,"Filled":false,"fillIntensity":0.3,"overlayTextColor":4278386432,"overlayVOffset":3.0,"thicc":8.0,"overlayText":"Stay within green zone for auto farm","refActorDataID":1055771,"refActorComparisonType":3,"includeRotation":true,"FillStep":4.0}""");
+    }
+
     List<IBattleChara> AllChara => Svc.Objects.OfType<IBattleChara>().Where(x => x.BaseId.EqualsAny(this.DataIdToActionId.Keys) && x.IsTargetable && Player.DistanceTo(x) < 35f).ToList();
 
     public override void OnUpdate()
     {
+        Controller.Hide();
         if(Vector2.Distance(new(-37.500f, -140.000f), Player.Position.ToVector2()) < 20)
         {
             if(Player.Status.Any(x => x.StatusId == 1494))
@@ -50,12 +57,13 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
 
                         if(EzThrottler.Check("UseAction") && EzThrottler.Check($"Use{AllChara.Select(x => x.DataId).Print()}"))
                         {
-                            EzThrottler.Throttle("UseAction", 3000);
+                            EzThrottler.Throttle("UseAction", 1000);
                             Svc.Targets.Target = target;
                             Controller.Schedule(() =>
                             {
                                 if(Svc.Targets.Target != null)
                                 {
+                                    EzThrottler.Throttle($"Use{AllChara.Select(x => x.DataId).Print()}", 12000, true);
                                     ActionManager.Instance()->UseAction(ActionType.Action, actionId, Svc.Targets.Target.ObjectId);
                                 }
                             }, Random.Shared.Next(1000));
@@ -66,14 +74,26 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
                     }
                 }
             }
-        }
-    }
+            else
+            {
+                var maiden = Svc.Objects.FirstOrDefault(x => x.DataId == 1055771 && x.IsTargetable);
+                if(maiden != null) 
+                {
+                    if(Vector2.Distance(maiden.Position.ToVector2(), Player.Position.ToVector2()) <= 6.8f)
+                    {
 
-    public override void OnActionEffectEvent(ActionEffectSet set)
-    {
-        if(set.Source.AddressEquals(Player.Object) && set.Target?.DataId.EqualsAny(this.DataIdToActionId.Keys) == true)
-        {
-            EzThrottler.Throttle($"Use{AllChara.Select(x => x.DataId).Print()}", 12000, true);
+                    }
+                    //Controller.GetElementByName("NPC").Enabled = true;
+
+                    {
+                        if(GenericHelpers.TryGetAddonMaster<AddonMaster.SelectString>(out var m) && m.IsAddonReady)
+                        {
+
+                        }
+                    }
+                }
+                
+            }
         }
     }
 

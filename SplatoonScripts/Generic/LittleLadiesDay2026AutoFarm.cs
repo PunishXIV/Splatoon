@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV, Knightmore");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV, Knightmore");
     public override HashSet<uint>? ValidTerritories { get; } = [130];
 
     Dictionary<uint, uint> DataIdToActionId = new()

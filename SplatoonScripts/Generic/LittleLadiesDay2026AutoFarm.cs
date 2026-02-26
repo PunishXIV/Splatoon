@@ -56,7 +56,7 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
                             {
                                 if(Svc.Targets.Target != null)
                                 {
-                                    ActionManager.Instance()->UseAction(ActionType.Action, actionId, target.ObjectId);
+                                    ActionManager.Instance()->UseAction(ActionType.Action, actionId, Svc.Targets.Target.ObjectId);
                                 }
                             }, Random.Shared.Next(1000));
 

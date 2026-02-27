@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(6, "NightmareXIV, Knightmore");
+    public override Metadata Metadata { get; } = new(7, "NightmareXIV, Knightmore");
     public override HashSet<uint>? ValidTerritories { get; } = [130];
 
     Dictionary<uint, uint> DataIdToActionId = new()
@@ -35,7 +35,7 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
         [18862] = 44504
     };
 
-    float RandomTimer = Random.Shared.Next(5, 15) + Random.Shared.Next(99) * 0.01f;
+    float RandomTimer = Random.Shared.Next(11, 15) + Random.Shared.Next(99) * 0.01f;
 
     public override void OnSetup()
     {
@@ -121,7 +121,7 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
                                 {
                                     TargetSystem.Instance()->InteractWithObject(maiden.Struct(), false);
                                     EzThrottler.Throttle("HaveStatus", 30000, true);
-                                    RandomTimer = Random.Shared.Next(5, 15) + Random.Shared.Next(99) * 0.01f;
+                                    RandomTimer = Random.Shared.Next(11, 15) + Random.Shared.Next(99) * 0.01f;
                                 }
                             }
                         }

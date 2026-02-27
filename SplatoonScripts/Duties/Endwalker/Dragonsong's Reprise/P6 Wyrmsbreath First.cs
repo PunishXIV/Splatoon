@@ -44,7 +44,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
     private State _state = State.None;
 
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(5, "Garume");
+    public override Metadata? Metadata => new(6, "Garume, ChaosK");
 
     private Config C => Controller.GetConfig<Config>();
 

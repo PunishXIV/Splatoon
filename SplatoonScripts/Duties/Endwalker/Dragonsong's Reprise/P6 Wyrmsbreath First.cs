@@ -17,11 +17,11 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
 using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,7 +32,6 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public class P6_Wyrmsbreath_First : SplatoonScript
 {
     private readonly Vector2 _centerPosition = new(100f, 100f);
-
     private readonly Dictionary<string, EnchantmentType> _enchantments = [];
     private readonly Vector2 _lowerLeftPosition = new(95f, 118.5f);
     private readonly Vector2 _lowerRightPosition = new(105f, 118.5f);
@@ -40,17 +39,50 @@ public class P6_Wyrmsbreath_First : SplatoonScript
     private readonly Vector2 _upperPosition = new(100f, 108f);
     private readonly Vector2 _upperRightPosition = new(115f, 88f);
     private bool _mayLeftTankStack;
-
     private bool _mayRightTankStack;
     private BaitPosition _myBaitPosition = BaitPosition.None;
     private State _state = State.None;
-    private readonly ImGuiEx.RealtimeDragDrop<Job> DragDrop = new("DragDropJob", x => x.ToString());
 
     public override HashSet<uint>? ValidTerritories => [968];
-    public override Metadata? Metadata => new(4, "Garume");
-
+    public override Metadata? Metadata => new(5, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
+
+    // Returns the resolved player list from PriorityData, or null if not ready
+    private List<IBattleChara>? GetPriorityPlayers()
+    {
+        var players = C.PriorityData.GetPlayers(_ => true)?.ToList();
+        if(players == null || players.Count < 8) return null;
+        return players.Select(x => x.IGameObject as IBattleChara).Where(x => x != null).ToList()!;
+    }
+
+    private BaitPosition GetBaitPosition(string characterName)
+    {
+        var players = GetPriorityPlayers();
+        if(players == null) return BaitPosition.None;
+        var index = players.FindIndex(x => x.Name.ToString() == characterName);
+        if(index < 0 || index >= C.BaitPositions.Length) return BaitPosition.None;
+        return C.BaitPositions[index];
+    }
+
+    private string GetPairCharacterName(string characterName)
+    {
+        var players = GetPriorityPlayers();
+        if(players == null) return "";
+        var index = players.FindIndex(x => x.Name.ToString() == characterName);
+        if(index < 0) return "";
+        var baitPosition = C.BaitPositions[index];
+        var indices = C.BaitPositions
+            .Select((x, i) => (x, i))
+            .Where(x => x.x == baitPosition)
+            .Select(x => x.i)
+            .ToList();
+        indices.Remove(index);
+        if(indices.Count == 0) return "";
+        var pairIndex = indices[0];
+        if(pairIndex >= players.Count) return "";
+        return players[pairIndex].Name.ToString();
+    }
 
     public override void OnReset()
     {
@@ -59,27 +91,6 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         _mayLeftTankStack = false;
         _mayRightTankStack = false;
         _myBaitPosition = BaitPosition.None;
-    }
-
-
-    private BaitPosition GetBaitPosition(string characterName)
-    {
-        Alert(characterName);
-
-        var index = Array.IndexOf(C.CharacterNames, characterName);
-        return C.BaitPositions[index];
-    }
-
-    private string GetPairCharacterName(string characterName)
-    {
-        Alert($"GetPairCharacterName {characterName}");
-        var index = Array.IndexOf(C.CharacterNames, characterName);
-        var baitPosition = C.BaitPositions[index];
-        var indexs = C.BaitPositions.Select((x, i) => (x, i)).Where(x => x.x == baitPosition).Select(x => x.i).ToList();
-        Alert($"Indexs: {string.Join(", ", indexs)}");
-
-        indexs.Remove(index);
-        return C.CharacterNames[indexs[0]];
     }
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
@@ -96,6 +107,7 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         var targetDataId = targetObject.DataId;
         if(targetDataId != 0x3144 && targetDataId != 0x3145) return;
         if(source.GetObject() is not ICharacter sourceCharacter) return;
+
         _enchantments[sourceCharacter.Name.ToString()] = targetDataId switch
         {
             0x3144 => EnchantmentType.Fire,
@@ -108,48 +120,38 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             _state = State.Start;
             _myBaitPosition = GetBaitPosition(Player.Name);
             var party = _enchantments.Keys.ToList();
+
             if(C.SwapIfNeeded)
             {
                 var myEnchantment = _enchantments[Player.Name];
                 var pairCharacterName = GetPairCharacterName(Player.Name);
-                var pairEnchantment = _enchantments[pairCharacterName];
-
-                Alert($"Pair: {pairCharacterName} {pairEnchantment}");
-
-                if(myEnchantment == pairEnchantment)
+                if(!string.IsNullOrEmpty(pairCharacterName) && _enchantments.TryGetValue(pairCharacterName, out var pairEnchantment))
                 {
-                    party.Remove(Player.Object.Name.ToString());
-                    party.Remove(pairCharacterName);
-
-                    // other 1
-                    var otherPartyMember1 = party[0];
-                    var otherPartyMember1Enchantment = _enchantments[otherPartyMember1];
-                    var otherPartyMember1Pair = GetPairCharacterName(otherPartyMember1);
-
-                    Alert($"{otherPartyMember1} {otherPartyMember1Pair}");
-
-                    var otherPartyMember1PairEnchantment = _enchantments[otherPartyMember1Pair];
-
-                    Alert($"{otherPartyMember1Enchantment} {otherPartyMember1PairEnchantment}");
-
-                    if(otherPartyMember1Enchantment != otherPartyMember1PairEnchantment)
+                    if(myEnchantment == pairEnchantment)
                     {
-                        party.Remove(otherPartyMember1);
-                        party.Remove(otherPartyMember1Pair);
+                        party.Remove(Player.Object.Name.ToString());
+                        party.Remove(pairCharacterName);
 
-                        // other 2
-                        var otherPartyMember2 = party[0];
-                        _myBaitPosition = GetBaitPosition(otherPartyMember2);
-                    }
-                    else
-                    {
-                        _myBaitPosition = GetBaitPosition(otherPartyMember1);
+                        var otherPartyMember1 = party[0];
+                        var otherPartyMember1Enchantment = _enchantments[otherPartyMember1];
+                        var otherPartyMember1Pair = GetPairCharacterName(otherPartyMember1);
+                        var otherPartyMember1PairEnchantment = _enchantments[otherPartyMember1Pair];
+
+                        if(otherPartyMember1Enchantment != otherPartyMember1PairEnchantment)
+                        {
+                            party.Remove(otherPartyMember1);
+                            party.Remove(otherPartyMember1Pair);
+                            _myBaitPosition = GetBaitPosition(party[0]);
+                        }
+                        else
+                        {
+                            _myBaitPosition = GetBaitPosition(otherPartyMember1);
+                        }
                     }
                 }
             }
         }
     }
-
 
     public override void OnStartingCast(uint source, uint castId)
     {
@@ -159,24 +161,20 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         {
             switch(castId)
             {
-                case 27955:
-                    _mayRightTankStack = true;
-                    break;
-                case 27957:
-                    _mayLeftTankStack = true;
-                    break;
+                case 27955: _mayRightTankStack = true; break;
+                case 27957: _mayLeftTankStack = true;  break;
             }
 
             if(_myBaitPosition != BaitPosition.None)
             {
                 var position = _myBaitPosition switch
                 {
-                    BaitPosition.TriangleLowerLeft => _lowerLeftPosition,
+                    BaitPosition.TriangleLowerLeft  => _lowerLeftPosition,
                     BaitPosition.TriangleLowerRight => _lowerRightPosition,
-                    BaitPosition.TriangleUpper => _upperPosition,
-                    BaitPosition.UpperLeft => _upperLeftPosition,
-                    BaitPosition.UpperRight => _upperRightPosition,
-                    _ => Vector2.Zero
+                    BaitPosition.TriangleUpper      => _upperPosition,
+                    BaitPosition.UpperLeft          => _upperLeftPosition,
+                    BaitPosition.UpperRight         => _upperRightPosition,
+                    _                               => Vector2.Zero
                 };
 
                 if(_myBaitPosition is BaitPosition.UpperLeft or BaitPosition.UpperRight)
@@ -194,21 +192,14 @@ public class P6_Wyrmsbreath_First : SplatoonScript
 
     public override void OnSetup()
     {
-        var element = new Element(0)
+        Controller.TryRegisterElement("Bait", new Element(0)
         {
             radius = 1f,
             thicc = 6f,
             Donut = 0.35f,
             LineEndA = LineEnd.Arrow,
             tether = true
-        };
-        Controller.TryRegisterElement("Bait", element);
-    }
-
-    private void Alert(string message)
-    {
-        if(C.ShouldShowDebugMessage)
-            DuoLog.Information(message);
+        });
     }
 
     public override void OnUpdate()
@@ -218,113 +209,63 @@ public class P6_Wyrmsbreath_First : SplatoonScript
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
         }
-
         Controller.GetRegisteredElements().Each(x =>
             x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
     }
 
-    public override unsafe void OnSettingsDraw()
+    public override void OnSettingsDraw()
     {
-        ImGui.Text("Character List");
+        ImGui.Text("Set your role order in the Priority List below, then assign a bait position to each slot.");
+        ImGuiEx.HelpMarker("Uses Splatoon's built-in party sorter. Configure once via General Settings > Party and it auto-resolves every pull.");
 
-        ImGui.SameLine();
-        ImGuiEx.Spacing();
         if(ImGui.Button("Perform test")) SelfTest();
-        ImGui.SameLine();
-        if(ImGui.Button("Fill by job"))
-        {
-            HashSet<(string, Job)> party = [];
-            foreach(var x in FakeParty.Get())
-                party.Add((x.Name.ToString(), x.GetJob()));
 
-            var proxy = InfoProxyCrossRealm.Instance();
-            for(var i = 0; i < proxy->GroupCount; i++)
-            {
-                var group = proxy->CrossRealmGroups[i];
-                for(var c = 0; c < proxy->CrossRealmGroups[i].GroupMemberCount; c++)
-                {
-                    var x = group.GroupMembers[c];
-                    party.Add((x.Name.Read(), (Job)x.ClassJobId));
-                }
-            }
-
-            var index = 0;
-            foreach(var job in C.Jobs.Where(job => party.Any(x => x.Item2 == job)))
-            {
-                C.CharacterNames[index] = party.First(x => x.Item2 == job).Item1;
-                index++;
-            }
-
-            for(var i = index; i < C.CharacterNames.Length; i++)
-                C.CharacterNames[i] = "";
-        }
-        ImGuiEx.Tooltip("The list is populated based on the job.\nYou can adjust the priority from the option header.");
-
-        if(C.CharacterNames.Length != 8)
-        {
-            C.CharacterNames = ["", "", "", "", "", "", "", ""];
+        if(C.BaitPositions.Length != 8)
             C.BaitPositions = new BaitPosition[8];
-        }
 
+        C.PriorityData.Draw();
+
+        ImGui.Separator();
+        ImGui.Text("Bait Positions (per priority slot)");
+
+        // Show resolved names live next to each slot
+        var players = C.PriorityData.GetPlayers(_ => true)?.ToList();
         for(var i = 0; i < 8; i++)
         {
-            ImGui.PushID("Character" + i);
-            ImGui.Text($"Character {i + 1}");
+            ImGui.PushID("Slot" + i);
+            var resolvedName = (players != null && i < players.Count)
+                ? players[i].IGameObject.Name.ToString()
+                : $"Slot {i + 1}";
+            ImGui.Text($"{i + 1}.");
             ImGui.SameLine();
-            ImGui.SetNextItemWidth(200);
-            ImGui.InputText($"##Character{i}", ref C.CharacterNames[i], 50);
+            ImGuiEx.Text(resolvedName);
             ImGui.SameLine();
-            ImGui.SetNextItemWidth(150);
-            ImGuiEx.EnumCombo($"##BaitPosition{i}", ref C.BaitPositions[i]);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(150);
-            if(ImGui.BeginCombo("##partysel", "Select from party"))
-            {
-                foreach(var x in FakeParty.Get().Select(x => x.Name.ToString())
-                             .Union(UniversalParty.Members.Select(x => x.Name)).ToHashSet())
-                    if(ImGui.Selectable(x))
-                        C.CharacterNames[i] = x;
-                ImGui.EndCombo();
-            }
-
+            ImGui.SetNextItemWidth(190);
+            ImGuiEx.EnumCombo("##bait", ref C.BaitPositions[i]);
             ImGui.PopID();
         }
 
+        ImGui.Separator();
         ImGui.Checkbox("Swap if needed", ref C.SwapIfNeeded);
         ImGui.ColorEdit4("Bait Color 1", ref C.BaitColor1, ImGuiColorEditFlags.NoInputs);
         ImGui.ColorEdit4("Bait Color 2", ref C.BaitColor2, ImGuiColorEditFlags.NoInputs);
         ImGui.Checkbox("Check on Start", ref C.ShouldCheckOnStart);
-
-        if(ImGuiEx.CollapsingHeader("Option"))
-        {
-            DragDrop.Begin();
-            foreach(var job in C.Jobs)
-            {
-                DragDrop.NextRow();
-                ImGui.Text(job.ToString());
-                ImGui.SameLine();
-
-                if(ThreadLoadImageHandler.TryGetIconTextureWrap((uint)job.GetIcon(), false, out var texture))
-                {
-                    ImGui.Image(texture.Handle, new Vector2(24f));
-                    ImGui.SameLine();
-                }
-
-                ImGui.SameLine();
-                DragDrop.DrawButtonDummy(job, C.Jobs, C.Jobs.IndexOf(job));
-            }
-
-            DragDrop.End();
-        }
 
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGui.Checkbox("Show Debug Message", ref C.ShouldShowDebugMessage);
             ImGui.Text($"State: {_state}");
             ImGui.Text($"My Bait Position: {_myBaitPosition}");
-            ImGui.Text("Enchantments");
-            foreach(var enchantment in _enchantments)
-                ImGui.Text($"{enchantment.Key}: {enchantment.Value}");
+            ImGui.Text("Enchantments:");
+            foreach(var e in _enchantments)
+                ImGui.Text($"  {e.Key}: {e.Value}");
+            ImGui.Text("Resolved priority players:");
+            var dbgPlayers = C.PriorityData.GetPlayers(_ => true)?.ToList();
+            if(dbgPlayers == null || dbgPlayers.Count == 0)
+                ImGui.Text("  (none resolved)");
+            else
+                for(var i = 0; i < dbgPlayers.Count; i++)
+                    ImGui.Text($"  [{i}] {dbgPlayers[i].IGameObject.Name} -> {(i < C.BaitPositions.Length ? C.BaitPositions[i].ToString() : "?")}");
         }
     }
 
@@ -333,61 +274,41 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         Svc.Chat.PrintChat(new XivChatEntry
         {
             Message = new SeStringBuilder()
-                .AddUiForeground("= P5 Death of the Heavens self-test =", (ushort)UIColor.LightBlue).Build()
+                .AddUiForeground("= P6 Wyrmsbreath First self-test =", (ushort)UIColor.LightBlue).Build()
         });
-        var party = FakeParty.Get().ToArray();
-        var isCorrect = C.CharacterNames.All(x => !string.IsNullOrEmpty(x));
 
-        if(!isCorrect)
+        var players = C.PriorityData.GetPlayers(_ => true)?.ToList();
+        if(players == null || players.Count < 8)
         {
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
-                    .AddUiForeground("Priority list is not filled correctly.", (ushort)UIColor.Red).Build()
+                    .AddUiForeground(
+                        $"Only {players?.Count ?? 0}/8 players resolved. Check your Priority List configuration.",
+                        (ushort)UIColor.Red).Build()
             });
             return;
         }
 
-        if(party.Length != 8)
+        Svc.Chat.PrintChat(new XivChatEntry
         {
-            isCorrect = false;
-            Svc.Chat.PrintChat(new XivChatEntry
-            {
-                Message = new SeStringBuilder()
-                    .AddUiForeground("Can only be tested in content.", (ushort)UIColor.Red).Build()
-            });
-        }
+            Message = new SeStringBuilder()
+                .AddUiForeground("Test Success! Resolved assignments:", (ushort)UIColor.Green).Build()
+        });
 
-        foreach(var player in party)
-            if(C.CharacterNames.All(x => x != player.Name.ToString()))
-            {
-                isCorrect = false;
-                Svc.Chat.PrintChat(new XivChatEntry
-                {
-                    Message = new SeStringBuilder()
-                        .AddUiForeground($"Player {player.Name} is not in the priority list.", (ushort)UIColor.Red)
-                        .Build()
-                });
-            }
-
-        if(isCorrect)
+        for(var i = 0; i < players.Count; i++)
             Svc.Chat.PrintChat(new XivChatEntry
             {
                 Message = new SeStringBuilder()
-                    .AddUiForeground("Test Success!", (ushort)UIColor.Green).Build()
-            });
-        else
-            Svc.Chat.PrintChat(new XivChatEntry
-            {
-                Message = new SeStringBuilder()
-                    .AddUiForeground("!!! Test failed !!!", (ushort)UIColor.Red).Build()
+                    .AddUiForeground(
+                        $"  [{i + 1}] {players[i].IGameObject.Name} -> {(i < C.BaitPositions.Length ? C.BaitPositions[i].ToString() : "not set")}",
+                        (ushort)UIColor.White).Build()
             });
     }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
-        if(!C.ShouldCheckOnStart)
-            return;
+        if(!C.ShouldCheckOnStart) return;
         if(category == DirectorUpdateCategory.Commence ||
             (category == DirectorUpdateCategory.Recommence && Controller.Phase == 2))
             SelfTest();
@@ -403,51 +324,15 @@ public class P6_Wyrmsbreath_First : SplatoonScript
         UpperRight
     }
 
-    private enum EnchantmentType
-    {
-        Ice,
-        Fire
-    }
-
-    private enum State
-    {
-        None,
-        Start,
-        End
-    }
+    private enum EnchantmentType { Ice, Fire }
+    private enum State { None, Start, End }
 
     private class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
+        public PriorityData PriorityData = new();
         public BaitPosition[] BaitPositions = new BaitPosition[8];
-        public string[] CharacterNames = ["", "", "", "", "", "", "", ""];
-
-        public readonly List<Job> Jobs =
-        [
-            Job.PLD,
-            Job.WAR,
-            Job.DRK,
-            Job.GNB,
-            Job.WHM,
-            Job.SCH,
-            Job.AST,
-            Job.SGE,
-            Job.VPR,
-            Job.DRG,
-            Job.MNK,
-            Job.SAM,
-            Job.RPR,
-            Job.NIN,
-            Job.BRD,
-            Job.MCH,
-            Job.DNC,
-            Job.BLM,
-            Job.SMN,
-            Job.RDM,
-            Job.PCT
-        ];
-
         public bool ShouldCheckOnStart = true;
         public bool ShouldShowDebugMessage;
         public bool SwapIfNeeded;

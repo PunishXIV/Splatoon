@@ -68,7 +68,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     public List<IGameObject> MyTowers = [];
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(4, "Garume");
+    public override Metadata? Metadata => new(5, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -235,6 +235,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
     public override void OnUpdate()
     {
+        if(C.Knockback) ProcessKnockback();
         ProcessSwap();
         if(!_isStart)
             return;
@@ -342,14 +343,9 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         return null;
     }
 
-    unsafe void ProcessSwap()
+    unsafe void ProcessKnockback()
     {
-        var e = Controller.GetElementByName("AdjustCall")!;
-        e.Enabled = false;
-        if(!C.ResolveSwaps) return;
-        var remTime = Controller.GetPartyMembers().Select(x => x.StatusList.FirstOrDefault(s => s.StatusId == 562)).Where(x => x != null).Select(x => x.RemainingTime).FirstOrDefault();
-        
-        if(Controller.Scene == 4 && Player.DistanceTo(new Vector3(100,0,100)) > 12f)
+        if(Controller.Scene == 4 && Player.DistanceTo(new Vector3(100, 0, 100)) > 12f)
         {
             if(Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsCasting(25308) && x.CurrentCastTime > 0.5f))
             {
@@ -370,6 +366,15 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                 }
             }
         }
+    }
+
+    unsafe void ProcessSwap()
+    {
+        var e = Controller.GetElementByName("AdjustCall")!;
+        e.Enabled = false;
+        if(!C.ResolveSwaps) return;
+        var remTime = Controller.GetPartyMembers().Select(x => x.StatusList.FirstOrDefault(s => s.StatusId == 562)).Where(x => x != null).Select(x => x.RemainingTime).FirstOrDefault();
+       
 
         if(Controller.Scene == 4 && remTime.InRange(16f, 25f))
         {
@@ -429,6 +434,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         ImGui.Unindent();
 
         ImGui.Checkbox("Resolve swaps (only works for north position right now)", ref C.ResolveSwaps);
+        ImGui.Checkbox("Auto-use knockback during meteors", ref C.Knockback);
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -492,5 +498,6 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public Vector4 PredictBaitColor = EColor.Red;
         public bool ResolveSwaps = false;
+        public bool Knockback = true;
     }
 }

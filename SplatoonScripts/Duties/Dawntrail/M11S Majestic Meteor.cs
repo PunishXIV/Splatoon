@@ -5,6 +5,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Party;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
@@ -69,7 +70,8 @@ public class M11S_Majestic_Meteor : SplatoonScript
 
     private State _state = State.Idle;
     private List<IPlayerCharacter> _towerBuddy = new();
-    public override Metadata Metadata => new(8, "Garume, Phoenix the II");
+
+    public override Metadata Metadata => new(9, "Garume, Phoenix the II");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
@@ -133,6 +135,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
         _state = State.Idle;
 
         _linePlayers.Clear();
+        _towerBuddy.Clear();
         _lineOrder = new List<(uint, Direction)>();
         _noLineOrder = new List<uint>();
 
@@ -155,6 +158,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
         {
             _state = State.WaitTethers;
             _linePlayers.Clear();
+            _towerBuddy.Clear();
             _lineOrder = new List<(uint, Direction)>();
             _noLineOrder = new List<uint>();
             _latchedTethers = false;
@@ -236,6 +240,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
             {
                 _state = State.WaitTethers;
                 _linePlayers.Clear();
+                _towerBuddy.Clear();
                 _lineOrder.Clear();
                 _noLineOrder.Clear();
                 _latchedTethers = false;
@@ -352,13 +357,14 @@ public class M11S_Majestic_Meteor : SplatoonScript
                 Direction myTowerDir;
                 if (isEast)
                 {
-                    _towerBuddy = FakeParty.Get().Where(x => x.GetPositionXZY().X > _center.X).ToList();
+                    _towerBuddy = Controller.GetPartyMembers().Where(x => x.Position.X > _center.X).ToList();
                     var myIndex = _towerBuddy.IndexOf(x => x.EntityId == myId);
                     myTowerDir = myIndex is 0 or 1 ? Direction.NorthEast : Direction.SouthEast;
                 }
                 else
                 {
-                    _towerBuddy = FakeParty.Get().Where(x => x.GetPositionXZY().X < _center.X).ToList();
+
+                    _towerBuddy = Controller.GetPartyMembers().Where(x => x.Position.X < _center.X).ToList();
                     var myIndex = _towerBuddy.IndexOf(x => x.EntityId == myId);
                     myTowerDir = myIndex is 0 or 1 ? Direction.NorthWest : Direction.SouthWest;
                     

@@ -14,9 +14,11 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.PartyFunctions;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using Splatoon.Utility;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
@@ -52,6 +54,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private string _basePlayerOverride = "";
 
     private Element? _eGuide;
+    private Element? _eGuideNext;
     private bool _flipLR;
     private int _gimmicCount;
 
@@ -65,7 +68,8 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private readonly List<Vector2> _mapEffectPositions = new();
 
     private State _state = State.Idle;
-    public override Metadata Metadata => new(6, "Garume");
+    private List<IPlayerCharacter> _towerBuddy = new();
+    public override Metadata Metadata => new(8, "Garume, Phoenix the II");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
@@ -88,10 +92,23 @@ public class M11S_Majestic_Meteor : SplatoonScript
             thicc = 10f,
             overlayVOffset = 3f,
             overlayFScale = 3f,
-            tether = true
+            tether = true,
+            
         });
 
         _eGuide ??= Controller.GetElementByName("Guide");
+        
+        Controller.RegisterElement("GuideNext", new Element(0)
+        {
+            radius = 1.5f,
+            thicc = 10f,
+            overlayVOffset = 3f,
+            overlayFScale = 3f,
+            tether = false,
+            
+        });
+
+        _eGuideNext ??= Controller.GetElementByName("GuideNext");
     }
 
     public override void OnEnable()
@@ -128,6 +145,8 @@ public class M11S_Majestic_Meteor : SplatoonScript
 
         if (_eGuide != null)
             _eGuide.Enabled = false;
+        if (_eGuideNext != null)
+            _eGuideNext.Enabled = false;
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -211,6 +230,8 @@ public class M11S_Majestic_Meteor : SplatoonScript
         if (_state == State.FinalSafe && actionId == _actionFinalResolve)
         {
             _gimmicCount++;
+            _eGuide?.Enabled = false;
+            _eGuideNext?.Enabled = false;
             if (_gimmicCount == 1)
             {
                 _state = State.WaitTethers;
@@ -247,13 +268,19 @@ public class M11S_Majestic_Meteor : SplatoonScript
     public override void OnUpdate()
     {
         if (_eGuide == null) return;
+        if (_eGuideNext == null) return;
         _eGuide.Enabled = false;
+        _eGuideNext.Enabled = false;
 
         if (_state == State.Idle || _state == State.Done) return;
 
         var grad = GradientColor.Get(C.GradientA, C.GradientB, 333).ToUint();
         _eGuide.color = grad;
         _eGuide.overlayBGColor = 0xFF000000;
+        
+        var grad2 = GradientColor.Get(C.GradientC, C.GradientD, 333).ToUint();
+        _eGuideNext.color = grad2;
+        _eGuideNext.overlayBGColor = 0x00FFFFFFF;
 
         var myId = BasePlayer.EntityId;
 
@@ -325,15 +352,16 @@ public class M11S_Majestic_Meteor : SplatoonScript
                 Direction myTowerDir;
                 if (isEast)
                 {
-                    var myIndex = C.PlayerData.GetPlayers(x => x.IGameObject.Position.X > _center.X)
-                        .IndexOf(x => x.IGameObject.EntityId == myId);
+                    _towerBuddy = FakeParty.Get().Where(x => x.GetPositionXZY().X > _center.X).ToList();
+                    var myIndex = _towerBuddy.IndexOf(x => x.EntityId == myId);
                     myTowerDir = myIndex is 0 or 1 ? Direction.NorthEast : Direction.SouthEast;
                 }
                 else
                 {
-                    var myIndex = C.PlayerData.GetPlayers(x => x.IGameObject.Position.X < _center.X)
-                        .IndexOf(x => x.IGameObject.EntityId == myId);
+                    _towerBuddy = FakeParty.Get().Where(x => x.GetPositionXZY().X < _center.X).ToList();
+                    var myIndex = _towerBuddy.IndexOf(x => x.EntityId == myId);
                     myTowerDir = myIndex is 0 or 1 ? Direction.NorthWest : Direction.SouthWest;
+                    
                 }
 
                 Vector2 stand;
@@ -391,11 +419,10 @@ public class M11S_Majestic_Meteor : SplatoonScript
             var offsetX = BasePlayer.Position.X > _center.X ? dist : -dist;
             var pos = _center with { X = _center.X + offsetX };
 
-            SetGuide(pos);
-            return;
+            SetGuide(pos); 
         }
 
-        if (_state is State.Puddles1 or State.Puddles2 or State.Puddles3)
+        if (_state is  State.MarkerBait or State.Puddles1 or State.Puddles2 or State.Puddles3)
         {
             if (!isLine && !isNoLine) return;
             bool isUp;
@@ -406,29 +433,59 @@ public class M11S_Majestic_Meteor : SplatoonScript
             }
             else
             {
-                var myIndex = _noLineOrder.Where(x => x.GetObject()!.Position.X > _center.X == isEast).ToList()
+                var myIndex = _noLineOrder.Where(x => x.GetObject()!.Position.X < _center.X == isEast).ToList()
                     .IndexOf(myId);
                 isUp = myIndex == 0;
             }
 
-            var posX = isEast ? 108f : 92f;
-            var stepOffset = _state switch
+            if (_state == State.MarkerBait)
             {
-                State.Puddles1 => _puddleStep1Offset,
-                State.Puddles2 => _puddleStep2Offset,
-                _ => _puddleStep3Offset
-            };
+                var posX = isEast ? 108f : 92f;
+                var stepOffset = _state switch
+                {
+                    State.Puddles1 => _puddleStep1Offset,
+                    State.Puddles2 => _puddleStep2Offset,
+                    _ => _puddleStep3Offset
+                };
 
-            stepOffset = isUp ? -stepOffset : +stepOffset;
+                stepOffset = isUp ? -stepOffset+6 : +stepOffset-6;
 
-            var pos = new Vector2(posX, 100f + stepOffset);
-            var text = isUp ? "Up" : "Down";
+                var pos = new Vector2(posX, 100f + stepOffset);
+                var text = isUp ? "UpNext" : "DownNext";
+            
+                SetGuideNext(pos, text);
+            }
 
-            SetGuide(pos, text);
-            return;
+            if (_state is State.Puddles1 or State.Puddles2 or State.Puddles3)
+            {
+                var posX = isEast ? 108f : 92f;
+                var stepOffset = _state switch
+                {
+                    State.Puddles1 => _puddleStep1Offset,
+                    State.Puddles2 => _puddleStep2Offset,
+                    _ => _puddleStep3Offset
+                };
+                var stepOffsetNext = _state switch
+                {
+                    State.Puddles1 => _puddleStep1Offset,
+                    State.Puddles2 => _puddleStep2Offset,
+                    _ => _puddleStep3Offset
+                };
+                stepOffset = isUp ? -stepOffset : +stepOffset;
+                stepOffsetNext = isUp ? -stepOffset-6 : +stepOffset+6;
+
+                var pos = new Vector2(posX, 100f + stepOffset);
+                var posNext = new Vector2(posX, 100f + stepOffsetNext);
+                var text = isUp ? "Up" : "Down";
+                var textNext = isUp ? "UpNext" : "DownNext";
+            
+                SetGuide(pos, text);
+                SetGuideNext(posNext, textNext);
+            }
+            
         }
 
-        if (_state == State.FinalSafe)
+        if (_state is State.Puddles3 or State.FinalSafe)
         {
             if (!isLine && !isNoLine) return;
             var posX = isEast ? 116f : 84f;
@@ -443,14 +500,24 @@ public class M11S_Majestic_Meteor : SplatoonScript
             }
             else
             {
-                var myIndex = _noLineOrder.Where(x => x.GetObject()!.Position.X > _center.X == isEast).ToList()
+                var myIndex = _noLineOrder.Where(x => x.GetObject()!.Position.X < _center.X == isEast).ToList()
                     .IndexOf(myId);
                 var posY = myIndex == 0 ? 89f : 111f;
                 pos = new Vector2(posX, posY);
             }
 
-            SetGuide(pos);
-            _finalSafeTowerDir[myId] = GetDirectionFromPosition(pos);
+            if (_state is State.Puddles3)
+            {
+                SetGuideNext(pos, "SafeNext");
+            }
+            if (_state is State.FinalSafe)
+            {
+                _eGuideNext.Enabled = false;
+                SetGuide(pos, "Safe!");
+                _finalSafeTowerDir[myId] = GetDirectionFromPosition(pos);
+            }
+
+           
             return;
         }
 
@@ -484,8 +551,22 @@ public class M11S_Majestic_Meteor : SplatoonScript
 
         _eGuide.overlayTextColor = 0xFFFFFFFF;
         _eGuide.Enabled = true;
+        
     }
+    private void SetGuideNext(Vector2 xz, string text = "")
+    {
+        if (!C.PuddlePrediction) return;
+        if (_eGuideNext == null) return;
+ 
+        _eGuideNext.refX = xz.X;
+        _eGuideNext.refY = xz.Y;
+        _eGuideNext.refZ = 0f;
 
+        _eGuideNext.overlayText = !string.IsNullOrEmpty(text) ? text : "";
+
+        _eGuideNext.overlayTextColor = 0xFFFFFFFF;
+        _eGuideNext.Enabled = true;
+    }
     private void BuildRoleOrders()
     {
         var orderedParty = GetPriorityPartyIds();
@@ -615,6 +696,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
     {
         ImGuiEx.Text("■ 設定 / Settings");
         ImGui.Checkbox("Tether should go North", ref C.TetherShouldGoNorth);
+        ImGui.Checkbox("Show puddle prediction circles", ref C.PuddlePrediction);
         ImGui.Checkbox("2nd TowerBait: Realtime by direction", ref C.RealtimeTowerBaitSecond);
         ImGui.SameLine();
         ImGuiEx.HelpMarker("""
@@ -675,6 +757,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
                 $"Line players: {string.Join(", ", _linePlayers.Select(x => x.Item1.GetObject()?.Name + x.Item2.ToString()))}");
             ImGui.Text($"Line order: {string.Join(", ", _lineOrder.Select(x => x.Item1.GetObject()!.Name))}");
             ImGui.Text($"NoLine order: {string.Join(", ", _noLineOrder.Select(x => x.GetObject()!.Name))}");
+            ImGui.Text($"Tower Buddies: {string.Join(", ", _towerBuddy.Select(x => x.Name))}");
             ImGui.Text($"FlipLR: {_flipLR}");
 
             ImGui.SetNextItemWidth(200);
@@ -703,8 +786,11 @@ public class M11S_Majestic_Meteor : SplatoonScript
     {
         public Vector4 GradientA = ImGuiColors.DalamudYellow;
         public Vector4 GradientB = ImGuiColors.DalamudRed;
+        public Vector4 GradientC = ImGuiColors.DalamudViolet;
+        public Vector4 GradientD = ImGuiColors.DalamudOrange;
         public PriorityData PlayerData = new();
         public bool TetherShouldGoNorth;
+        public bool PuddlePrediction = true;
         public bool ShowFinalTowerBait = true;
         public bool RealtimeTowerBaitSecond = false;
     }

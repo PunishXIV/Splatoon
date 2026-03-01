@@ -69,9 +69,10 @@ public class M11S_Majestic_Meteor : SplatoonScript
     private readonly List<Vector2> _mapEffectPositions = new();
 
     private State _state = State.Idle;
-    private List<IPlayerCharacter> _towerBuddy = new();
+    private IEnumerable<IPlayerCharacter> _towerBuddy = new List<IPlayerCharacter>();
 
-    public override Metadata Metadata => new(9, "Garume, Phoenix the II");
+
+    public override Metadata Metadata => new(10, "Garume, Phoenix the II");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
@@ -135,7 +136,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
         _state = State.Idle;
 
         _linePlayers.Clear();
-        _towerBuddy.Clear();
+        _towerBuddy = new List<IPlayerCharacter>();
         _lineOrder = new List<(uint, Direction)>();
         _noLineOrder = new List<uint>();
 
@@ -158,7 +159,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
         {
             _state = State.WaitTethers;
             _linePlayers.Clear();
-            _towerBuddy.Clear();
+            _towerBuddy = new List<IPlayerCharacter>();
             _lineOrder = new List<(uint, Direction)>();
             _noLineOrder = new List<uint>();
             _latchedTethers = false;
@@ -240,7 +241,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
             {
                 _state = State.WaitTethers;
                 _linePlayers.Clear();
-                _towerBuddy.Clear();
+                _towerBuddy = new List<IPlayerCharacter>();
                 _lineOrder.Clear();
                 _noLineOrder.Clear();
                 _latchedTethers = false;
@@ -357,14 +358,14 @@ public class M11S_Majestic_Meteor : SplatoonScript
                 Direction myTowerDir;
                 if (isEast)
                 {
-                    _towerBuddy = Controller.GetPartyMembers().Where(x => x.Position.X > _center.X).ToList();
+                    _towerBuddy = Controller.GetPartyMembers().Where(x => x.Position.X > _center.X).OrderBy(x => x.GetPositionXZY().Y > _center.Y);
                     var myIndex = _towerBuddy.IndexOf(x => x.EntityId == myId);
                     myTowerDir = myIndex is 0 or 1 ? Direction.NorthEast : Direction.SouthEast;
                 }
                 else
                 {
 
-                    _towerBuddy = Controller.GetPartyMembers().Where(x => x.Position.X < _center.X).ToList();
+                    _towerBuddy = Controller.GetPartyMembers().Where(x => x.Position.X < _center.X).OrderBy(x => x.GetPositionXZY().Y > _center.Y);
                     var myIndex = _towerBuddy.IndexOf(x => x.EntityId == myId);
                     myTowerDir = myIndex is 0 or 1 ? Direction.NorthWest : Direction.SouthWest;
                     
@@ -763,7 +764,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
                 $"Line players: {string.Join(", ", _linePlayers.Select(x => x.Item1.GetObject()?.Name + x.Item2.ToString()))}");
             ImGui.Text($"Line order: {string.Join(", ", _lineOrder.Select(x => x.Item1.GetObject()!.Name))}");
             ImGui.Text($"NoLine order: {string.Join(", ", _noLineOrder.Select(x => x.GetObject()!.Name))}");
-            ImGui.Text($"Tower Buddies: {string.Join(", ", _towerBuddy.Select(x => x.Name))}");
+            ImGui.Text($"Tower Buddies: {string.Join(", ", _towerBuddy.Select(x => x.Name +"("+x.GetPositionXZY().Y+")"))}");
             ImGui.Text($"FlipLR: {_flipLR}");
 
             ImGui.SetNextItemWidth(200);

@@ -161,7 +161,11 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        _castId = castId;
+        if (castId > 40000)
+        {
+            _castId = castId;
+        }
+
         if (castId == _castChampionsMeteorStart && _state == State.Idle)
         {
             _state = State.WaitTethers;
@@ -175,6 +179,7 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
         }
         else if (castId == _actionPuddleTick && _state is State.Puddles1 or State.Puddles2 or State.Puddles3)
         {
+            
             _puddleCount++;
             if (_puddleCount >= 8)
             {
@@ -232,15 +237,19 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
     {
         if (set.Action == null) return;
         _LastAction = set.Action.GetActionName();
-        _actionId = set.Action.Value.RowId;
+        var actionId = set.Action.Value.RowId;
+        if (actionId > 40000)
+        {
+            _actionId = actionId;
+        }
 
-        if (_state == State.TowerBait && _actionId == _actionTowerResolve)
+        if (_state == State.TowerBait && actionId == _actionTowerResolve)
         {
             _state = State.MarkerBait;
             return;
         }
 
-        if (_state == State.FinalSafe && _actionId == _actionFinalResolve)
+        if (_state == State.FinalSafe && actionId == _actionFinalResolve)
         {
             _gimmicCount++;
             _eGuide?.Enabled = false;
@@ -262,11 +271,11 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
                 _showFinalTowerBait = false;
             }
         }
-        else if (_state == State.ArcadionAvalance  && _actionId == _actionTowerResolve ) 
+        else if (_state == State.ArcadionAvalance  && actionId == _actionTowerResolve ) 
         {
             _state = State.ArcadionAvalanceGoSafe;
         }
-        else if (_state == State.ArcadionAvalanceGoSafe  && _castArcadianCrashResolve.Contains(_actionId))
+        else if (_state == State.ArcadionAvalanceGoSafe  && _castArcadianCrashResolve.Contains(actionId))
         {
             _state = State.Done;
         }
@@ -448,7 +457,7 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
             if (isLine)
             {
                 var myDir = _lineOrder.FirstOrDefault(x => x.Item1 == myId).Item2;
-                isUp = myDir is Direction.SouthEast or Direction.SouthWest;
+                _isUp = myDir is Direction.SouthEast or Direction.SouthWest;
             }
             else
             {
@@ -559,10 +568,14 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
             };
             _notSafe = _castId switch
             {
+                46154 => Direction.SouthEast, 
                 46155 => Direction.SouthEast, 
+                46156 => Direction.NorthEast, 
                 46157 => Direction.NorthEast, 
-                46159 => Direction.SouthWest, 
-                46161 => Direction.NorthWest,
+                46158 => Direction.NorthWest, 
+                46159 => Direction.NorthWest, 
+                46160 => Direction.SouthWest,
+                46161 => Direction.SouthWest,
                 _ => Direction.NorthEast
             };
             var same = false;
@@ -813,9 +826,9 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
             ImGui.Text($"UpOrDown: {string.Join(", ", _upOrDown.Select(x => x.GetObject()!.Name +"("+x.GetObject()!.GetPositionXZY().Y+")"))}");
             ImGui.Text($"isUp: {_isUp}");
             ImGui.Text($"FlipLR: {_flipLR}");
-            //ImGui.Text($"CastId: {_castId}");
+            ImGui.Text($"CastId: {_castId}");
             //ImGui.Text($"_LastAction: {_LastAction}");
-            //ImGui.Text($"_actionId: {_actionId}");
+            ImGui.Text($"_actionId: {_actionId}");
             ImGui.Text($"NotSafe: {_notSafe}");
 
             ImGui.SetNextItemWidth(200);

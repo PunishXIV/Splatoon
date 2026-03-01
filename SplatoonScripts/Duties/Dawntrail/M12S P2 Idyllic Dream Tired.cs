@@ -35,7 +35,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(20, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(21, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public override void OnSetup()
@@ -924,7 +924,7 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             }
         }
 
-        if (State.Phase is 13 or 16 or 17)
+        if ((State.Phase == 13 && GetAdjustedDefamationNumber() < 5) || (State.Phase.EqualsAny(16, 17) && GetAdjustedDefamationNumber() < 6))
         {
             Vector3? finalPosition = null;
             Vector3 getPosition(string element)
@@ -1027,17 +1027,18 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
         {
             var eastUnsafe = State.NextCleavesList.Any(x => x.Pos.X < 100);
             Element? e = null;
+            var mustGo = State.Phase > 13 || (State.Phase == 13 && GetAdjustedDefamationNumber() >= 5);
             if(State.NextCleavesNorthSouth == true)
             {
-                e = Controller.GetElementByName($"Safe{(eastUnsafe ? "West" : "East")}LeftRight{(State.Phase > 13 ? "A" : "")}");
+                e = Controller.GetElementByName($"Safe{(eastUnsafe ? "West" : "East")}LeftRight{(mustGo ? "A" : "")}");
                 
             }
             if(State.NextCleavesNorthSouth == false)
             {
-                e = Controller.GetElementByName($"Safe{(eastUnsafe ? "West" : "East")}FrontBack{(State.Phase > 13 ? "A" : "")}");
+                e = Controller.GetElementByName($"Safe{(eastUnsafe ? "West" : "East")}FrontBack{(mustGo ? "A" : "")}");
             }
             e?.Enabled = true;
-            if(State.Phase > 13) e?.color = GetRainbowColor(1f).ToUint();
+            if(mustGo) e?.color = GetRainbowColor(1f).ToUint();
         }
 
         if(State.Phase == 14 || State.Phase == 15 || State.Phase == 16)

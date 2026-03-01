@@ -525,15 +525,18 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
             if (isLine)
             {
                 var myDir = _lineOrder.FirstOrDefault(x => x.Item1 == myId).Item2;
-                var isUp = myDir is Direction.SouthEast or Direction.SouthWest;
-                var posY = isUp ? 81f : 119f;
+                _isUp = myDir is Direction.SouthEast or Direction.SouthWest;
+                var posY = _isUp ? 81f : 119f;
                 pos = new Vector2(posX, posY);
             }
             else
             {
-                var myIndex = _noLineOrder.Where(x => x.GetObject()!.Position.X < _center.X == isEast).ToList()
-                    .IndexOf(myId);
-                var posY = myIndex == 0 ? 89f : 111f;
+                var myIndex = _noLineOrder.Where(x => x.GetObject()!.Position.X < _center.X == isEast);
+                var upOrDown = _upOrDown.ToList();
+                var nr1 = upOrDown[0];
+                var nr2 = upOrDown[1];
+                _isUp = nr1.GetObject().GetPositionXZY().Y < nr2.GetObject().GetPositionXZY().Y;
+                var posY = _isUp ? 89f : 111f;
                 pos = new Vector2(posX, posY);
             }
 

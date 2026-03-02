@@ -76,16 +76,21 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
     private Direction _notSafe;
     private string _LastAction;
     private uint _actionId;
+    private IPlayerCharacter _pov;
+    private uint _nr1 = 0;
+    private uint _nr2 = 0;
 
 
-    public override Metadata Metadata => new(1, "Garume, Phoenix the II");
+    public override Metadata Metadata => new(3, "Garume, Phoenix the II");
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
     private IPlayerCharacter BasePlayer
     {
+        
         get
         {
+            return Controller.BasePlayer;
             if (_basePlayerOverride == "")
                 return Player.Object;
             return Svc.Objects.OfType<IPlayerCharacter>()
@@ -139,6 +144,9 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
 
     private void ResetAll()
     {
+        _nr1 = Controller.BasePlayer.EntityId;
+        _nr2 = Controller.BasePlayer.EntityId;
+        
         _state = State.Idle;
 
         _linePlayers.Clear();
@@ -310,6 +318,7 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
         _eGuideNext.overlayBGColor = 0x00FFFFFFF;
 
         var myId = BasePlayer.EntityId;
+        _pov = BasePlayer;
 
         var isLine = _linePlayers.Any(x => x.Item1 == myId);
         var isNoLine = _noLineOrder.Contains(myId);
@@ -464,9 +473,9 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
                 
                 _upOrDown = _noLineOrder.Where(x => x.GetObject()!.Position.X > _center.X == isEast);
                 var upOrDown = _upOrDown.ToList();
-                var nr1 = upOrDown[0];
-                var nr2 = upOrDown[1];
-                _isUp = nr1.GetObject().GetPositionXZY().Y < nr2.GetObject().GetPositionXZY().Y;
+                _nr1 = upOrDown.FirstOrDefault(x => x.GetObject()!.EntityId == myId);
+                _nr2 = upOrDown.FirstOrDefault(x => x.GetObject()!.EntityId != myId);
+                _isUp = _nr1.GetObject().GetPositionXZY().Y < _nr2.GetObject().GetPositionXZY().Y;
             }
 
             if (_state == State.MarkerBait)
@@ -533,9 +542,10 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
             {
                 var myIndex = _noLineOrder.Where(x => x.GetObject()!.Position.X < _center.X == isEast);
                 var upOrDown = _upOrDown.ToList();
-                var nr1 = upOrDown[0];
-                var nr2 = upOrDown[1];
-                _isUp = nr1.GetObject().GetPositionXZY().Y < nr2.GetObject().GetPositionXZY().Y;
+                
+                _nr1 = upOrDown.FirstOrDefault(x => x.GetObject()!.EntityId == myId);
+                _nr2 = upOrDown.FirstOrDefault(x => x.GetObject()!.EntityId != myId);
+                _isUp = _nr1.GetObject().GetPositionXZY().Y < _nr2.GetObject().GetPositionXZY().Y;
                 var posY = _isUp ? 89f : 111f;
                 pos = new Vector2(posX, posY);
             }
@@ -794,16 +804,7 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
 
         ImGui.Separator();
         //C.PlayerData.Draw();
-
-        if (ImGui.CollapsingHeader("Guide (JP)"))
-        {
-            ImGui.BulletText("優先順位は MT組 → ST組 の順に入力してください。");
-            ImGui.BulletText("西側を北から MT / H1 / M1 / R1、東側を北から ST / H2 / M2 / R2 で並ぶ場合、");
-            ImGui.BulletText("優先順位リスト には 「MT H1 M1 R1 ST H2 M2 R2」 の順で入力します。");
-            ImGui.BulletText("塔はこの優先順位に従って割り当てられます。");
-            ImGui.BulletText("たとえば西側に MT / M1 / ST / R2 がいる場合、優先順位が高い MT と M1 が北側の塔に入ります。");
-            ImGui.BulletText("また、テザー持ちを必ず北側の塔に入れる運用にしたい場合は、「Tether should go North」 にチェックを入れてください。");
-        }
+        
 
         if (ImGui.CollapsingHeader("Guide (EN)"))
         {
@@ -821,12 +822,15 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
         if (ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Text($"State: {_state}");
+            ImGui.Text($"POV: {BasePlayer.Name}");
             ImGui.Text(
                 $"Line players: {string.Join(", ", _linePlayers.Select(x => x.Item1.GetObject()?.Name + x.Item2.ToString()))}");
             ImGui.Text($"Line order: {string.Join(", ", _lineOrder.Select(x => x.Item1.GetObject()!.Name))}");
             ImGui.Text($"NoLine order: {string.Join(", ", _noLineOrder.Select(x => x.GetObject()!.Name))}");
             ImGui.Text($"Tower Buddies: {string.Join(", ", _towerBuddy.Select(x => x.Name +"("+x.GetPositionXZY().Y+")"))}");
             ImGui.Text($"UpOrDown: {string.Join(", ", _upOrDown.Select(x => x.GetObject()!.Name +"("+x.GetObject()!.GetPositionXZY().Y+")"))}");
+            ImGui.Text($"nr1: {_nr1.GetObject()!.Name +"("+_nr1.GetObject()!.GetPositionXZY().Y+")"}");
+            ImGui.Text($"nr2: {_nr2.GetObject()!.Name +"("+_nr2.GetObject()!.GetPositionXZY().Y+")"}");
             ImGui.Text($"isUp: {_isUp}");
             ImGui.Text($"FlipLR: {_flipLR}");
             ImGui.Text($"CastId: {_castId}");

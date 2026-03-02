@@ -834,18 +834,7 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
             //ImGui.Text($"_LastAction: {_LastAction}");
             ImGui.Text($"_actionId: {_actionId}");
             ImGui.Text($"NotSafe: {_notSafe}");
-
-            ImGui.SetNextItemWidth(200);
-            ImGui.InputText("Player override", ref _basePlayerOverride, 50);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(200);
-            if (ImGui.BeginCombo("Select..", "Select..."))
-            {
-                foreach (var x in Svc.Objects.OfType<IPlayerCharacter>())
-                    if (ImGui.Selectable(x.GetNameWithWorld()))
-                        _basePlayerOverride = x.Name.ToString();
-                ImGui.EndCombo();
-            }
+            
         }
     }
 

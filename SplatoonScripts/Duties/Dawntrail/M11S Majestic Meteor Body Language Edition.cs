@@ -808,15 +808,12 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
 
         if (ImGui.CollapsingHeader("Guide (EN)"))
         {
-            ImGui.BulletText("Please fill in the priority order as MT group first → ST group second.");
-            ImGui.BulletText(
-                "If your lineup is West side (from North): MT / H1 / M1 / R1, and East side (from North): ST / H2 / M2 / R2,");
-            ImGui.BulletText("enter the PriorityData as: “MT H1 M1 R1 ST H2 M2 R2”.");
-            ImGui.BulletText("Tower assignments follow this priority order.");
-            ImGui.BulletText(
-                "For example, if the West side has MT / M1 / ST / R2, the two highest-priority players—MT and M1—will take the North tower.");
+            ImGui.BulletText("Please use options as you like. Default settings are US PF compatible (Hector/Toxic/Kindred).");
+            ImGui.BulletText("If you enable preview of puddle safespot, you will get extra violet circles predicting the direction/location you'll go to.");
+            ImGui.BulletText("If you enable realtime 2nd tower direction, it'll oriented the 2nd tower by player position");
             ImGui.BulletText(
                 "If you want tethered players to always take the North towers, enable “Tether should go North.”");
+            ImGui.BulletText("(BETA!) Script will also show you the final tower directions and safespot to be when the platform gets smashed (BETA!)");
         }
 
         if (ImGui.CollapsingHeader("Debug"))
@@ -870,7 +867,7 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
         public bool TetherShouldGoNorth;
         public bool PuddlePrediction = true;
         public bool ShowFinalTowerBait = true;
-        public bool RealtimeTowerBaitSecond = false;
+        public bool RealtimeTowerBaitSecond = true;
     }
 
 

@@ -1,10 +1,15 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
+using ECommons.Hooks.ActionEffectTypes;
+using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
+using static Splatoon.Splatoon;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_1 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV, Leo");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public override void OnSetup()
@@ -24,11 +29,15 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
         {
             Controller.RegisterElementFromCode($"Dark{i}", """{"Name":"CloneDark","type":3,"refZ":5.0,"radius":0.0,"color":3372155094,"Filled":false,"fillIntensity":0.345,"thicc":20.0,"refActorNPCNameID":14380,"refActorComparisonType":2,"includeRotation":true}""");
             Controller.RegisterElementFromCode($"Fire{i}", """{"Name":"CloneFire","type":3,"refZ":5.0,"radius":0.0,"color":3355492351,"Filled":false,"fillIntensity":0.345,"thicc":20.0,"refActorNPCNameID":14380,"refActorComparisonType":2,"includeRotation":true}""");
+
         }
+        Controller.RegisterElementFromCode($"BaitPosition", """{"Name":"","radius":0.5,"Donut":0.5,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
     }
 
     int RentedDark = 0;
     int RentedFire = 0;
+
+    int Phase = 0;
 
     uint DarknessCast = 46303;
     uint FireCast = 46301;
@@ -36,15 +45,35 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
     uint MasterFireClone = 0;
     uint MasterDarknessClone = 0;
 
+    uint RN = 0;
+
+    List<IBattleNpc> battleNpcs = [];
+    IBattleNpc RelativeNorthClone = null;
+    Direction relativeNorth = Direction.None;
+
     List<uint> FireClones = [];
     List<uint> DarknessClones = [];
 
+    enum Direction { None, NE, SE, SW, NW }
+    Dictionary<Direction, Vector2> CloneDirections = new()
+    {
+        [Direction.NE] = new(109.88013f, 90.073975f),
+        [Direction.SE] = new(109.88013f, 109.88013f),
+        [Direction.SW] = new(90.073975f, 109.88013f),
+        [Direction.NW] = new(90.073975f, 90.073975f),
+    };
+
     public override void OnReset()
     {
+        Phase = 0;
         MasterFireClone = 0;
         MasterDarknessClone = 0;
         FireClones.Clear();
         DarknessClones.Clear();
+        battleNpcs.Clear();
+        RelativeNorthClone = null;
+        RN = 0;
+        relativeNorth = Direction.None;
     }
 
     public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
@@ -58,6 +87,14 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
     public override void OnUpdate()
     {
         Controller.Hide();
+        if(BasePlayer.StatusList.Any(x => x.StatusId == 3323))
+        {
+            C.HasDarkResistanceDown = true;
+        }
+        else
+        {
+            C.HasDarkResistanceDown = false;
+        }
         if(DarknessClones.Count != 2)
         {
             var e = Controller.GetElementByName($"Dark0");
@@ -79,7 +116,6 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
                 var e = Controller.GetElementByName($"Dark0");
                 e.Enabled = true;
                 e.refActorObjectID = MasterDarknessClone;
-
             }
             if(FireClones.Count != 2 && x.IsCasting(FireCast))
             {
@@ -115,5 +151,188 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
                 }
             }
         }
+        if(DarknessClones.Count == 2 && Phase == 0)
+        {
+            battleNpcs = Svc.Objects.OfType<IBattleNpc>().ToList();
+
+            //result<IBattleNpc Npc, Direction Dir>
+            var result = DarknessClones
+            .Select(id => battleNpcs.FirstOrDefault(n => n.ObjectId == id))
+            .Where(npc => npc != null)
+            .Select(npc => new
+            {
+                Npc = npc,
+                //Dir = CloneDirections.FirstOrDefault(kvp => kvp.Value == npc.Position.ToVector2()).Key
+                Dir = CloneDirections.FirstOrDefault(kvp => Vector2.Distance(kvp.Value, npc.Position.ToVector2()) < 0.1f).Key
+            })
+            .FirstOrDefault(x => x.Dir != Direction.None);
+
+            if(result != null)
+            {
+                RelativeNorthClone = result.Npc;
+                relativeNorth = result.Dir;
+                RN = RelativeNorthClone.ObjectId;
+
+                var e = Controller.GetElementByName($"BaitPosition");
+                e.refActorObjectID = RelativeNorthClone.ObjectId;
+
+                if(C.HasDarkResistanceDown)
+                {
+                    (e.offX, e.offY) = (relativeNorth, C.IsMelee, C.FirePositionIsLeft) switch
+                    {
+                        (Direction.NE, true, true) => (101.365f, 98.635f),
+                        (Direction.NE, true, false) => (101.365f, 98.635f),
+                        (Direction.NE, false, true) => (86.350f, 100.000f),
+                        (Direction.NE, false, false) => (100.000f, 113.650f),
+
+                        (Direction.SE, true, true) => (101.365f, 101.365f),
+                        (Direction.SE, true, false) => (101.365f, 101.365f),
+                        (Direction.SE, false, true) => (100.000f, 86.350f),
+                        (Direction.SE, false, false) => (86.350f, 100.000f),
+
+                        (Direction.SW, true, true) => (98.635f, 101.365f),
+                        (Direction.SW, true, false) => (98.635f, 101.365f),
+                        (Direction.SW, false, true) => (113.650f, 100.000f),
+                        (Direction.SW, false, false) => (100.000f, 86.350f),
+
+                        (Direction.NW, true, true) => (98.635f, 98.635f),
+                        (Direction.NW, true, false) => (98.635f, 98.635f),
+                        (Direction.NW, false, true) => (100.000f, 113.650f),
+                        (Direction.NW, false, false) => (113.650f, 100.000f),
+
+                        _ => (0.0f, 0.0f),
+                    };
+                }
+                else
+                {
+                    (e.offX, e.offY) = (relativeNorth, C.IsMelee, C.DarkPositionIsLeft) switch
+                    {
+                        (Direction.NE, true, true) => (93.175f, 98.635f),
+                        (Direction.NE, true, false) => (101.365f, 106.825f),
+                        (Direction.NE, false, true) => (100.000f, 86.350f),
+                        (Direction.NE, false, false) => (113.650f, 100.000f),
+
+                        (Direction.SE, true, true) => (101.365f, 93.175f),
+                        (Direction.SE, true, false) => (93.175f, 101.365f),
+                        (Direction.SE, false, true) => (113.650f, 100.000f),
+                        (Direction.SE, false, false) => (100.000f, 113.650f),
+
+                        (Direction.SW, true, true) => (106.825f, 101.365f),
+                        (Direction.SW, true, false) => (98.635f, 93.175f),
+                        (Direction.SW, false, true) => (100.000f, 113.650f),
+                        (Direction.SW, false, false) => (86.350f, 100.000f),
+
+                        (Direction.NW, true, true) => (98.635f, 106.825f),
+                        (Direction.NW, true, false) => (106.825f, 98.635f),
+                        (Direction.NW, false, true) => (86.350f, 100.000f),
+                        (Direction.NW, false, false) => (100.000f, 86.350f),
+
+                        _ => (0.0f, 0.0f),
+                    };
+                }
+                e.color = GetRainbowColor(1f).ToUint();
+                e.radius = C.IsMelee ? 0.5f : 1.45f;
+                e.Enabled = !C.SkipMechs;
+                //e.Enabled = true;
+            }
+        }
+        if(Phase == 1)
+        {
+            var e = Controller.GetElementByName($"BaitPosition");
+            e.Enabled = false;
+        }
+    }
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if(Phase == 0 && DarknessClones.Count == 2 && set.Action?.RowId == 46304)
+        {
+            Phase = 1;
+        }
+    }
+    public override void OnSettingsDraw()
+    {
+        ImGui.Checkbox("Disable rainbow coloring", ref C.NoRainbow);
+        if(C.NoRainbow)
+        {
+            ImGui.ColorEdit4("Alternative color", ref C.FixedColor, ImGuiColorEditFlags.NoInputs);
+        }
+        ImGuiEx.Checkbox("Don't resolve mechanics", ref C.SkipMechs);
+
+        if(!C.SkipMechs)
+        {
+
+            ImGuiEx.TextV("Your Role:");
+            ImGui.SameLine();
+            ImGuiEx.RadioButtonBool("Tank/Melee", "Healer/Ranged", ref C.IsMelee, true);
+
+            ImGuiEx.TextV("Dark Baiting Position, Looking at the Relative North Clone:");
+            ImGui.SameLine();
+            ImGuiEx.RadioButtonBool("Left##DarkL", "Right##DarkR", ref C.DarkPositionIsLeft, true);
+
+            if(!C.IsMelee)
+            {
+                ImGuiEx.TextV("Fire Baiting Position, Looking at the Relative North Clone:");
+                ImGui.SameLine();
+                ImGuiEx.RadioButtonBool("Left##FireL", "Right##FireR", ref C.FirePositionIsLeft, true);
+            }
+        }
+        ImGui.NewLine();
+        if(ImGui.CollapsingHeader("Debug"))
+        {
+            ImGui.Indent();
+            ImGuiEx.Text($"Relative North Clone OID: {RN} / 0x{RN.ToString("X")}");
+            ImGuiEx.Text($"Relative North : {relativeNorth.ToString()}");
+            ImGuiEx.Text($"Phase : {Phase}");
+            ImGuiEx.Text($"Has Dark Resistance Down?: {C.HasDarkResistanceDown}");
+        }
+        ;
+    }
+
+    public class Config : IEzConfig
+    {
+        public bool NoRainbow = false;
+        public Vector4 FixedColor = EColor.RedBright;
+        public bool SkipMechs = false;
+
+        public bool HasDarkResistanceDown = false;
+        public bool IsMelee = true;
+        public bool DarkPositionIsLeft = true;
+        public bool FirePositionIsLeft = true;
+    }
+    Config C => Controller.GetConfig<Config>();
+
+    public Vector4 GetRainbowColor(double cycleSeconds)
+    {
+        if(C.NoRainbow) return C.FixedColor;
+        if(cycleSeconds <= 0d)
+        {
+            cycleSeconds = 1d;
+        }
+
+        var ms = Environment.TickCount64;
+        var t = (ms / 1000d) / cycleSeconds;
+        var hue = t % 1f;
+        return HsvToVector4(hue, 1f, 1f);
+    }
+    public static Vector4 HsvToVector4(double h, double s, double v)
+    {
+        double r = 0f, g = 0f, b = 0f;
+        var i = (int)(h * 6f);
+        var f = h * 6f - i;
+        var p = v * (1f - s);
+        var q = v * (1f - f * s);
+        var t = v * (1f - (1f - f) * s);
+
+        switch(i % 6)
+        {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+        }
+
+        return new Vector4((float)r, (float)g, (float)b, 1f);
     }
 }

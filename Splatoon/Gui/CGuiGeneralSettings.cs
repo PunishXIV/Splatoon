@@ -79,6 +79,27 @@ internal partial class CGui
                 ImGuiComponents.HelpMarker("Log object position in casting information log lines".Loc());
             })
 
+            .Section("Information", visible:() => Svc.PluginInterface.InstalledPlugins.Any(x => x.IsLoaded && x.InternalName == "ARealmRecorded"))
+            .Widget(() =>
+            {
+                ImGuiEx.TextWrapped($"Looking to watch expired Duty Recorder replays?");
+                ImGuiEx.TextWrapped($"Become supporter of NightmareXIV with \"Nightmare\" tier or higher get access to replay upgrade tool. Replays are processed locally on your own PC, without sending data across the Internet. ");
+                ImGuiEx.LineCentered("NxivSupport", () =>
+                {
+                    if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.DoorOpen, "Join Now"))
+                    {
+                        ShellStart("https://subscribe.nightmarexiv.com/");
+                    }
+                    ImGuiEx.Tooltip($"Join \"Nightmare\" tier or higher to gain access to the tool. ");
+                    ImGui.SameLine();
+                    if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.DoorOpen, "Ask a question or See Details in Discord"))
+                    {
+                        ShellStart("https://discord.gg/BeeRFKDJD3");
+                    }
+                    ImGuiEx.Tooltip($"After joining Discord, head to \"Early Access Program\" channel. If you have a question, head to \"General\" channel and create a ticket. ");
+                });
+            })
+
             .Section("Language", collapsible: false)
             .Widget(() =>
             {

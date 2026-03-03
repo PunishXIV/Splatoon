@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_1 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV, Leo");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV, Leo");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public override void OnSetup()
@@ -251,16 +251,16 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
     }
     public override void OnSettingsDraw()
     {
-        ImGui.Checkbox("Disable rainbow coloring", ref C.NoRainbow);
-        if(C.NoRainbow)
-        {
-            ImGui.ColorEdit4("Alternative color", ref C.FixedColor, ImGuiColorEditFlags.NoInputs);
-        }
-        ImGuiEx.Checkbox("Don't resolve mechanics", ref C.SkipMechs);
+        ImGuiEx.Text($"Script Mode:");
+        ImGuiEx.RadioButtonBool("Highlight only", "Resolve mechanic", ref C.SkipMechs);
 
         if(!C.SkipMechs)
         {
-
+            ImGui.Checkbox("Disable rainbow coloring", ref C.NoRainbow);
+            if(C.NoRainbow)
+            {
+                ImGui.ColorEdit4("Alternative color", ref C.FixedColor, ImGuiColorEditFlags.NoInputs);
+            }
             ImGuiEx.TextV("Your Role:");
             ImGui.SameLine();
             ImGuiEx.RadioButtonBool("Tank/Melee", "Healer/Ranged", ref C.IsMelee, true);
@@ -292,7 +292,7 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
     {
         public bool NoRainbow = false;
         public Vector4 FixedColor = EColor.RedBright;
-        public bool SkipMechs = false;
+        public bool SkipMechs = true;
 
         public bool HasDarkResistanceDown = false;
         public bool IsMelee = true;

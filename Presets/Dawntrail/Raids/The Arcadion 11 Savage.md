@@ -20,8 +20,20 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 
 ### (Phase 2) [Script] [Beta] Majestic Meteor - requires configuration
+- Do **NOT** both enable this script and the Body Language Edition at the same time, you will be confused.
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Majestic%20Meteor.cs
+```
+### (Phase 2) [Script] [Beta] Majestic Meteor Body Language Edition - optional configuration
+- Do **NOT** both enable this script and original version (from above ^) at the same time, you will be confused.
+- Mainly used in US Party Finder strats. Default configuration should work fine.
+- Hector/Toxic, no buddies, is supported. 
+- Kindred no buddies, is supported, but you will need to position yourself correctly right after flatliner according to your raidplan.
+- Arcadion Avalance (Platform Throw) tower directions and safe spot is included in this.
+- Script is based on your realtime position, e.a. body language. So if you and your party member baiting flame breath are fighting over up or down direction. The script will rapidly update direction.
+- Preview circles (violet'ish) can be shown to make the direction of puddles a bit more clearer. Including showing the final safe spot to stand.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/M11S%20Majestic%20Meteor%20Body%20Language%20Edition.cs
 ```
 
 ### (Phase 2) [Script] [Beta] Fixed Stampede

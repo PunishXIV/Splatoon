@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_1 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV, Leo");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV, Leo");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public override void OnSetup()
@@ -63,6 +63,15 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
         [Direction.NW] = new(90.073975f, 90.073975f),
     };
 
+    public enum Strat { Static, DN, Relative }
+    public Dictionary<Strat, string> Strats = new()
+    {
+        {Strat.Static,  "Static/JP"},
+        {Strat.DN,      "DN/NA"},
+        {Strat.Relative,"Clone Relative"}
+    };
+    public enum Role { Tank, Melee, Healer, Ranged }
+
     public override void OnReset()
     {
         Phase = 0;
@@ -87,7 +96,9 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
     public override void OnUpdate()
     {
         Controller.Hide();
-        if(BasePlayer.StatusList.Any(x => x.StatusId == 3323))
+        //BasePlayer(≈LocalPlayer) will always be null in loading screens
+        //if(BasePlayer.StatusList.Any(x => x.StatusId == 3323))
+        if (BasePlayer != null && (BasePlayer.StatusList?.Any(x => x.StatusId == 3323) ?? false))
         {
             C.HasDarkResistanceDown = true;
         }
@@ -155,7 +166,7 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
         {
             battleNpcs = Svc.Objects.OfType<IBattleNpc>().ToList();
 
-            //result<IBattleNpc Npc, Direction Dir>
+            // result (IBattleNpc Npc, Direction Dir)
             var result = DarknessClones
             .Select(id => battleNpcs.FirstOrDefault(n => n.ObjectId == id))
             .Where(npc => npc != null)
@@ -176,64 +187,130 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
                 var e = Controller.GetElementByName($"BaitPosition");
                 e.refActorObjectID = RelativeNorthClone.ObjectId;
 
-                if(C.HasDarkResistanceDown)
+                switch(C.SelectedStrat)
                 {
-                    (e.offX, e.offY) = (relativeNorth, C.IsMelee, C.FirePositionIsLeft) switch
-                    {
-                        (Direction.NE, true, true) => (101.365f, 98.635f),
-                        (Direction.NE, true, false) => (101.365f, 98.635f),
-                        (Direction.NE, false, true) => (86.350f, 100.000f),
-                        (Direction.NE, false, false) => (100.000f, 113.650f),
+                    case Strat.Static:
+                    case Strat.Relative:
 
-                        (Direction.SE, true, true) => (101.365f, 101.365f),
-                        (Direction.SE, true, false) => (101.365f, 101.365f),
-                        (Direction.SE, false, true) => (100.000f, 86.350f),
-                        (Direction.SE, false, false) => (86.350f, 100.000f),
+                        if(C.HasDarkResistanceDown)
+                        {
+                            (e.offX, e.offY) = (relativeNorth, C.IsMelee, C.FirePositionIsLeft) switch
+                            {
+                                (Direction.NE,  true,  true) => (101.365f,  98.635f),
+                                (Direction.NE,  true, false) => (101.365f,  98.635f),
+                                (Direction.NE, false,  true) => ( 86.350f, 100.000f),
+                                (Direction.NE, false, false) => (100.000f, 113.650f),
 
-                        (Direction.SW, true, true) => (98.635f, 101.365f),
-                        (Direction.SW, true, false) => (98.635f, 101.365f),
-                        (Direction.SW, false, true) => (113.650f, 100.000f),
-                        (Direction.SW, false, false) => (100.000f, 86.350f),
+                                (Direction.SE,  true,  true) => (101.365f, 101.365f),
+                                (Direction.SE,  true, false) => (101.365f, 101.365f),
+                                (Direction.SE, false,  true) => (100.000f,  86.350f),
+                                (Direction.SE, false, false) => ( 86.350f, 100.000f),
+ 
+                                (Direction.SW,  true,  true) => ( 98.635f, 101.365f),
+                                (Direction.SW,  true, false) => ( 98.635f, 101.365f),
+                                (Direction.SW, false,  true) => (113.650f, 100.000f),
+                                (Direction.SW, false, false) => (100.000f,  86.350f),
 
-                        (Direction.NW, true, true) => (98.635f, 98.635f),
-                        (Direction.NW, true, false) => (98.635f, 98.635f),
-                        (Direction.NW, false, true) => (100.000f, 113.650f),
-                        (Direction.NW, false, false) => (113.650f, 100.000f),
+                                (Direction.NW,  true,  true) => ( 98.635f,  98.635f),
+                                (Direction.NW,  true, false) => ( 98.635f,  98.635f),
+                                (Direction.NW, false,  true) => (100.000f, 113.650f),
+                                (Direction.NW, false, false) => (113.650f, 100.000f),
 
-                        _ => (0.0f, 0.0f),
-                    };
+                                _ => (0.0f, 0.0f),
+                            };
+                        }
+                        else
+                        {
+                            (e.offX, e.offY) = (relativeNorth, C.IsMelee, C.DarkPositionIsLeft) switch
+                            {
+                                (Direction.NE,  true,  true) => ( 93.175f,  98.635f),
+                                (Direction.NE,  true, false) => (101.365f, 106.825f),
+                                (Direction.NE, false,  true) => (100.000f,  86.350f),
+                                (Direction.NE, false, false) => (113.650f, 100.000f),
+
+                                (Direction.SE,  true,  true) => (101.365f,  93.175f),
+                                (Direction.SE,  true, false) => ( 93.175f, 101.365f),
+                                (Direction.SE, false,  true) => (113.650f, 100.000f),
+                                (Direction.SE, false, false) => (100.000f, 113.650f),
+
+                                (Direction.SW,  true,  true) => (106.825f, 101.365f),
+                                (Direction.SW,  true, false) => ( 98.635f,  93.175f),
+                                (Direction.SW, false,  true) => (100.000f, 113.650f),
+                                (Direction.SW, false, false) => ( 86.350f, 100.000f),
+
+                                (Direction.NW,  true,  true) => ( 98.635f, 106.825f),
+                                (Direction.NW,  true, false) => (106.825f,  98.635f),
+                                (Direction.NW, false,  true) => ( 86.350f, 100.000f),
+                                (Direction.NW, false, false) => (100.000f,  86.350f),
+
+                                _ => (0.0f, 0.0f),
+                            };
+                        }
+                        e.color = GetRainbowColor(1f).ToUint();
+                        e.radius = C.IsMelee ? 0.5f : 1.45f;
+                        e.Enabled = !C.SkipMechs;
+                        //e.Enabled = true;
+                        break;
+
+                    case Strat.DN:
+                        (e.offX, e.offY) = (relativeNorth, C.role, C.HasDarkResistanceDown) switch
+                        {
+                            //------------------------ Fire --------------------------
+                            (Direction.NE, Role.Tank  ,  true) => (101.365f,  98.635f),
+                            (Direction.NE, Role.Melee ,  true) => (101.365f,  98.635f),
+                            (Direction.NE, Role.Healer,  true) => (100.000f, 113.650f),
+                            (Direction.NE, Role.Ranged,  true) => (100.000f, 113.650f),
+
+                            (Direction.SE, Role.Tank  ,  true) => (101.365f, 101.365f),
+                            (Direction.SE, Role.Melee ,  true) => (101.365f, 101.365f),
+                            (Direction.SE, Role.Healer,  true) => (100.000f,  86.350f),
+                            (Direction.SE, Role.Ranged,  true) => (100.000f,  86.350f),
+
+                            (Direction.SW, Role.Tank  ,  true) => ( 98.635f, 101.365f),
+                            (Direction.SW, Role.Melee ,  true) => ( 98.635f, 101.365f),
+                            (Direction.SW, Role.Healer,  true) => (100.000f,  86.350f),
+                            (Direction.SW, Role.Ranged,  true) => (100.000f,  86.350f),
+
+                            (Direction.NW, Role.Tank  ,  true) => ( 98.635f,  98.635f),
+                            (Direction.NW, Role.Melee ,  true) => ( 98.635f,  98.635f),
+                            (Direction.NW, Role.Healer,  true) => (113.650f, 100.000f),
+                            (Direction.NW, Role.Ranged,  true) => (113.650f, 100.000f),
+
+                            //------------------------ Dark --------------------------
+                            (Direction.NE, Role.Tank  , false) => (101.365f, 106.825f),
+                            (Direction.NE, Role.Melee , false) => ( 93.175f,  98.635f),
+                            (Direction.NE, Role.Healer, false) => (100.000f,  86.350f),
+                            (Direction.NE, Role.Ranged, false) => (113.650f, 100.000f),
+
+                            (Direction.SE, Role.Tank  , false) => (101.365f,  93.175f),
+                            (Direction.SE, Role.Melee , false) => ( 93.175f, 101.365f),
+                            (Direction.SE, Role.Healer, false) => (113.650f, 100.000f),
+                            (Direction.SE, Role.Ranged, false) => (100.000f, 113.650f),
+
+                            (Direction.SW, Role.Tank  , false) => ( 98.635f,  93.175f),
+                            (Direction.SW, Role.Melee , false) => (106.825f, 101.365f),
+                            (Direction.SW, Role.Healer, false) => (100.000f, 113.650f),
+                            (Direction.SW, Role.Ranged, false) => ( 86.350f, 100.000f),
+
+                            (Direction.NW, Role.Tank  , false) => (106.825f,  98.635f),
+                            (Direction.NW, Role.Melee , false) => ( 98.635f, 106.825f),
+                            (Direction.NW, Role.Healer, false) => (100.000f,  86.350f),
+                            (Direction.NW, Role.Ranged, false) => ( 86.350f, 100.000f),
+
+                            _ => (0.0f, 0.0f),
+
+                        };
+                        e.color = GetRainbowColor(1f).ToUint();
+                        e.radius = C.role is Role.Tank or Role.Melee? 0.5f : 1.45f;
+                        e.Enabled = !C.SkipMechs;
+                        //e.Enabled = true;
+                        break;
+
+                    default:
+                        break;
+
                 }
-                else
-                {
-                    (e.offX, e.offY) = (relativeNorth, C.IsMelee, C.DarkPositionIsLeft) switch
-                    {
-                        (Direction.NE, true, true) => (93.175f, 98.635f),
-                        (Direction.NE, true, false) => (101.365f, 106.825f),
-                        (Direction.NE, false, true) => (100.000f, 86.350f),
-                        (Direction.NE, false, false) => (113.650f, 100.000f),
-
-                        (Direction.SE, true, true) => (101.365f, 93.175f),
-                        (Direction.SE, true, false) => (93.175f, 101.365f),
-                        (Direction.SE, false, true) => (113.650f, 100.000f),
-                        (Direction.SE, false, false) => (100.000f, 113.650f),
-
-                        (Direction.SW, true, true) => (106.825f, 101.365f),
-                        (Direction.SW, true, false) => (98.635f, 93.175f),
-                        (Direction.SW, false, true) => (100.000f, 113.650f),
-                        (Direction.SW, false, false) => (86.350f, 100.000f),
-
-                        (Direction.NW, true, true) => (98.635f, 106.825f),
-                        (Direction.NW, true, false) => (106.825f, 98.635f),
-                        (Direction.NW, false, true) => (86.350f, 100.000f),
-                        (Direction.NW, false, false) => (100.000f, 86.350f),
-
-                        _ => (0.0f, 0.0f),
-                    };
-                }
-                e.color = GetRainbowColor(1f).ToUint();
-                e.radius = C.IsMelee ? 0.5f : 1.45f;
-                e.Enabled = !C.SkipMechs;
-                //e.Enabled = true;
+                
             }
         }
         if(Phase == 1)
@@ -261,19 +338,68 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
             {
                 ImGui.ColorEdit4("Alternative color", ref C.FixedColor, ImGuiColorEditFlags.NoInputs);
             }
-            ImGuiEx.TextV("Your Role:");
-            ImGui.SameLine();
-            ImGuiEx.RadioButtonBool("Tank/Melee", "Healer/Ranged", ref C.IsMelee, true);
 
-            ImGuiEx.TextV("Dark Baiting Position, Looking at the Relative North Clone:");
+            ImGui.NewLine();
+            ImGuiEx.TextV("Strategy:");
             ImGui.SameLine();
-            ImGuiEx.RadioButtonBool("Left##DarkL", "Right##DarkR", ref C.DarkPositionIsLeft, true);
-
-            if(!C.IsMelee)
+            ImGui.SetNextItemWidth(150);
+            ImGuiEx.EnumCombo("##Strategy", ref C.SelectedStrat, names: Strats);
+            switch (C.SelectedStrat)
             {
-                ImGuiEx.TextV("Fire Baiting Position, Looking at the Relative North Clone:");
-                ImGui.SameLine();
-                ImGuiEx.RadioButtonBool("Left##FireL", "Right##FireR", ref C.FirePositionIsLeft, true);
+                case Strat.Static:
+
+                    ImGuiEx.TextV("Your Role:");
+                    ImGui.SameLine();
+                    ImGuiEx.RadioButtonBool("Tank/Melee", "Healer/Ranged", ref C.IsMelee, sameLine: true);
+
+                    ImGuiEx.TextV("Dark Baiting Position, Looking at the Relative North Clone:");
+                    ImGui.SameLine();
+                    ImGuiEx.RadioButtonBool("Left##DarkL", "Right##DarkR", ref C.DarkPositionIsLeft, sameLine: true);
+
+                    if(!C.IsMelee)
+                    {
+                        ImGuiEx.TextV("Fire Baiting Position, Looking at the Relative North Clone:");
+                        ImGui.SameLine();
+                        ImGuiEx.RadioButtonBool("Left##FireL", "Right##FireR", ref C.FirePositionIsLeft, sameLine: true);
+                    }
+                    break;
+
+                case Strat.Relative:
+
+                    ImGuiEx.TextV("Your Role:");
+                    ImGui.SameLine();
+                    ImGuiEx.RadioButtonBool("Tank/Melee", "Healer/Ranged", ref C.IsMelee, sameLine: true);
+
+                    if(C.IsMelee)
+                    {
+                        ImGuiEx.TextV("Dark Baiting Position, Looking at your Clone:");
+                        ImGui.SameLine();
+                        //Intentionally swapped labels due to inverted = true.
+                        ImGuiEx.RadioButtonBool("Right##DarkR", "Left##DarkL", ref C.DarkPositionIsLeft, sameLine: true, inverted: C.IsMelee);
+                    }
+                    else
+                    {
+                        ImGuiEx.TextV("Dark Baiting Position, Looking at your Clone:");
+                        ImGui.SameLine();
+                        ImGuiEx.RadioButtonBool("Left##DarkL", "Right##DarkR", ref C.DarkPositionIsLeft, sameLine: true, inverted: C.IsMelee);
+
+                        ImGuiEx.TextV("Fire Baiting Position, Looking at your Clone:");
+                        ImGui.SameLine();
+                        //Intentionally swapped labels due to inverted = true.
+                        ImGuiEx.RadioButtonBool("Right##FireR", "Left##FireL", ref C.FirePositionIsLeft, sameLine: true, inverted: true);
+                    }
+                    break;
+
+                case Strat.DN:
+
+                    ImGuiEx.TextV("Your Role:");
+                    ImGui.SameLine();
+                    ImGuiEx.EnumRadio(ref C.role, sameLine: true);
+                    break;
+
+                default:
+                    break;
+
             }
         }
         ImGui.NewLine();
@@ -293,9 +419,10 @@ public unsafe class M12S_P2_Clones_1 : SplatoonScript
         public bool NoRainbow = false;
         public Vector4 FixedColor = EColor.RedBright;
         public bool SkipMechs = true;
-
+        public Strat SelectedStrat = Strat.Static;
         public bool HasDarkResistanceDown = false;
         public bool IsMelee = true;
+        public Role role = Role.Tank;
         public bool DarkPositionIsLeft = true;
         public bool FirePositionIsLeft = true;
     }

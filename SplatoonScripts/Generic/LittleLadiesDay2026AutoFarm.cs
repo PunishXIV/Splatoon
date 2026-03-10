@@ -28,7 +28,7 @@ namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(8, "NightmareXIV, Knightmore");
+    public override Metadata Metadata { get; } = new(9, "NightmareXIV, Knightmore");
     public override HashSet<uint>? ValidTerritories { get; } = [130];
     delegate void EnqueueCustomAliasFromStringDelegate(string aliasString, bool force, int? inclusiveStart, int? inclusiveEnd);
     [EzIPC]
@@ -62,7 +62,9 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
     public override void OnUpdate()
     {
         Controller.Hide();
-        
+
+        if(C.OnlyRunWhenQuest && (IsQuestCompleted || QuestSequence != 7)) return;
+
         var inAutoZone = Vector2.Distance(new(-37.500f, -140.000f), Player.Position.ToVector2()) < 20 && Player.Position.Y < 5.1f;
         if(inAutoZone && GenericHelpers.IsScreenReady())
         {
@@ -204,6 +206,7 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.Checkbox("Don't do fate until quest is complete", ref C.RequireQuestCompletion);
+        ImGui.Checkbox("Only do fate for quest completion", ref C.OnlyRunWhenQuest);
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.InputFloat("Random", ref RandomTimer);
@@ -261,5 +264,6 @@ public unsafe class LittleLadiesDay2026AutoFarm : SplatoonScript
     public class Config : IEzConfig
     {
         public bool RequireQuestCompletion = true;
+        public bool OnlyRunWhenQuest = false;
     }
 }

@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.9.0.23</Version>
+		<Version>3.9.0.24</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -19,7 +19,7 @@
     <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
     <PathMap>$(AppOutputBase)=Splatoon\</PathMap>
     <Deterministic>true</Deterministic>
-      <CustomCS>false</CustomCS>
+    <CustomCS>false</CustomCS>
 	</PropertyGroup>
     
     <ItemGroup Condition="'$(CustomCS)' != 'true'">

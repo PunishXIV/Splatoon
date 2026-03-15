@@ -49,7 +49,7 @@ public class ValentineCounter : SplatoonScript
         if(Run == Player.CID && Player.Interactable && GenericHelpers.IsScreenReady())
         {
             Run = 0;
-            EnqueueCustomAliasFromString("""{"ExportedName":"Chocolates","Commands":[{"Kind":0,"Aetheryte":2,"Timeout":5000,"RequireUiOpen":false},{"Kind":4,"Aetheryte":30,"Timeout":5000,"RequireUiOpen":false},{"Kind":1,"Point":{"X":-32.00437,"Y":7.25,"Z":-122.459335},"Territory":133,"Timeout":5000,"RequireUiOpen":false},{"Kind":6,"DataID":1054056,"Timeout":5000,"RequireUiOpen":false}]}""", false, null, null);
+            EnqueueCustomAliasFromString("""{"ExportedName":"Chocolates","Commands":[{"Kind":0,"Aetheryte":9,"Timeout":5000,"RequireUiOpen":false},{"Kind":4,"Aetheryte":33,"Timeout":5000,"RequireUiOpen":false},{"Kind":1,"Point":{"X":53.339756,"Y":4.0,"Z":-131.20018},"Territory":130,"Timeout":5000,"RequireUiOpen":false},{"Kind":1,"Point":{"X":12.030269,"Y":4.0,"Z":-143.35669},"Territory":130,"Timeout":5000,"RequireUiOpen":false},{"Kind":1,"Point":{"X":-20.31055,"Y":4.5322685,"Z":-135.32452},"Territory":130,"Timeout":5000,"RequireUiOpen":false},{"Kind":6,"DataID":1056477,"Timeout":5000,"RequireUiOpen":false}]}""", false, null, null);
         }
     }
 
@@ -63,7 +63,7 @@ public class ValentineCounter : SplatoonScript
                 ref var c = ref Ref<uint>.Get(this.InternalData.FullName + $"{x}");
                 if(EzThrottler.Throttle($"{x}", 1000))
                 {
-                    c = ItemCount(47863, x, -1);
+                    c = ItemCount(50082, x, -1);
                 }
                 if(c > C.NumChoco)
                 {

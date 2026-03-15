@@ -4,9 +4,9 @@
 
 Darya The Sea-maid
 
-### [Script] Darya Serenade Script - Copy and install from clipboard in scripts section
+### [Script] Darya Serenade Script
 ```
-
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Darya_Serenade_Script.cs
 ```
 
 ### Defamations

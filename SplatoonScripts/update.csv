@@ -199,6 +199,7 @@ SplatoonScriptsOfficial.Tests@DisplayMapEffect,1,https://github.com/PunishXIV/Sp
 SplatoonScriptsOfficial.Tests@VolumeControl,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/VolumeControl.cs
 SplatoonScriptsOfficial.Tests@TestActionRequest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TestActionRequest.cs
 SplatoonScriptsOfficial.Tests@StatusListMonitoring,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/StatusListMonitoring.cs
+SplatoonScriptsOfficial.Tests@TrapTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TrapTest.cs
 SplatoonScriptsOfficial.Tests@ObjectEffectTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ObjectEffectTest.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest1,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest1.cs
 SplatoonScriptsOfficial.Tests@GenericTest3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest3.cs
@@ -257,6 +258,7 @@ SplatoonScriptsOfficial.Generic@ShowInfo,1,https://github.com/PunishXIV/Splatoon
 SplatoonScriptsOfficial.Generic@ArtisanCraftCommand,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ArtisanCraftCommand.cs
 SplatoonScriptsOfficial.Generic@CloseReplayWindows,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CloseReplayWindows.cs
 SplatoonScriptsOfficial.Generic@ShowEmote,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ShowEmote.cs
+SplatoonScriptsOfficial.Generic@ReplayNetworkMonitor,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ReplayNetworkMonitor.cs
 SplatoonScriptsOfficial.Generic@NoSproutIcon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/NoSproutIcon.cs
 SplatoonScriptsOfficial.Generic@LittleLadiesDay2026AutoFarm,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/LittleLadiesDay2026AutoFarm.cs
 SplatoonScriptsOfficial.Generic@AutoExec,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoExec.cs

@@ -25,6 +25,7 @@ public static unsafe class CommonRenderUtils
         var ret = s
         .Replace("$OBJECTID", $"{go.EntityId.Format()}")
         .Replace("$DATAID", $"{go.DataId.Format()}")
+        .Replace("$GIMMICKID", $"{go.Struct()->GimmickId.Format()}")
         .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
         .Replace("$KIND", $"{go.ObjectKind}")
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")

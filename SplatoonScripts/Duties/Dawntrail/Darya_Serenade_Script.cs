@@ -12,7 +12,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.AnotherMerchantTale;
 
 public class Darya_Serenade_Script : SplatoonScript
 {
-    public override HashSet<uint>? ValidTerritories { get; } = [1317];
+    public override HashSet<uint>? ValidTerritories { get; } = [1317, 1316];
     public override Metadata? Metadata => new(1, "Poneglyph");
 
     private bool isWaitingForVFX = false;

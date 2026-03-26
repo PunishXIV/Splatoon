@@ -701,6 +701,21 @@ internal unsafe static partial class ScriptingProcessor
         }
     }
 
+    internal static void OnDirectorUpdate(nint directorPtr, uint targetId, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnDirectorUpdate(directorPtr, targetId, a3, a4, a5, a6, a7, a8, a9);
+                }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnDirectorUpdate)); }
+            }
+        }
+    }
+
     internal static void OnPhaseChange(int phase)
     {
         for(var i = 0; i < Scripts.Count; i++)

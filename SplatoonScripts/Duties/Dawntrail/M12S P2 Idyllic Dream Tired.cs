@@ -35,7 +35,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(21, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(22, "NightmareXIV, Redmoon, Garume");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
 
     public override void OnSetup()
@@ -60,13 +60,13 @@ public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript
             """);
         
         Controller.RegisterElementFromCode("Given Far",
-            """{"Name":"Change my position!","refX":108.669846,"refY":92.17644,"Donut":0.2}""");
+            """{"Name":"(wind tower) Change my position!","refX":108.669846,"refY":92.17644,"Donut":0.2}""");
         Controller.RegisterElementFromCode("Given Near",
-            """{"Name":"Change my position!","refX":108.56247,"refY":97.35193,"Donut":0.2}""");
+            """{"Name":"(doom tower) Change my position!","refX":108.56247,"refY":97.35193,"Donut":0.2}""");
         Controller.RegisterElementFromCode("Taken Far",
-            """{"Name":"Change my position!","refX":108.244225,"refY":107.46305,"refZ":3.8146973E-06,"Donut":0.2}""");
+            """{"Name":"(earth/fire tower) Change my position!","refX":108.244225,"refY":107.46305,"refZ":3.8146973E-06,"Donut":0.2}""");
         Controller.RegisterElementFromCode("Taken Near",
-            """{"Name":"Change my position!","refX":110.42621,"refY":97.36201,"refZ":3.8146973E-06,"Donut":0.2}""");
+            """{"Name":"(earth/fire tower) Change my position!","refX":110.42621,"refY":97.36201,"refZ":3.8146973E-06,"Donut":0.2}""");
 
         Controller.RegisterElementFromCode("DefamationOnYou", """
             {"Name":"","type":1,"radius":0.0,"Donut":0,"fillIntensity":0.548,"overlayBGColor":4286382206,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayText":"<<< Defamation>>\\n  <<< on YOU! >>>","refActorType":1}

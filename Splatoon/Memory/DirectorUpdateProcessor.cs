@@ -7,7 +7,7 @@ namespace Splatoon.Memory
 {
     internal static unsafe class DirectorUpdateProcessor
     {
-        internal static void ProcessDirectorUpdate(long a1, long a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
+        internal static void ProcessDirectorUpdate(nint a1, uint a2, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9)
         {
             if(P.Config.Logging)
             {
@@ -19,6 +19,7 @@ namespace Splatoon.Memory
             PhaseUpdater.UpdateFromDirector(a3);
             EmulatedCombatTimer.OnDirectorUpdate(a3);
             ScriptingProcessor.OnDirectorUpdate(a3);
+            ScriptingProcessor.OnDirectorUpdate(a1, a2, a3, a4, a5, a6, a7, a8, a9);
         }
     }
 }

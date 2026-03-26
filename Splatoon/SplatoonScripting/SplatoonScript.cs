@@ -171,6 +171,11 @@ public abstract class SplatoonScript
     public virtual void OnDirectorUpdate(DirectorUpdateCategory category) { }
 
     /// <summary>
+    /// Will be called when a duty director update is happening, for example, joining, restarting, or wiping in duty. 
+    /// </summary>
+    public virtual void OnDirectorUpdate(nint directorPtr, uint targetId, DirectorUpdateCategory a3, uint a4, uint a5, int a6, int a7, int a8, int a9) { }
+
+    /// <summary>
     /// Will be called after object creation.
     /// </summary>
     /// <param name="newObjectPtr"></param>

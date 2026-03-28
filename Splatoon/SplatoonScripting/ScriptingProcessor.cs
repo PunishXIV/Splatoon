@@ -563,8 +563,16 @@ internal unsafe static partial class ScriptingProcessor
         }
     }
 
+    /// <summary>
+    /// This function never throws
+    /// </summary>
+    /// <param name="i"></param>
     internal static void OnReset(int i) => OnReset(Scripts[i]);
 
+    /// <summary>
+    /// This function never throws
+    /// </summary>
+    /// <param name="script"></param>
     internal static void OnReset(SplatoonScript script)
     {
         try
@@ -697,6 +705,17 @@ internal unsafe static partial class ScriptingProcessor
                     Scripts[i].OnDirectorUpdate(category);
                 }
                 catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnDirectorUpdate)); }
+            }
+        }
+    }
+
+    internal static void ResetAllScripts()
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                OnReset(i);
             }
         }
     }

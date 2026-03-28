@@ -19,4 +19,5 @@ public static class S
     internal static MapEffectManager MapEffectManager { get; private set; }
     internal static Projection Projection { get; private set; }
     internal static LogHooks LogHooks { get; private set; }
+    internal static SystemLogProcessor SystemLogProcessor { get; private set; }
 }

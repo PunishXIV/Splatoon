@@ -195,7 +195,7 @@ public unsafe class HatchingTide2026 : SplatoonScript
     public class Config : IEzConfig
     {
         public bool Farm = false;
-        public int FarmStop = 500;
+        public int FarmStop = 267;
     }
 
     public override void OnSettingsDraw()

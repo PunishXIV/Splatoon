@@ -1,4 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.CSExtensions;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.GameHelpers.LegacyPlayer;
@@ -96,7 +98,13 @@ public static unsafe class LayoutUtils
             && (!element.refActorRequireBuff || (element.refActorBuffId.Count > 0 && gameObject is IBattleChara chr3 && CheckEffect(element, chr3)))
             && (!element.refActorUseTransformation || (gameObject is IBattleChara chr4 && CheckTransformationID(element, chr4)))
             && (!element.refMark || (gameObject is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)element.refMarkID)))
-            && (!element.refActorTether || IsTetherMatches(element, gameObject) == !element.refActorIsTetherInvert);
+            && (!element.refActorTether || IsTetherMatches(element, gameObject) == !element.refActorIsTetherInvert)
+            && (element.AnimationIds.Count == 0 || (gameObject is IEventObj eobj && CheckAnimationId(element, eobj)));
+    }
+
+    public static bool CheckAnimationId(Element e, IEventObj eobj)
+    {
+        return e.AnimationIds.Contains(eobj.AnimationId) == !e.AnimationInverted;
     }
 
     public static bool IsTetherMatches(Element e, IGameObject obj)

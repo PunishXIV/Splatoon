@@ -379,7 +379,7 @@ internal unsafe static partial class ScriptingProcessor
                                             var assembly = Compiler.Load(code, pdb);
                                             foreach(var t in assembly.GetTypes())
                                             {
-                                                if(t.BaseType?.FullName == "Splatoon.SplatoonScripting.SplatoonScript")
+                                                if(t.BaseType.IsAssignableTo(typeof(SplatoonScript)))
                                                 {
                                                     var instance = (SplatoonScript)assembly.CreateInstance(t.FullName);
                                                     instance.InternalData = new(result.path, instance)

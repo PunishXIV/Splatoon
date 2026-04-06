@@ -77,6 +77,26 @@ internal partial class CGui
                 ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows".Loc(), ref P.Config.SplatoonLowerZ);
             })
 
+            .Section("Attention Color".Loc())
+            .TextWrapped("Attention color is used to highlight the most important and most critical elements, requiring immediate resolution. Typically it can only be used by scripts.".Loc())
+            .EnumCombo(200f, "Attention Color Type", () => ref P.Config.AttentionColorType)
+            .Widget(() =>
+            {
+                if(P.Config.AttentionColorType.EqualsAny(AttentionColorType.Rainbow, AttentionColorType.Gradient))
+                {
+                    ImGui.SetNextItemWidth(200f);
+                    ImGui.InputFloat("Color switching cycle, seconds", ref P.Config.AttentionColorCycle);
+                }
+                if(P.Config.AttentionColorType.EqualsAny(AttentionColorType.Gradient, AttentionColorType.Fixed))
+                {
+                    ImGui.ColorEdit4("Color 1", ref P.Config.AttentionColor1, ImGuiColorEditFlags.NoInputs);
+                }
+                if(P.Config.AttentionColorType.EqualsAny(AttentionColorType.Gradient))
+                {
+                    ImGui.ColorEdit4("Color 2", ref P.Config.AttentionColor2, ImGuiColorEditFlags.NoInputs);
+                }
+            })
+
             .Section("DirectX11 Renderer".Loc())
             .Widget(() =>
             {

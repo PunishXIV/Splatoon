@@ -18,7 +18,7 @@ public unsafe class Controller
     internal Dictionary<string, Layout> Layouts = [];
     internal Dictionary<string, Element> Elements = [];
     internal List<TickScheduler> TickSchedulers = [];
-    internal IEzConfig? Configuration;
+    internal object? Configuration;
     internal long AutoResetAt = long.MaxValue;
 
     internal int autoIncrement = 0;
@@ -55,12 +55,14 @@ public unsafe class Controller
 
     public int Scene => *global::Splatoon.Memory.Scene.ActiveScene;
 
+    public uint AttentionColor => Utils.GetAttentionColor().ToUint();
+
     /// <summary>
     /// Loads if unloaded and returns script configuration file.
     /// </summary>
     /// <typeparam name="T">Configuration class, implementing IEzConfig</typeparam>
     /// <returns>Loaded configuration</returns>
-    public T GetConfig<T>() where T : IEzConfig, new()
+    public T GetConfig<T>() where T : new()
     {
         Configuration ??= EzConfig.LoadConfiguration<T>(Script.InternalData.ConfigurationPath, false);
         return (T)Configuration;

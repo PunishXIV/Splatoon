@@ -112,8 +112,12 @@ internal class Configuration : IEzConfig
     public Vector4 AnimationColor2 = ImGuiEx.Vector4FromRGBA(0x44000064);
     public float ProjectionFillIntensity = 0.2f;
     public List<BlacklistedAction> ProjectionBlacklistedActions = [];
-
     public List<string> NoAutoUpdateScript = [];
+
+    public AttentionColorType AttentionColorType = AttentionColorType.Rainbow;
+    public Vector4 AttentionColor1 = EColor.RedBright;
+    public Vector4 AttentionColor2 = EColor.YellowBright;
+    public float AttentionColorCycle = 2f;
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

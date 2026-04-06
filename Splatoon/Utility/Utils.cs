@@ -28,6 +28,49 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static Vector4 GetAttentionColor()
+    {
+        var cycleSeconds = Math.Max(P.Config.AttentionColorCycle, 0.1f);
+        if(P.Config.AttentionColorType == AttentionColorType.Rainbow)
+        {
+
+            var ms = Environment.TickCount64;
+            var t = (ms / 1000d) / cycleSeconds;
+            var hue = t % 1f;
+            return HsvToVector4(hue, 1f, 1f);
+        }
+        else if(P.Config.AttentionColorType == AttentionColorType.Gradient)
+        {
+            return GradientColor.Get(P.Config.AttentionColor1, P.Config.AttentionColor2, (int)(cycleSeconds * 500));
+        }
+        else
+        {
+            return P.Config.AttentionColor1;
+        }
+    }
+
+    public static Vector4 HsvToVector4(double h, double s, double v)
+    {
+        double r = 0f, g = 0f, b = 0f;
+        var i = (int)(h * 6f);
+        var f = h * 6f - i;
+        var p = v * (1f - s);
+        var q = v * (1f - f * s);
+        var t = v * (1f - (1f - f) * s);
+
+        switch(i % 6)
+        {
+            case 0: r = v; g = t; b = p; break;
+            case 1: r = q; g = v; b = p; break;
+            case 2: r = p; g = v; b = t; break;
+            case 3: r = p; g = q; b = v; break;
+            case 4: r = t; g = p; b = v; break;
+            case 5: r = v; g = p; b = q; break;
+        }
+
+        return new Vector4((float)r, (float)g, (float)b, 1f);
+    }
+
     public static GameObject* ResolvePronounBPO(string p)
     {
         var ret = ExtendedPronoun.Resolve(p);

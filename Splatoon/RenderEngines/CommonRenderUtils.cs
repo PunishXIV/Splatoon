@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.CSExtensions;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
@@ -26,13 +28,21 @@ public static unsafe class CommonRenderUtils
         .Replace("$OBJECTID", $"{go.EntityId.Format()}")
         .Replace("$DATAID", $"{go.DataId.Format()}")
         .Replace("$GIMMICKID", $"{go.Struct()->GimmickId.Format()}")
+        .Replace("$ESTATE", $"{go.Struct()->EventState.ToInt().Format()}")
+        .Replace("$EVENTID", $"{go.Struct()->EventId.Id.ToInt().Format()}")
         .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
         .Replace("$KIND", $"{go.ObjectKind}")
+        .Replace("$VFLAGS", $"{go.Struct()->RenderFlags}")
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
         .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
         .Replace("$DISTANCE", $"{Vector3.Distance((BasePlayer?.Position ?? Vector3.Zero), go.Position):F1}")
         .Replace("\\n", "\n")
         .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
+        if(go is IEventObj eobj)
+        {
+            ret = ret
+            .Replace("$ANIMATIONID", $"{eobj.AnimationId.Format()}");
+        }
         if(go is IBattleChara chr)
         {
             ret = ret

@@ -238,9 +238,12 @@ public class Element
     public List<int> EnumerationOrder = [];
     public Point2 EnumerationCenter = Vector2.Zero.ToPoint2();
     public Point2 EnumerationStart = Vector2.Zero.ToPoint2();
+    public List<uint> AnimationIds = [];
+    [DefaultValue(false)] public bool AnimationInverted = false;
 
     internal float CastFractionOverride = 0f;
 
+    public bool ShouldSerializeAnimationIds() => AnimationIds.Count > 0;
     public bool ShouldSerializeEnumerationCenter() => Enumeration != EnumerationType.None;
     public bool ShouldSerializeEnumerationStart() => Enumeration != EnumerationType.None;
     public bool ShouldSerializeEnumerationOrder() => Enumeration != EnumerationType.None;
@@ -296,4 +299,27 @@ public class Element
     public bool ShouldSerializepulseFrequency() => ShouldSerializecastAnimation() && castAnimation is CastAnimationKind.Pulse;
     public bool ShouldSerializerefActorTetherConnectedWithPlayer() => refActorTether;
 
+    public Vector3 RefPosition
+    {
+        get => new(refX, refZ, refY);
+        set
+        {
+            refX = value.X;
+            refY = value.Z;
+            refZ = value.Y;
+        }
+    }
+    public bool ShouldSerializeRefPosition() => false;
+
+    public Vector3 OffPosition
+    {
+        get => new(offX, offZ, offY);
+        set
+        {
+            offX = value.X;
+            offY = value.Z;
+            offZ = value.Y;
+        }
+    }
+    public bool ShouldSerializeOffPosition() => false;
 }

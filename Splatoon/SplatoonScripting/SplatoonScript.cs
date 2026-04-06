@@ -15,10 +15,16 @@ using Reloaded.Hooks.Definitions.Structs;
 using Splatoon.Gui.Scripting;
 using Splatoon.Memory;
 using System.Diagnostics.CodeAnalysis;
+using System.Windows.Forms;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 
 namespace Splatoon.SplatoonScripting;
+
+public abstract class SplatoonScript<T> : SplatoonScript where T:new()
+{
+    public T C => Controller.GetConfig<T>();
+}
 
 public abstract class SplatoonScript
 {

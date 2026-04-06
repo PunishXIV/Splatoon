@@ -14,6 +14,7 @@ using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;
+using System.Globalization;
 using System.Linq;
 
 namespace Splatoon;
@@ -1106,6 +1107,7 @@ internal unsafe partial class CGui
                     el.refActorTargetingYou = 2;
                 }
             }
+
             ImGuiUtils.SizedText("Tether info:".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.Checkbox("##tether", ref el.refActorTether);
@@ -1170,6 +1172,29 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.Text("Empty = with any");
             }
+
+            ImGuiUtils.SizedText("Animation IDs:".Loc(), WidthElement);
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(200f);
+            var animationSplit = el.AnimationIds.Print(", ");
+            if(ImGui.InputTextWithHint("##aniId", "Comma-separated list".Loc(), ref animationSplit))
+            {
+                var spl = animationSplit.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                el.AnimationIds.Clear();
+                foreach(var x in spl)
+                {
+                    if((x.StartsWith("0x") ? uint.TryParse(x, NumberStyles.HexNumber, null, out var id) : uint.TryParse(x, out id)))
+                    {
+                        if(!el.AnimationIds.Contains(id))
+                        {
+                            el.AnimationIds.Add(id);
+                        }
+                    }
+                }
+            }
+            ImGuiEx.HelpMarker("Only EventObj can have AnimationId. Use $ANIMATIONID to display in overlay.");
+            ImGui.SameLine();
+            ImGui.Checkbox("NOT", ref el.AnimationInverted);
         }
 
         if(el.type.EqualsAny(0, 2, 3, 5))

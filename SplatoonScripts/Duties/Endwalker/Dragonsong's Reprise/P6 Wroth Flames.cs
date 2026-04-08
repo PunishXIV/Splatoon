@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface;
+using Dalamud.Plugin.Ipc.Exceptions;
 using ECommons;
 using ECommons.ChatMethods;
 using ECommons.Configuration;
@@ -16,14 +14,19 @@ using ECommons.GameHelpers;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Dalamud.Bindings.ImGui;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Splatoon;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -87,11 +90,45 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
                     StackSafeDirection.SouthWest => SafeSpreadDirection.North,
                     _ => SafeSpreadDirection.None
                 };
-            var baitPosition = GetBaitPosition(Player.Object.EntityId, _safeSpreadDirection);
-            if (Controller.TryGetElementByName("Bait", out var element))
+            if(C.UsingAMs == UsingAMs.Yes && C.UseAMAssignments)
             {
-                element.Enabled = true;
-                element.SetOffPosition(baitPosition.ToVector3(0));
+                if(Controller.TryGetElementByName("Bait", out var element))
+                {
+                    element.Enabled = false;
+                }
+                var suffix = _safeSpreadDirection switch
+                {
+                    SafeSpreadDirection.North => "North",
+                    SafeSpreadDirection.South => "South",
+                    _ => "Center"
+                };
+                string el = "";
+                var m = MarkingController.Instance();
+                if(m->Markers[0].ObjectId == BasePlayer.ObjectId) el = "Attack1";
+                if(m->Markers[1].ObjectId == BasePlayer.ObjectId) el = "Attack2";
+                if(m->Markers[2].ObjectId == BasePlayer.ObjectId) el = "Attack3";
+                if(m->Markers[3].ObjectId == BasePlayer.ObjectId) el = "Attack4";
+                if(m->Markers[5].ObjectId == BasePlayer.ObjectId) el = "Bind1";
+                if(m->Markers[6].ObjectId == BasePlayer.ObjectId) el = "Bind2";
+                if(m->Markers[8].ObjectId == BasePlayer.ObjectId) el = "Ignore1";
+                if(m->Markers[9].ObjectId == BasePlayer.ObjectId) el = "Ignore2";
+                if(Controller.TryGetElementByName(el+suffix, out var e))
+                {
+                    e.Enabled = true;
+                }
+                else
+                {
+                    PluginLog.Error($"Could not find {el + suffix}");
+                }
+            }
+            else
+            {
+                var baitPosition = GetBaitPosition(Player.Object.EntityId, _safeSpreadDirection);
+                if(Controller.TryGetElementByName("Bait", out var element))
+                {
+                    element.Enabled = true;
+                    element.SetOffPosition(baitPosition.ToVector3(0));
+                }
             }
         }
     }
@@ -183,12 +220,12 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
     {
         if (_state is State.None or State.End)
         {
-            Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
+            Controller.Hide();
             return;
         }
 
         Controller.GetRegisteredElements()
-            .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
+            .Each(x => x.Value.color = Controller.AttentionColor);
     }
 
     private Vector2 GetStackPosition(StackSafeDirection direction)
@@ -247,9 +284,9 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
                 return 97f;
             if (m->Markers[3] == Player.Object.EntityId)
                 return 103f;
-            if (m->Markers[9] == Player.Object.EntityId || m->Markers[10] == Player.Object.EntityId)
+            if (m->Markers[5] == Player.Object.EntityId || m->Markers[6] == Player.Object.EntityId)
                 return 109f;
-            if (m->Markers[12] == Player.Object.EntityId || m->Markers[13] == Player.Object.EntityId)
+            if (m->Markers[8] == Player.Object.EntityId || m->Markers[9] == Player.Object.EntityId)
                 return 115;
         }
 
@@ -266,6 +303,18 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
             LineEndA = LineEnd.Arrow
         };
         Controller.TryRegisterElement("Bait", element);
+
+        foreach(var x in ((string, string)[])[("North", "85.0"), ("Center", "100.0"), ("South", "115.0")])
+        {
+            Controller.RegisterElementFromCode($"Attack1{x.Item1}", $$"""{"Name":"","refX":79.0,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+            Controller.RegisterElementFromCode($"Attack2{x.Item1}", $$"""{"Name":"","refX":87.4,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+            Controller.RegisterElementFromCode($"Attack3{x.Item1}", $$"""{"Name":"","refX":95.8,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+            Controller.RegisterElementFromCode($"Attack4{x.Item1}", $$"""{"Name":"","refX":104.2,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+            Controller.RegisterElementFromCode($"Ignore1{x.Item1}", $$"""{"Name":"","refX":112.6,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+            Controller.RegisterElementFromCode($"Ignore2{x.Item1}", $$"""{"Name":"","refX":112.6,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+            Controller.RegisterElementFromCode($"Bind1{x.Item1}", $$"""{"Name":"","refX":121.0,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+            Controller.RegisterElementFromCode($"Bind2{x.Item1}", $$"""{"Name":"","refX":121.0,"refY":{{x.Item2}},"radius":1.0,"color":3355508527,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true}""");
+        }
     }
 
     private Vector2 GetBaitPosition(uint characterEntityId, SafeSpreadDirection safeSpreadDirection)
@@ -343,6 +392,12 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
             C.Priority.Draw();
             ImGui.Unindent();
         }
+        else
+        {
+            ImGui.Indent();
+            ImGui.Checkbox("Use static automarker position assignments", ref C.UseAMAssignments);
+            ImGui.Unindent();
+        }
 
         if (ImGuiEx.CollapsingHeader("Debug"))
         {
@@ -375,6 +430,13 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
 
             ImGui.Text($"Safe Spread Direction: {_safeSpreadDirection}");
             ImGui.Text($"Stack Safe Direction: {_stackSafeDirection}");
+
+            var array = MarkingController.Instance()->Markers;
+            for(var i = 0; i < array.Length; i++)
+            {
+                var x = array[i];
+                ImGuiEx.Text($"{i}: {x.ObjectId} - {x.ObjectId.GetObject()}");
+            }
         }
     }
 
@@ -428,5 +490,6 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
         public bool PrioritizeWest;
         public bool ShouldCheckOnStart;
         public UsingAMs UsingAMs = UsingAMs.Yes;
+        public bool UseAMAssignments = false;
     }
 }

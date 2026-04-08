@@ -57,7 +57,7 @@ public unsafe class P6_Wroth_Flames : SplatoonScript
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(7, "Garume, damolitionn");
+    public override Metadata? Metadata => new(8, "Garume, damolitionn, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 

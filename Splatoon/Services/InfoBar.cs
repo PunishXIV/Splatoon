@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Services;
+
 public class InfoBar : IDisposable
 {
     public static readonly string EntryName = "SplatoonPriority";

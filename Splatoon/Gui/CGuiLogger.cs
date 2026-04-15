@@ -99,11 +99,11 @@ internal partial class CGui
             ImGuiEx.TextCopy(nameid);
             ImGui.TableNextColumn();
             if(x.Value.Targetable) ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            ImGuiEx.Text($"{(int)(((double)x.Value.TargetableTicks / (double)x.Value.ExistenceTicks) * 100)}%");
+            ImGuiEx.Text($"{(int)((double)x.Value.TargetableTicks / (double)x.Value.ExistenceTicks * 100)}%");
             if(x.Value.Targetable) ImGui.PopStyleColor();
             ImGui.TableNextColumn();
             if(x.Value.Visible) ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.HealerGreen);
-            ImGuiEx.Text(!x.Value.IsChar ? "--" : $"{(int)(((double)x.Value.VisibleTicks / (double)x.Value.ExistenceTicks) * 100)}%");
+            ImGuiEx.Text(!x.Value.IsChar ? "--" : $"{(int)((double)x.Value.VisibleTicks / (double)x.Value.ExistenceTicks * 100)}%");
             if(x.Value.Visible) ImGui.PopStyleColor();
             ImGui.TableNextColumn();
             ImGuiEx.Text($"{x.Value.ExistenceTicks}");

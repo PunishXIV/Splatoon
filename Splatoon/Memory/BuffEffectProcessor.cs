@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Splatoon.Memory;
+
 internal unsafe class BuffEffectProcessor : IDisposable
 {
     #region types
@@ -184,7 +185,6 @@ internal unsafe class BuffEffectProcessor : IDisposable
         }
     }
 
-
     #region private
     private void AddStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff+", data, gameObjectCharactor);
     private void RemoveStatusLog(Status* data, Character* gameObjectCharactor) => StatusLog("buff-", data, gameObjectCharactor);
@@ -195,11 +195,11 @@ internal unsafe class BuffEffectProcessor : IDisposable
     private void StatusLog(string prefix, Status* data, Character* gameObjectCharactor)
     {
         var text = "";
-        var PositionString = P.Config.LogPosition == true ? $"({gameObjectCharactor->Position.ToString()})" : "";
+        var PositionString = P.Config.LogPosition == true ? $"({gameObjectCharactor->Position})" : "";
         var ElementTrigger = "";
         if(gameObjectCharactor->ObjectKind == ObjectKind.Pc)
         {
-            ElementTrigger = $"[{prefix}]PC:{data->StatusId}:{gameObjectCharactor->ClassJob.ToString()}";
+            ElementTrigger = $"[{prefix}]PC:{data->StatusId}:{gameObjectCharactor->ClassJob}";
         }
         else
         {
@@ -208,8 +208,8 @@ internal unsafe class BuffEffectProcessor : IDisposable
 
         if(gameObjectCharactor->EntityId == BasePlayer?.EntityId)
         {
-            
-            text = $"You gains the effect of {data->StatusId} Param: {data->Param} ([{prefix}]You:{data->StatusId}:{BasePlayer.GetJob().ToString()})";
+
+            text = $"You gains the effect of {data->StatusId} Param: {data->Param} ([{prefix}]You:{data->StatusId}:{BasePlayer.GetJob()})";
             P.ChatMessageQueue.Enqueue(text);
         }
 

@@ -5,8 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Modules.TranslationWorkspace;
+
 [Serializable]
-public unsafe sealed class Line
+public sealed unsafe class Line
 {
     public Line() { }
 

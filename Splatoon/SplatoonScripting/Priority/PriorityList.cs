@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 #nullable enable
 
 namespace Splatoon.SplatoonScripting.Priority;
+
 public class PriorityList
 {
     internal string ID = GetTemporaryId();

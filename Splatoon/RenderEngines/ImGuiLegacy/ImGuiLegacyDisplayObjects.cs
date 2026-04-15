@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;
+
 public class ImGuiLegacyDisplayObjects
 {
     public class DisplayObjectDot : DisplayObject

@@ -3,6 +3,7 @@ using Splatoon.SplatoonScripting;
 using System.Threading;
 
 namespace Splatoon.Services;
+
 public class ScriptFileWatcher : IDisposable
 {
     private List<FileSystemWatcher> Watchers = [];
@@ -71,7 +72,7 @@ public class ScriptFileWatcher : IDisposable
                 {
                     try
                     {
-                        Thread.Sleep(1000); 
+                        Thread.Sleep(1000);
                         using var reader = new FileStream(e.FullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                         using var sreader = new StreamReader(reader);
                         var text = sreader.ReadToEnd();

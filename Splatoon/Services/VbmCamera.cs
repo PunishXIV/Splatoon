@@ -1,11 +1,10 @@
-﻿using Dalamud.Interface.Utility;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Utility;
 using ECommons;
 using ECommons.EzEventManager;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
-using Dalamud.Bindings.ImGui;
-
 
 namespace Splatoon.Services;
 

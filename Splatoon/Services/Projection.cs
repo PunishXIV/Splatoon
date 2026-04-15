@@ -26,16 +26,16 @@ internal class Projection : IDisposable
     public Dictionary<uint, Dictionary<ActionDescriptor, PacketActorCast>> LastCast = [];
     public bool Blacklist = false;
     public List<ProjectionItemDescriptor> ProjectingItems = [];
-    Stopwatch Stopwatch = new();
+    private Stopwatch Stopwatch = new();
     public long LastSw = 0;
     private Projection()
     {
         Svc.Framework.Update += Framework_Update;
     }
 
-    List<Element> RentedElements = [];
+    private List<Element> RentedElements = [];
 
-    Element RentElement(int index, ShapeData shape, IBattleNpc caster)
+    private Element RentElement(int index, ShapeData shape, IBattleNpc caster)
     {
         Element ret;
         if(index < RentedElements.Count)
@@ -85,7 +85,7 @@ internal class Projection : IDisposable
         {
             ProjectingItems.Clear();
         }
-        int elementIndex = 0;
+        var elementIndex = 0;
         List<(IBattleNpc obj, Element element)> injectedElements = [];
         foreach(var x in Svc.Objects)
         {
@@ -93,7 +93,7 @@ internal class Projection : IDisposable
             {
                 var shape = GuessShapeAndSize(data, b);
                 var info = b.Struct()->GetCastInfo();
-                uint targetObjectId = (info->TargetId.ObjectId != 0xE000_0000) ? info->TargetId.ObjectId : b.ObjectId;
+                var targetObjectId = (info->TargetId.ObjectId != 0xE000_0000) ? info->TargetId.ObjectId : b.ObjectId;
                 if(shape.Range > 0f && (data.EffectRange < RaidwideSize || shape.Shape != Shape.Circle))
                 {
                     var blacklisted = false;
@@ -105,9 +105,9 @@ internal class Projection : IDisposable
                         }
                     }
                     ProjectionItemDescriptor descriptor = P.ConfigGui.Open ? new(new(b.CastActionType, b.CastActionId), b.ObjectId, blacklisted) : null;
-                    this.ProjectingItems.Add(descriptor);
+                    ProjectingItems.Add(descriptor);
                     bool? showOverride = null;
-                    bool isAlreadyProcessed = false;
+                    var isAlreadyProcessed = false;
                     foreach(var layout in P.Config.LayoutsL)
                     {
                         if(LayoutUtils.IsLayoutEnabled(layout))
@@ -122,7 +122,7 @@ internal class Projection : IDisposable
                                 descriptor?.BlacklistingLayouts.Add(layout.InternationalName.Get(layout.Name));
                                 showOverride = false;
                             }
-                            if(!isAlreadyProcessed) 
+                            if(!isAlreadyProcessed)
                             {
                                 foreach(var layoutElement in layout.ElementsL)
                                 {
@@ -221,8 +221,8 @@ internal class Projection : IDisposable
                     else if(shape.Shape == Shape.Cone)
                     {
                         element.radius = shape.Range;
-                        element.coneAngleMin = (int)(-shape.AngleOrWidth.RadToDeg());
-                        element.coneAngleMax = (int)(shape.AngleOrWidth.RadToDeg());
+                        element.coneAngleMin = (int)-shape.AngleOrWidth.RadToDeg();
+                        element.coneAngleMax = (int)shape.AngleOrWidth.RadToDeg();
 
                         if(targetObjectId != b.ObjectId)
                         {
@@ -277,7 +277,7 @@ internal class Projection : IDisposable
         return data.CastType switch
         {
             2 => new(Shape.Circle, data.EffectRange),
-            3 => new(Shape.Cone , data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data).Rad * HalfWidth),
+            3 => new(Shape.Cone, data.EffectRange + actor.HitboxRadius, DetermineConeAngle(data).Rad * HalfWidth),
             4 => new(Shape.Rect, data.EffectRange + actor.HitboxRadius, data.XAxisModifier * HalfWidth),
             5 => new(Shape.Circle, data.EffectRange + actor.HitboxRadius),
             //6 => custom shapes
@@ -291,7 +291,7 @@ internal class Projection : IDisposable
         };
     }
 
-    Dictionary<string, (float Inner, float Outer)?> DonutCache = [];
+    private Dictionary<string, (float Inner, float Outer)?> DonutCache = [];
     public (float Inner, float Outer)? DetermineDonutRange(Action data)
     {
         var path = data.Omen.Value.Path.ToString();
@@ -341,5 +341,5 @@ internal class Projection : IDisposable
 
     public readonly record struct ShapeData(Shape Shape, float Range, float AngleOrWidth = 0);
 
-    public enum Shape { Circle, Rect, Donut, Cone, Cross}
+    public enum Shape { Circle, Rect, Donut, Cone, Cross }
 }

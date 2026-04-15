@@ -65,17 +65,17 @@ internal class Contribute
 
         if(ImGui.Button("Patreon"))
         {
-            ShellStart("https://subscribe.nightmarexiv.com/");
+            ShellStart("https://subscribe.nightmarexiv.org/");
         }
         ImGui.SameLine();
         if(ImGui.Button("Ko-Fi"))
         {
-            ShellStart("https://donate.nightmarexiv.com/");
+            ShellStart("https://donate.nightmarexiv.org/");
         }
         ImGui.SameLine();
         if(ImGui.Button("Crypto"))
         {
-            ShellStart("https://crypto.nightmarexiv.com/");
+            ShellStart("https://crypto.nightmarexiv.org/");
         }
 
         ImGuiEx.Text("Thank you for your contributions!".Loc());

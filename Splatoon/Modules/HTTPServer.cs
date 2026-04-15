@@ -43,10 +43,7 @@ internal class HTTPServer : IDisposable
                     }
                     try
                     {
-                        if(elementsName == null)
-                        {
-                            elementsName = "";
-                        }
+                        elementsName ??= "";
                         if(disableElements != null)
                         {
                             var names = disableElements.Split(',');
@@ -86,7 +83,7 @@ internal class HTTPServer : IDisposable
                             }
                         }
 
-                        if(directElements != null || rawElement != null || contents != null && contents != "")
+                        if(directElements != null || rawElement != null || (contents != null && contents != ""))
                         {
                             var dynElem = new DynamicElement()
                             {
@@ -180,7 +177,7 @@ internal class HTTPServer : IDisposable
         if(decoded.StartsWith("~"))
         {
             //status.Add(decoded);
-            var l = JsonConvert.DeserializeObject<Layout>(decoded.Substring(1));
+            var l = JsonConvert.DeserializeObject<Layout>(decoded[1..]);
             l.Enabled = true;
             foreach(var el in l.ElementsL) el.Enabled = true;
             Layouts.Add(l);

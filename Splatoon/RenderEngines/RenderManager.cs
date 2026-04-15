@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.RenderEngines;
+
 public class RenderManager : IDisposable
 {
     internal DirectX11Renderer DirectX11Renderer;

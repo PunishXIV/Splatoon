@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Serializables;
+
 [Serializable]
 public class Archive : IEzConfig
 {

@@ -14,14 +14,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Gui.Windows;
-public unsafe sealed class TranslationWorkspaceWindow : Window
+
+public sealed unsafe class TranslationWorkspaceWindow : Window
 {
     public Page Page;
     public TranslationWorkspaceWindow(string name, Page page) : base(name, ImGuiWindowFlags.NoSavedSettings)
     {
-        Page = page;    
-        this.RespectCloseHotkey = false;
-        this.IsOpen = true;
+        Page = page;
+        RespectCloseHotkey = false;
+        IsOpen = true;
         EzConfigGui.WindowSystem.AddWindow(this);
     }
 
@@ -70,10 +71,10 @@ public unsafe sealed class TranslationWorkspaceWindow : Window
             }).Join("\n"));
         }
         ImGui.SameLine();
-        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Trash, "Delete Workspace".Loc(), enabled:ImGuiEx.Shift && ImGuiEx.Ctrl))
+        if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Trash, "Delete Workspace".Loc(), enabled: ImGuiEx.Shift && ImGuiEx.Ctrl))
         {
             new TickScheduler(() => P.Config.TranslatorPages.Remove(Page));
-            this.IsOpen = false;
+            IsOpen = false;
         }
         ImGuiEx.Text($"Hold SHIFT and CTRL and click this button to permanently delete this workspace. Only do it after you have sent pull request or committed and pushed changes to the repository.".Loc());
 
@@ -82,7 +83,7 @@ public unsafe sealed class TranslationWorkspaceWindow : Window
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             var nextSection = false;
-            for(int i = 0; i < Page.Lines.Count; i++)
+            for(var i = 0; i < Page.Lines.Count; i++)
             {
                 var line = Page.Lines[i];
                 if(line.Kind == LineKind.Text && line.Text.Trim().EqualsAny("", "```")) continue;
@@ -125,7 +126,7 @@ public unsafe sealed class TranslationWorkspaceWindow : Window
                     ImGuiEx.Text($"Elements:");
                     ImGui.Indent();
 
-                    for(int j = 0; j < l.ElementsL.Count; j++)
+                    for(var j = 0; j < l.ElementsL.Count; j++)
                     {
                         var e = l.ElementsL[j];
                         var skipped = false;

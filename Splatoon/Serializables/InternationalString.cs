@@ -22,19 +22,19 @@ public class InternationalString
         language ??= Svc.Data.Language;
         if(language == ClientLanguage.English)
         {
-            return En == string.Empty ? defaultString : En; 
+            return En == string.Empty ? defaultString : En;
         }
         else if(language == ClientLanguage.Japanese)
         {
-            return Jp == string.Empty ? defaultString : Jp; 
+            return Jp == string.Empty ? defaultString : Jp;
         }
         else if(language == ClientLanguage.German)
         {
-            return De == string.Empty ? defaultString : De; 
+            return De == string.Empty ? defaultString : De;
         }
         else if(language == ClientLanguage.French)
         {
-            return Fr == string.Empty ? defaultString : Fr; 
+            return Fr == string.Empty ? defaultString : Fr;
         }
         else return Other == string.Empty ? defaultString : Other;
     }

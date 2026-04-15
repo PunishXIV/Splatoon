@@ -15,7 +15,6 @@ public enum MechanicType
     Information = 6,
 }
 
-
 public static class MechanicTypes
 {
     public static readonly string[] Names =

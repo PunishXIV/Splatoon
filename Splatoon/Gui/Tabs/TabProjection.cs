@@ -12,7 +12,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace Splatoon.Gui.Tabs;
 
-public unsafe static class TabProjection
+public static unsafe class TabProjection
 {
     public static void Draw()
     {
@@ -22,7 +22,7 @@ public unsafe static class TabProjection
             - Some attacks may be shown incorrectly, sometimes stuff that already telegraphed will be highlighted. It's strongly recommended to have a macro with "/splatoon pbl" command to instantly blacklist all currently displayed projected casts. Then you can send them to be included into plugin. 
             - If a layout imported and enabled for current attack, it will not be processed by projection. 
             """);
-        var impact = (S.Projection.LastSw * 1000.0) / Stopwatch.Frequency;
+        var impact = S.Projection.LastSw * 1000.0 / Stopwatch.Frequency;
         ImGuiEx.Text($"Projection Performance Impact: {impact:F1}ms");
         ImGui.SameLine();
         if(impact < 0.25f)
@@ -134,7 +134,7 @@ public unsafe static class TabProjection
                     new TickScheduler(() => P.Config.ProjectionBlacklistedActions.Remove(x));
                 }
                 ImGui.PopID();
-            } 
+            }
             ImGui.EndTable();
         }
     }

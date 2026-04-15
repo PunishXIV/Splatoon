@@ -18,10 +18,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Windows.Forms;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
 
-
 namespace Splatoon.SplatoonScripting;
 
-public abstract class SplatoonScript<T> : SplatoonScript where T:new()
+public abstract class SplatoonScript<T> : SplatoonScript where T : new()
 {
     public T C => Controller.GetConfig<T>();
 }
@@ -289,7 +288,7 @@ public abstract class SplatoonScript
                 var newKey = InternalData.GetFreeConfigurationKey();
                 var newNamePref = "New configuration".Loc();
                 var newName = newNamePref;
-                int i = 2;
+                var i = 2;
                 var dict = P.Config.ScriptConfigurationNames.GetOrCreate(InternalData.FullName);
                 while(dict.ContainsValue(newName))
                 {
@@ -334,7 +333,7 @@ public abstract class SplatoonScript
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGuiEx.TextV(current == "" ? ImGuiColors.ParsedGreen : null, P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration").Loc());
+            ImGuiEx.TextV(current == "" ? ImGuiColors.ParsedGreen : null, P.Config.DefaultScriptConfigurationNames.SafeSelect(InternalData.FullName, "Default Configuration").Loc());
             if(ImGuiEx.HoveredAndClicked("This is the default configuration which can not be removed. Click to load/reload it.".Loc()))
             {
                 ApplyDefaultConfiguration();
@@ -380,7 +379,7 @@ public abstract class SplatoonScript
 
             ImGui.TableNextColumn();
             {
-                ref var export = ref Ref<bool>.Get($"{this.InternalData.FullName}_DefaultConfiguration");
+                ref var export = ref Ref<bool>.Get($"{InternalData.FullName}_DefaultConfiguration");
                 ImGuiEx.Checkbox(FontAwesomeIcon.FileExport, null, null, null, null, "##exportScrptConf", ref export);
                 if(MassExport != null && export)
                 {
@@ -455,7 +454,7 @@ public abstract class SplatoonScript
                         });
                     }
                     ImGui.TableNextColumn();
-                    ref var export = ref Ref<bool>.Get($"{this.InternalData.FullName}_{confKey}");
+                    ref var export = ref Ref<bool>.Get($"{InternalData.FullName}_{confKey}");
                     ImGuiEx.Checkbox(FontAwesomeIcon.FileExport, null, null, null, null, "##exportScrptConf", ref export);
                     if(MassExport != null && export)
                     {
@@ -487,7 +486,7 @@ public abstract class SplatoonScript
                     confList = [];
                 }
                 var m = GetExportedConfiguration(confKey)?.JSONClone() ?? throw new NullReferenceException();
-                var name = $"Copy of {confList.SafeSelect(confKey) ?? P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration").Loc()}";
+                var name = $"Copy of {confList.SafeSelect(confKey) ?? P.Config.DefaultScriptConfigurationNames.SafeSelect(InternalData.FullName, "Default Configuration").Loc()}";
                 var name2 = name;
                 var i = 1;
                 while(confList.ContainsValue(name2))
@@ -585,9 +584,9 @@ public abstract class SplatoonScript
             return false;
         }
 
-        var newNamePref = configuration.ConfigurationName.IsNullOrEmpty()?"Imported configuration".Loc():configuration.ConfigurationName;
+        var newNamePref = configuration.ConfigurationName.IsNullOrEmpty() ? "Imported configuration".Loc() : configuration.ConfigurationName;
         var newName = newNamePref;
-        int i = 2;
+        var i = 2;
         var dict = P.Config.ScriptConfigurationNames.GetOrCreate(InternalData.FullName);
         while(dict.ContainsValue(newName))
         {
@@ -827,7 +826,7 @@ public abstract class SplatoonScript
         if(TryGetAvailableConfigurations(out var configurations))
         {
             var activeConf = InternalData.CurrentConfigurationKey;
-            var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration");
+            var activeConfName = configurations.SafeSelect(activeConf) ?? activeConf.NullWhenEmpty() ?? P.Config.DefaultScriptConfigurationNames.SafeSelect(InternalData.FullName, "Default Configuration");
             if(width == 0)
             {
                 ImGuiEx.SetNextItemFullWidth();
@@ -838,7 +837,7 @@ public abstract class SplatoonScript
             }
             if(ImGui.BeginCombo("##confs", $"{activeConfName}", ImGuiComboFlags.HeightLarge))
             {
-                if(ImGui.Selectable(P.Config.DefaultScriptConfigurationNames.SafeSelect(this.InternalData.FullName, "Default Configuration"), activeConf.IsNullOrEmpty()))
+                if(ImGui.Selectable(P.Config.DefaultScriptConfigurationNames.SafeSelect(InternalData.FullName, "Default Configuration"), activeConf.IsNullOrEmpty()))
                 {
                     ApplyDefaultConfiguration();
                 }

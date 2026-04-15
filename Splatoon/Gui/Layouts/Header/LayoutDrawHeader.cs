@@ -71,7 +71,6 @@ internal partial class CGui
                 if(groupCol) ImGui.PopStyleColor();
             }
 
-
             ImGui.TableNextColumn();
             ImGuiEx.TextV("Export:".Loc());
             ImGui.TableNextColumn();
@@ -99,7 +98,6 @@ internal partial class CGui
                 HTTPExportToClipboard(layout);
             }
             ImGuiEx.Tooltip("Hold ALT to copy raw JSON (for usage with post body or you'll have to urlencode it yourself)\nHold CTRL and click to copy urlencoded raw".Loc());
-
 
             ImGui.TableNextColumn();
             ImGui.Checkbox("Enabled".Loc(), ref layout.Enabled);
@@ -272,12 +270,11 @@ New frozen elements are created every refreeze interval.".Loc());
             ImGui.EndTable();
         }
 
-
         var i = layout.Name;
         var topCursorPos = ImGui.GetCursorPos();
     }
 
-    static List<uint> ProjectableActions
+    private static List<uint> ProjectableActions
     {
         get
         {
@@ -289,14 +286,14 @@ New frozen elements are created every refreeze interval.".Loc());
                     if(x.Name != "" && !x.IsPlayerAction && !x.IsPvP && x.Cast100ms > 0)
                     {
                         field.Add(x.RowId);
-                    } 
+                    }
                 }
             }
             return field;
         }
     }
 
-    static void DrawActionListSelector(string id, List<uint> actions)
+    private static void DrawActionListSelector(string id, List<uint> actions)
     {
         ImGui.PushID(id);
         string preview;

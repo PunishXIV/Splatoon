@@ -116,7 +116,6 @@ public unsafe class Controller
         return true;
     }
 
-
     public bool TryRegisterLayout(Layout layout, bool overwrite = false)
     {
         return TryRegisterLayout($"unnamed-{AutoIncrement}", layout, overwrite);

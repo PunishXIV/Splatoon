@@ -79,7 +79,7 @@ internal partial class CGui
                 ImGuiComponents.HelpMarker("Log object position in casting information log lines".Loc());
             })
 
-            .Section("Information", visible:() => Svc.PluginInterface.InstalledPlugins.Any(x => x.IsLoaded && x.InternalName == "ARealmRecorded"))
+            .Section("Information", visible: () => Svc.PluginInterface.InstalledPlugins.Any(x => x.IsLoaded && x.InternalName == "ARealmRecorded"))
             .Widget(() =>
             {
                 ImGuiEx.TextWrapped($"Looking to watch expired Duty Recorder replays?");
@@ -88,7 +88,7 @@ internal partial class CGui
                 {
                     if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.DoorOpen, "Join Now"))
                     {
-                        ShellStart("https://subscribe.nightmarexiv.com/");
+                        ShellStart("https://subscribe.nightmarexiv.org/");
                     }
                     ImGuiEx.Tooltip($"Join \"Nightmare\" tier or higher to gain access to the tool. ");
                     ImGui.SameLine();
@@ -291,7 +291,6 @@ internal partial class CGui
                     }
                 });
             }).Draw();
-
 
         Svc.PluginInterface.UiBuilder.DisableUserUiHide = p.Config.ShowOnUiHide;
     }

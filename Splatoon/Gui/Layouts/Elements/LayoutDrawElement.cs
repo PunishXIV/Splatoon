@@ -176,12 +176,12 @@ internal unsafe partial class CGui
         ImGuiEx.Text($"X:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(50f);
-        ImGui.DragFloat("##rotateX", ref this.CenterX, 0.1f);
+        ImGui.DragFloat("##rotateX", ref CenterX, 0.1f);
         ImGui.SameLine();
         ImGuiEx.Text($"Y:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(50f);
-        ImGui.DragFloat("##rotateY", ref this.CenterY, 0.1f);
+        ImGui.DragFloat("##rotateY", ref CenterY, 0.1f);
         ImGui.SameLine();
         if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "SelOnScreenRot"))
         {
@@ -192,7 +192,7 @@ internal unsafe partial class CGui
         ImGuiEx.Text($"Angle:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(50f);
-        ImGui.DragFloat("##angleRot", ref this.RotationAngle, 0.1f);
+        ImGui.DragFloat("##angleRot", ref RotationAngle, 0.1f);
         ImGui.SameLine();
         if(ImGuiEx.IconButton("\uf2f9"))
         {
@@ -217,13 +217,12 @@ internal unsafe partial class CGui
             el.refX = CenterX - (el.refX - CenterX);
         }
         ImGuiEx.Tooltip($"Mirror horizontally");
-        ImGui.SameLine(0,2);
+        ImGui.SameLine(0, 2);
         if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowsUpDown))
         {
             el.refX = CenterY - (el.refY - CenterY);
         }
         ImGuiEx.Tooltip($"Mirror vertically");
-
 
         ImGuiUtils.SizedText("Conditional:".Loc(), WidthElement);
         ImGui.SameLine();
@@ -248,7 +247,6 @@ internal unsafe partial class CGui
         ImGui.SameLine();
         ImGui.Checkbox("Reset condition".Loc(), ref el.ConditionalReset);
         ImGuiEx.HelpMarker("Upon reaching this element, previous conditions will be reset".Loc());
-
 
         ImGuiUtils.SizedText("Attributes:".Loc(), WidthElement);
         ImGui.SameLine();
@@ -701,7 +699,7 @@ internal unsafe partial class CGui
                 ImGuiEx.Tooltip("Left click - toggle; shift+click - replace".Loc());
                 if(ImGui.BeginPopup("FromCastingEntity"))
                 {
-                    int i = 0;
+                    var i = 0;
                     foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCasting()))
                     {
                         ImGui.PushID(i++);
@@ -903,7 +901,7 @@ internal unsafe partial class CGui
                 }
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
-                ImGui.Checkbox((el.refActorRequireBuffsInvert ? "Require ANY status to be missing".Loc() + "##" : "Require ALL listed statuses to be present".Loc() + "##"), ref el.refActorRequireAllBuffs);
+                ImGui.Checkbox(el.refActorRequireBuffsInvert ? "Require ANY status to be missing".Loc() + "##" : "Require ALL listed statuses to be present".Loc() + "##", ref el.refActorRequireAllBuffs);
                 ImGui.SameLine();
                 ImGui.Checkbox("Invert behavior".Loc(), ref el.refActorRequireBuffsInvert);
             }
@@ -996,7 +994,6 @@ internal unsafe partial class CGui
                 ImGui.Checkbox("Invert".Loc() + "##dist", ref el.LimitDistanceInvert);
             }
 
-
             ImGuiUtils.SizedText("Rotation limit".Loc(), WidthElement);
             ImGui.SameLine();
             ImGui.Checkbox("##rotaLimit", ref el.LimitRotation);
@@ -1013,7 +1010,6 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.Text("-");
                 ImGui.SameLine();
-
 
                 ImGui.SetNextItemWidth(50f);
                 var rot2 = 180 - el.RotationMax.RadiansToDegrees();
@@ -1183,7 +1179,7 @@ internal unsafe partial class CGui
                 el.AnimationIds.Clear();
                 foreach(var x in spl)
                 {
-                    if((x.StartsWith("0x") ? uint.TryParse(x, NumberStyles.HexNumber, null, out var id) : uint.TryParse(x, out id)))
+                    if(x.StartsWith("0x") ? uint.TryParse(x, NumberStyles.HexNumber, null, out var id) : uint.TryParse(x, out id))
                     {
                         if(!el.AnimationIds.Contains(id))
                         {

@@ -4,39 +4,38 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Splatoon.Gui.Layouts.Header.Sections
+namespace Splatoon.Gui.Layouts.Header.Sections;
+
+internal static class SceneSelector
 {
-    internal static class SceneSelector
+    private static int NewScene = 0;
+    internal static void DrawSceneSelector(this Layout l)
     {
-        private static int NewScene = 0;
-        internal static void DrawSceneSelector(this Layout l)
+        ImGuiEx.SetNextItemFullWidth();
+        if(ImGui.BeginCombo("##SceneSelector", l.Scenes.Count > 0 ? l.Scenes.Print() : "Any scene"))
         {
-            ImGuiEx.SetNextItemFullWidth();
-            if(ImGui.BeginCombo("##SceneSelector", l.Scenes.Count > 0 ? l.Scenes.Print() : "Any scene"))
+            ImGui.SetNextItemWidth(150f);
+            ImGui.InputInt("##scenenum", ref NewScene, 1, 1);
+            ImGui.SameLine();
+            if(ImGui.Button("Add"))
             {
-                ImGui.SetNextItemWidth(150f);
-                ImGui.InputInt("##scenenum", ref NewScene, 1, 1);
-                ImGui.SameLine();
-                if(ImGui.Button("Add"))
-                {
-                    l.Scenes.Add(NewScene);
-                }
-                var toRem = -1;
-                foreach(var sc in l.Scenes)
-                {
-                    ImGuiEx.Text($"{sc}");
-                    ImGui.SameLine();
-                    if(ImGui.SmallButton("Delete##scdel" + sc))
-                    {
-                        toRem = sc;
-                    }
-                }
-                if(toRem > -1)
-                {
-                    l.Scenes.Remove(toRem);
-                }
-                ImGui.EndCombo();
+                l.Scenes.Add(NewScene);
             }
+            var toRem = -1;
+            foreach(var sc in l.Scenes)
+            {
+                ImGuiEx.Text($"{sc}");
+                ImGui.SameLine();
+                if(ImGui.SmallButton("Delete##scdel" + sc))
+                {
+                    toRem = sc;
+                }
+            }
+            if(toRem > -1)
+            {
+                l.Scenes.Remove(toRem);
+            }
+            ImGui.EndCombo();
         }
     }
 }

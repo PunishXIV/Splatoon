@@ -123,7 +123,7 @@ internal class Configuration : IEzConfig
     {
         var alpha = fillColor >> 24;
         alpha = Math.Clamp(alpha, (uint)ElementMinFillAlpha, (uint)ElementMaxFillAlpha);
-        return fillColor & 0x00FFFFFF | (alpha << 24);
+        return (fillColor & 0x00FFFFFF) | (alpha << 24);
     }
 
     public bool ShouldSerializeLayouts()
@@ -139,7 +139,7 @@ internal class Configuration : IEzConfig
         {
             plugin.ConfigGui.Open = true;
         };
-        NuiTools.SetState(this.NightmareUIState);
+        NuiTools.SetState(NightmareUIState);
     }
 
     public void Save(bool suppressError = false)
@@ -182,7 +182,7 @@ internal class Configuration : IEzConfig
             {
                 e.LogWarning();
             }
-            void Copy(string source, string target)
+            static void Copy(string source, string target)
             {
                 using var fileStream = new FileStream(source, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var writer = new FileStream(target, FileMode.Create, FileAccess.ReadWrite, FileShare.None);

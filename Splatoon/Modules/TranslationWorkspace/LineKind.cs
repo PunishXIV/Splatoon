@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Modules.TranslationWorkspace;
+
 public enum LineKind
 {
     Text,

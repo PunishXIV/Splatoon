@@ -78,20 +78,20 @@ internal partial class CGui
     internal static Expansion? ActiveExpansion;
     internal static ContentCategory? ActiveContentCategory;
 
-    readonly NuiTools.ButtonInfo[] ExpansionTabs = [new("All", () => ActiveExpansion = null), .. Enum.GetValues<Expansion>().Select(x => new NuiTools.ButtonInfo(x.ToString().Replace('_', ' ').Loc(), x.ToString(), () => ActiveExpansion = x))];
-    readonly NuiTools.ButtonInfo[] ExpansionTabsShort = [new("All", () => ActiveExpansion = null), .. Enum.GetValues<Expansion>().Select(x => new NuiTools.ButtonInfo(x.GetShortName(), x.ToString(), () => ActiveExpansion = x))];
+    private readonly NuiTools.ButtonInfo[] ExpansionTabs = [new("All", () => ActiveExpansion = null), .. Enum.GetValues<Expansion>().Select(x => new NuiTools.ButtonInfo(x.ToString().Replace('_', ' ').Loc(), x.ToString(), () => ActiveExpansion = x))];
+    private readonly NuiTools.ButtonInfo[] ExpansionTabsShort = [new("All", () => ActiveExpansion = null), .. Enum.GetValues<Expansion>().Select(x => new NuiTools.ButtonInfo(x.GetShortName(), x.ToString(), () => ActiveExpansion = x))];
 
-    readonly NuiTools.ButtonInfo[] ContentCategoryTab = [new("All", () => ActiveContentCategory = null), .. Enum.GetValues<ContentCategory>().Select(x => new NuiTools.ButtonInfo(x.ToString().Replace('_', ' ').Loc(), x.ToString(), () => ActiveContentCategory = x))];
+    private readonly NuiTools.ButtonInfo[] ContentCategoryTab = [new("All", () => ActiveContentCategory = null), .. Enum.GetValues<ContentCategory>().Select(x => new NuiTools.ButtonInfo(x.ToString().Replace('_', ' ').Loc(), x.ToString(), () => ActiveContentCategory = x))];
 
     public uint FilteredTerritory = 0;
 
     private void DislayLayouts()
     {
-        var shortExpansions = ExpansionTabs.Select(x => ImGui.CalcTextSize(x.Name).X).Max() > ImGui.GetContentRegionMax().X / (1+ExpansionTabs.Length);
+        var shortExpansions = ExpansionTabs.Select(x => ImGui.CalcTextSize(x.Name).X).Max() > ImGui.GetContentRegionMax().X / (1 + ExpansionTabs.Length);
         if(ImGui.BeginChild("TableWrapper", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse))
         {
             ImGuiEx.SetNextItemFullWidth();
-            if(ImGui.BeginCombo("##selTerritory", FilteredTerritory == 0?"Filter by Zone":ExcelTerritoryHelper.GetName(FilteredTerritory, true), ImGuiComboFlags.HeightLarge))
+            if(ImGui.BeginCombo("##selTerritory", FilteredTerritory == 0 ? "Filter by Zone" : ExcelTerritoryHelper.GetName(FilteredTerritory, true), ImGuiComboFlags.HeightLarge))
             {
                 ImGuiEx.SetNextItemFullWidth();
                 ImGuiEx.FilteringInputTextWithHint("##searchTer", "Search...", out var filter);
@@ -104,11 +104,11 @@ internal partial class CGui
                 {
                     var n = ExcelTerritoryHelper.GetName(x, true);
                     if(filter != "" && !n.Contains(filter, StringComparison.OrdinalIgnoreCase)) continue;
-                    if(ImGui.Selectable(n, x == this.FilteredTerritory))
+                    if(ImGui.Selectable(n, x == FilteredTerritory))
                     {
                         FilteredTerritory = x;
                     }
-                    if(x == this.FilteredTerritory && ImGui.IsWindowAppearing())
+                    if(x == FilteredTerritory && ImGui.IsWindowAppearing())
                     {
                         ImGui.SetScrollHereY();
                     }
@@ -254,13 +254,12 @@ internal partial class CGui
         ImGui.PopID();
     }
 
-
     private void DrawOldSelector()
     {
 
         foreach(var x in P.Config.LayoutsL)
         {
-            if(x.Group == null) x.Group = "";
+            x.Group ??= "";
             if(x.Group != "" && !P.Config.GroupOrder.Contains(x.Group))
             {
                 P.Config.GroupOrder.Add(x.Group);
@@ -282,13 +281,13 @@ internal partial class CGui
                 }
                 else
                 {
-                    if(!P.Config.LayoutsL.Any(x => x.Group == g && x.ZoneLockH.Contains((ushort)this.FilteredTerritory) && x.ZoneLockH.Count > 0))
+                    if(!P.Config.LayoutsL.Any(x => x.Group == g && x.ZoneLockH.Contains((ushort)FilteredTerritory) && x.ZoneLockH.Count > 0))
                     {
                         continue;
                     }
                 }
 
-                    ImGui.PushID(g);
+                ImGui.PushID(g);
                 ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g) ? EColor.Yellow : EColor.YellowBright);
 
                 if(HighlightGroup == g)
@@ -469,10 +468,7 @@ internal partial class CGui
             var x = takenLayouts[i];
             if(!P.Config.FocusMode || CurrentLayout == x || CurrentLayout == null)
             {
-                if(x != null)
-                {
-                    x.DrawSelector(null, i);
-                }
+                x?.DrawSelector(null, i);
             }
         }
     }

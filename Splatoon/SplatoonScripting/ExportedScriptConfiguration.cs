@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.SplatoonScripting;
+
 [Serializable]
 public class ExportedScriptConfiguration
 {

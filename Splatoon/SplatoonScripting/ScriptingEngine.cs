@@ -35,7 +35,6 @@ public class ScriptingEngine
         }
     }
 
-
     /// <summary>
     /// Attempts to decode element from string.
     /// </summary>

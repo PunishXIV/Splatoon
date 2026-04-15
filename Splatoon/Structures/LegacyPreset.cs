@@ -1,5 +1,4 @@
 ﻿
-
 namespace Splatoon.Structures;
 
 [Serializable]

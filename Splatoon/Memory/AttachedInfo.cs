@@ -15,7 +15,6 @@ using Splatoon.Structures;
 
 namespace Splatoon.Memory;
 
-
 #nullable enable
 public static unsafe class AttachedInfo
 {
@@ -46,7 +45,6 @@ public static unsafe class AttachedInfo
         });
         Svc.Framework.Update += Tick;
     }
-
 
     internal static void Dispose()
     {

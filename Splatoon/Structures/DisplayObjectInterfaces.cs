@@ -1,5 +1,4 @@
 ﻿
-
 using ECommons.MathHelpers;
 using Splatoon.RenderEngines;
 using Splatoon.Serializables;

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.RenderEngines;
+
 public abstract class RenderEngine : IDisposable
 {
     internal Exception LoadError { get; set; } = null;

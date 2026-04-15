@@ -5,10 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 using System.Reflection;
 using System.Runtime.Loader;
 
-
 namespace Splatoon.SplatoonScripting;
-
-
 
 internal class Compiler
 {

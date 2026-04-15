@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Modules;
+
 internal static class EmulatedCombatTimer
 {
     public static long CombatStart = 0;

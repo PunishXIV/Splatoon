@@ -17,7 +17,7 @@ internal static class Triggers
                 ImGui.PushID(trigger.GUID);
                 ImGui.PushStyleColor(ImGuiCol.Text, trigger.UserDisabled ? EColor.RedBright : EColor.GreenBright);
                 ImGui.PushFont(UiBuilder.IconFont);
-                ImGuiEx.ButtonCheckbox((trigger.UserDisabled ? FontAwesomeIcon.Times : FontAwesomeIcon.Check).ToIconString(), ref trigger.UserDisabled, noColor:true);
+                ImGuiEx.ButtonCheckbox((trigger.UserDisabled ? FontAwesomeIcon.Times : FontAwesomeIcon.Check).ToIconString(), ref trigger.UserDisabled, noColor: true);
                 ImGui.PopFont();
                 ImGui.PopStyleColor();
                 ImGuiEx.Tooltip($"This trigger is {(trigger.UserDisabled ? "disabled" : "enabled")}");

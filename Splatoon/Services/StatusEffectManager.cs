@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Status = Lumina.Excel.Sheets.Status;
 
 namespace Splatoon.Services;
+
 public unsafe class StatusEffectManager
 {
     private delegate byte StatusManager_SetStatus(nint a1, uint a2, ushort a3, float a4, ushort a5, uint a6, byte a7);

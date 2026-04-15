@@ -47,7 +47,7 @@ public class PriorityPopupWindow : Window
         [RolePosition.R1] = "D3",
         [RolePosition.R2] = "D4",
     };
-    public static IReadOnlyDictionary<RolePosition, string> ConfiguredNames => (P.Config.PrioUnifyDps ? DpsUniformNames : NormalNames);
+    public static IReadOnlyDictionary<RolePosition, string> ConfiguredNames => P.Config.PrioUnifyDps ? DpsUniformNames : NormalNames;
     private ImGuiEx.RealtimeDragDrop<JobbedPlayer> DragDrop = new("PrioAss", x => x.ID);
 
     public PriorityPopupWindow() : base("Splatoon Priority Editor", ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse)
@@ -294,7 +294,6 @@ public class PriorityPopupWindow : Window
             S.InfoBar.Update(false);
         });
     }
-
 
     internal int GetOrderedRoleIndex(Job job)
     {

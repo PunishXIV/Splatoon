@@ -61,7 +61,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
         ImGui.PushStyleColor(ImGuiCol.ButtonActive, Colors.Transparent);*/
         var s = ImGui.CalcTextSize(text);
         //ImGui.Button("", new Vector2(ImGui.GetColumnWidth()/2f - s.X/2f, 1f));
-        ImGui.SetCursorPosX(ImGui.GetColumnWidth() / 2f - s.X / 2f);
+        ImGui.SetCursorPosX((ImGui.GetColumnWidth() / 2f) - (s.X / 2f));
         //ImGui.PopStyleColor(3);
         //ImGui.SameLine();
         ImGuiEx.Text(text);

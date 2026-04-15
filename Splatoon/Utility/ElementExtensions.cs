@@ -2,12 +2,13 @@
 using Splatoon.Serializables;
 
 namespace Splatoon.Utility;
+
 public static class ElementExtensions
 {
     internal static float GetDefaultFillIntensity(this Element e)
     {
         // Generate a default fill transparency based on the stroke transparency and fillstep relative to their defaults.
-        var strokeAlpha = (e.color >> 24);
+        var strokeAlpha = e.color >> 24;
         const uint defaultStrokeAlpha = 0xC8;
         var transparencyFromStroke = (float)strokeAlpha / defaultStrokeAlpha;
         var transparencyFromFillStep = 0.5f / e.FillStep;
@@ -66,7 +67,6 @@ public static class ElementExtensions
         return new DisplayStyle(e.color, e.thicc, fillIntensity, originFillColor, endFillColor, e.Filled, e.overrideFillColor, 0, e.GetAnimationStyle());
     }
 
-
     public static DisplayStyle GetDisplayStyleWithOverride(this Element e, IGameObject go = null)
     {
         var style = e.GetDisplayStyle();
@@ -86,7 +86,7 @@ public static class ElementExtensions
             style.endFillColor = defaultColor;
         }
         style.animation = e.GetAnimationStyle();
-        style.castFraction = e.CastFractionOverride > 0?e.CastFractionOverride:(e.refActorRequireCast ? LayoutUtils.CastFraction(e, go) : 0f);
+        style.castFraction = e.CastFractionOverride > 0 ? e.CastFractionOverride : (e.refActorRequireCast ? LayoutUtils.CastFraction(e, go) : 0f);
         if(style.animation.kind is CastAnimationKind.ColorShift)
         {
             style.originFillColor = P.Config.ClampFillColorAlpha(Colors.Lerp(style.originFillColor, style.animation.color, style.castFraction));

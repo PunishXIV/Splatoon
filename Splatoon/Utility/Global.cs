@@ -1,4 +1,5 @@
-﻿global using Dalamud.Game.ClientState.Objects.Types;
+﻿global using Dalamud.Bindings.ImGui;
+global using Dalamud.Game.ClientState.Objects.Types;
 global using Dalamud.Interface;
 global using Dalamud.Interface.Utility;
 global using Dalamud.Plugin;
@@ -7,7 +8,6 @@ global using ECommons.DalamudServices.Legacy;
 global using ECommons.ImGuiMethods;
 global using ECommons.Logging;
 global using ECommons.Schedulers;
-global using Dalamud.Bindings.ImGui;
 global using Splatoon.Services;
 global using Splatoon.Utility;
 global using System;

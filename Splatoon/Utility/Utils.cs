@@ -35,7 +35,7 @@ public static unsafe class Utils
         {
 
             var ms = Environment.TickCount64;
-            var t = (ms / 1000d) / cycleSeconds;
+            var t = ms / 1000d / cycleSeconds;
             var hue = t % 1f;
             return HsvToVector4(hue, 1f, 1f);
         }
@@ -53,10 +53,10 @@ public static unsafe class Utils
     {
         double r = 0f, g = 0f, b = 0f;
         var i = (int)(h * 6f);
-        var f = h * 6f - i;
+        var f = (h * 6f) - i;
         var p = v * (1f - s);
-        var q = v * (1f - f * s);
-        var t = v * (1f - (1f - f) * s);
+        var q = v * (1f - (f * s));
+        var t = v * (1f - ((1f - f) * s));
 
         switch(i % 6)
         {
@@ -103,7 +103,7 @@ public static unsafe class Utils
                 if(go is ICharacter chr)
                 {
                     var c = chr.Struct();
-                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    for(var i = 0; i < c->Vfx.Tethers.Length; i++)
                     {
                         var t = c->Vfx.Tethers[i];
                         if(t.Id != 0)
@@ -123,7 +123,7 @@ public static unsafe class Utils
                 if(x is ICharacter chr)
                 {
                     var c = chr.Struct();
-                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    for(var i = 0; i < c->Vfx.Tethers.Length; i++)
                     {
                         var t = c->Vfx.Tethers[i];
                         if(t.Id != 0 && t.TargetId == go.GameObjectId)
@@ -152,7 +152,7 @@ public static unsafe class Utils
             if(go != null)
             {
                 var index = (int)element.TargetAlteration - 1100;
-                int i = 0;
+                var i = 0;
                 foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderBy(o => Vector3.DistanceSquared(o.Position, go.Position)))
                 {
                     if(index == i)
@@ -170,7 +170,7 @@ public static unsafe class Utils
             if(go != null)
             {
                 var index = (int)element.TargetAlteration - 2100;
-                int i = 0;
+                var i = 0;
                 foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderByDescending(o => Vector3.DistanceSquared(o.Position, go.Position)))
                 {
                     if(index == i)
@@ -190,7 +190,7 @@ public static unsafe class Utils
         if(placeholder.StartsWith("<element:"))
         {
             var details = placeholder[1..^1].Split(":");
-            var list = details.Length == 2 
+            var list = details.Length == 2
                 ? Splatoon.CapturedPositions.SafeSelect(layout.GetName())?.SafeSelect(details[1])
                 : Splatoon.CapturedPositions.SafeSelect(details[1])?.SafeSelect(details[2]);
             return list;
@@ -210,7 +210,7 @@ public static unsafe class Utils
                 if(go is ICharacter chr)
                 {
                     var c = chr.Struct();
-                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    for(var i = 0; i < c->Vfx.Tethers.Length; i++)
                     {
                         var t = c->Vfx.Tethers[i];
                         if(t.Id != 0)
@@ -230,7 +230,7 @@ public static unsafe class Utils
                 if(x is ICharacter chr)
                 {
                     var c = chr.Struct();
-                    for(int i = 0; i < c->Vfx.Tethers.Length; i++)
+                    for(var i = 0; i < c->Vfx.Tethers.Length; i++)
                     {
                         var t = c->Vfx.Tethers[i];
                         if(t.Id != 0 && t.TargetId == go.GameObjectId)
@@ -286,7 +286,7 @@ public static unsafe class Utils
         }
     }
 
-    static Dictionary<uint, Expansion> ExpansionCache = [];
+    private static Dictionary<uint, Expansion> ExpansionCache = [];
     public static Expansion DetermineExpansion(uint territoryType)
     {
         if(!ExpansionCache.TryGetValue(territoryType, out var ret))
@@ -296,7 +296,7 @@ public static unsafe class Utils
             if(data != null)
             {
                 var bg = data.Value.Bg.GetText();
-                for(int i = 1; i <= 5; i++)
+                for(var i = 1; i <= 5; i++)
                 {
                     if(bg.StartsWith($"ex{i}/"))
                     {
@@ -309,7 +309,6 @@ public static unsafe class Utils
         }
         return ret;
     }
-
 
     public static ContentCategory DetermineContentCategory(this Layout l)
     {
@@ -332,7 +331,7 @@ public static unsafe class Utils
             return initial;
         }
     }
-    static Dictionary<uint, ContentCategory> ContentCategoryCache = [];
+    private static Dictionary<uint, ContentCategory> ContentCategoryCache = [];
     public static ContentCategory DetermineContentCategory(uint territoryType)
     {
         if(!ContentCategoryCache.TryGetValue(territoryType, out var ret))
@@ -557,28 +556,22 @@ public static unsafe class Utils
 
     public static byte[] BrotliCompress(byte[] bytes)
     {
-        using(var memoryStream = new MemoryStream())
+        using var memoryStream = new MemoryStream();
+        using(var brotliStream = new BrotliStream(memoryStream, CompressionLevel.SmallestSize))
         {
-            using(var brotliStream = new BrotliStream(memoryStream, CompressionLevel.SmallestSize))
-            {
-                brotliStream.Write(bytes, 0, bytes.Length);
-            }
-            return memoryStream.ToArray();
+            brotliStream.Write(bytes, 0, bytes.Length);
         }
+        return memoryStream.ToArray();
     }
     public static byte[] BrotliDecompress(byte[] bytes)
     {
-        using(var memoryStream = new MemoryStream(bytes))
+        using var memoryStream = new MemoryStream(bytes);
+        using var outputStream = new MemoryStream();
+        using(var decompressStream = new BrotliStream(memoryStream, CompressionMode.Decompress))
         {
-            using(var outputStream = new MemoryStream())
-            {
-                using(var decompressStream = new BrotliStream(memoryStream, CompressionMode.Decompress))
-                {
-                    decompressStream.CopyTo(outputStream);
-                }
-                return outputStream.ToArray();
-            }
+            decompressStream.CopyTo(outputStream);
         }
+        return outputStream.ToArray();
     }
 
     public static string GetScriptConfigurationName(string scriptFullName, string configKey)
@@ -739,7 +732,7 @@ public static unsafe class Utils
         if(import.Contains('~'))
         {
             var name = import.Split('~')[0];
-            var json = import.Substring(name.Length + 1);
+            var json = import[(name.Length + 1)..];
             try
             {
                 json = Encoding.UTF8.GetString(Convert.FromBase64String(json));
@@ -941,15 +934,13 @@ public static unsafe class Utils
     public static string Compress(this string s)
     {
         var bytes = Encoding.Unicode.GetBytes(s);
-        using(var msi = new MemoryStream(bytes))
-        using(var mso = new MemoryStream())
+        using var msi = new MemoryStream(bytes);
+        using var mso = new MemoryStream();
+        using(var gs = new GZipStream(mso, CompressionLevel.Optimal))
         {
-            using(var gs = new GZipStream(mso, CompressionLevel.Optimal))
-            {
-                msi.CopyTo(gs);
-            }
-            return Convert.ToBase64String(mso.ToArray()).Replace('+', '-').Replace('/', '_');
+            msi.CopyTo(gs);
         }
+        return Convert.ToBase64String(mso.ToArray()).Replace('+', '-').Replace('/', '_');
     }
 
     public static string ToBase64UrlSafe(this string s)
@@ -965,15 +956,13 @@ public static unsafe class Utils
     public static string Decompress(this string s)
     {
         var bytes = Convert.FromBase64String(s.Replace('-', '+').Replace('_', '/'));
-        using(var msi = new MemoryStream(bytes))
-        using(var mso = new MemoryStream())
+        using var msi = new MemoryStream(bytes);
+        using var mso = new MemoryStream();
+        using(var gs = new GZipStream(msi, CompressionMode.Decompress))
         {
-            using(var gs = new GZipStream(msi, CompressionMode.Decompress))
-            {
-                gs.CopyTo(mso);
-            }
-            return Encoding.Unicode.GetString(mso.ToArray());
+            gs.CopyTo(mso);
         }
+        return Encoding.Unicode.GetString(mso.ToArray());
     }
 
     //because Dalamud changed Y and Z in actor positions I have to do emulate old behavior to not break old presets
@@ -1027,7 +1016,7 @@ public static unsafe class Utils
     }
     public static float AngleBetweenVectors(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4)
     {
-        return MathF.Acos(((x2 - x1) * (x4 - x3) + (y2 - y1) * (y4 - y3)) /
+        return MathF.Acos((((x2 - x1) * (x4 - x3)) + ((y2 - y1) * (y4 - y3))) /
             (MathF.Sqrt(Square(x2 - x1) + Square(y2 - y1)) * MathF.Sqrt(Square(x4 - x3) + Square(y4 - y3))));
     }
 
@@ -1041,8 +1030,8 @@ public static unsafe class Utils
             var angleB = MathF.Atan2(b.Y, b.X);
             if(angleA == angleB)
             {
-                var radiusA = MathF.Sqrt(a.X * a.X + a.Y * a.Y);
-                var radiusB = MathF.Sqrt(b.X * b.X + b.Y * b.Y);
+                var radiusA = MathF.Sqrt((a.X * a.X) + (a.Y * a.Y));
+                var radiusB = MathF.Sqrt((b.X * b.X) + (b.Y * b.Y));
                 return radiusA > radiusB ? 1 : -1;
             }
             return angleA > angleB ? 1 : -1;
@@ -1077,8 +1066,8 @@ public static unsafe class Utils
         point -= origin;
 
         // rotate point
-        var xnew = point.X * c - point.Y * s;
-        var ynew = point.X * s + point.Y * c;
+        var xnew = (point.X * c) - (point.Y * s);
+        var ynew = (point.X * s) + (point.Y * c);
         point.X = xnew;
         point.Y = ynew;
 
@@ -1106,8 +1095,8 @@ public static unsafe class Utils
         p.Y -= cy;
 
         // rotate point
-        var xnew = p.X * c - p.Y * s;
-        var ynew = p.X * s + p.Y * c;
+        var xnew = (p.X * c) - (p.Y * s);
+        var ynew = (p.X * s) + (p.Y * c);
 
         // translate point back:
         p.X = xnew + cx;
@@ -1194,13 +1183,13 @@ public static unsafe class Utils
     public static void PerpOffset(Vector2 a, Vector2 b, float position, float offset, out Vector2 c, out Vector2 d)
     {
         //p3 is located at the x or y delta * position + p1x or p1y original.
-        var p3 = new Vector2((b.X - a.X) * position + a.X, (b.Y - a.Y) * position + a.Y);
+        var p3 = new Vector2(((b.X - a.X) * position) + a.X, ((b.Y - a.Y) * position) + a.Y);
 
         //returns an angle in radians between p1 and p2 + 1.5708 (90degress).
         var angleRadians = MathF.Atan2(a.Y - b.Y, a.X - b.X) + 1.5708f;
 
         //locates p4 at the given angle and distance from p3.
-        var p4 = new Vector2(p3.X + MathF.Cos(angleRadians) * offset, p3.Y + MathF.Sin(angleRadians) * offset);
+        var p4 = new Vector2(p3.X + (MathF.Cos(angleRadians) * offset), p3.Y + (MathF.Sin(angleRadians) * offset));
 
         //send out the calculated points
         c = p3;

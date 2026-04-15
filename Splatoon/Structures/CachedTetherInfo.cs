@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Structures;
+
 public readonly record struct CachedTetherInfo
 {
     public readonly long SpawnTime = Environment.TickCount64;

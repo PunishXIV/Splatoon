@@ -1,9 +1,14 @@
-﻿using Dalamud.Interface.Colors;
+﻿using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Interface.Colors;
 using ECommons;
+using ECommons.ExcelServices;
 using ECommons.Funding;
+using ECommons.GameFunctions;
+using ECommons.GameHelpers.LegacyPlayer;
+using ECommons.Interop;
 using ECommons.LanguageHelpers;
 using Newtonsoft.Json;
-using TerraFX.Interop.Windows;
 using Splatoon.ConfigGui;
 using Splatoon.Gui;
 using Splatoon.Gui.Scripting;
@@ -14,12 +19,7 @@ using Splatoon.Utility;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Web;
-using ECommons.Interop;
-using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using ECommons.GameHelpers.LegacyPlayer;
-using ECommons.ExcelServices;
-using ECommons.GameFunctions;
+using TerraFX.Interop.Windows;
 
 namespace Splatoon;
 
@@ -88,7 +88,7 @@ internal unsafe partial class CGui : IDisposable
         ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(700, 200));
         var titleColored = false;
         var ctspan = TimeSpan.FromMilliseconds(Environment.TickCount64 - p.CombatStarted);
-        var title = $"Splatoon v{p.loader.splatoonVersion} | {GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType).Replace("| ", "")} | {(p.CombatStarted == 0 ? "Not in combat".Loc() : $"{Loc("Combat")}: {ctspan.Minutes:D2}{(ctspan.Milliseconds < 500 ? ":" : " ")}{ctspan.Seconds:D2} ({(int)ctspan.TotalSeconds}.{(ctspan.Milliseconds / 100):D1}s)")} | {Loc("Phase")}: {p.Phase} | {Loc("Scene")}: {*Scene.ActiveScene} | {Loc("Layouts")}: {p.LayoutAmount} | {Loc("Elements")}: {p.ElementAmount} | {Utils.GetPlayerPositionXZY().X:F1}, {Utils.GetPlayerPositionXZY().Y:F1}###Splatoon";
+        var title = $"Splatoon v{p.loader.splatoonVersion} | {GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType).Replace("| ", "")} | {(p.CombatStarted == 0 ? "Not in combat".Loc() : $"{Loc("Combat")}: {ctspan.Minutes:D2}{(ctspan.Milliseconds < 500 ? ":" : " ")}{ctspan.Seconds:D2} ({(int)ctspan.TotalSeconds}.{ctspan.Milliseconds / 100:D1}s)")} | {Loc("Phase")}: {p.Phase} | {Loc("Scene")}: {*Scene.ActiveScene} | {Loc("Layouts")}: {p.LayoutAmount} | {Loc("Elements")}: {p.ElementAmount} | {Utils.GetPlayerPositionXZY().X:F1}, {Utils.GetPlayerPositionXZY().Y:F1}###Splatoon";
         if(ImGui.Begin(title, ref Open))
         {
             try
@@ -108,7 +108,7 @@ internal unsafe partial class CGui : IDisposable
                             ImGui.SetNextItemWidth(100f);
                             var col = !BasePlayer.AddressEquals(Svc.Objects.LocalPlayer);
                             if(col) ImGui.PushStyleColor(ImGuiCol.Text, EColor.GreenBright);
-                            if(ImGui.BeginCombo("##bpo", BasePlayerOverride == ""?"No Override" : BasePlayerOverride, ImGuiComboFlags.HeightLarge))
+                            if(ImGui.BeginCombo("##bpo", BasePlayerOverride == "" ? "No Override" : BasePlayerOverride, ImGuiComboFlags.HeightLarge))
                             {
                                 if(col) ImGui.PopStyleColor();
                                 if(ImGui.Selectable("No Override", BasePlayerOverride == "")) BasePlayerOverride = "";

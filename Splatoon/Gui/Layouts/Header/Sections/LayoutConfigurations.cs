@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Gui.Layouts.Header.Sections;
+
 internal static class LayoutConfigurations
 {
     private static ImGuiEx.RealtimeDragDrop<LayoutSubconfiguration> DragDrop = new("LayoutSubDD", x => x.Guid.ToString(), true);

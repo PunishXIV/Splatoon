@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Gui;
+
 public class LogWindow : Window
 {
     internal CircularBuffer<InternalLogMessage> FilteredLog = new(1000);

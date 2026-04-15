@@ -35,7 +35,7 @@ public static unsafe class CommonRenderUtils
         .Replace("$VFLAGS", $"{go.Struct()->RenderFlags}")
         .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
         .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
-        .Replace("$DISTANCE", $"{Vector3.Distance((BasePlayer?.Position ?? Vector3.Zero), go.Position):F1}")
+        .Replace("$DISTANCE", $"{Vector3.Distance(BasePlayer?.Position ?? Vector3.Zero, go.Position):F1}")
         .Replace("\\n", "\n")
         .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
         if(go is IEventObj eobj)
@@ -179,7 +179,7 @@ public static unsafe class CommonRenderUtils
 
     internal static bool IsElementObjectMatches(Layout layout, Element element, bool isTargetable, IGameObject gameObject)
     {
-        return 
+        return
             (!element.onlyTargetable || isTargetable)
             && (!element.onlyUnTargetable || !isTargetable)
             && (element.IsDead == null || element.IsDead == gameObject.IsDead)
@@ -196,7 +196,7 @@ public static unsafe class CommonRenderUtils
     {
         if(element.UseDistanceSourcePlaceholder)
         {
-            foreach(var p in element.DistanceSourcePlaceholder) 
+            foreach(var p in element.DistanceSourcePlaceholder)
             {
                 var pos = Utils.GetFacePositions(layout, element, go, p);
                 foreach(var x in pos)

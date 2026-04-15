@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.SplatoonScripting.Priority;
+
 public enum RolePosition
 {
     Not_Selected = 0,

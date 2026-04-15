@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Services;
+
 public unsafe class DataMigrator
 {
     private DataMigrator()

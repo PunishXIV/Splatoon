@@ -6,7 +6,6 @@ public class Point2
     public float X = 0;
     public float Y = 0;
 
-
     public Vector2 ToVector2()
     {
         return new(X, Y);

@@ -9,8 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Modules.TranslationWorkspace;
+
 [Serializable]
-public unsafe sealed class Page
+public sealed unsafe class Page
 {
     internal string ID = Guid.NewGuid().ToString();
     public ClientLanguage SourceLanguage = ClientLanguage.English;

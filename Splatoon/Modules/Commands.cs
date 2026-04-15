@@ -53,7 +53,7 @@ internal class Commands : IDisposable
             {
                 try
                 {
-                    var name = arguments.Substring(arguments.IndexOf("enable ") + 7);
+                    var name = arguments[(arguments.IndexOf("enable ") + 7)..];
                     SwitchState(name, true);
                 }
                 catch(Exception e)
@@ -65,7 +65,7 @@ internal class Commands : IDisposable
             {
                 try
                 {
-                    var name = arguments.Substring(arguments.IndexOf("disable ") + 8);
+                    var name = arguments[(arguments.IndexOf("disable ") + 8)..];
                     SwitchState(name, false);
                 }
                 catch(Exception e)
@@ -77,7 +77,7 @@ internal class Commands : IDisposable
             {
                 try
                 {
-                    var name = arguments.Substring(arguments.IndexOf("toggle ") + 7);
+                    var name = arguments[(arguments.IndexOf("toggle ") + 7)..];
                     SwitchState(name, null);
                 }
                 catch(Exception e)
@@ -95,7 +95,7 @@ internal class Commands : IDisposable
                     }
                     else
                     {
-                        var name = arguments.Substring(arguments.IndexOf("settarget ") + 10).Split('~');
+                        var name = arguments[(arguments.IndexOf("settarget ") + 10)..].Split('~');
                         var el = P.Config.LayoutsL.First(x => x.Name == name[0]).GetElementsWithSubconfiguration().First(x => x.Name == name[1]);
                         el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
                         el.refActorDataID = Svc.Targets.Target.DataId;

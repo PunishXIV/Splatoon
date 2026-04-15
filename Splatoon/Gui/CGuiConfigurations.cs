@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Gui;
+
 internal static class CGuiConfigurations
 {
     private static uint SelectedZone = 0;
@@ -118,7 +119,6 @@ internal static class CGuiConfigurations
             ImGui.EndTable();
         }
 
-
         if(ImGuiEx.BeginDefaultTable("##ScriptConfigurations", ["~" + "Script Name".Loc(), "Zone".Loc(), "Selected Configuration".Loc()]))
         {
             var toReload = new HashSet<SplatoonScript>();
@@ -147,7 +147,7 @@ internal static class CGuiConfigurations
                     }
                     else if(requestedConfiguration != null && script.TryGetAvailableConfigurations(out var confList))
                     {
-                        
+
                         if(confList.FindKeysByValue(requestedConfiguration).TryGetFirst(out var confKey))
                         {
                             if(script.InternalData.CurrentConfigurationKey != confKey)

@@ -12,7 +12,6 @@ public enum CastAnimationKind
     Fill = 3,
 }
 
-
 public static class CastAnimations
 {
     public static readonly string[] Names =

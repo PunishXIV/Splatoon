@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Splatoon.Gui.Tabs;
 
-internal unsafe static class TabMapEffect
+internal static unsafe class TabMapEffect
 {
     public class SavedEffectList
     {
@@ -65,7 +65,7 @@ internal unsafe static class TabMapEffect
             var tt = TerritoryType.GetRef(Player.Territory).ValueNullable?.Bg.ToString() ?? "";
             if(ImGuiEx.BeginDefaultTable("Effects", ["Effect ID", "State", "Last call", "Call"]))
             {
-                for(int i = 0; i < cd->MapEffects->Items.Length; i++)
+                for(var i = 0; i < cd->MapEffects->Items.Length; i++)
                 {
                     var eff = cd->MapEffects->Items[i];
                     if(eff.State == 0) continue;
@@ -89,7 +89,7 @@ internal unsafe static class TabMapEffect
                     ImGui.SameLine();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Check, "Apply2"))
                     {
-                        MapEffect.Delegate((long)cd, (uint)i, (ushort)inp1, (ushort)((ushort)inp1*2));
+                        MapEffect.Delegate((long)cd, (uint)i, (ushort)inp1, (ushort)((ushort)inp1 * 2));
                     }
                     if(tt != "")
                     {

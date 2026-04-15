@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 #nullable enable
 
 namespace Splatoon.SplatoonScripting.Priority;
+
 public class JobbedPlayer
 {
     internal string ID = GetTemporaryId();

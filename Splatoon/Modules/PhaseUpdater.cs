@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Modules;
+
 internal static class PhaseUpdater
 {
     public static void UpdatePhaseIfNeeded()

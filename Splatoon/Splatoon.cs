@@ -35,6 +35,7 @@ using Localization = ECommons.LanguageHelpers.Localization;
 using ObjectKind = Dalamud.Game.ClientState.Objects.Enums.ObjectKind;
 
 namespace Splatoon;
+
 public unsafe class Splatoon : IDalamudPlugin
 {
     public const string DiscordURL = "https://discord.gg/Zzrcc8kmvy";
@@ -104,8 +105,8 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Dictionary<(string Name, uint EntityId, ulong GameObjectId, uint DataID, int ModelID, uint NPCID, uint NameID, ObjectKind type), ObjectInfo> loggedObjectList = [];
     internal bool LogObjects = false;
     internal bool DisableLineFix = false;
-    private int phase = 1;
-    internal int Phase { get => phase; set { phase = value; ScriptingProcessor.OnPhaseChange(value); } }
+
+    internal int Phase { get; set { field = value; ScriptingProcessor.OnPhaseChange(value); } } = 1;
     internal int LayoutAmount = 0;
     internal int ElementAmount = 0;
     internal static string LimitGaugeResets = "";
@@ -390,11 +391,8 @@ public unsafe class Splatoon : IDalamudPlugin
         }
         else
         {
-            if(HttpServer != null)
-            {
-                HttpServer.Dispose();
-                HttpServer = null;
-            }
+            HttpServer?.Dispose();
+            HttpServer = null;
         }
     }
 
@@ -457,7 +455,6 @@ public unsafe class Splatoon : IDalamudPlugin
             l.FreezeInfo = new();
         }
     }
-
 
     internal void Tick(IFramework framework)
     {
@@ -786,7 +783,7 @@ public unsafe class Splatoon : IDalamudPlugin
                 }
             }
             if(!lmbdown && prevMouseState)
-            { 
+            {
                 s2wInfo = null;
             }
             prevMouseState = lmbdown;

@@ -9,6 +9,7 @@ using Splatoon.Serializables;
 using System.Runtime.InteropServices;
 
 namespace Splatoon;
+
 internal partial class CGui
 {
     private bool Tested = false;

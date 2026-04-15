@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Services;
+
 public static class S
 {
     public static ThreadPool ThreadPool { get; private set; }

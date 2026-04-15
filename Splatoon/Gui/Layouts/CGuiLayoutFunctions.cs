@@ -63,7 +63,6 @@ internal partial class CGui
             {
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                
 
                 if(ImGui.BeginCombo("Face chara##", el.faceplayer, ImGuiComboFlags.HeightLarge))
                 {

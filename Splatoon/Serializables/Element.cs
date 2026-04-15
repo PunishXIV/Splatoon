@@ -45,7 +45,6 @@ public class Element
         };
     }
 
-
     public string Name = "";
     public InternationalString InternationalName = new();
     [NonSerialized] internal Guid GUID = Guid.NewGuid();
@@ -250,7 +249,7 @@ public class Element
     public bool ShouldSerializeMapEffects() => MapEffects.Count > 0;
     public bool ShouldSerializeHitboxRadiusMin() => HitboxRadiusMin != 0f && UseHitboxRadius;
     public bool ShouldSerializeHitboxRadiusMax() => HitboxRadiusMax != 0f && UseHitboxRadius;
-    public bool ShouldSerializeDistanceSourcePlaceholder() => this.LimitDistance && UseDistanceSourcePlaceholder;
+    public bool ShouldSerializeDistanceSourcePlaceholder() => LimitDistance && UseDistanceSourcePlaceholder;
     public bool ShouldSerializeoverlayTextIntl() => !overlayTextIntl.IsEmpty();
     public bool ShouldSerializeObjectKinds() => ObjectKinds.Count > 0;
     public bool ShouldSerializeRotationOverridePoint() => RotationOverride;

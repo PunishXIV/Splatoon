@@ -4,7 +4,6 @@ using Splatoon.Serializables;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
 using CImGui = ECommons.ImGuiMethods.CImGui;
 
-
 namespace Splatoon.RenderEngines.DirectX11;
 
 internal unsafe class DirectX11Scene : IDisposable
@@ -109,13 +108,13 @@ internal unsafe class DirectX11Scene : IDisposable
             using var drawList = PictoService.Draw(ImGui.GetWindowDrawList(), hints);
             if(drawList == null)
                 return null;
-            foreach (VfxDisplayObject element in DirectX11Renderer.DisplayObjects)
+            foreach(VfxDisplayObject element in DirectX11Renderer.DisplayObjects)
             {
-                if (element is DisplayObjectFan elementFan)
+                if(element is DisplayObjectFan elementFan)
                 {
                     DrawFan(elementFan, drawList);
                 }
-                else if (element is DisplayObjectLine elementLine)
+                else if(element is DisplayObjectLine elementLine)
                 {
                     DrawLine(elementLine, drawList);
                 }
@@ -154,9 +153,9 @@ internal unsafe class DirectX11Scene : IDisposable
 
     public void DrawFan(DisplayObjectFan fan, PctDrawList drawList)
     {
-        if (fan.style.filled)
+        if(fan.style.filled)
         {
-            if (!P.Config.UseVfxRendering || !PictoService.VfxRenderer.AddFan(fan.id, fan.origin, fan.innerRadius, fan.outerRadius, fan.angleMin, fan.angleMax, fan.style.originFillColor.AlphaDXToVFX()))
+            if(!P.Config.UseVfxRendering || !PictoService.VfxRenderer.AddFan(fan.id, fan.origin, fan.innerRadius, fan.outerRadius, fan.angleMin, fan.angleMax, fan.style.originFillColor.AlphaDXToVFX()))
                 drawList.AddFanFilled(
                     fan.origin,
                     fan.innerRadius,
@@ -217,7 +216,7 @@ internal unsafe class DirectX11Scene : IDisposable
             var arrowScale = MathF.Max(1, line.style.strokeThickness / 7f);
             if(line.startStyle == LineEnd.Arrow)
             {
-                var arrowStart = line.start + arrowScale * 0.4f * line.Direction;
+                var arrowStart = line.start + (arrowScale * 0.4f * line.Direction);
                 var offset = arrowScale * 0.3f * line.Perpendicular;
                 drawList.PathLineTo(arrowStart + offset);
                 drawList.PathLineTo(line.start);
@@ -227,7 +226,7 @@ internal unsafe class DirectX11Scene : IDisposable
 
             if(line.endStyle == LineEnd.Arrow)
             {
-                var arrowStart = line.stop - arrowScale * 0.4f * line.Direction;
+                var arrowStart = line.stop - (arrowScale * 0.4f * line.Direction);
                 var offset = arrowScale * 0.3f * line.Perpendicular;
                 drawList.PathLineTo(arrowStart + offset);
                 drawList.PathLineTo(line.stop);
@@ -237,8 +236,8 @@ internal unsafe class DirectX11Scene : IDisposable
         }
         else
         {
-            if (line.style.filled)
-                if (P.Config.UseVfxRendering)
+            if(line.style.filled)
+                if(P.Config.UseVfxRendering)
                     PictoService.VfxRenderer.AddLine(
                         line.id,
                         line.start,
@@ -266,8 +265,8 @@ internal unsafe class DirectX11Scene : IDisposable
                     var length = line.style.animation.size + line.Length;
                     var pulsePosition = length * (float)((DateTime.Now - DateTime.MinValue).TotalMilliseconds / 1000f % line.style.animation.frequency) / line.style.animation.frequency;
                     drawList.AddLineFilled(
-                        line.start + line.Direction * MathF.Max(0, pulsePosition - line.style.animation.size),
-                        line.start + line.Direction * MathF.Min(pulsePosition, line.Length),
+                        line.start + (line.Direction * MathF.Max(0, pulsePosition - line.style.animation.size)),
+                        line.start + (line.Direction * MathF.Min(pulsePosition, line.Length)),
                         line.radius,
                         line.style.animation.color & 0x00FFFFFF,
                         line.style.animation.color);
@@ -277,7 +276,7 @@ internal unsafe class DirectX11Scene : IDisposable
                     var castLength = line.style.castFraction * line.Length;
                     drawList.AddLineFilled(
                         line.start,
-                        line.start + line.Direction * castLength,
+                        line.start + (line.Direction * castLength),
                         line.radius,
                         line.style.animation.color,
                         line.style.animation.color);
@@ -301,7 +300,7 @@ internal unsafe class DirectX11Scene : IDisposable
         var scaled = e.fscale != 1f;
         var size = scaled ? ImGui.CalcTextSize(e.text) * e.fscale : ImGui.CalcTextSize(e.text);
         size = new Vector2(size.X + 10f, size.Y + 10f);
-        ImGui.SetNextWindowPos(new Vector2(pos.X - size.X / 2, pos.Y - size.Y / 2));
+        ImGui.SetNextWindowPos(new Vector2(pos.X - (size.X / 2), pos.Y - (size.Y / 2)));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
         ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10f);
         ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(e.bgcolor));

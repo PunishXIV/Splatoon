@@ -3,6 +3,7 @@ using Splatoon.Serializables;
 using Splatoon.Structures;
 
 namespace Splatoon.RenderEngines.DirectX11;
+
 public class DirectX11DisplayObjects
 {
     public class VfxDisplayObject : DisplayObject

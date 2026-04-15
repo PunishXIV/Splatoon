@@ -36,17 +36,17 @@ public struct PacketActorCast
 
     [FieldOffset(16)]
     public ushort RawRotation;
-    
+
     /// <summary>
     /// Radians
     /// </summary>
-    public readonly float Rotation => ((RawRotation * 0.0095875263f) * 0.0099999998f) - MathF.PI;
+    public readonly float Rotation => (RawRotation * 0.0095875263f * 0.0099999998f) - MathF.PI;
     /// <summary>
     /// Radians
     /// </summary>
     public readonly float RotationFromNorth
     {
-        get 
+        get
         {
             return -Rotation + MathF.PI;
         }
@@ -69,7 +69,7 @@ public struct PacketActorCast
     {
         get
         {
-            return new(((PosX * 3.0518043f) * 0.0099999998f) - 1000.0f, ((PosY * 3.0518043f) * 0.0099999998f) - 1000.0f, ((PosZ * 3.0518043f) * 0.0099999998f) - 1000.0f);
+            return new((PosX * 3.0518043f * 0.0099999998f) - 1000.0f, (PosY * 3.0518043f * 0.0099999998f) - 1000.0f, (PosZ * 3.0518043f * 0.0099999998f) - 1000.0f);
         }
     }
 

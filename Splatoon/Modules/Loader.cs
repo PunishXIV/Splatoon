@@ -133,7 +133,7 @@ internal class Loader
     internal void Draw()
     {
         ImGuiHelpers.ForceNextWindowMainViewport();
-        ImGuiHelpers.SetNextWindowPosRelativeMainViewport(ImGuiHelpers.MainViewport.Size / 2 - size / 2);
+        ImGuiHelpers.SetNextWindowPosRelativeMainViewport((ImGuiHelpers.MainViewport.Size / 2) - (size / 2));
         if(ImGui.Begin("Splatoon - Can not confirm compatibility with current game version".Loc(), ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoCollapse))
         {
             if(verdict == Verdict.Revoked)
@@ -189,7 +189,7 @@ internal class Loader
             }
             if(ImGui.Button($"Join discord to be notified for update immediately."))
             {
-                ShellStart("https://discord.nightmarexiv.com/");
+                ShellStart("https://discord.nightmarexiv.org/");
             }
         }
         size = ImGui.GetWindowSize();

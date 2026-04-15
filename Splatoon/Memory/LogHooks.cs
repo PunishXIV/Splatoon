@@ -10,17 +10,17 @@ using System.Text;
 
 namespace Splatoon.Memory;
 
-public unsafe class LogHooks 
+public unsafe class LogHooks
 {
     private LogHooks()
     {
         EzSignatureHelper.Initialize(this);
     }
 
-    delegate nint ActorCastDelegate(uint sourceId, nint packetPtr);
+    private delegate nint ActorCastDelegate(uint sourceId, nint packetPtr);
 
     [EzHook("40 53 57 48 81 EC ?? ?? ?? ?? 48 8B FA 8B D1")]
-    EzHook<ActorCastDelegate> ActorCastHook;
+    private EzHook<ActorCastDelegate> ActorCastHook;
     private nint ActorCastDetour(uint sourceId, nint packetPtr)
     {
         try

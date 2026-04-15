@@ -5,23 +5,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Splatoon.Memory
+namespace Splatoon.Memory;
+
+public static unsafe class Scene
 {
-    public static unsafe class Scene
+    internal static byte* ActiveScene = null;
+    internal static void Init()
     {
-        internal static byte* ActiveScene = null;
-        internal static void Init()
+        PluginLog.Debug($"Init Scene");
+        var n = (nint)EnvManager.Instance();
+        if(n == nint.Zero)
         {
-            PluginLog.Debug($"Init Scene");
-            var n = (nint)EnvManager.Instance();
-            if(n == nint.Zero)
-            {
-                PluginLog.Error($"EnvManager was zero");
-            }
-            else
-            {
-                ActiveScene = (byte*)(n + 36);
-            }
+            PluginLog.Error($"EnvManager was zero");
+        }
+        else
+        {
+            ActiveScene = (byte*)(n + 36);
         }
     }
 }

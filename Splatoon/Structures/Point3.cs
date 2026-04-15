@@ -7,7 +7,6 @@ public class Point3
     public float Y = 0;
     public float Z = 0;
 
-
     public Vector3 ToVector3()
     {
         return new Vector3(X, Y, Z);

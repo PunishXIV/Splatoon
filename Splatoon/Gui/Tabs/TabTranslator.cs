@@ -8,7 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Splatoon.Gui.Tabs;
-public unsafe static class TabTranslator
+
+public static unsafe class TabTranslator
 {
     public static void Draw()
     {

@@ -34,7 +34,7 @@ internal unsafe static partial class ScriptingProcessor
         "https://github.com/PunishXIV/",
         "https://www.github.com/PunishXIV/",
         "https://raw.githubusercontent.com/PunishXIV/",
-        "https://nightmarexiv.com/"
+        "https://nightmarexiv.org/"
     ];
     internal static ImmutableList<BlacklistData> Blacklist = ImmutableList<BlacklistData>.Empty;
     internal static volatile bool UpdateCompleted = false;

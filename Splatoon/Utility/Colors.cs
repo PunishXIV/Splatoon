@@ -20,7 +20,7 @@ public static class Colors
         var alpha = color >> 24;
         alpha = (uint)(alpha * amount);
         alpha = Math.Clamp(alpha, 0x00, 0xFF);
-        return color & 0x00FFFFFF | (alpha << 24);
+        return (color & 0x00FFFFFF) | (alpha << 24);
     }
 
     // Linear interpolation between 1-byte components of uint32

@@ -2,7 +2,7 @@
 ## Before you proceed with pull request, please consider the following:
 
 ### No AI
-Please do not contribute code that was AI-generated or written with heavy AI-assistance. 
+Please do not contribute code that was AI-generated or written with heavy AI-assistance. Exception: if a plugin allows for loadable scripts or modules, feel free to use AI for these scripts or modules without any restrictions. Output should be still human readable, though. 
 
 ### Keep additions contained
 If you would add new functions, please create own classes for them and keep them contained. The plugin should not become dependent on added functions; the plugin's ability to work should not be harmed if added functions become unavailable and have to be disabled.
@@ -24,9 +24,6 @@ Even if it's not the most optimal, please consider doing this. If you're adding 
 
 ### No configuration resets
 Users should not experience any partial or full configuration resets upon updating.
-
-### Exceptions: ECommons Scripting System
-If a project implements ECommons Scripting System, newly submitted scripts do not have to follow aforementioned guidelines. 
 
 ## Most welcomed changes
 Please feel free to:

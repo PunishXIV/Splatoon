@@ -97,12 +97,16 @@ internal class Projection : IDisposable
                 if(shape.Range > 0f && (data.EffectRange < RaidwideSize || shape.Shape != Shape.Circle))
                 {
                     var blacklisted = false;
-                    foreach(var a in P.Config.ProjectionBlacklistedActions)
+                    foreach (var a in P.Config.ProjectionBlacklistedActions)
                     {
-                        if(a.Action == data.RowId)
+                        if (a.Action == data.RowId)
                         {
                             blacklisted = true;
                         }
+                    }
+                    if (P.Config.ProjectionBlacklistedDuties.Contains(Player.Territory))
+                    {
+                        blacklisted = true;
                     }
                     ProjectionItemDescriptor descriptor = P.ConfigGui.Open ? new(new(b.CastActionType, b.CastActionId), b.ObjectId, blacklisted) : null;
                     ProjectingItems.Add(descriptor);

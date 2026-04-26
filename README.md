@@ -3,7 +3,7 @@ An accessibility tool to assist in gameplay and compensate for human imperfectio
 ## Become a Supporter!
 If you like Splatoon or any of the other plugins I maintain, please consider becoming a supporter on Patreon or via other means! This will help me to continue updating Splatoon and work on new plugins and features.
 - [Subscribe on Patreon (Starts from $1)](https://subscribe.nightmarexiv.org/)
-- [One-time donation on Ko-Fi](https://ko-fi.com/nightmarexiv)
+- [One-time donation on Ko-Fi](https://donate.nightmarexiv.org/)
 - [Donate Litecoin, Bitcoin, Tether or other crypto](https://crypto.nightmarexiv.org/)
 ## Key features
 - Put infinite amount of waymarks in the world with different shapes, colors, hit text, etc.
@@ -21,6 +21,9 @@ If you like Splatoon or any of the other plugins I maintain, please consider bec
 - Splatoon only uses data you supply. Additionally, Splatoon uses only data that is available to you normally, without going beyond standard game client operations.
 - It is advised against streaming or screen sharing while using Splatoon.
 - Presets and scripts that can be used to deteriorate other player experience are not accepted.
+
+## Commercial use prohibition
+- Except where explicitly authorized by the developer, any commercial use of Splatoon, including its presets and scripts, is prohibited. This applies to all presets and scripts, including those created by users. You may not sell or resell the plugin, its presets, or its scripts, nor may you create or operate environments in which access to such presets or scripts is restricted by payment.
 
 ## Navigation
 - [Official Splatoon presets and scripts and instruction about how to import, create and contribute them](https://github.com/PunishXIV/Splatoon/tree/main/Presets)

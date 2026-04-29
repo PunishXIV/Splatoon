@@ -11,7 +11,7 @@ internal static class ZlockSelector
     internal static void DrawZlockSelector(this Layout layout)
     {
         var colorZLock = Svc.ClientState?.TerritoryType != null
-            && (layout.ZoneLockH.Count != 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)
+            && (layout.ZoneLockH.Count != 0 && !layout.ZoneLockH.Contains((ushort)Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)
             && Environment.TickCount64 % 1000 < 500;
         if(colorZLock) ImGui.PushStyleColor(ImGuiCol.Text, Colors.Red);
         layout.ZoneLockH.RemoveWhere(el => !P.Zones.ContainsKey(el));
@@ -26,17 +26,17 @@ internal static class ZlockSelector
             ImGui.InputTextWithHint("##zfltr", "Filter".Loc(), ref zlockf, 100);
             ImGui.SameLine();
             ImGui.Checkbox("Only selected".Loc(), ref zlockcur);
-            if(P.Zones.ContainsKey(Svc.ClientState.TerritoryType))
+            if(P.Zones.ContainsKey((ushort)Svc.ClientState.TerritoryType))
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, Colors.Yellow);
-                if(layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType))
+                if(layout.ZoneLockH.Contains((ushort)Svc.ClientState.TerritoryType))
                 {
                     ImGuiUtils.ColorButton(Colors.Red);
                 }
-                var zcfc = P.Zones[Svc.ClientState.TerritoryType].ContentFinderCondition.ValueNullable?.Name.ToString();
-                if(P.Zones.ContainsKey(Svc.ClientState.TerritoryType) && ImGui.SmallButton($"Current zone: ??".Loc(GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType))))
+                var zcfc = P.Zones[(ushort)Svc.ClientState.TerritoryType].ContentFinderCondition.ValueNullable?.Name.ToString();
+                if(P.Zones.ContainsKey((ushort)Svc.ClientState.TerritoryType) && ImGui.SmallButton($"Current zone: ??".Loc(GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType))))
                 {
-                    layout.ZoneLockH.Toggle(Svc.ClientState.TerritoryType);
+                    layout.ZoneLockH.Toggle((ushort)Svc.ClientState.TerritoryType);
                 }
                 ImGuiUtils.UncolorButton();
                 ImGui.PopStyleColor();

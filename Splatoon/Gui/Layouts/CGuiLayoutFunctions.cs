@@ -32,7 +32,7 @@ internal partial class CGui
             {
                 Name = CGui.NewLayoytName
             };
-            if(Svc.ClientState != null) l.ZoneLockH.Add(Svc.ClientState.TerritoryType);
+            if(Svc.ClientState != null) l.ZoneLockH.Add((ushort)Svc.ClientState.TerritoryType);
             P.Config.LayoutsL.Add(l);
             CGui.NewLayoytName = "";
             return true;

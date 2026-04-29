@@ -789,7 +789,7 @@ public static unsafe class Utils
                 }
                 Layout l = new()
                 {
-                    ZoneLockH = [Svc.ClientState.TerritoryType],
+                    ZoneLockH = [(ushort)Svc.ClientState.TerritoryType],
                     Name = "Legacy preset: " + lp.Name
                 };
                 if(lp.A != null && lp.A.Active) AddLegacyElement(l, "A", lp.A.ToElement("A", 0xff00ff00));

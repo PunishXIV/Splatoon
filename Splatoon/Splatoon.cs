@@ -263,6 +263,11 @@ public unsafe class Splatoon : IDalamudPlugin
         SplatoonIPC.Init();
     }
 
+    private void OnChatMessage(Dalamud.Game.Chat.IHandleableChatMessage message)
+    {
+        this.OnChatMessage(message.LogKind, message.Timestamp, message.Sender, message.Message);
+    }
+
     public void Dispose()
     {
         Disposed = true;
@@ -345,7 +350,7 @@ public unsafe class Splatoon : IDalamudPlugin
     }
 
     internal static readonly string[] InvalidSymbols = { "", "", "", "“", "”", "" };
-    internal void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    internal void OnChatMessage(XivChatType type, int timestamp, SeString sender, SeString message)
     {
         var inttype = (int)type;
         if(inttype == 2105 && LimitGaugeResets.Equals(message.ToString()))
@@ -396,7 +401,7 @@ public unsafe class Splatoon : IDalamudPlugin
         }
     }
 
-    internal void TerritoryChangedEvent(ushort e)
+    internal void TerritoryChangedEvent(uint e)
     {
         PriorityPopupWindow.IsOpen = false;
         PriorityPopupWindow.Open(false);

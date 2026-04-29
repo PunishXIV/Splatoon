@@ -366,7 +366,7 @@ public static unsafe class LayoutUtils
         if(!layout.Enabled) return false;
         if(!layout.Group.IsNullOrEmpty() && P.Config.DisabledGroups.Contains(layout.Group)) return false;
         if(layout.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty]) return false;
-        if((layout.ZoneLockH.Count > 0 && !layout.ZoneLockH.Contains(Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)) return false;
+        if((layout.ZoneLockH.Count > 0 && !layout.ZoneLockH.Contains((ushort)Svc.ClientState.TerritoryType)).Invert(layout.IsZoneBlacklist)) return false;
         if(layout.Scenes.Count > 0 && !layout.Scenes.Contains(*Scene.ActiveScene)) return false;
         if(layout.Phase != 0 && layout.Phase != P.Phase) return false;
         if(layout.JobLockH.Count > 0 && !layout.JobLockH.Contains(BasePlayer.GetJob())) return false;

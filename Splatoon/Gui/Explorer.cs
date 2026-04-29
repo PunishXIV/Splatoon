@@ -81,7 +81,7 @@ internal static unsafe class Explorer
             ImGuiEx.TextCopy("---------- Character ----------");
             ImGuiEx.TextCopy($"{"HP".Loc()}: {c.CurrentHp} / {c.MaxHp}");
             ImGuiEx.TextCopy($"{"Name NPC ID".Loc()}: {c.NameId}");
-            ImGuiEx.TextWrappedCopy($"Customize: {c.Customize.Select(x => $"{x:X2}").Join(" ")}");
+            ImGuiEx.TextWrappedCopy($"Customize: {c.Customize.ToArray().Select(x => $"{x:X2}").Join(" ")}");
             ImGuiEx.TextCopy($"ModelCharaId: {c.Struct()->ModelContainer.ModelCharaId}");
             ImGuiEx.TextCopy($"{"Visible".Loc()}: {c.IsCharacterVisible()}");
             ImGuiEx.TextCopy($"TargetObject: {c.TargetObject}");

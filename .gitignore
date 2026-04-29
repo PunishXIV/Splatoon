@@ -400,3 +400,5 @@ FodyWeavers.xsd
 /SplatoonScripts/Generic/PlayerDetectTrigger.cs
 /SplatoonScripts/Generic/FCDataGet.cs
 /SplatoonScripts/Generic/WrathAoeSwitcher.cs
+/SplatoonScripts/Tests/Enbytes.cs
+/SplatoonScripts/Tests/GenericTest9.cs

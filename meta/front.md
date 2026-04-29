@@ -15,6 +15,9 @@
 - It is advised against streaming or screen sharing while using Splatoon.
 - Presets and scripts that can be used to deteriorate other player experience are not accepted.
 
+## Commercial use prohibition
+- Except where explicitly authorized by the developer, any commercial use of Splatoon, including its presets and scripts, is prohibited. This applies to all presets and scripts, including those created by users. You may not sell or resell the plugin, its presets, or its scripts, nor may you create or operate environments in which access to such presets or scripts is restricted by payment.
+
 ## Navigation
 - [Official Splatoon presets and scripts and instruction about how to import, create and contribute them](https://github.com/PunishXIV/Splatoon/tree/main/Presets)
 - [Web API guide](https://github.com/PunishXIV/Splatoon/blob/main/docs/help/WebAPI.md)

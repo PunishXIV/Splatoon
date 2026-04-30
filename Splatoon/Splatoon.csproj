@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.9.1.3</Version>
+		<Version>3.9.1.5</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -20,6 +20,7 @@
     <PathMap>$(AppOutputBase)=Splatoon\</PathMap>
     <Deterministic>true</Deterministic>
     <CustomCS>false</CustomCS>
+      <WarningsAsErrors>RS0030</WarningsAsErrors>
 	</PropertyGroup>
     
     <ItemGroup Condition="'$(CustomCS)' != 'true'">
@@ -56,10 +57,22 @@
 	  <Optimize>True</Optimize>
 	</PropertyGroup>
 
+    <ItemGroup>
+        <None Remove="BannedSymbols.txt" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="BannedSymbols.txt" />
+    </ItemGroup>
+    
 	<ItemGroup>
 	  <PackageReference Include="CsvHelper" Version="33.1.0" />
 	  <PackageReference Include="DalamudPackager" Version="13.1.0" />
-	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0-2.final" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.3.4">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.3.0" />
 	  <PackageReference Include="NotificationMasterAPI" Version="1.0.0.1" />
 	</ItemGroup>
 

@@ -75,12 +75,12 @@ public static unsafe class CommonRenderUtils
                     {
                         if(chr.IsCasting())
                         {
-                            ret = ret.Replace(match.Groups[0].Value, $"{(chr.TotalCastTime - chr.CurrentCastTime).ToString(match.Groups[1].Value)}")
-                                .Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastActionId));
+                            ret = ret.Replace(match.Groups[0].Value, $"{(chr.CastInfo.TotalCastTime - chr.CastInfo.CurrentCastTime).ToString(match.Groups[1].Value)}")
+                                .Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastInfo.ActionId));
                         }
                         else
                         {
-                            ret = ret.Replace(match.Groups[0].Value, "").Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastActionId));
+                            ret = ret.Replace(match.Groups[0].Value, "").Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastInfo.ActionId));
                         }
                     }
                     else
@@ -100,7 +100,7 @@ public static unsafe class CommonRenderUtils
             }
             void castFallback()
             {
-                ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastActionId.Format()}] {chr.CurrentCastTime}/{chr.TotalCastTime}" : "");
+                ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastInfo.ActionId.Format()}] {chr.CastInfo.CurrentCastTime}/{chr.CastInfo.TotalCastTime}" : "");
             }
         }
         ret = ret

@@ -1,0 +1,48 @@
+M:Lumina.Text.ReadOnly.ReadOnlySeString.ExtractText;Use GetText extension method for consistency
+P:Lumina.Excel.Sheets.World.Region;Unreliable - use GetRegion() extension method
+P:Dalamud.Plugin.Services.IPlayerState.CharacterName;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.EntityId;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.CurrentWorld;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.HomeWorld;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.Tribe;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.ClassJob;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.Level;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.IsLevelSynced;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.EffectiveLevel;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.GuardianDeity;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BirthMonth;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BirthDay;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.FirstClass;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.StartTown;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BaseStrength;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BaseDexterity;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BaseVitality;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BaseIntelligence;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BaseMind;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BasePiety;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.GrandCompany;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.HomeAetheryte;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.FavoriteAetherytes;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.FreeAetheryte;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.BaseRestedExperience;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.PlayerCommendations;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.DeliveryLevel;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.MentorVersion;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.IsMentor;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.IsBattleMentor;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.IsTradeMentor;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.IsNovice;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+P:Dalamud.Plugin.Services.IPlayerState.IsReturner;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+M:Dalamud.Plugin.Services.IPlayerState.GetAttribute;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+M:Dalamud.Plugin.Services.IPlayerState.GetGrandCompanyRank;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+M:Dalamud.Plugin.Services.IPlayerState.GetClassJobLevel;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+M:Dalamud.Plugin.Services.IPlayerState.GetClassJobExperience;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+M:Dalamud.Plugin.Services.IPlayerState.GetDesynthesisLevel;IPlayerState usage discouraged because of poor implementation. You can remove a method or property from BannedSymbols.txt if there is no other sane way to obtain desired data.
+
+P:Dalamud.Game.ClientState.Objects.Types.IBattleChara.IsCastInterruptible
+P:Dalamud.Game.ClientState.Objects.Types.IBattleChara.CastInfo.ActionType
+P:Dalamud.Game.ClientState.Objects.Types.IBattleChara.CastInfo.ActionId
+P:Dalamud.Game.ClientState.Objects.Types.IBattleChara.CastTargetObjectId
+P:Dalamud.Game.ClientState.Objects.Types.IBattleChara.CurrentCastTime
+P:Dalamud.Game.ClientState.Objects.Types.IBattleChara.BaseCastTime
+P:Dalamud.Game.ClientState.Objects.Types.IBattleChara.TotalCastTime

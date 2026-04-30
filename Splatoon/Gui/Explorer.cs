@@ -115,7 +115,7 @@ internal static unsafe class Explorer
         if(obj is IBattleChara b)
         {
             ImGuiEx.TextCopy("---------- Battle chara ----------");
-            ImGuiEx.TextCopy($"{"Casting".Loc()}: {b.IsCasting}, {"Action ID".Loc()} = {b.CastActionId.Format()}, {"Type".Loc()} = {b.CastActionType}, {"Cast time".Loc()}: {b.CurrentCastTime:F1}/{b.TotalCastTime:F1}");
+            ImGuiEx.TextCopy($"{"Casting".Loc()}: {b.IsCasting}, {"Action ID".Loc()} = {b.CastInfo.ActionId.Format()}, {"Type".Loc()} = {b.CastInfo.ActionType}, {"Cast time".Loc()}: {b.CastInfo.CurrentCastTime:F1}/{b.CastInfo.TotalCastTime:F1}");
             if(AttachedInfo.CastInfos.TryGetValue(b.Address, out var info))
             {
                 ImGuiEx.TextCopy($"{"Overcast".Loc()}: ID={info.ID}, StartTime={info.StartTime}, Age={info.AgeF:F1}");

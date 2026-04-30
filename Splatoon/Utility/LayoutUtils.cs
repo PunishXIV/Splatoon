@@ -314,8 +314,8 @@ public static unsafe class LayoutUtils
             float totalCastTime = 1;
             if(chr.IsCasting(e.refActorCastId))
             {
-                castTime = chr.CurrentCastTime;
-                totalCastTime = chr.TotalCastTime;
+                castTime = chr.CastInfo.CurrentCastTime;
+                totalCastTime = chr.CastInfo.TotalCastTime;
             }
             else if(!(e.refActorUseOvercast && AttachedInfo.TryGetCastTime(chr.Address, e.refActorCastId, out castTime)))
             {

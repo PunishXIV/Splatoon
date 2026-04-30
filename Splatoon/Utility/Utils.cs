@@ -474,9 +474,9 @@ public static unsafe class Utils
         {
             if(e.UseCastRotation && obj is IBattleChara b)
             {
-                if(b.IsCasting() && b.CastActionId.EqualsAny(e.refActorCastId))
+                if(b.IsCasting() && b.CastInfo.ActionId.EqualsAny(e.refActorCastId))
                 {
-                    if(S.Projection.LastCast.TryGetValue(obj.ObjectId, out var casts) && casts.TryGetValue(new(ActionType.Action, b.CastActionId), out var packet))
+                    if(S.Projection.LastCast.TryGetValue(obj.ObjectId, out var casts) && casts.TryGetValue(new(ActionType.Action, b.CastInfo.ActionId), out var packet))
                     {
                         return packet.Rotation;
                     }
@@ -658,7 +658,7 @@ public static unsafe class Utils
 
     public static bool IsCastInRange(this IBattleChara c, float min, float max)
     {
-        if(c.CurrentCastTime.InRange(min, max))
+        if(c.CastInfo.CurrentCastTime.InRange(min, max))
         {
             return true;
         }

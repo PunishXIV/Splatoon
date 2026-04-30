@@ -703,10 +703,10 @@ internal unsafe partial class CGui
                     foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCasting()))
                     {
                         ImGui.PushID(i++);
-                        if(ImGui.Selectable($"{ExcelActionHelper.GetActionName(x.CastActionId, true)} - {x.CurrentCastTime:F1}/{x.TotalCastTime:F1} - from {x.Name} N#{x.NameId} D#{x.DataId}", selected: el.refActorCastId.Contains(x.CastActionId), flags: ImGuiSelectableFlags.DontClosePopups))
+                        if(ImGui.Selectable($"{ExcelActionHelper.GetActionName(x.CastInfo.ActionId, true)} - {x.CastInfo.CurrentCastTime:F1}/{x.CastInfo.TotalCastTime:F1} - from {x.Name} N#{x.NameId} D#{x.DataId}", selected: el.refActorCastId.Contains(x.CastInfo.ActionId), flags: ImGuiSelectableFlags.DontClosePopups))
                         {
                             if(ImGuiEx.Shift) el.refActorCastId.Clear();
-                            el.refActorCastId.Toggle(x.CastActionId);
+                            el.refActorCastId.Toggle(x.CastInfo.ActionId);
                             if(el.refActorComparisonType == 0)
                             {
                                 el.refActorComparisonType = 6;

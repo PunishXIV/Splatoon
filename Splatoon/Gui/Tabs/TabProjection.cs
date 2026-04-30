@@ -138,7 +138,7 @@ public static unsafe class TabProjection
             ImGuiEx.FilteringInputTextWithHint("##searchDuty", "Filter by duty name...", out var filter);
             foreach (var x in Svc.Data.GetExcelSheet<ContentFinderCondition>())
             {
-                var name = x.Name.ExtractText();
+                var name = x.Name.GetText();
                 if (string.IsNullOrEmpty(name)) continue;
                 if (!string.IsNullOrEmpty(filter) && !name.Contains(filter, StringComparison.OrdinalIgnoreCase)) continue;
 

@@ -72,7 +72,7 @@ public class P2_Light_Rampant_JP : SplatoonScript
             {
                 _aoeTargets.Add(player.Name.ToString());
 
-                if(player.Name.ToString().Equals(Svc.ClientState.LocalPlayer.Name.ToString()))
+                if(player.Name.ToString().Equals(Svc.Objects.LocalPlayer.Name.ToString()))
                     _PlayerHasAoE = true;
 
             }

@@ -16,6 +16,8 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public class PlayerHighlighter : SplatoonScript
 {
@@ -33,7 +35,7 @@ public class PlayerHighlighter : SplatoonScript
     public override void OnUpdate()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-        if(Svc.ClientState.TerritoryType.EqualsAny(MainCities.List)) return;
+        if(((ushort)Svc.ClientState.TerritoryType).EqualsAny<ushort>(MainCities.List)) return;
         var i = 0;
         foreach(var x in Svc.Objects)
         {

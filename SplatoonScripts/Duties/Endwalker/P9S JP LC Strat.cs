@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P9S_JP_LC_Strat : SplatoonScript

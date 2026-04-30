@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class ForceSetDirection : SplatoonScript

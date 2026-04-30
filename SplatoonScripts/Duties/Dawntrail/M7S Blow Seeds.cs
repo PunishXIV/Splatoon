@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 internal class M7S_Blow_Seeds :SplatoonScript
 {

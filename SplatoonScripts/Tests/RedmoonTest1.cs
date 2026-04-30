@@ -9,6 +9,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class RedmoonTest1 : SplatoonScript
 {

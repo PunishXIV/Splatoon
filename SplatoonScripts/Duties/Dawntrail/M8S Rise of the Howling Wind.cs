@@ -16,6 +16,8 @@ using ECommons.Logging;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
 {

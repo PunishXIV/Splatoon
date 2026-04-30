@@ -4,6 +4,8 @@ using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 public unsafe class Mk2Waymark : SplatoonScript
 {

@@ -22,6 +22,8 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class BSOD_Adjuster : SplatoonScript
 {

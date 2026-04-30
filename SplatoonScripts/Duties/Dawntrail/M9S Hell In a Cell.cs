@@ -16,6 +16,8 @@ using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using static Splatoon.Splatoon;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M9S_Hell_In_a_Cell : SplatoonScript

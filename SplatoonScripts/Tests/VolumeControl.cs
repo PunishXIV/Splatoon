@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests
 {
     public class VolumeControl : SplatoonScript
@@ -26,7 +28,7 @@ namespace SplatoonScriptsOfficial.Tests
             Svc.ClientState.TerritoryChanged -= ClientState_TerritoryChanged;
         }
 
-        private void ClientState_TerritoryChanged(ushort e)
+        private void ClientState_TerritoryChanged(uint e)
         {
             throw new NotImplementedException();
         }

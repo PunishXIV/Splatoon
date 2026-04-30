@@ -4,6 +4,8 @@ using ECommons.Logging;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class GenericTest2 : SplatoonScript

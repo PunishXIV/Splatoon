@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
 public class Boss1_Spring_Crystal_Tower : SplatoonScript

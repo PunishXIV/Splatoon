@@ -19,6 +19,8 @@ using Element = Splatoon.Element;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
 
 public class P1_Burn_Strike_Tower_Tooler_Party : SplatoonScript

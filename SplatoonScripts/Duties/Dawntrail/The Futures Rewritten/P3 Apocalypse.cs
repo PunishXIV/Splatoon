@@ -19,6 +19,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public unsafe class P3_Apocalypse : SplatoonScript

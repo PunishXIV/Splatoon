@@ -14,6 +14,8 @@ using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M8S_Ultraviolent_Ray : SplatoonScript

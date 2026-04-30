@@ -14,6 +14,8 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class EX2_Projection_of_Triumph : SplatoonScript
 {

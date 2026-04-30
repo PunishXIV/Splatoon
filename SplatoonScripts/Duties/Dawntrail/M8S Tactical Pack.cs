@@ -14,6 +14,8 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M8S_Tactical_Pack : SplatoonScript

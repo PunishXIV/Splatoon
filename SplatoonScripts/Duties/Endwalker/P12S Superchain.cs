@@ -16,6 +16,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Superchain : SplatoonScript

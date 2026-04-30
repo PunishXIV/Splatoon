@@ -13,6 +13,8 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class EX6_Arcane_Revelation : SplatoonScript

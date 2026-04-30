@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class R1S_Raining_Cats : SplatoonScript

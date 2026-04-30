@@ -23,6 +23,8 @@ using System.Numerics;
 using System.Security.Cryptography;
 using Status = FFXIVClientStructs.FFXIV.Client.Game.Status;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P3_Ultimate_Relativity : SplatoonScript

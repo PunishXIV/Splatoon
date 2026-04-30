@@ -17,6 +17,8 @@ using Splatoon.SplatoonScripting.Priority;
 using static Splatoon.Splatoon;
 using static Dalamud.Bindings.ImGui.ImGui;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class Another_Merchants_Take_B1_Sunken_Treasure : SplatoonScript

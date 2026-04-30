@@ -28,6 +28,8 @@ using System.Linq;
 using System.Numerics;
 using static Splatoon.Splatoon;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public unsafe class P6_Wroth_Flames : SplatoonScript

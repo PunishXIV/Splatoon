@@ -14,6 +14,8 @@ using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class VisibilityTerritoryWhitelistAlter : SplatoonScript
 {
@@ -29,7 +31,7 @@ public unsafe class VisibilityTerritoryWhitelistAlter : SplatoonScript
         }
     }
 
-    private void ClientState_TerritoryChanged(ushort obj)
+    private void ClientState_TerritoryChanged(uint obj)
     {
         try
         {

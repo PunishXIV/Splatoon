@@ -10,6 +10,8 @@ using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class FRU_Tether_Visualiser : SplatoonScript
 {

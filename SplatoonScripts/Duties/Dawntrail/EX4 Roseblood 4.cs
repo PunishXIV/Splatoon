@@ -21,6 +21,8 @@ using TerraFX.Interop.Windows;
 using static Splatoon.Data.MapEffectNames.MapEffects;
 using Player = ECommons.GameHelpers.Player;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class EX4_Roseblood_4 : SplatoonScript

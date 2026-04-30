@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Universal;
 public unsafe sealed class Maps_Auto_Target_Numbers : SplatoonScript
 {

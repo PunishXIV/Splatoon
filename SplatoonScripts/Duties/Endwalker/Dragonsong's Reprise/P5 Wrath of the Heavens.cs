@@ -7,12 +7,15 @@ using ECommons.GameFunctions;
 using ECommons.Hooks;
 using Dalamud.Bindings.ImGui;
 using Splatoon;
+using ECommons.DalamudServices.Legacy;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using ECommons.ImGuiMethods;
+
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 

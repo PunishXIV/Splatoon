@@ -10,6 +10,8 @@ using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class GenericTest : SplatoonScript

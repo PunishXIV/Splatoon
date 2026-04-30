@@ -21,6 +21,8 @@ using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using Splatoon.Utility;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M11S_Majestic_Meteor : SplatoonScript
@@ -601,7 +603,7 @@ public class M11S_Majestic_Meteor : SplatoonScript
                 foreach (var p in prios)
                 {
                     var obj = p.IGameObject;
-                    if (obj is { ObjectKind: ObjectKind.Player })
+                    if (obj is { ObjectKind: ObjectKind.Pc })
                         result.Add(obj.EntityId);
                 }
         }

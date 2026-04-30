@@ -23,6 +23,8 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class R1S_Protean_Highlight : SplatoonScript
 {

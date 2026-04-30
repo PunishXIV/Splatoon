@@ -14,6 +14,8 @@ using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class AutoHeal : SplatoonScript

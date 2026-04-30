@@ -25,6 +25,8 @@ using System.Numerics;
 using static ECommons.IPC.ECommonsIPC;
 using static SplatoonScriptsOfficial.Duties.Dawntrail.Seasonal.HatchingTide2026.AttackPlanner;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Seasonal;
 
 public unsafe class HatchingTide2026 : SplatoonScript

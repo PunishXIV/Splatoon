@@ -11,6 +11,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal class Pantokrator_invincible_Reminder : SplatoonScript
 {

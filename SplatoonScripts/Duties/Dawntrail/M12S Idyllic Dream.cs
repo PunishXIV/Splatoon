@@ -4,6 +4,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers.LegacyPlayer;
@@ -16,6 +17,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 

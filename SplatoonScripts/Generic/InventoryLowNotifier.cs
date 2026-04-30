@@ -14,6 +14,8 @@ using System.Text;
 using System.Threading.Tasks;
 using ECommons.Interop;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class InventoryLowNotifier : SplatoonScript
 {

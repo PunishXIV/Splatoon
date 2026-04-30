@@ -18,6 +18,8 @@ using System.Numerics;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M6S_Color_Riot : SplatoonScript

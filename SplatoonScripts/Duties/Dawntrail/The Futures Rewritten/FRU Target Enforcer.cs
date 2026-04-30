@@ -16,6 +16,8 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public class FRU_Target_Enforcer : SplatoonScript
 {

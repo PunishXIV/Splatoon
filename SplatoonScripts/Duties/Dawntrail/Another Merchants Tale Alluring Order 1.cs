@@ -16,6 +16,8 @@ using System.Numerics;
 using System.Text;
 using static Splatoon.Splatoon;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class Another_Merchants_Tale_Alluring_Order_1 : SplatoonScript<Another_Merchants_Tale_Alluring_Order_1.Config>

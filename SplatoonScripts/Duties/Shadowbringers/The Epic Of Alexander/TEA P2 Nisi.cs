@@ -9,6 +9,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P2_Nisi : SplatoonScript

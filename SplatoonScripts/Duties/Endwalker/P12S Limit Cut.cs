@@ -16,6 +16,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Limit_Cut : SplatoonScript
@@ -145,7 +147,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker
         private void ActionEffect_ActionEffectEvent(ActionEffectSet set)
         {
             if(!mechanicActive) return;
-            if(set.Source?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
+            if(set.Source?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc)
             {
                 if(set.Action.Value.RowId == Puddle)
                 {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Security.Cryptography.X509Certificates;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
@@ -24,12 +23,12 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
-using Splatoon.SplatoonScripting.Priority;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
-public unsafe class P5_Death_of_the_Heavens : SplatoonScript
+public unsafe class P5_Death_of_the_Heavens_Neo : SplatoonScript
 {
     private readonly Dictionary<uint, Vector2> _eyesPositions = new()
     {
@@ -575,11 +574,11 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
                     _relNorth = DetectRelNorth();
 
                     var player  = Player.Object;
-                    var hasDoom = player.HasDoom();
+                    var hasDoom = HasDoom(player);
 
                     // Split party into doom / non-doom
-                    var doomPlayers  = party.Where(p => p.HasDoom()).ToArray();
-                    var cleanPlayers = party.Where(p => !p.HasDoom()).ToArray();
+                    var doomPlayers  = party.Where(p => HasDoom(p)).ToArray();
+                    var cleanPlayers = party.Where(p => !HasDoom(p)).ToArray();
 
                     var group = hasDoom ? doomPlayers : cleanPlayers;
                     var me    = group.FirstOrDefault(p => p.Name.TextValue == player.Name.TextValue);
@@ -681,11 +680,7 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         public bool ShouldCheckOnStart = true;
         public bool ShowDebug;
     }
-}
-
-public static class PlayerExtensions
-{
-    public static bool HasDoom(this IPlayerCharacter p)
+    public static bool HasDoom(IPlayerCharacter p)
     {
         return p.StatusList.Any(x => x.StatusId == 2976);
     }

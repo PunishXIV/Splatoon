@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using Moodle = (Dalamud.Game.ClientState.Objects.SubKinds.IPlayerCharacter Player, System.Guid UniqueID, int IconID, string Title, string Description, int StatusType, bool Dispelable, int Stacks, System.TimeSpan? ExpiresIn);
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 public class IPCExample : SplatoonScript
 {

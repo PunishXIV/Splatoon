@@ -17,6 +17,8 @@ using System.Linq;
 using System.Numerics;
 using ECommons.Logging;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P4_Darklit : SplatoonScript

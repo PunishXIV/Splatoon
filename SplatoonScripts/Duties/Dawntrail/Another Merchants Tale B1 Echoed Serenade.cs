@@ -6,6 +6,8 @@ using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using static Dalamud.Bindings.ImGui.ImGui;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class Another_Merchants_Tale_B1_Echoed_Serenade : SplatoonScript

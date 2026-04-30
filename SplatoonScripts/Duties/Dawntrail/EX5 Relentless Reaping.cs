@@ -9,6 +9,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class EX5_Relentless_Reaping : SplatoonScript
 {

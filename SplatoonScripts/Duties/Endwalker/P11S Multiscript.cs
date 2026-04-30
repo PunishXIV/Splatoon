@@ -21,6 +21,8 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P11S_Multiscript : SplatoonScript

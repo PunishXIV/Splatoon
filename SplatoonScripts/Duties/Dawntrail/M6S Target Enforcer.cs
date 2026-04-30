@@ -21,6 +21,8 @@ using System.Linq;
 using System.Numerics;
 using Action = Lumina.Excel.Sheets.Action;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Target_Enforcer : SplatoonScript
 {

@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public class R4S_Electrope_Edge : SplatoonScript
 {
@@ -332,7 +334,7 @@ public class R4S_Electrope_Edge : SplatoonScript
             for(var i = 0; i < set.TargetEffects.Length; i++)
             {
                 var obj = ((uint)set.TargetEffects[i].TargetID).GetObject();
-                if(obj?.ObjectKind == ObjectKind.Player)
+                if(obj?.ObjectKind == ObjectKind.Pc)
                 {
                     PluginLog.Information($"Registered hit on {obj}");
                     Hits.Add(obj.EntityId);

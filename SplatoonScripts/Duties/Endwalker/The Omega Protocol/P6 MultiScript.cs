@@ -17,6 +17,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 internal unsafe class P6_MultiScript : SplatoonScript
 {

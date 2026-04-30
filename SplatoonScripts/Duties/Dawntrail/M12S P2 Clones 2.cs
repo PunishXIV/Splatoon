@@ -24,6 +24,8 @@ using System.Numerics;
 using static Splatoon.Splatoon;
 using Element = Splatoon.Element;
 #pragma warning disable
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript

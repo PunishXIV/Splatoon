@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Reflection;
 #nullable disable
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic
 {
     public class PluginInstallerWindowCollapsible : SplatoonScript

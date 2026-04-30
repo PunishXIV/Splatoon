@@ -16,6 +16,8 @@ using System.Numerics;
 
 /* Credit to TextAdvance from NightmareXIV for doing the initial work. */
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestHighlighter : SplatoonScript
 {

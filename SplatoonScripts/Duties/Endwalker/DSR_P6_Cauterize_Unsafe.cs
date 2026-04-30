@@ -6,6 +6,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker;
 
 public class DSR_P6_Cauterize_Unsafe : SplatoonScript

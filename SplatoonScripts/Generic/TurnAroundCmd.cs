@@ -6,6 +6,8 @@ using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class TurnAroundCmd : SplatoonScript
 {

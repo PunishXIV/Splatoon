@@ -4,6 +4,8 @@ using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P2_Delete_Intermission_Ice : SplatoonScript
 {

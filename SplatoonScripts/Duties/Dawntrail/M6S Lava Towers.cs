@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe class M6S_Lava_Towers : SplatoonScript
 {

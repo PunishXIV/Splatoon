@@ -13,6 +13,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public sealed class ARealmRecordedWhitelistMod : SplatoonScript
 {
@@ -45,7 +47,7 @@ public sealed class ARealmRecordedWhitelistMod : SplatoonScript
         }
     }
 
-    private void ClientState_TerritoryChanged(ushort obj)
+    private void ClientState_TerritoryChanged(uint obj)
     {
         if(Svc.PluginInterface.InstalledPlugins.Any(x => x.InternalName == "ARealmRecorded" && x.IsLoaded))
         {

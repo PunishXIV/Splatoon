@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public class Makeplace2List : SplatoonScript
 {

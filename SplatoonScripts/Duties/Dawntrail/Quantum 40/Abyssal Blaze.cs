@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40;
 public unsafe class Abyssal_Blaze : SplatoonScript
 {

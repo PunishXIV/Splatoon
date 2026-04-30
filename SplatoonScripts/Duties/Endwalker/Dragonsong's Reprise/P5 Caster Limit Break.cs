@@ -11,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public class P5_Caster_Limit_Break : SplatoonScript

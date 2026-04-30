@@ -26,6 +26,8 @@ using System.Numerics;
 using System.Security.Cryptography;
 using Action = Lumina.Excel.Sheets.Action;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public unsafe class P4_Crystallize_Time : SplatoonScript

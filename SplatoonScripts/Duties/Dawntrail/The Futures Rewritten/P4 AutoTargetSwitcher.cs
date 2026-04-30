@@ -15,6 +15,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P4_AutoTargetSwitcher : SplatoonScript

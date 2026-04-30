@@ -18,6 +18,8 @@ using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using Action = Lumina.Excel.Sheets.Action;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 
 internal unsafe class ScriptEventLogger : SplatoonScript
@@ -124,7 +126,7 @@ internal unsafe class ScriptEventLogger : SplatoonScript
 
         if (target.GetObject() is IBattleNpc npc && (npc.BattleNpcKind == BattleNpcSubKind.Pet ||
                                                      npc.BattleNpcKind == BattleNpcSubKind.None ||
-                                                     npc.BattleNpcKind == BattleNpcSubKind.Chocobo)) return;
+                                                     npc.BattleNpcKind == BattleNpcSubKind.RaceChocobo)) return;
 
         if (Conf.FilterOnVfxSpawnSubFilterPlayers && targetObj is IPlayerCharacter) return;
         if (Conf.FilterOnVfxSpawnSubFilterEnemies && targetObj is IBattleNpc) return;
@@ -142,7 +144,7 @@ internal unsafe class ScriptEventLogger : SplatoonScript
         if (sourceId.GetObject() is not IBattleNpc npc ||
             npc.BattleNpcKind == BattleNpcSubKind.Pet ||
             npc.BattleNpcKind == BattleNpcSubKind.None ||
-            npc.BattleNpcKind == BattleNpcSubKind.Chocobo) return;
+            npc.BattleNpcKind == BattleNpcSubKind.RaceChocobo) return;
         if (npc.BaseId == 0) return;
 
         var action = Svc.Data.GetExcelSheet<Action>().GetRowOrDefault(packet->ActionID);
@@ -247,7 +249,7 @@ internal unsafe class ScriptEventLogger : SplatoonScript
         if (set.Source is not IBattleNpc npc ||
             npc.BattleNpcKind == BattleNpcSubKind.Pet ||
             npc.BattleNpcKind == BattleNpcSubKind.None ||
-            npc.BattleNpcKind == BattleNpcSubKind.Chocobo) return;
+            npc.BattleNpcKind == BattleNpcSubKind.RaceChocobo) return;
 
         var actionEn = Svc.Data.GetExcelSheet<Action>(ClientLanguage.English).GetRowOrDefault(set.Action.Value.RowId);
 

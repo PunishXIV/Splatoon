@@ -20,6 +20,8 @@ using System.Text;
 using System.Threading.Tasks;
 using TerraFX.Interop.Windows;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public sealed class P1_Bound_of_Faith : SplatoonScript
 {

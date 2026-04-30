@@ -15,6 +15,8 @@ using System.Text;
 using static Splatoon.Splatoon;
 
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M9S_Target_Enforcer : SplatoonScript

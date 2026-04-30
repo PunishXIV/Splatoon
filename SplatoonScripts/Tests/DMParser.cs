@@ -8,6 +8,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+using Dalamud.Game.Chat;
+
 namespace SplatoonScriptsOfficial.Tests;
 public class DMParser : SplatoonScript
 {
@@ -25,8 +28,11 @@ public class DMParser : SplatoonScript
         Svc.Chat.ChatMessage -= Chat_ChatMessage;
     }
 
-    private void Chat_ChatMessage(Dalamud.Game.Text.XivChatType type, int timestamp, ref Dalamud.Game.Text.SeStringHandling.SeString sender, ref Dalamud.Game.Text.SeStringHandling.SeString message, ref bool isHandled)
+    private void Chat_ChatMessage(IHandleableChatMessage cm)
     {
+        var type = cm.LogKind;
+        var sender = cm.Sender;
+        var message = cm.Message;
         if(type == Dalamud.Game.Text.XivChatType.TellIncoming || type == Dalamud.Game.Text.XivChatType.TellOutgoing)
         {
             var player = sender.Payloads.OfType<PlayerPayload>().FirstOrDefault();

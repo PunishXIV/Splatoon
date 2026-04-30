@@ -27,6 +27,8 @@ using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
 public unsafe class P5_Death_of_the_Heavens : SplatoonScript
@@ -512,14 +514,14 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
                             return;
                         }
 
-                        if (p.HasDoom())
+                        if (HasDoom(p))
                             red++;
                         else
                             blue++;
 
                         if (p.Name.TextValue == Player.Object.Name.TextValue)
                         {
-                            if (p.HasDoom())
+                            if (HasDoom(p))
                                 _myBait = red switch
                                 {
                                     1 => BaitType.Red1,
@@ -615,20 +617,16 @@ public unsafe class P5_Death_of_the_Heavens : SplatoonScript
         public bool ShouldCheckOnStart = true;
         public bool ShowDebug;
     }
-}
-
-public static class PlayerExtensions
-{
-    public static bool HasDoom(this IPlayerCharacter p)
+    public static bool HasDoom(IPlayerCharacter p)
     {
         return p.StatusList.Any(x => x.StatusId == 2976);
     }
-}
 
-public class PrioData : PriorityData
-{
-    public override int GetNumPlayers()
+    public class PrioData : PriorityData
     {
-        return 8;
+        public override int GetNumPlayers()
+        {
+            return 8;
+        }
     }
 }

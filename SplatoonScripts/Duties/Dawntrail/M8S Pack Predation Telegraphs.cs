@@ -18,6 +18,8 @@ using System.Threading.Tasks;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 public unsafe sealed class M8S_Pack_Predation_Telegraphs : SplatoonScript
 {

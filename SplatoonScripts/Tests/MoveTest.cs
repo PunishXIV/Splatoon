@@ -3,6 +3,8 @@ using Dalamud.Bindings.ImGui;
 using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class MoveTest : SplatoonScript
 {

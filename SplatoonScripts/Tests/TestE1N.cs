@@ -8,6 +8,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 public unsafe class TestE1N : SplatoonScript
 {

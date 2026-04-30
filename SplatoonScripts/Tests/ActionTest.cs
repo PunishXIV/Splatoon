@@ -13,6 +13,8 @@ using System.Numerics;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class ActionTest : SplatoonScript
 {

@@ -9,6 +9,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using System.Linq;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Stormblood
 {
     public unsafe class UCOB_Earthshakers : SplatoonScript

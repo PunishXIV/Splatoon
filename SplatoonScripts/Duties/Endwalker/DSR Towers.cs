@@ -6,6 +6,7 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
+using ECommons.DalamudServices.Legacy;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
@@ -20,6 +21,8 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.ConstrainedExecution;
 using System.Windows.Forms.VisualStyles;
+
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {

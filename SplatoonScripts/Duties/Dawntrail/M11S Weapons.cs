@@ -23,6 +23,8 @@ using System.Numerics;
 using System.Text;
 using TerraFX.Interop.DirectX;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 #pragma warning disable
 public class M11S_Weapons : SplatoonScript

@@ -12,6 +12,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class FaceLockTest : SplatoonScript
 {

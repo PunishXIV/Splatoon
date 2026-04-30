@@ -24,6 +24,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Action = System.Action;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public sealed class SimpleMitigations : SplatoonScript
 {

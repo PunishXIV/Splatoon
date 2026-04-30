@@ -21,6 +21,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class ReplayNetworkMonitor : SplatoonScript

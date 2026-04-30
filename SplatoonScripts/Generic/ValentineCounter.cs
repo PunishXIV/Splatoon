@@ -10,6 +10,8 @@ using System;
 using System.Collections.Generic;
 using static SplatoonScriptsOfficial.Generic.ValentineCounter.Delegates;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 
 public class ValentineCounter : SplatoonScript

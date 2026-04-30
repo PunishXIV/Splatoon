@@ -1,4 +1,4 @@
-﻿using ECommons;
+﻿/*using ECommons;
 using ECommons.EzHookManager;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using static FFXIVClientStructs.FFXIV.Client.Game.ActionManager;
+
+using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Tests;
 #pragma warning disable SimpleHook
@@ -53,3 +55,4 @@ public unsafe class GenericTest10 : SplatoonScript
         return default;
     }
 }
+*/

@@ -3,6 +3,8 @@ using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 public class ShowPID : SplatoonScript
 {

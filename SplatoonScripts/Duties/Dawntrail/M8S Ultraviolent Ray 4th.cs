@@ -17,6 +17,8 @@ using Splatoon.SplatoonScripting.Priority;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M8S_Ultraviolent_Ray_4th : SplatoonScript

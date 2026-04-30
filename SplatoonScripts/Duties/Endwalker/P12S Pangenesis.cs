@@ -17,6 +17,8 @@ using System.Linq;
 using System.Numerics;
 using PluginLog = ECommons.Logging.PluginLog;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Endwalker
 {
     public class P12S_Pangenesis : SplatoonScript

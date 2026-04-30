@@ -19,6 +19,8 @@ using Splatoon.SplatoonScripting;
 
 using Splatoon.Utility;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript

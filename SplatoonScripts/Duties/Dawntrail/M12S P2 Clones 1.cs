@@ -16,6 +16,8 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_1 : SplatoonScript

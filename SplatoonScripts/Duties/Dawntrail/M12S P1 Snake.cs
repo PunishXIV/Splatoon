@@ -16,6 +16,8 @@ using static Splatoon.Splatoon;
 using System;
 using ECommons.ImGuiMethods;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M12S_P1_Snake : SplatoonScript

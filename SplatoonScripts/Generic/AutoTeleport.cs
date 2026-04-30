@@ -15,6 +15,8 @@ using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class AutoTeleport : SplatoonScript
 {

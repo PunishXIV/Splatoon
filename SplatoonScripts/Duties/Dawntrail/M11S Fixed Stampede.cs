@@ -19,6 +19,8 @@ using System.Numerics;
 using TerraFX.Interop.Windows;
 using static Splatoon.Splatoon;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M11S_Fixed_Stampede : SplatoonScript

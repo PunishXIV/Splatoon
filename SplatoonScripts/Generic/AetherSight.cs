@@ -12,6 +12,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Action = Lumina.Excel.Sheets.Action;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 public class AetherSight : SplatoonScript
 {

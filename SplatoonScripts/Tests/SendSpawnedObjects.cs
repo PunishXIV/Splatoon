@@ -13,6 +13,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests
 {
     public unsafe class SendSpawnedObjects : SplatoonScript
@@ -71,7 +73,7 @@ namespace SplatoonScriptsOfficial.Tests
                 .Append('|')
                 .Append(target.GetObject()?.Name ?? "")
                 .Append('|')
-                .Append(target.GetObject()?.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player);
+                .Append(target.GetObject()?.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc);
             Send(str);
         }
 
@@ -88,7 +90,7 @@ namespace SplatoonScriptsOfficial.Tests
 
         public override void OnVFXSpawn(uint target, string vfxPath)
         {
-            if(target.GetObject()?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
+            if(target.GetObject()?.ObjectKind != Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Pc)
             {
                 var str = $"vfx|{target}|{target.GetObject()?.Name ?? ""}|{vfxPath}";
                 Send(str);

@@ -6,6 +6,8 @@ using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using Splatoon.SplatoonScripting;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M8S_Elemental_Purge_Cleave : SplatoonScript

@@ -4,6 +4,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 using Action = Lumina.Excel.Sheets.Action;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 internal class RedmoonTest2 :SplatoonScript
 {

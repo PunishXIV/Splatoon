@@ -14,6 +14,8 @@ using System.Collections.Generic;
 using System.Linq;
 #nullable disable
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 
 public unsafe class ShowEmote : SplatoonScript

@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic
 {
     public class ZoneNameToast : SplatoonScript
@@ -25,7 +27,7 @@ namespace SplatoonScriptsOfficial.Generic
             Svc.ClientState.TerritoryChanged -= ClientState_TerritoryChanged;
         }
 
-        private unsafe void ClientState_TerritoryChanged(ushort e)
+        private unsafe void ClientState_TerritoryChanged(uint e)
         {
             /*if(GenericHelpers.TryGetAddonByName<AtkUnitBase>("FadeMiddle", out var a) && a->IsVisible)
             {

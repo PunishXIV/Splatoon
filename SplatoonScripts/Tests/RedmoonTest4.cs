@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Callback = ECommons.Automation.Callback;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 internal unsafe class RedmoonTest4 :SplatoonScript
 {
@@ -328,7 +330,7 @@ internal unsafe class RedmoonTest4 :SplatoonScript
                     continue;
                 }
                 var text = comp->ButtonTextNode;
-                if (text == null || text->GetText() == "") break;
+                if (text == null || text->GetText().ToString() == "") break;
                 var wKSMissionUnitData = Svc.Data.GetExcelSheet<WKSMissionUnit>()
                     .FirstOrNull(x => x.Name.ToString() == text->GetText().ToString()
                         && x.GoldStarRequirement == (ushort)(Player.Job + 1));

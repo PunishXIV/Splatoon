@@ -21,6 +21,8 @@ using System.Text;
 using System.Threading.Tasks;
 using TerraFX.Interop.Windows;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 public unsafe sealed class EffectResultTest : SplatoonScript
 {

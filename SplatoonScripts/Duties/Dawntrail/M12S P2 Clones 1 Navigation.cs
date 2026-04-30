@@ -14,6 +14,8 @@ using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using static Splatoon.Splatoon;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_1_Navigation : SplatoonScript

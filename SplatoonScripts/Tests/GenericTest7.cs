@@ -16,6 +16,8 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 public unsafe class GenericTest7 : SplatoonScript
 {

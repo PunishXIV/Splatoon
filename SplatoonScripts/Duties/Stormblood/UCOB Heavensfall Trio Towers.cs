@@ -15,6 +15,8 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Stormblood;
 
 public class UCOB_Heavensfall_Trio_Towers : SplatoonScript

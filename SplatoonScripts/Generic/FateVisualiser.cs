@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Generic;
 /**
  * Displays the border of nearby active FATEs as a series of rotating dots.

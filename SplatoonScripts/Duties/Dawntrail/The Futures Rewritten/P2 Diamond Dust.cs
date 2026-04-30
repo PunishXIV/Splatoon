@@ -18,6 +18,8 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public class P2_Diamond_Dust : SplatoonScript

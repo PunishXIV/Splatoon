@@ -20,6 +20,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Callback = ECommons.Automation.Callback;
 #pragma warning disable
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Tests;
 public unsafe class GenericTest4 : SplatoonScript
 {

@@ -18,6 +18,8 @@ using System.Numerics;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten.FullToolerPartyOnlyScrtipts;
 internal class P1_Turn_of_the_Heavens_Full_Toolers : SplatoonScript
 {

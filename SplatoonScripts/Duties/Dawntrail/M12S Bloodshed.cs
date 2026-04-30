@@ -12,6 +12,8 @@ using Splatoon.SplatoonScripting;
 using System.Numerics;
 using Splatoon.Serializables;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class M12S_Bloodshed : SplatoonScript

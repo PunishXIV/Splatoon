@@ -18,6 +18,8 @@ using System.Numerics;
 using ECommons.GameFunctions;
 using ECommons.MathHelpers;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 internal class M10S_Alleyoop : SplatoonScript

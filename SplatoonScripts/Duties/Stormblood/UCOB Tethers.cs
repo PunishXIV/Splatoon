@@ -14,6 +14,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Stormblood
 {
     public class UCOB_Tethers : SplatoonScript

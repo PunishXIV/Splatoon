@@ -20,6 +20,8 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Stormblood
 {
     public class UCOB_dragon_baits : SplatoonScript

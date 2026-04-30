@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Vector3 = System.Numerics.Vector3;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P4_Fate_Projection_α : SplatoonScript

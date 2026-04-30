@@ -21,6 +21,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 #pragma warning disable SYSLIB1045
 public sealed class EXMH_Clamorous_Chase : SplatoonScript

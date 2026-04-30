@@ -31,6 +31,8 @@ using Dalamud.Interface.Colors;
 using ECommons.GameHelpers;
 using Newtonsoft.Json;
 
+using ECommons.DalamudServices.Legacy;
+
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Idyllic_Dream_Tired : SplatoonScript

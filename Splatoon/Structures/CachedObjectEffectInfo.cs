@@ -3,10 +3,10 @@
 public record struct CachedObjectEffectInfo
 {
     public long StartTime;
-    public ushort data1;
-    public ushort data2;
+    public uint data1;
+    public uint data2;
 
-    public CachedObjectEffectInfo(long startTime, ushort data1, ushort data2)
+    public CachedObjectEffectInfo(long startTime, uint data1, uint data2)
     {
         StartTime = startTime;
         this.data1 = data1;

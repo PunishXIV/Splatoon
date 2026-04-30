@@ -224,7 +224,6 @@ public unsafe class Splatoon : IDalamudPlugin
         Element.Init();
         mapEffectProcessor = new();
         TetherProcessor = new();
-        ObjectEffectProcessor = new();
         DirectorUpdate.Init(DirectorUpdateProcessor.ProcessDirectorUpdate);
         ActionEffect.Init(ActionEffectProcessor.ProcessActionEffect);
         ActionEffect.ActionEffectEvent += ScriptingProcessor.OnActionEffectEvent;
@@ -298,7 +297,6 @@ public unsafe class Splatoon : IDalamudPlugin
         });
         Safe(mapEffectProcessor.Dispose);
         Safe(TetherProcessor.Dispose);
-        Safe(ObjectEffectProcessor.Dispose);
         Safe(AttachedInfo.Dispose);
         Safe(ScriptingProcessor.Dispose);
         Safe(BuffEffectProcessor.Dispose);

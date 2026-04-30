@@ -119,9 +119,9 @@ public abstract class SplatoonScript
     /// Will be called on receiving object effect. This method will only be called if a script is enabled.
     /// </summary>
     /// <param name="target">Targeted object's ID</param>
-    /// <param name="data1">First parameter of object effect.</param>
-    /// <param name="data2">Second parameter of object effect.</param>
-    public virtual void OnObjectEffect(uint target, ushort data1, ushort data2) { }
+    /// <param name="entityId">First parameter of object effect.</param>
+    /// <param name="actionId">Second parameter of object effect.</param>
+    public virtual void OnObjectEffect(uint target, uint entityId, uint actionId) { }
 
     /// <summary>
     /// Will be called when a tether created between two game objects. This method will only be called if a script is enabled.

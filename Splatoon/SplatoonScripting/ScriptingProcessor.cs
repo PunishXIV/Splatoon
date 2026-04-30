@@ -600,7 +600,7 @@ internal unsafe static partial class ScriptingProcessor
         }
     }
 
-    internal static void OnObjectEffect(uint Target, ushort Param1, ushort Param2)
+    internal static void OnObjectEffect(uint Target, uint entityId, uint actionId)
     {
         for(var i = 0; i < Scripts.Count; i++)
         {
@@ -608,7 +608,7 @@ internal unsafe static partial class ScriptingProcessor
             {
                 try
                 {
-                    Scripts[i].OnObjectEffect(Target, Param1, Param2);
+                    Scripts[i].OnObjectEffect(Target, entityId, actionId);
                 }
                 catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnObjectEffect)); }
             }

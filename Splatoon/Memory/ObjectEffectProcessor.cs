@@ -2,6 +2,8 @@
 using Dalamud.Memory;
 using Dalamud.Utility.Signatures;
 using ECommons.DalamudServices.Legacy;
+using ECommons.EzHookManager;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Splatoon.Modules;
 using Splatoon.SplatoonScripting;
 using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
@@ -10,20 +12,19 @@ namespace Splatoon.Memory;
 
 internal unsafe class ObjectEffectProcessor
 {
-    internal delegate long ProcessObjectEffect(GameObject* a1, ushort a2, ushort a3, long a4);
-    [Signature("4C 8B DC 53 48 81 EC ?? ?? ?? ?? 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 84 24 ?? ?? ?? ?? 49 89 6B F0 48 8B D9 49 89 7B E0", DetourName = nameof(ProcessObjectEffectDetour), Fallibility = Fallibility.Fallible)]
-    internal Hook<ProcessObjectEffect> ProcessObjectEffectHook = null;
-    internal long ProcessObjectEffectDetour(GameObject* a1, ushort a2, ushort a3, long a4)
+    [EzHookFromCS]
+    internal EzHook<EventObject.Delegates.PlayAnimation> ProcessObjectEffectHook = null;
+    internal void ProcessObjectEffectDetour(EventObject* thisPtr, uint entityId, uint actionId, ulong a4)
     {
         try
         {
             if(P.Config.Logging)
             {
-                var text = $"ObjectEffect: on {a1->Name.Read()} {a1->EntityId.Format()}/{a1->BaseId.Format()} data {a2}, {a3}";
+                var text = $"ObjectEffect: on {thisPtr->Name.Read()} {thisPtr->EntityId.Format()}/{thisPtr->BaseId.Format()} data {entityId}, {actionId}";
                 Logger.Log(text);
-                if(a1->ObjectKind != FFXIVClientStructs.FFXIV.Client.Game.Object.ObjectKind.Pc) P.LogWindow.Log(text);
+                if(thisPtr->ObjectKind != ObjectKind.Pc) P.LogWindow.Log(text);
             }
-            var ptr = (nint)a1;
+            var ptr = (nint)thisPtr;
             if(!AttachedInfo.ObjectEffectInfos.ContainsKey(ptr))
             {
                 AttachedInfo.ObjectEffectInfos[ptr] = [];
@@ -31,62 +32,23 @@ internal unsafe class ObjectEffectProcessor
             AttachedInfo.ObjectEffectInfos[ptr].Add(new()
             {
                 StartTime = Environment.TickCount64,
-                data1 = a2,
-                data2 = a3
+                data1 = entityId,
+                data2 = actionId
             });
-            ScriptingProcessor.OnObjectEffect(a1->EntityId, a2, a3);
+            ScriptingProcessor.OnObjectEffect(thisPtr->EntityId, entityId, actionId);
         }
         catch(Exception e)
         {
             e.Log();
         }
-        return ProcessObjectEffectHook.Original(a1, a2, a3, a4);
+        ProcessObjectEffectHook.Original(thisPtr, entityId, actionId, a4);
     }
 
-    internal ObjectEffectProcessor()
+    private ObjectEffectProcessor()
     {
         try
         {
-            SignatureHelper.Initialise(this);
-            Enable();
-        }
-        catch(Exception e)
-        {
-            e.LogWarning();
-        }
-    }
-
-    internal void Enable()
-    {
-        try
-        {
-            if(!ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Enable();
-        }
-
-        catch(Exception e)
-        {
-            e.LogWarning();
-        }
-    }
-
-    internal void Disable()
-    {
-        try
-        {
-            if(ProcessObjectEffectHook.IsEnabled) ProcessObjectEffectHook.Disable();
-        }
-        catch(Exception e)
-        {
-            e.LogWarning();
-        }
-    }
-
-    public void Dispose()
-    {
-        try
-        {
-            Disable();
-            ProcessObjectEffectHook.Dispose();
+            EzSignatureHelper.Initialize(this);
         }
         catch(Exception e)
         {

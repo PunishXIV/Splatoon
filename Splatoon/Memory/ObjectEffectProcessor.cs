@@ -10,10 +10,9 @@ using GameObject = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject;
 
 namespace Splatoon.Memory;
 
-internal unsafe class ObjectEffectProcessor
+internal unsafe class ObjectEffectProcessor : IDisposable
 {
-    [EzHookFromCS]
-    internal EzHook<EventObject.Delegates.PlayAnimation> ProcessObjectEffectHook = null;
+    internal Hook<EventObject.Delegates.PlayAnimation> ProcessObjectEffectHook = null;
     internal void ProcessObjectEffectDetour(EventObject* thisPtr, uint entityId, uint actionId, ulong a4)
     {
         try
@@ -44,11 +43,18 @@ internal unsafe class ObjectEffectProcessor
         ProcessObjectEffectHook.Original(thisPtr, entityId, actionId, a4);
     }
 
+    public void Dispose()
+    {
+        ProcessObjectEffectHook?.Disable();
+        ProcessObjectEffectHook?.Dispose();
+    }
+
     private ObjectEffectProcessor()
     {
         try
         {
-            EzSignatureHelper.Initialize(this);
+            ProcessObjectEffectHook = Svc.Hook.HookFromAddress<EventObject.Delegates.PlayAnimation>(EventObject.Addresses.PlayAnimation.Value, this.ProcessObjectEffectDetour);
+            ProcessObjectEffectHook.Enable();
         }
         catch(Exception e)
         {

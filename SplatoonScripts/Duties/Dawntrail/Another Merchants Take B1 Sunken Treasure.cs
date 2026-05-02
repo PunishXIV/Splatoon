@@ -63,7 +63,7 @@ public class Another_Merchants_Take_B1_Sunken_Treasure : SplatoonScript
         }, 0);
     }
 
-    public override void OnObjectEffect(uint target, ushort data1, ushort data2)
+    public override void OnObjectEffect(uint target, uint data1, uint data2)
     {
         if (_objectDataList.Count == 0) return;
         if (data1 == 16 && data2 == 32)

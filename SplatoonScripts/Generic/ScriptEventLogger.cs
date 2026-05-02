@@ -71,7 +71,7 @@ internal unsafe class ScriptEventLogger : SplatoonScript
         PluginLog.Information($"OnMapEffect: {position} - {data1} - {data2}");
     }
 
-    public override void OnObjectEffect(uint target, ushort data1, ushort data2)
+    public override void OnObjectEffect(uint target, uint data1, uint data2)
     {
         if (!Conf.FilterOnObjectEffect) return;
         var targetObj = target.GetObject();

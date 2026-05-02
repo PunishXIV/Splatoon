@@ -18,7 +18,7 @@ namespace SplatoonScriptsOfficial.Tests
         public override HashSet<uint> ValidTerritories => [];
         public override Metadata Metadata => new(1, "NightmareXIV");
 
-        public override void OnObjectEffect(uint target, ushort data1, ushort data2)
+        public override void OnObjectEffect(uint target, uint data1, uint data2)
         {
             PluginLog.Information($"Object effect on {target.GetObject()} = {data1}, {data2}");
         }

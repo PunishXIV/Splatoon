@@ -86,7 +86,7 @@ public class TEA_P3_Wormhole_Formation : SplatoonScript
             _myNumber = int.Parse(effect.Key.Replace("vfx/lockon/eff/m0361trg_a", "")[0].ToString());
     }
 
-    public override void OnObjectEffect(uint target, ushort data1, ushort data2)
+    public override void OnObjectEffect(uint target, uint data1, uint data2)
     {
         var targetObject = target.GetObject();
         // PluginLog.Warning($"Name:{targetObject.Name} DataID: {targetObject.DataId} Data1: {data1}, Data2: {data2}");

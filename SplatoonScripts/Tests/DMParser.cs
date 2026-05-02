@@ -30,7 +30,7 @@ public class DMParser : SplatoonScript
 
     private void Chat_ChatMessage(IHandleableChatMessage cm)
     {
-        var type = cm.LogKind;
+        var type = cm.Type;
         var sender = cm.Sender;
         var message = cm.Message;
         if(type == Dalamud.Game.Text.XivChatType.TellIncoming || type == Dalamud.Game.Text.XivChatType.TellOutgoing)

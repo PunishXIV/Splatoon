@@ -264,7 +264,7 @@ public unsafe class Splatoon : IDalamudPlugin
 
     private void OnChatMessage(Dalamud.Game.Chat.IHandleableChatMessage message)
     {
-        this.OnChatMessage(message.LogKind, message.Timestamp, message.Sender, message.Message);
+        this.OnChatMessage(message.Type, message.Timestamp, message.Sender, message.Message);
     }
 
     public void Dispose()

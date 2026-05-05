@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public class EX7_Gaze_of_the_Void : SplatoonScript<EX7_Gaze_of_the_Void.Config>
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1362];
 
     public uint TankBallId = 19910;
@@ -75,7 +75,7 @@ public class EX7_Gaze_of_the_Void : SplatoonScript<EX7_Gaze_of_the_Void.Config>
                 var e = Controller.GetElementByName("Point");
                 e.Enabled = true;
                 e.color = Controller.AttentionColor;
-                e.refActorObjectID = BasePlayer.Job.IsDps()?FastBalls[C.Priority - 1]:tankBalls.FirstOrDefault(x => x.GetTethers().Any(t => t.Id == this.TetherFast))?.ObjectId ?? 0;
+                e.refActorObjectID = BasePlayer.Job.IsDps() || BasePlayer.Job.IsHealer() ?FastBalls[C.Priority - 1]:tankBalls.FirstOrDefault(x => x.GetTethers().Any(t => t.Id == this.TetherFast))?.ObjectId ?? 0;
             }
             else if(PickedOrbs == 1)
             {
@@ -85,13 +85,13 @@ public class EX7_Gaze_of_the_Void : SplatoonScript<EX7_Gaze_of_the_Void.Config>
                     var e = Controller.GetElementByName("Point");
                     e.Enabled = true;
                     e.color = Controller.AttentionColor;
-                    e.refActorObjectID = BasePlayer.Job.IsDps() ? SlowBalls[C.Priority - 1] : tankBalls.FirstOrDefault(x => x.GetTethers().Any(t => t.Id == this.TetherSlow))?.ObjectId ?? 0;
+                    e.refActorObjectID = BasePlayer.Job.IsDps() || BasePlayer.Job.IsHealer() ? SlowBalls[C.Priority - 1] : tankBalls.FirstOrDefault(x => x.GetTethers().Any(t => t.Id == this.TetherSlow))?.ObjectId ?? 0;
                 }
                 else
                 {
                     var e = Controller.GetElementByName("PointDanger");
                     e.Enabled = true;
-                    e.refActorObjectID = BasePlayer.Job.IsDps() ? SlowBalls[C.Priority - 1] : tankBalls.FirstOrDefault(x => x.GetTethers().Any(t => t.Id == this.TetherSlow))?.ObjectId ?? 0;
+                    e.refActorObjectID = BasePlayer.Job.IsDps()||BasePlayer.Job.IsHealer() ? SlowBalls[C.Priority - 1] : tankBalls.FirstOrDefault(x => x.GetTethers().Any(t => t.Id == this.TetherSlow))?.ObjectId ?? 0;
                     e.overlayText = effectRemains > 0 ? $"!!! Wait {effectRemains:F1}s !!!" : "";
                 }
             }

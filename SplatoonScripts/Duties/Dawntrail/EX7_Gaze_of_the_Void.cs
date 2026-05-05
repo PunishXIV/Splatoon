@@ -21,7 +21,7 @@ using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
-public class EX8_Gaze_of_the_Void : SplatoonScript<EX8_Gaze_of_the_Void.Config>
+public class EX7_Gaze_of_the_Void : SplatoonScript<EX7_Gaze_of_the_Void.Config>
 {
     public override Metadata Metadata { get; } = new(1, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1362];

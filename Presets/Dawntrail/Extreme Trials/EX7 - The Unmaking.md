@@ -1,3 +1,9 @@
+# Scripts
+Gaze of the void. Non-tanks require configuration.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/EX7_Gaze_of_the_Void.cs
+```
+
 # General presets
 These presets were contributed by: Leathen, rawr, Const Mar
 ```

@@ -114,7 +114,7 @@ public class EX7_Gaze_of_the_Void : SplatoonScript<EX7_Gaze_of_the_Void.Config>
     {
         ImGuiEx.TextWrapped($"Your position as DPS/Healer, clockwise starting from tank orbs (if you're tank, this setting is irrelevant for you):");
         ImGui.SetNextItemWidth(200f);
-        ImGui.SliderInt("##pos", ref C.Priority.ValidateRange(1, 3), 1, 1);
+        ImGui.SliderInt("##pos", ref C.Priority.ValidateRange(1, 3), 1, 3);
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"Picked orbs: {PickedOrbs}");

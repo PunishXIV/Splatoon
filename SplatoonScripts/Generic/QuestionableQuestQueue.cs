@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata Metadata => new(6, "NightmareXIV, Aly");
 
     [EzIPC("Questionable.IsRunning", false)] private Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] private Func<string, bool> QuestionableStartSingleQuest;

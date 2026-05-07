@@ -14,6 +14,7 @@ SplatoonScriptsOfficial.Generic@TargetingMe,1,https://github.com/PunishXIV/Splat
 SplatoonScriptsOfficial.Generic@InventoryLowNotifier,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/InventoryLowNotifier.cs
 SplatoonScriptsOfficial.Generic@EnemyAggro,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/EnemyAggro.cs
 SplatoonScriptsOfficial.Generic@AutoRetainerCreation,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoRetainerCreation.cs
+SplatoonScriptsOfficial.Generic@ToastCommand,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ToastCommand.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
 SplatoonScriptsOfficial.Generic@VisibilityTerritoryWhitelistAlter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/VisibilityTerritoryWhitelistAlter.cs
 SplatoonScriptsOfficial.Generic@DisableHandleActionOutHook,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/DisableHandleActionOutHook.cs
@@ -36,7 +37,7 @@ SplatoonScriptsOfficial.Generic@TurnAroundCmd,1,https://github.com/PunishXIV/Spl
 SplatoonScriptsOfficial.Generic@AetherSight,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AetherSight.cs
 SplatoonScriptsOfficial.Generic@ObjectExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ObjectExplorer.cs
 SplatoonScriptsOfficial.Generic@CommandOnLogin,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CommandOnLogin.cs
-SplatoonScriptsOfficial.Generic@QuestionableQuestQueue,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestionableQuestQueue.cs
+SplatoonScriptsOfficial.Generic@QuestionableQuestQueue,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestionableQuestQueue.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
 SplatoonScriptsOfficial.Generic@PlayerHighlighter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PlayerHighlighter.cs
 SplatoonScriptsOfficial.Generic@FateVisualiser,0,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/FateVisualiser.cs
@@ -48,6 +49,7 @@ SplatoonScriptsOfficial.Generic@AutoUseItem,1,https://github.com/PunishXIV/Splat
 SplatoonScriptsOfficial.Generic@ForceSetDirection,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ForceSetDirection.cs
 SplatoonScriptsOfficial.Generic@Toast2Log,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Toast2Log.cs
 SplatoonScriptsOfficial.Generic@VnavmeshAlignCameraUnsetter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/VnavmeshAlignCameraUnsetter.cs
+SplatoonScriptsOfficial.Generic@Chat2Toast,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Chat2Toast.cs
 SplatoonScriptsOfficial.Generic@CloseReplayWindows,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CloseReplayWindows.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@AutoDutyEnableTankStance,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoDutyEnableTankStance.cs
@@ -73,7 +75,6 @@ SplatoonScriptsOfficial.Tests@ActorControlTest,1,https://github.com/PunishXIV/Sp
 SplatoonScriptsOfficial.Tests@RedmoonTest1,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest1.cs
 SplatoonScriptsOfficial.Tests@OmegaMFResearch,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/OmegaMFResearch.cs
 SplatoonScriptsOfficial.Tests@ObjectEffectTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ObjectEffectTest.cs
-SplatoonScriptsOfficial.Tests@GenericTest10,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest10.cs
 SplatoonScriptsOfficial.Tests@GenericTest7,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs
 SplatoonScriptsOfficial.Tests@CustomOpenerTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/CustomOpenerTest.cs
 SplatoonScriptsOfficial.Tests@PriorityTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/PriorityTest.cs

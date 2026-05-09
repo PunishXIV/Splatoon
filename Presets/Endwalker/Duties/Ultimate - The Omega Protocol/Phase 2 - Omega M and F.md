@@ -25,7 +25,7 @@
 
 [International] Optimized Fire III AOE
 ```
-~Lv2~{"Name":"P2 - Optmized Fire III","Group":"TOP","ZoneLockH":[1122],"DCond":5,"ElementsL":[{"Name":"Self","type":1,"radius":7.0,"color":1174470625,"refActorType":1,"Filled":true},{"Name":"Others","type":1,"radius":7.0,"color":3355508705,"thicc":5.0,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorComparisonType":5}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":5.0,"Match":"(7635>31550)","MatchDelay":15.0}],"MaxDistance":7.2,"UseDistanceLimit":true,"DistanceLimitType":1}
+~Lv2~{"Name":"P2 - Optmized Fire III","Group":"TOP","ZoneLockH":[1122],"DCond":5,"UseTriggers":true,"MaxDistance":7.2,"UseDistanceLimit":true,"DistanceLimitType":1,"Triggers":[{"Type":2,"Duration":5.0,"Match":"(7635>31550)","MatchDelay":15.0}],"ElementsL":[{"Name":"Self","type":1,"radius":7.0,"color":1174470625,"fillIntensity":0.368,"refActorType":1},{"Name":"Others","type":1,"radius":7.0,"color":3355508705,"fillIntensity":0.308,"thicc":5.0,"refActorPlaceholder":["<2>","<3>","<4>","<5>","<6>","<7>","<8>"],"refActorComparisonType":5}]}
 ```
 
 [International] Glitch type reminder
@@ -35,7 +35,7 @@
 
 [International] Omega-M aoe attack (stacks). Also serves as relative north finder.
 ```
-~Lv2~{"Name":"P2 - Omega-M aoe","Group":"TOP","ZoneLockH":[1122],"DCond":5,"ElementsL":[{"Name":"","type":1,"radius":10.0,"color":1342215423,"thicc":5.0,"refActorDataID":15714,"refActorComparisonType":3,"onlyVisible":true,"Filled":true},{"Name":"","type":1,"radius":10.0,"color":1677721855,"overlayBGColor":4278190080,"overlayTextColor":4278190335,"overlayFScale":3.0,"thicc":5.0,"overlayText":"NORTH","refActorDataID":15713,"refActorComparisonType":3,"onlyVisible":true,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":12.0,"Match":"(7635>31550)","MatchDelay":20.0}]}
+~Lv2~{"Name":"P2 - Omega-M aoe","Group":"TOP","ZoneLockH":[1122],"DCond":5,"UseTriggers":true,"Triggers":[{"Type":2,"Duration":12.0,"Match":"(7635>31550)","MatchDelay":20.0}],"ElementsL":[{"Name":"","type":1,"radius":10.0,"color":1342215423,"fillIntensity":0.352,"thicc":5.0,"refActorDataID":15714,"refActorComparisonType":3,"onlyVisible":true},{"Name":"","type":1,"radius":10.0,"color":1677721855,"fillIntensity":0.324,"overlayBGColor":4278190080,"overlayTextColor":4278190335,"overlayFScale":3.0,"thicc":5.0,"overlayText":"NORTH","refActorDataID":15713,"refActorComparisonType":3,"onlyVisible":true}]}
 ```
 
 [EN] [JP] Spots for knockback, depending on glitch type. By default, left is fixed and right adjusts to bottom in mid glitch. Edit mid glitch preset if necessary.

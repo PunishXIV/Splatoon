@@ -1,120 +1,25 @@
-﻿using Dalamud.Hooking;
-using Dalamud.Utility.Signatures;
-using ECommons;
-using ECommons.DalamudServices;
-using ECommons.DalamudServices.Legacy;
-using ECommons.Logging;
-using FFXIVClientStructs.FFXIV.Component.GUI;
-using Dalamud.Bindings.ImGui;
+﻿using ECommons.GameHelpers;
 using Splatoon.SplatoonScripting;
-using System;
 using System.Collections.Generic;
+using static Splatoon.Splatoon;
 
-using ECommons.DalamudServices.Legacy;
+namespace SplatoonScriptsOfficial.Tests;
 
-namespace SplatoonScriptsOfficial.Tests
+public unsafe class GenericTest : SplatoonScript
 {
-    public unsafe class GenericTest : SplatoonScript
+    public override Metadata Metadata => new(1, "NightmareXIV");
+    public override HashSet<uint> ValidTerritories => [1234];
+
+    public override void OnSetup()
     {
-        public override Metadata Metadata => new(1, "NightmareXIV");
-        public override HashSet<uint> ValidTerritories => [];
-        //bool __fastcall sub_1400AA130(__int16 a1)
-        //NumberArrayData_SetValueIfDifferentAndNotify(__int64 a1, int a2, int a3)
-        private delegate void Func(nint a1, int a2, int a3);
-        [Signature("3B 51 08 7D 15 48 8B 41 20 48 63 D2 44 39 04 90")]
-        private Hook<Func> Hook;
+        Controller.RegisterElementFromCode("SomeElementName", """
+            ~Lv2~{"Name":"Overdraught - Spread","Group":"EX6 - Hell on Rails","ZoneLockH":[1308],"DCond":5,"UseTriggers":true,"Triggers":[{"Type":2,"Match":"(14284>45663)"},{"Type":3,"Match":"(14284>45670)","MatchDelay":12.0},{"Type":3,"Match":"(14284>45677)","MatchDelay":12.0}],"ElementsL":[{"Name":"Spread Text","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":3355443455,"overlayVOffset":1.0,"overlayFScale":3.0,"thicc":0.0,"overlayText":"Spread","overlayTextIntl":{"Jp":"散会"},"refActorNPCNameID":14284,"refActorComparisonType":6,"onlyTargetable":true},{"Name":"Trigger","type":1,"refActorNPCNameID":14284,"refActorRequireCast":true,"refActorCastId":[45670,45677],"refActorUseCastTime":true,"refActorCastTimeMin":6.0,"refActorCastTimeMax":12.0,"refActorUseOvercast":true,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"Player Circles (All)","type":1,"radius":5.0,"fillIntensity":0.2,"refActorComparisonType":6,"includeRotation":true,"FaceMe":true,"ObjectKinds":[1]}]}
+            """);
+    }
 
-        //char __fastcall sub_1409EFD60(__int64 a1, unsigned int a2)
-        private delegate byte AddonRetainerTaskAsk_OnRequestedUpdate(nint a1, uint a2);
-        [Signature("48 89 5C 24 ?? 55 48 83 EC 20 48 8B E9 8B DA 8B CA")]
-        private Hook<AddonRetainerTaskAsk_OnRequestedUpdate> Hook2;
-
-        public override void OnEnable()
-        {
-            SignatureHelper.Initialise(this);
-            Hook.Enable();
-            Hook2?.Enable();
-            //DuoLog.Warning($"{Svc.SigScanner.ScanText("48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 30 0F B7 FA"):X16}");
-            base.OnEnable();
-            Svc.GameNetwork.NetworkMessage += GameNetwork_NetworkMessage;
-        }
-
-        private void GameNetwork_NetworkMessage(nint dataPtr, ushort opCode, uint sourceActorId, uint targetActorId, NetworkMessageDirection direction)
-        {
-            try
-            {
-                if(direction == NetworkMessageDirection.ZoneDown)
-                {
-                    //DuoLog.Information($"{opCode}");
-                }
-            }
-            catch(Exception e)
-            {
-
-            }
-        }
-
-        public override void OnDisable()
-        {
-            Hook?.Disable();
-            Hook?.Dispose();
-            Hook2?.Disable();
-            Hook2?.Dispose();
-            Svc.GameNetwork.NetworkMessage -= GameNetwork_NetworkMessage;
-            base.OnDisable();
-        }
-
-        private byte Detour2(nint a1, uint a2)
-        {
-            var ret = Hook2.Original(a1, a2);
-            try
-            {
-                //if (Debugger.IsAttached) Debugger.Break();
-                /*var v3 = *(nint*)(a2 + 840);
-                var p1 = *(nint*)(v3 + 32);
-                var v6 = (uint*)(*(nint*)(v3 + 32) + 1160);
-                var ptr2 = *(nint*)(a1 + 560);
-                DuoLog.Information($"v3:{v3:X16}, p1:{p1:X16}, v6:{(nint)v6:X16}/{*v6:X16}, ptr2:{ptr2:X16}");*/
-                PluginLog.Information($"{a1:X16}, {a2}, {ret:X2}");
-            }
-            catch(Exception e)
-            {
-                e.Log();
-            }
-            return ret;
-        }
-
-        private void Detour(nint a1, int a2, int a3)
-        {
-            try
-            {
-
-                var v3 = *(nint*)(a1 + 32);
-                var r = (int*)(v3 + 4 * a2);
-                if(a1 > 0x0000020F4BD8ADA8 - 0x50 && a1 < 0x0000020F4BD8ADA8 + 0x50)
-                {
-                    PluginLog.Information($"{a1}, {a2}, {a3}");
-                }
-                if((nint)r == 0x0000020F4BD8ADA8)
-                {
-                    DuoLog.Information($"{a2}, {a3}");
-                    //if (Debugger.IsAttached) Debugger.Break();
-                }
-            }
-            catch(Exception e)
-            {
-                e.Log();
-            }
-            Hook.Original(a1, a2, a3);
-        }
-
-        public override void OnSettingsDraw()
-        {
-            if(GenericHelpers.TryGetAddonByName<AtkUnitBase>("GuildLeve", out var addon) && GenericHelpers.IsAddonReady(addon) && ImGui.Button("Click"))
-            {
-                //DuoLog.Information($"{(nint)(addon->AtkEventListener.vfunc[2]):X16}");
-                var list = addon->UldManager.NodeList[11];
-            }
-        }
+    public override void OnUpdate()
+    {
+        var element = Controller.GetElementByName("SomeElementName");
+        element.SetRefPosition(BasePlayer.Position);
     }
 }

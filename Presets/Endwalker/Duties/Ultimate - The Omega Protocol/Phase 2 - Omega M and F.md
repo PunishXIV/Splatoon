@@ -56,15 +56,19 @@
 ~Lv2~{"Name":"P2 Optical unit finder - early beam","Group":"TOP","ZoneLockH":[1122],"DCond":5,"ElementsL":[{"Name":"","type":3,"refY":25.0,"refZ":20.0,"offY":25.0,"radius":2.0,"color":3372220160,"overlayBGColor":0,"overlayTextColor":4278190080,"overlayFScale":7.0,"thicc":5.0,"overlayText":"EYE","refActorNPCNameID":7640,"refActorComparisonType":6,"includeRotation":true,"Filled":true},{"Name":"","type":3,"refX":-25.0,"refZ":20.0,"offX":-25.0,"radius":2.0,"color":3372220160,"overlayBGColor":0,"overlayTextColor":4278190080,"overlayFScale":7.0,"thicc":5.0,"overlayText":"EYE","refActorNPCNameID":7640,"refActorComparisonType":6,"includeRotation":true,"AdditionalRotation":1.5707964,"Filled":true}],"UseTriggers":true,"Triggers":[{"Type":2,"Duration":20.0,"Match":"(7635>31550)","MatchDelay":5.0}]}
 ```
 
-[International] [Script] [Configuration required] Party Synergy MultiScript
+## [International] [Script] [Configuration required] Party Synergy MultiScript
 * Stack swap informer. Will inform you about need to swap with a player on stacks, and optionally - write in chat (for you only, not sending to server) - for any swap. Can be configured: furthest or closest player to adjust. 
 * Full Tether Guide. Will display tether a my player. [Configuration required]
 Full Tether Guide is need priority List setting. The priority is adjusted from right to left from top to bottom of the list.
 The default display and guide is New toolbox strat Left Swap. For other strats, please modify the position in the element editor. (Do not modify anything other than the position)
-
 ```
 https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The%20Omega%20Protocol/Party%20Synergy.cs
 ```
+### NAUR configuration for this script (beta)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Party_Synergy","ConfigurationName":"","Configuration":"G2EFAJwFdsN1iFjsd9oM7p5rFgWd95DaAT34pUDf1XAZ0bLa/dUNd72xu+cJeqSOqKBbUkgKDfX/br6zWNMQx5wW8Pw/zEosTChgvbMUZHcpQEvzuy8QmszBuHbG0uNtokghacQ5mM+l6srX0Otm3/vUfjRdRNVIOEnHxsXj7RiuS2utBAGbrE0rmF3dIfcb0MYfizmULS/OpiCVzmSI2DloT47Yn1NeItr12JV/FRLsDJWUMFJyu2VuTm44hCUklvI4PfmxSiE5EO5gFCqPsJLHBQ4qgE7EYY0YW6EC/UwQqMUcJn4CAs4gYo1KNdCEsQo4KltYXYJqQOIowb1wBxVFIBoR7BGhcERcDyP5v9MpNkJoL8KZgU9oN2EjhPYQrvgGAjVWikopi7dKvVtnSMXmAQ==","Overrides":"G2/UAKwKeDI0l0NoPFuqoct9+pqNBCpF+t5hAw6Y03+kYbeaqX+fByiqZYdrS/1DA6ru1dCtvdzgkBsvFmoBJnIoAaURf3u5zfnVfuhEZeJQSiIfG6X+3rsLENi4aPr5uzsXICo5QuFF+FrWlRWywqguY/uPETbv1zGDFM457X0/LTaiHGrVrCZH/9xnF22IPcfAtvqAY9SbdD+/aE10FKIps/ivlm1RNNIxxsYRJeUdnv24YZPGzxoBSBMztbnzoXXodjdDmZCJ4P2lWcmz7gfa+DkWSmadHvHmb+kXa1J4qo29Ad1p6/NDEX0VJPb90jxkGrX+yr8JfklWdTapWaSLU5yMq6PTskU82EePVWU2dhwg7fap90f6Ce0kq3rV8oh6CaQHV4P/HFZvnBbvLZ7ZHzRdkgZDzkhUbQaXG2Kkagcwqr3hrGWsRUR9QkkYlk2YEHovHYyU+4Tghv4IKWqkc3Yx87sjIrtFVQeOgMag8Puj6YOUiL3s8xmX1hkzvHaPRmj7sCIF0HwM6arQ0KAIUYACUOgRlSKjMYyxTw/tmUOV3urPBdIC/bGuBWDPAS/tYl+qefcO5SjJRGN/rvrjSyxrqPiFJ6hMZLZBOFu6UG85ujGfl+7XP6HdsyFGrTtPYBCXGPZEJjpiUc3cmK4IPXbGdz5ltxhhIpyw08b78cpV6XnpxdbvzJQBL6FA1YjzsB6/rHhZie26M1NmvDhBRM4bROBm6KYdsbIGRVRQuRl1uaZ7guNVKXiJBIos1pktqva5hG3Hz88Sn7r8Iiw9kUdVOJryFYgaCzCFeeOqviOWpV6XbNPudT2CSwdcWuDn9BDlZ6yES6HMV+ypvEmnAmyIaOm5PcAxsZJDdXzUwaPp2bflL3vwydtVSOmmBRNZBQxOooTBrAcmoGBOSvc2JBxNFf3/gsXqNh1SZaWSFmsY7zWKXz+0uRjdGqtGHOPWcXnSrMtr5AxSf1T8eJ8iLKTA1w1tTc75QKbcLQ05w6mV9Tnd/pGcOC+2DN96Rj+D6Qp+aoLjhl43mlHUSBdrYHmcKlagfPvfdXU9KOH2fc1AoX+GjiC3B6LlZz+3WNDjA6NDvGJfK57Xov4yO1tg3zeL/P0yAFCBxwqKO6BdNXK+Fa+rUbWg571mAvu+UeC3ygCAxRFCkK0oYPmdgiUBgJYT88H6n3j9lbb4j/8AACJPdO8Q9B0hBMlXAkg+J15/TSn4dlTwHwDgLUGgYG8OLK/T1dRgMn5Lgnvg+gFo3nzmFXIUV6KA5t9+RRTwdtAgAGBvbtpImidEWTz/NmgSALSkZNz5GMQr1pZa8eIucalKCm4dLM5/Aqd5+PltJYzSMDkHnn/rrSGlBx6CBgHADFDwlrDg3/4xDAhA+CAAmDUvHwt7JWzQJABoS0mfu8ug+m1PXfFn7zIQNAgA3qHPgO4VJhymfxsQCQAaU6SjX2oD"}
+```
+
 
 [International] [Partially EN] [Script] Target enforcer. Will not let you select immune target.
 ```

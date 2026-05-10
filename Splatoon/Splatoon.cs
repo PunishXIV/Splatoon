@@ -641,7 +641,6 @@ public unsafe class Splatoon : IDalamudPlugin
             BuffEffectProcessor.ActorEffectUpdate();
             ScriptingProcessor.OnUpdate();
             CapturedPositions.Clear();
-            SplatoonIPC.UpdateActiveDrawGeometrySnapshot();
         }
         catch(Exception e)
         {

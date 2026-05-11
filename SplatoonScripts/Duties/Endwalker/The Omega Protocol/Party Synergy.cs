@@ -1,3 +1,4 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -5,17 +6,13 @@ using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
-using ECommons.GameFunctions;
-using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using ECommons.PartyFunctions;
 using ECommons.Schedulers;
-using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using Dalamud.Bindings.ImGui;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
@@ -23,8 +20,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-
-using ECommons.DalamudServices.Legacy;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 
@@ -52,7 +47,7 @@ public class Party_Synergy : SplatoonScript
 
     // public
     public override HashSet<uint> ValidTerritories => [1122];
-    public override Metadata? Metadata => new(6, "NightmareXIV, damolitionn");
+    public override Metadata? Metadata => new(7, "NightmareXIV, damolitionn");
     private Config Conf => Controller.GetConfig<Config>();
 
     public override void OnSetup()
@@ -137,15 +132,21 @@ public class Party_Synergy : SplatoonScript
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
         if(Conf.DecideLeftRight)
+        {
             OnVFXSpawnDesideByPriority(target, vfxPath);
+        }
         else
+        {
             OnVFXSpawnDesideSwapByPos(target, vfxPath);
+        }
     }
 
     public override void OnStartingCast(uint source, uint castId)
     {
         if(source.GetObject() is var sourceObj && sourceObj == null)
+        {
             return;
+        }
 
         // Party Synergy
         if(castId == CastID.PartySynergy && TryGetPriorityList(out var list))
@@ -158,12 +159,14 @@ public class Party_Synergy : SplatoonScript
             {
                 var obj = Svc.Objects.FirstOrDefault(o => o is IPlayerCharacter pc && pc.Name.ToString() == name);
                 if(obj != null)
+                {
                     PartyList.Add(new PartyListData
                     {
                         Name = name,
                         ObjectId = obj.GameObjectId,
                         PlayStationMarker = ""
                     });
+                }
             }
 
             if(PartyList.Count != 8)
@@ -177,10 +180,14 @@ public class Party_Synergy : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if(state == State.None || set.Action == null || set.Source == null)
+        {
             return;
+        }
 
         if(set.Source.ObjectKind != ObjectKind.BattleNpc && set.Source.ObjectKind != ObjectKind.EventNpc)
+        {
             return;
+        }
 
         // Party Synergy
         if(set.Action.Value.RowId == CastID.PartySynergy)
@@ -202,26 +209,40 @@ public class Party_Synergy : SplatoonScript
     {
         if(state == State.None || PartyList.Count(x => x.PlayStationMarker != "") != 8 ||
             Svc.ClientState.LocalPlayer == null)
+        {
             return;
+        }
 
         if(!isLeftRightDecided)
         {
             // Set Far/Close
             if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == BuffList.FarGlitch))
+            {
                 foreach(var row in PartyList)
+                {
                     row.FarClose = "Far";
+                }
+            }
             else
+            {
                 foreach(var row in PartyList)
+                {
                     row.FarClose = "Close";
+                }
+            }
 
             // Set Left/Right
             List<PartyListData> fetchedList = [];
             foreach(var row in PartyList)
             {
                 if(fetchedList.Any(x => x.PlayStationMarker == row.PlayStationMarker))
+                {
                     row.LeftRight = "Right";
+                }
                 else
+                {
                     row.LeftRight = "Left";
+                }
 
                 fetchedList.Add(row);
                 isLeftRightDecided = true;
@@ -238,6 +259,7 @@ public class Party_Synergy : SplatoonScript
 
             HideAll();
             foreach(var ps in psStrings)
+            {
                 foreach(var lr in leftRightStrings)
                 {
                     Controller.GetElementByName($"{myData!.FarClose}{lr}{ps}").Enabled = true;
@@ -250,40 +272,63 @@ public class Party_Synergy : SplatoonScript
                         Controller.GetElementByName($"{myData!.FarClose}{lr}{ps}").thicc = 15f;
                     }
                 }
+            }
         }
         else if(state == State.OpticalLaserCasted)
         {
             if(PartyList.Count(x => x.IsStacker) != 2)
+            {
                 return;
+            }
+
             if(Svc.Objects.FirstOrDefault(x => x is ICharacter c && c.NameId == 7640) is var opticalUnit &&
                 opticalUnit == null)
+            {
                 return;
+            }
+
             if(AttachedInfo.VFXInfos.Where(
                         x => x.Value.Any(z => z.Key == VfxID.StackVFX && z.Value.Age < 1000))
                     .Select(x => x.Key)
                     .Select(x => Svc.Objects.FirstOrDefault(z => z.Address == x))
                     .ToArray() is var stackers && stackers == null)
+            {
                 return;
+            }
+
             if(stackers.OrderBy(x => Vector3.Distance(opticalUnit.Position, x.Position))
                     .ToArray()[Conf.ReverseAdjust ? 0 : 1] is var swapper && swapper == null)
+            {
                 return;
+            }
 
             // If Stacker's Left and Right are not the same, display them as is.
             var SwapStacker = PartyList.Where(x => x.IsStacker && x.ObjectId == swapper.GameObjectId).FirstOrDefault();
             if(SwapStacker == null)
+            {
                 return;
+            }
+
             var OtherStacker = PartyList.Where(x => x.IsStacker && x.ObjectId != swapper.GameObjectId).FirstOrDefault();
             if(OtherStacker == null)
+            {
                 return;
+            }
+
             var myData = PartyList.FirstOrDefault(x => x.ObjectId == Svc.ClientState.LocalPlayer.GameObjectId);
             if(myData == null)
+            {
                 return;
+            }
 
             if(SwapStacker.LeftRight != OtherStacker.LeftRight)
             {
                 HideAll();
                 if(Conf.PrintPreciseResultInChat && !printed)
+                {
                     DuoLog.Information($"No swap, go {myData.LeftRight.ToLower()}");
+                }
+
                 printed = true;
             }
             else
@@ -292,15 +337,18 @@ public class Party_Synergy : SplatoonScript
                     x => x.IsStacker == false &&
                          x.PlayStationMarker == SwapStacker.PlayStationMarker).FirstOrDefault();
                 if(NoneVfxSwaper == null)
+                {
                     return;
-
+                }
 
                 var leftRightTmp = SwapStacker.LeftRight;
                 SwapStacker.LeftRight = NoneVfxSwaper.LeftRight;
                 NoneVfxSwaper.LeftRight = leftRightTmp;
 
                 if(Conf.PrintPreciseResultInChat)
+                {
                     DuoLog.Warning($"Swapping! \n{SwapStacker.Name}\n{NoneVfxSwaper.Name}\n============");
+                }
 
                 if(Svc.ClientState.LocalPlayer.GameObjectId.EqualsAny(SwapStacker.ObjectId, NoneVfxSwaper.ObjectId) &&
                     !printed)
@@ -389,11 +437,8 @@ public class Party_Synergy : SplatoonScript
 
     public override void OnReset()
     {
-        if(Sch != null)
-        {
-            Sch.Dispose();
-            Sch = null;
-        }
+        Sch?.Dispose();
+        Sch = null;
 
         HideAll();
         PartyList.Clear();
@@ -405,6 +450,7 @@ public class Party_Synergy : SplatoonScript
         Controller.ClearRegisteredElements();
         OnSetup();
         Controller.ApplyOverrides();
+        Controller.Hide();
     }
 
     public override void OnSettingsDraw()
@@ -418,26 +464,42 @@ public class Party_Synergy : SplatoonScript
         ImGui.Text("# Adjustment considering eye distance for biased knockback.");
         ImGui.Indent();
         if(ImGui.RadioButton("Furthest from eye adjusts", !Conf.ReverseAdjust))
+        {
             Conf.ReverseAdjust = false;
+        }
+
         if(ImGui.RadioButton("Closest to eye adjusts", Conf.ReverseAdjust))
+        {
             Conf.ReverseAdjust = true;
+        }
+
         ImGui.Unindent();
 
         ImGui.Text("# Adjustment Middle Position for Close knockback.");
         ImGui.Indent();
         if(ImGui.RadioButton("AdjustmentLeft", !Conf.IsRightAdjustKnokback))
+        {
             Conf.IsRightAdjustKnokback = false;
+        }
+
         if(ImGui.RadioButton("AdjustmentRight", Conf.IsRightAdjustKnokback))
+        {
             Conf.IsRightAdjustKnokback = true;
+        }
+
         ImGui.Unindent();
 
         ImGui.Dummy(new Vector2(0f, 20f));
         ImGui.Checkbox("Print in chat info about not your adjusts", ref Conf.PrintPreciseResultInChat);
         if(!Conf.DecideLeftRight)
+        {
             ImGui.Checkbox("Explicit position tether (unfinished feature, supports right side adjust only)",
                 ref Conf.ExplicitTether);
+        }
         else
+        {
             ImGui.Checkbox("Explicit position tether", ref Conf.ExplicitTether);
+        }
 
         if(Conf.DecideLeftRight)
         {
@@ -471,20 +533,25 @@ public class Party_Synergy : SplatoonScript
                 var mid = MathHelper.GetRelativeAngle(new Vector2(100, 100), opticalUnit.Position.ToVector2());
                 ImGuiEx.Text($"Mid: {mid}");
                 foreach(var x in Svc.Objects)
+                {
                     if(x is IPlayerCharacter pc)
                     {
                         var pos = (MathHelper.GetRelativeAngle(pc.Position.ToVector2(),
                             opticalUnit.Position.ToVector2()) - mid + 360) % 360;
                         ImGuiEx.Text($"{pc.Name} {pos} {(pos > 180 ? "right" : "left")}");
                     }
+                }
             }
 
             if(ImGui.Button("test"))
+            {
                 new TimedMiddleOverlayWindow("swaponYOU", 5000, () =>
                 {
                     ImGui.SetWindowFontScale(2f);
                     ImGuiEx.Text(ImGuiColors.DalamudRed, "Stack swap position!\n\n  Player 1 \n  Player 2");
                 }, 150);
+            }
+
             List<ImGuiEx.EzTableEntry> Entries = [];
             foreach(var x in PartyList)
             {
@@ -523,9 +590,13 @@ public class Party_Synergy : SplatoonScript
                 if(Conf.ExplicitTether)
                 {
                     if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == BuffList.FarGlitch))
+                    {
                         Controller.GetElementByName($"Far{dirNormal}").Enabled = true;
+                    }
                     else
+                    {
                         Controller.GetElementByName($"Close{dirNormal}").Enabled = true;
+                    }
                 }
 
                 var a1 = (MathHelper.GetRelativeAngle(stackers[0].Position, opticalUnit.Position) - mid + 360) % 360;
@@ -547,16 +618,23 @@ public class Party_Synergy : SplatoonScript
                         .FirstOrDefault();
                     //DuoLog.Information($"Second swapper: {secondSwapper}");
                     if(Conf.PrintPreciseResultInChat)
+                    {
                         DuoLog.Warning($"Swapping! \n{swapper.Name}\n{secondSwapper?.Name}\n============");
+                    }
+
                     if(Svc.ClientState.LocalPlayer.Address.EqualsAny(swapper.Address, secondSwapper.Address))
                     {
                         HideAll();
                         if(Conf.ExplicitTether)
                         {
                             if(Svc.ClientState.LocalPlayer.StatusList.Any(x => x.StatusId == BuffList.FarGlitch))
+                            {
                                 Controller.GetElementByName($"Far{dirModified}").Enabled = true;
+                            }
                             else
+                            {
                                 Controller.GetElementByName($"Close{dirModified}").Enabled = true;
+                            }
                         }
 
                         new TimedMiddleOverlayWindow("swaponYOU", 10000, () =>
@@ -570,7 +648,9 @@ public class Party_Synergy : SplatoonScript
                 else
                 {
                     if(Conf.PrintPreciseResultInChat)
+                    {
                         DuoLog.Information($"No swap, go {(myAngle > 180 ? "right" : "left")}");
+                    }
                 }
             }
         }
@@ -579,17 +659,23 @@ public class Party_Synergy : SplatoonScript
     private void OnVFXSpawnDesideByPriority(uint target, string vfxPath)
     {
         if(state == State.None)
+        {
             return;
+        }
 
         if(target.GetObject() is var targetObj && targetObj == null)
+        {
             return;
+        }
 
         if(targetObj is IPlayerCharacter pc &&
             new[] { VfxID.Circle, VfxID.Cross, VfxID.Triangle, VfxID.Square }.Contains(vfxPath))
         {
             var me = PartyList.FirstOrDefault(x => x.ObjectId == target);
             if(me == null)
+            {
                 return;
+            }
 
             me.PlayStationMarker = vfxPath switch
             {
@@ -603,10 +689,14 @@ public class Party_Synergy : SplatoonScript
         else
         {
             if(vfxPath != VfxID.StackVFX)
+            {
                 return;
+            }
 
             if(PartyList.FirstOrDefault(x => x.ObjectId == target) is var rowData && rowData == null)
+            {
                 return;
+            }
 
             rowData.IsStacker = true;
         }
@@ -615,7 +705,7 @@ public class Party_Synergy : SplatoonScript
     private bool TryGetPriorityList([NotNullWhen(true)] out string[]? values)
     {
         var players = Conf.PriorityData.GetPlayers(x => true);
-        if (players != null && players.Count > 0)
+        if(players != null && players.Count > 0)
         {
             values = players.Select(x => x.Name).ToArray();
             return true;

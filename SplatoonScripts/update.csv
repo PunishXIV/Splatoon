@@ -14,6 +14,7 @@ SplatoonScriptsOfficial.Generic@TargetingMe,1,https://github.com/PunishXIV/Splat
 SplatoonScriptsOfficial.Generic@InventoryLowNotifier,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/InventoryLowNotifier.cs
 SplatoonScriptsOfficial.Generic@EnemyAggro,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/EnemyAggro.cs
 SplatoonScriptsOfficial.Generic@AutoRetainerCreation,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoRetainerCreation.cs
+SplatoonScriptsOfficial.Generic@ToastCommand,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ToastCommand.cs
 SplatoonScriptsOfficial.Generic@PluginInstallerWindowCollapsible,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PluginInstallerWindowCollapsible.cs
 SplatoonScriptsOfficial.Generic@VisibilityTerritoryWhitelistAlter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/VisibilityTerritoryWhitelistAlter.cs
 SplatoonScriptsOfficial.Generic@DisableHandleActionOutHook,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/DisableHandleActionOutHook.cs
@@ -36,7 +37,7 @@ SplatoonScriptsOfficial.Generic@TurnAroundCmd,1,https://github.com/PunishXIV/Spl
 SplatoonScriptsOfficial.Generic@AetherSight,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AetherSight.cs
 SplatoonScriptsOfficial.Generic@ObjectExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ObjectExplorer.cs
 SplatoonScriptsOfficial.Generic@CommandOnLogin,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CommandOnLogin.cs
-SplatoonScriptsOfficial.Generic@QuestionableQuestQueue,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestionableQuestQueue.cs
+SplatoonScriptsOfficial.Generic@QuestionableQuestQueue,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestionableQuestQueue.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
 SplatoonScriptsOfficial.Generic@PlayerHighlighter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/PlayerHighlighter.cs
 SplatoonScriptsOfficial.Generic@FateVisualiser,0,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/FateVisualiser.cs
@@ -48,6 +49,7 @@ SplatoonScriptsOfficial.Generic@AutoUseItem,1,https://github.com/PunishXIV/Splat
 SplatoonScriptsOfficial.Generic@ForceSetDirection,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ForceSetDirection.cs
 SplatoonScriptsOfficial.Generic@Toast2Log,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Toast2Log.cs
 SplatoonScriptsOfficial.Generic@VnavmeshAlignCameraUnsetter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/VnavmeshAlignCameraUnsetter.cs
+SplatoonScriptsOfficial.Generic@Chat2Toast,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Chat2Toast.cs
 SplatoonScriptsOfficial.Generic@CloseReplayWindows,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CloseReplayWindows.cs
 SplatoonScriptsOfficial.Generic@CastExplorer,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CastExplorer.cs
 SplatoonScriptsOfficial.Generic@AutoDutyEnableTankStance,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoDutyEnableTankStance.cs
@@ -73,7 +75,6 @@ SplatoonScriptsOfficial.Tests@ActorControlTest,1,https://github.com/PunishXIV/Sp
 SplatoonScriptsOfficial.Tests@RedmoonTest1,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest1.cs
 SplatoonScriptsOfficial.Tests@OmegaMFResearch,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/OmegaMFResearch.cs
 SplatoonScriptsOfficial.Tests@ObjectEffectTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ObjectEffectTest.cs
-SplatoonScriptsOfficial.Tests@GenericTest10,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest10.cs
 SplatoonScriptsOfficial.Tests@GenericTest7,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest7.cs
 SplatoonScriptsOfficial.Tests@CustomOpenerTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/CustomOpenerTest.cs
 SplatoonScriptsOfficial.Tests@PriorityTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/PriorityTest.cs
@@ -121,7 +122,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@EXMH_Clamorous_Chase,3,https://github.c
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Quad_Beckon_Moonlight,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Quad Beckon Moonlight.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M7S_Blow_Seeds,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M7S Blow Seeds.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.AnotherMerchantTale@Pari_Rotation_Script,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Pari_Rotation_Script.cs
-SplatoonScriptsOfficial.Duties.Dawntrail@EX7_Gaze_of_the_Void,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX7_Gaze_of_the_Void.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@EX7_Gaze_of_the_Void,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EX7_Gaze_of_the_Void.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.AnotherMerchantTale@Pari_Carpet_Tracker,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Pari_Carpet_Tracker.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Idyllic_Dream_Tired,22,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M12S P2 Idyllic Dream Tired.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Elemental_Purge_Cleave,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Elemental Purge Cleave.cs
@@ -277,7 +278,7 @@ SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Limitless_Synergy,3,
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Hello_World_MoveGuide,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Hello World MoveGuide.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dynamis_Sigma,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dynamis Sigma.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@BSOD_Adjuster,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/BSOD Adjuster.cs
-SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Pantokrator,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Pantokrator.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Pantokrator,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Pantokrator.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@P6_MultiScript,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/P6 MultiScript.cs
 SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Dancer_Auto_Step,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Dancer Auto Step.cs
-SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Party_Synergy,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Party Synergy.cs
+SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol@Party_Synergy,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Endwalker/The Omega Protocol/Party Synergy.cs

@@ -1,38 +1,37 @@
-﻿using Dalamud.Interface;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using ECommons;
 using ECommons.Automation.NeoTaskManager;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
-using Player = ECommons.GameHelpers.LegacyPlayer.Player;
-using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Dalamud.Bindings.ImGui;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
-using Splatoon.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-using ECommons.DalamudServices.Legacy;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata? Metadata => new(5, "NightmareXIV");
+    public override Metadata Metadata => new(6, "NightmareXIV, Aly");
 
     [EzIPC("Questionable.IsRunning", false)] private Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] private Func<string, bool> QuestionableStartSingleQuest;
     [EzIPC("Questionable.StartQuest", false)] private Func<string, bool> QuestionableStartQuest;
     [EzIPC("Questionable.GetCurrentQuestId", false)] private Func<string> QuestionableGetCurrentQuestId;
+    [EzIPC("Questionable.ImportQuestPriority", false)] private Func<string, bool> QuestionableImportQuestPriority;
 
     [EzIPC("Lifestream.IsBusy", false)] public Func<bool> LifestreamIsBusy;
     [EzIPC("Lifestream.Teleport", false)] public Func<uint, byte, bool> LifestreamTeleport;
@@ -44,10 +43,12 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     private Dictionary<uint, string> Aethernets = [new KeyValuePair<uint, string>(0, "Disabled"), .. Svc.Data.GetExcelSheet<Aetheryte>().Where(x => !x.IsAetheryte && x.AethernetName.Value.Name != "").ToDictionary(x => x.RowId, x => x.AethernetName.Value.Name.GetText())];
 
     public bool IsNotified = false;
+    private bool questMapAvailable = false;
 
     public override void OnSetup()
     {
         EzIPC.Init(this);
+        questMapAvailable = Svc.Commands.Commands.ContainsKey("/questinfo");
     }
 
     private TaskManager TaskManager;
@@ -141,6 +142,30 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         {
             C.Quests.Add(new());
         }
+        ImGui.SameLine();
+
+        bool importButton = ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Import to QST");
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Left click: Import to QST priority list\nRight click: Copy to clipboard");
+        }
+        string clipboardPrefix = "qst:priority:";
+        char clipboardSeparator = ';';
+        string getPriorityPreset() => clipboardPrefix + Convert.ToBase64String(
+                    Encoding.UTF8.GetBytes(
+                        string.Join(
+                            clipboardSeparator, C.Quests.Select(x => x.ID.ToString())
+                        )
+                    )
+                );
+        if (importButton)
+        {
+            bool _ = QuestionableImportQuestPriority(getPriorityPreset());
+        }
+        else if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+        {
+            ImGui.SetClipboardText(getPriorityPreset());
+        }
         if(TaskManager.IsBusy)
         {
             ImGui.SameLine();
@@ -158,6 +183,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
             {
                 ImGui.PushID($"Quest{i}");
                 var q = C.Quests[i];
+                var quest = Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault(q.ID + 65536);
                 ImGui.TableNextRow();
                 DragDrop.SetRowColor(q.DragDropID);
                 ImGui.TableNextColumn();
@@ -167,10 +193,18 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
                 ImGui.Checkbox("##enabled", ref q.Enabled);
                 ImGui.SameLine();
                 ImGuiEx.ButtonCheckbox(FontAwesomeIcon.FastForward, ref q.Cont);
+                if(questMapAvailable)
+                {
+                    ImGui.SameLine();
+                    if (ImGuiComponents.IconButton(FontAwesomeIcon.Atlas))
+                        Svc.Commands.ProcessCommand($"/questinfo {q.ID}");
+
+                    if (ImGui.IsItemHovered())
+                        ImGui.SetTooltip($"Show information about '{quest?.Name ?? "Invalid quest"}' in Quest Map plugin.");
+                }
 
                 ImGui.TableNextColumn();
-                ImGui.SetNextItemWidth(100f);
-                var quest = Svc.Data.GetExcelSheet<Quest>().GetRowOrDefault(q.ID + 65536);
+                ImGui.SetNextItemWidth(50f);
                 ImGuiEx.InputUint($"{quest?.Name ?? "Invalid quest"}###questid", ref q.ID);
                 if(q.ID > 65536) q.ID -= 65536;
                 if(quest != null)

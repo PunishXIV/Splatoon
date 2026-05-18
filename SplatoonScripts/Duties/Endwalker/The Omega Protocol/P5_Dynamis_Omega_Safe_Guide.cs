@@ -16,7 +16,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
 {
     #region Metadata
-    public override Metadata Metadata { get; } = new(1, "mirage");
+    public override Metadata Metadata { get; } = new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryTop];
     #endregion
 

@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public class P3_Transition : SplatoonScript
 {
     #region Metadata
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryTop];
     #endregion
 

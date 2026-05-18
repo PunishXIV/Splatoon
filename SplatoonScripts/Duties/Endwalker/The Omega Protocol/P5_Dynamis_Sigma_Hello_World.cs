@@ -824,11 +824,11 @@ public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
     private IBattleNpc? FindNpcByDataId(uint dataId)
         => Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(x => x.DataId == dataId);
 
-    // Enables a nav element at position with rainbow tint and optional tether.
+    // Enables a nav element at position with Attention Color tint and optional tether.
     private void UpdateNavigation(string elementName, Vector3 position, bool tether)
     {
         if(!Controller.TryGetElementByName(elementName, out var element)) return;
-        element.color = ImGui.ColorConvertFloat4ToU32(GetRainbowColor(4d));
+        element.color = Controller.AttentionColor;
         element.SetRefPosition(position);
         element.tether = tether;
         element.Enabled = true;
@@ -881,40 +881,6 @@ public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
     {
         var n = degrees % 360f;
         return n < 0f ? n + 360f : n;
-    }
-
-    // Full-saturation RGBA that cycles hue over wall-clock time.
-    private Vector4 GetRainbowColor(double cycleSeconds)
-    {
-        if(cycleSeconds <= 0d) cycleSeconds = 1d;
-        var normalizedTime = Environment.TickCount64 / 1000d / cycleSeconds;
-        var hue = normalizedTime % 1f;
-        return HsvToVector4(hue, 1f, 1f);
-    }
-
-    // Converts HSV in [0,1] to linear RGB with alpha 1.
-    private static Vector4 HsvToVector4(double h, double s, double v)
-    {
-        double r = 0d;
-        double g = 0d;
-        double b = 0d;
-        var i = (int)(h * 6d);
-        var f = h * 6d - i;
-        var p = v * (1d - s);
-        var q = v * (1d - f * s);
-        var t = v * (1d - (1d - f) * s);
-
-        switch(i % 6)
-        {
-            case 0: r = v; g = t; b = p; break;
-            case 1: r = q; g = v; b = p; break;
-            case 2: r = p; g = v; b = t; break;
-            case 3: r = p; g = q; b = v; break;
-            case 4: r = t; g = p; b = v; break;
-            case 5: r = v; g = p; b = q; break;
-        }
-
-        return new Vector4((float)r, (float)g, (float)b, 1f);
     }
     #endregion
 }

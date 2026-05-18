@@ -45,8 +45,6 @@ public unsafe class P5_Dynamis_Sigma_Relative_Tower_Finder : SplatoonScript
     public const float PlayerRotateAngle = 22.5f;
     private const float AngleSnapStep = 22.5f;
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
-
-    private const double RainbowHueCycleSeconds = 4d;
     #endregion
 
     #region Config
@@ -254,7 +252,7 @@ public unsafe class P5_Dynamis_Sigma_Relative_Tower_Finder : SplatoonScript
             element.Enabled = false;
     }
 
-    // Points navigation tether at chosen tower with rainbow color.
+    // Points navigation tether at chosen tower; color follows Splatoon Attention Color.
     private void UpdateNavigationElement(ObjectInfo? targetTowerInfo)
     {
         if(!Controller.TryGetElementByName("navigation", out var element))
@@ -267,7 +265,7 @@ public unsafe class P5_Dynamis_Sigma_Relative_Tower_Finder : SplatoonScript
         }
 
         element.SetRefPosition(targetTowerInfo.Value.Object.Position);
-        element.color = ImGui.ColorConvertFloat4ToU32(GetRainbowColor(RainbowHueCycleSeconds));
+        element.color = Controller.AttentionColor;
         element.Enabled = true;
     }
 
@@ -278,39 +276,5 @@ public unsafe class P5_Dynamis_Sigma_Relative_Tower_Finder : SplatoonScript
     // One-line list of tower angles and single/dual type.
     private static string FormatObjectInfoList(List<ObjectInfo> infos)
         => $"[{string.Join(", ", infos.Select(x => $"{x.Angle} ({(x.Object.DataId == TowerSingle ? "Single" : "Dual")})"))}]";
-
-    // Full-saturation hue cycle for highlight color.
-    private Vector4 GetRainbowColor(double cycleSeconds)
-    {
-        if(cycleSeconds <= 0d) cycleSeconds = 1d;
-        var normalizedTime = Environment.TickCount64 / 1000d / cycleSeconds;
-        var hue = normalizedTime % 1f;
-        return HsvToVector4(hue, 1f, 1f);
-    }
-
-    // HSV in 0–1 to opaque RGBA for ImGui.
-    private static Vector4 HsvToVector4(double h, double s, double v)
-    {
-        double r = 0d;
-        double g = 0d;
-        double b = 0d;
-        var i = (int)(h * 6d);
-        var f = h * 6d - i;
-        var p = v * (1d - s);
-        var q = v * (1d - f * s);
-        var t = v * (1d - (1d - f) * s);
-
-        switch(i % 6)
-        {
-            case 0: r = v; g = t; b = p; break;
-            case 1: r = q; g = v; b = p; break;
-            case 2: r = p; g = v; b = t; break;
-            case 3: r = p; g = q; b = v; break;
-            case 4: r = t; g = p; b = v; break;
-            case 5: r = v; g = p; b = q; break;
-        }
-
-        return new Vector4((float)r, (float)g, (float)b, 1f);
-    }
     #endregion
 }

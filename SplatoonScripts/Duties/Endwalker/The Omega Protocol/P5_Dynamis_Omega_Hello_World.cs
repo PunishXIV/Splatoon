@@ -37,7 +37,6 @@ public class P5_Dynamis_Omega_Hello_World : SplatoonScript
     private const byte StatusDynamisTetherParam = 3;
     private const uint MarkerP1Unset = uint.MaxValue;
     private const float SettingsCellWidth = 150f;
-    private const double RainbowHueCycleSeconds = 4d;
 
     private const string ElSep = "Spread1_Separator";
     private const string ElS1C38_BaitFar1 = "S1_C38_BaitFar1";
@@ -568,50 +567,15 @@ public class P5_Dynamis_Omega_Hello_World : SplatoonScript
             EnableElement(n, true);
     }
 
-    // Turns on a registered layout element with tether and cycling rainbow tint (Sigma-style nav).
-    private void EnableElement(string elementName, bool isRainbow = true)
+    // Turns on a registered layout element with tether and Attention Color tint (Sigma-style nav).
+    private void EnableElement(string elementName, bool useAttentionColor = true)
     {
         if(!Controller.TryGetElementByName(elementName, out var element))
             return;
-        if(isRainbow)
-            element.color = ImGui.ColorConvertFloat4ToU32(GetRainbowColor(RainbowHueCycleSeconds));
+        if(useAttentionColor)
+            element.color = Controller.AttentionColor;
         element.tether = true;
         element.Enabled = true;
-    }
-
-    // Full-saturation RGBA that cycles hue over wall-clock time.
-    private Vector4 GetRainbowColor(double cycleSeconds)
-    {
-        if(cycleSeconds <= 0d)
-            cycleSeconds = 1d;
-        var normalizedTime = Environment.TickCount64 / 1000d / cycleSeconds;
-        var hue = normalizedTime % 1f;
-        return HsvToVector4(hue, 1f, 1f);
-    }
-
-    // Converts HSV in [0,1] to linear RGB with alpha 1.
-    private static Vector4 HsvToVector4(double h, double s, double v)
-    {
-        double r = 0d;
-        double g = 0d;
-        double b = 0d;
-        var i = (int)(h * 6d);
-        var f = h * 6d - i;
-        var p = v * (1d - s);
-        var q = v * (1d - f * s);
-        var t = v * (1d - (1d - f) * s);
-
-        switch(i % 6)
-        {
-            case 0: r = v; g = t; b = p; break;
-            case 1: r = q; g = v; b = p; break;
-            case 2: r = p; g = v; b = t; break;
-            case 3: r = p; g = q; b = v; break;
-            case 4: r = t; g = p; b = v; break;
-            case 5: r = v; g = p; b = q; break;
-        }
-
-        return new Vector4((float)r, (float)g, (float)b, 1f);
     }
 
     // Disables every registered spread layout element.

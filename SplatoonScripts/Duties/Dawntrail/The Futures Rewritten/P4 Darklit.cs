@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ECommons.Logging;
+using static Splatoon.Splatoon;
 
 using ECommons.DalamudServices.Legacy;
 
@@ -53,7 +54,7 @@ public class P4_Darklit : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(5, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(6, "Garume, NightmareXIV");
     private Config C => Controller.GetConfig<Config>();
 
     private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)
@@ -402,7 +403,7 @@ public class P4_Darklit : SplatoonScript
 
         if(_state == State.Tower)
         {
-            var myDirection = _players.Values.First(x => x.Name == Player.Name).Direction;
+            var myDirection = _players.Values.First(x => x.Name == BasePlayer.Name?.ToString()).Direction;
             foreach(var direction in Enum.GetValues<Direction>())
                 if(Controller.TryGetElementByName(direction.ToString(), out var element))
                 {
@@ -422,7 +423,7 @@ public class P4_Darklit : SplatoonScript
         }
         else if(_state == State.Stack)
         {
-            var myDirection = _players.Values.First(x => x.Name == Player.Name).Direction;
+            var myDirection = _players.Values.First(x => x.Name == BasePlayer?.Name.ToString()).Direction;
             var elementName = myDirection switch
             {
                 Direction.North => "StackBaitNorth",

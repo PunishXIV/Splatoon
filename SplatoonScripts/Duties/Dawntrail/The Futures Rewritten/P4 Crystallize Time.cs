@@ -68,7 +68,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
 
     private List<float> ExtraRandomness = [];
     private bool Initialized;
-    public override Metadata Metadata => new(13, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(14, "Garume, NightmareXIV");
 
     private float SpellInWaitingDebuffTime =>
         BasePlayer.StatusList?.FirstOrDefault(x => x.StatusId == (uint)Debuff.DelayReturn)?.RemainingTime ?? -1f;
@@ -351,6 +351,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
             (float)Random.Shared.NextDouble() - 0.5f, (float)Random.Shared.NextDouble() - 0.5f,
             (float)Random.Shared.NextDouble() - 0.5f, (float)Random.Shared.NextDouble() - 0.5f
         ];
+        MySplitPosition = "";
     }
 
     private Vector2 SwapXIfNecessary(Vector2 position)
@@ -395,6 +396,18 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         });
 
         Controller.RegisterElementFromCode("SplitPosition",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionNW",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionNE",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionSW",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionSE",
             "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
         Controller.RegisterElementFromCode("KBHelper",
@@ -446,6 +459,26 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
+        }
+
+        if(BasePlayer.StatusList.Any(x => x.StatusId == 4208 && x.RemainingTime.InRange(0.5f, 1.5f)))
+        {
+            if(BasePlayer.Position.X < 100 && BasePlayer.Position.Z < 100)
+            {
+                MySplitPosition = "NW";
+            }
+            if(BasePlayer.Position.X > 100 && BasePlayer.Position.Z > 100)
+            {
+                MySplitPosition = "SE";
+            }
+            if(BasePlayer.Position.X < 100 && BasePlayer.Position.Z > 100)
+            {
+                MySplitPosition = "SW";
+            }
+            if(BasePlayer.Position.X > 100 && BasePlayer.Position.Z < 100)
+            {
+                MySplitPosition = "NE";
+            }
         }
 
         var spr = GetStage().EqualsAny(MechanicStage.Step1_Spread, MechanicStage.Step2_FirstHourglass) &&
@@ -1111,6 +1144,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         }
     }
 
+    string MySplitPosition = "";
     private void Split()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
@@ -1119,6 +1153,13 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
             myElement.Enabled = true;
             myElement.tether = true;
             myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+        }
+
+        if(C.HighlightSplitPositionDynamic && Controller.TryGetElementByName($"SplitPosition{MySplitPosition}", out var splitElement))
+        {
+            splitElement.Enabled = true;
+            splitElement.tether = true;
+            splitElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
         }
 
         Alert(C.SplitText.Get());
@@ -1197,7 +1238,10 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
             ImGui.Unindent();
             ImGui.Separator();
 
-            ImGui.Checkbox("Highlight static Spirit taker position. ", ref C.HighlightSplitPosition);
+            if(ImGui.Checkbox("Highlight static Spirit taker position. ", ref C.HighlightSplitPosition))
+            {
+                C.HighlightSplitPositionDynamic = false;
+            }
             ImGuiEx.TextWrapped(EColor.RedBright,
                 "You must go to Registered Elements section and put \"SplitPosition\" element to where you want it to be. Go to Eden's Promise: Eternity undersized for a preview, if necessary.");
 
@@ -1220,6 +1264,14 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
                     ImGui.Unindent();
                 }
             }
+
+
+            if(ImGui.Checkbox("Highlight dynamic Spirit taker position. ", ref C.HighlightSplitPositionDynamic))
+            {
+                C.HighlightSplitPosition = false;
+            }
+            ImGuiEx.TextWrapped(EColor.RedBright,
+                "You must go to Registered Elements section and put \"SplitPositionNW\", \"SplitPositionNE\", \"SplitPositionSW\", \"SplitPositionSE\" elements to where you want it to be, depending on quarter in which you have placed return. Go to Eden's Promise: Eternity undersized for a preview, if necessary.");
 
             ImGui.Separator();
 
@@ -1646,6 +1698,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         public MoveType EastSentence = MoveType.BlueBlizzard;
 
         public bool HighlightSplitPosition;
+        public bool HighlightSplitPositionDynamic = false;
 
         public InternationalString HitDragonText = new() { En = "Hit Dragon", Jp = "竜に当たれ！" };
 

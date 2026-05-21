@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 public unsafe class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata Metadata => new(13, "Errer, NightmareXIV");
+    public override Metadata Metadata => new(14, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
     private bool IsClockwise = true;
@@ -274,6 +274,15 @@ public unsafe class P3_Apocalypse : SplatoonScript
                                     e.SetRefPosition(adjPos);
                                 }
                             }
+                            if(IsAdjust && C.TryGuessSwapPos)
+                            {
+                                Vector3? bestAdjustSpot = Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("Spreads")).OrderByDescending(x => Controller.GetPartyMembers().Where(p => !p.AddressEquals(BasePlayer)).Select(p => Vector2.Distance(p.Position.ToVector2(), x.Value.RefPosition.ToVector2())).Min()).FirstOrNull()?.Value.RefPosition;
+                                //PluginLog.Information($"Best adj: {bestAdjustSpot}");
+                                if(bestAdjustSpot != null)
+                                {
+                                    element.SetRefPosition(bestAdjustSpot.Value);
+                                }
+                            }
                         }
 
                     }
@@ -375,6 +384,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
             ImGui.Checkbox("Original groups for Dark Eruption", ref C.OriginalSpreads);
             ImGuiEx.Text($"Select 4 safe spot positions for your default group");
             ImGui.Checkbox("Different safe spot positions for clockwise/counter-clockwise", ref C.IsDifferentSafeSpots);
+            ImGui.Checkbox("Try to guess final swap position", ref C.TryGuessSwapPos);
             //-4  1  2
             //-3  0  3
             //-2 -1  4
@@ -475,6 +485,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
         public bool OriginalSpreads = false;
         public bool IsDifferentSafeSpots = false;
         public List<int> SelectedPositionsAlt = [];
+        public bool TryGuessSwapPos = false;
     }
 
     public class Priority4 : PriorityData

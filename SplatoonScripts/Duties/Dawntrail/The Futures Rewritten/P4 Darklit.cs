@@ -19,6 +19,8 @@ using ECommons.Logging;
 using static Splatoon.Splatoon;
 
 using ECommons.DalamudServices.Legacy;
+using Splatoon.Memory;
+using TerraFX.Interop.Windows;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
@@ -54,7 +56,7 @@ public class P4_Darklit : SplatoonScript
 
     private State _state = State.None;
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata Metadata => new(6, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(7, "Garume, NightmareXIV");
     private Config C => Controller.GetConfig<Config>();
 
     private IBattleChara? DarkGirl => Svc.Objects.Where(o => o.IsTargetable)
@@ -150,6 +152,32 @@ public class P4_Darklit : SplatoonScript
             radius = 1f,
             thicc = 6f
         });
+
+        Controller.RegisterElementFromCode($"SpreadTetherNW", """
+            {"Name":"","refX":93.0,"refY":93.0,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
+        Controller.RegisterElementFromCode($"SpreadTetherNE", """
+            {"Name":"","refX":107.0,"refY":93.0,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
+        Controller.RegisterElementFromCode($"SpreadTetherSW", """
+            {"Name":"","refX":93.0,"refY":107.0,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
+        Controller.RegisterElementFromCode($"SpreadTetherSE", """
+            {"Name":"","refX":107.0,"refY":107.0,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
+
+        Controller.RegisterElementFromCode($"SpreadNontetherNW", """
+            {"Name":"","refX":84.5,"refY":89.5,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
+        Controller.RegisterElementFromCode($"SpreadNontetherNE", """
+            {"Name":"","refX":115.5,"refY":89.5,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
+        Controller.RegisterElementFromCode($"SpreadNontetherSW", """
+            {"Name":"","refX":85.0,"refY":110.5,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
+        Controller.RegisterElementFromCode($"SpreadNontetherSE", """
+            {"Name":"","refX":115.0,"refY":110.5,"radius":1.0,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"tether":true,"overlayText":"<<< Spread >>>"}
+            """);
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
@@ -182,6 +210,7 @@ public class P4_Darklit : SplatoonScript
         if(_state != State.Start || source.GetObject() is not IPlayerCharacter sourcePlayer ||
             target.GetObject() is not IPlayerCharacter targetPlayer) return;
         var priority = C.PriorityData.GetPlayers(x => true).IndexOf(x => x.Name == sourcePlayer.Name.ToString());
+        PluginLog.Information($"Name: {sourcePlayer.Name.ToString()} | {C.PriorityData.GetPlayers(x => true).Select(x => x.Name).Print()}");
         _players[source] = new PlayerData
         {
             Name = sourcePlayer.Name.ToString(),
@@ -225,6 +254,7 @@ public class P4_Darklit : SplatoonScript
             }
             if(C.Mode == Mode.Vertical)
             {
+                PluginLog.Debug("Vertical");
                 var left = _players.Values.Where(x => x is { Priority: < 4, IsTether: true })
                     .OrderBy(x => x.Priority).ToList();
                 var right = _players.Values.Where(x => x is { Priority: >= 4, IsTether: true })
@@ -290,6 +320,7 @@ public class P4_Darklit : SplatoonScript
             }
             else
             {
+                PluginLog.Debug("Horizontal");
                 var up = _players.Values.Where(x => x is { Priority: < 4, IsTether: true })
                     .OrderBy(x => x.Priority).ToList();
                 var down = _players.Values.Where(x => x is { Priority: >= 4, IsTether: true })
@@ -395,10 +426,41 @@ public class P4_Darklit : SplatoonScript
 
     public override void OnUpdate()
     {
+        Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("Spread")).Each(x => x.Value.Enabled = false);
         if(_state is State.None or State.End)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
             return;
+        }
+
+        if(C.EnableSpotTether && Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsCasting(40288)))
+        {
+            var myData = this._players.First(x => x.Key == BasePlayer.GameObjectId);
+            Element? e = null;
+            if(myData.Value.IsTether)
+            {
+                var isWest = this._players.Where(x => x.Value.IsTether && x.Value.Direction == myData.Value.Direction).OrderBy(x => x.Value.Priority).First().Key == BasePlayer.GameObjectId;
+                if(isWest)
+                {
+                    e = Controller.GetElementByName(myData.Value.Direction == Direction.North ? "SpreadTetherNW" : "SpreadTetherSW");
+                }
+                else
+                {
+                    e = Controller.GetElementByName(myData.Value.Direction == Direction.North ? "SpreadTetherNE" : "SpreadTetherSE");
+                }
+            }
+            else
+            {
+                string element = "SpreadNontether" + myData.Value.Direction.ToString().Where(x => Char.IsUpper(x)).Print("");
+                //PluginLog.Information($"{element}");
+                e = Controller.GetElementByName(element);
+            }
+            if(e != null)
+            {
+                e.Enabled = true;
+                e.color = Controller.AttentionColor;
+                e.tether = true;
+            }
         }
 
         if(_state == State.Tower)
@@ -501,6 +563,8 @@ public class P4_Darklit : SplatoonScript
             ImGui.Checkbox("Show Tank 1st Bait Guide", ref C.ShowTank1stBait);
             ImGui.Checkbox("Show Tank 2nd Bait Guide", ref C.ShowTank2ndBait);
             ImGui.Unindent();
+
+            ImGui.Checkbox("(new) Enable experimental spirit taker spot", ref C.EnableSpotTether);
         }
 
         if(ImGuiEx.CollapsingHeader("Debug"))
@@ -574,6 +638,7 @@ public class P4_Darklit : SplatoonScript
 
     public class Config : IEzConfig
     {
+        public bool EnableSpotTether = false;
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
         public Vector4 BaitColor2 = 0xFFFFFF00.ToVector4();
         public BoxSwapType BoxSwapType = BoxSwapType.NorthWestAndSouthWest;

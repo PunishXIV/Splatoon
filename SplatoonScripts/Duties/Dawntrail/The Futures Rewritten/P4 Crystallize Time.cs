@@ -1,3 +1,4 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -6,6 +7,7 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
@@ -14,7 +16,6 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using Dalamud.Bindings.ImGui;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
@@ -25,12 +26,11 @@ using System.Linq;
 using System.Numerics;
 using System.Security.Cryptography;
 using Action = Lumina.Excel.Sheets.Action;
-
-using ECommons.DalamudServices.Legacy;
+using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
-public unsafe class P4_Crystallize_Time : SplatoonScript
+public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Config>
 {
     public enum Direction
     {
@@ -54,7 +54,6 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private readonly IEnumerable<uint> AllDebuffIds = Enum.GetValues<Debuff>().Cast<uint>();
 
     private Direction? _baseDirection = Direction.North;
-    private string _basePlayerOverride = "";
 
     private Direction _debugDirection1 = Direction.North;
     private Direction _debugDirection2 = Direction.North;
@@ -69,25 +68,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
 
     private List<float> ExtraRandomness = [];
     private bool Initialized;
-    public override Metadata? Metadata => new(12, "Garume, NightmareXIV");
-
-    public override Dictionary<int, string> Changelog => new()
-    {
-        [10] =
-            "A large addition of various functions as well as changes to general mechanic flow. Please validate settings and if possible verify that the script works fine in replay.",
-        [11] = "Added dragon explosion anticipation for eruption"
-    };
-
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(_basePlayerOverride == "")
-                return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
-        }
-    }
+    public override Metadata Metadata => new(14, "Garume, NightmareXIV");
 
     private float SpellInWaitingDebuffTime =>
         BasePlayer.StatusList?.FirstOrDefault(x => x.StatusId == (uint)Debuff.DelayReturn)?.RemainingTime ?? -1f;
@@ -98,8 +79,6 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private bool IsActive => Svc.Objects.Any(x => x.DataId == 17837) && !BasePlayer.IsDead;
 
     public override HashSet<uint>? ValidTerritories => [1238];
-
-    private Config C => Controller.GetConfig<Config>();
 
     private static IBattleNpc? WestDragon => Svc.Objects.Where(x => x is { DataId: 0x45AC, Position.X: <= 100 })
         .Select(x => x as IBattleNpc).First();
@@ -113,9 +92,14 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
 
     private MechanicStage GetStage()
     {
-        if(Svc.Objects.All(x => x.DataId != 17837)) return MechanicStage.Unknown;
+        if(Svc.Objects.All(x => x.DataId != 17837))
+        {
+            return MechanicStage.Unknown;
+        }
+
         var time = SpellInWaitingDebuffTime;
         if(time > 0)
+        {
             return time switch
             {
                 < 11.5f => MechanicStage.Step6_ThirdHourglass,
@@ -125,41 +109,69 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                 < 21.9f => MechanicStage.Step2_FirstHourglass,
                 _ => MechanicStage.Step1_Spread
             };
+        }
+
         var returnTime = ReturnDebuffTime;
         return returnTime > 0 ? MechanicStage.Step7_SpiritTaker : MechanicStage.Unknown;
     }
 
-
     public override void OnStartingCast(uint source, uint castId)
     {
-        if(GetStage() == MechanicStage.Unknown) return;
+        if(GetStage() == MechanicStage.Unknown)
+        {
+            return;
+        }
+
         if(castId == 40251 && source.GetObject() is { } sourceObject)
         {
             var direction = GetDirection(sourceObject.Position);
-            if(direction == null) return;
+            if(direction == null)
+            {
+                return;
+            }
+
             if(_firstWaveDirection == null)
+            {
                 _firstWaveDirection = direction;
+            }
             else
+            {
                 _secondWaveDirection = direction;
+            }
         }
     }
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if(GetStage() == MechanicStage.Unknown) return;
+        if(GetStage() == MechanicStage.Unknown)
+        {
+            return;
+        }
+
         if(vfxPath == "vfx/common/eff/dk02ht_zan0m.avfx" &&
             target.GetObject() is IBattleNpc piece &&
             _baseDirection == null)
         {
             var newDirection = GetDirection(piece.Position);
-            if(newDirection != null) _baseDirection = newDirection;
+            if(newDirection != null)
+            {
+                _baseDirection = newDirection;
+            }
         }
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
-        if(GetStage() == MechanicStage.Unknown) return;
-        if(source.GetObject() is not IBattleChara sourceObject) return;
+        if(GetStage() == MechanicStage.Unknown)
+        {
+            return;
+        }
+
+        if(source.GetObject() is not IBattleChara sourceObject)
+        {
+            return;
+        }
+
         if(data5 == 15)
         {
             switch(data3)
@@ -175,39 +187,83 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             if(_lateHourglassList.Count == 2 && _earlyHourglassList.Count == 2)
             {
                 var newDirection = GetDirection(_lateHourglassList[0].Position);
-                if(newDirection != null) _lateHourglassDirection = newDirection;
+                if(newDirection != null)
+                {
+                    _lateHourglassDirection = newDirection;
+                }
             }
         }
     }
 
     private static Direction? GetDirection(Vector3? positionNullable)
     {
-        if(positionNullable == null) return null;
+        if(positionNullable == null)
+        {
+            return null;
+        }
+
         var position = positionNullable.Value;
         var isNorth = position.Z < 95f;
         var isEast = position.X > 105f;
         var isSouth = position.Z > 105f;
         var isWest = position.X < 95f;
 
-        if(isNorth && isEast) return Direction.NorthEast;
-        if(isEast && isSouth) return Direction.SouthEast;
-        if(isSouth && isWest) return Direction.SouthWest;
-        if(isWest && isNorth) return Direction.NorthWest;
-        if(isNorth) return Direction.North;
-        if(isEast) return Direction.East;
-        if(isSouth) return Direction.South;
-        if(isWest) return Direction.West;
+        if(isNorth && isEast)
+        {
+            return Direction.NorthEast;
+        }
+
+        if(isEast && isSouth)
+        {
+            return Direction.SouthEast;
+        }
+
+        if(isSouth && isWest)
+        {
+            return Direction.SouthWest;
+        }
+
+        if(isWest && isNorth)
+        {
+            return Direction.NorthWest;
+        }
+
+        if(isNorth)
+        {
+            return Direction.North;
+        }
+
+        if(isEast)
+        {
+            return Direction.East;
+        }
+
+        if(isSouth)
+        {
+            return Direction.South;
+        }
+
+        if(isWest)
+        {
+            return Direction.West;
+        }
+
         return null;
     }
 
     public override void OnGainBuffEffect(uint sourceId, Status Status)
     {
-        if(!IsActive || Initialized || sourceId.GetObject() is not IPlayerCharacter player) return;
+        if(!IsActive || Initialized || sourceId.GetObject() is not IPlayerCharacter player)
+        {
+            return;
+        }
+
         var debuffs = player.StatusList.Where(x => AllDebuffIds.Contains(x.StatusId));
 
         _players.TryAdd(player.GameObjectId, new PlayerData { PlayerName = player.Name.ToString() });
 
         foreach(var debuff in debuffs)
+        {
             switch(debuff.StatusId)
             {
                 case (uint)Debuff.Red:
@@ -225,7 +281,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                     _players[player.GameObjectId].Debuff = (Debuff)debuff.StatusId;
                     break;
             }
-
+        }
 
         if(_players.All(x => x.Value.HasDebuff))
         {
@@ -252,6 +308,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             }
 
             foreach(var otherPlayer in _players.Where(x => x.Value.MoveType == null))
+            {
                 _players[otherPlayer.Key].MoveType = otherPlayer.Value.Debuff switch
                 {
                     Debuff.Holy => MoveType.BlueHoly,
@@ -260,15 +317,18 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                     Debuff.Eruption => MoveType.BlueEruption,
                     _ => _players[otherPlayer.Key].MoveType
                 };
-
+            }
 
             if(!string.IsNullOrEmpty(C.CommandWhenBlueDebuff) &&
                 BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Blue))
             {
                 var random = 0;
                 if(C.ShouldUseRandomWait)
+                {
                     random = RandomNumberGenerator.GetInt32((int)(C.WaitRange.X * 1000), (int)(C.WaitRange.Y * 1000));
-                Controller.Schedule(() => { Chat.Instance.ExecuteCommand(C.CommandWhenBlueDebuff); }, random);
+                }
+
+                Controller.Schedule(() => { Chat.ExecuteCommand(C.CommandWhenBlueDebuff); }, random);
             }
 
             Initialized = true;
@@ -291,32 +351,39 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             (float)Random.Shared.NextDouble() - 0.5f, (float)Random.Shared.NextDouble() - 0.5f,
             (float)Random.Shared.NextDouble() - 0.5f, (float)Random.Shared.NextDouble() - 0.5f
         ];
+        MySplitPosition = "";
     }
-
 
     private Vector2 SwapXIfNecessary(Vector2 position)
     {
         if(_lateHourglassDirection is Direction.NorthEast or Direction.SouthWest)
+        {
             return position;
-        var swapX = _center.X * 2 - position.X;
+        }
+
+        var swapX = (_center.X * 2) - position.X;
         return new Vector2(swapX, position.Y);
     }
 
     public override void OnSetup()
     {
         foreach(var move in Enum.GetValues<MoveType>())
+        {
             Controller.RegisterElement(move.ToString(), new Element(0)
             {
                 radius = 1f,
                 thicc = 6f
             });
+        }
 
         foreach(var stack in Enum.GetValues<WaveStack>())
+        {
             Controller.RegisterElement(stack + nameof(WaveStack), new Element(0)
             {
                 radius = 0.5f,
                 thicc = 6f
             });
+        }
 
         Controller.RegisterElement("Alert", new Element(1)
         {
@@ -329,6 +396,18 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         });
 
         Controller.RegisterElementFromCode("SplitPosition",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionNW",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionNE",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionSW",
+            "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode("SplitPositionSE",
             "{\"Name\":\"\",\"Enabled\":false,\"refX\":100.0,\"refY\":100.0,\"radius\":1.0,\"Filled\":false,\"fillIntensity\":0.5,\"overlayBGColor\":4278190080,\"overlayTextColor\":4294967295,\"thicc\":4.0,\"overlayText\":\"Spread!\",\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
 
         Controller.RegisterElementFromCode("KBHelper",
@@ -354,8 +433,12 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private static int GetPlayerOrder(IGameObject c)
     {
         for(var i = 1; i <= 8; i++)
-            if((nint)FakePronoun.Resolve($"<{i}>") == c.Address)
+        {
+            if((nint)ExtendedPronoun.Resolve($"<{i}>") == c.Address)
+            {
                 return i;
+            }
+        }
 
         return 0;
     }
@@ -363,9 +446,10 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private void HideAlert()
     {
         if(Controller.TryGetElementByName("Alert", out var element))
+        {
             element.Enabled = false;
+        }
     }
-
 
     public override void OnUpdate()
     {
@@ -377,13 +461,32 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             return;
         }
 
+        if(BasePlayer.StatusList.Any(x => x.StatusId == 4208 && x.RemainingTime.InRange(0.5f, 1.5f)))
+        {
+            if(BasePlayer.Position.X < 100 && BasePlayer.Position.Z < 100)
+            {
+                MySplitPosition = "NW";
+            }
+            if(BasePlayer.Position.X > 100 && BasePlayer.Position.Z > 100)
+            {
+                MySplitPosition = "SE";
+            }
+            if(BasePlayer.Position.X < 100 && BasePlayer.Position.Z > 100)
+            {
+                MySplitPosition = "SW";
+            }
+            if(BasePlayer.Position.X > 100 && BasePlayer.Position.Z < 100)
+            {
+                MySplitPosition = "NE";
+            }
+        }
+
         var spr = GetStage().EqualsAny(MechanicStage.Step1_Spread, MechanicStage.Step2_FirstHourglass) &&
                   BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Eruption) &&
                   SpellInWaitingDebuffTime < 25f && Svc.Objects.OfType<IPlayerCharacter>().Any(x =>
                       x.StatusList.Count(s => s.StatusId.EqualsAny((uint)Debuff.Red, (uint)Debuff.Blizzard)) == 2);
         Controller.GetElementByName("RedDragonExplosion1")!.Enabled = spr;
         Controller.GetElementByName("RedDragonExplosion2")!.Enabled = spr;
-
 
         {
             var e = Controller.GetElementByName("KBHelper")!;
@@ -409,7 +512,9 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         var forcedPosition = ResolveRedAeroMove();
         forcedPosition ??= ResolveRedBlizzardMove();
         if(myMove != null)
+        {
             foreach(var move in Enum.GetValues<MoveType>())
+            {
                 if(Controller.TryGetElementByName(move.ToString(), out var element))
                 {
                     if(GetStage() == MechanicStage.Step6_ThirdHourglass &&
@@ -427,14 +532,23 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                         element.Enabled = true;
                         element.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
                         element.tether = true;
-                        if(forcedPosition == null) continue;
+                        if(forcedPosition == null)
+                        {
+                            continue;
+                        }
+
                         element.SetOffPosition(forcedPosition.Value.ToVector3(0));
                         element.radius = 0.4f;
                     }
                 }
+            }
+        }
 
+        if(forcedPosition != null)
+        {
+            return;
+        }
 
-        if(forcedPosition != null) return;
         switch(GetStage())
         {
             case MechanicStage.Step1_Spread:
@@ -448,21 +562,36 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                 break;
             case MechanicStage.Step4_SecondHourglass:
                 if(C.HitTiming == HitTiming.Early && BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Red))
+                {
                     HitDragonAndAero();
+                }
                 else
+                {
                     BurnHourglassUniversal();
+                }
+
                 break;
             case MechanicStage.Step5_PerformDodges:
                 if(C.HitTiming == HitTiming.Late && BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Red))
+                {
                     HitDragonAndAero();
+                }
                 else
+                {
                     BurnHourglassUniversal();
+                }
+
                 break;
             case MechanicStage.Step6_ThirdHourglass:
                 if(BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Blue))
+                {
                     CorrectCleanse();
+                }
                 else
+                {
                     PlaceReturn();
+                }
+
                 break;
             case MechanicStage.Step7_SpiritTaker:
                 Split();
@@ -472,9 +601,18 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
 
     private void BurnHourglassUniversal()
     {
-        if(GetStage() < MechanicStage.Step2_FirstHourglass) BurnYellowHourglass();
-        else if(GetStage() < MechanicStage.Step4_SecondHourglass) BurnHourglass();
-        else if(GetStage() < MechanicStage.Step6_ThirdHourglass) BurnPurpleHourglass();
+        if(GetStage() < MechanicStage.Step2_FirstHourglass)
+        {
+            BurnYellowHourglass();
+        }
+        else if(GetStage() < MechanicStage.Step4_SecondHourglass)
+        {
+            BurnHourglass();
+        }
+        else if(GetStage() < MechanicStage.Step6_ThirdHourglass)
+        {
+            BurnPurpleHourglass();
+        }
     }
 
     private void AutoCast(uint actionId)
@@ -483,13 +621,17 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         {
             if(ActionManager.Instance()->GetActionStatus(ActionType.Action, actionId) == 0 &&
                 EzThrottler.Throttle(InternalData.FullName + "AutoCast", 100))
-                Chat.Instance.ExecuteAction(actionId);
+            {
+                Chat.ExecuteAction(actionId);
+            }
         }
         else
         {
             if(EzThrottler.Throttle(InternalData.FullName + "InformCast", 100))
+            {
                 DuoLog.Information(
                     $"Would use mitigation action {ExcelActionHelper.GetActionName(actionId)} if possible");
+            }
         }
     }
 
@@ -502,25 +644,33 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                 if(C.UseKbiAuto &&
                     BasePlayer.StatusList.Any(x =>
                         x.StatusId == (uint)Debuff.Return && x.RemainingTime < 2f + ExtraRandomness.SafeSelect(0)))
+                {
                     //7559 : surecast
                     //7548 : arm's length
                     UseAntiKb();
+                }
 
                 if(C.UseMitigation && C.MitigationAction != 0 &&
                     BasePlayer.StatusList.Any(x =>
                         x.StatusId == (uint)Debuff.Return && x.RemainingTime < 6f + ExtraRandomness.SafeSelect(1)))
+                {
                     AutoCast(C.MitigationAction);
+                }
 
                 if(C.UseTankMitigation && C.TankMitigationAction != 0 &&
                     BasePlayer.StatusList.Any(x =>
                         x.StatusId == (uint)Debuff.Return && x.RemainingTime < 6f + ExtraRandomness.SafeSelect(1)))
+                {
                     AutoCast(C.TankMitigationAction);
+                }
 
                 if(C is { UseSprintAuto: true, ShouldGoNorthRedBlizzard: true } &&
                     BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Red) &&
                     BasePlayer.StatusList.Any(x =>
                         x.StatusId == (uint)Debuff.Blizzard && x.RemainingTime < 1f + ExtraRandomness.SafeSelect(3)))
+                {
                     AutoCast(29057);
+                }
             }
         }
         catch(Exception e)
@@ -532,17 +682,24 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private void UseAntiKb()
     {
         foreach(var x in (uint[])[7559, 7548])
+        {
             if(!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
             {
                 if(ActionManager.Instance()->GetActionStatus(ActionType.Action, x) == 0 &&
-                    EzThrottler.Throttle(InternalData.FullName + "AutoCast", 100)) Chat.Instance.ExecuteAction(x);
+                    EzThrottler.Throttle(InternalData.FullName + "AutoCast", 100))
+                {
+                    Chat.ExecuteAction(x);
+                }
             }
             else
             {
                 if(EzThrottler.Throttle(InternalData.FullName + "InformCast", 100))
+                {
                     DuoLog.Information(
                         $"Would use kb immunity action {ExcelActionHelper.GetActionName(x)} if possible");
+                }
             }
+        }
     }
 
     private void BurnYellowHourglass()
@@ -711,13 +868,18 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
 
         var myMove = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType;
         if(myMove is MoveType.RedAeroEast or MoveType.RedAeroWest)
+        {
             Alert(C.HitDragonText.Get());
+        }
     }
 
     private string SwapIfNecessary(MoveType move)
     {
         if(_lateHourglassDirection is Direction.NorthEast or Direction.SouthWest)
+        {
             return move.ToString();
+        }
+
         return move switch
         {
             MoveType.RedBlizzardWest => MoveType.RedBlizzardEast.ToString(),
@@ -749,13 +911,21 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             else
             {
                 if(player == C.WestSentence)
+                {
                     direction = Direction.West;
+                }
                 else if(player == C.SouthWestSentence)
+                {
                     direction = Direction.SouthWest;
+                }
                 else if(player == C.SouthEastSentence)
+                {
                     direction = Direction.SouthEast;
+                }
                 else if(player == C.EastSentence)
+                {
                     direction = Direction.East;
+                }
             }
 
             var cleanses = Cleanses.ToArray();
@@ -777,19 +947,29 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         }
 
         if(BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Blue))
+        {
             Alert(C.CleanseText.Get());
+        }
         else
+        {
             HideAlert();
+        }
     }
 
     private void PlaceReturn()
     {
         if(C.NukemaruRewind)
+        {
             NukemaruPlaceReturn();
+        }
         else if(C.KBIRewind)
+        {
             KBIPlaceReturn();
+        }
         else
+        {
             DefaultPlaceReturn();
+        }
 
         Alert(C.PlaceReturnText.Get());
     }
@@ -940,6 +1120,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         }
 
         foreach(var stack in Enum.GetValues<WaveStack>())
+        {
             if(Controller.TryGetElementByName(stack + nameof(WaveStack), out var element))
             {
                 element.Enabled = C.ShowOther;
@@ -953,6 +1134,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                     _ => throw new InvalidOperationException()
                 });
             }
+        }
 
         if(Controller.TryGetElementByName(myStack + nameof(WaveStack), out var myElement))
         {
@@ -962,6 +1144,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         }
     }
 
+    string MySplitPosition = "";
     private void Split()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
@@ -970,6 +1153,13 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             myElement.Enabled = true;
             myElement.tether = true;
             myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+        }
+
+        if(C.HighlightSplitPositionDynamic && Controller.TryGetElementByName($"SplitPosition{MySplitPosition}", out var splitElement))
+        {
+            splitElement.Enabled = true;
+            splitElement.tether = true;
+            splitElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
         }
 
         Alert(C.SplitText.Get());
@@ -1020,12 +1210,16 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
                     if(Math.Abs(minWait - C.WaitRange.X) > 0.01f)
                     {
                         if(C.WaitRange.X > C.WaitRange.Y)
+                        {
                             C.WaitRange.Y = C.WaitRange.X;
+                        }
                     }
                     else if(Math.Abs(maxWait - C.WaitRange.Y) > 0.01f)
                     {
                         if(C.WaitRange.Y < C.WaitRange.X)
+                        {
                             C.WaitRange.X = C.WaitRange.Y;
+                        }
                     }
                 }
 
@@ -1044,11 +1238,15 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             ImGui.Unindent();
             ImGui.Separator();
 
-            ImGui.Checkbox("Highlight static Spirit taker position. ", ref C.HighlightSplitPosition);
+            if(ImGui.Checkbox("Highlight static Spirit taker position. ", ref C.HighlightSplitPosition))
+            {
+                C.HighlightSplitPositionDynamic = false;
+            }
             ImGuiEx.TextWrapped(EColor.RedBright,
                 "You must go to Registered Elements section and put \"SplitPosition\" element to where you want it to be. Go to Eden's Promise: Eternity undersized for a preview, if necessary.");
 
             if(C.HighlightSplitPosition)
+            {
                 if(Controller.TryGetElementByName("SplitPosition", out var element))
                 {
                     ImGui.Indent();
@@ -1065,6 +1263,15 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
 
                     ImGui.Unindent();
                 }
+            }
+
+
+            if(ImGui.Checkbox("Highlight dynamic Spirit taker position. ", ref C.HighlightSplitPositionDynamic))
+            {
+                C.HighlightSplitPosition = false;
+            }
+            ImGuiEx.TextWrapped(EColor.RedBright,
+                "You must go to Registered Elements section and put \"SplitPositionNW\", \"SplitPositionNE\", \"SplitPositionSW\", \"SplitPositionSE\" elements to where you want it to be, depending on quarter in which you have placed return. Go to Eden's Promise: Eternity undersized for a preview, if necessary.");
 
             ImGui.Separator();
 
@@ -1077,8 +1284,13 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             ImGui.Checkbox("Nukemaru's return positions", ref nukemaruRewind);
 
             if(!C.KBIRewind && kbiRewind)
+            {
                 nukemaruRewind = false;
-            else if(!C.NukemaruRewind && nukemaruRewind) kbiRewind = false;
+            }
+            else if(!C.NukemaruRewind && nukemaruRewind)
+            {
+                kbiRewind = false;
+            }
 
             C.KBIRewind = kbiRewind;
             C.NukemaruRewind = nukemaruRewind;
@@ -1209,17 +1421,6 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         if(ImGuiEx.CollapsingHeader("Debug"))
         {
             ImGuiEx.Text($"Stage: {GetStage()}, remaining time = {SpellInWaitingDebuffTime}");
-            ImGui.SetNextItemWidth(200);
-            ImGui.InputText("Player override", ref _basePlayerOverride, 50);
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(200);
-            if(ImGui.BeginCombo("Select..", "Select..."))
-            {
-                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>())
-                    if(ImGui.Selectable(x.GetNameWithWorld()))
-                        _basePlayerOverride = x.Name.ToString();
-                ImGui.EndCombo();
-            }
 
             ImGui.Text($"Base Direction: {_baseDirection.ToString()}");
             ImGui.Text($"Late Hourglass Direction: {_lateHourglassDirection.ToString()}");
@@ -1249,8 +1450,13 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         uint p6, uint p7, uint p8, ulong targetId,
         byte replaying)
     {
-        if(GetStage() == MechanicStage.Unknown) return;
+        if(GetStage() == MechanicStage.Unknown)
+        {
+            return;
+        }
+
         if(command == 502)
+        {
             try
             {
                 _players[p2].Marker = (MarkerType)p1;
@@ -1259,12 +1465,17 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             {
                 PluginLog.Warning($"GameObjectId:{p2} was not found");
             }
+        }
     }
 
     private Vector2? ResolveRedAeroMove()
     {
         if(_players.SafeSelect(BasePlayer.GameObjectId)?.MoveType?
-                .EqualsAny(MoveType.RedAeroEast, MoveType.RedAeroWest) != true) return null;
+                .EqualsAny(MoveType.RedAeroEast, MoveType.RedAeroWest) != true)
+        {
+            return null;
+        }
+
         var isPlayerWest = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType == MoveType.RedAeroWest;
         var isLateHourglassSameSide =
             _lateHourglassDirection is Direction.NorthEast or Direction.SouthWest == isPlayerWest;
@@ -1276,7 +1487,9 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
             case MechanicStage.Step2_FirstHourglass when isLateHourglassSameSide:
                 {
                     if(BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Aero))
+                    {
                         return MirrorX(RedAeroEastMovements.Step2_KnockPlayers, isPlayerWest);
+                    }
 
                     Alert(C.HitDragonText.Get());
                     return (isPlayerWest ? WestDragon : EastDragon)?.Position.ToVector2();
@@ -1320,7 +1533,11 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private Vector2? ResolveRedBlizzardMove()
     {
         if(_players.SafeSelect(BasePlayer.GameObjectId)?.MoveType?.EqualsAny(MoveType.RedBlizzardWest,
-                MoveType.RedBlizzardEast) != true) return null;
+                MoveType.RedBlizzardEast) != true)
+        {
+            return null;
+        }
+
         var isPlayerWest = _players.SafeSelect(BasePlayer.GameObjectId)?.MoveType == MoveType.RedBlizzardWest;
         var isLateHourglassSameSide =
             (_lateHourglassDirection == Direction.NorthEast || _lateHourglassDirection == Direction.SouthWest) ==
@@ -1328,11 +1545,18 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         var stage = GetStage();
         if(stage <= MechanicStage.Step5_PerformDodges)
         {
-            if(BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Red)) return null;
+            if(BasePlayer.StatusList.Any(x => x.StatusId == (uint)Debuff.Red))
+            {
+                return null;
+            }
+
             if(isLateHourglassSameSide)
             {
                 if(stage <= MechanicStage.Step4_SecondHourglass && !C.ShouldGoNorthRedBlizzard)
+                {
                     return MirrorX(new Vector2(119, 103), isPlayerWest);
+                }
+
                 return MirrorX(new Vector2(105, 82), isPlayerWest);
             }
 
@@ -1345,11 +1569,14 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
     private static Vector2 MirrorX(Vector2 x, bool mirror)
     {
         if(mirror)
+        {
             return x with { X = 100f - Math.Abs(x.X - 100f) };
+        }
+
         return x;
     }
 
-    private enum Debuff : uint
+    public enum Debuff : uint
     {
         Red = 0xCBF,
         Blue = 0xCC0,
@@ -1363,14 +1590,13 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         Return = 0x994
     }
 
-
-    private enum HitTiming
+    public enum HitTiming
     {
         Early,
         Late
     }
 
-    private enum MarkerType : uint
+    public enum MarkerType : uint
     {
         Attack1 = 0,
         Attack2 = 1,
@@ -1378,7 +1604,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         Attack4 = 3
     }
 
-    private enum MoveType
+    public enum MoveType
     {
         RedBlizzardWest,
         RedBlizzardEast,
@@ -1390,7 +1616,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         BlueEruption
     }
 
-    private enum WaveStack
+    public enum WaveStack
     {
         WestTank,
         EastTank,
@@ -1398,7 +1624,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         East
     }
 
-    private enum MechanicStage
+    public enum MechanicStage
     {
         Unknown,
 
@@ -1442,7 +1668,6 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         Step7_SpiritTaker
     }
 
-
     private record PlayerData
     {
         public Debuff? Color;
@@ -1463,7 +1688,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         public static Vector2 Step4_DodgeExa = new(100, 117);
     }
 
-    private class Config : IEzConfig
+    public class Config : IEzConfig
     {
         public InternationalString AvoidWaveText = new() { En = "Avoid Wave", Jp = "波をよけろ！" };
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();
@@ -1473,6 +1698,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         public MoveType EastSentence = MoveType.BlueBlizzard;
 
         public bool HighlightSplitPosition;
+        public bool HighlightSplitPositionDynamic = false;
 
         public InternationalString HitDragonText = new() { En = "Hit Dragon", Jp = "竜に当たれ！" };
 
@@ -1503,7 +1729,6 @@ public unsafe class P4_Crystallize_Time : SplatoonScript
         public bool ShouldGoNorthRedBlizzard;
 
         public bool ShouldUseRandomWait = true;
-
 
         public bool ShowOther;
         public MoveType SouthEastSentence = MoveType.BlueHoly;

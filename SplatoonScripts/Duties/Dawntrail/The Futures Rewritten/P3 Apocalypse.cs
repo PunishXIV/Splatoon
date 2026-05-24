@@ -1,14 +1,15 @@
-﻿using Dalamud.Game.ClientState.Objects.SubKinds;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using Dalamud.Bindings.ImGui;
 using NightmareUI.PrimaryUI;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
@@ -18,15 +19,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
-
-using ECommons.DalamudServices.Legacy;
+using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.The_Futures_Rewritten;
 
 public unsafe class P3_Apocalypse : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1238];
-    public override Metadata? Metadata => new(12, "Errer, NightmareXIV");
+    public override Metadata Metadata => new(14, "Errer, NightmareXIV");
     public long StartTime = 0;
     private bool IsAdjust = false;
     private bool IsClockwise = true;
@@ -115,7 +115,10 @@ public unsafe class P3_Apocalypse : SplatoonScript
 
     public override void OnStartingCast(uint source, uint castId)
     {
-        if(castId == 40296) StartTime = Environment.TickCount64;
+        if(castId == 40296)
+        {
+            StartTime = Environment.TickCount64;
+        }
     }
 
     public override void OnReset()
@@ -153,14 +156,14 @@ public unsafe class P3_Apocalypse : SplatoonScript
         {
             if(NumDebuffs == 6 && Svc.Objects.OfType<IPlayerCharacter>().Any(s => GetDebuffTime(s) > 31))
             {
-                var selfDebuffTime = GetDebuffTime(Player.Object);
+                var selfDebuffTime = GetDebuffTime(BasePlayer);
                 if(C.Priority.GetOwnIndex(x => Math.Abs(GetDebuffTime((IPlayerCharacter)x.IGameObject) - selfDebuffTime) < 1, true) == 1)
                 {
                     IsAdjust = true;
                     var positionToAdjust = Positions[GetValidPositions(true)[2]];
                     if(Controller.TryGetElementByName("Adjust", out var e))
                     {
-                        e.Enabled = Player.DistanceTo(positionToAdjust) > 5;
+                        e.Enabled = Vector2.Distance(BasePlayer.Position.ToVector2(), positionToAdjust) > 5;
                         e.SetRefPosition(positionToAdjust.ToVector3(0));
                     }
                 }
@@ -180,9 +183,17 @@ public unsafe class P3_Apocalypse : SplatoonScript
                     {
                         var gaiaAngle = (180 + 360 - MathHelper.GetRelativeAngle(new(100, 0, 100), gaia.Position)) % 360;
                         var a = -1;
-                        if(C.IsLeftStack) a *= -1;
-                        if(IsAdjust) a *= -1;
-                        var adjustedAngle = ((gaiaAngle + a * 20 + 360) % 360);
+                        if(C.IsLeftStack)
+                        {
+                            a *= -1;
+                        }
+
+                        if(IsAdjust)
+                        {
+                            a *= -1;
+                        }
+
+                        var adjustedAngle = (gaiaAngle + (a * 20) + 360) % 360;
                         var adjustedPoint = MathHelper.GetPointFromAngleAndDistance(new(100, 100), adjustedAngle.DegreesToRadians(), 8f).ToVector3(0);
                         var stk = Controller.GetElementByName("Stack")!;
                         stk.SetRefPosition(adjustedPoint);
@@ -205,9 +216,21 @@ public unsafe class P3_Apocalypse : SplatoonScript
         {
             var rot = close.Rotation.RadToDeg();
             var angle = 0;
-            if(rot.InRange(22, 22 + 45) || rot.InRange(180 + 22, 180 + 22 + 45)) angle = 45 * 3;
-            if(rot.InRange(22 + 45, 22 + 45 * 2) || rot.InRange(180 + 22 + 45, 180 + 22 + 45 * 2)) angle = 45 * 2;
-            if(rot.InRange(22 + 45 * 2, 22 + 45 * 3) || rot.InRange(180 + 22 + 45 * 2, 180 + 22 + 45 * 3)) angle = 45;
+            if(rot.InRange(22, 22 + 45) || rot.InRange(180 + 22, 180 + 22 + 45))
+            {
+                angle = 45 * 3;
+            }
+
+            if(rot.InRange(22 + 45, 22 + (45 * 2)) || rot.InRange(180 + 22 + 45, 180 + 22 + (45 * 2)))
+            {
+                angle = 45 * 2;
+            }
+
+            if(rot.InRange(22 + (45 * 2), 22 + (45 * 3)) || rot.InRange(180 + 22 + (45 * 2), 180 + 22 + (45 * 3)))
+            {
+                angle = 45;
+            }
+
             IsClockwise = far.Rotation.RadToDeg().InRange(45, 45 + 90);
             var set = IsClockwise ? Clockwise : CounterClockwise;
             if(C.ShowInitialApocMove && Phase < 15000)
@@ -249,6 +272,15 @@ public unsafe class P3_Apocalypse : SplatoonScript
                                     e.Enabled = true;
                                     var adjPos = MathHelper.RotateWorldPoint(new(100, 0, 100), adjustAngle.DegreesToRadians(), (IsClockwise ? Spreads : SpreadsInverted)[s].ToVector3(0));
                                     e.SetRefPosition(adjPos);
+                                }
+                            }
+                            if(IsAdjust && C.TryGuessSwapPos)
+                            {
+                                Vector3? bestAdjustSpot = Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("Spreads")).OrderByDescending(x => Controller.GetPartyMembers().Where(p => !p.AddressEquals(BasePlayer)).Select(p => Vector2.Distance(p.Position.ToVector2(), x.Value.RefPosition.ToVector2())).Min()).FirstOrNull()?.Value.RefPosition;
+                                //PluginLog.Information($"Best adj: {bestAdjustSpot}");
+                                if(bestAdjustSpot != null)
+                                {
+                                    element.SetRefPosition(bestAdjustSpot.Value);
                                 }
                             }
                         }
@@ -304,7 +336,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
             {
                 for(var i = 0; i < 6; i++)
                 {
-                    if(Phase < InitialDelay + Delay * i)
+                    if(Phase < InitialDelay + (Delay * i))
                     {
                         Draw(set[i], angle);
                         if(i < 5)
@@ -331,7 +363,10 @@ public unsafe class P3_Apocalypse : SplatoonScript
 
     private void ResolvePrio()
     {
-        if(C.SelectedPositions.Count != 4) return;
+        if(C.SelectedPositions.Count != 4)
+        {
+            return;
+        }
     }
 
     public override void OnSettingsDraw()
@@ -349,6 +384,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
             ImGui.Checkbox("Original groups for Dark Eruption", ref C.OriginalSpreads);
             ImGuiEx.Text($"Select 4 safe spot positions for your default group");
             ImGui.Checkbox("Different safe spot positions for clockwise/counter-clockwise", ref C.IsDifferentSafeSpots);
+            ImGui.Checkbox("Try to guess final swap position", ref C.TryGuessSwapPos);
             //-4  1  2
             //-3  0  3
             //-2 -1  4
@@ -360,9 +396,17 @@ public unsafe class P3_Apocalypse : SplatoonScript
                     foreach(var b in a)
                     {
                         var dis = b == 0 || (selectedPositions.Count >= 4 && !selectedPositions.Contains(b));
-                        if(dis) ImGui.BeginDisabled();
+                        if(dis)
+                        {
+                            ImGui.BeginDisabled();
+                        }
+
                         ImGuiEx.CollectionCheckbox($"##{b}", b, selectedPositions);
-                        if(dis) ImGui.EndDisabled();
+                        if(dis)
+                        {
+                            ImGui.EndDisabled();
+                        }
+
                         ImGui.SameLine();
                     }
                     ImGui.NewLine();
@@ -441,6 +485,7 @@ public unsafe class P3_Apocalypse : SplatoonScript
         public bool OriginalSpreads = false;
         public bool IsDifferentSafeSpots = false;
         public List<int> SelectedPositionsAlt = [];
+        public bool TryGuessSwapPos = false;
     }
 
     public class Priority4 : PriorityData

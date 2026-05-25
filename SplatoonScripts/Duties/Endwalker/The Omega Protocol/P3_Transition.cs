@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public class P3_Transition : SplatoonScript
 {
     #region Metadata
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryTop];
     #endregion
 
@@ -71,7 +71,6 @@ public class P3_Transition : SplatoonScript
     private const int MaxWaveStage = 6;
     private const int WaveStageIdle = -1;
     private const int MinPartySize = 8;
-    private const double RainbowHueCycleSeconds = 4d;
 
     #endregion
 
@@ -495,48 +494,11 @@ public class P3_Transition : SplatoonScript
         if(!Controller.TryGetElementByName(elementName, out var element)) return;
         element.Enabled = true;
         element.tether = true;
-        element.color = GetRainbowColor(RainbowHueCycleSeconds).ToUint();
+        element.color = Controller.AttentionColor;
         if(additionalRotationRadians.HasValue)
         {
             element.AdditionalRotation = additionalRotationRadians.Value;
         }
-    }
-
-    // Full-saturation hue cycle for highlight tint on overlays.
-    private Vector4 GetRainbowColor(double cycleSeconds)
-    {
-        if(cycleSeconds <= 0d)
-        {
-            cycleSeconds = 1d;
-        }
-
-        var tickMilliseconds = Environment.TickCount64;
-        var normalizedTime = tickMilliseconds / 1000d / cycleSeconds;
-        var hue = normalizedTime % 1f;
-        return HsvToVector4(hue, 1f, 1f);
-    }
-
-    // HSV in 0–1 space to RGBA for ImGui tint conversion.
-    private static Vector4 HsvToVector4(double h, double s, double v)
-    {
-        double r = 0f, g = 0f, b = 0f;
-        var i = (int)(h * 6f);
-        var f = h * 6f - i;
-        var p = v * (1f - s);
-        var q = v * (1f - f * s);
-        var t = v * (1f - (1f - f) * s);
-
-        switch(i % 6)
-        {
-            case 0: r = v; g = t; b = p; break;
-            case 1: r = q; g = v; b = p; break;
-            case 2: r = p; g = v; b = t; break;
-            case 3: r = p; g = q; b = v; break;
-            case 4: r = t; g = p; b = v; break;
-            case 5: r = v; g = p; b = q; break;
-        }
-
-        return new Vector4((float)r, (float)g, (float)b, 1f);
     }
 
     // Maps compass slot and triangle/reverse pattern to left vs right overlay set.

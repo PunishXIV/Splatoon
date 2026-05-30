@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Authors>NightmareXIV</Authors>
-		<Version>3.9.1.13</Version>
+		<Version>3.9.1.14</Version>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -21,6 +21,7 @@
     <Deterministic>true</Deterministic>
     <CustomCS>false</CustomCS>
       <WarningsAsErrors>RS0030</WarningsAsErrors>
+      <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
 	</PropertyGroup>
     
     <ItemGroup Condition="'$(CustomCS)' != 'true'">

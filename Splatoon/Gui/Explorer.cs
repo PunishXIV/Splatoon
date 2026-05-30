@@ -89,6 +89,7 @@ internal static unsafe class Explorer
             ImGuiEx.TextCopy($"EventState:  {c.Struct()->EventState}");
             ImGuiEx.TextCopy($"VFX Container:  {(nint)(&c.Struct()->Vfx):X16}");
             ImGuiEx.TextCopy($"StatusLoopVfxId:  {c.Struct()->StatusLoopVfxId}");
+            ImGuiEx.TextCopy($"Animation:  {c.Struct()->Timeline.AnimationState.ToArray().Print()}");
             ImGuiEx.TextCopy($"Tethers:  {c.Struct()->Vfx.Tethers.ToArray().Select(x => $"ID: {x.Id} Progress: {x.Progress} Target: {x.TargetId.ObjectId:X8}").Print(" | ")}");
             ImGuiEx.Text("VFX");
             if(c.TryGetVfx(out var fx))

@@ -2,13 +2,17 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons.Configuration;
 using ECommons.GameFunctions;
+using ECommons.GameHelpers.LegacyPlayer;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
+using Splatoon.Gui.Priority;
+using Splatoon.SplatoonScripting.Priority;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.DirectoryServices.ActiveDirectory;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
+using TerraFX.Interop.Windows;
 #nullable enable
 namespace Splatoon.SplatoonScripting;
 
@@ -394,6 +398,25 @@ public unsafe class Controller
             {
                 x.Value.Enabled = false;
             }
+        }
+    }
+
+    public RolePosition RolePosition
+    {
+        get
+        {
+            if(P.PriorityPopupWindow?.Assignments != null)
+            {
+                for(var i = 0; i < P.PriorityPopupWindow.Assignments.Count; i++)
+                {
+                    var ass = P.PriorityPopupWindow.Assignments[i];
+                    if(ass.IsInParty(false, out var m) && m.NameWithWorld == BasePlayer.GetNameWithWorld())
+                    {
+                        return PriorityPopupWindow.RolePositions.SafeSelect(i);
+                    }
+                }
+            }
+            return default;
         }
     }
 }

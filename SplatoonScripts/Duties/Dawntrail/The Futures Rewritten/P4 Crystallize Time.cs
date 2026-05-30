@@ -417,6 +417,19 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
             "{\"Name\":\"\",\"refX\":87.5,\"refY\":98.0,\"refZ\":1.9073486E-06,\"radius\":13.0,\"color\":3372155112,\"fillIntensity\":0.5,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
         Controller.RegisterElementFromCode("RedDragonExplosion2",
             "{\"Name\":\"\",\"refX\":112.5,\"refY\":98.0,\"refZ\":1.9073486E-06,\"radius\":13.0,\"color\":3372155112,\"fillIntensity\":0.5,\"refActorTetherTimeMin\":0.0,\"refActorTetherTimeMax\":0.0}");
+
+        Controller.RegisterElementFromCode($"LPDURewind_DpsLeft", """
+            {"Name":"dps left","Enabled":false,"refX":91.0,"refY":93.5,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":10.0,"tether":true,"LineEndA":1}
+            """);
+        Controller.RegisterElementFromCode($"LPDURewind_DpsRight", """
+            {"Name":"dps right","Enabled":false,"refX":93.19609,"refY":91.14681,"radius":1.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":10.0,"tether":true,"LineEndA":1}
+            """);
+        Controller.RegisterElementFromCode($"LPDURewind_TankLeft", """
+            {"Name":"tank left","Enabled":false,"refX":88.0,"refY":92.0,"radius":0.7,"color":3355508706,"Filled":false,"fillIntensity":0.5,"thicc":10.0,"tether":true,"LineEndA":1}
+            """);
+        Controller.RegisterElementFromCode($"LPDURewind_TankRight", """
+            {"Name":"tank right","Enabled":false,"refX":92.0,"refY":88.0,"radius":0.7,"color":3355508706,"Filled":false,"fillIntensity":0.5,"thicc":10.0,"tether":true,"LineEndA":1}
+            """);
     }
 
     private void Alert(string text)
@@ -966,6 +979,10 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         {
             KBIPlaceReturn();
         }
+        else if(C.LPDURewind)
+        {
+            LPDUPlaceReturn();
+        }
         else
         {
             DefaultPlaceReturn();
@@ -1282,6 +1299,11 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
             var nukemaruRewind = C.NukemaruRewind;
             ImGui.Checkbox("Knockback immunity return positions (beta)", ref kbiRewind);
             ImGui.Checkbox("Nukemaru's return positions", ref nukemaruRewind);
+            if(ImGui.Checkbox("LPDU positions", ref C.LPDURewind))
+            {
+                C.KBIRewind = false;
+                C.NukemaruRewind = false;
+            }
 
             if(!C.KBIRewind && kbiRewind)
             {
@@ -1305,7 +1327,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
                 ImGui.Unindent();
             }
 
-            if(C is { KBIRewind: false, NukemaruRewind: false })
+            if(C is { KBIRewind: false, NukemaruRewind: false, LPDURewind: false })
             {
                 ImGui.Checkbox("Is Tank", ref C.IsTank);
 
@@ -1745,5 +1767,18 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         public Direction WhenAttack2 = Direction.SouthEast;
         public Direction WhenAttack3 = Direction.SouthWest;
         public Direction WhenAttack4 = Direction.West;
+
+        public bool LPDURewind = false;
+        public LpduRewindDef LpduRewindDef = LpduRewindDef.From_Priority_G1_left_G2_right;
     }
+
+    public int GetLpduRewindGroup()
+    {
+        if(C.LpduRewindDef == LpduRewindDef.From_Priority_G1_left_G2_right)
+        {
+            if(C.PriorityData.)
+        }
+    }
+
+    public enum LpduRewindDef { From_Priority_G1_left_G2_right, From_Priority_G2_left_G1_right, Left, Right }
 }

@@ -289,7 +289,8 @@ public unsafe class Controller
             if(Elements.ContainsKey(x.Key))
             {
                 PluginLog.Debug($"[{Script.InternalData.FullName}] Overriding {x.Key} element with custom data");
-                Elements[x.Key] = x.Value.JSONClone();
+                Elements[x.Key] = x.Value.DSFClone();
+                OriginalElementsDirect[x.Key] = x.Value.DSFClone();
             }
         }
     }
@@ -419,4 +420,22 @@ public unsafe class Controller
             return default;
         }
     }
+
+    /// <summary>
+    /// Provides access to unmodified copies of elements that were registered during OnSetup call. Will never be rendered, they are only for reference purposes.
+    /// </summary>
+    public ReadOnlyDictionary<string, Element> OriginalElements => OriginalElementsDirect.AsReadOnly();
+
+    /// <summary>
+    /// Provides access to unmodified copies of layouts that were registered during OnSetup call. Will never be rendered, they are only for reference purposes.
+    /// </summary>
+    public ReadOnlyDictionary<string, Layout> OriginalLayouts => OriginalLayoutsDirect.AsReadOnly();
+    internal void StoreOriginalElements()
+    {
+        this.OriginalElementsDirect = this.Elements.DSFClone();
+        this.OriginalLayoutsDirect = this.Layouts.DSFClone();
+        PluginLog.Debug($"Stored {this.OriginalElementsDirect?.Count} original elements and {this.OriginalLayoutsDirect?.Count} original layouts");
+    }
+    internal Dictionary<string, Layout> OriginalLayoutsDirect { get; private set; }
+    internal Dictionary<string, Element> OriginalElementsDirect { get; private set; }
 }

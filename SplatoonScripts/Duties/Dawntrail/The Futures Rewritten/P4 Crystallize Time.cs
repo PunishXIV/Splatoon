@@ -68,7 +68,7 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
 
     private List<float> ExtraRandomness = [];
     private bool Initialized;
-    public override Metadata Metadata => new(14, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(15, "Garume, NightmareXIV");
 
     private float SpellInWaitingDebuffTime =>
         BasePlayer.StatusList?.FirstOrDefault(x => x.StatusId == (uint)Debuff.DelayReturn)?.RemainingTime ?? -1f;
@@ -991,6 +991,47 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         Alert(C.PlaceReturnText.Get());
     }
 
+    void LPDUPlaceReturn()
+    {
+        var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
+        {
+            (Direction.North, Direction.East) => Direction.NorthEast,
+            (Direction.East, Direction.South) => Direction.SouthEast,
+            (Direction.South, Direction.West) => Direction.SouthWest,
+            (Direction.West, Direction.North) => Direction.NorthWest,
+            (Direction.North, Direction.West) => Direction.NorthWest,
+            (Direction.West, Direction.South) => Direction.SouthWest,
+            (Direction.South, Direction.East) => Direction.SouthEast,
+            (Direction.East, Direction.North) => Direction.NorthEast,
+            _ => throw new InvalidOperationException()
+        };
+
+        var angle = returnDirection switch 
+        {
+            Direction.NorthWest => 0,
+            Direction.NorthEast => 90,
+            Direction.SouthEast => 180,
+            Direction.SouthWest => 270,
+        };
+
+        var elementName = $"LPDURewind_{(BasePlayer.Job.IsTank() ? "Tank" : "Dps")}{(IsLeftLpduRewindGroup() ? "Left" : "Right")}";
+        if(Controller.TryGetElementByName(elementName, out var myElement) && Controller.OriginalElements.TryGetValue(elementName, out var original))
+        {
+            PluginLog.Information($"Element {elementName} found");
+            var position = MathHelper.RotateWorldPoint(new(100, 0, 100), angle.DegreesToRadians(), original.RefPosition);
+
+            myElement.Enabled = true;
+            myElement.tether = true;
+            myElement.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint();
+            myElement.OffPosition = Vector3.Zero;
+            myElement.RefPosition = position;
+        }
+        else
+        {
+            PluginLog.Error($"Element {elementName} not found");
+        }
+    }
+
     private void KBIPlaceReturn()
     {
         var returnDirection = (_firstWaveDirection, _secondWaveDirection) switch
@@ -1299,10 +1340,16 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
             var nukemaruRewind = C.NukemaruRewind;
             ImGui.Checkbox("Knockback immunity return positions (beta)", ref kbiRewind);
             ImGui.Checkbox("Nukemaru's return positions", ref nukemaruRewind);
-            if(ImGui.Checkbox("LPDU positions", ref C.LPDURewind))
+            if(ImGui.Checkbox("LPDU return positions", ref C.LPDURewind))
             {
                 C.KBIRewind = false;
                 C.NukemaruRewind = false;
+            }
+            if(C.LPDURewind)
+            {
+                ImGui.SetNextItemWidth(200f);
+                ImGuiEx.EnumCombo("Determine group, looking at the wall", ref C.LpduRewindDef);
+                ImGuiEx.Text($"Your group now: {(IsLeftLpduRewindGroup() ? "Left" : "Right")} looking at the wall");
             }
 
             if(!C.KBIRewind && kbiRewind)
@@ -1772,12 +1819,17 @@ public unsafe class P4_Crystallize_Time : SplatoonScript<P4_Crystallize_Time.Con
         public LpduRewindDef LpduRewindDef = LpduRewindDef.From_Priority_G1_left_G2_right;
     }
 
-    public int GetLpduRewindGroup()
+    public bool IsLeftLpduRewindGroup()
     {
         if(C.LpduRewindDef == LpduRewindDef.From_Priority_G1_left_G2_right)
         {
-            if(C.PriorityData.)
+            return Controller.RolePosition.EqualsAny(RolePosition.T1, RolePosition.M1, RolePosition.H1, RolePosition.R1);
         }
+        if(C.LpduRewindDef == LpduRewindDef.From_Priority_G2_left_G1_right)
+        {
+            return !Controller.RolePosition.EqualsAny(RolePosition.T1, RolePosition.M1, RolePosition.H1, RolePosition.R1);
+        }
+        return C.LpduRewindDef == LpduRewindDef.Left;
     }
 
     public enum LpduRewindDef { From_Priority_G1_left_G2_right, From_Priority_G2_left_G1_right, Left, Right }

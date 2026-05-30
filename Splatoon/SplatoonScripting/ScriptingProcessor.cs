@@ -421,6 +421,7 @@ internal unsafe static partial class ScriptingProcessor
                                                         DuoLog.Debug($"Script overwritten at {instance.InternalData.Path}");
                                                     }
                                                     instance.OnSetup();
+                                                    instance.Controller.StoreOriginalElements();
                                                     instance.Controller.ApplyOverrides();
                                                     if(previousVersion > 0)
                                                     {

@@ -21,7 +21,7 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
 {
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint GravenImage = 48370;
-    private const uint RiddleMagic = 47778;
+    private const uint FlagrantFireIII = 47778;
     private const uint DoubleTroubleTrapCast = 47782;
     private const uint DoubleTroubleTrapHit = 47783;
     private const uint PulseWave = 47785;
@@ -44,7 +44,7 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
-            "This P1 helper shows only your own Wave Cannon and tower instruction. After Mystery Magic/Riddle Magic it shows the initial lineup, then collects Wave Cannon targets during Double Trouble Trap. Wave Cannon targets bait outward and do not soak towers; tower soakers are selected from the priority list and sent to support or DPS towers. The initial lineup can be adjusted with the center coordinate and spacing.",
+            "This P1 helper shows only your own Wave Cannon and tower instruction. After Flagrant Fire III, the Mystery Magic resolution, it shows the initial lineup, then collects Wave Cannon targets during Double-trouble Trap. Wave Cannon targets bait outward and do not soak towers; tower soakers are selected from the priority list and sent to support or DPS towers. The initial lineup can be adjusted with the center coordinate and spacing.",
         Jp =
             "P1の最初の波動砲と塔踏みを自分向けに表示します。なぞなぞマジック後に初期散開位置を出し、ずびずばトラップ詠唱中に波動砲対象を集めます。波動砲対象は塔を踏まず外へ誘導し、塔を踏む担当は下の優先順位に従ってTH塔またはDPS塔へ誘導します。初期位置は横一列の基準座標と間隔で調整できます。"
     };
@@ -179,7 +179,7 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
                 ApplyDisplay();
         }
 
-        if (actionId == RiddleMagic)
+        if (actionId == FlagrantFireIII)
             ShowInitialLineup($"action {actionId}");
 
         if (actionId is DoubleTroubleTrapCast or DoubleTroubleTrapHit)

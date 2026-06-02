@@ -20,7 +20,7 @@ It is recommended to configure tethers preset by enabling tether to a direction 
 ## Scripts
 
 ### **[Script]** [Beta] **[UNTESTED]** P1 Wave Cannon + Tower Priority
-Self-only helper for the first Wave Cannon and tower sequence. It shows the initial lineup after Riddle Magic / Double Trouble Trap, records Wave Cannon targets, sends Wave Cannon players outward, and routes tower soakers to support or DPS towers using the configured priority list.
+Self-only helper for the first Wave Cannon and tower sequence. It shows the initial lineup after Flagrant Fire III / Double-trouble Trap, records Wave Cannon targets, sends Wave Cannon players outward, and routes tower soakers to support or DPS towers using the configured priority list.
 
 Configuration:
 - Configure PriorityData. Default: H2, H1, OT, MT, M1, M2, R1, R2.
@@ -31,7 +31,7 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
-Self-only helper for late-P1 Tele-trouncing and Graven Image 3. For Tele-trouncing, it reads your two arrow debuffs: matching arrows use the fixed arrow direction and move from inner to outer after the debuff falls off, while different arrows use your configured X direction. For Graven Image 3, it reads your sleep/confusion tether and sends you to the configured cross direction, inner for sleep and outer for confusion.
+Self-only helper for late-P1 Tele-trouncing and the third Graven Image. For Tele-trouncing, it reads your two arrow debuffs: matching arrows use the fixed arrow direction and move from inner to outer after the debuff falls off, while different arrows use your configured X direction. For the third Graven Image, it reads your sleep/confusion tether and sends you to the configured cross direction, inner for sleep and outer for confusion.
 
 Configuration:
 - Set Tele-trouncing: X direction to your group's X spot for different-arrow debuffs.

@@ -47,7 +47,7 @@ public class P1_Teletrouncing_Image3 : SplatoonScript
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
-            "This P1 late-phase helper shows only your own Tele-trouncing and Graven Image 3 destination. For Tele-trouncing, it reads your two arrow debuffs. Matching arrows show the fixed arrow direction, first at the inner radius and then at the outer radius after the arrow debuff is removed. Different arrows show the configured X direction. For Graven Image 3, your tether is classified as sleep or confusion and shown on the configured cross direction at the inner or outer radius.",
+            "This P1 late-phase helper shows only your own Tele-trouncing and third Graven Image destination. For Tele-trouncing, it reads your two arrow debuffs. Matching arrows show the fixed arrow direction, first at the inner radius and then at the outer radius after the arrow debuff is removed. Different arrows show the configured X direction. For the third Graven Image, your tether is classified as sleep or confusion and shown on the configured cross direction at the inner or outer radius.",
         Jp =
             "P1後半のずびずばテレポと神々の像3を自分向けに表示します。ずびずばテレポは自分の2つの矢印を見て、同じ矢印なら矢印方向へ固定表示します。最初は内側半径、矢印デバフが消えたら外側半径へ切り替えます。違う矢印なら設定したX字方向へ表示します。神々の像3は自分についた線を睡眠/混乱で判定し、睡眠なら内側十字、混乱なら外側十字へ表示します。"
     };

@@ -16,7 +16,7 @@ internal class P1_GravenImage_Reminder : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -24,6 +24,7 @@ internal class P1_GravenImage_Reminder : SplatoonScript
     #region Constant
 
     private const uint TerritoryDmad = 1363;
+    private const int SceneIntemperateWill = 4;
 
     private const uint DataIdTetherSource = 0x4C31;
 
@@ -50,6 +51,8 @@ internal class P1_GravenImage_Reminder : SplatoonScript
 
     private const string ElTetherReminder = "TetherReminder";
     private const string ElAnimationReminder = "AnimationReminder";
+    private const string ElLeftHalf = "Lefthalf";
+    private const string ElRightHalf = "Righthalf";
 
     private static readonly Vector3 PosKnockback = new(100f, 18.5f, 56f);
 
@@ -75,6 +78,9 @@ internal class P1_GravenImage_Reminder : SplatoonScript
     // Animation-check reminders keyed by marker DataId (cleared on ObjectEffect 256/512).
     private readonly HashSet<uint> _activeAnimationMarkerDataIds = [];
 
+    private bool _leftHalfEnabled;
+    private bool _rightHalfEnabled;
+
     #endregion
 
     #region Private Class
@@ -90,6 +96,7 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         public string Text3Sleep = "Sleep";
         public string Text3DontLook = "Dont Look";
         public string Text3Look = "Look";
+        public bool ShowImage2HalfAoe;
     }
 
     #endregion
@@ -104,12 +111,24 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         Controller.RegisterElementFromCode(ElAnimationReminder,
             """{"Name":"","type":1,"Enabled":false,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayVOffset":3.2,"overlayFScale":3.0,"thicc":0.0,"overlayText":"","refActorType":1}""",
             overwrite: true);
+        Controller.RegisterElementFromCode(ElLeftHalf,
+            """{"Name":"Lefthalf","type":5,"Enabled":false,"refX":100.0,"refY":100.0,"radius":20.0,"coneAngleMax":180,"includeRotation":true}""",
+            overwrite: true);
+        Controller.RegisterElementFromCode(ElRightHalf,
+            """{"Name":"Righthalf","type":5,"Enabled":false,"refX":100.0,"refY":100.0,"radius":20.0,"coneAngleMin":180,"coneAngleMax":360,"includeRotation":true}""",
+            overwrite: true);
     }
 
     public override void OnUpdate()
     {
         ApplyPlayerReminder(ElTetherReminder, BuildTetherReminderTexts());
         ApplyPlayerReminder(ElAnimationReminder, BuildAnimationReminderTexts());
+
+        var showCones = C.ShowImage2HalfAoe && Controller.Scene == SceneIntemperateWill;
+        if (Controller.TryGetElementByName(ElLeftHalf, out var leftHalf))
+            leftHalf.Enabled = showCones && _leftHalfEnabled;
+        if (Controller.TryGetElementByName(ElRightHalf, out var rightHalf))
+            rightHalf.Enabled = showCones && _rightHalfEnabled;
     }
 
     public override void OnObjectEffect(uint target, uint data1, uint data2)
@@ -117,9 +136,21 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         if (!target.TryGetObject(out var obj) || !IsAnimationMarkerDataId(obj.DataId)) return;
 
         if (data1 == ObjectEffectEnableData1 && data2 == ObjectEffectEnableData2)
+        {
             _activeAnimationMarkerDataIds.Add(obj.DataId);
+            if (obj.DataId == DataIdLeftHalf)
+                _leftHalfEnabled = true;
+            else if (obj.DataId == DataIdRightHalf)
+                _rightHalfEnabled = true;
+        }
         else if (data1 == ObjectEffectDisableData1 && data2 == ObjectEffectDisableData2)
+        {
             _activeAnimationMarkerDataIds.Remove(obj.DataId);
+            if (obj.DataId == DataIdLeftHalf)
+                _leftHalfEnabled = false;
+            else if (obj.DataId == DataIdRightHalf)
+                _rightHalfEnabled = false;
+        }
     }
 
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
@@ -140,6 +171,8 @@ internal class P1_GravenImage_Reminder : SplatoonScript
     {
         _tetherRemindersBySource.Clear();
         _activeAnimationMarkerDataIds.Clear();
+        _leftHalfEnabled = false;
+        _rightHalfEnabled = false;
         Controller.Hide();
     }
 
@@ -160,6 +193,7 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         ImGui.Text("Image2 Avoid Half-AOE Area Remind");
         DrawTextInput("Lefthalf AOE", ref C.Text2LeftHalf);
         DrawTextInput("Righthalf AOE", ref C.Text2RightHalf);
+        ImGui.Checkbox("Show Image2 Half-AOE", ref C.ShowImage2HalfAoe);
 
         ImGui.Separator();
         ImGui.Text("Image3 Tether Remind");

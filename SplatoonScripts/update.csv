@@ -271,6 +271,7 @@ SplatoonScriptsOfficial.Tests@CastStartingTest,1,https://github.com/PunishXIV/Sp
 SplatoonScriptsOfficial.Tests@ObjectEffectTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ObjectEffectTest.cs
 SplatoonScriptsOfficial.Tests@DMParser,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Tests@TetherProcessor2Test,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TetherProcessor2Test.cs
+SplatoonScriptsOfficial.Tests@TestHotbarDragdrop,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TestHotbarDragdrop.cs
 SplatoonScriptsOfficial.Tests@GenericTest3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest3.cs
 SplatoonScriptsOfficial.Tests@TrapTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TrapTest.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest2,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest2.cs

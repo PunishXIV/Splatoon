@@ -44,3 +44,14 @@ Configuration:
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Teletrouncing_Image3.cs
 ```
+
+### **[Script]** [Beta] **[UNTESTED]** P1 GravenImage Reminder
+Graven Image reminder. This script support for Tether, Half-AOE, Gaze.
+
+Configuration
+- Set the message you need. If it blank will hide it.
+- If needed, You can use the AOE display option.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_GravenImage_Reminder.cs
+```

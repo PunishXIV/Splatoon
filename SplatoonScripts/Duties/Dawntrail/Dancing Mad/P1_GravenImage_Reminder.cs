@@ -219,7 +219,7 @@ internal class P1_GravenImage_Reminder : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Text("Remind Grave Image Actions");
+        ImGui.Text("Remind Graven Image Actions");
         ImGui.Spacing();
         
         ImGui.Text("Image1 Tether Remind");

@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using ECommons.GameFunctions;
 using Splatoon.SplatoonScripting;
 
-namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dmad;
+namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
-internal class Dmad_P1_IntemperateWill : SplatoonScript
+internal class P1_IntemperateWill : SplatoonScript
 {
     #region Metadata
 

@@ -16,3 +16,27 @@ It is recommended to configure tethers preset by enabling tether to a direction 
 ~Lv2~{"Name":"Dmad P1 - Tethers [Configure Me]","Group":"Dancing Mad (Ultimate) P1 - NXIV","ZoneLockH":[1363],"ElementsL":[{"Name":"YellowEye","type":1,"refActorDataID":2015167,"refActorComparisonType":3,"IsCapturing":true,"Nodraw":true,"AnimationIds":[1]},{"Name":"PurpleEye","type":1,"refActorDataID":2015166,"refActorComparisonType":3,"IsCapturing":true,"Nodraw":true,"AnimationIds":[1]},{"Name":"If with yellow eye","type":1,"refActorName":"*","LimitDistance":true,"DistanceMax":1.0,"UseDistanceSourcePlaceholder":true,"DistanceSourcePlaceholder":["<element:YellowEye>"],"refActorTether":true,"refActorIsTetherLive":true,"refActorTetherConnectedWithPlayer":["<me>"],"Conditional":true,"ConditionalReset":true},{"Name":"N (Enable tether to your spot)","refX":100.0,"refY":81.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1},{"Name":"W (Enable tether to your spot)","refX":81.0,"refY":100.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1},{"Name":"S (Enable tether to your spot)","refX":100.0,"refY":119.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1},{"Name":"E (Enable tether to your spot)","refX":119.0,"refY":100.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1},{"Name":"If with purple eye","type":1,"refActorName":"*","LimitDistance":true,"DistanceMax":1.0,"UseDistanceSourcePlaceholder":true,"DistanceSourcePlaceholder":["<element:PurpleEye>"],"refActorTether":true,"refActorIsTetherLive":true,"refActorTetherConnectedWithPlayer":["<me>"],"Conditional":true,"ConditionalReset":true},{"Name":"N (Enable tether to your spot)","refX":100.0,"refY":96.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1},{"Name":"W (Enable tether to your spot)","refX":96.0,"refY":100.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1},{"Name":"S (Enable tether to your spot)","refX":100.0,"refY":104.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1},{"Name":"E (Enable tether to your spot)","refX":104.0,"refY":100.0,"radius":0.5,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"LineEndA":1}]}
 ~Lv2~{"Name":"Dmad Arena Bounds","Group":"Dancing Mad (Ultimate) P1 - NXIV","ZoneLockH":[1363],"ElementsL":[{"Name":"","refX":100.0,"refY":100.0,"radius":20.0,"Donut":2.0,"color":3372220415,"fillIntensity":0.5,"overrideFillColor":true,"originFillColor":4294967295,"endFillColor":805306367,"thicc":0.0}]}
 ```
+
+## Scripts
+
+### **[Script]** [Beta] **[UNTESTED]** P1 Wave Cannon + Tower Priority
+Self-only helper for the first Wave Cannon and tower sequence. It shows the initial lineup after Riddle Magic / Double Trouble Trap, records Wave Cannon targets, sends Wave Cannon players outward, and routes tower soakers to support or DPS towers using the configured priority list.
+
+Configuration:
+- Configure PriorityData. Default: H2, H1, OT, MT, M1, M2, R1, R2.
+- If your group uses different initial lineup positions, adjust Lineup center X, Lineup Z, and Lineup spacing.
+- Keep Tower takers are non-targets enabled unless your strat assigns Wave Cannon targets to towers.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
+```
+
+### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
+Self-only helper for late-P1 Tele-trouncing and Graven Image 3. For Tele-trouncing, it reads your two arrow debuffs: matching arrows use the fixed arrow direction and move from inner to outer after the debuff falls off, while different arrows use your configured X direction. For Graven Image 3, it reads your sleep/confusion tether and sends you to the configured cross direction, inner for sleep and outer for confusion.
+
+Configuration:
+- Set Tele-trouncing: X direction to your group's X spot for different-arrow debuffs.
+- Set Image 3: cross direction to your group's cross spot for sleep/confusion tether resolution.
+- Adjust inner/outer radii only if your raidplan uses different distances.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Teletrouncing_Image3.cs
+```

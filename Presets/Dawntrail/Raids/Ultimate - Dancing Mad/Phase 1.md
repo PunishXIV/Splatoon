@@ -1,7 +1,7 @@
 ## General casts
 Update this group by removing it and reimporting it.
 
-- 2026-06-02 17:26:50 UTC: Added double trouble indicator (by whysosirius), added confusion/sleep tether resolution
+- 2026-06-02 17:26:50 UTC: Added double trouble indicator (by whysosirius), added confusion/sleep tether resolution according to [this raidplan](https://raidplan.io/plan/LPsBjEcjdB0xoloZ#18)
 - 2026-06-02 15:59:39 UTC: Added left/right statue orbs during puddles
 - 2026-06-02 15:10:47 UTC: True stacks will show now again
 - 2026-06-02 15:03:28 UTC: Fixed a bug where it says stack on 1st mech always

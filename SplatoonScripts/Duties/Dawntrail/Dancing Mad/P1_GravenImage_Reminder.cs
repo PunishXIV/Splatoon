@@ -7,7 +7,10 @@ using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.ImGuiMethods;
+using Splatoon;
+using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utility;
 using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
@@ -16,7 +19,7 @@ internal class P1_GravenImage_Reminder : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(2, "mirage");
+    public override Metadata? Metadata => new(3, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -48,11 +51,20 @@ internal class P1_GravenImage_Reminder : SplatoonScript
     ];
 
     private const float PositionMatchEpsilon = 3f;
+    private const float KnockbackLineExtension = 15f;
+    private const float MinKnockbackLineDirectionLength = 0.01f;
+
+    private const uint ColorGazeLookLine = Colors.Green;
+    private const uint ColorGazeDontLookLine = Colors.Red;
 
     private const string ElTetherReminder = "TetherReminder";
     private const string ElAnimationReminder = "AnimationReminder";
     private const string ElLeftHalf = "Lefthalf";
     private const string ElRightHalf = "Righthalf";
+    private const string ElKnockbackLine = "KnockbackLine";
+    private const string ElImage2PlayerCircle = "Image2PlayerCircle";
+    private const string ElSleepPlayerCircle = "SleepPlayerCircle";
+    private const string ElGazeLine = "GazeLine";
 
     private static readonly Vector3 PosKnockback = new(100f, 18.5f, 56f);
 
@@ -96,7 +108,11 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         public string Text3Sleep = "Sleep";
         public string Text3DontLook = "Dont Look";
         public string Text3Look = "Look";
+        public bool ShowKnockbackLine;
+        public bool ShowImage2PlayerCircle;
         public bool ShowImage2HalfAoe;
+        public bool ShowSleepPlayerCircle;
+        public bool ShowGazeLine;
     }
 
     #endregion
@@ -117,6 +133,18 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         Controller.RegisterElementFromCode(ElRightHalf,
             """{"Name":"Righthalf","type":5,"Enabled":false,"refX":100.0,"refY":100.0,"radius":20.0,"coneAngleMin":180,"coneAngleMax":360,"includeRotation":true}""",
             overwrite: true);
+        Controller.RegisterElementFromCode(ElKnockbackLine,
+            """{"Name":"KnockbackLine","type":2,"Enabled":false,"radius":0.0,"fillIntensity":0.35,"thicc":7.0,"refActorDataID":19505,"refActorTargetingYou":1,"refTargetYou":true,"refActorComparisonType":3,"includeRotation":true,"LineEndA":1,"AdditionalRotation":2.104867,"refActorIsTetherLive":true}""",
+            overwrite: true);
+        Controller.RegisterElementFromCode(ElImage2PlayerCircle,
+            """{"Name":"","type":1,"Enabled":false,"radius":5.0,"refActorType":1}""",
+            overwrite: true);
+        Controller.RegisterElementFromCode(ElSleepPlayerCircle,
+            """{"Name":"","type":1,"Enabled":false,"radius":5.0,"color":3372155041,"fillIntensity":0.5,"refActorType":1}""",
+            overwrite: true);
+        Controller.RegisterElementFromCode(ElGazeLine,
+            """{"Name":"","type":2,"Enabled":false,"radius":0.0,"fillIntensity":0.345,"thicc":7.0}""",
+            overwrite: true);
     }
 
     public override void OnUpdate()
@@ -129,6 +157,11 @@ internal class P1_GravenImage_Reminder : SplatoonScript
             leftHalf.Enabled = showCones && _leftHalfEnabled;
         if (Controller.TryGetElementByName(ElRightHalf, out var rightHalf))
             rightHalf.Enabled = showCones && _rightHalfEnabled;
+
+        ApplyKnockbackLine();
+        ApplyImage2PlayerCircle();
+        ApplySleepPlayerCircle();
+        ApplyGazeLine();
     }
 
     public override void OnObjectEffect(uint target, uint data1, uint data2)
@@ -173,21 +206,31 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         _activeAnimationMarkerDataIds.Clear();
         _leftHalfEnabled = false;
         _rightHalfEnabled = false;
+        if (Controller.TryGetElementByName(ElKnockbackLine, out var knockbackLine))
+            knockbackLine.Enabled = false;
+        if (Controller.TryGetElementByName(ElImage2PlayerCircle, out var image2Circle))
+            image2Circle.Enabled = false;
+        if (Controller.TryGetElementByName(ElSleepPlayerCircle, out var sleepCircle))
+            sleepCircle.Enabled = false;
+        if (Controller.TryGetElementByName(ElGazeLine, out var gazeLine))
+            gazeLine.Enabled = false;
         Controller.Hide();
     }
 
     public override void OnSettingsDraw()
     {
-        ImGui.Text("Remind Graven Image Actions");
+        ImGui.Text("Remind Grave Image Actions");
         ImGui.Spacing();
         
         ImGui.Text("Image1 Tether Remind");
         DrawTextInput("Knockback", ref C.Text1Knockback);
+        ImGui.Checkbox("Show Knockback Line", ref C.ShowKnockbackLine);
 
         ImGui.Separator();
         ImGui.Text("Image2 Tether Remind");
         DrawTextInput("Vitrophyre", ref C.Text2Vitrophyre);
         DrawTextInput("Gravitas", ref C.Text2Gravitas);
+        ImGui.Checkbox("Show Vitrophyre / Gravitas Circle", ref C.ShowImage2PlayerCircle);
 
         ImGui.Separator();
         ImGui.Text("Image2 Avoid Half-AOE Area Remind");
@@ -199,11 +242,13 @@ internal class P1_GravenImage_Reminder : SplatoonScript
         ImGui.Text("Image3 Tether Remind");
         DrawTextInput("Confused", ref C.Text3Confused);
         DrawTextInput("Sleep", ref C.Text3Sleep);
+        ImGui.Checkbox("Show Sleep Circle", ref C.ShowSleepPlayerCircle);
 
         ImGui.Separator();
         ImGui.Text("Image3 Gaze Remind");
         DrawTextInput("Dont Look", ref C.Text3DontLook);
         DrawTextInput("Look", ref C.Text3Look);
+        ImGui.Checkbox("Show Look / Dont Look Line", ref C.ShowGazeLine);
     }
 
     #endregion
@@ -312,6 +357,198 @@ internal class P1_GravenImage_Reminder : SplatoonScript
     // Compares game positions within tolerance.
     private static bool IsNear(Vector3 a, Vector3 b)
         => Vector3.Distance(a, b) <= PositionMatchEpsilon;
+
+    // Returns whether a tether is active from the Vitrophyre or Gravitas statue position.
+    private bool HasVitrophyreOrGravitasTether()
+    {
+        foreach (var sourceId in _tetherRemindersBySource.Keys)
+        {
+            if (!sourceId.TryGetObject(out var obj) || obj.DataId != DataIdTetherSource)
+                continue;
+            if (IsNear(obj.Position, PosVitrophyre) || IsNear(obj.Position, PosGravitas))
+                return true;
+        }
+
+        return false;
+    }
+
+    // Shows a radius-5 circle on the player while tethered to Vitrophyre or Gravitas.
+    private void ApplyImage2PlayerCircle()
+    {
+        if (!Controller.TryGetElementByName(ElImage2PlayerCircle, out var circle))
+            return;
+
+        if (!C.ShowImage2PlayerCircle || !HasVitrophyreOrGravitasTether())
+        {
+            circle.Enabled = false;
+            return;
+        }
+
+        circle.Enabled = true;
+        circle.refActorObjectID = BasePlayer.EntityId;
+    }
+
+    // Returns whether a tether is active from the Sleep statue position.
+    private bool HasSleepTether()
+    {
+        foreach (var sourceId in _tetherRemindersBySource.Keys)
+        {
+            if (!sourceId.TryGetObject(out var obj) || obj.DataId != DataIdTetherSource)
+                continue;
+            if (IsNear(obj.Position, PosSleep))
+                return true;
+        }
+
+        return false;
+    }
+
+    // Shows a colored radius-5 circle on the player while tethered to Sleep.
+    private void ApplySleepPlayerCircle()
+    {
+        if (!Controller.TryGetElementByName(ElSleepPlayerCircle, out var circle))
+            return;
+
+        if (!C.ShowSleepPlayerCircle || !HasSleepTether())
+        {
+            circle.Enabled = false;
+            return;
+        }
+
+        circle.Enabled = true;
+        circle.refActorObjectID = BasePlayer.EntityId;
+    }
+
+    // Finds the knockback-image tether source at PosKnockback.
+    private bool TryGetKnockbackTetherSource(out IGameObject statue)
+    {
+        foreach (var sourceId in _tetherRemindersBySource.Keys)
+        {
+            if (!sourceId.TryGetObject(out var obj) || obj.DataId != DataIdTetherSource)
+                continue;
+            if (!IsNear(obj.Position, PosKnockback))
+                continue;
+            statue = obj;
+            return true;
+        }
+
+        statue = null!;
+        return false;
+    }
+
+    // Finds the first game object with the given DataId.
+    private static bool TryGetObjectByDataId(uint dataId, out IGameObject obj)
+    {
+        foreach (var o in Svc.Objects)
+        {
+            if (o.DataId != dataId) continue;
+            obj = o;
+            return true;
+        }
+
+        obj = null!;
+        return false;
+    }
+
+    // Shows a line from the player to the Look or Dont Look marker object.
+    private void ApplyGazeLine()
+    {
+        if (!Controller.TryGetElementByName(ElGazeLine, out var line))
+            return;
+
+        if (!C.ShowGazeLine)
+        {
+            line.Enabled = false;
+            return;
+        }
+
+        uint targetDataId;
+        uint color;
+        if (_activeAnimationMarkerDataIds.Contains(DataIdDontLook))
+        {
+            targetDataId = DataIdDontLook;
+            color = ColorGazeDontLookLine;
+        }
+        else if (_activeAnimationMarkerDataIds.Contains(DataIdLook))
+        {
+            targetDataId = DataIdLook;
+            color = ColorGazeLookLine;
+        }
+        else
+        {
+            line.Enabled = false;
+            return;
+        }
+
+        if (!TryGetObjectByDataId(targetDataId, out var target))
+        {
+            line.Enabled = false;
+            return;
+        }
+
+        var player = BasePlayer.Position;
+        line.includeRotation = false;
+        line.refActorDataID = 0;
+        line.refActorTargetingYou = 0;
+        line.refTargetYou = false;
+        line.refActorIsTetherLive = false;
+        line.color = color;
+        SetLineEndpoints(line, player, target.Position);
+        line.Enabled = true;
+    }
+
+    // Writes world positions into a type-2 line element (A = ref, B = off).
+    private static void SetLineEndpoints(Element e, Vector3 pointA, Vector3 pointB)
+    {
+        e.refX = pointA.X;
+        e.refY = pointA.Z;
+        e.refZ = pointA.Y;
+        e.offX = pointB.X;
+        e.offY = pointB.Z;
+        e.offZ = pointB.Y;
+    }
+
+    // Shows knockback direction line while tethered to the image1 statue.
+    private void ApplyKnockbackLine()
+    {
+        if (!Controller.TryGetElementByName(ElKnockbackLine, out var line))
+            return;
+
+        if (!C.ShowKnockbackLine)
+        {
+            line.Enabled = false;
+            return;
+        }
+
+        if (!TryGetKnockbackTetherSource(out var statue))
+        {
+            line.Enabled = false;
+            return;
+        }
+
+        var player = BasePlayer.Position;
+        var deltaXz = new Vector2(player.X - statue.Position.X, player.Z - statue.Position.Z);
+        if (deltaXz.LengthSquared() < MinKnockbackLineDirectionLength * MinKnockbackLineDirectionLength)
+        {
+            line.Enabled = false;
+            return;
+        }
+
+        var directionXz = Vector2.Normalize(deltaXz);
+        var pointA = new Vector3(
+            player.X + directionXz.X * KnockbackLineExtension,
+            0f,
+            player.Z + directionXz.Y * KnockbackLineExtension);
+        var pointB = player;
+
+        line.includeRotation = false;
+        line.refActorDataID = 0;
+        line.refActorTargetingYou = 0;
+        line.refTargetYou = false;
+        line.refActorIsTetherLive = false;
+        line.LineEndA = LineEnd.Arrow;
+        SetLineEndpoints(line, pointA, pointB);
+        line.Enabled = true;
+    }
 
     #endregion
 }

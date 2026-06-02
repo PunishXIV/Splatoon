@@ -1,3 +1,7 @@
+> [!Caution]
+>
+> Update your Splatoon to 3.9.1.15, **or listed presets WON'T WORK. AT ALL.**
+
 ## General casts
 Update this group by removing it and reimporting it.
 

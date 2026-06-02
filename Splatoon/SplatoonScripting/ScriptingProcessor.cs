@@ -933,7 +933,10 @@ internal unsafe static partial class ScriptingProcessor
         {
             Scripts[i].Disable();
         }
-        ClearScripts();
+        Svc.Framework.Run(() =>
+        {
+            ClearScripts();
+        });
     }
 
     internal static void LogError(this SplatoonScript s, Exception e, string methodName)

@@ -75,6 +75,11 @@ It is preconfigured for [this strategy](https://docs.google.com/presentation/d/1
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
 ```
 
+**Exported configuration** for [this strat (in squares)](https://raidplan.io/plan/p8JvSSs1_QKMVX13#16) - positions are very very approximate! Copy this code, open script's settings, go to "Saved configurations" tab and import this code there. 
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"","Configuration":null,"Overrides":"G+bXACwLbKdtwBOx8vAqmDJerIzhdgki/g4bcOA2d6Xh7m/LxIj0hTbTcao5eKl6uanyXOVYdj50r8Sx1ofLf6AVzjZ0/L65fOe2DqUE2iSqrq6qwtVm9m8KwBpIqDQzBSSh2OtWm7ici8xLnJWKTpSIkxvhdewuFrvGOTRuedFfmvijIX8xMX4rQnd7Jl/MbeFV+68KYYMwdJrVYfRZG4sUBeL5TmUskMc+sPtVpEfk67WJGqVpK9FvqK8S45f+9Pt72c78qCIONNYlFDOHtijO/0T+aWrDe9JeO7r/sXaOXp0RiTWr27HER8Y2Lf06XqKfcje7wGhfcan5Y20Kc4DtQo75b05S37d0YT8K9M7W/57u2uBZBJ+Vjhfc25A+tSrFWCjjSwINDBskccOdYbtADLG4nQ4YpYBqBXIRM6CwJwwrXkwI/U/SiVKtEIJ14phiRJMepe6XN46Y8/bkWxzeiHUdbn+fbaIIcQyKYts/6fj5tMU61OxXBID1IBqWV+FEq9xHAesBZJbE3ciMWOeg4FCXOOuKb6bs5/GYd23Z8YFNyp76Gm9R7nNucBu/KbYfs1O+DVdQxirAOdcTFysKjkHo57ChG/OeYWNtfwBEy0X6PjGYzi4xgJ6Za7BDtELgVlZHHxM+BUO7PhaTD86Fc3n+D0wuCE0Joopz8Prx3RJuyYv6wOSaqE0Se/Spx1CjqTJlNuf1oIiyquAAFWjJBtHgQOhIZFr822xmdcOTQr3DxbPEpcJ8IciTkEbXhcPnsDxiHdyvyc5bBxNVGOS946HeaGBLC7xrfcDFBf4oPKTyMiviQ1QGPfT1fPligrjwGWX2zUgyh2oHoN6JjHph3HTJg3eWJUypuUMk7QkZpITBqIP4UIg1pVYREbZpbjmwq6vcxkMiVxrQaRCu3pLjVmxqa8zYd1LVP+a9wScVm+03ypxBmji6ldRU+IUUeOrQ0nKBC2RD0BiibChbWZdTw5HoyPn6Ek1JaUwApvEKbgpVLTCe8HYFTJuXXCFZJQAY1euhgBC7D7+yXwKAc2cGXfECQOJLAADaeuyuN2bABAASaJuXdtkvAYA0qbQAQuwg/SUAQOSGam/sKo9JrgkAKmB7DjyLkSoPoE/Ekl4CgK/zpdILCPGqf2FIfgkABu17+tPlClg6TACQTlv+6dJfAgBYD/d8eYdeP9kmAOi15Zku/SUAOM5D1Z4Vd+iRgKyaAIDpVHv27JmogSXKBABCN/yeHrQd"}
+```
+
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
 
 > [!Warning]
@@ -104,4 +109,10 @@ Configuration
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_GravenImage_Reminder.cs
+```
+
+# For preset developers
+Grid, will help with element placement
+```
+~Lv2~{"Name":"Grid","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":2,"refX":80.0,"refY":90.0,"offX":120.0,"offY":90.0,"radius":0.0},{"Name":"","type":2,"refX":100.0,"refY":80.0,"offX":100.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":90.0,"refY":80.0,"offX":90.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":110.0,"refY":80.0,"offX":110.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":100.0,"offX":120.0,"offY":100.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":110.0,"offX":120.0,"offY":110.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":95.0,"offX":120.0,"offY":95.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":105.0,"offX":120.0,"offY":105.0,"radius":0.0},{"Name":"","type":2,"refX":95.0,"refY":80.0,"offX":95.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":105.0,"refY":80.0,"offX":105.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":85.0,"refY":80.0,"offX":85.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":115.0,"refY":80.0,"offX":115.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":115.0,"offX":120.0,"offY":115.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":85.0,"offX":120.0,"offY":85.0,"radius":0.0}]}
 ```

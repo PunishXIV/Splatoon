@@ -220,7 +220,7 @@ internal unsafe partial class CGui
         ImGui.SameLine(0, 2);
         if(ImGuiEx.IconButton(FontAwesomeIcon.ArrowsUpDown))
         {
-            el.refX = CenterY - (el.refY - CenterY);
+            el.refY = CenterY - (el.refY - CenterY);
         }
         ImGuiEx.Tooltip($"Mirror vertically");
 

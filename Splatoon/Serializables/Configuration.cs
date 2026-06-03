@@ -120,6 +120,9 @@ internal class Configuration : IEzConfig
     public Vector4 AttentionColor2 = EColor.YellowBright;
     public float AttentionColorCycle = 2f;
 
+    public bool OrderScriptsByZone = true;
+    public uint FilteredTerritoryLayout = 0;
+
     public uint ClampFillColorAlpha(uint fillColor)
     {
         var alpha = fillColor >> 24;

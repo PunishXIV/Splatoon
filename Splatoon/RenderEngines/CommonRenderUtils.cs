@@ -22,89 +22,92 @@ namespace Splatoon.RenderEngines;
 /// </summary>
 public static unsafe class CommonRenderUtils
 {
-    internal static string ProcessPlaceholders(this string s, IGameObject go)
+    internal static string ProcessPlaceholders(this string s, IGameObject go, Element element)
     {
         var ret = s
-        .Replace("$OBJECTID", $"{go.EntityId.Format()}")
-        .Replace("$DATAID", $"{go.DataId.Format()}")
-        .Replace("$GIMMICKID", $"{go.Struct()->GimmickId.Format()}")
-        .Replace("$ESTATE", $"{go.Struct()->EventState.ToInt().Format()}")
-        .Replace("$EVENTID", $"{go.Struct()->EventId.Id.ToInt().Format()}")
-        .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
-        .Replace("$KIND", $"{go.ObjectKind}")
-        .Replace("$VFLAGS", $"{go.Struct()->RenderFlags}")
-        .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
-        .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
-        .Replace("$DISTANCE", $"{Vector3.Distance(BasePlayer?.Position ?? Vector3.Zero, go.Position):F1}")
-        .Replace("\\n", "\n")
-        .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
-        if(go is IEventObj eobj)
+        .Replace("$ELEMENT", $"{element.Name}");
+        if(go != null)
         {
-            ret = ret
-            .Replace("$ANIMATIONID", $"{eobj.AnimationId.Format()}");
-        }
-        if(go is IBattleChara chr)
-        {
-            ret = ret
-            .Replace("$MODELID", $"{chr.ModelId.Format()}")
-            .Replace("$NAMEID", $"{chr.NameId.Format()}")
-            .Replace("$STLP", $"{chr.StatusLoop.Format()}")
-            .Replace("$TETHER", $"{chr.Struct()->Vfx.Tethers.ToArray().Where(x => x.Id != 0).Select(x => $"{x.Id}").Print(",")}")
-            .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
-            if(ret.Contains("$STREM:"))
+            ret = ret.Replace("$OBJECTID", $"{go.EntityId.Format()}")
+            .Replace("$DATAID", $"{go.DataId.Format()}")
+            .Replace("$GIMMICKID", $"{go.Struct()->GimmickId.Format()}")
+            .Replace("$ESTATE", $"{go.Struct()->EventState.ToInt().Format()}")
+            .Replace("$EVENTID", $"{go.Struct()->EventId.Id.ToInt().Format()}")
+            .Replace("$HITBOXR", $"{go.HitboxRadius:F1}")
+            .Replace("$KIND", $"{go.ObjectKind}")
+            .Replace("$VFLAGS", $"{go.Struct()->RenderFlags}")
+            .Replace("$NPCID", $"{go.Struct()->GetNameId().Format()}")
+            .Replace("$LIFE", $"{go.GetLifeTimeSeconds():F1}")
+            .Replace("$DISTANCE", $"{Vector3.Distance(BasePlayer?.Position ?? Vector3.Zero, go.Position):F1}")
+            .Replace("\\n", "\n")
+            .Replace("$MSTATUS", $"{(*(int*)(go.Address + 0x104)).Format()}");
+            if(go is IEventObj eobj)
             {
-                try
+                ret = ret
+                .Replace("$ANIMATIONID", $"{eobj.AnimationId.Format()}");
+            }
+            if(go is IBattleChara chr)
+            {
+                ret = ret
+                .Replace("$MODELID", $"{chr.ModelId.Format()}")
+                .Replace("$NAMEID", $"{chr.NameId.Format()}")
+                .Replace("$STLP", $"{chr.StatusLoop.Format()}")
+                .Replace("$TETHER", $"{chr.Struct()->Vfx.Tethers.ToArray().Where(x => x.Id != 0).Select(x => $"{x.Id}").Print(",")}")
+                .Replace("$TRANSFORM", $"{((int)chr.GetTransformationID()).Format()}");
+                if(ret.Contains("$STREM:"))
                 {
-                    var match = Regex.Match(ret, @"\$STREM:(\d+):(.*?)\$");
-                    if(match.Success && int.TryParse(match.Groups[1].Value, out var statusId) && chr.StatusList.TryGetFirst(s => s.StatusId == statusId, out var status))
+                    try
                     {
-                        ret = ret.Replace(match.Groups[0].Value, $"{status.RemainingTime.ToString(match.Groups[2].Value)}");
+                        var match = Regex.Match(ret, @"\$STREM:(\d+):(.*?)\$");
+                        if(match.Success && int.TryParse(match.Groups[1].Value, out var statusId) && chr.StatusList.TryGetFirst(s => s.StatusId == statusId, out var status))
+                        {
+                            ret = ret.Replace(match.Groups[0].Value, $"{status.RemainingTime.ToString(match.Groups[2].Value)}");
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        e.Log();
                     }
                 }
-                catch(Exception e)
+                if(ret.Contains("$CAST:"))
                 {
-                    e.Log();
-                }
-            }
-            if(ret.Contains("$CAST:"))
-            {
-                try
-                {
-                    var match = Regex.Match(ret, @"\$CAST:(.*?)\$");
-                    if(match.Success)
+                    try
                     {
-                        if(chr.IsCasting())
+                        var match = Regex.Match(ret, @"\$CAST:(.*?)\$");
+                        if(match.Success)
                         {
-                            ret = ret.Replace(match.Groups[0].Value, $"{(chr.CastInfo.TotalCastTime - chr.CastInfo.CurrentCastTime).ToString(match.Groups[1].Value)}")
-                                .Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastInfo.ActionId));
+                            if(chr.IsCasting())
+                            {
+                                ret = ret.Replace(match.Groups[0].Value, $"{(chr.CastInfo.TotalCastTime - chr.CastInfo.CurrentCastTime).ToString(match.Groups[1].Value)}")
+                                    .Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastInfo.ActionId));
+                            }
+                            else
+                            {
+                                ret = ret.Replace(match.Groups[0].Value, "").Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastInfo.ActionId));
+                            }
                         }
                         else
                         {
-                            ret = ret.Replace(match.Groups[0].Value, "").Replace("$CASTNAME", ExcelActionHelper.GetActionName(chr.CastInfo.ActionId));
+                            castFallback();
                         }
                     }
-                    else
+                    catch(Exception e)
                     {
+                        e.Log();
                         castFallback();
                     }
                 }
-                catch(Exception e)
+                else
                 {
-                    e.Log();
                     castFallback();
                 }
+                void castFallback()
+                {
+                    ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastInfo.ActionId.Format()}] {chr.CastInfo.CurrentCastTime}/{chr.CastInfo.TotalCastTime}" : "");
+                }
             }
-            else
-            {
-                castFallback();
-            }
-            void castFallback()
-            {
-                ret = ret.Replace("$CAST", chr.Struct()->GetCastInfo() != null ? $"[{chr.CastInfo.ActionId.Format()}] {chr.CastInfo.CurrentCastTime}/{chr.CastInfo.TotalCastTime}" : "");
-            }
+            ret = ret.Replace("$NAME", go.Name.ToString());
         }
-        ret = ret
-            .Replace("$NAME", go.Name.ToString());
         return ret;
     }
 

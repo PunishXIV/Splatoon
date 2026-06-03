@@ -1,7 +1,9 @@
 ﻿using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using ECommons;
+using ECommons.ExcelServices;
 using ECommons.LanguageHelpers;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 
 namespace Splatoon.Gui.Scripting;
@@ -60,78 +62,83 @@ internal static class TabScripting
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X / 2.05f);
         ImGui.InputTextWithHint("##search", "Search...", ref Search, 50);
         ImGui.SameLine();
-        ImGuiEx.SetNextItemFullWidth();
-        if(ImGui.BeginCombo("##switch", "Switch scripts to configuration profile"))
+        ImGuiEx.InputWithRightButtonsArea("SSCP", () =>
         {
-            var confs = new HashSet<string>();
-            var toReload = new HashSet<SplatoonScript>();
-            foreach(var s in ScriptingProcessor.Scripts)
+            if(ImGui.BeginCombo("##switch", "Switch scripts to configuration profile"))
             {
-                if(s.IsDisabledByUser) continue;
-                if(s.TryGetAvailableConfigurations(out var confList))
-                {
-                    foreach(var c in confList)
-                    {
-                        confs.Add(c.Value);
-                    }
-                }
-            }
-            if(ImGui.Selectable("Default Configuration"))
-            {
-                foreach(var s in ScriptingProcessor.Scripts)
-                {
-                    if(s.InternalData.CurrentConfigurationKey != "")
-                    {
-                        s.ApplyDefaultConfiguration(out var act);
-                        if(act != null) toReload.Add(s);
-                    }
-                }
-            }
-            var i = 0;
-            foreach(var confName in confs.Order())
-            {
-                var doReload = false;
-                if(ImGui.Selectable($"{confName}"))
-                {
-                    doReload = true;
-                }
-                var sb = new StringBuilder("The following scripts will be switched:\n");
+                var confs = new HashSet<string>();
+                var toReload = new HashSet<SplatoonScript>();
                 foreach(var s in ScriptingProcessor.Scripts)
                 {
                     if(s.IsDisabledByUser) continue;
-                    if(P.Config.DefaultScriptConfigurationNames.TryGetValue(s.InternalData.FullName, out var defConName) && defConName == confName)
+                    if(s.TryGetAvailableConfigurations(out var confList))
+                    {
+                        foreach(var c in confList)
+                        {
+                            confs.Add(c.Value);
+                        }
+                    }
+                }
+                if(ImGui.Selectable("Default Configuration"))
+                {
+                    foreach(var s in ScriptingProcessor.Scripts)
                     {
                         if(s.InternalData.CurrentConfigurationKey != "")
                         {
+                            s.ApplyDefaultConfiguration(out var act);
+                            if(act != null) toReload.Add(s);
+                        }
+                    }
+                }
+                var i = 0;
+                foreach(var confName in confs.Order())
+                {
+                    var doReload = false;
+                    if(ImGui.Selectable($"{confName}"))
+                    {
+                        doReload = true;
+                    }
+                    var sb = new StringBuilder("The following scripts will be switched:\n");
+                    foreach(var s in ScriptingProcessor.Scripts)
+                    {
+                        if(s.IsDisabledByUser) continue;
+                        if(P.Config.DefaultScriptConfigurationNames.TryGetValue(s.InternalData.FullName, out var defConName) && defConName == confName)
+                        {
+                            if(s.InternalData.CurrentConfigurationKey != "")
+                            {
+                                if(doReload)
+                                {
+                                    s.ApplyDefaultConfiguration(out var act);
+                                    if(act != null) toReload.Add(s);
+                                }
+                                sb.Append(s.InternalData.FullName.Replace(".", " - "));
+                                sb.Append('\n');
+                            }
+                        }
+                        else if(s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey) && s.InternalData.CurrentConfigurationKey != confKey)
+                        {
                             if(doReload)
                             {
-                                s.ApplyDefaultConfiguration(out var act);
+                                s.ApplyConfiguration(confKey, out var act);
                                 if(act != null) toReload.Add(s);
                             }
                             sb.Append(s.InternalData.FullName.Replace(".", " - "));
                             sb.Append('\n');
                         }
                     }
-                    else if(s.TryGetAvailableConfigurations(out var confList) && confList.FindKeysByValue(confName).TryGetFirst(out var confKey) && s.InternalData.CurrentConfigurationKey != confKey)
-                    {
-                        if(doReload)
-                        {
-                            s.ApplyConfiguration(confKey, out var act);
-                            if(act != null) toReload.Add(s);
-                        }
-                        sb.Append(s.InternalData.FullName.Replace(".", " - "));
-                        sb.Append('\n');
-                    }
+                    ImGuiEx.Tooltip(sb.ToString());
                 }
-                ImGuiEx.Tooltip(sb.ToString());
+                if(toReload.Count > 0)
+                {
+                    ScriptingProcessor.ReloadScripts(toReload, false);
+                }
+                ImGui.EndCombo();
             }
-            if(toReload.Count > 0)
-            {
-                ScriptingProcessor.ReloadScripts(toReload, false);
-            }
-            ImGui.EndCombo();
-        }
-        ImGuiEx.Tooltip("Disabled scripts won't be switched.");
+            ImGuiEx.Tooltip("Disabled scripts won't be switched.");
+        }, () =>
+        {
+            ImGui.Checkbox("Group by Zone", ref P.Config.OrderScriptsByZone);
+        });
 
         var openConfig = ScriptingProcessor.Scripts.FirstOrDefault(x => x.InternalData.ConfigOpen);
 
@@ -155,13 +162,33 @@ internal static class TabScripting
             {
                 DrawScriptGroup(ScriptingProcessor.Scripts);
             }
-            var namespaces = ScriptingProcessor.Scripts.Select(x => x.InternalData.Namespace).Distinct().Order();
+            SplatoonScript[] territoryScripts;
+            if(P.Config.OrderScriptsByZone)
+            {
+                territoryScripts = ScriptingProcessor.Scripts.Where(x => x.ValidTerritories?.Count == 1 && Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(x.ValidTerritories.First()) != null).ToArray();
+                var territories = territoryScripts.Select(x => x.ValidTerritories.First()).Where(x => Svc.Data.GetExcelSheet<TerritoryType>().GetRowOrDefault(x) != null).Distinct().OrderDescending().ToArray();
+                foreach(var ter in territories)
+                {
+                    ImGuiEx.TreeNodeCollapsingHeader($"{ExcelTerritoryHelper.GetName(ter)} [{ter}]", () =>
+                    {
+                        ImGui.PushID(ter);
+                        DrawScriptGroup(territoryScripts.Where(x => x.ValidTerritories.First() == ter).OrderBy(x => x.InternalData.Name));
+                        ImGui.PopID();
+                    });
+                }
+            }
+            else
+            {
+                territoryScripts = [];
+            }
+            var remainingScripts = ScriptingProcessor.Scripts.Where(x => !territoryScripts.Contains(x));
+            var namespaces = remainingScripts.Select(x => x.InternalData.Namespace).Distinct().Order();
             foreach(var nsp in namespaces)
             {
                 ImGuiEx.TreeNodeCollapsingHeader(nsp.Replace("_", " ").Replace(".", " - "), () =>
                 {
                     ImGui.PushID(nsp);
-                    DrawScriptGroup(ScriptingProcessor.Scripts.Where(x => x.InternalData.Namespace == nsp).OrderBy(x => x.InternalData.Name));
+                    DrawScriptGroup(remainingScripts.Where(x => x.InternalData.Namespace == nsp).OrderBy(x => x.InternalData.Name));
                     ImGui.PopID();
                 });
             }

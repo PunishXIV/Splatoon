@@ -198,7 +198,11 @@ SplatoonScriptsOfficial.Duties.Dawntrail@EX4_Escelons_Fall,9,https://github.com/
 SplatoonScriptsOfficial.Duties.Dawntrail@Another_Merchants_Tale_Alluring_Order_1,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Another Merchants Tale Alluring Order 1.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Millennial_Decay,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Millennial Decay.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Seasonal@HatchingTide2026,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Seasonal/HatchingTide2026.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_IntemperateWill,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P1_IntemperateWill.cs
+SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P1_Wave_Cannon_Tower_Priority,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P1_Wave_Cannon_Tower_Priority.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P1_Arrows.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_GravenImage_Reminder,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P1_GravenImage_Reminder.cs
+SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P1_Teletrouncing_Image3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P1_Teletrouncing_Image3.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Forsaken,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Quantum_Target_Enforcer,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Quantum Target Enforcer.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Scourging_Blaze,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Scourging Blaze.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Quantum40@Abyssal_Blaze_Alternative,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Quantum 40/Abyssal Blaze Alternative.cs
@@ -271,6 +275,7 @@ SplatoonScriptsOfficial.Tests@CastStartingTest,1,https://github.com/PunishXIV/Sp
 SplatoonScriptsOfficial.Tests@ObjectEffectTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ObjectEffectTest.cs
 SplatoonScriptsOfficial.Tests@DMParser,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DMParser.cs
 SplatoonScriptsOfficial.Tests@TetherProcessor2Test,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TetherProcessor2Test.cs
+SplatoonScriptsOfficial.Tests@TestHotbarDragdrop,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TestHotbarDragdrop.cs
 SplatoonScriptsOfficial.Tests@GenericTest3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/GenericTest3.cs
 SplatoonScriptsOfficial.Tests@TrapTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/TrapTest.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest2,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest2.cs

@@ -26,7 +26,12 @@ internal class PinnedElementEdit : Window
     {
         if(EditingElement != null && Script != null)
         {
+            var name = EditingElement.Name;
             P.ConfigGui.LayoutDrawElement(DummyLayout, EditingElement, true);
+            if(Script.Controller.ElementNamesAsKeys.Contains(name))
+            {
+                EditingElement.Name = name;
+            }
         }
         else
         {

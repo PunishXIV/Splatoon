@@ -1,6 +1,7 @@
-# Recommended minimal imports for NA/EU as of 2026-06-03 01:54:12 UTC
+# Recommended minimal imports for NA/EU as of 2026-06-03 04:45:39 UTC
 - Import presets: General casts
 - Import script: P1 Wave Cannon + Tower Priority and configure it's priorities
+- Import script: Arrows placement script if using [this strategy](https://docs.google.com/presentation/d/1-E2rEKa586KKiVNvtt3EAMQY2YAEVBRGcMX0WzORIq8/preview?pru=AAABnq-eVQg*NgLs1FyphH_ClDhznk1k9g#slide=id.g3e761465523_0_147)
 
 > [!Caution]
 >
@@ -8,6 +9,7 @@
 
 ## General casts
 Update this group by removing it and reimporting it.
+
 
 - 2026-06-03 01:49:16 UTC: Added eye check
 - 2026-06-02 22:38:22 UTC: Default subconfiguration is now set to highlight all positions, while individual will also draw tether to your designated

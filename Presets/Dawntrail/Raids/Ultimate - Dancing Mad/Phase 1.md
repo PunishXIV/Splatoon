@@ -1,5 +1,4 @@
-# Recommended minimal imports for NA/EU
-Last updated at 
+# Recommended minimal imports for NA/EU as of 2026-06-03 01:54:12 UTC
 - Import presets: General casts
 - Import script: P1 Wave Cannon + Tower Priority and configure it's priorities
 

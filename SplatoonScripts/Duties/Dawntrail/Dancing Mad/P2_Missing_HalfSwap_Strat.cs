@@ -22,7 +22,7 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(10, "mirage");
+    public override Metadata? Metadata => new(1, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion

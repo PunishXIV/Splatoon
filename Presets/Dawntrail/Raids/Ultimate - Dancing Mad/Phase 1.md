@@ -95,6 +95,11 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
 ```
 
+**Exported configuration** for [this strat (in squares improved, NGA 1A 改)](https://ngabbs.com/read.php?tid=46912673&_fu=63045236%2C1&rand=121) - positions are very very approximate! Copy this code, open script's settings, go to "Saved configurations" tab and import this code there. 
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"NGA-1A-IMPROVE","Configuration":null,"Overrides":"G9PYACyLd2BTZkXl4eVSEHpRq3YJIv4OG3DgNtel4e5vx8iI9HWrRTGdgyAulm9/Oaczs2OLBYDElWCfXT8dCGdXLDr+11pWcZMoNCLGA/ZuV8UCyVhANa9/TzYAJIGFmsz/HaJDcmeBvbiKNydPnpArIyP3NWyxadr3yB6NKV5I7+xdLA7um4MY607ftfNHA98Zij8aYcgaqZh2BPfavyqEfQhD+5WlaXP/w26W7g4yyA/hQidt0+mfqdKz9/TfYjHGWDvSZ1G4vzxSJjWNJ8ZWdCVsEhcT/Z6c8VvAQySNjRpIddIA/f438t9ILQEsiJo09lvuvMOkj4iQ1QrcLUuPJKa96k91QfnwfBYw+lSxNd+U12GRsFMwMqu8H6oq6MVTmD9QwcDmz6i7/3HaEirOFkLhgkkd1Z4BOsLWVBKMwMhFQjzuIQwZMSTz9mABaIwOVkMXpAOFHTCsvjEhjCU4JizGQgj8vDMAoUl3ucWXnxyk9c5UzTglI7xT3O0HXXBDnBXmeXN+HOPnRwPezcLTCgBwQzQysEILL09RAheg3BPijowhH/60lqYIcqI3ZOsCPCbUFiZz+sAbsdnJR6O8iveBzVzI+PwxW2TkFAvktAKcR0rAWd1wDMIYb1q+MWFGrrUvBtI1F5n6kDhdUaAWOmZdhhhiHoK4smP0MSmlaKKD+YzJ+9hJ7PTRc8HGgShS4rK4CLvjx4vEiz6uXLBxI+VRyEuf5hClEcEO5J5dUERZVbAjttCyDaI+BqJCKdPig9nM6jkJNuMOF8+SmArzhSBPomXUCYfNYXlEHORgsvPE0UKASN7FfFI7jxvoKLncgKMFfgcheXmZFfGsKoMeeoFfvpiAWD4zmA2MZHNQXSB2HmzUey5+Wzz4aFnGFO0fInlPUkoKDGY40idKek7RTCJibrqbEpxaDG7pEOwK6kv57DVQKl58rb4xZtRl9UEmbCLBYrMv5MwZpHmneKlRpbSQAs8dWl4uiIGsD1pHFIzKVjbmaEkSTZwfVmB9chrzAgx0RXEKVS3I3HA1MuU09jvwyiR2XMN0z79aAoDPelblEMJhwjDKPx+kS2UmADjWxMmulNNcwxSUnfffmADgSWSx950KQjg0QL0r4W3FcQoyAcBNXSIILJqDcvrKPCZgHtDTpRgTALjAhecZMi81vDRC2xd3pNDDP3y8d8/WH+4vKgGAXkXltNcFFMT3NuWXAKBZjp5qYlWM2gzPjc8pRkuyu2ACACy5oJzmXqyDSvs7ZQIASy1TRak9gWqOF22jjdj9XgKAZlka46kmIRxuPawyzGbiJYEJACzDVhFqEZrGmlv0/WACABSwICinr0/Nq1Xyis7eJZMJABjnBcSUr/eQQHwxdDWyJDIBABK8+UTldJfXrPVDtOUUk7wEAO13Bxj/Su8B"}
+```
+
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
 
 > [!Warning]

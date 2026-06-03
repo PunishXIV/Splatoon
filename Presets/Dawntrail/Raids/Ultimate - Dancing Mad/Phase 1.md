@@ -37,6 +37,11 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
+
+> [!Warning]
+>
+> It seems like different strategy is required to be allowed to enter phase 3. 
+
 Self-only helper for late-P1 Tele-trouncing and the third Graven Image. For Tele-trouncing, it reads your two arrow debuffs: matching arrows use the fixed arrow direction and move from inner to outer after the debuff falls off, while different arrows use your configured X direction. For the third Graven Image, it reads your sleep/confusion tether and sends you to the configured cross direction, inner for sleep and outer for confusion.
 
 Configuration:

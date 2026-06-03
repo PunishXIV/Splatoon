@@ -35,25 +35,11 @@ It is recommended to configure tethers preset by enabling tether to a direction 
 ~Lv2~{"Name":"Dmad Arena Bounds","Group":"Dancing Mad (Ultimate) P1 - NXIV","ZoneLockH":[1363],"ElementsL":[{"Name":"","refX":100.0,"refY":100.0,"radius":20.0,"Donut":2.0,"color":3372220415,"fillIntensity":0.5,"overrideFillColor":true,"originFillColor":4294967295,"endFillColor":805306367,"thicc":0.0}]}
 ```
 
-## Scripts
-
-### **[Script]** [Beta] **[UNTESTED]** P1 Wave Cannon + Tower Priority
-Self-only helper for the first Wave Cannon and tower sequence. It shows the initial lineup after Flagrant Fire III / Double-trouble Trap, records Wave Cannon targets, sends Wave Cannon players outward, and routes tower soakers to support or DPS towers using the configured priority list.
-
-Configuration:
-- Configure PriorityData. Default: H2, H1, OT, MT, M1, M2, R1, R2.
-- If your group uses different initial lineup positions, adjust Lineup center X, Lineup Z, and Lineup spacing.
-- Keep Tower takers are non-targets enabled unless your strat assigns Wave Cannon targets to towers.
-```
-https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
-```
-
-### **[Script] [Beta]** Arrows placement script
-It is preconfigured for [this strategy](https://files.nightmarexiv.org/images/image_339.jpg).
+## [Script] Arrow placement script with configurations
 
 > [!Warning]
 >
-> Splatoon v3.9.1.17 - Testing version is required to run this script.
+> Splatoon v3.9.1.17 is required to run this script.
 
 > [!Important]
 >
@@ -75,9 +61,28 @@ It is preconfigured for [this strategy](https://files.nightmarexiv.org/images/im
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
 ```
 
-**Exported configuration** for [this strat (in squares)](https://files.nightmarexiv.org/images/image_338.jpg) - positions are very very approximate! Copy this code, open script's settings, go to "Saved configurations" tab and import this code there. 
+**Default configration** of this script is for [merry-go-round clockwise strat](https://files.nightmarexiv.org/images/image_339.jpg).
+
+> [!Important]
+>
+> To import exported configuration: copy it's code to clipboard, open script's settings, go to "Saved configurations" tab and import copied code there. Don't forget to activate it by clicking on it's name. 
+
+**Exported configuration** for [this strat (squares)](https://files.nightmarexiv.org/images/image_338.jpg) - positions are very very approximate!
 ```
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"","Configuration":null,"Overrides":"G+bXACwLbKdtwBOx8vAqmDJerIzhdgki/g4bcOA2d6Xh7m/LxIj0hTbTcao5eKl6uanyXOVYdj50r8Sx1ofLf6AVzjZ0/L65fOe2DqUE2iSqrq6qwtVm9m8KwBpIqDQzBSSh2OtWm7ici8xLnJWKTpSIkxvhdewuFrvGOTRuedFfmvijIX8xMX4rQnd7Jl/MbeFV+68KYYMwdJrVYfRZG4sUBeL5TmUskMc+sPtVpEfk67WJGqVpK9FvqK8S45f+9Pt72c78qCIONNYlFDOHtijO/0T+aWrDe9JeO7r/sXaOXp0RiTWr27HER8Y2Lf06XqKfcje7wGhfcan5Y20Kc4DtQo75b05S37d0YT8K9M7W/57u2uBZBJ+Vjhfc25A+tSrFWCjjSwINDBskccOdYbtADLG4nQ4YpYBqBXIRM6CwJwwrXkwI/U/SiVKtEIJ14phiRJMepe6XN46Y8/bkWxzeiHUdbn+fbaIIcQyKYts/6fj5tMU61OxXBID1IBqWV+FEq9xHAesBZJbE3ciMWOeg4FCXOOuKb6bs5/GYd23Z8YFNyp76Gm9R7nNucBu/KbYfs1O+DVdQxirAOdcTFysKjkHo57ChG/OeYWNtfwBEy0X6PjGYzi4xgJ6Za7BDtELgVlZHHxM+BUO7PhaTD86Fc3n+D0wuCE0Joopz8Prx3RJuyYv6wOSaqE0Se/Spx1CjqTJlNuf1oIiyquAAFWjJBtHgQOhIZFr822xmdcOTQr3DxbPEpcJ8IciTkEbXhcPnsDxiHdyvyc5bBxNVGOS946HeaGBLC7xrfcDFBf4oPKTyMiviQ1QGPfT1fPligrjwGWX2zUgyh2oHoN6JjHph3HTJg3eWJUypuUMk7QkZpITBqIP4UIg1pVYREbZpbjmwq6vcxkMiVxrQaRCu3pLjVmxqa8zYd1LVP+a9wScVm+03ypxBmji6ldRU+IUUeOrQ0nKBC2RD0BiibChbWZdTw5HoyPn6Ek1JaUwApvEKbgpVLTCe8HYFTJuXXCFZJQAY1euhgBC7D7+yXwKAc2cGXfECQOJLAADaeuyuN2bABAASaJuXdtkvAYA0qbQAQuwg/SUAQOSGam/sKo9JrgkAKmB7DjyLkSoPoE/Ekl4CgK/zpdILCPGqf2FIfgkABu17+tPlClg6TACQTlv+6dJfAgBYD/d8eYdeP9kmAOi15Zku/SUAOM5D1Z4Vd+iRgKyaAIDpVHv27JmogSXKBABCN/yeHrQd"}
+```
+
+## Scripts
+
+### **[Script]** [Beta] **[UNTESTED]** P1 Wave Cannon + Tower Priority
+Self-only helper for the first Wave Cannon and tower sequence. It shows the initial lineup after Flagrant Fire III / Double-trouble Trap, records Wave Cannon targets, sends Wave Cannon players outward, and routes tower soakers to support or DPS towers using the configured priority list.
+
+Configuration:
+- Configure PriorityData. Default: H2, H1, OT, MT, M1, M2, R1, R2.
+- If your group uses different initial lineup positions, adjust Lineup center X, Lineup Z, and Lineup spacing.
+- Keep Tower takers are non-targets enabled unless your strat assigns Wave Cannon targets to towers.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
 ```
 
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3

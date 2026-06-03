@@ -68,6 +68,8 @@ It is preconfigured for [this strategy](https://docs.google.com/presentation/d/1
 > For example: for "↑→ 1" you need to put position of "UP" arrow drop. For "↑→ 2" you need to put position of "RIGHT" arrow drop.
 >
 > Note: if your strategy shows you picture of →↑ instead of ↑→, it does not matter; the order can be either - it is random. Just make sure that you assign up/down placement to 1st element, and left/right placement to 2nd element. Good luck!
+>
+> Also note: elements with words (-- Left--, etc) are just for visual separation and do not serve any purpose. 
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs

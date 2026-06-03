@@ -69,6 +69,10 @@ It is preconfigured for [this strategy](https://docs.google.com/presentation/d/1
 >
 > Note: if your strategy shows you picture of →↑ instead of ↑→, it does not matter; the order can be either - it is random. Just make sure that you assign up/down placement to 1st element, and left/right placement to 2nd element. Good luck!
 
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
+```
+
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
 
 > [!Warning]
@@ -91,10 +95,6 @@ Graven Image reminder. This script support for Tether, Half-AOE, Gaze.
 > [!Important]
 >
 > This script has has the similar functionality as General casts. If you import both this script and General casts, you will likely want to disable some presets of General casts category or disable some functions of this script.
-
-```
-https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
-```
 
 Configuration
 - Set the message you need. If it blank will hide it.

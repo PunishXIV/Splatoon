@@ -35,25 +35,11 @@ It is recommended to configure tethers preset by enabling tether to a direction 
 ~Lv2~{"Name":"Dmad Arena Bounds","Group":"Dancing Mad (Ultimate) P1 - NXIV","ZoneLockH":[1363],"ElementsL":[{"Name":"","refX":100.0,"refY":100.0,"radius":20.0,"Donut":2.0,"color":3372220415,"fillIntensity":0.5,"overrideFillColor":true,"originFillColor":4294967295,"endFillColor":805306367,"thicc":0.0}]}
 ```
 
-## Scripts
-
-### **[Script]** [Beta] **[UNTESTED]** P1 Wave Cannon + Tower Priority
-Self-only helper for the first Wave Cannon and tower sequence. It shows the initial lineup after Flagrant Fire III / Double-trouble Trap, records Wave Cannon targets, sends Wave Cannon players outward, and routes tower soakers to support or DPS towers using the configured priority list.
-
-Configuration:
-- Configure PriorityData. Default: H2, H1, OT, MT, M1, M2, R1, R2.
-- If your group uses different initial lineup positions, adjust Lineup center X, Lineup Z, and Lineup spacing.
-- Keep Tower takers are non-targets enabled unless your strat assigns Wave Cannon targets to towers.
-```
-https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
-```
-
-### **[Script] [Beta]** Arrows placement script
-It is preconfigured for [this strategy](https://docs.google.com/presentation/d/1-E2rEKa586KKiVNvtt3EAMQY2YAEVBRGcMX0WzORIq8/preview?pru=AAABnq-eVQg*NgLs1FyphH_ClDhznk1k9g#slide=id.g3e761465523_0_147).
+## [Script] Arrow placement script with configurations
 
 > [!Warning]
 >
-> Splatoon v3.9.1.17 - Testing version is required to run this script.
+> Splatoon v3.9.1.17 is required to run this script.
 
 > [!Important]
 >
@@ -71,13 +57,47 @@ It is preconfigured for [this strategy](https://docs.google.com/presentation/d/1
 >
 > Also note: elements with words (-- Left--, etc) are just for visual separation and do not serve any purpose. 
 
+**Script is preconfigured** for [merry-go-round clockwise strat](https://files.nightmarexiv.org/images/image_339.jpg).
+
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
 ```
 
-**Exported configuration** for [this strat (in squares)](https://raidplan.io/plan/p8JvSSs1_QKMVX13#16) - positions are very very approximate! Copy this code, open script's settings, go to "Saved configurations" tab and import this code there. 
+> [!Important]
+>
+> To import exported configuration: copy it's code to clipboard, open script's settings, go to "Saved configurations" tab and import copied code there. Don't forget to activate it by clicking on it's name. 
+
+### Configuration for [this strat (Xolo)](https://files.nightmarexiv.org/images/image_338.jpg) - positions may be approximate!
 ```
-{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"","Configuration":null,"Overrides":"G+bXACwLbKdtwBOx8vAqmDJerIzhdgki/g4bcOA2d6Xh7m/LxIj0hTbTcao5eKl6uanyXOVYdj50r8Sx1ofLf6AVzjZ0/L65fOe2DqUE2iSqrq6qwtVm9m8KwBpIqDQzBSSh2OtWm7ici8xLnJWKTpSIkxvhdewuFrvGOTRuedFfmvijIX8xMX4rQnd7Jl/MbeFV+68KYYMwdJrVYfRZG4sUBeL5TmUskMc+sPtVpEfk67WJGqVpK9FvqK8S45f+9Pt72c78qCIONNYlFDOHtijO/0T+aWrDe9JeO7r/sXaOXp0RiTWr27HER8Y2Lf06XqKfcje7wGhfcan5Y20Kc4DtQo75b05S37d0YT8K9M7W/57u2uBZBJ+Vjhfc25A+tSrFWCjjSwINDBskccOdYbtADLG4nQ4YpYBqBXIRM6CwJwwrXkwI/U/SiVKtEIJ14phiRJMepe6XN46Y8/bkWxzeiHUdbn+fbaIIcQyKYts/6fj5tMU61OxXBID1IBqWV+FEq9xHAesBZJbE3ciMWOeg4FCXOOuKb6bs5/GYd23Z8YFNyp76Gm9R7nNucBu/KbYfs1O+DVdQxirAOdcTFysKjkHo57ChG/OeYWNtfwBEy0X6PjGYzi4xgJ6Za7BDtELgVlZHHxM+BUO7PhaTD86Fc3n+D0wuCE0Joopz8Prx3RJuyYv6wOSaqE0Se/Spx1CjqTJlNuf1oIiyquAAFWjJBtHgQOhIZFr822xmdcOTQr3DxbPEpcJ8IciTkEbXhcPnsDxiHdyvyc5bBxNVGOS946HeaGBLC7xrfcDFBf4oPKTyMiviQ1QGPfT1fPligrjwGWX2zUgyh2oHoN6JjHph3HTJg3eWJUypuUMk7QkZpITBqIP4UIg1pVYREbZpbjmwq6vcxkMiVxrQaRCu3pLjVmxqa8zYd1LVP+a9wScVm+03ypxBmji6ldRU+IUUeOrQ0nKBC2RD0BiibChbWZdTw5HoyPn6Ek1JaUwApvEKbgpVLTCe8HYFTJuXXCFZJQAY1euhgBC7D7+yXwKAc2cGXfECQOJLAADaeuyuN2bABAASaJuXdtkvAYA0qbQAQuwg/SUAQOSGam/sKo9JrgkAKmB7DjyLkSoPoE/Ekl4CgK/zpdILCPGqf2FIfgkABu17+tPlClg6TACQTlv+6dJfAgBYD/d8eYdeP9kmAOi15Zku/SUAOM5D1Z4Vd+iRgKyaAIDpVHv27JmogSXKBABCN/yeHrQd"}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"Squares/Xolo v1","Configuration":null,"Overrides":"G+bXACwLbKdtwBOx8vAqmDJerIzhdgki/g4bcOA2d6Xh7m/LxIj0hTbTcao5eKl6uanyXOVYdj50r8Sx1ofLf6AVzjZ0/L65fOe2DqUE2iSqrq6qwtVm9m8KwBpIqDQzBSSh2OtWm7ici8xLnJWKTpSIkxvhdewuFrvGOTRuedFfmvijIX8xMX4rQnd7Jl/MbeFV+68KYYMwdJrVYfRZG4sUBeL5TmUskMc+sPtVpEfk67WJGqVpK9FvqK8S45f+9Pt72c78qCIONNYlFDOHtijO/0T+aWrDe9JeO7r/sXaOXp0RiTWr27HER8Y2Lf06XqKfcje7wGhfcan5Y20Kc4DtQo75b05S37d0YT8K9M7W/57u2uBZBJ+Vjhfc25A+tSrFWCjjSwINDBskccOdYbtADLG4nQ4YpYBqBXIRM6CwJwwrXkwI/U/SiVKtEIJ14phiRJMepe6XN46Y8/bkWxzeiHUdbn+fbaIIcQyKYts/6fj5tMU61OxXBID1IBqWV+FEq9xHAesBZJbE3ciMWOeg4FCXOOuKb6bs5/GYd23Z8YFNyp76Gm9R7nNucBu/KbYfs1O+DVdQxirAOdcTFysKjkHo57ChG/OeYWNtfwBEy0X6PjGYzi4xgJ6Za7BDtELgVlZHHxM+BUO7PhaTD86Fc3n+D0wuCE0Joopz8Prx3RJuyYv6wOSaqE0Se/Spx1CjqTJlNuf1oIiyquAAFWjJBtHgQOhIZFr822xmdcOTQr3DxbPEpcJ8IciTkEbXhcPnsDxiHdyvyc5bBxNVGOS946HeaGBLC7xrfcDFBf4oPKTyMiviQ1QGPfT1fPligrjwGWX2zUgyh2oHoN6JjHph3HTJg3eWJUypuUMk7QkZpITBqIP4UIg1pVYREbZpbjmwq6vcxkMiVxrQaRCu3pLjVmxqa8zYd1LVP+a9wScVm+03ypxBmji6ldRU+IUUeOrQ0nKBC2RD0BiibChbWZdTw5HoyPn6Ek1JaUwApvEKbgpVLTCe8HYFTJuXXCFZJQAY1euhgBC7D7+yXwKAc2cGXfECQOJLAADaeuyuN2bABAASaJuXdtkvAYA0qbQAQuwg/SUAQOSGam/sKo9JrgkAKmB7DjyLkSoPoE/Ekl4CgK/zpdILCPGqf2FIfgkABu17+tPlClg6TACQTlv+6dJfAgBYD/d8eYdeP9kmAOi15Zku/SUAOM5D1Z4Vd+iRgKyaAIDpVHv27JmogSXKBABCN/yeHrQd"}
+```
+
+### Configuration for [Merry-go-round CCW](https://files.nightmarexiv.org/images/mgr-rev.jpeg)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"Merry-go-round-CCW","Configuration":null,"Overrides":"G9/XACwLbOc8iDOweOWnkZTlIbgWt0sQ8XfYgAO3uSsNd39bJkakr5vq9e/uDFC0uLmZ8twLM+wM/F6pY62Ua1LghbMfOn41905dvqsVQIGiA1IVrjZ771IA1kBCpdm9AoJQ7HXrReoiv+xrqAVjOgeOjRek/TF6N4ud4xwac7zobxv5oyF/q3L8RoSus6FYzNiAV/W/KoROwtBpxsTJd9eQmEIKj0p0Sm2Crk8nybcwLFCpoRJ9llWeVlHpq+/v7bjfwBQxoLEBoYw5uCNp/kfKz1Kd3BPuxrP9h5m3cLhCJM6sLs8Tb3mSYNrX/pb8lHG1ChhtayY1XxfGMAPYNhyY35YsD0OHC/7z3x74Bv96uqtTZwFC0SZbcArCp1bklKK2sSSwQHFBEjPcCXZLxBCH2/FAOQpnLY+LeAGFijC0dDEh9L3YJiq0Qgh246ecMpr0WLrfwznizdtR6HFEI3YGYX+da5MEcRSqar97tvH9eUdtbCSuCAAmiIrjVbjQTh6jABNAXUnMjYzGbhYqiU2DY5TfVNPP4zHv6qbjDdtcAt07r1Fuc+loP3bX4j/mQNU2QkFSHvnDqV601ZLgmEufxOPcmPcUF2vbEyBZLjL2ib90ZkURKGZTgBsiFYKwsjb6mIgpONr59Zh8do7O1em/sLiANhVoKi7A5vhuoVvqrL6wuIaFKeKOPvYUWzRZ58LlbIIiqqqCI4hATTaIZgdoR6HS4t9mK6srXhzbHW6eJSEV1gtBnYQyaoTD17A8Yjn8XlXnLcOF+gty5Xhkb9y/4y2iywy4vMAfM4+5vM2KWIfKXEMf58s3E8SEzxjTb0aSOdQ5APFOZNQTk2YrHnywNGFKox0iaU+IICUMxhykh0KqKQ2KiPBN08CBbX3jOh8SuVKPyaN45Y49vxHbWWN071n3/pj3Bl7cbLbdKXMGafzkN0JTERdS4KlDTcsFIZDNwViIrKFtZUNO40aiM+fzK7I1pTEOlOcrhCnUtYA+4qf/ZZuXkmkCAEyWFVFAWD84bq3/hwkASIFd67zuK6YmADha39mPQFhHVSqVHiYAwEy2/T1T4ksAgMmqIgmwfnBcotPDBABrbZuX4msCgFVftvGWeJoAQNC8UrZ5AxBPEwBA6mJRhx4TTxMAjPiyvmMOHhNbEwCs+7Ktx67N5ysnrgQA/1IhWfdvt5FQEwDMZGVPKy9NUxMAJNrKhpirU+JlAgDOQ1/Tg9YD"}
+```
+
+### Configuration for [4 boxes EU](https://files.nightmarexiv.org/images/4boxes.jpeg)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"4 Boxes EU","Configuration":null,"Overrides":"G5vlAKyLN4ZYR84TxZLxkVOlwHRiR1sPSxDxd9iAA7f5Kg13f1skRqaPWy2KjQHEVcu1j+2LpWVruZRnsHRbc/SadddatmWBF85+6Pj/zb2d71KHx9cJoIAwdRWSbd7cSQFYAwmV5r0UpwB0PO6u17vafDd1FVbuS5yNpGIToxKHG+F17C4Wu5Ac6muQyeHLTfx7O8NexfjNCN068sXMJr6q/1UhdBDGllkTJ+/hbckYb5+DRTvw2iZHXCA41CST5F0VVipUdYl+Z225Vt4ZNn+u6k3P41okhMY6hiLn0IY0+h/JfxvVQT7prWZb/8vaOWZ1RiTpLOpxEB8Z24y21/HU/pS52iBG+1JQLWyqUlwIbAfrmH/NWR6GDQGPj8K9s/nvp7s2dBYhZGmiBvc2FFCtyilF6XxJsAElCUkCcSfYzBFjUm7HA8UqnLVOLpIHFBrC0BrGhND/sFuihCuEaJg45BTRpHOh/+N3R/J5RuGBwxsxpHD76zyXJIhjUFXj7u0WP99u6BMb9isCQBpEJfUqbGmQ+yggDSC/JAFHpsEwBxXHptBJFd9U8c/jMe/q4uMD65wD+du9RrnN6Uvj+FXy8TETZd1wBWl65KdTPajX2uAYhA9wzFls3lOSrO13gHa5RN8nGdPZBUVgmK4SL0YuRG5ltxhiwqew0673gcmtd/QuTv+G1gd0KUBXcQ5Oj+8X+iXO6g2tb1iVIAnpYw7xe0roOpJ0ToMiyqqiGYSgJhtE1gO6Esi0+Le5zOqKh423HS+eJS4V5gtRnoQ0mgqHz2F5RJyFoLJzog+JZ5Abz313g4GN7eFd6YCLC/ycu8/lZVbC56gMeuxL+vLFBAniM6vpNxPJHGIQQMATGfXE0I/kwTtLE6ZU4yGR9oQaUsJg1oMGUWg2pYoRCUfTXHlgR391HQ+JXKnB5FG8emNnvmLHsDFN31FygMx7gw9bbLZfKXMGaeLgK8Wp8Asp8NShpuUiF8hsVB+ieChbWZdT3ZHkyPn8glxNaUwA5fEKboqxFmiOGA/mugAb4eDuZ5oAQOBQDQmELPwMbOQM+xNMAHDWdRtv7DQBABgLAcvJGm7Cj8YsLwGAcW3AwlhqAgAezMnkBgjZCBBNtLwEAODk5rAbD/aaAIAHMw6Cz04TAKigdzJuCiqeBZNroP8/KgGAcJzKvl++r8XsYMzXAguajKUmAFDG4WDMHChgwiw1AUBtMAd3B8JGa+Ow0wQAX4zZwez2W6AM0VoTACjjMHYKUi1qaKkJAEQQjftmOAJOM1tWmgBg7mv9baEcex9H2agzk8wjNfJZz4AZVFu7TirdN/0bBwiD7DffkCe3thkDAJxXaOlB2w=="}
+```
+
+### [CN] Configuration for [this strat (in squares improved, NGA 1A 改)](https://files.nightmarexiv.org/images/cnstrat.jpeg) - positions are very very approximate
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"NGA-1A-IMPROVE","Configuration":null,"Overrides":"G9PYACyLd2BTZkXl4eVSEHpRq3YJIv4OG3DgNtel4e5vx8iI9HWrRTGdgyAulm9/Oaczs2OLBYDElWCfXT8dCGdXLDr+11pWcZMoNCLGA/ZuV8UCyVhANa9/TzYAJIGFmsz/HaJDcmeBvbiKNydPnpArIyP3NWyxadr3yB6NKV5I7+xdLA7um4MY607ftfNHA98Zij8aYcgaqZh2BPfavyqEfQhD+5WlaXP/w26W7g4yyA/hQidt0+mfqdKz9/TfYjHGWDvSZ1G4vzxSJjWNJ8ZWdCVsEhcT/Z6c8VvAQySNjRpIddIA/f438t9ILQEsiJo09lvuvMOkj4iQ1QrcLUuPJKa96k91QfnwfBYw+lSxNd+U12GRsFMwMqu8H6oq6MVTmD9QwcDmz6i7/3HaEirOFkLhgkkd1Z4BOsLWVBKMwMhFQjzuIQwZMSTz9mABaIwOVkMXpAOFHTCsvjEhjCU4JizGQgj8vDMAoUl3ucWXnxyk9c5UzTglI7xT3O0HXXBDnBXmeXN+HOPnRwPezcLTCgBwQzQysEILL09RAheg3BPijowhH/60lqYIcqI3ZOsCPCbUFiZz+sAbsdnJR6O8iveBzVzI+PwxW2TkFAvktAKcR0rAWd1wDMIYb1q+MWFGrrUvBtI1F5n6kDhdUaAWOmZdhhhiHoK4smP0MSmlaKKD+YzJ+9hJ7PTRc8HGgShS4rK4CLvjx4vEiz6uXLBxI+VRyEuf5hClEcEO5J5dUERZVbAjttCyDaI+BqJCKdPig9nM6jkJNuMOF8+SmArzhSBPomXUCYfNYXlEHORgsvPE0UKASN7FfFI7jxvoKLncgKMFfgcheXmZFfGsKoMeeoFfvpiAWD4zmA2MZHNQXSB2HmzUey5+Wzz4aFnGFO0fInlPUkoKDGY40idKek7RTCJibrqbEpxaDG7pEOwK6kv57DVQKl58rb4xZtRl9UEmbCLBYrMv5MwZpHmneKlRpbSQAs8dWl4uiIGsD1pHFIzKVjbmaEkSTZwfVmB9chrzAgx0RXEKVS3I3HA1MuU09jvwyiR2XMN0z79aAoDPelblEMJhwjDKPx+kS2UmADjWxMmulNNcwxSUnfffmADgSWSx950KQjg0QL0r4W3FcQoyAcBNXSIILJqDcvrKPCZgHtDTpRgTALjAhecZMi81vDRC2xd3pNDDP3y8d8/WH+4vKgGAXkXltNcFFMT3NuWXAKBZjp5qYlWM2gzPjc8pRkuyu2ACACy5oJzmXqyDSvs7ZQIASy1TRak9gWqOF22jjdj9XgKAZlka46kmIRxuPawyzGbiJYEJACzDVhFqEZrGmlv0/WACABSwICinr0/Nq1Xyis7eJZMJABjnBcSUr/eQQHwxdDWyJDIBABK8+UTldJfXrPVDtOUUk7wEAO13Bxj/Su8B"}
+```
+
+## Scripts
+
+### **[Script]** [Beta] **[UNTESTED]** P1 Wave Cannon + Tower Priority
+Self-only helper for the first Wave Cannon and tower sequence. It shows the initial lineup after Flagrant Fire III / Double-trouble Trap, records Wave Cannon targets, sends Wave Cannon players outward, and routes tower soakers to support or DPS towers using the configured priority list.
+
+Configuration:
+- Configure PriorityData. Default: H2, H1, OT, MT, M1, M2, R1, R2.
+- If your group uses different initial lineup positions, adjust Lineup center X, Lineup Z, and Lineup spacing.
+- Keep Tower takers are non-targets enabled unless your strat assigns Wave Cannon targets to towers.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
 ```
 
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3

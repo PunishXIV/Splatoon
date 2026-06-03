@@ -46,6 +46,27 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
 ```
 
+### **[Script] [Beta]** Arrows placement script
+It is preconfigured for [this strategy](https://docs.google.com/presentation/d/1-E2rEKa586KKiVNvtt3EAMQY2YAEVBRGcMX0WzORIq8/preview?pru=AAABnq-eVQg*NgLs1FyphH_ClDhznk1k9g#slide=id.g3e761465523_0_147).
+
+> [!Warning]
+>
+> Splatoon v3.9.1.17 - Testing version is required to run this script.
+
+> [!Important]
+>
+> This script can be adapted for any other strategy that relies on static placement of arrows depending on what arrow combo player has.
+>
+> How to do so: edit elements placement. You will have to edit all 16 elements positions, it is tedious.
+>
+> Double-arrows are obvious, you get first and second positions.
+>
+> For combo arrow elements, you must assign "UP" or "DOWN" arrow position as first element, and "Right"/"Left" arrow position as second element. If necessary, plugin will automatically swap positions.
+>
+> For example: for "↑→ 1" you need to put position of "UP" arrow drop. For "↑→ 2" you need to put position of "RIGHT" arrow drop.
+>
+> Note: if your strategy shows you picture of →↑ instead of ↑→, it does not matter; the order can be either - it is random. Just make sure that you assign up/down placement to 1st element, and left/right placement to 2nd element. Good luck!
+
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
 
 > [!Warning]
@@ -67,7 +88,11 @@ Graven Image reminder. This script support for Tether, Half-AOE, Gaze.
 
 > [!Important]
 >
-> This script has has the similar functionality as General casts. If you import both this script and General casts, you will likely want to disable some presets of General casts category or disable some functions of this script.  
+> This script has has the similar functionality as General casts. If you import both this script and General casts, you will likely want to disable some presets of General casts category or disable some functions of this script.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
+```
 
 Configuration
 - Set the message you need. If it blank will hide it.

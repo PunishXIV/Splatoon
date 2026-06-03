@@ -1,6 +1,7 @@
-# Recommended minimal imports for NA/EU as of 2026-06-03 01:54:12 UTC
+# Recommended minimal imports for NA/EU as of 2026-06-03 04:45:39 UTC
 - Import presets: General casts
 - Import script: P1 Wave Cannon + Tower Priority and configure it's priorities
+- Import script: Arrows placement script if using [this strategy](https://docs.google.com/presentation/d/1-E2rEKa586KKiVNvtt3EAMQY2YAEVBRGcMX0WzORIq8/preview?pru=AAABnq-eVQg*NgLs1FyphH_ClDhznk1k9g#slide=id.g3e761465523_0_147)
 
 > [!Caution]
 >
@@ -8,6 +9,7 @@
 
 ## General casts
 Update this group by removing it and reimporting it.
+
 
 - 2026-06-03 01:49:16 UTC: Added eye check
 - 2026-06-02 22:38:22 UTC: Default subconfiguration is now set to highlight all positions, while individual will also draw tether to your designated
@@ -46,6 +48,38 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Wave_Cannon_Tower_Priority.cs
 ```
 
+### **[Script] [Beta]** Arrows placement script
+It is preconfigured for [this strategy](https://docs.google.com/presentation/d/1-E2rEKa586KKiVNvtt3EAMQY2YAEVBRGcMX0WzORIq8/preview?pru=AAABnq-eVQg*NgLs1FyphH_ClDhznk1k9g#slide=id.g3e761465523_0_147).
+
+> [!Warning]
+>
+> Splatoon v3.9.1.17 - Testing version is required to run this script.
+
+> [!Important]
+>
+> This script can be adapted for any other strategy that relies on static placement of arrows depending on what arrow combo player has.
+>
+> How to do so: edit elements placement. You will have to edit all 16 elements positions, it is tedious.
+>
+> Double-arrows are obvious, you get first and second positions.
+>
+> For combo arrow elements, you must assign "UP" or "DOWN" arrow position as first element, and "Right"/"Left" arrow position as second element. If necessary, plugin will automatically swap positions.
+>
+> For example: for "↑→ 1" you need to put position of "UP" arrow drop. For "↑→ 2" you need to put position of "RIGHT" arrow drop.
+>
+> Note: if your strategy shows you picture of →↑ instead of ↑→, it does not matter; the order can be either - it is random. Just make sure that you assign up/down placement to 1st element, and left/right placement to 2nd element. Good luck!
+>
+> Also note: elements with words (-- Left--, etc) are just for visual separation and do not serve any purpose. 
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
+```
+
+**Exported configuration** for [this strat (in squares)](https://raidplan.io/plan/p8JvSSs1_QKMVX13#16) - positions are very very approximate! Copy this code, open script's settings, go to "Saved configurations" tab and import this code there. 
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows","ConfigurationName":"","Configuration":null,"Overrides":"G+bXACwLbKdtwBOx8vAqmDJerIzhdgki/g4bcOA2d6Xh7m/LxIj0hTbTcao5eKl6uanyXOVYdj50r8Sx1ofLf6AVzjZ0/L65fOe2DqUE2iSqrq6qwtVm9m8KwBpIqDQzBSSh2OtWm7ici8xLnJWKTpSIkxvhdewuFrvGOTRuedFfmvijIX8xMX4rQnd7Jl/MbeFV+68KYYMwdJrVYfRZG4sUBeL5TmUskMc+sPtVpEfk67WJGqVpK9FvqK8S45f+9Pt72c78qCIONNYlFDOHtijO/0T+aWrDe9JeO7r/sXaOXp0RiTWr27HER8Y2Lf06XqKfcje7wGhfcan5Y20Kc4DtQo75b05S37d0YT8K9M7W/57u2uBZBJ+Vjhfc25A+tSrFWCjjSwINDBskccOdYbtADLG4nQ4YpYBqBXIRM6CwJwwrXkwI/U/SiVKtEIJ14phiRJMepe6XN46Y8/bkWxzeiHUdbn+fbaIIcQyKYts/6fj5tMU61OxXBID1IBqWV+FEq9xHAesBZJbE3ciMWOeg4FCXOOuKb6bs5/GYd23Z8YFNyp76Gm9R7nNucBu/KbYfs1O+DVdQxirAOdcTFysKjkHo57ChG/OeYWNtfwBEy0X6PjGYzi4xgJ6Za7BDtELgVlZHHxM+BUO7PhaTD86Fc3n+D0wuCE0Joopz8Prx3RJuyYv6wOSaqE0Se/Spx1CjqTJlNuf1oIiyquAAFWjJBtHgQOhIZFr822xmdcOTQr3DxbPEpcJ8IciTkEbXhcPnsDxiHdyvyc5bBxNVGOS946HeaGBLC7xrfcDFBf4oPKTyMiviQ1QGPfT1fPligrjwGWX2zUgyh2oHoN6JjHph3HTJg3eWJUypuUMk7QkZpITBqIP4UIg1pVYREbZpbjmwq6vcxkMiVxrQaRCu3pLjVmxqa8zYd1LVP+a9wScVm+03ypxBmji6ldRU+IUUeOrQ0nKBC2RD0BiibChbWZdTw5HoyPn6Ek1JaUwApvEKbgpVLTCe8HYFTJuXXCFZJQAY1euhgBC7D7+yXwKAc2cGXfECQOJLAADaeuyuN2bABAASaJuXdtkvAYA0qbQAQuwg/SUAQOSGam/sKo9JrgkAKmB7DjyLkSoPoE/Ekl4CgK/zpdILCPGqf2FIfgkABu17+tPlClg6TACQTlv+6dJfAgBYD/d8eYdeP9kmAOi15Zku/SUAOM5D1Z4Vd+iRgKyaAIDpVHv27JmogSXKBABCN/yeHrQd"}
+```
+
 ### **[Script]** [Beta] **[UNTESTED]** P1 Tele-trouncing + Graven Image 3
 
 > [!Warning]
@@ -67,7 +101,7 @@ Graven Image reminder. This script support for Tether, Half-AOE, Gaze.
 
 > [!Important]
 >
-> This script has has the similar functionality as General casts. If you import both this script and General casts, you will likely want to disable some presets of General casts category or disable some functions of this script.  
+> This script has has the similar functionality as General casts. If you import both this script and General casts, you will likely want to disable some presets of General casts category or disable some functions of this script.
 
 Configuration
 - Set the message you need. If it blank will hide it.
@@ -75,4 +109,10 @@ Configuration
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_GravenImage_Reminder.cs
+```
+
+# For preset developers
+Grid, will help with element placement
+```
+~Lv2~{"Name":"Grid","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":2,"refX":80.0,"refY":90.0,"offX":120.0,"offY":90.0,"radius":0.0},{"Name":"","type":2,"refX":100.0,"refY":80.0,"offX":100.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":90.0,"refY":80.0,"offX":90.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":110.0,"refY":80.0,"offX":110.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":100.0,"offX":120.0,"offY":100.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":110.0,"offX":120.0,"offY":110.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":95.0,"offX":120.0,"offY":95.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":105.0,"offX":120.0,"offY":105.0,"radius":0.0},{"Name":"","type":2,"refX":95.0,"refY":80.0,"offX":95.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":105.0,"refY":80.0,"offX":105.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":85.0,"refY":80.0,"offX":85.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":115.0,"refY":80.0,"offX":115.0,"offY":120.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":115.0,"offX":120.0,"offY":115.0,"radius":0.0},{"Name":"","type":2,"refX":80.0,"refY":85.0,"offX":120.0,"offY":85.0,"radius":0.0}]}
 ```

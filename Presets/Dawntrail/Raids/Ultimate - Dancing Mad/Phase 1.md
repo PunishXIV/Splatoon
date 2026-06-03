@@ -57,11 +57,11 @@ It is recommended to configure tethers preset by enabling tether to a direction 
 >
 > Also note: elements with words (-- Left--, etc) are just for visual separation and do not serve any purpose. 
 
+**Script is preconfigured** for [merry-go-round clockwise strat](https://files.nightmarexiv.org/images/image_339.jpg).
+
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Arrows.cs
 ```
-
-**Default configration** of this script is for [merry-go-round clockwise strat](https://files.nightmarexiv.org/images/image_339.jpg).
 
 > [!Important]
 >

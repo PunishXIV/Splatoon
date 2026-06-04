@@ -1,6 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
 using ECommons.CircularBuffers;
 using ECommons.GameFunctions;
+using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
@@ -23,12 +24,15 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
     public uint EffectFan = 5086;
+
+    public uint ActionTowerExplode = 47806;
+    List<uint> JustTookTowers = [];
 
     Dictionary<uint, Vector2> MapEffect2TowerPos
     {
@@ -66,19 +70,49 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
         }
     }
 
+    public override void OnActionEffectEvent(ActionEffectSet set)
+    {
+        if(set.Action != null && set.Action.Value.RowId == this.ActionTowerExplode)
+        {
+            foreach(var x in set.TargetEffects)
+            {
+                if(((uint)x.TargetID).TryGetPlayer(out var p))
+                {
+                    JustTookTowers.Insert(0, p.ObjectId);
+                }
+            }
+        }
+    }
 
     public override void OnReset()
     {
+        JustTookTowers.Clear();
     }
 
     void ShowNextElement(uint id, string kind)
     {
         for(int i = 0; i < 8; i++)
         {
-            if(Controller.TryGetElementByName($"{kind}{i}", out var e) && !e.Enabled)
+            var eName = $"{kind}{i}";
+            if(Controller.TryGetElementByName(eName, out var e) && !e.Enabled)
             {
                 e.Enabled = true;
                 e.refActorObjectID = id;
+                if(JustTookTowers.Count == 4)
+                {
+                    if(JustTookTowers.IndexOf(id).InRange(0, 4))
+                    {
+                        e.overlayText = Controller.OriginalElements[eName].overlayText + "| -- OUT --";
+                    }
+                    else
+                    {
+                        e.overlayText = Controller.OriginalElements[eName].overlayText + "| ++ IN ++";
+                    }
+                }
+                else
+                {
+                    e.overlayText = Controller.OriginalElements[eName].overlayText;
+                }
                 return;
             }
         }

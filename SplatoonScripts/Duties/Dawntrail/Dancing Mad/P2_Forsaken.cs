@@ -5,32 +5,25 @@ using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
-using FFXIVClientStructs.FFXIV.Client.Game.Event;
-using FFXIVClientStructs.FFXIV.Client.Game.InstanceContent;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
-using Splatoon;
-using Splatoon.Services;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using TerraFX.Interop.Windows;
-using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
     public uint EffectFan = 5086;
+
+    public uint DebuffSpellsTrouble = 5083;
 
     public uint ActionTowerExplode = 47806;
     List<uint> FirstTakers = [];
@@ -68,6 +61,16 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
                 """);
             Controller.RegisterElementFromCode($"Fan{i}", """
                 {"Name":"Cone","type":1,"radius":0.0,"color":3372220160,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4294180608,"overlayVOffset":1.2,"thicc":0.0,"overlayText":"^^^ Cone ^^^","refActorComparisonType":2}
+                """);
+        }
+
+        for(int i = 0; i < 2; i++)
+        {
+            Controller.RegisterElementFromCode($"TowerSplit2-{i}", """
+                {"Name":"","type":3,"refX":4.0,"offX":-4.0,"radius":0.0,"refActorNameIntl":{"En":"Kefka"},"refActorDataID":9020,"refActorPlaceholder":[],"refActorNPCNameID":7131,"refActorComparisonAnd":true,"refActorComparisonType":3,"includeRotation":true,"onlyUnTargetable":true,"LimitDistance":true,"DistanceSourceX":107.919945,"DistanceSourceY":100.056015,"DistanceSourceZ":3.8146973E-06,"DistanceMax":0.1,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
+                """);
+            Controller.RegisterElementFromCode($"TowerSplit1-{i}", """
+                {"Name":"","type":3,"refY":4.0,"offY":-4.0,"radius":0.0,"refActorDataID":9020,"refActorPlaceholder":[],"refActorNPCNameID":7131,"refActorComparisonAnd":true,"refActorComparisonType":3,"includeRotation":true,"onlyUnTargetable":true,"LimitDistance":true,"DistanceSourceX":107.919945,"DistanceSourceY":100.056015,"DistanceSourceZ":3.8146973E-06,"DistanceMax":0.1,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
                 """);
         }
     }
@@ -130,11 +133,30 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
     public override void OnUpdate()
     {
         Controller.Hide();
-        foreach(var x in Controller.GetPartyMembers())
+        if(Controller.GetPartyMembers().Any(x => x.StatusList.Any(s => s.StatusId == DebuffSpellsTrouble)))
         {
-            if(x.StatusList.Any(s => s.StatusId == this.EffectFan)) ShowNextElement(x.ObjectId, "Fan");
-            if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "Stack");
-            if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "Spread");
+            int i = 0;
+            foreach(var x in ActiveMapEffects)
+            {
+                var n1 = $"TowerSplit1-{i}";
+                var n2 = $"TowerSplit2-{i}";
+                if(Controller.TryGetElementByName(n1, out var e1)&& Controller.TryGetElementByName(n2, out var e2))
+                {
+                    e1.Enabled = true;
+                    e2.Enabled = true;
+                    e1.DistanceSourceX = MapEffect2TowerPos[x].X;
+                    e1.DistanceSourceY = MapEffect2TowerPos[x].Y;
+                    e2.DistanceSourceX = MapEffect2TowerPos[x].X;
+                    e2.DistanceSourceY = MapEffect2TowerPos[x].Y;
+                }
+                i++;
+            }
+            foreach(var x in Controller.GetPartyMembers())
+            {
+                if(x.StatusList.Any(s => s.StatusId == this.EffectFan)) ShowNextElement(x.ObjectId, "Fan");
+                if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "Stack");
+                if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "Spread");
+            }
         }
     }
 

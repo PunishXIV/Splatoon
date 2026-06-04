@@ -83,7 +83,11 @@ internal partial class CGui
 
     private readonly NuiTools.ButtonInfo[] ContentCategoryTab = [new("All", () => ActiveContentCategory = null), .. Enum.GetValues<ContentCategory>().Select(x => new NuiTools.ButtonInfo(x.ToString().Replace('_', ' ').Loc(), x.ToString(), () => ActiveContentCategory = x))];
 
-    public uint FilteredTerritory = 0;
+    public uint FilteredTerritory
+    {
+        get => P.Config.FilteredTerritoryLayout;
+        set => P.Config.FilteredTerritoryLayout = value;
+    }
 
     private void DislayLayouts()
     {

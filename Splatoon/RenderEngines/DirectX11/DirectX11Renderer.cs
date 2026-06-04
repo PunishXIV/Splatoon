@@ -94,9 +94,9 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         if(element.overlayTextIntl.Get(element.overlayText).Length > 0)
         {
             var text = element.overlayTextIntl.Get(element.overlayText);
-            if(associatedGameObject != null)
+            if(true) //revisit
             {
-                text = text.ProcessPlaceholders(associatedGameObject);
+                text = text.ProcessPlaceholders(associatedGameObject, element);
             }
             DisplayObjects.Add(new DisplayObjectText(element.GetUniqueId(associatedGameObject), cx, cy, z + element.offZ + element.overlayVOffset, text, element.overlayBGColor, element.overlayTextColor, element.overlayFScale));
         }

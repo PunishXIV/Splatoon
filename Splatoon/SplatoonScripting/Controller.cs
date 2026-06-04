@@ -157,6 +157,22 @@ public unsafe class Controller
     }
 
     /// <summary>
+    /// Attempts to register previously exported from plugin element for further usage. End user will be able to edit this element as they wish and results of the edit will be saved. Enabled elements are subject for immediate processing when the script is enabled. Element name will be used as key.
+    /// </summary>
+    /// <param name="ExportString">An exported element string.</param>
+    /// <param name="element">Decoded element object.</param>
+    /// <param name="overwrite">Whether to overwrite existing element with same name if it's present.</param>
+    /// <returns>Whether element was successfully registered.</returns>
+    public bool TryRegisterElementFromCode(string ExportString, [NotNullWhen(true)] out Element? element, bool overwrite = false)
+    {
+        var ret = ScriptingEngine.TryDecodeElement(ExportString, out element) && TryRegisterElement(element.Name, element, overwrite);
+        if(ret) ElementNamesAsKeys.Add(element.Name);
+        return ret;
+    }
+
+    internal HashSet<string> ElementNamesAsKeys = [];
+
+    /// <summary>
     /// Tries to get previously registered layout by name.
     /// </summary>
     /// <param name="name">Layout's internal name.</param>
@@ -203,6 +219,25 @@ public unsafe class Controller
         if(!TryRegisterElement(UniqueName, element, overwrite))
         {
             throw new InvalidOperationException($"RegisterElement failed: Could not register element {UniqueName}");
+        }
+    }
+
+    public void RegisterElementFromCode(string ExportString, bool overwrite = false)
+    {
+        if(!TryRegisterElementFromCode(ExportString, out var ret, overwrite))
+        {
+            throw new InvalidOperationException($"RegisterElementFromCode failed: Could not register element {ExportString.Trim(100)}");
+        }
+    }
+
+    public void RegisterElementsFromMultilineCode(string ExportStringPerLine, bool overwrite = false)
+    {
+        foreach(var ExportString in ExportStringPerLine.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if(!TryRegisterElementFromCode(ExportString, out var ret, overwrite))
+            {
+                throw new InvalidOperationException($"RegisterElementFromCode failed: Could not register element {ExportString.Trim(100)}");
+            }
         }
     }
 

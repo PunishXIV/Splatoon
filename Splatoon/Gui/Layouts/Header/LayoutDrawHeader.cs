@@ -1,4 +1,6 @@
 ﻿using Dalamud.Interface.Components;
+using ECommons.Automation;
+using ECommons.Configuration;
 using ECommons.ExcelServices;
 using ECommons.LanguageHelpers;
 using Lumina.Excel.Sheets;
@@ -74,10 +76,22 @@ internal partial class CGui
             ImGui.TableNextColumn();
             ImGuiEx.TextV("Export:".Loc());
             ImGui.TableNextColumn();
-            if(ImGui.Button("Copy to clipboard".Loc()))
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy".Loc()))
             {
                 layout.ExportToClipboard();
             }
+            ImGui.SameLine();
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy Elements".Loc()))
+            {
+                StringBuilder sb = new();
+                foreach(var e in layout.ElementsL)
+                {
+                    if(IsKeyPressed(ECommons.WindowsFormsReflector.Keys.Shift) && !e.Enabled) continue;
+                    sb.AppendLine(EzConfig.DefaultSerializationFactory.Serialize(e, false));
+                }
+                Copy(sb.ToString());
+            }
+            ImGuiEx.Tooltip("Hold Shift + Click = export only enabled");
             ImGui.SameLine();
             ImGuiEx.TextV("Share:".Loc());
             ImGui.SameLine();

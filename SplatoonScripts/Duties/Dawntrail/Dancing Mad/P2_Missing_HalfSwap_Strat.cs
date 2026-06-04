@@ -22,7 +22,7 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(10, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -485,7 +485,8 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
         ImGui.TextUnformatted("Priority");
         ImGui.Separator();
 
-        if (ImGui.TreeNode("Groups")) {
+        if(ImGui.TreeNode("Groups"))
+        {
             ImGui.TextUnformatted("Group1 (debuff resolve step 1-4)");
             C.Group1.Draw();
             ImGui.TextUnformatted("Group2 (debuff resolve step 5-8)");
@@ -493,7 +494,8 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
             ImGui.TreePop();
         }
 
-        if (ImGui.TreeNode("Role Selection")) {
+        if(ImGui.TreeNode("Role Selection"))
+        {
             ImGui.TextUnformatted("Pattern 0 cone bait");
             C.Pattern0ConeBait.Draw();
             ImGui.TextUnformatted("Pattern 2 cone bait");
@@ -504,7 +506,7 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
         }
 
         ImGui.Spacing();
-   
+
     }
 
     private void DrawPatternPreviewRoleFilter()

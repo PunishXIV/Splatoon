@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -22,7 +23,7 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(2, "mirage");
+    public override Metadata? Metadata => new(3, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -34,6 +35,12 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
     private const uint StatusStack = 5084;
     private const uint StatusSpread = 5085;
     private const uint StatusCone = 5086;
+
+    private const uint FuturesEndCast = 47826;
+    private const uint PastsEndCast = 47827;
+    private const uint AllThingsEndingCast1 = 47836;
+    private const uint AllThingsEndingCast2 = 47837;
+    private const float InterludeNavDistanceFromCenter = 4f;
 
     // Map effect indices 1-8 (P2_Forsaken_beta): spawn 1/2, clear 4/8.
     private const uint MapEffectTowerIndexMin = 1;
@@ -179,6 +186,8 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
     private bool _hasActiveTowers;
     private int _step;
     private Tower1Side _tower1Side = Tower1Side.Unknown;
+    private InterludeNavPhase _interludeNavPhase;
+    private bool _interludeBossCastSeen;
     #endregion
 
     #region Types
@@ -224,6 +233,15 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
         Unknown,
         Left,
         Right,
+    }
+
+    private enum InterludeNavPhase
+    {
+        None,
+        CastingPast,
+        CastingFuture,
+        PastGap,
+        FutureOpposite,
     }
 
     private enum DebuffKind
@@ -353,13 +371,35 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
             return;
         }
 
+        UpdateInterludeNavPhase();
         UpdateActiveTowerMarkers();
-
         UpdateFieldMarkers();
     }
 
     public override void OnReset()
         => ResetState();
+
+    public override void OnStartingCast(uint source, uint castId)
+    {
+        if(!IsPhaseActive())
+            return;
+
+        if(castId == PastsEndCast)
+        {
+            _interludeNavPhase = InterludeNavPhase.CastingPast;
+            _interludeBossCastSeen = false;
+        }
+        else if(castId == FuturesEndCast)
+        {
+            _interludeNavPhase = InterludeNavPhase.CastingFuture;
+            _interludeBossCastSeen = false;
+        }
+        else if(castId is AllThingsEndingCast1 or AllThingsEndingCast2)
+        {
+            _interludeNavPhase = InterludeNavPhase.None;
+            _interludeBossCastSeen = false;
+        }
+    }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
@@ -429,6 +469,7 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
             ImGui.TextUnformatted($"Active tower ids: {_activeTowerEntityIds[0]}, {_activeTowerEntityIds[1]}");
             ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
             ImGui.TextUnformatted($"Pending clears: {FormatMapPositionList(_pendingTowerClearPositions)}");
+            ImGui.TextUnformatted($"Interlude nav: {_interludeNavPhase}");
         }
     }
 
@@ -772,6 +813,75 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
     private static string FormatMapPositionList(IReadOnlyList<uint> positions)
         => positions.Count == 0 ? "none" : string.Join(", ", positions);
 
+    private void UpdateInterludeNavPhase()
+    {
+        switch(_interludeNavPhase)
+        {
+            case InterludeNavPhase.CastingPast:
+                if(IsAnyBossCasting(PastsEndCast))
+                    _interludeBossCastSeen = true;
+                else if(_interludeBossCastSeen)
+                    _interludeNavPhase = InterludeNavPhase.PastGap;
+                break;
+            case InterludeNavPhase.CastingFuture:
+                if(IsAnyBossCasting(FuturesEndCast))
+                    _interludeBossCastSeen = true;
+                else if(_interludeBossCastSeen)
+                    _interludeNavPhase = InterludeNavPhase.FutureOpposite;
+                break;
+            case InterludeNavPhase.PastGap:
+                if(IsAnyBossCasting(PastsEndCast))
+                {
+                    _interludeNavPhase = InterludeNavPhase.CastingPast;
+                    _interludeBossCastSeen = true;
+                }
+                break;
+            case InterludeNavPhase.FutureOpposite:
+                if(IsAnyBossCasting(FuturesEndCast))
+                {
+                    _interludeNavPhase = InterludeNavPhase.CastingFuture;
+                    _interludeBossCastSeen = true;
+                }
+                break;
+        }
+    }
+
+    private static bool IsAnyBossCasting(uint castId)
+        => Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsTargetable && x.IsCasting && x.CastActionId == castId);
+
+    private bool IsInterludeEndCastActive()
+        => IsAnyBossCasting(PastsEndCast) || IsAnyBossCasting(FuturesEndCast);
+
+    private bool TryGetInterludeNavPosition(out Vector3 position, out string label)
+    {
+        position = default;
+        label = "";
+        if(_interludeNavPhase is not (InterludeNavPhase.PastGap or InterludeNavPhase.FutureOpposite))
+            return false;
+        if(IsInterludeEndCastActive())
+            return false;
+        if(!_hasActiveTowers)
+            return false;
+
+        position = ResolveInterludeNavPosition();
+        label = _interludeNavPhase == InterludeNavPhase.PastGap ? "between towers" : "opposite side";
+        return true;
+    }
+
+    private Vector3 ResolveInterludeNavPosition()
+    {
+        var pairMidpoint = (_activeTowerPositions[0] + _activeTowerPositions[1]) * 0.5f;
+        var towardTowers = pairMidpoint - ArenaCenter;
+        towardTowers.Y = 0;
+        if(towardTowers.LengthSquared() < 0.0001f)
+            towardTowers = new Vector3(0f, 0f, -1f);
+        towardTowers = Vector3.Normalize(towardTowers);
+
+        return _interludeNavPhase == InterludeNavPhase.PastGap
+            ? ArenaCenter + towardTowers * InterludeNavDistanceFromCenter
+            : ArenaCenter - towardTowers * InterludeNavDistanceFromCenter;
+    }
+
     private void UpdateActiveTowerMarkers()
     {
         UpdateActiveTowerMarker(ElActiveTower0, 0);
@@ -802,6 +912,8 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
         _tower1Side = Tower1Side.Unknown;
         _pendingTowerSpawnPositions.Clear();
         _pendingTowerClearPositions.Clear();
+        _interludeNavPhase = InterludeNavPhase.None;
+        _interludeBossCastSeen = false;
         _activeTowerPositions[0] = Vector3.Zero;
         _activeTowerPositions[1] = Vector3.Zero;
         _activeTowerEntityIds[0] = 0;
@@ -846,7 +958,17 @@ internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
         }
 
         DisableAllRolePreviewMarkers();
+
+        if(TryGetInterludeNavPosition(out var interludePosition, out var interludeLabel))
+        {
+            EnableRoleMarker(ElMyRole, interludePosition, interludeLabel, tether: true);
+            return;
+        }
+
         DisableMyRoleMarker();
+
+        if(!_hasActiveTowers)
+            return;
 
         if(!TryGetLiveResolvePattern(out var patternId))
             return;

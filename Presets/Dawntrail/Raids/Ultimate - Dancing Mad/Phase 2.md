@@ -23,7 +23,7 @@ Configuration notes:
 
 Script file in this repository:
 ```
-SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken_beta.cs
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_beta.cs
 ```
 
 #### AAABBBBA fixed-partner auto group

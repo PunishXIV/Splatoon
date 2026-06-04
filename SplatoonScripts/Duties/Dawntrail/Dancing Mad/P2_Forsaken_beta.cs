@@ -51,6 +51,54 @@ public class P2_Forsaken_beta : SplatoonScript
         new(ArenaCenter.X - TowerOffsetDiagonal, 0f, ArenaCenter.Z - TowerOffsetDiagonal),
     ];
 
+    private static readonly WaveGroupKind[] DefaultWaveSequence =
+    [
+        WaveGroupKind.GroupA,
+        WaveGroupKind.GroupA,
+        WaveGroupKind.GroupA,
+        WaveGroupKind.GroupB,
+        WaveGroupKind.GroupB,
+        WaveGroupKind.GroupB,
+        WaveGroupKind.GroupB,
+        WaveGroupKind.GroupA
+    ];
+
+    private static readonly WaveGroupKind[] LegacyFirstHalfSecondHalfWaveSequence =
+    [
+        WaveGroupKind.GroupA,
+        WaveGroupKind.GroupA,
+        WaveGroupKind.GroupA,
+        WaveGroupKind.GroupA,
+        WaveGroupKind.GroupB,
+        WaveGroupKind.GroupB,
+        WaveGroupKind.GroupB,
+        WaveGroupKind.GroupB
+    ];
+
+    private static readonly RolePosition[] DefaultRolePriority =
+    [
+        RolePosition.H2,
+        RolePosition.M2,
+        RolePosition.T2,
+        RolePosition.M1,
+        RolePosition.R2,
+        RolePosition.R1,
+        RolePosition.T1,
+        RolePosition.H1
+    ];
+
+    private static readonly RolePosition[] LegacyGenericRolePriority =
+    [
+        RolePosition.T1,
+        RolePosition.T2,
+        RolePosition.H1,
+        RolePosition.H2,
+        RolePosition.M1,
+        RolePosition.M2,
+        RolePosition.R1,
+        RolePosition.R2
+    ];
+
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
@@ -70,9 +118,9 @@ public class P2_Forsaken_beta : SplatoonScript
     private static readonly InternationalString WaveTableDescriptionText = new()
     {
         En =
-            "Each wave chooses a resolving group. The default FFLogs-verified sequence is Group A on waves 1-3 and 8, Group B on waves 4-7. Tower and All Things Ending share one live-pattern role placement table; Past/Future use fixed tower-relative movement.",
+            "Each wave chooses a resolving group. The default AAABBBBA sequence is Group A on waves 1-3 and 8, Group B on waves 4-7. Tower and All Things Ending share one live-pattern role placement table; Past/Future use fixed tower-relative movement.",
         Jp =
-            "各Waveで処理グループを選びます。FFLogsで確認した初期値は1-3回目と8回目がGroup A、4-7回目がGroup Bです。塔と消滅の脚は現在パターンと役割ごとの共通配置表を使い、過去/未来は塔基準の固定移動にします。"
+            "各Waveで処理グループを選びます。初期値はAAABBBBA、つまり1-3回目と8回目がGroup A、4-7回目がGroup Bです。塔と消滅の脚は現在パターンと役割ごとの共通配置表を使い、過去/未来は塔基準の固定移動にします。"
     };
 
     private readonly List<uint> _pendingTowerSpawnPositions = [];
@@ -477,21 +525,6 @@ public class P2_Forsaken_beta : SplatoonScript
         ImGui.DragFloat("Range", ref rule.Range, 0.05f, 0f, 30f);
     }
 
-    private void DrawSlotLabelSettings()
-    {
-        if (!ImGui.TreeNode(C.SlotLabelsHeaderText.Get())) return;
-
-        DrawInternationalString("Circle head", C.CircleHeadLabelText);
-        DrawInternationalString("Circle 1", C.Circle1LabelText);
-        DrawInternationalString("Circle 2", C.Circle2LabelText);
-        DrawInternationalString("Circle 3", C.Circle3LabelText);
-        DrawInternationalString("Fan head", C.FanHeadLabelText);
-        DrawInternationalString("Fan 1", C.Fan1LabelText);
-        DrawInternationalString("Fan 2", C.Fan2LabelText);
-        DrawInternationalString("Fan 3", C.Fan3LabelText);
-        ImGui.TreePop();
-    }
-
     private static void DrawInternationalString(string label, InternationalString text)
     {
         ImGui.PushID(label);
@@ -594,8 +627,7 @@ public class P2_Forsaken_beta : SplatoonScript
             _currentStage == StageKind.Tower)
         {
             _currentInstruction = "";
-            _hasDestination = false;
-            _myDestination = Vector3.Zero;
+            ClearDestination();
         }
 
         _pendingTowerClearPositions.Clear();
@@ -628,10 +660,8 @@ public class P2_Forsaken_beta : SplatoonScript
         var me = BasePlayer;
         if (me == null) return;
 
-        _hasDestination = false;
-        _myDestination = Vector3.Zero;
-
         var debuff = CurrentDebuffFromPlayer(me);
+        ClearDestination();
         _currentInstruction = debuff == LiveDebuffKind.None
             ? C.WaitingForAssignmentText.Get()
             : FormatText(C.WaitingForWaveText, DebuffLabel(debuff));
@@ -645,16 +675,14 @@ public class P2_Forsaken_beta : SplatoonScript
         if (!_hasTowerReference || !_hasStage || _currentWave is < 1 or > WaveCount)
         {
             _currentInstruction = FormatText(C.WaitingForWaveText, DebuffLabel(CurrentDebuffFromPlayer(me)));
-            _hasDestination = false;
-            _myDestination = Vector3.Zero;
+            ClearDestination();
             return;
         }
 
         if (!TryBuildLiveContext(me, out var context))
         {
             _currentInstruction = C.WaitingForAssignmentText.Get();
-            _hasDestination = false;
-            _myDestination = Vector3.Zero;
+            ClearDestination();
             return;
         }
 
@@ -674,8 +702,7 @@ public class P2_Forsaken_beta : SplatoonScript
             _currentWave,
             DebuffLabel(context.Debuff),
             StageLabel(_currentStage));
-        _hasDestination = false;
-        _myDestination = Vector3.Zero;
+        ClearDestination();
     }
 
     private bool TryApplyBasicInstruction(LiveContext context)
@@ -698,8 +725,7 @@ public class P2_Forsaken_beta : SplatoonScript
 
         _lastRuleLabel = placement.Text.Get();
         _lastSelectorLabel = SelectorLabel(placement.Selector);
-        _myDestination = ResolvePosition(placement.Position, _referenceMapPosition);
-        _hasDestination = true;
+        SetDestination(ResolvePosition(placement.Position, _referenceMapPosition));
         _currentInstruction = FormatText(
             C.ActiveInstructionText,
             _currentWave,
@@ -712,14 +738,25 @@ public class P2_Forsaken_beta : SplatoonScript
     {
         _lastRuleLabel = text.Get();
         _lastSelectorLabel = "";
-        _myDestination = ResolvePosition(position, _referenceMapPosition);
-        _hasDestination = true;
+        SetDestination(ResolvePosition(position, _referenceMapPosition));
         _currentInstruction = FormatText(
             C.ActiveInstructionText,
             _currentWave,
             StageLabel(_currentStage),
             text.Get());
         return true;
+    }
+
+    private void ClearDestination()
+    {
+        _hasDestination = false;
+        _myDestination = Vector3.Zero;
+    }
+
+    private void SetDestination(Vector3 destination)
+    {
+        _hasDestination = true;
+        _myDestination = destination;
     }
 
     private bool TryBuildLiveContext(IPlayerCharacter me, out LiveContext context)
@@ -1656,12 +1693,6 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "{0}回目 {1}: {2}へ"
         };
 
-        public InternationalString ActiveSlotsColumnText = new()
-        {
-            En = "Active slots",
-            Jp = "表示スロット"
-        };
-
         public InternationalString AllThingsEndingStageLabelText = new()
         {
             En = "All Things Ending",
@@ -1678,30 +1709,6 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             En = "Basic position table",
             Jp = "基本配置表"
-        };
-
-        public InternationalString CircleHeadLabelText = new()
-        {
-            En = "Circle head",
-            Jp = "円頭"
-        };
-
-        public InternationalString Circle1LabelText = new()
-        {
-            En = "Circle 1",
-            Jp = "円1"
-        };
-
-        public InternationalString Circle2LabelText = new()
-        {
-            En = "Circle 2",
-            Jp = "円2"
-        };
-
-        public InternationalString Circle3LabelText = new()
-        {
-            En = "Circle 3",
-            Jp = "円3"
         };
 
         public InternationalString CollectingAssignmentsText = new()
@@ -1728,30 +1735,6 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "東"
         };
 
-        public InternationalString FanHeadLabelText = new()
-        {
-            En = "Fan head",
-            Jp = "扇頭"
-        };
-
-        public InternationalString Fan1LabelText = new()
-        {
-            En = "Fan 1",
-            Jp = "扇1"
-        };
-
-        public InternationalString Fan2LabelText = new()
-        {
-            En = "Fan 2",
-            Jp = "扇2"
-        };
-
-        public InternationalString Fan3LabelText = new()
-        {
-            En = "Fan 3",
-            Jp = "扇3"
-        };
-
         public InternationalString FutureStageLabelText = new()
         {
             En = "Future's End",
@@ -1761,13 +1744,13 @@ public class P2_Forsaken_beta : SplatoonScript
         public PriorityData4 GroupA = new()
         {
             Name = "Forsaken beta Group A",
-            Description = "Optional fixed Group A. Leave empty for the 1238/4567 auto group."
+            Description = "Optional fixed Group A. Leave empty to auto-capture from the initial Missing forecast."
         };
 
         public PriorityData4 GroupB = new()
         {
             Name = "Forsaken beta Group B",
-            Description = "Optional fixed Group B. Leave empty for the 1238/4567 auto group."
+            Description = "Optional fixed Group B. Leave empty to use the complement of auto Group A."
         };
 
         public InternationalString HeadStackDebuffText = new()
@@ -1850,12 +1833,6 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "過去の終焉"
         };
 
-        public InternationalString PositionRuleColumnText = new()
-        {
-            En = "Position rule",
-            Jp = "座標ルール"
-        };
-
         public InternationalString FutureFixedText = new()
         {
             En = "Opposite side",
@@ -1870,7 +1847,7 @@ public class P2_Forsaken_beta : SplatoonScript
         public PriorityData PriorityData = new()
         {
             Name = "Forsaken beta global priority",
-            Description = "Used for auto Group A circle/fan selection and dynamic same-debuff rank ordering. Default order is fitted to the observed 1238/4567 FFLogs samples.",
+            Description = "Used for auto Group A circle/fan selection and dynamic same-debuff rank ordering. Default order is fitted to the observed AAABBBBA fixed-partner samples.",
             PriorityLists =
             [
                 new PriorityList
@@ -1888,12 +1865,6 @@ public class P2_Forsaken_beta : SplatoonScript
         };
 
         public bool ShowPreview;
-
-        public InternationalString SlotLabelsHeaderText = new()
-        {
-            En = "Slot labels",
-            Jp = "スロット名"
-        };
 
         public InternationalString SouthEastLabelText = new()
         {
@@ -2005,19 +1976,8 @@ public class P2_Forsaken_beta : SplatoonScript
 
             if (DefaultsVersion < 4)
             {
-                if (HasWaveSequence(
-                        Waves,
-                        WaveGroupKind.GroupA,
-                        WaveGroupKind.GroupA,
-                        WaveGroupKind.GroupA,
-                        WaveGroupKind.GroupA,
-                        WaveGroupKind.GroupB,
-                        WaveGroupKind.GroupB,
-                        WaveGroupKind.GroupB,
-                        WaveGroupKind.GroupB))
-                {
+                if (HasWaveSequence(Waves, LegacyFirstHalfSecondHalfWaveSequence))
                     Waves = CreateDefaultWaves();
-                }
 
                 DefaultsVersion = 4;
             }
@@ -2112,24 +2072,12 @@ public class P2_Forsaken_beta : SplatoonScript
             var list = PriorityData.PriorityLists?.FirstOrDefault(item => item.IsRole);
             if (list?.List == null) return;
 
-            var oldOrder = new[]
-            {
-                RolePosition.T1,
-                RolePosition.T2,
-                RolePosition.H1,
-                RolePosition.H2,
-                RolePosition.M1,
-                RolePosition.M2,
-                RolePosition.R1,
-                RolePosition.R2
-            };
-
             var currentRoles = list.List.Select(item => item.Role).ToArray();
-            if (currentRoles.Length != oldOrder.Length)
+            if (currentRoles.Length != LegacyGenericRolePriority.Length)
                 return;
 
-            for (var i = 0; i < oldOrder.Length; i++)
-                if (currentRoles[i] != oldOrder[i])
+            for (var i = 0; i < LegacyGenericRolePriority.Length; i++)
+                if (currentRoles[i] != LegacyGenericRolePriority[i])
                     return;
 
             list.List = CreateDefaultPriorityList();
@@ -2192,16 +2140,10 @@ public class P2_Forsaken_beta : SplatoonScript
 
     private static WaveConfig[] CreateDefaultWaves()
     {
-        return Enumerable.Range(0, WaveCount)
-            .Select(i =>
-            {
-                var waveNumber = i + 1;
-                var wave = new WaveConfig();
-                wave.ResolvingGroup = DefaultResolvingGroup(waveNumber);
-                wave.Ensure(waveNumber);
-                return wave;
-            })
-            .ToArray();
+        var waves = new WaveConfig[WaveCount];
+        for (var i = 0; i < waves.Length; i++)
+            waves[i] = new WaveConfig { ResolvingGroup = DefaultResolvingGroup(i + 1) };
+        return waves;
     }
 
     private static bool HasWaveSequence(WaveConfig[]? waves, params WaveGroupKind[] sequence)
@@ -2218,28 +2160,18 @@ public class P2_Forsaken_beta : SplatoonScript
 
     private static List<JobbedPlayer> CreateDefaultPriorityList()
     {
-        return
-        [
-            new JobbedPlayer { Role = RolePosition.H2 },
-            new JobbedPlayer { Role = RolePosition.M2 },
-            new JobbedPlayer { Role = RolePosition.T2 },
-            new JobbedPlayer { Role = RolePosition.M1 },
-            new JobbedPlayer { Role = RolePosition.R2 },
-            new JobbedPlayer { Role = RolePosition.R1 },
-            new JobbedPlayer { Role = RolePosition.T1 },
-            new JobbedPlayer { Role = RolePosition.H1 }
-        ];
+        return DefaultRolePriority.Select(role => new JobbedPlayer { Role = role }).ToList();
     }
 
     private static BasicStageConfig[] CreateDefaultBasicStages()
     {
         return
         [
-            CreateHalfSwapBasicStage(BasicStageKind.Tower)
+            CreateDefaultTowerStage(BasicStageKind.Tower)
         ];
     }
 
-    private static BasicStageConfig CreateHalfSwapBasicStage(BasicStageKind kind)
+    private static BasicStageConfig CreateDefaultTowerStage(BasicStageKind kind)
     {
         return new BasicStageConfig(
             kind,
@@ -2307,6 +2239,6 @@ public class P2_Forsaken_beta : SplatoonScript
 
     private static WaveGroupKind DefaultResolvingGroup(int wave)
     {
-        return wave <= 3 || wave == 8 ? WaveGroupKind.GroupA : WaveGroupKind.GroupB;
+        return wave is >= 1 and <= WaveCount ? DefaultWaveSequence[wave - 1] : WaveGroupKind.GroupA;
     }
 }

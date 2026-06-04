@@ -177,7 +177,7 @@ public class P2_Forsaken_beta : SplatoonScript
     private Vector3 _myDestination = Vector3.Zero;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(2, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
     private IPlayerCharacter BasePlayer => Controller.BasePlayer;

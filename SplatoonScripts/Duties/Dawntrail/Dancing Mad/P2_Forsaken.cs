@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
@@ -98,7 +98,7 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
             {
                 e.Enabled = true;
                 e.refActorObjectID = id;
-                if(JustTookTowers.Count == 4)
+                if(JustTookTowers.Count >= 4)
                 {
                     if(JustTookTowers.IndexOf(id).InRange(0, 4))
                     {

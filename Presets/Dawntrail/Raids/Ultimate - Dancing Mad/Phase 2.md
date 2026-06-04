@@ -1,21 +1,14 @@
-# Recommended minimal imports for P2 as of 2026-06-04
-- Import script: P2 Forsaken beta / Missing guide
+## [Script] [Unfinished] Forsaken
 
-> [!Caution]
->
-> P2 Forsaken / Missing strategies are still moving. The beta helper below is table-driven so the same script can be configured for several current public strategies.
+This script is mostly a stub for further development. At this moment of time I do not know how to solve this mechanic.
 
-## Scripts
-
-### **[Script] [Unfinished]** Forsaken marker viewer
-This script is mostly a stub for further development. It currently shows who has which marker.
-
+Currently will show who has which marker. 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken.cs
 ```
 
-### **[Script] [Beta]** P2 Forsaken beta / Missing guide
-Self-only helper for P2 Forsaken / Missing. It reads the live Missing debuffs, tracks the tower pair from map effects, determines the resolving group, and guides only the local player to the configured tower-relative position.
+### **[Script] [Beta]** P2 Forsaken beta  guide
+Self-only helper for P2 Forsaken. It reads the live Missing debuffs, tracks the tower pair from map effects, determines the resolving group, and guides only the local player to the configured tower-relative position.
 
 Default model:
 - The tower position itself is inferred from map effects.
@@ -28,24 +21,15 @@ Configuration notes:
 - Use fixed Group A/B if your group assigns four-player groups outside the initial debuff forecast.
 - Use the Debug tab to verify the detected tower pair, auto groups, live debuff role, and selected position rule during replay review.
 
-Verification:
-- Tested against FFLogs-derived saved data from report `7q64RXCZHygAjhJp`, fights 51, 84, and 95.
-- The AAABBBBA fixed-partner default matched all checked resolver-group assignments in those P3-reaching pulls.
-- Local SplaSim and Splatoon builds passed, and the latest Dalamud/Splatoon log reported `P2_Forsaken_beta ready`.
-
 Script file in this repository:
 ```
 SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken_beta.cs
 ```
 
-> [!Important]
->
-> The exported configurations below target the current local script name `SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P2_Forsaken_beta`. If the script namespace is changed for an official release, regenerate these configuration strings before importing them.
-
 #### AAABBBBA fixed-partner auto group
 Wave table: Group A resolves waves `1, 2, 3, 8`; Group B resolves waves `4, 5, 6, 7`. This is the same resolver sequence as the current Toxic Friends / fixed-partner / Forsaken Buddies style RaidPlans; exact fixed partner positions can still differ by plan. Avoid treating it as region-specific because the same family is currently shared in both overseas Discord/RaidPlan contexts and NA Kefkabin-style materials.
 
-Priority: `H2 M2 T2 M1 R2 R1 T1 H1`.
+Priority: `H2 M2 OT M1 R2 R1 MT H1`.
 
 Related public plans:
 - [Toxic Friends - UMAD P2](https://raidplan.io/plan/8wo9cYItAo2mkKSc#2)
@@ -63,7 +47,7 @@ Wave table: Group A resolves waves `1, 2, 3, 4`; Group B resolves waves `5, 6, 7
 
 A/B sequence: `AAAABBBB`.
 
-Priority: `H2 H1 T1 T2 M1 M2 R1 R2`.
+Priority: `H2 H1 MT OT M1 M2 R1 R2`.
 
 Source:
 - [Yan Flash / 絶妖星乱舞](https://yan-flash.com/ultimate/yosei-ranbu)
@@ -81,7 +65,7 @@ Wave table: Group A resolves waves `1, 4, 5, 8`; Group B resolves waves `2, 3, 6
 
 A/B sequence: `ABBAABBA`.
 
-Priority: `T1 T2 H1 H2 R2 R1 M2 M1`.
+Priority: `MT OT H1 H2 R2 R1 M2 M1`.
 
 Source:
 - [Drippy / P2 ミッシング](https://drippy-sokuhou.com/articles/kefka-p2-missing)

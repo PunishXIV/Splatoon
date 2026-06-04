@@ -18,11 +18,11 @@ using Splatoon.Utility;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
-internal class P2_Missing_HalfSwap_Strat : SplatoonScript
+internal class P2_Missing_1234_5678_CustomeRoles : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -35,8 +35,15 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
     private const uint StatusSpread = 5085;
     private const uint StatusCone = 5086;
 
-    private const uint DataIdTower = 0x233C;
-    private const float SlotMatchRadius = 0.5f;
+    // Map effect indices 1-8 (P2_Forsaken_beta): spawn 1/2, clear 4/8.
+    private const uint MapEffectTowerIndexMin = 1;
+    private const uint MapEffectTowerIndexMax = 8;
+    private const ushort MapEffectTowerSpawnData1 = 1;
+    private const ushort MapEffectTowerSpawnData2 = 2;
+    private const ushort MapEffectTowerClearData1 = 4;
+    private const ushort MapEffectTowerClearData2 = 8;
+    private const int TowerPairMapStepOffset = 2;
+
     private const int SceneP2 = 7;
 
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
@@ -167,7 +174,8 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
 
     private readonly Vector3[] _activeTowerPositions = [Vector3.Zero, Vector3.Zero];
     private readonly uint[] _activeTowerEntityIds = [0, 0];
-    private readonly HashSet<uint> _knownTowerEntityIds = [];
+    private readonly List<uint> _pendingTowerSpawnPositions = [];
+    private readonly List<uint> _pendingTowerClearPositions = [];
     private bool _hasActiveTowers;
     private int _step;
     private Tower1Side _tower1Side = Tower1Side.Unknown;
@@ -345,7 +353,6 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
             return;
         }
 
-        UpdateActiveTowers();
         UpdateActiveTowerMarkers();
 
         UpdateFieldMarkers();
@@ -359,6 +366,21 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
         if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
                 DirectorUpdateCategory.Wipe))
             ResetState();
+    }
+
+    public override void OnMapEffect(uint position, ushort data1, ushort data2)
+    {
+        if(!IsPhaseActive())
+            return;
+
+        if(IsTowerSpawnMapEffect(data1, data2) && IsTowerMapPosition(position))
+        {
+            AddTowerSpawnPosition(position);
+            return;
+        }
+
+        if(IsTowerClearMapEffect(data1, data2) && IsTowerMapPosition(position))
+            AddTowerClearPosition(position);
     }
 
     public override void OnSettingsDraw()
@@ -403,6 +425,10 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
             ImGui.TextUnformatted(TryGetLiveResolvePattern(out var patternId)
                 ? $"Live pattern: {patternId}"
                 : "Live pattern: — (no match)");
+
+            ImGui.TextUnformatted($"Active tower ids: {_activeTowerEntityIds[0]}, {_activeTowerEntityIds[1]}");
+            ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
+            ImGui.TextUnformatted($"Pending clears: {FormatMapPositionList(_pendingTowerClearPositions)}");
         }
     }
 
@@ -643,32 +669,47 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
 
     #region Tower Tracking
 
-    private void UpdateActiveTowers()
+    private void AddTowerSpawnPosition(uint position)
     {
-        var hits = ScanTowers();
+        AddUniquePairPosition(_pendingTowerSpawnPositions, position);
+        if(_pendingTowerSpawnPositions.Count != 2)
+            return;
 
-        if(hits.Count == 0)
+        if(!TryGetTowerPairReference(_pendingTowerSpawnPositions[0], _pendingTowerSpawnPositions[1],
+                out var reference, out var paired))
         {
-            ResetState();
+            _pendingTowerSpawnPositions.Clear();
             return;
         }
 
-        if(hits.Count == 2 && !_hasActiveTowers)
+        _pendingTowerSpawnPositions.Clear();
+        _pendingTowerClearPositions.Clear();
+        SetActiveTowers(CreateTowerHits(reference, paired));
+    }
+
+    private void AddTowerClearPosition(uint position)
+    {
+        AddUniquePairPosition(_pendingTowerClearPositions, position);
+        if(_pendingTowerClearPositions.Count != 2)
+            return;
+
+        if(!TryGetTowerPairReference(_pendingTowerClearPositions[0], _pendingTowerClearPositions[1],
+                out _, out _))
         {
-            SetActiveTowers(hits);
+            _pendingTowerClearPositions.Clear();
             return;
         }
 
-        if(hits.Count >= 4 && _hasActiveTowers)
-        {
-            var currentIds = hits.Select(x => x.EntityId).ToHashSet();
-            var newIds = currentIds.Except(_knownTowerEntityIds).ToHashSet();
-            if(newIds.Count == 2)
-            {
-                var newHits = hits.Where(x => newIds.Contains(x.EntityId)).ToList();
-                SetActiveTowers(newHits);
-            }
-        }
+        _pendingTowerClearPositions.Clear();
+    }
+
+    private static void AddUniquePairPosition(List<uint> list, uint position)
+    {
+        if(list.Count >= 2)
+            list.Clear();
+
+        if(!list.Contains(position))
+            list.Add(position);
     }
 
     private void SetActiveTowers(List<TowerHit> hits)
@@ -680,48 +721,56 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
         _activeTowerPositions[1] = hits[1].SlotPosition;
         _activeTowerEntityIds[0] = hits[0].EntityId;
         _activeTowerEntityIds[1] = hits[1].EntityId;
-        _knownTowerEntityIds.Add(hits[0].EntityId);
-        _knownTowerEntityIds.Add(hits[1].EntityId);
         _hasActiveTowers = true;
 
         _step++;
         _tower1Side = ResolveTower1Side(hits[0].SlotPosition, hits[1].SlotPosition);
     }
 
-    private List<TowerHit> ScanTowers()
+    private static List<TowerHit> CreateTowerHits(uint reference, uint paired)
+        => [CreateTowerHit(reference), CreateTowerHit(paired)];
+
+    private static TowerHit CreateTowerHit(uint mapIndex)
     {
-        var slotBest = new Dictionary<int, (float Distance, TowerHit Hit)>();
+        var slot = TowerSlots[mapIndex - 1];
+        return new TowerHit(slot.Label, slot.Position, mapIndex);
+    }
 
-        foreach(var obj in Svc.Objects.Where(x => x.DataId == DataIdTower))
+    private static bool IsTowerMapPosition(uint position)
+        => position is >= MapEffectTowerIndexMin and <= MapEffectTowerIndexMax;
+
+    private static bool IsTowerSpawnMapEffect(ushort data1, ushort data2)
+        => data1 == MapEffectTowerSpawnData1 && data2 == MapEffectTowerSpawnData2;
+
+    private static bool IsTowerClearMapEffect(ushort data1, ushort data2)
+        => data1 == MapEffectTowerClearData1 && data2 == MapEffectTowerClearData2;
+
+    private static bool TryGetTowerPairReference(uint first, uint second, out uint reference, out uint paired)
+    {
+        if(AddMapSteps(first, TowerPairMapStepOffset) == second)
         {
-            var bestSlotIndex = -1;
-            var bestDistance = float.MaxValue;
-
-            for(var i = 0; i < TowerSlots.Length; i++)
-            {
-                var distance = Distance2d(obj.Position, TowerSlots[i].Position);
-                if(distance > SlotMatchRadius || distance >= bestDistance)
-                    continue;
-
-                bestDistance = distance;
-                bestSlotIndex = i;
-            }
-
-            if(bestSlotIndex < 0)
-                continue;
-
-            var slot = TowerSlots[bestSlotIndex];
-            var hit = new TowerHit(slot.Label, slot.Position, obj.EntityId);
-
-            if(!slotBest.TryGetValue(bestSlotIndex, out var existing) || bestDistance < existing.Distance)
-                slotBest[bestSlotIndex] = (bestDistance, hit);
+            reference = first;
+            paired = second;
+            return true;
         }
 
-        return slotBest.Values
-            .Select(x => x.Hit)
-            .OrderBy(x => Array.FindIndex(TowerSlots, s => s.Label == x.Label))
-            .ToList();
+        if(AddMapSteps(second, TowerPairMapStepOffset) == first)
+        {
+            reference = second;
+            paired = first;
+            return true;
+        }
+
+        reference = 0;
+        paired = 0;
+        return false;
     }
+
+    private static uint AddMapSteps(uint position, int steps)
+        => (uint)(((int)position - 1 + steps + 8) % 8 + 1);
+
+    private static string FormatMapPositionList(IReadOnlyList<uint> positions)
+        => positions.Count == 0 ? "none" : string.Join(", ", positions);
 
     private void UpdateActiveTowerMarkers()
     {
@@ -751,7 +800,8 @@ internal class P2_Missing_HalfSwap_Strat : SplatoonScript
         _hasActiveTowers = false;
         _step = 0;
         _tower1Side = Tower1Side.Unknown;
-        _knownTowerEntityIds.Clear();
+        _pendingTowerSpawnPositions.Clear();
+        _pendingTowerClearPositions.Clear();
         _activeTowerPositions[0] = Vector3.Zero;
         _activeTowerPositions[1] = Vector3.Zero;
         _activeTowerEntityIds[0] = 0;

@@ -6,10 +6,8 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.Configuration;
-using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
-using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -19,6 +17,73 @@ namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 
 public class P2_Forsaken_beta : SplatoonScript
 {
+    public enum BasicStageKind
+    {
+        Tower
+    }
+
+    public enum LiveDebuffKind
+    {
+        Any,
+        None,
+        HeadStack,
+        Circle,
+        Fan
+    }
+
+    public enum ParticipantSide
+    {
+        Any,
+        ResolvingGroup,
+        SupportGroup
+    }
+
+    public enum PositionBasis
+    {
+        ReferenceTower,
+        PairedTower,
+        LeftTower,
+        RightTower,
+        TowerPairCenter,
+        ArenaCenter,
+        OppositeTowerPairCenter
+    }
+
+    public enum RoleKind
+    {
+        Head1,
+        Head2,
+        Head3,
+        Head4,
+        Circle1,
+        Circle2,
+        Circle3,
+        Circle4,
+        Fan1,
+        Fan2,
+        Fan3,
+        Fan4,
+        Support1,
+        Support2,
+        Support3,
+        Support4
+    }
+
+    public enum StageKind
+    {
+        Tower,
+        Past,
+        Future,
+        AllThingsEnding
+    }
+
+    public enum WaveGroupKind
+    {
+        GroupA,
+        GroupB,
+        All
+    }
+
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint Forsaken = 47804;
     private const uint UltimateEmbrace = 49740;
@@ -35,9 +100,9 @@ public class P2_Forsaken_beta : SplatoonScript
     private const int BasicStageCount = 1;
     private const int PreviewElementCount = 64;
     private const string PreviewElementPrefix = "Preview";
-    private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
+    private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -48,7 +113,7 @@ public class P2_Forsaken_beta : SplatoonScript
         new(ArenaCenter.X, 0f, ArenaCenter.Z + TowerOffsetCardinal),
         new(ArenaCenter.X - TowerOffsetDiagonal, 0f, ArenaCenter.Z + TowerOffsetDiagonal),
         new(ArenaCenter.X - TowerOffsetCardinal, 0f, ArenaCenter.Z),
-        new(ArenaCenter.X - TowerOffsetDiagonal, 0f, ArenaCenter.Z - TowerOffsetDiagonal),
+        new(ArenaCenter.X - TowerOffsetDiagonal, 0f, ArenaCenter.Z - TowerOffsetDiagonal)
     ];
 
     private static readonly WaveGroupKind[] DefaultWaveSequence =
@@ -123,26 +188,70 @@ public class P2_Forsaken_beta : SplatoonScript
             "各Waveで処理グループを選びます。初期値はAAABBBBA、つまり1-3回目と8回目がGroup A、4-7回目がGroup Bです。塔と消滅の脚は現在パターンと役割ごとの共通配置表を使い、過去/未来は塔基準の固定移動にします。"
     };
 
-    private readonly List<uint> _pendingTowerSpawnPositions = [];
-    private readonly List<uint> _pendingTowerClearPositions = [];
+    private static readonly string[] BasisLabels =
+    [
+        "ReferenceTower",
+        "PairedTower",
+        "LeftTower",
+        "RightTower",
+        "TowerPairCenter",
+        "ArenaCenter",
+        "OppositeTowerPairCenter"
+    ];
+
+    private static readonly string[] LiveDebuffLabels =
+    [
+        "Any",
+        "None",
+        "HeadStack",
+        "Circle",
+        "Fan"
+    ];
+
+    private static readonly string[] ParticipantSideLabels =
+    [
+        "Any",
+        "ResolvingGroup",
+        "SupportGroup"
+    ];
+
+    private static readonly string[] RankLabels =
+    [
+        "Any",
+        "1",
+        "2",
+        "3",
+        "4"
+    ];
+
+    private static readonly string[] WaveGroupLabels =
+    [
+        "Group A",
+        "Group B",
+        "All"
+    ];
+
     private readonly List<uint> _autoGroupAIds = [];
     private readonly List<uint> _autoGroupBIds = [];
+    private readonly List<uint> _pendingTowerClearPositions = [];
+
+    private readonly List<uint> _pendingTowerSpawnPositions = [];
+    private bool _active;
+    private string _currentInstruction = "";
+    private StageKind _currentStage;
+    private int _currentWave;
+    private bool _hasDestination;
+    private bool _hasStage;
+    private bool _hasTowerReference;
+    private LiveDebuffKind _lastDebuff = LiveDebuffKind.Any;
+    private int _lastDebuffRank;
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
     private string _lastSelectorLabel = "";
-    private LiveDebuffKind _lastDebuff = LiveDebuffKind.Any;
-    private int _lastDebuffRank;
-    private int _lastSupportRank;
     private ParticipantSide _lastSide = ParticipantSide.Any;
-    private bool _active;
-    private bool _hasTowerReference;
-    private bool _hasStage;
-    private int _currentWave;
-    private uint _referenceMapPosition;
-    private StageKind _currentStage;
-    private string _currentInstruction = "";
-    private bool _hasDestination;
+    private int _lastSupportRank;
     private Vector3 _myDestination = Vector3.Zero;
+    private uint _referenceMapPosition;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
     public override Metadata Metadata => new(1, "Garume");
@@ -182,7 +291,6 @@ public class P2_Forsaken_beta : SplatoonScript
         });
 
         for (var i = 0; i < PreviewElementCount; i++)
-        {
             Controller.RegisterElement($"{PreviewElementPrefix}{i}", new Element(0)
             {
                 Enabled = false,
@@ -196,7 +304,6 @@ public class P2_Forsaken_beta : SplatoonScript
                 overlayFScale = 1.0f,
                 overlayText = ""
             });
-        }
     }
 
     public override void OnCombatStart()
@@ -352,7 +459,8 @@ public class P2_Forsaken_beta : SplatoonScript
             ImGui.PushID($"Wave{wave}");
             var groupIndex = (int)C.Waves[wave - 1].ResolvingGroup;
             ImGui.SetNextItemWidth(180f);
-            if (ImGui.Combo($"{FormatText(C.WaveHeaderText, wave)} resolving group", ref groupIndex, WaveGroupLabels, WaveGroupLabels.Length))
+            if (ImGui.Combo($"{FormatText(C.WaveHeaderText, wave)} resolving group", ref groupIndex, WaveGroupLabels,
+                    WaveGroupLabels.Length))
                 C.Waves[wave - 1].ResolvingGroup = (WaveGroupKind)Math.Clamp(groupIndex, 0, WaveGroupLabels.Length - 1);
             ImGui.PopID();
         }
@@ -410,7 +518,8 @@ public class P2_Forsaken_beta : SplatoonScript
 
     private void DrawPatternPlacementTable(PatternPlacementConfig pattern)
     {
-        if (!ImGui.BeginTable($"PlacementTable_{pattern.Pattern.Head}_{pattern.Pattern.Circle}_{pattern.Pattern.Fan}", 9,
+        if (!ImGui.BeginTable($"PlacementTable_{pattern.Pattern.Head}_{pattern.Pattern.Circle}_{pattern.Pattern.Fan}",
+                9,
                 ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp))
             return;
 
@@ -544,7 +653,8 @@ public class P2_Forsaken_beta : SplatoonScript
         ImGui.TextUnformatted($"Current wave: {_currentWave}");
         ImGui.TextUnformatted($"Current stage: {(_hasStage ? _currentStage.ToString() : "none")}");
         ImGui.TextUnformatted($"Reference tower: {FormatMapPosition(_referenceMapPosition)}");
-        ImGui.TextUnformatted($"Pair tower: {FormatMapPosition(IsTowerMapPosition(_referenceMapPosition) ? AddMapSteps(_referenceMapPosition, 2) : 0)}");
+        ImGui.TextUnformatted(
+            $"Pair tower: {FormatMapPosition(IsTowerMapPosition(_referenceMapPosition) ? AddMapSteps(_referenceMapPosition, 2) : 0)}");
         ImGui.TextUnformatted($"Auto Group A: {FormatAutoGroup(_autoGroupAIds)}");
         ImGui.TextUnformatted($"Auto Group B: {FormatAutoGroup(_autoGroupBIds)}");
         ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
@@ -562,7 +672,8 @@ public class P2_Forsaken_beta : SplatoonScript
             ImGui.TextUnformatted($"BasePlayer: 0x{me.EntityId:X8}");
             ImGui.TextUnformatted($"BasePlayer current debuff: {CurrentDebuffFromPlayer(me)}");
             ImGui.TextUnformatted($"Has destination: {_hasDestination}");
-            ImGui.TextUnformatted($"Destination: {_myDestination.X:0.00}, {_myDestination.Y:0.00}, {_myDestination.Z:0.00}");
+            ImGui.TextUnformatted(
+                $"Destination: {_myDestination.X:0.00}, {_myDestination.Y:0.00}, {_myDestination.Z:0.00}");
         }
 
         if (ImGui.TreeNode("Preview"))
@@ -843,7 +954,8 @@ public class P2_Forsaken_beta : SplatoonScript
         return [];
     }
 
-    private static List<IPlayerCharacter> GetConfiguredGroup(PriorityData priorityData, IReadOnlyList<IPlayerCharacter> party)
+    private static List<IPlayerCharacter> GetConfiguredGroup(PriorityData priorityData,
+        IReadOnlyList<IPlayerCharacter> party)
     {
         var configured = priorityData.GetPlayers(_ => true);
         if (configured is not { Count: > 0 })
@@ -899,7 +1011,8 @@ public class P2_Forsaken_beta : SplatoonScript
     {
         if (group == WaveGroupKind.All) return [];
 
-        var support = GetGroupPlayers(group == WaveGroupKind.GroupA ? WaveGroupKind.GroupB : WaveGroupKind.GroupA, party);
+        var support = GetGroupPlayers(group == WaveGroupKind.GroupA ? WaveGroupKind.GroupB : WaveGroupKind.GroupA,
+            party);
         if (support.Count > 0) return support;
 
         var resolvingIds = resolvingGroup.Select(player => player.EntityId).ToHashSet();
@@ -948,13 +1061,15 @@ public class P2_Forsaken_beta : SplatoonScript
 
         if (stageKind == StageKind.Past)
         {
-            DrawPreviewElement(index, ResolvePosition(C.PastFixedPosition, reference), C.PastFixedText.Get(), 0xC8FFD040, 0.6f);
+            DrawPreviewElement(index, ResolvePosition(C.PastFixedPosition, reference), C.PastFixedText.Get(),
+                0xC8FFD040, 0.6f);
             return;
         }
 
         if (stageKind == StageKind.Future)
         {
-            DrawPreviewElement(index, ResolvePosition(C.FutureFixedPosition, reference), C.FutureFixedText.Get(), 0xC840C0FF, 0.6f);
+            DrawPreviewElement(index, ResolvePosition(C.FutureFixedPosition, reference), C.FutureFixedText.Get(),
+                0xC840C0FF, 0.6f);
             return;
         }
 
@@ -962,12 +1077,14 @@ public class P2_Forsaken_beta : SplatoonScript
         var stage = C.BasicStages.FirstOrDefault(item => item.Kind == basicStageKind);
         if (stage == null) return;
 
-        foreach (var placement in stage.Patterns.SelectMany(pattern => pattern.Placements).Where(placement => placement.Enabled))
+        foreach (var placement in stage.Patterns.SelectMany(pattern => pattern.Placements)
+                     .Where(placement => placement.Enabled))
         {
             if (index >= PreviewElementCount) break;
 
             var position = ResolvePosition(placement.Position, reference);
-            DrawPreviewElement(index, position, $"{wave}: {placement.Text.Get()}", SelectorColor(placement.Selector), 0.6f);
+            DrawPreviewElement(index, position, $"{wave}: {placement.Text.Get()}", SelectorColor(placement.Selector),
+                0.6f);
             index++;
         }
     }
@@ -995,7 +1112,8 @@ public class P2_Forsaken_beta : SplatoonScript
             PositionBasis.ReferenceTower or PositionBasis.RightTower => refPosition,
             PositionBasis.PairedTower or PositionBasis.LeftTower => pairPosition,
             PositionBasis.TowerPairCenter => (refPosition + pairPosition) * 0.5f,
-            PositionBasis.OppositeTowerPairCenter => (TowerPosition(AddMapSteps(reference, 4)) + TowerPosition(AddMapSteps(pair, 4))) * 0.5f,
+            PositionBasis.OppositeTowerPairCenter => (TowerPosition(AddMapSteps(reference, 4)) +
+                                                      TowerPosition(AddMapSteps(pair, 4))) * 0.5f,
             PositionBasis.ArenaCenter => ArenaCenter,
             _ => ArenaCenter
         };
@@ -1053,9 +1171,20 @@ public class P2_Forsaken_beta : SplatoonScript
         return statusId is MissingInventoryStatus or MissingHeadStackStatus or MissingCircleStatus or MissingFanStatus;
     }
 
-    private static bool IsTowerSpawnMapEffect(ushort data1, ushort data2) => data1 == 1 && data2 == 2;
-    private static bool IsTowerClearMapEffect(ushort data1, ushort data2) => data1 == 4 && data2 == 8;
-    private static bool IsTowerMapPosition(uint position) => position is >= 1 and <= 8;
+    private static bool IsTowerSpawnMapEffect(ushort data1, ushort data2)
+    {
+        return data1 == 1 && data2 == 2;
+    }
+
+    private static bool IsTowerClearMapEffect(ushort data1, ushort data2)
+    {
+        return data1 == 4 && data2 == 8;
+    }
+
+    private static bool IsTowerMapPosition(uint position)
+    {
+        return position is >= 1 and <= 8;
+    }
 
     private static bool TryGetPairReference(uint first, uint second, out uint reference)
     {
@@ -1082,7 +1211,7 @@ public class P2_Forsaken_beta : SplatoonScript
 
     private static uint ReferenceFromWave(int wave)
     {
-        return (uint)(((wave - 1 + 3) % 8) + 1);
+        return (uint)((wave - 1 + 3) % 8 + 1);
     }
 
     private static int WaveFromReference(uint reference)
@@ -1312,120 +1441,124 @@ public class P2_Forsaken_beta : SplatoonScript
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
-    private static readonly string[] BasisLabels =
-    [
-        "ReferenceTower",
-        "PairedTower",
-        "LeftTower",
-        "RightTower",
-        "TowerPairCenter",
-        "ArenaCenter",
-        "OppositeTowerPairCenter",
-    ];
-
-    private static readonly string[] LiveDebuffLabels =
-    [
-        "Any",
-        "None",
-        "HeadStack",
-        "Circle",
-        "Fan",
-    ];
-
-    private static readonly string[] ParticipantSideLabels =
-    [
-        "Any",
-        "ResolvingGroup",
-        "SupportGroup",
-    ];
-
-    private static readonly string[] RankLabels =
-    [
-        "Any",
-        "1",
-        "2",
-        "3",
-        "4",
-    ];
-
-    private static readonly string[] WaveGroupLabels =
-    [
-        "Group A",
-        "Group B",
-        "All",
-    ];
-
-    public enum LiveDebuffKind
+    private static WaveConfig[] CreateDefaultWaves()
     {
-        Any,
-        None,
-        HeadStack,
-        Circle,
-        Fan
+        var waves = new WaveConfig[WaveCount];
+        for (var i = 0; i < waves.Length; i++)
+            waves[i] = new WaveConfig { ResolvingGroup = DefaultResolvingGroup(i + 1) };
+        return waves;
     }
 
-    public enum ParticipantSide
+    private static bool HasWaveSequence(WaveConfig[]? waves, params WaveGroupKind[] sequence)
     {
-        Any,
-        ResolvingGroup,
-        SupportGroup
+        if (waves == null || waves.Length != sequence.Length)
+            return false;
+
+        for (var i = 0; i < sequence.Length; i++)
+            if (waves[i] == null || waves[i].ResolvingGroup != sequence[i])
+                return false;
+
+        return true;
     }
 
-    public enum WaveGroupKind
+    private static List<JobbedPlayer> CreateDefaultPriorityList()
     {
-        GroupA,
-        GroupB,
-        All
+        return DefaultRolePriority.Select(role => new JobbedPlayer { Role = role }).ToList();
     }
 
-    public enum PositionBasis
+    private static BasicStageConfig[] CreateDefaultBasicStages()
     {
-        ReferenceTower,
-        PairedTower,
-        LeftTower,
-        RightTower,
-        TowerPairCenter,
-        ArenaCenter,
-        OppositeTowerPairCenter
+        return
+        [
+            CreateDefaultTowerStage(BasicStageKind.Tower)
+        ];
     }
 
-    public enum StageKind
+    private static BasicStageConfig CreateDefaultTowerStage(BasicStageKind kind)
     {
-        Tower,
-        Past,
-        Future,
-        AllThingsEnding
+        return new BasicStageConfig(
+            kind,
+            new PatternPlacementConfig(
+                new PatternInfo(1, 0, 3),
+                Role(RoleKind.Head1, "Debuff stack", "デバフ頭割り", PositionBasis.LeftTower, 240f, 3.25f),
+                Role(RoleKind.Fan1, "Debuff fan 1", "デバフ扇1", PositionBasis.LeftTower, 300f, 3.25f),
+                Role(RoleKind.Fan2, "Debuff fan 2", "デバフ扇2", PositionBasis.RightTower, 270f, 3.25f),
+                Role(RoleKind.Fan3, "Debuff fan 3", "デバフ扇3", PositionBasis.RightTower, 300f, 3.25f),
+                Role(RoleKind.Support1, "Bait fan", "扇誘導", PositionBasis.LeftTower, 330f, 4.75f),
+                Role(RoleKind.Support2, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
+                Role(RoleKind.Support3, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
+                Role(RoleKind.Support4, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f)),
+            new PatternPlacementConfig(
+                new PatternInfo(1, 3, 0),
+                Role(RoleKind.Head1, "Debuff stack", "デバフ頭割り", PositionBasis.LeftTower, 240f, 3.25f),
+                Role(RoleKind.Circle1, "Debuff circle 1", "デバフ円1", PositionBasis.LeftTower, 90f, 3.25f),
+                Role(RoleKind.Circle2, "Debuff circle 2", "デバフ円2", PositionBasis.RightTower, 210f, 3.25f),
+                Role(RoleKind.Circle3, "Debuff circle 3", "デバフ円3", PositionBasis.RightTower, 30f, 3.25f),
+                Role(RoleKind.Support1, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
+                Role(RoleKind.Support2, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
+                Role(RoleKind.Support3, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
+                Role(RoleKind.Support4, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f)),
+            new PatternPlacementConfig(
+                new PatternInfo(2, 1, 1),
+                Role(RoleKind.Head1, "Debuff stack 1", "デバフ頭1", PositionBasis.LeftTower, 0f, 2.2f),
+                Role(RoleKind.Head2, "Debuff stack 2", "デバフ頭2", PositionBasis.RightTower, 10f, 3.2f),
+                Role(RoleKind.Fan1, "Debuff fan", "デバフ扇", PositionBasis.LeftTower, 180f, 1.9f),
+                Role(RoleKind.Circle1, "Debuff circle", "デバフ円", PositionBasis.RightTower, 187f, 3.4f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Head 2 support", "頭2補助",
+                    PositionBasis.RightTower, 9f, 4.71f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Head 2 support", "頭2補助",
+                    PositionBasis.RightTower, 9f, 4.71f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Head 1 support", "頭1補助",
+                    PositionBasis.LeftTower, 358f, 4.59f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Bait fan", "扇誘導", PositionBasis.LeftTower,
+                    180f, 4.60f)),
+            new PatternPlacementConfig(
+                new PatternInfo(0, 2, 2),
+                Role(RoleKind.Fan1, "Debuff fan 1", "デバフ扇1", PositionBasis.LeftTower, 182f, 3.54f),
+                Role(RoleKind.Fan2, "Debuff fan 2", "デバフ扇2", PositionBasis.LeftTower, 205f, 3.46f),
+                Role(RoleKind.Circle1, "Debuff circle 1", "デバフ円1", PositionBasis.RightTower, 278f, 3.55f),
+                Role(RoleKind.Circle2, "Debuff circle 2", "デバフ円2", PositionBasis.RightTower, 104f, 3.5f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Outer circle", "外側円",
+                    PositionBasis.ArenaCenter, 271f, 6.14f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Inner circle", "内側円",
+                    PositionBasis.ArenaCenter, 350f, 3.55f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Back fan", "奥扇", PositionBasis.ArenaCenter,
+                    201f, 4.56f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Side fan", "横扇", PositionBasis.ArenaCenter,
+                    96f, 3.58f)),
+            new PatternPlacementConfig(
+                new PatternInfo(4, 0, 0),
+                Role(RoleKind.Head1, "Head pattern 4-1", "頭4処理1", PositionBasis.LeftTower, 90f, 3.25f),
+                Role(RoleKind.Head2, "Head pattern 4-2", "頭4処理2", PositionBasis.LeftTower, 270f, 3.25f),
+                Role(RoleKind.Head3, "Head pattern 4-3", "頭4処理3", PositionBasis.RightTower, 90f, 3.25f),
+                Role(RoleKind.Head4, "Head pattern 4-4", "頭4処理4", PositionBasis.RightTower, 270f, 3.25f),
+                Role(RoleKind.Support1, "Demise spread 1", "消滅散開1", PositionBasis.ArenaCenter, 0f, 0f),
+                Role(RoleKind.Support2, "Demise spread 2", "消滅散開2", PositionBasis.ArenaCenter, 0f, 5f),
+                Role(RoleKind.Support3, "Demise spread 3", "消滅散開3", PositionBasis.ArenaCenter, 45f, 5f),
+                Role(RoleKind.Support4, "Demise spread 4", "消滅散開4", PositionBasis.ArenaCenter, 315f, 5f)));
     }
 
-    public enum BasicStageKind
+    private static RolePlacement Role(RoleKind role, string en, string jp, PositionBasis basis, float angle,
+        float range)
     {
-        Tower
+        return new RolePlacement(role, en, jp, basis, angle, range);
     }
 
-    public enum RoleKind
+    private static RolePlacement Role(ParticipantSide side, LiveDebuffKind debuff, int rank, string en, string jp,
+        PositionBasis basis, float angle, float range)
     {
-        Head1,
-        Head2,
-        Head3,
-        Head4,
-        Circle1,
-        Circle2,
-        Circle3,
-        Circle4,
-        Fan1,
-        Fan2,
-        Fan3,
-        Fan4,
-        Support1,
-        Support2,
-        Support3,
-        Support4
+        return new RolePlacement(side, debuff, rank, en, jp, basis, angle, range);
+    }
+
+    private static WaveGroupKind DefaultResolvingGroup(int wave)
+    {
+        return wave is >= 1 and <= WaveCount ? DefaultWaveSequence[wave - 1] : WaveGroupKind.GroupA;
     }
 
     public sealed class PositionRule
     {
-        public PositionBasis Basis;
         public float AngleDeg;
+        public PositionBasis Basis;
         public float Range;
 
         public PositionRule()
@@ -1450,9 +1583,9 @@ public class P2_Forsaken_beta : SplatoonScript
 
     public sealed class PatternInfo
     {
-        public int Head = -1;
         public int Circle = -1;
         public int Fan = -1;
+        public int Head = -1;
 
         public PatternInfo()
         {
@@ -1483,7 +1616,6 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             var info = new PatternInfo(0, 0, 0);
             foreach (var player in players)
-            {
                 switch (CurrentDebuffFromPlayer(player))
                 {
                     case LiveDebuffKind.HeadStack:
@@ -1496,7 +1628,6 @@ public class P2_Forsaken_beta : SplatoonScript
                         info.Fan++;
                         break;
                 }
-            }
 
             return info;
         }
@@ -1511,9 +1642,9 @@ public class P2_Forsaken_beta : SplatoonScript
 
     public sealed class RoleSelector
     {
-        public ParticipantSide Side = ParticipantSide.ResolvingGroup;
         public LiveDebuffKind Debuff = LiveDebuffKind.Any;
         public int Rank;
+        public ParticipantSide Side = ParticipantSide.ResolvingGroup;
 
         public RoleSelector()
         {
@@ -1572,10 +1703,10 @@ public class P2_Forsaken_beta : SplatoonScript
     public sealed class RolePlacement
     {
         public bool Enabled = true;
+        public PositionRule Position = new();
         public RoleKind Role;
         public RoleSelector Selector;
         public InternationalString Text = new() { En = "Role", Jp = "役割" };
-        public PositionRule Position = new();
 
         public RolePlacement()
         {
@@ -1590,7 +1721,8 @@ public class P2_Forsaken_beta : SplatoonScript
             Position = new PositionRule(basis, angle, range);
         }
 
-        public RolePlacement(ParticipantSide side, LiveDebuffKind debuff, int rank, string en, string jp, PositionBasis basis, float angle, float range)
+        public RolePlacement(ParticipantSide side, LiveDebuffKind debuff, int rank, string en, string jp,
+            PositionBasis basis, float angle, float range)
         {
             Role = RoleKind.Head1;
             Selector = new RoleSelector(side, debuff, rank);
@@ -1682,7 +1814,10 @@ public class P2_Forsaken_beta : SplatoonScript
 
     public sealed class PriorityData4 : PriorityData
     {
-        public override int GetNumPlayers() => 4;
+        public override int GetNumPlayers()
+        {
+            return 4;
+        }
     }
 
     public sealed class Config : IEzConfig
@@ -1711,11 +1846,21 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "基本配置表"
         };
 
+        public BasicStageConfig[] BasicStages = CreateDefaultBasicStages();
+
+        public InternationalString CircleDebuffText = new()
+        {
+            En = "Circle",
+            Jp = "円"
+        };
+
         public InternationalString CollectingAssignmentsText = new()
         {
             En = "Forsaken: collecting initial forecasts",
             Jp = "ミッシング: 初期予兆を収集中"
         };
+
+        public int DefaultsVersion;
 
         public InternationalString DestinationOverlayText = new()
         {
@@ -1733,6 +1878,20 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             En = "E",
             Jp = "東"
+        };
+
+        public InternationalString FanDebuffText = new()
+        {
+            En = "Fan",
+            Jp = "扇"
+        };
+
+        public PositionRule FutureFixedPosition = new(PositionBasis.OppositeTowerPairCenter, 0f, 0f);
+
+        public InternationalString FutureFixedText = new()
+        {
+            En = "Opposite side",
+            Jp = "反対側"
         };
 
         public InternationalString FutureStageLabelText = new()
@@ -1765,18 +1924,6 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "{0}回目 {1}: {2}に一致Ruleなし"
         };
 
-        public InternationalString CircleDebuffText = new()
-        {
-            En = "Circle",
-            Jp = "円"
-        };
-
-        public InternationalString FanDebuffText = new()
-        {
-            En = "Fan",
-            Jp = "扇"
-        };
-
         public InternationalString NoDebuffText = new()
         {
             En = "No debuff",
@@ -1807,9 +1954,18 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "ペア塔"
         };
 
+        public PositionRule PastFixedPosition = new(PositionBasis.TowerPairCenter, 0f, 0f);
+
+        public InternationalString PastFixedText = new()
+        {
+            En = "Tower gap",
+            Jp = "塔間"
+        };
+
         public InternationalString PastFutureDescriptionText = new()
         {
-            En = "Past and Future are fixed tower-relative movements. Tower and All Things Ending share the same role placement table.",
+            En =
+                "Past and Future are fixed tower-relative movements. Tower and All Things Ending share the same role placement table.",
             Jp = "過去と未来は塔基準の固定移動として扱います。塔と消滅の脚は同じ役割配置表を使います。"
         };
 
@@ -1819,35 +1975,21 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "過去/未来 固定移動"
         };
 
-        public InternationalString PastFixedText = new()
-        {
-            En = "Tower gap",
-            Jp = "塔間"
-        };
-
-        public PositionRule PastFixedPosition = new(PositionBasis.TowerPairCenter, 0f, 0f);
-
         public InternationalString PastStageLabelText = new()
         {
             En = "Past's End",
             Jp = "過去の終焉"
         };
 
-        public InternationalString FutureFixedText = new()
-        {
-            En = "Opposite side",
-            Jp = "反対側"
-        };
-
-        public PositionRule FutureFixedPosition = new(PositionBasis.OppositeTowerPairCenter, 0f, 0f);
+        public StageKind PreviewStage = StageKind.Tower;
 
         public int PreviewWave = 1;
-        public StageKind PreviewStage = StageKind.Tower;
 
         public PriorityData PriorityData = new()
         {
             Name = "Forsaken beta global priority",
-            Description = "Used for auto Group A circle/fan selection and dynamic same-debuff rank ordering. Default order is fitted to the observed AAABBBBA fixed-partner samples.",
+            Description =
+                "Used for auto Group A circle/fan selection and dynamic same-debuff rank ordering. Default order is fitted to the observed AAABBBBA fixed-partner samples.",
             PriorityLists =
             [
                 new PriorityList
@@ -1908,17 +2050,13 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "{0}回目"
         };
 
+        public WaveConfig[] Waves = CreateDefaultWaves();
+
         public InternationalString WaveTableHeaderText = new()
         {
             En = "Wave table",
             Jp = "Wave表"
         };
-
-        public BasicStageConfig[] BasicStages = CreateDefaultBasicStages();
-
-        public WaveConfig[] Waves = CreateDefaultWaves();
-
-        public int DefaultsVersion;
 
         public InternationalString WestLabelText = new()
         {
@@ -2019,19 +2157,27 @@ public class P2_Forsaken_beta : SplatoonScript
             var h2c1f1 = stage.Patterns.FirstOrDefault(item => item.Pattern.Matches(new PatternInfo(2, 1, 1)));
             if (h2c1f1 != null)
             {
-                UpdateIfOldDefault(h2c1f1, RoleKind.Head1, PositionBasis.LeftTower, 60f, 3.25f, PositionBasis.LeftTower, 0f, 2.2f);
-                UpdateIfOldDefault(h2c1f1, RoleKind.Head2, PositionBasis.RightTower, 120f, 3.25f, PositionBasis.RightTower, 10f, 3.2f);
-                UpdateIfOldDefault(h2c1f1, RoleKind.Fan1, PositionBasis.LeftTower, 330f, 3.25f, PositionBasis.LeftTower, 180f, 1.9f);
-                UpdateIfOldDefault(h2c1f1, RoleKind.Circle1, PositionBasis.RightTower, 270f, 3.25f, PositionBasis.RightTower, 187f, 3.4f);
+                UpdateIfOldDefault(h2c1f1, RoleKind.Head1, PositionBasis.LeftTower, 60f, 3.25f, PositionBasis.LeftTower,
+                    0f, 2.2f);
+                UpdateIfOldDefault(h2c1f1, RoleKind.Head2, PositionBasis.RightTower, 120f, 3.25f,
+                    PositionBasis.RightTower, 10f, 3.2f);
+                UpdateIfOldDefault(h2c1f1, RoleKind.Fan1, PositionBasis.LeftTower, 330f, 3.25f, PositionBasis.LeftTower,
+                    180f, 1.9f);
+                UpdateIfOldDefault(h2c1f1, RoleKind.Circle1, PositionBasis.RightTower, 270f, 3.25f,
+                    PositionBasis.RightTower, 187f, 3.4f);
             }
 
             var h0c2f2 = stage.Patterns.FirstOrDefault(item => item.Pattern.Matches(new PatternInfo(0, 2, 2)));
             if (h0c2f2 != null)
             {
-                UpdateIfOldDefault(h0c2f2, RoleKind.Fan1, PositionBasis.LeftTower, 30f, 3.25f, PositionBasis.LeftTower, 182f, 3.54f);
-                UpdateIfOldDefault(h0c2f2, RoleKind.Fan2, PositionBasis.LeftTower, 0f, 3.25f, PositionBasis.LeftTower, 205f, 3.46f);
-                UpdateIfOldDefault(h0c2f2, RoleKind.Circle1, PositionBasis.RightTower, 270f, 3.25f, PositionBasis.RightTower, 278f, 3.55f);
-                UpdateIfOldDefault(h0c2f2, RoleKind.Circle2, PositionBasis.RightTower, 90f, 3.25f, PositionBasis.RightTower, 104f, 3.5f);
+                UpdateIfOldDefault(h0c2f2, RoleKind.Fan1, PositionBasis.LeftTower, 30f, 3.25f, PositionBasis.LeftTower,
+                    182f, 3.54f);
+                UpdateIfOldDefault(h0c2f2, RoleKind.Fan2, PositionBasis.LeftTower, 0f, 3.25f, PositionBasis.LeftTower,
+                    205f, 3.46f);
+                UpdateIfOldDefault(h0c2f2, RoleKind.Circle1, PositionBasis.RightTower, 270f, 3.25f,
+                    PositionBasis.RightTower, 278f, 3.55f);
+                UpdateIfOldDefault(h0c2f2, RoleKind.Circle2, PositionBasis.RightTower, 90f, 3.25f,
+                    PositionBasis.RightTower, 104f, 3.5f);
             }
         }
 
@@ -2044,26 +2190,34 @@ public class P2_Forsaken_beta : SplatoonScript
             if (h2c1f1 != null)
             {
                 UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support1, PositionBasis.LeftTower, 330f, 4.75f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Bait fan", "扇誘導", PositionBasis.LeftTower, 180f, 4.60f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Bait fan", "扇誘導", PositionBasis.LeftTower,
+                    180f, 4.60f);
                 UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support2, PositionBasis.LeftTower, 60f, 4.75f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Head 1 support", "頭1補助", PositionBasis.LeftTower, 358f, 4.59f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Head 1 support", "頭1補助",
+                    PositionBasis.LeftTower, 358f, 4.59f);
                 UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support3, PositionBasis.RightTower, 120f, 4.75f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Head 2 support", "頭2補助", PositionBasis.RightTower, 9f, 4.71f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Head 2 support", "頭2補助",
+                    PositionBasis.RightTower, 9f, 4.71f);
                 UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support4, PositionBasis.RightTower, 120f, 4.75f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Head 2 support", "頭2補助", PositionBasis.RightTower, 9f, 4.71f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Head 2 support", "頭2補助",
+                    PositionBasis.RightTower, 9f, 4.71f);
             }
 
             var h0c2f2 = stage.Patterns.FirstOrDefault(item => item.Pattern.Matches(new PatternInfo(0, 2, 2)));
             if (h0c2f2 != null)
             {
                 UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support1, PositionBasis.ArenaCenter, 0f, 0f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Outer circle", "外側円", PositionBasis.ArenaCenter, 271f, 6.14f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Outer circle", "外側円",
+                    PositionBasis.ArenaCenter, 271f, 6.14f);
                 UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support2, PositionBasis.ArenaCenter, 0f, 5f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Inner circle", "内側円", PositionBasis.ArenaCenter, 350f, 3.55f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Inner circle", "内側円",
+                    PositionBasis.ArenaCenter, 350f, 3.55f);
                 UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support3, PositionBasis.ArenaCenter, 45f, 5f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Back fan", "奥扇", PositionBasis.ArenaCenter, 201f, 4.56f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Back fan", "奥扇", PositionBasis.ArenaCenter,
+                    201f, 4.56f);
                 UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support4, PositionBasis.ArenaCenter, 315f, 5f,
-                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Side fan", "横扇", PositionBasis.ArenaCenter, 96f, 3.58f);
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Side fan", "横扇", PositionBasis.ArenaCenter,
+                    96f, 3.58f);
             }
         }
 
@@ -2136,109 +2290,5 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             return MathF.Abs(left - right) < 0.001f;
         }
-    }
-
-    private static WaveConfig[] CreateDefaultWaves()
-    {
-        var waves = new WaveConfig[WaveCount];
-        for (var i = 0; i < waves.Length; i++)
-            waves[i] = new WaveConfig { ResolvingGroup = DefaultResolvingGroup(i + 1) };
-        return waves;
-    }
-
-    private static bool HasWaveSequence(WaveConfig[]? waves, params WaveGroupKind[] sequence)
-    {
-        if (waves == null || waves.Length != sequence.Length)
-            return false;
-
-        for (var i = 0; i < sequence.Length; i++)
-            if (waves[i] == null || waves[i].ResolvingGroup != sequence[i])
-                return false;
-
-        return true;
-    }
-
-    private static List<JobbedPlayer> CreateDefaultPriorityList()
-    {
-        return DefaultRolePriority.Select(role => new JobbedPlayer { Role = role }).ToList();
-    }
-
-    private static BasicStageConfig[] CreateDefaultBasicStages()
-    {
-        return
-        [
-            CreateDefaultTowerStage(BasicStageKind.Tower)
-        ];
-    }
-
-    private static BasicStageConfig CreateDefaultTowerStage(BasicStageKind kind)
-    {
-        return new BasicStageConfig(
-            kind,
-            new PatternPlacementConfig(
-                new PatternInfo(1, 0, 3),
-                Role(RoleKind.Head1, "Debuff stack", "デバフ頭割り", PositionBasis.LeftTower, 240f, 3.25f),
-                Role(RoleKind.Fan1, "Debuff fan 1", "デバフ扇1", PositionBasis.LeftTower, 300f, 3.25f),
-                Role(RoleKind.Fan2, "Debuff fan 2", "デバフ扇2", PositionBasis.RightTower, 270f, 3.25f),
-                Role(RoleKind.Fan3, "Debuff fan 3", "デバフ扇3", PositionBasis.RightTower, 300f, 3.25f),
-                Role(RoleKind.Support1, "Bait fan", "扇誘導", PositionBasis.LeftTower, 330f, 4.75f),
-                Role(RoleKind.Support2, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
-                Role(RoleKind.Support3, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
-                Role(RoleKind.Support4, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f)),
-            new PatternPlacementConfig(
-                new PatternInfo(1, 3, 0),
-                Role(RoleKind.Head1, "Debuff stack", "デバフ頭割り", PositionBasis.LeftTower, 240f, 3.25f),
-                Role(RoleKind.Circle1, "Debuff circle 1", "デバフ円1", PositionBasis.LeftTower, 90f, 3.25f),
-                Role(RoleKind.Circle2, "Debuff circle 2", "デバフ円2", PositionBasis.RightTower, 210f, 3.25f),
-                Role(RoleKind.Circle3, "Debuff circle 3", "デバフ円3", PositionBasis.RightTower, 30f, 3.25f),
-                Role(RoleKind.Support1, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
-                Role(RoleKind.Support2, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
-                Role(RoleKind.Support3, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f),
-                Role(RoleKind.Support4, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f)),
-            new PatternPlacementConfig(
-                new PatternInfo(2, 1, 1),
-                Role(RoleKind.Head1, "Debuff stack 1", "デバフ頭1", PositionBasis.LeftTower, 0f, 2.2f),
-                Role(RoleKind.Head2, "Debuff stack 2", "デバフ頭2", PositionBasis.RightTower, 10f, 3.2f),
-                Role(RoleKind.Fan1, "Debuff fan", "デバフ扇", PositionBasis.LeftTower, 180f, 1.9f),
-                Role(RoleKind.Circle1, "Debuff circle", "デバフ円", PositionBasis.RightTower, 187f, 3.4f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Head 2 support", "頭2補助", PositionBasis.RightTower, 9f, 4.71f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Head 2 support", "頭2補助", PositionBasis.RightTower, 9f, 4.71f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Head 1 support", "頭1補助", PositionBasis.LeftTower, 358f, 4.59f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Bait fan", "扇誘導", PositionBasis.LeftTower, 180f, 4.60f)),
-            new PatternPlacementConfig(
-                new PatternInfo(0, 2, 2),
-                Role(RoleKind.Fan1, "Debuff fan 1", "デバフ扇1", PositionBasis.LeftTower, 182f, 3.54f),
-                Role(RoleKind.Fan2, "Debuff fan 2", "デバフ扇2", PositionBasis.LeftTower, 205f, 3.46f),
-                Role(RoleKind.Circle1, "Debuff circle 1", "デバフ円1", PositionBasis.RightTower, 278f, 3.55f),
-                Role(RoleKind.Circle2, "Debuff circle 2", "デバフ円2", PositionBasis.RightTower, 104f, 3.5f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Outer circle", "外側円", PositionBasis.ArenaCenter, 271f, 6.14f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Inner circle", "内側円", PositionBasis.ArenaCenter, 350f, 3.55f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Back fan", "奥扇", PositionBasis.ArenaCenter, 201f, 4.56f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Side fan", "横扇", PositionBasis.ArenaCenter, 96f, 3.58f)),
-            new PatternPlacementConfig(
-                new PatternInfo(4, 0, 0),
-                Role(RoleKind.Head1, "Head pattern 4-1", "頭4処理1", PositionBasis.LeftTower, 90f, 3.25f),
-                Role(RoleKind.Head2, "Head pattern 4-2", "頭4処理2", PositionBasis.LeftTower, 270f, 3.25f),
-                Role(RoleKind.Head3, "Head pattern 4-3", "頭4処理3", PositionBasis.RightTower, 90f, 3.25f),
-                Role(RoleKind.Head4, "Head pattern 4-4", "頭4処理4", PositionBasis.RightTower, 270f, 3.25f),
-                Role(RoleKind.Support1, "Demise spread 1", "消滅散開1", PositionBasis.ArenaCenter, 0f, 0f),
-                Role(RoleKind.Support2, "Demise spread 2", "消滅散開2", PositionBasis.ArenaCenter, 0f, 5f),
-                Role(RoleKind.Support3, "Demise spread 3", "消滅散開3", PositionBasis.ArenaCenter, 45f, 5f),
-                Role(RoleKind.Support4, "Demise spread 4", "消滅散開4", PositionBasis.ArenaCenter, 315f, 5f)));
-    }
-
-    private static RolePlacement Role(RoleKind role, string en, string jp, PositionBasis basis, float angle, float range)
-    {
-        return new RolePlacement(role, en, jp, basis, angle, range);
-    }
-
-    private static RolePlacement Role(ParticipantSide side, LiveDebuffKind debuff, int rank, string en, string jp, PositionBasis basis, float angle, float range)
-    {
-        return new RolePlacement(side, debuff, rank, en, jp, basis, angle, range);
-    }
-
-    private static WaveGroupKind DefaultResolvingGroup(int wave)
-    {
-        return wave is >= 1 and <= WaveCount ? DefaultWaveSequence[wave - 1] : WaveGroupKind.GroupA;
     }
 }

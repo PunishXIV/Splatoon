@@ -35,6 +35,7 @@ public unsafe class Controller
 
     public Splatoon Plugin => Splatoon.P;
 
+    [Obsolete("Use SplatoonScript.BasePlayer")]
     public IPlayerCharacter BasePlayer => Splatoon.BasePlayer;
 
     /// <summary>
@@ -446,7 +447,7 @@ public unsafe class Controller
                 for(var i = 0; i < P.PriorityPopupWindow.Assignments.Count; i++)
                 {
                     var ass = P.PriorityPopupWindow.Assignments[i];
-                    if(ass.IsInParty(false, out var m) && m.NameWithWorld == BasePlayer.GetNameWithWorld())
+                    if(ass.IsInParty(false, out var m) && m.NameWithWorld == Splatoon.BasePlayer.GetNameWithWorld())
                     {
                         return PriorityPopupWindow.RolePositions.SafeSelect(i);
                     }

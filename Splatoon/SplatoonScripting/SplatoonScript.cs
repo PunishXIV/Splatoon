@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using Dalamud.Game;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
@@ -31,6 +32,11 @@ public abstract class SplatoonScript
     {
         Controller = new(this);
     }
+
+    /// <summary>
+    /// Provides access to player with possibility to override it in duty replay
+    /// </summary>
+    public IPlayerCharacter BasePlayer => Splatoon.BasePlayer;
 
     /// <summary>
     /// Provides per-script throttlers on demand

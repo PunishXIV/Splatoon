@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(6, "NightmareXIV, Poneglyph");
+    public override Metadata Metadata { get; } = new(7, "NightmareXIV, Poneglyph");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
@@ -221,36 +221,39 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
                 if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "Spread", true);
             }
 
-            for(int j = 0; j < pcs.Count && j < 8; j++)
+            if(C.Visualize)
             {
-                var source = pcs[j];
-
-                if(!IsPlayerInActiveTower(source))
+                for(int j = 0; j < pcs.Count && j < 8; j++)
                 {
-                    continue;
-                }
+                    var source = pcs[j];
 
-                if(source.StatusList.Any(s => s.StatusId == this.EffectFan))
-                {
-                    var nearest = pcs
-                        .Where(x => x.EntityId != source.EntityId)
-                        .OrderBy(x => Vector3.DistanceSquared(x.Position, source.Position))
-                        .FirstOrDefault();
-
-                    if(nearest != null && Controller.TryGetElementByName($"VFan{j}", out var e))
+                    if(!IsPlayerInActiveTower(source))
                     {
-                        e.refActorComparisonType = 2;
-                        e.refActorObjectID = source.EntityId;
-                        e.faceplayer = GetPlayerOrder(nearest);
-                        e.Enabled = true;
+                        continue;
+                    }
+
+                    if(source.StatusList.Any(s => s.StatusId == this.EffectFan))
+                    {
+                        var nearest = pcs
+                            .Where(x => x.EntityId != source.EntityId)
+                            .OrderBy(x => Vector3.DistanceSquared(x.Position, source.Position))
+                            .FirstOrDefault();
+
+                        if(nearest != null && Controller.TryGetElementByName($"VFan{j}", out var e))
+                        {
+                            e.refActorComparisonType = 2;
+                            e.refActorObjectID = source.EntityId;
+                            e.faceplayer = GetPlayerOrder(nearest);
+                            e.Enabled = true;
+                        }
                     }
                 }
-            }
 
-            foreach(var x in Controller.GetPartyMembers().Where(IsPlayerInActiveTower))
-            {
-                if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "VStack", false);
-                if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "VSpread", false);
+                foreach(var x in Controller.GetPartyMembers().Where(IsPlayerInActiveTower))
+                {
+                    if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "VStack", false);
+                    if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "VSpread", false);
+                }
             }
         }
     }

@@ -43,7 +43,7 @@ public class P2_Forsaken_beta : SplatoonScript
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 11;
+    private const int CurrentDefaultsVersion = 12;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -191,7 +191,7 @@ public class P2_Forsaken_beta : SplatoonScript
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(4, "Garume");
+    public override Metadata Metadata => new(5, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
@@ -275,7 +275,7 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             ResetState();
             _active = true;
-            _currentInstruction = C.CollectingAssignmentsText.Get();
+            _currentInstruction = DisplayText(C.ShowCollectingAssignmentsText, C.CollectingAssignmentsText);
             DebugLog($"CAST_START Forsaken active={_active}");
             ApplyDisplay();
             return;
@@ -290,7 +290,7 @@ public class P2_Forsaken_beta : SplatoonScript
             return;
         }
 
-        if (castId is AllThingsEndingCast1 or AllThingsEndingCast2)
+        if (IsAllThingsEnding(actionId: castId))
         {
             DebugLog($"CAST_START All Things Ending pendingWave={_pendingTowerDisplayWave} hasPending={_hasPendingTowerDisplay} observedWave={_observedTowerWave} currentWave={_currentWave}");
             TryActivatePendingTowerDisplay(StageKind.AllThingsEnding, wave => wave is >= 3 and <= WaveCount && wave % 2 == 1);
@@ -313,6 +313,12 @@ public class P2_Forsaken_beta : SplatoonScript
 
         if (!_active && !HasPartyMissingStatus()) return;
 
+        if (IsAllThingsEnding(actionId) && (_currentWave >= WaveCount || _observedTowerWave >= WaveCount))
+        {
+            ResetState();
+            return;
+        }
+
         if (actionId == PastsEndAction)
         {
             DebugLog("ACTION Past's End resolved");
@@ -324,6 +330,8 @@ public class P2_Forsaken_beta : SplatoonScript
             SetStage(StageKind.Future);
         }
     }
+
+    private static bool IsAllThingsEnding(uint actionId) => actionId is AllThingsEndingCast1 or AllThingsEndingCast2;
 
     public override void OnGainBuffEffect(uint sourceId, Status status)
     {
@@ -410,16 +418,18 @@ public class P2_Forsaken_beta : SplatoonScript
         if (ImGui.CollapsingHeader(C.DisplayTextHeaderText.Get()))
         {
             ImGui.Indent();
-            DrawInternationalString("Collecting assignments", C.CollectingAssignmentsText);
-            DrawInternationalString("Waiting for assignment", C.WaitingForAssignmentText);
-            DrawInternationalString("Waiting for wave", C.WaitingForWaveText);
-            DrawInternationalString("Active instruction", C.ActiveInstructionText);
-            DrawInternationalString("Inactive instruction", C.InactiveInstructionText);
-            DrawInternationalString("Destination overlay", C.DestinationOverlayText);
-            DrawInternationalString("Head stack debuff", C.HeadStackDebuffText);
-            DrawInternationalString("Circle debuff", C.CircleDebuffText);
-            DrawInternationalString("Fan debuff", C.FanDebuffText);
-            DrawInternationalString("No debuff", C.NoDebuffText);
+            DrawDisplayTextSetting("Collecting assignments", ref C.ShowCollectingAssignmentsText, C.CollectingAssignmentsText);
+            DrawDisplayTextSetting("Waiting for assignment", ref C.ShowWaitingForAssignmentText, C.WaitingForAssignmentText);
+            DrawDisplayTextSetting("Waiting for wave", ref C.ShowWaitingForWaveText, C.WaitingForWaveText);
+            DrawDisplayTextSetting("Active instruction", ref C.ShowActiveInstructionText, C.ActiveInstructionText);
+            DrawDisplayTextSetting("Inactive instruction", ref C.ShowInactiveInstructionText, C.InactiveInstructionText);
+            DrawDisplayTextSetting("Destination overlay", ref C.ShowDestinationOverlayText, C.DestinationOverlayText);
+            DrawDisplayTextSetting("Head stack debuff", ref C.ShowHeadStackDebuffText, C.HeadStackDebuffText);
+            DrawDisplayTextSetting("Circle debuff", ref C.ShowCircleDebuffText, C.CircleDebuffText);
+            DrawDisplayTextSetting("Fan debuff", ref C.ShowFanDebuffText, C.FanDebuffText);
+            DrawDisplayTextSetting("No debuff", ref C.ShowNoDebuffText, C.NoDebuffText);
+            DrawDisplayTextSetting("Reference tower preview", ref C.ShowReferenceTowerPreviewText, C.ReferenceTowerPreviewText);
+            DrawDisplayTextSetting("Paired tower preview", ref C.ShowPairedTowerPreviewText, C.PairedTowerPreviewText);
             ImGui.Unindent();
         }
 
@@ -675,13 +685,13 @@ public class P2_Forsaken_beta : SplatoonScript
 
             ImGui.PushID("PastFixed");
             ImGui.TextUnformatted(C.PastStageLabelText.Get());
-            DrawInternationalString("Text", C.PastFixedText);
+            DrawDisplayTextSetting("Text", ref C.ShowPastFixedText, C.PastFixedText);
             DrawPositionRule(C.PastFixedPosition);
             ImGui.PopID();
 
             ImGui.PushID("FutureFixed");
             ImGui.TextUnformatted(C.FutureStageLabelText.Get());
-            DrawInternationalString("Text", C.FutureFixedText);
+            DrawDisplayTextSetting("Text", ref C.ShowFutureFixedText, C.FutureFixedText);
             DrawPositionRule(C.FutureFixedPosition);
             ImGui.PopID();
 
@@ -842,6 +852,15 @@ public class P2_Forsaken_beta : SplatoonScript
         ImGui.SameLine();
         var current = text.Get();
         text.ImGuiEdit(ref current);
+        ImGui.PopID();
+    }
+
+    private static void DrawDisplayTextSetting(string label, ref bool show, InternationalString text)
+    {
+        ImGui.PushID(label);
+        ImGui.Checkbox("##show", ref show);
+        ImGui.SameLine();
+        DrawInternationalString(label, text);
         ImGui.PopID();
     }
 
@@ -1033,8 +1052,8 @@ public class P2_Forsaken_beta : SplatoonScript
         var debuff = CurrentDebuffFromPlayer(me);
         ClearDestination();
         _currentInstruction = debuff == LiveDebuffKind.None
-            ? C.WaitingForAssignmentText.Get()
-            : FormatText(C.WaitingForWaveText, DebuffLabel(debuff));
+            ? DisplayText(C.ShowWaitingForAssignmentText, C.WaitingForAssignmentText)
+            : FormatDisplayText(C.ShowWaitingForWaveText, C.WaitingForWaveText, DisplayDebuffLabel(debuff));
     }
 
     private void UpdateStageInstruction()
@@ -1044,20 +1063,23 @@ public class P2_Forsaken_beta : SplatoonScript
 
         if (!_hasTowerReference || !_hasStage || _currentWave is < 1 or > WaveCount)
         {
-            _currentInstruction = FormatText(C.WaitingForWaveText, DebuffLabel(CurrentDebuffFromPlayer(me)));
+            _currentInstruction = FormatDisplayText(
+                C.ShowWaitingForWaveText,
+                C.WaitingForWaveText,
+                DisplayDebuffLabel(CurrentDebuffFromPlayer(me)));
             ClearDestination();
             return;
         }
 
         if (_currentStage == StageKind.Past)
         {
-            ApplyFixedStageInstruction(C.PastFixedText, C.PastFixedPosition);
+            ApplyFixedStageInstruction(C.PastFixedText, C.ShowPastFixedText, C.PastFixedPosition);
             return;
         }
 
         if (_currentStage == StageKind.Future)
         {
-            ApplyFixedStageInstruction(C.FutureFixedText, C.FutureFixedPosition);
+            ApplyFixedStageInstruction(C.FutureFixedText, C.ShowFutureFixedText, C.FutureFixedPosition);
             return;
         }
 
@@ -1072,7 +1094,7 @@ public class P2_Forsaken_beta : SplatoonScript
             else if (!_stageContexts.ContainsKey(me.EntityId))
             {
                 LogContextFailure(failureReason);
-                _currentInstruction = C.WaitingForAssignmentText.Get();
+                _currentInstruction = DisplayText(C.ShowWaitingForAssignmentText, C.WaitingForAssignmentText);
                 ClearDestination();
                 return;
             }
@@ -1081,7 +1103,7 @@ public class P2_Forsaken_beta : SplatoonScript
         if (!_stageContexts.TryGetValue(me.EntityId, out var liveContext))
         {
             LogContextFailure($"context empty player=0x{me.EntityId:X8} wave={_currentWave} stage={_currentStage} cache={_stageContexts.Count}");
-            _currentInstruction = C.WaitingForAssignmentText.Get();
+            _currentInstruction = DisplayText(C.ShowWaitingForAssignmentText, C.WaitingForAssignmentText);
             ClearDestination();
             return;
         }
@@ -1097,10 +1119,11 @@ public class P2_Forsaken_beta : SplatoonScript
 
         _lastRuleLabel = "";
         _lastSelectorLabel = "";
-        _currentInstruction = FormatText(
+        _currentInstruction = FormatDisplayText(
+            C.ShowInactiveInstructionText,
             C.InactiveInstructionText,
             _currentWave,
-            DebuffLabel(liveContext.Debuff),
+            DisplayDebuffLabel(liveContext.Debuff),
             StageLabel(_currentStage));
         ClearDestination();
     }
@@ -1124,7 +1147,8 @@ public class P2_Forsaken_beta : SplatoonScript
         _lastRuleLabel = placement.Text.Get();
         _lastSelectorLabel = SelectorLabel(placement.Selector);
         SetDestination(ResolvePosition(placement.Position, _referenceMapPosition));
-        _currentInstruction = FormatText(
+        _currentInstruction = FormatDisplayText(
+            C.ShowActiveInstructionText,
             C.ActiveInstructionText,
             _currentWave,
             StageLabel(_currentStage),
@@ -1142,7 +1166,7 @@ public class P2_Forsaken_beta : SplatoonScript
         return stage?.Patterns.Any(item => item.Pattern.Matches(pattern)) == true;
     }
 
-    private bool ApplyFixedStageInstruction(InternationalString text, PositionRule position)
+    private bool ApplyFixedStageInstruction(InternationalString text, bool showText, PositionRule position)
     {
         _lastRuleLabel = text.Get();
         _lastSelectorLabel = "";
@@ -1152,11 +1176,12 @@ public class P2_Forsaken_beta : SplatoonScript
         else
             ClearDestination();
 
-        _currentInstruction = FormatText(
+        _currentInstruction = FormatDisplayText(
+            C.ShowActiveInstructionText,
             C.ActiveInstructionText,
             _currentWave,
             StageLabel(_currentStage),
-            text.Get());
+            DisplayText(showText, text));
         return true;
     }
 
@@ -1556,10 +1581,11 @@ public class P2_Forsaken_beta : SplatoonScript
             destination.Enabled = true;
             destination.SetRefPosition(_myDestination);
             destination.color = RainbowColor();
-            destination.overlayText = FormatText(
+            destination.overlayText = FormatDisplayText(
+                C.ShowDestinationOverlayText,
                 C.DestinationOverlayText,
                 _currentWave,
-                DebuffLabel(CurrentDebuffFromPlayer(me)),
+                DisplayDebuffLabel(CurrentDebuffFromPlayer(me)),
                 StageLabel(_currentStage));
         }
     }
@@ -1570,20 +1596,20 @@ public class P2_Forsaken_beta : SplatoonScript
         if (!IsTowerMapPosition(reference)) return;
 
         var pair = AddMapSteps(reference, 2);
-        DrawPreviewElement(0, TowerPosition(reference), C.ReferenceTowerPreviewText.Get(), 0xC8FFFFFF, 0.95f);
-        DrawPreviewElement(1, TowerPosition(pair), C.PairedTowerPreviewText.Get(), 0xC840FF40, 0.95f);
+        DrawPreviewElement(0, TowerPosition(reference), DisplayText(C.ShowReferenceTowerPreviewText, C.ReferenceTowerPreviewText), 0xC8FFFFFF, 0.95f);
+        DrawPreviewElement(1, TowerPosition(pair), DisplayText(C.ShowPairedTowerPreviewText, C.PairedTowerPreviewText), 0xC840FF40, 0.95f);
 
         var index = 2;
 
         if (stageKind == StageKind.Past)
         {
-            DrawPreviewElement(index, ResolvePosition(C.PastFixedPosition, AddMapSteps(reference, 1)), C.PastFixedText.Get(), 0xC8FFD040, 0.6f);
+            DrawPreviewElement(index, ResolvePosition(C.PastFixedPosition, AddMapSteps(reference, 1)), DisplayText(C.ShowPastFixedText, C.PastFixedText), 0xC8FFD040, 0.6f);
             return;
         }
 
         if (stageKind == StageKind.Future)
         {
-            DrawPreviewElement(index, ResolvePosition(C.FutureFixedPosition, AddMapSteps(reference, 1)), C.FutureFixedText.Get(), 0xC840C0FF, 0.6f);
+            DrawPreviewElement(index, ResolvePosition(C.FutureFixedPosition, AddMapSteps(reference, 1)), DisplayText(C.ShowFutureFixedText, C.FutureFixedText), 0xC840C0FF, 0.6f);
             return;
         }
 
@@ -1611,8 +1637,8 @@ public class P2_Forsaken_beta : SplatoonScript
 
         if (!_settingsPreviewDrewReference)
         {
-            DrawSettingsPreviewElement(TowerPosition(reference), C.ReferenceTowerPreviewText.Get(), 0xC8FFFFFF, 0.95f);
-            DrawSettingsPreviewElement(TowerPosition(AddMapSteps(reference, 2)), C.PairedTowerPreviewText.Get(), 0xC840FF40, 0.95f);
+            DrawSettingsPreviewElement(TowerPosition(reference), DisplayText(C.ShowReferenceTowerPreviewText, C.ReferenceTowerPreviewText), 0xC8FFFFFF, 0.95f);
+            DrawSettingsPreviewElement(TowerPosition(AddMapSteps(reference, 2)), DisplayText(C.ShowPairedTowerPreviewText, C.PairedTowerPreviewText), 0xC840FF40, 0.95f);
             _settingsPreviewDrewReference = true;
         }
 
@@ -1801,6 +1827,18 @@ public class P2_Forsaken_beta : SplatoonScript
         };
     }
 
+    private string DisplayDebuffLabel(LiveDebuffKind debuff)
+    {
+        return debuff switch
+        {
+            LiveDebuffKind.HeadStack => DisplayText(C.ShowHeadStackDebuffText, C.HeadStackDebuffText),
+            LiveDebuffKind.Circle => DisplayText(C.ShowCircleDebuffText, C.CircleDebuffText),
+            LiveDebuffKind.Fan => DisplayText(C.ShowFanDebuffText, C.FanDebuffText),
+            LiveDebuffKind.None => DisplayText(C.ShowNoDebuffText, C.NoDebuffText),
+            _ => debuff.ToString()
+        };
+    }
+
     private string StageLabel(StageKind stage)
     {
         return stage switch
@@ -1983,6 +2021,13 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             return format;
         }
+    }
+
+    private static string DisplayText(bool show, InternationalString text) => show ? text.Get() ?? "" : "";
+
+    private static string FormatDisplayText(bool show, InternationalString text, params object[] args)
+    {
+        return show ? FormatText(text, args) : "";
     }
 
     private static uint RainbowColor()
@@ -2531,6 +2576,21 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "表示テキスト"
         };
 
+        public bool ShowCollectingAssignmentsText = true;
+        public bool ShowWaitingForAssignmentText = true;
+        public bool ShowWaitingForWaveText = true;
+        public bool ShowActiveInstructionText = true;
+        public bool ShowInactiveInstructionText = true;
+        public bool ShowDestinationOverlayText = true;
+        public bool ShowHeadStackDebuffText = true;
+        public bool ShowCircleDebuffText = true;
+        public bool ShowFanDebuffText = true;
+        public bool ShowNoDebuffText = true;
+        public bool ShowReferenceTowerPreviewText = true;
+        public bool ShowPairedTowerPreviewText = true;
+        public bool ShowPastFixedText = true;
+        public bool ShowFutureFixedText = true;
+
         public InternationalString EastLabelText = new()
         {
             En = "E",
@@ -2814,6 +2874,12 @@ public class P2_Forsaken_beta : SplatoonScript
                 DefaultsVersion = 11;
             }
 
+            if (DefaultsVersion < 12)
+            {
+                EnableDisplayTextDefaults();
+                DefaultsVersion = 12;
+            }
+
             for (var i = 0; i < Waves.Length; i++)
             {
                 Waves[i] ??= new WaveConfig();
@@ -2854,6 +2920,24 @@ public class P2_Forsaken_beta : SplatoonScript
                 Pairs[i].Description =
                     "Explicit Forsaken pair. Pairs containing one head-stack become the first set; pairs with two fan/circle players become the second set.";
             }
+        }
+
+        private void EnableDisplayTextDefaults()
+        {
+            ShowCollectingAssignmentsText = true;
+            ShowWaitingForAssignmentText = true;
+            ShowWaitingForWaveText = true;
+            ShowActiveInstructionText = true;
+            ShowInactiveInstructionText = true;
+            ShowDestinationOverlayText = true;
+            ShowHeadStackDebuffText = true;
+            ShowCircleDebuffText = true;
+            ShowFanDebuffText = true;
+            ShowNoDebuffText = true;
+            ShowReferenceTowerPreviewText = true;
+            ShowPairedTowerPreviewText = true;
+            ShowPastFixedText = true;
+            ShowFutureFixedText = true;
         }
 
         private static void NormalizePriorityData(PriorityData priorityData, bool createDefaultList)

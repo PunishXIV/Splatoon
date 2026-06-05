@@ -69,10 +69,9 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
     private bool _waveCannonTargetCollectionStarted;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata? Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(2, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
-    private IPlayerCharacter BasePlayer => Controller.BasePlayer;
 
     public override void OnSetup()
     {
@@ -129,12 +128,6 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
             return;
         }
 
-        if (castId is DoubleTroubleTrapCast or DoubleTroubleTrapHit)
-        {
-            ShowInitialLineup($"cast {castId}");
-            return;
-        }
-
         if (castId != GravenImage) return;
         if (_firstImageStarted) return;
 
@@ -165,6 +158,12 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         var actionId = set.Action?.RowId;
+
+        if(actionId is 47774 or 47768 && _gravenImageCount == 1)
+        {
+            ShowInitialLineup($"cast {actionId}");
+            return;
+        }
         if (actionId == PulseWave)
         {
             foreach (var target in set.TargetEffects.Select(x => (uint)x.TargetID))
@@ -467,7 +466,7 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
 
         if (_hasMyDestination)
         {
-            var color = RainbowColor();
+            var color = Controller.AttentionColor;
 
             if (Controller.TryGetElementByName("Destination", out var destination))
             {
@@ -499,32 +498,6 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
         _towerResolveCount = 0;
         _waveCannonTargetCollectionStarted = false;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-    }
-
-    private static uint RainbowColor()
-    {
-        var hue = Environment.TickCount64 % 2400 / 2400f;
-        var (r, g, b) = HsvToRgb(hue, 1f, 1f);
-        return 0xC8000000u | ((uint)(r * 255f) << 16) | ((uint)(g * 255f) << 8) | (uint)(b * 255f);
-    }
-
-    private static (float R, float G, float B) HsvToRgb(float h, float s, float v)
-    {
-        var i = (int)MathF.Floor(h * 6f);
-        var f = h * 6f - i;
-        var p = v * (1f - s);
-        var q = v * (1f - f * s);
-        var t = v * (1f - (1f - f) * s);
-
-        return (i % 6) switch
-        {
-            0 => (v, t, p),
-            1 => (q, v, p),
-            2 => (p, v, t),
-            3 => (p, q, v),
-            4 => (t, p, v),
-            _ => (v, p, q)
-        };
     }
 
     private enum State

@@ -18,7 +18,7 @@ using Splatoon.SplatoonScripting.Priority;
 
 namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 
-public class P2_Forsaken_beta : SplatoonScript
+public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 {
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint Forsaken = 47804;
@@ -191,9 +191,8 @@ public class P2_Forsaken_beta : SplatoonScript
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(5, "Garume");
+    public override Metadata Metadata => new(6, "Garume");
 
-    private Config C => Controller.GetConfig<Config>();
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
     public override void OnSetup()
@@ -378,10 +377,16 @@ public class P2_Forsaken_beta : SplatoonScript
             UpdateStageInstruction();
 
         ApplyDisplay();
+
+        ApplyScaleData();
     }
 
     public override void OnSettingsDraw()
     {
+        ImGui.SetNextItemWidth(200f);
+        ImGui.SliderFloat("Text offset, px", ref C.VOffsetMod, -5, 5);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.SliderFloat("Global overlay text scale multiplier", ref C.ScaleMod, 0, 3);
         C.EnsureDefaults();
         _settingsPreviewIndex = 0;
         _settingsPreviewDrewReference = false;
@@ -2532,8 +2537,23 @@ public class P2_Forsaken_beta : SplatoonScript
         public override int GetNumPlayers() => 2;
     }
 
-    public sealed class Config : IEzConfig
+    void ApplyScaleData()
     {
+        foreach(var x in Controller.GetRegisteredElements())
+        {
+            if(x.Value.Enabled && Controller.OriginalElements.TryGetValue(x.Key, out var value))
+            {
+                x.Value.overlayFScale = value.overlayFScale * C.ScaleMod;
+                x.Value.overlayVOffset = value.overlayVOffset + C.VOffsetMod;
+            }
+        }
+    }
+
+    public sealed class Config 
+    {
+        public float VOffsetMod = 0f;
+        public float ScaleMod = 1f;
+
         public InternationalString ActiveInstructionText = new()
         {
             En = "W{0} {1}: go to {2}",

@@ -306,11 +306,14 @@ public abstract class SplatoonScript
             ImGui.SameLine();
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste from clipboard".Loc()))
             {
+                string? paste = null;
+                ExportedScriptConfiguration? m = null;
                 try
                 {
-                    foreach(var x in Paste()!.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    paste = Paste();
+                    foreach(var x in paste!.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                     {
-                        var m = JsonConvert.DeserializeObject<ExportedScriptConfiguration>(x) ?? throw new NullReferenceException();
+                        m = JsonConvert.DeserializeObject<ExportedScriptConfiguration>(x) ?? throw new NullReferenceException();
                         if(!ApplyExportedConfiguration(m, out var error))
                         {
                             Notify.Error(error);
@@ -321,6 +324,17 @@ public abstract class SplatoonScript
                 {
                     e.Log();
                     Notify.Error(e.Message);
+                    PluginLog.Information($"== Log: ==");
+                    try
+                    {
+                        PluginLog.Information($"Paste dump:\n{paste}");
+                    }
+                    catch(Exception ex) { ex.LogInfo(); }
+                    try
+                    {
+                        PluginLog.Information($"Paste decode:\n{paste}");
+                    }
+                    catch(Exception ex) { ex.LogInfo(); }
                 }
             }
             ImGui.SameLine();

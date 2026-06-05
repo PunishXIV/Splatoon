@@ -23,7 +23,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -56,8 +56,14 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private const int PartyPlayerCount = 8;
 
     // Step1 ResolveInitialGroup: party pairs by priority index (plan5).
-    private static readonly (int A, int B)[] Step1PartyPairIndices = [(0, 2), (1, 3), (4, 6), (5, 7)];
+    private static readonly (int A, int B)[] Step1PartyPairIndicesAlternate = [(0, 2), (1, 3), (4, 6), (5, 7)];
+    private static readonly (int A, int B)[] Step1PartyPairIndicesAdjacent = [(0, 1), (2, 3), (4, 5), (6, 7)];
     private const int Step1PartyPairCount = 4;
+    private static readonly string[] Step1PairModeLabels =
+    [
+        "Alternate (T1H1, T2H2, M1R1, M2R2)",
+        "Adjacent (T1T2, H1H2, M1M2, R1R2)",
+    ];
     private const int StackPairCount = 2;
     private const int NonStackPairCount = 2;
 
@@ -203,6 +209,12 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         FutureOpposite,
     }
 
+    private enum Step1PairModeKind
+    {
+        Alternate,
+        Adjacent,
+    }
+
     private sealed class PlayerInfo
     {
         public required IPlayerCharacter Player;
@@ -225,6 +237,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         public PriorityData PriorityData = CreateDefaultPriorityData();
         public int DebugPatternPreview = DebugPatternPreviewNone;
         public int DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
+        public int Step1PairMode = (int)Step1PairModeKind.Alternate;
         public PatternRuleSettings[][] PatternRules = CreateDefaultPatternRules();
 
         public void EnsureDefaults()
@@ -233,6 +246,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             if(DebugPatternPreview >= PatternCount)
                 DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = ClampPatternPreviewRole(DebugPatternPreview, DebugPatternPreviewRole);
+            if(Step1PairMode is < (int)Step1PairModeKind.Alternate or > (int)Step1PairModeKind.Adjacent)
+                Step1PairMode = (int)Step1PairModeKind.Alternate;
             PatternRules = EnsurePatternRules(PatternRules);
         }
 
@@ -241,14 +256,13 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             PriorityData = CreateDefaultPriorityData();
             DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
+            Step1PairMode = (int)Step1PairModeKind.Alternate;
             PatternRules = CreateDefaultPatternRules();
         }
 
         private static PriorityData CreateDefaultPriorityData()
             => new()
             {
-                Name = "Wave Cannon tower priority",
-                Description = "Default: H2 H1 ST MT | D1 D2 D3 D4",
                 PriorityLists =
                 [
                     new PriorityList
@@ -411,8 +425,11 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private void DrawPrioritySettings()
     {
         C.EnsureDefaults();
-        ImGui.TextUnformatted(
-            "Priority — Step1 pairs by list index: [1,3], [2,4], [5,7], [6,8] (0-based: 0-2, 1-3, 4-6, 5-7).");
+        var pairMode = C.Step1PairMode;
+        if(ImGui.Combo("Step1 pair mode", ref pairMode, Step1PairModeLabels, Step1PairModeLabels.Length))
+            C.Step1PairMode = pairMode;
+
+        ImGui.TextUnformatted(GetStep1PairModeDescription(C.Step1PairMode));
         ImGui.TextUnformatted("Step2+: FirstHalf towers on steps 1,2,3,8; SecondHalf towers on steps 4,5,6,7.");
 
         ImGui.Spacing();
@@ -541,7 +558,9 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private void DrawDebugStep1PairsSection()
     {
+        ImGui.TextUnformatted($"Step1 pair mode: {Step1PairModeLabels[C.Step1PairMode]}");
         ImGui.TextUnformatted("Step1 pairs (priority index)");
+        var pairIndices = GetStep1PartyPairIndices();
         for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
         {
             if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
@@ -550,7 +569,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
                 continue;
             }
 
-            var (indexA, indexB) = Step1PartyPairIndices[pairIndex];
+            var (indexA, indexB) = pairIndices[pairIndex];
             if(!TryClassifyStep1Pair(playerA, playerB, out _, out var partner, out var isStackPair))
             {
                 ImGui.TextUnformatted(
@@ -601,6 +620,16 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         ImGui.TextUnformatted($"Tower counts: stack={stack} spread={spread} cone={cone}");
     }
 
+    private static string GetStep1PairModeDescription(int pairMode)
+        => pairMode == (int)Step1PairModeKind.Adjacent
+            ? "Priority — Step1 pairs by list: [T1, T2], [H1, H2], [M1, M2], [R1, R2] (index: 0-1, 2-3, 4-5, 6-7)."
+            : "Priority — Step1 pairs by list: [T1, H1], [T2, H2], [M1, R1], [M2, R2] (index: 0-2, 1-3, 4-6, 5-7).";
+
+    private (int A, int B)[] GetStep1PartyPairIndices()
+        => C.Step1PairMode == (int)Step1PairModeKind.Adjacent
+            ? Step1PartyPairIndicesAdjacent
+            : Step1PartyPairIndicesAlternate;
+
     // Returns two players for a step1 pair by priority-list indices.
     private bool TryGetStep1Pair(int pairIndex, out PlayerInfo playerA, out PlayerInfo playerB)
     {
@@ -609,7 +638,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(pairIndex < 0 || pairIndex >= Step1PartyPairCount || _infos.Count != PartyPlayerCount)
             return false;
 
-        var (indexA, indexB) = Step1PartyPairIndices[pairIndex];
+        var (indexA, indexB) = GetStep1PartyPairIndices()[pairIndex];
         if(indexA < 0 || indexA >= PartyPlayerCount || indexB < 0 || indexB >= PartyPlayerCount)
             return false;
 

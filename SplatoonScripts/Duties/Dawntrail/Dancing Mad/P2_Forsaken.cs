@@ -1,11 +1,14 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.CircularBuffers;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
 using Splatoon.SplatoonScripting;
+using Splatoon.SplatoonScripting.Priority;
 using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
@@ -16,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(6, "NightmareXIV, Poneglyph");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
@@ -64,6 +67,19 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
                 """);
         }
 
+        for(int i = 0; i < 8; i++)
+        {
+            Controller.RegisterElementFromCode($"VStack{i}", """
+                {"Name":"Stack","type":1,"radius":5.0,"Donut":0.5,"color":3357277952,"fillIntensity":0.5,"overlayTextColor":4278779648,"overlayVOffset":1.2,"overlayText":"","refActorComparisonType":2}
+                """);
+            Controller.RegisterElementFromCode($"VSpread{i}", """
+                {"Name":"Spread","type":1,"radius":5.0,"fillIntensity":0.5,"Donut":0.5,"overlayTextColor":4278190335,"overlayVOffset":1.2,"overlayText":"","refActorComparisonType":2}
+                """);
+            Controller.RegisterElementFromCode($"VFan{i}", """
+                {"Name":"Cone","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.3,"overlayTextColor":4294180608,"overlayVOffset":1.2,"overlayText":"","thicc":8.0,"includeRotation":true,"FaceMe":true,"refActorComparisonType":2}
+                """);
+        }
+
         for(int i = 0; i < 2; i++)
         {
             Controller.RegisterElementFromCode($"TowerSplit2-{i}", """
@@ -99,35 +115,81 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
         this.TowerCount = 0;
     }
 
-    void ShowNextElement(uint id, string kind)
+    void ShowNextElement(uint id, string kind, bool applyText)
     {
         for(int i = 0; i < 8; i++)
         {
             var eName = $"{kind}{i}";
             if(Controller.TryGetElementByName(eName, out var e) && !e.Enabled)
             {
-                e.Enabled = true;
-                e.refActorObjectID = id;
-                if(FirstTakers.Count > 0)
+                if(!C.ShowAll)
                 {
-                    var isTaking = FirstTakers.Contains(id);
-                    if((this.TowerCount/2).EqualsAny<uint>(1, 2, 5, 6)) isTaking = !isTaking;
-                    if(!isTaking)
+                    if(id.TryGetPlayer(out var p) && (p.AddressEquals(BasePlayer) || (C.ShowOnlyPartner && C.Partner.GetPlayer(x => true)?.IGameObject?.ObjectId == id)))
                     {
-                        e.overlayText = Controller.OriginalElements[eName].overlayText + "| -- OUT --";
+                        //
                     }
                     else
                     {
-                        e.overlayText = Controller.OriginalElements[eName].overlayText + "| ++ IN ++";
+                        continue;
                     }
                 }
-                else
+                e.Enabled = true;
+                e.refActorObjectID = id;
+                if(applyText)
                 {
-                    e.overlayText = Controller.OriginalElements[eName].overlayText;
+                    if(FirstTakers.Count > 0 && C.ShowInOut)
+                    {
+                        var isTaking = FirstTakers.Contains(id);
+                        if((this.TowerCount / 2).EqualsAny<uint>(C.Switchers)) isTaking = !isTaking;
+                        if(!isTaking)
+                        {
+                            e.overlayText = Controller.OriginalElements[eName].overlayText + "| -- OUT --";
+                        }
+                        else
+                        {
+                            e.overlayText = Controller.OriginalElements[eName].overlayText + "| ++ IN ++";
+                        }
+                    }
+                    else
+                    {
+                        e.overlayText = Controller.OriginalElements[eName].overlayText;
+                    }
                 }
                 return;
             }
         }
+    }
+
+    private const float TowerCoordinateRadius = 4f;
+    private bool IsPlayerInActiveTower(IPlayerCharacter player)
+    {
+        if(player.IsDead)
+        {
+            return false;
+        }
+
+        if(ActiveMapEffects.Count() == 0)
+        {
+            return false;
+        }
+
+        var playerPos = new Vector2(player.Position.X, player.Position.Z);
+        var threshold = TowerCoordinateRadius * TowerCoordinateRadius;
+
+        foreach(var effectPosition in ActiveMapEffects)
+        {
+            if(!MapEffect2TowerPos.TryGetValue(effectPosition, out var towerPos))
+            {
+                continue;
+            }
+
+            if(Vector2.DistanceSquared(playerPos, towerPos) <= threshold)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public override void OnUpdate()
@@ -135,6 +197,7 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
         Controller.Hide();
         if(Controller.GetPartyMembers().Any(x => x.StatusList.Any(s => s.StatusId == DebuffSpellsTrouble)))
         {
+            var pcs = Svc.Objects.OfType<IPlayerCharacter>().ToList();
             int i = 0;
             foreach(var x in ActiveMapEffects)
             {
@@ -153,9 +216,41 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
             }
             foreach(var x in Controller.GetPartyMembers())
             {
-                if(x.StatusList.Any(s => s.StatusId == this.EffectFan)) ShowNextElement(x.ObjectId, "Fan");
-                if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "Stack");
-                if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "Spread");
+                if(x.StatusList.Any(s => s.StatusId == this.EffectFan)) ShowNextElement(x.ObjectId, "Fan", true);
+                if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "Stack", true);
+                if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "Spread", true);
+            }
+
+            for(int j = 0; j < pcs.Count && j < 8; j++)
+            {
+                var source = pcs[j];
+
+                if(!IsPlayerInActiveTower(source))
+                {
+                    continue;
+                }
+
+                if(source.StatusList.Any(s => s.StatusId == this.EffectFan))
+                {
+                    var nearest = pcs
+                        .Where(x => x.EntityId != source.EntityId)
+                        .OrderBy(x => Vector3.DistanceSquared(x.Position, source.Position))
+                        .FirstOrDefault();
+
+                    if(nearest != null && Controller.TryGetElementByName($"VFan{j}", out var e))
+                    {
+                        e.refActorComparisonType = 2;
+                        e.refActorObjectID = source.EntityId;
+                        e.faceplayer = GetPlayerOrder(nearest);
+                        e.Enabled = true;
+                    }
+                }
+            }
+
+            foreach(var x in Controller.GetPartyMembers().Where(IsPlayerInActiveTower))
+            {
+                if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "VStack", false);
+                if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "VSpread", false);
             }
         }
     }
@@ -169,9 +264,53 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
             ActiveMapEffects.Push(position);
         }
     }
+    private string GetPlayerOrder(IPlayerCharacter c)
+    {
+        for(var i = 1; i <= 8; i++)
+        {
+            if((nint)FakePronoun.Resolve($"<{i}>") == c.Address)
+                return $"<{i}>";
+        }
+        throw new Exception("Could not determine player order");
+    }
 
     public override void OnSettingsDraw()
     {
+        ImGui.Checkbox("Show all players (otherwise yourself only)", ref C.ShowAll);
+        if(!C.ShowAll)
+        {
+            ImGui.Indent();
+            ImGui.Checkbox("Show your partner", ref C.ShowOnlyPartner);
+            if(C.ShowOnlyPartner)
+            {
+                C.Partner.Draw();
+            }
+            ImGui.Unindent();
+        }
+        ImGui.Checkbox("Visualize attacks from towers", ref C.Visualize);
+        ImGui.Checkbox("Show in/out", ref C.ShowInOut);
+        if(C.ShowInOut)
+        {
+            ImGui.Indent();
+            ImGuiEx.Text("Tower taking order, where group A is the group that takes first tower:");
+            for(uint i = 0; i < 8; i++)
+            {
+                if(i == 0) ImGui.BeginDisabled();
+                ImGui.PushID(i);
+                ImGuiEx.TextV($"{i + 1}:");
+                ImGui.SameLine();
+                if(ImGui.RadioButton("A", !C.Switchers.Contains(i))) C.Switchers.Remove(i);
+                ImGui.SameLine();
+                if(ImGui.RadioButton("B", C.Switchers.Contains(i))) C.Switchers.Add(i);
+                ImGui.PopID();
+                if(i == 0)
+                {
+                    ImGui.EndDisabled();
+                    C.Switchers.Remove(0);
+                }
+            }
+            ImGui.Unindent();
+        }
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.InputUInt("Tower count", ref this.TowerCount);
@@ -185,6 +324,19 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 
     public class Config
     {
-        public bool ShowAll = false;
+        public bool ShowAll = true;
+        public bool Visualize = false;
+        public bool ShowOnlyPartner = false;
+        public bool ShowInOut = true;
+        public HashSet<uint> Switchers = [1, 2, 5, 6];
+        public Prio1 Partner = new();
+    }
+
+    public class Prio1 : PriorityData
+    {
+        public override int GetNumPlayers()
+        {
+            return 1;
+        }
     }
 }

@@ -57,7 +57,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         if(e.tether && !e.Nodraw)
         {
-            Vector3 origin = new(cx, z, cy);
+            Vector3 origin = new(cx, z + e.offZ, cy);
             var end = Utils.XZY(Utils.GetPlayerPositionXZY());
             if(e.ExtraTetherLength > 0)
             {

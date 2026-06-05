@@ -493,7 +493,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         {
             DisplayObjects.Add(new DisplayObjectLine(cx,
                 cy,
-                z,
+                z + e.offZ,
                 Utils.GetPlayerPositionXZY().X, Utils.GetPlayerPositionXZY().Y, Utils.GetPlayerPositionXZY().Z,
                 e.thicc, e.color));
         }

@@ -117,7 +117,7 @@ This priority is chosen so the auto group picks the head players, the highest-pr
 ```
 
 # Individual scripts
-> [! Important]
+> [!Important]
 >
 > These are scripts for individual mechanic resolutions. Their descriptions may be incomplete yet.
 >

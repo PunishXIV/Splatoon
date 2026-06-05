@@ -1,3 +1,13 @@
+> [!Caution]
+>
+> Work in progress.
+>
+> It will be not until at least 2-3 weeks into the battle until all Phase 2 stuff is properly covered.
+>
+> Until then, you can browse and pick whatever you think will help you.
+>
+> Otherwise, please wait. 
+
 ## [Script] Forsaken Visualizer
 
 This script just displays order of mechanics, your (or other players) markers, and visualizes attacks coming from players in towers. You can use it in conjunction with other scripts. This does not solves mechanic.

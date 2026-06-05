@@ -126,14 +126,14 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         ]),
         new(1, 0, 2, 2,
         [
-            Rule("022_SpreadPriority1", PositionBasis.RightTower, 0f, 3.25f),
+            Rule("022_SpreadPriority1", PositionBasis.LeftTower, 0f, 3.25f),
             Rule("022_SpreadPriority2", PositionBasis.RightTower, 0f, 3.25f),
             Rule("022_ConePriority1", PositionBasis.LeftTower, 180f, 3.25f),
-            Rule("022_ConePriority2", PositionBasis.LeftTower, 180f, 3.25f),
-            Rule("022_DemisePriority1", PositionBasis.Center, 90f, 4.75f),
+            Rule("022_ConePriority2", PositionBasis.RightTower, 180f, 3.25f),
+            Rule("022_DemisePriority1", PositionBasis.LeftTower, 90f, 4.75f),
             Rule("022_DemisePriority2", PositionBasis.Center, 315f, 5.0f),
             Rule("022_DemisePriority3", PositionBasis.Center, 45f, 5.0f),
-            Rule("022_DemisePriority4", PositionBasis.Center, 270f, 4.75f),
+            Rule("022_DemisePriority4", PositionBasis.RightTower, 270f, 4.75f),
         ]),
     ];
 

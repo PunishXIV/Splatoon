@@ -256,10 +256,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
                         IsRole = true,
                         List =
                         [
-                            new JobbedPlayer { Role = RolePosition.T1 },
-                            new JobbedPlayer { Role = RolePosition.T2 },
                             new JobbedPlayer { Role = RolePosition.H1 },
                             new JobbedPlayer { Role = RolePosition.H2 },
+                            new JobbedPlayer { Role = RolePosition.T1 },
+                            new JobbedPlayer { Role = RolePosition.T2 },
                             new JobbedPlayer { Role = RolePosition.M1 },
                             new JobbedPlayer { Role = RolePosition.M2 },
                             new JobbedPlayer { Role = RolePosition.R1 },

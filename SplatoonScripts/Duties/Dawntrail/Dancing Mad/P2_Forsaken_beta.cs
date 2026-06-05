@@ -43,7 +43,7 @@ public class P2_Forsaken_beta : SplatoonScript
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 10;
+    private const int CurrentDefaultsVersion = 11;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -72,12 +72,13 @@ public class P2_Forsaken_beta : SplatoonScript
     private static readonly RolePosition[] DefaultRolePriority =
     [
         RolePosition.H2,
+        RolePosition.H1,
         RolePosition.T2,
-        RolePosition.M1,
-        RolePosition.R2,
-        RolePosition.R1,
         RolePosition.T1,
-        RolePosition.H1
+        RolePosition.M1,
+        RolePosition.M2,
+        RolePosition.R1,
+        RolePosition.R2
     ];
 
     private static readonly RolePosition[] LegacyGenericRolePriority =
@@ -92,6 +93,17 @@ public class P2_Forsaken_beta : SplatoonScript
         RolePosition.R2
     ];
 
+    private static readonly RolePosition[] LegacyIncompleteRolePriority =
+    [
+        RolePosition.H2,
+        RolePosition.T2,
+        RolePosition.M1,
+        RolePosition.R2,
+        RolePosition.R1,
+        RolePosition.T1,
+        RolePosition.H1
+    ];
+
     private static readonly (int A, int B)[] PriorityIndexPairSlots1238_4567 =
     [
         (0, 2),
@@ -103,69 +115,25 @@ public class P2_Forsaken_beta : SplatoonScript
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
-            "Forsaken beta is a dynamic P2 Missing helper. Settings are limited to group assignment, wave groups, and compact role placement tables.",
+            "Forsaken beta is a dynamic P2 Missing helper. Settings are limited to global priority, optional pairs, wave sets, and compact role placement tables.",
         Jp =
-            "Forsaken beta はP2ミッシング用の動的補助です。設定はグループ、Wave処理グループ、役割ごとの配置表に絞っています。"
+            "Forsaken beta はP2ミッシング用の動的補助です。設定は全体優先順位、任意ペア、Wave処理セット、役割ごとの配置表に絞っています。"
     };
 
     private static readonly InternationalString AssignmentDescriptionText = new()
     {
         En =
-            "Set global priority and optional explicit pairs. When all four pairs are configured and match the party, the script automatically uses pair-split assignment for the 1238/4567 strategy.",
+            "Set global priority and optional explicit pairs. If all four pairs are configured, pairs containing one head-stack become the first set and non-head pairs become the second set. Without explicit pairs, the script uses priority pairs 1+3, 2+4, 5+7, and 6+8.",
         Jp =
-            "全体優先順位と任意の明示ペアを設定します。4ペアすべてが設定され、現在のPTに一致する場合は、1238/4567用のペア分割割当に自動で切り替えます。"
-    };
-
-    private static readonly InternationalString AssignmentModeLabelText = new()
-    {
-        En = "Grouping mode",
-        Jp = "グループ決定方式"
-    };
-
-    private static readonly InternationalString InitialForecastPriorityModeDescriptionText = new()
-    {
-        En =
-            "Without explicit pairs, the 1238 set becomes both head-stack players plus the highest-priority circle and fan players.",
-        Jp =
-            "明示ペアがない場合、1238側を頭割り2名+優先順位が高い円1名+扇1名として取得します。"
-    };
-
-    private static readonly InternationalString PriorityIndexPairsModeDescriptionText = new()
-    {
-        En =
-            "Without explicit pairs, priority slots 1+3, 2+4, 5+7, and 6+8 are treated as pairs. Pairs containing one head-stack become the 1238 set; non-stack pairs become the 4567 set.",
-        Jp =
-            "明示ペアがない場合、優先順位の1+3、2+4、5+7、6+8をペアとして扱います。頭割りを1名含むペアを1238側、頭割りを含まないペアを4567側にします。"
-    };
-
-    private static readonly InternationalString PriorityIndexPairSplitModeDescriptionText = new()
-    {
-        En =
-            "Without explicit pairs, priority slots 1+3, 2+4, 5+7, and 6+8 are treated as pairs. Each pair splits one player into the 1238 set and one into the 4567 set: head-stack players go 1238, their partner goes 4567; if neither partner has a head-stack, the higher-priority player goes 1238.",
-        Jp =
-            "明示ペアがない場合、優先順位の1+3、2+4、5+7、6+8をペアとして扱います。各ペアから1名ずつ1238側/4567側に分け、頭割り持ちは1238側、相方は4567側、両方が扇/円なら優先順位が高い側を1238側にします。"
+            "全体優先順位と任意の明示ペアを設定します。4ペアすべてが設定されている場合、頭割りを1名含むペアを前半セット、頭割りを含まないペアを後半セットにします。明示ペアがない場合は、優先順位の1+3、2+4、5+7、6+8をペアにします。"
     };
 
     private static readonly InternationalString PairSettingsDescriptionText = new()
     {
         En =
-            "Explicit pairs override the grouping mode when all four pairs match the party. Head-stack players go to the 1238 set and their partners go to the 4567 set. If both players have fan/circle, the first configured player goes 1238 and the second goes 4567.",
+            "Explicit pairs override the priority-pair fallback when all four pairs match the party. Pairs containing one head-stack resolve as the first set; pairs with two fan/circle players resolve as the second set.",
         Jp =
-            "4ペアすべてがPTに一致する場合、グループ決定方式より明示ペアを優先します。頭割り持ちは1238側、相方は4567側にします。2人とも扇/円なら、設定上の1人目を1238側、2人目を4567側にします。"
-    };
-
-    private static readonly InternationalString InitialHeadStackRankModeLabelText = new()
-    {
-        En = "Initial head-stack rank",
-        Jp = "初回頭割り順位"
-    };
-
-    private static readonly InternationalString InitialHeadStackRankModeDescriptionText = new()
-    {
-        En =
-            "For priority-pair 1238/4567 modes, choose how the two initial head-stack players are ranked inside H2/C1/F1. Partner debuff keeps the existing Pino/EU behavior; priority order matches Kroxy-Rinon support-left/DPS-right ordering.",
-        Jp =
-            "優先順位ペア1238/4567方式で、初回H2/C1/F1の頭割り2名の順位を決めます。相方デバフは既存Pino/EU向け、優先順位順はKroxy-Rinonのサポ左/DPS右に合わせます。"
+            "4ペアすべてがPTに一致する場合、優先順位ペアより明示ペアを優先します。頭割りを1名含むペアは前半セット、2人とも扇/円のペアは後半セットとして処理します。"
     };
 
     private static readonly InternationalString PairHeaderText = new()
@@ -180,51 +148,18 @@ public class P2_Forsaken_beta : SplatoonScript
         Jp = "ペア設定チェック"
     };
 
-    private static readonly InternationalString[] AssignmentModeLabels =
-    [
-        new()
-        {
-            En = "Initial forecast priority",
-            Jp = "初期予兆+優先順位"
-        },
-        new()
-        {
-            En = "Priority index pairs 1238/4567",
-            Jp = "優先順位ペア 1238/4567"
-        },
-        new()
-        {
-            En = "Priority pair split 1238/4567",
-            Jp = "優先順位ペア分割 1238/4567"
-        }
-    ];
-
-    private static readonly InternationalString[] InitialHeadStackRankModeLabels =
-    [
-        new()
-        {
-            En = "Partner debuff",
-            Jp = "相方デバフ"
-        },
-        new()
-        {
-            En = "Priority order",
-            Jp = "優先順位順"
-        }
-    ];
-
     private static readonly InternationalString WaveTableDescriptionText = new()
     {
         En =
-            "Each wave chooses a resolving set. The default AAABBBBA sequence is the 1238 set on waves 1-3 and 8, and the 4567 set on waves 4-7. Tower and All Things Ending share one live-pattern role placement table; Past/Future use fixed tower-relative movement.",
+            "Each wave chooses which set resolves towers. The default AAABBBBA sequence uses the first set on waves 1-3 and 8, and the second set on waves 4-7. Tower and All Things Ending share one live-pattern role placement table; Past/Future use fixed tower-relative movement.",
         Jp =
-            "各Waveで処理側を選びます。初期値はAAABBBBA、つまり1-3回目と8回目が1238側、4-7回目が4567側です。塔と消滅の脚は現在パターンと役割ごとの共通配置表を使い、過去/未来は塔基準の固定移動にします。"
+            "各Waveでどちらのセットが塔を処理するかを選びます。初期値はAAABBBBA、つまり1-3回目と8回目が前半セット、4-7回目が後半セットです。塔と消滅の脚は現在パターンと役割ごとの共通配置表を使い、過去/未来は塔基準の固定移動にします。"
     };
 
     private readonly List<uint> _pendingTowerSpawnPositions = [];
     private readonly List<uint> _pendingTowerClearPositions = [];
-    private readonly List<uint> _autoGroupAIds = [];
-    private readonly List<uint> _autoGroupBIds = [];
+    private readonly List<uint> _firstSetIds = [];
+    private readonly List<uint> _secondSetIds = [];
     private readonly Dictionary<uint, LiveDebuffKind> _initialHeadPartnerDebuffs = [];
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
@@ -243,7 +178,7 @@ public class P2_Forsaken_beta : SplatoonScript
     private int _pendingTowerDisplayWave;
     private uint _pendingTowerDisplayReference;
     private StageKind _currentStage;
-    private LiveContext? _stageContext;
+    private readonly Dictionary<uint, LiveContext> _stageContexts = [];
     private bool _allowLiveContextRefresh;
     private string _currentInstruction = "";
     private bool _hasDestination;
@@ -256,10 +191,10 @@ public class P2_Forsaken_beta : SplatoonScript
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(2, "Garume");
+    public override Metadata Metadata => new(4, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
-    private IPlayerCharacter BasePlayer => Controller.BasePlayer;
+    private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
     public override void OnSetup()
     {
@@ -370,7 +305,7 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             _active = true;
             DebugLog("ACTION Forsaken");
-            TryCaptureAutoGroups();
+            TryCaptureResolvingSets();
             UpdateWaitingInstruction();
             ApplyDisplay();
             return;
@@ -396,9 +331,9 @@ public class P2_Forsaken_beta : SplatoonScript
 
         _active = true;
         DebugLogOnce(ref _lastCaptureBlockLog, $"status-{sourceId:X8}-{status.StatusId}", $"STATUS_GAIN missing source=0x{sourceId:X8} status={status.StatusId} debuff={DebuffFromStatus(status.StatusId)}");
-        TryCaptureAutoGroups();
+        TryCaptureResolvingSets();
         if (DebuffFromStatus(status.StatusId) != LiveDebuffKind.None && _allowLiveContextRefresh)
-            _stageContext = null;
+            _stageContexts.Clear();
 
         UpdateWaitingInstruction();
         ApplyDisplay();
@@ -410,7 +345,7 @@ public class P2_Forsaken_beta : SplatoonScript
         if (!inMissing) return;
 
         _active = true;
-        TryCaptureAutoGroups();
+        TryCaptureResolvingSets();
 
         if (IsTowerSpawnMapEffect(data1, data2) && IsTowerMapPosition(position))
         {
@@ -429,7 +364,7 @@ public class P2_Forsaken_beta : SplatoonScript
     public override void OnUpdate()
     {
         if (_active)
-            TryCaptureAutoGroups();
+            TryCaptureResolvingSets();
 
         if (_active && _hasStage)
             UpdateStageInstruction();
@@ -450,8 +385,6 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             ImGui.Indent();
             ImGui.TextWrapped(AssignmentDescriptionText.Get());
-            DrawAssignmentModeSettings();
-            ImGui.Spacing();
             ImGui.TextUnformatted("Global priority");
             C.PriorityData.Draw();
             ImGui.Spacing();
@@ -491,28 +424,6 @@ public class P2_Forsaken_beta : SplatoonScript
         }
 
         DrawDebugSettings();
-    }
-
-    private void DrawAssignmentModeSettings()
-    {
-        var mode = (int)C.AssignmentMode;
-        ImGui.SetNextItemWidth(280f);
-        if (ImGui.Combo(AssignmentModeLabelText.Get(), ref mode, BuildAssignmentModeComboLabels(), AssignmentModeLabels.Length))
-            C.AssignmentMode = (AutoAssignmentMode)Math.Clamp(mode, 0, AssignmentModeLabels.Length - 1);
-
-        ImGui.TextWrapped(AssignmentModeDescription(C.AssignmentMode).Get());
-
-        if (C.AssignmentMode is not (AutoAssignmentMode.PriorityIndexPairs1238_4567
-            or AutoAssignmentMode.PriorityIndexPairSplit1238_4567))
-            return;
-
-        var headRankMode = (int)C.InitialHeadStackRankMode;
-        ImGui.SetNextItemWidth(280f);
-        if (ImGui.Combo(InitialHeadStackRankModeLabelText.Get(), ref headRankMode,
-                BuildInitialHeadStackRankModeComboLabels(), InitialHeadStackRankModeLabels.Length))
-            C.InitialHeadStackRankMode = (InitialHeadStackRankMode)Math.Clamp(headRankMode, 0, InitialHeadStackRankModeLabels.Length - 1);
-
-        ImGui.TextWrapped(InitialHeadStackRankModeDescriptionText.Get());
     }
 
     private void DrawPairSettings()
@@ -559,16 +470,16 @@ public class P2_Forsaken_beta : SplatoonScript
         if (configuredCount == 0)
         {
             lines.Add(PairValidationLine.Info(
-                "No explicit pairs are configured. The selected grouping mode will be used.",
-                "明示ペアは未設定です。選択中のグループ決定方式を使用します。"));
+                "No explicit pairs are configured. The script will use priority pairs 1+3, 2+4, 5+7, and 6+8.",
+                "明示ペアは未設定です。優先順位の1+3、2+4、5+7、6+8をペアとして使用します。"));
             return lines;
         }
 
         if (configuredCount != PairCount)
         {
             lines.Add(PairValidationLine.Error(
-                $"Only {configuredCount}/{PairCount} pairs are configured. When any pair is configured, all four pairs must be valid or explicit pair mode will wait.",
-                $"{PairCount}ペア中{configuredCount}ペアだけが設定されています。ペア設定を使う場合は4ペアすべてが有効でないと、明示ペアモードは待機します。"));
+                $"Only {configuredCount}/{PairCount} pairs are configured. When any pair is configured, all four pairs must be valid or assignment will wait.",
+                $"{PairCount}ペア中{configuredCount}ペアだけが設定されています。ペア設定を使う場合は4ペアすべてが有効でないと、割当は待機します。"));
         }
 
         var party = Controller.GetPartyMembers()
@@ -664,8 +575,8 @@ public class P2_Forsaken_beta : SplatoonScript
         if (visibleDebuffs < 8)
         {
             lines.Add(PairValidationLine.Warning(
-                $"Only {visibleDebuffs}/8 current Missing role debuffs are visible. Dynamic split validation may be incomplete.",
-                $"現在見えているミッシング役割デバフは{visibleDebuffs}/8個です。動的な分割検証は不完全な可能性があります。"));
+                $"Only {visibleDebuffs}/8 current Missing role debuffs are visible. Dynamic set validation may be incomplete.",
+                $"現在見えているミッシング役割デバフは{visibleDebuffs}/8個です。動的なセット検証は不完全な可能性があります。"));
         }
 
         var dynamicErrors = 0;
@@ -679,8 +590,8 @@ public class P2_Forsaken_beta : SplatoonScript
             if (firstIsHead && secondIsHead)
             {
                 lines.Add(PairValidationLine.Error(
-                    $"Pair {pair.Index + 1} has two head-stack players right now: {pair.First.Name} / {pair.Second.Name}. It cannot split into 1238/4567.",
-                    $"ペア{pair.Index + 1}は現在、頭割り2人です: {pair.First.Name} / {pair.Second.Name}。1238側/4567側に分割できません。"));
+                    $"Pair {pair.Index + 1} has two head-stack players right now: {pair.First.Name} / {pair.Second.Name}. It cannot determine first/second set assignment.",
+                    $"ペア{pair.Index + 1}は現在、頭割り2人です: {pair.First.Name} / {pair.Second.Name}。前半/後半セットを決定できません。"));
                 dynamicErrors++;
                 continue;
             }
@@ -702,8 +613,8 @@ public class P2_Forsaken_beta : SplatoonScript
                 secondDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
             {
                 lines.Add(PairValidationLine.Warning(
-                    $"Pair {pair.Index + 1} has no head-stack player and is currently {firstDebuff}/{secondDebuff}. The script needs both players to be circle/fan for non-head pair splitting.",
-                    $"ペア{pair.Index + 1}は頭割りを含まず、現在デバフは{firstDebuff}/{secondDebuff}です。非頭割りペアの分割には2人とも円/扇である必要があります。"));
+                    $"Pair {pair.Index + 1} has no head-stack player and is currently {firstDebuff}/{secondDebuff}. The script needs both players to be circle/fan to classify it as the second set.",
+                    $"ペア{pair.Index + 1}は頭割りを含まず、現在デバフは{firstDebuff}/{secondDebuff}です。後半セットとして分類するには2人とも円/扇である必要があります。"));
             }
         }
 
@@ -718,8 +629,8 @@ public class P2_Forsaken_beta : SplatoonScript
         if (visibleDebuffs == 8 && dynamicErrors == 0)
         {
             lines.Add(PairValidationLine.Info(
-                "Current debuffs are splittable by the explicit pair rules.",
-                "現在デバフは明示ペアルールで分割可能です。"));
+                "Current debuffs can determine first/second set assignment by the explicit pair rules.",
+                "現在デバフは明示ペアルールで前半/後半セットを決定可能です。"));
         }
     }
 
@@ -950,13 +861,12 @@ public class P2_Forsaken_beta : SplatoonScript
         ImGui.TextUnformatted(_hasPendingTowerDisplay
             ? $"Pending tower display: wave {_pendingTowerDisplayWave} ref {FormatMapPosition(_pendingTowerDisplayReference)}"
             : "Pending tower display: none");
-        ImGui.TextUnformatted($"Assignment mode: {C.AssignmentMode}");
         var priorityParty = GetPriorityOrderedParty();
         ImGui.TextUnformatted(TryGetExplicitPairs(priorityParty, out _, out var explicitPairFailure)
             ? "Explicit pairs: ready"
             : $"Explicit pairs: {(HasAnyPairConfiguration() ? explicitPairFailure : "not configured")}");
-        ImGui.TextUnformatted($"Auto 1238 set: {FormatAutoGroup(_autoGroupAIds)}");
-        ImGui.TextUnformatted($"Auto 4567 set: {FormatAutoGroup(_autoGroupBIds)}");
+        ImGui.TextUnformatted($"First set: {FormatResolvingSet(_firstSetIds)}");
+        ImGui.TextUnformatted($"Second set: {FormatResolvingSet(_secondSetIds)}");
         ImGui.TextUnformatted($"Initial head partners: {FormatInitialHeadPartnerDebuffs()}");
         ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
         ImGui.TextUnformatted($"Pending clears: {FormatMapPositionList(_pendingTowerClearPositions)}");
@@ -966,12 +876,24 @@ public class P2_Forsaken_beta : SplatoonScript
         ImGui.TextUnformatted($"Last support rank: {_lastSupportRank}");
         ImGui.TextUnformatted($"Last selector: {(_lastSelectorLabel.Length == 0 ? "none" : _lastSelectorLabel)}");
         ImGui.TextUnformatted($"Last matched rule: {_lastRuleLabel}");
+        ImGui.TextUnformatted($"Context cache: {_stageContexts.Count} players");
+
+        var overrideName = global::Splatoon.Splatoon.BasePlayerOverride;
+        var local = global::ECommons.DalamudServices.Svc.Objects.LocalPlayer;
+        ImGui.TextUnformatted($"BasePlayer override: {(string.IsNullOrEmpty(overrideName) ? "none" : overrideName)}");
+        ImGui.TextUnformatted(local != null
+            ? $"LocalPlayer: {DebugIdentity(local)}"
+            : "LocalPlayer: null");
 
         var me = BasePlayer;
         if (me != null)
         {
-            ImGui.TextUnformatted($"BasePlayer: 0x{me.EntityId:X8}");
+            ImGui.TextUnformatted($"BasePlayer: {DebugIdentity(me)}");
+            ImGui.TextUnformatted($"BasePlayer source: {(local != null && me.AddressEquals(local) ? "LocalPlayer/fallback" : "override")}");
             ImGui.TextUnformatted($"BasePlayer current debuff: {CurrentDebuffFromPlayer(me)}");
+            ImGui.TextUnformatted(_stageContexts.TryGetValue(me.EntityId, out var cachedContext)
+                ? $"BasePlayer cached context: {cachedContext.Side} {cachedContext.Debuff} #{cachedContext.DebuffRank} support#{cachedContext.SupportRank}"
+                : "BasePlayer cached context: none");
             ImGui.TextUnformatted($"Has destination: {_hasDestination}");
             ImGui.TextUnformatted($"Destination: {_myDestination.X:0.00}, {_myDestination.Y:0.00}, {_myDestination.Z:0.00}");
         }
@@ -1052,7 +974,7 @@ public class P2_Forsaken_beta : SplatoonScript
         _active = true;
         _currentStage = stage;
         _hasStage = true;
-        _stageContext = null;
+        _stageContexts.Clear();
         _allowLiveContextRefresh = StageUsesLiveContext(stage);
 
         DebugLog($"SET_STAGE wave={_currentWave} stage={stage} reference={FormatMapPosition(_referenceMapPosition)} liveRefresh={_allowLiveContextRefresh}");
@@ -1084,7 +1006,7 @@ public class P2_Forsaken_beta : SplatoonScript
         _hasTowerReference = true;
         _currentStage = stage;
         _hasStage = true;
-        _stageContext = null;
+        _stageContexts.Clear();
         _allowLiveContextRefresh = StageUsesLiveContext(stage);
 
         DebugLog($"ACTIVATE_TOWER wave={wave} stage={stage} reference={FormatMapPosition(reference)} group={C.Waves[Math.Clamp(wave, 1, WaveCount) - 1].ResolvingGroup} liveRefresh={_allowLiveContextRefresh}");
@@ -1139,51 +1061,30 @@ public class P2_Forsaken_beta : SplatoonScript
             return;
         }
 
-        var shouldRefreshContext = StageUsesLiveContext(_currentStage) && _allowLiveContextRefresh;
-        var context = _stageContext;
-        if (!context.HasValue || shouldRefreshContext)
+        if (StageUsesLiveContext(_currentStage)
+            && (_allowLiveContextRefresh || !_stageContexts.ContainsKey(me.EntityId)))
         {
-            if (TryBuildLiveContext(me, out var freshContext, out var failureReason))
+            if (TryRefreshLiveContexts(me, out var failureReason))
             {
-                if (HasConfiguredPattern(freshContext.Pattern))
-                {
-                    context = freshContext;
-                    _stageContext = context;
+                if (_stageContexts.TryGetValue(me.EntityId, out var freshContext))
                     LogContextResolved("fresh", freshContext);
-                }
-                else
-                {
-                    LogContextFailure($"no configured pattern {FormatPattern(freshContext.Pattern)} wave={_currentWave} stage={_currentStage}");
-                    if (!_stageContext.HasValue)
-                    {
-                        _currentInstruction = C.WaitingForAssignmentText.Get();
-                        ClearDestination();
-                        return;
-                    }
-                }
             }
-            else if (!_stageContext.HasValue)
+            else if (!_stageContexts.ContainsKey(me.EntityId))
             {
                 LogContextFailure(failureReason);
                 _currentInstruction = C.WaitingForAssignmentText.Get();
                 ClearDestination();
                 return;
             }
-            else
-            {
-                context = _stageContext;
-            }
         }
 
-        if (!context.HasValue)
+        if (!_stageContexts.TryGetValue(me.EntityId, out var liveContext))
         {
-            LogContextFailure($"context empty wave={_currentWave} stage={_currentStage}");
+            LogContextFailure($"context empty player=0x{me.EntityId:X8} wave={_currentWave} stage={_currentStage} cache={_stageContexts.Count}");
             _currentInstruction = C.WaitingForAssignmentText.Get();
             ClearDestination();
             return;
         }
-
-        var liveContext = context.Value;
 
         _lastPattern = liveContext.Pattern;
         _lastSide = liveContext.Side;
@@ -1284,9 +1185,8 @@ public class P2_Forsaken_beta : SplatoonScript
         _myDestination = destination;
     }
 
-    private bool TryBuildLiveContext(IPlayerCharacter me, out LiveContext context, out string failureReason)
+    private bool TryRefreshLiveContexts(IPlayerCharacter currentPlayer, out string failureReason)
     {
-        context = default;
         failureReason = "";
         var wave = C.Waves[_currentWave - 1];
         var party = GetPriorityOrderedParty();
@@ -1300,11 +1200,37 @@ public class P2_Forsaken_beta : SplatoonScript
         if (resolvingGroup.Count == 0)
         {
             failureReason =
-                $"resolving group empty wave={_currentWave} stage={_currentStage} configuredGroup={wave.ResolvingGroup} priority=[{FormatPlayers(party)}] autoA=[{FormatAutoGroup(_autoGroupAIds)}] autoB=[{FormatAutoGroup(_autoGroupBIds)}]";
+                $"resolving set empty wave={_currentWave} stage={_currentStage} configuredSet={wave.ResolvingGroup} priority=[{FormatPlayers(party)}] first=[{FormatResolvingSet(_firstSetIds)}] second=[{FormatResolvingSet(_secondSetIds)}]";
             return false;
         }
 
         var supportGroup = GetSupportGroup(wave.ResolvingGroup, party, resolvingGroup);
+        var pattern = PatternInfo.FromPlayers(resolvingGroup);
+        if (!HasConfiguredPattern(pattern))
+        {
+            failureReason = $"no configured pattern {FormatPattern(pattern)} wave={_currentWave} stage={_currentStage}";
+            return false;
+        }
+
+        _stageContexts.Clear();
+        foreach (var player in party)
+        {
+            var context = BuildLiveContext(player, resolvingGroup, supportGroup, pattern);
+            _stageContexts[player.EntityId] = context;
+        }
+
+        if (!_stageContexts.ContainsKey(currentPlayer.EntityId))
+            _stageContexts[currentPlayer.EntityId] = BuildLiveContext(currentPlayer, resolvingGroup, supportGroup, pattern);
+
+        return _stageContexts.Count > 0;
+    }
+
+    private LiveContext BuildLiveContext(
+        IPlayerCharacter me,
+        IReadOnlyList<IPlayerCharacter> resolvingGroup,
+        IReadOnlyList<IPlayerCharacter> supportGroup,
+        PatternInfo pattern)
+    {
         var side = resolvingGroup.Any(p => p.EntityId == me.EntityId)
             ? ParticipantSide.ResolvingGroup
             : supportGroup.Any(p => p.EntityId == me.EntityId)
@@ -1318,34 +1244,35 @@ public class P2_Forsaken_beta : SplatoonScript
             .ToList();
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
-        debuffRank = AdjustDebuffRankForInitialPairMode(me, side, debuff, debuffRank);
+        debuffRank = AdjustInitialHeadRankFromExplicitPair(me, side, debuff, debuffRank);
         var supportRank = side == ParticipantSide.SupportGroup
-            ? supportGroup.FindIndex(player => player.EntityId == me.EntityId) + 1
+            ? IndexOfPlayer(supportGroup, me.EntityId) + 1
             : 0;
 
-        context = new LiveContext(
+        return new LiveContext(
             side,
             debuff,
             debuffRank,
             supportRank,
-            PatternInfo.FromPlayers(resolvingGroup));
-        return true;
+            pattern);
     }
 
-    private int AdjustDebuffRankForInitialPairMode(
+    private static int IndexOfPlayer(IReadOnlyList<IPlayerCharacter> players, uint entityId)
+    {
+        for (var i = 0; i < players.Count; i++)
+            if (players[i].EntityId == entityId)
+                return i;
+
+        return -1;
+    }
+
+    private int AdjustInitialHeadRankFromExplicitPair(
         IPlayerCharacter player,
         ParticipantSide side,
         LiveDebuffKind debuff,
         int currentRank)
     {
-        if (C.AssignmentMode is not (AutoAssignmentMode.PriorityIndexPairs1238_4567
-            or AutoAssignmentMode.PriorityIndexPairSplit1238_4567))
-            return currentRank;
-
         if (_currentWave != 1 || side != ParticipantSide.ResolvingGroup || debuff != LiveDebuffKind.HeadStack)
-            return currentRank;
-
-        if (C.InitialHeadStackRankMode == InitialHeadStackRankMode.PriorityOrder)
             return currentRank;
 
         if (!_initialHeadPartnerDebuffs.TryGetValue(player.EntityId, out var partnerDebuff))
@@ -1385,7 +1312,7 @@ public class P2_Forsaken_beta : SplatoonScript
         if (group == WaveGroupKind.All)
             return party.ToList();
 
-        var autoIds = group == WaveGroupKind.GroupA ? _autoGroupAIds : _autoGroupBIds;
+        var autoIds = group == WaveGroupKind.GroupA ? _firstSetIds : _secondSetIds;
         if (autoIds.Count > 0)
         {
             var ids = autoIds.ToHashSet();
@@ -1411,21 +1338,21 @@ public class P2_Forsaken_beta : SplatoonScript
             .ToList();
     }
 
-    private void TryCaptureAutoGroups()
+    private void TryCaptureResolvingSets()
     {
-        if (_autoGroupAIds.Count == 4 && _autoGroupBIds.Count == 4) return;
+        if (_firstSetIds.Count == 4 && _secondSetIds.Count == 4) return;
 
         var party = GetPriorityOrderedParty();
         if (party.Count < 8)
         {
             DebugLogOnce(ref _lastCaptureBlockLog, $"party-count-{party.Count}",
-                $"AUTO_GROUP waiting: party count {party.Count} priority=[{FormatPlayers(party)}]");
+                $"SET_ASSIGN waiting: party count {party.Count} priority=[{FormatPlayers(party)}]");
             return;
         }
 
         if (TryGetExplicitPairs(party, out var explicitPairs, out _))
         {
-            TryCapturePairGroups(explicitPairs, true, "explicit-pairs", party);
+            TryCapturePairSets(explicitPairs, "explicit-pairs", party, true);
             return;
         }
 
@@ -1433,64 +1360,26 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             TryGetExplicitPairs(party, out _, out var pairFailureReason);
             DebugLogOnce(ref _lastCaptureBlockLog, $"explicit-pair-wait-{pairFailureReason}",
-                $"AUTO_GROUP waiting explicit pairs: {pairFailureReason} priority=[{FormatPlayers(party)}]");
+                $"SET_ASSIGN waiting explicit pairs: {pairFailureReason} priority=[{FormatPlayers(party)}]");
             return;
         }
 
-        if (C.AssignmentMode == AutoAssignmentMode.PriorityIndexPairs1238_4567)
-        {
-            TryCapturePriorityIndexPairGroups(party, false);
-            return;
-        }
-
-        if (C.AssignmentMode == AutoAssignmentMode.PriorityIndexPairSplit1238_4567)
-        {
-            TryCapturePriorityIndexPairGroups(party, true);
-            return;
-        }
-
-        TryCaptureInitialForecastPriorityGroups(party);
+        TryCapturePriorityIndexPairSets(party);
     }
 
-    private void TryCaptureInitialForecastPriorityGroups(IReadOnlyList<IPlayerCharacter> party)
-    {
-        var heads = party.Where(player => CurrentDebuffFromPlayer(player) == LiveDebuffKind.HeadStack).ToList();
-        var circles = party.Where(player => CurrentDebuffFromPlayer(player) == LiveDebuffKind.Circle).ToList();
-        var fans = party.Where(player => CurrentDebuffFromPlayer(player) == LiveDebuffKind.Fan).ToList();
-        if (heads.Count != 2 || circles.Count != 3 || fans.Count != 3)
-        {
-            DebugLogOnce(ref _lastCaptureBlockLog, $"initial-counts-{heads.Count}-{circles.Count}-{fans.Count}",
-                $"AUTO_GROUP waiting initial forecast heads={heads.Count} circles={circles.Count} fans={fans.Count} priority=[{FormatPlayers(party)}]");
-            return;
-        }
-
-        var groupA = heads
-            .Concat(circles.Take(1))
-            .Concat(fans.Take(1))
-            .DistinctBy(player => player.EntityId)
-            .ToList();
-        if (groupA.Count != 4) return;
-
-        var groupAIds = groupA.Select(player => player.EntityId).ToHashSet();
-        var groupB = party.Where(player => !groupAIds.Contains(player.EntityId)).Take(4).ToList();
-        if (groupB.Count != 4) return;
-
-        SetAutoGroups(groupA, groupB);
-    }
-
-    private void TryCapturePriorityIndexPairGroups(IReadOnlyList<IPlayerCharacter> party, bool splitPairs)
+    private void TryCapturePriorityIndexPairSets(IReadOnlyList<IPlayerCharacter> party)
     {
         if (party.Count < 8)
         {
             DebugLogOnce(ref _lastCaptureBlockLog, $"pair-party-count-{party.Count}",
-                $"AUTO_GROUP waiting 1238/4567 split={splitPairs}: party count {party.Count} priority=[{FormatPlayers(party)}]");
+                $"SET_ASSIGN waiting priority pairs: party count {party.Count} priority=[{FormatPlayers(party)}]");
             return;
         }
 
         var pairs = PriorityIndexPairSlots1238_4567
             .Select(pair => (First: party[pair.A], Second: party[pair.B]))
             .ToList();
-        TryCapturePairGroups(pairs, splitPairs, $"priority-index split={splitPairs}", party);
+        TryCapturePairSets(pairs, "priority-index-pairs", party, false);
     }
 
     private bool TryGetExplicitPairs(
@@ -1550,14 +1439,14 @@ public class P2_Forsaken_beta : SplatoonScript
                 player.Role != RolePosition.Not_Selected) == true) == true;
     }
 
-    private void TryCapturePairGroups(
+    private void TryCapturePairSets(
         IReadOnlyList<(IPlayerCharacter First, IPlayerCharacter Second)> pairs,
-        bool splitPairs,
         string debugSource,
-        IReadOnlyList<IPlayerCharacter> party)
+        IReadOnlyList<IPlayerCharacter> party,
+        bool trackHeadPartnerDebuffs)
     {
-        var groupA = new List<IPlayerCharacter>();
-        var groupB = new List<IPlayerCharacter>();
+        var firstSet = new List<IPlayerCharacter>();
+        var secondSet = new List<IPlayerCharacter>();
         var headPartnerDebuffs = new Dictionary<uint, LiveDebuffKind>();
         foreach (var (first, second) in pairs)
         {
@@ -1569,7 +1458,7 @@ public class P2_Forsaken_beta : SplatoonScript
             if (firstIsHead && secondIsHead)
             {
                 DebugLogOnce(ref _lastCaptureBlockLog, $"pair-both-head-{first.EntityId:X8}-{second.EntityId:X8}",
-                    $"AUTO_GROUP waiting {debugSource}: pair has two heads pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                    $"SET_ASSIGN waiting {debugSource}: pair has two heads pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
                 return;
             }
 
@@ -1579,22 +1468,15 @@ public class P2_Forsaken_beta : SplatoonScript
                 if (partnerDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
                 {
                     DebugLogOnce(ref _lastCaptureBlockLog, $"pair-head-no-partner-{first.EntityId:X8}-{second.EntityId:X8}-{partnerDebuff}",
-                        $"AUTO_GROUP waiting {debugSource}: head pair partner debuff not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                        $"SET_ASSIGN waiting {debugSource}: head pair partner debuff not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
                     return;
                 }
 
-                if (splitPairs)
-                {
-                    groupA.Add(firstIsHead ? first : second);
-                    groupB.Add(firstIsHead ? second : first);
-                }
-                else
-                {
-                    groupA.Add(first);
-                    groupA.Add(second);
-                }
+                firstSet.Add(first);
+                firstSet.Add(second);
 
-                headPartnerDebuffs[firstIsHead ? first.EntityId : second.EntityId] = partnerDebuff;
+                if (trackHeadPartnerDebuffs)
+                    headPartnerDebuffs[firstIsHead ? first.EntityId : second.EntityId] = partnerDebuff;
                 continue;
             }
 
@@ -1602,49 +1484,41 @@ public class P2_Forsaken_beta : SplatoonScript
                 secondDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
             {
                 DebugLogOnce(ref _lastCaptureBlockLog, $"pair-non-head-not-ready-{first.EntityId:X8}-{second.EntityId:X8}-{firstDebuff}-{secondDebuff}",
-                    $"AUTO_GROUP waiting {debugSource}: non-head pair debuffs not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                    $"SET_ASSIGN waiting {debugSource}: non-head pair debuffs not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
                 return;
             }
 
-            if (splitPairs)
-            {
-                groupA.Add(first);
-                groupB.Add(second);
-            }
-            else
-            {
-                groupB.Add(first);
-                groupB.Add(second);
-            }
+            secondSet.Add(first);
+            secondSet.Add(second);
         }
 
-        if (groupA.Count != 4 || groupB.Count != 4)
+        if (firstSet.Count != 4 || secondSet.Count != 4)
         {
-            DebugLogOnce(ref _lastCaptureBlockLog, $"pair-counts-{splitPairs}-{groupA.Count}-{groupB.Count}",
-                $"AUTO_GROUP waiting {debugSource}: group counts invalid split={splitPairs} groupA={groupA.Count} groupB={groupB.Count} priority=[{FormatPlayers(party)}]");
+            DebugLogOnce(ref _lastCaptureBlockLog, $"pair-counts-{firstSet.Count}-{secondSet.Count}",
+                $"SET_ASSIGN waiting {debugSource}: set counts invalid first={firstSet.Count} second={secondSet.Count} priority=[{FormatPlayers(party)}]");
             return;
         }
 
-        DebugLog($"AUTO_GROUP {debugSource} captured groupA=[{FormatPlayers(groupA)}] groupB=[{FormatPlayers(groupB)}]");
-        SetAutoGroups(groupA, groupB);
+        DebugLog($"SET_ASSIGN {debugSource} captured first=[{FormatPlayers(firstSet)}] second=[{FormatPlayers(secondSet)}]");
+        SetResolvingSets(firstSet, secondSet);
         _initialHeadPartnerDebuffs.Clear();
         foreach (var (id, debuff) in headPartnerDebuffs)
             _initialHeadPartnerDebuffs[id] = debuff;
     }
 
-    private void SetAutoGroups(IReadOnlyList<IPlayerCharacter> groupA, IReadOnlyList<IPlayerCharacter> groupB)
+    private void SetResolvingSets(IReadOnlyList<IPlayerCharacter> firstSet, IReadOnlyList<IPlayerCharacter> secondSet)
     {
-        var groupAIds = groupA.Select(player => player.EntityId).ToHashSet();
-        var groupBIds = groupB.Select(player => player.EntityId).ToHashSet();
-        if (groupAIds.Count != 4 || groupBIds.Count != 4 || groupAIds.Overlaps(groupBIds))
+        var firstSetIds = firstSet.Select(player => player.EntityId).ToHashSet();
+        var secondSetIds = secondSet.Select(player => player.EntityId).ToHashSet();
+        if (firstSetIds.Count != 4 || secondSetIds.Count != 4 || firstSetIds.Overlaps(secondSetIds))
             return;
 
-        _autoGroupAIds.Clear();
-        _autoGroupAIds.AddRange(groupA.Select(player => player.EntityId));
-        _autoGroupBIds.Clear();
-        _autoGroupBIds.AddRange(groupB.Select(player => player.EntityId));
+        _firstSetIds.Clear();
+        _firstSetIds.AddRange(firstSet.Select(player => player.EntityId));
+        _secondSetIds.Clear();
+        _secondSetIds.AddRange(secondSet.Select(player => player.EntityId));
         _lastCaptureBlockLog = "";
-        DebugLog($"AUTO_GROUP set A=[{FormatPlayers(groupA)}] B=[{FormatPlayers(groupB)}]");
+        DebugLog($"SET_ASSIGN set first=[{FormatPlayers(firstSet)}] second=[{FormatPlayers(secondSet)}]");
     }
 
     private List<IPlayerCharacter> GetSupportGroup(
@@ -1944,26 +1818,6 @@ public class P2_Forsaken_beta : SplatoonScript
         return AllStages().Select(StageLabel).ToArray();
     }
 
-    private static string[] BuildAssignmentModeComboLabels()
-    {
-        return AssignmentModeLabels.Select(label => label.Get()).ToArray();
-    }
-
-    private static string[] BuildInitialHeadStackRankModeComboLabels()
-    {
-        return InitialHeadStackRankModeLabels.Select(label => label.Get()).ToArray();
-    }
-
-    private static InternationalString AssignmentModeDescription(AutoAssignmentMode mode)
-    {
-        return mode switch
-        {
-            AutoAssignmentMode.PriorityIndexPairs1238_4567 => PriorityIndexPairsModeDescriptionText,
-            AutoAssignmentMode.PriorityIndexPairSplit1238_4567 => PriorityIndexPairSplitModeDescriptionText,
-            _ => InitialForecastPriorityModeDescriptionText
-        };
-    }
-
     private string BasicStageLabel(BasicStageKind stage)
     {
         return stage switch
@@ -2029,7 +1883,7 @@ public class P2_Forsaken_beta : SplatoonScript
         return items.Count == 0 ? "none" : string.Join(", ", items);
     }
 
-    private string FormatAutoGroup(IEnumerable<uint> entityIds)
+    private string FormatResolvingSet(IEnumerable<uint> entityIds)
     {
         var ids = entityIds.ToList();
         if (ids.Count == 0) return "none";
@@ -2064,7 +1918,7 @@ public class P2_Forsaken_beta : SplatoonScript
     {
         var key = $"{source}|{_currentWave}|{_currentStage}|{FormatPattern(context.Pattern)}|{context.Side}|{context.Debuff}|{context.DebuffRank}|{context.SupportRank}";
         DebugLogOnce(ref _lastContextResolvedLog, key,
-            $"CONTEXT_OK source={source} wave={_currentWave} stage={_currentStage} reference={FormatMapPosition(_referenceMapPosition)} pattern={FormatPattern(context.Pattern)} side={context.Side} debuff={context.Debuff} debuffRank={context.DebuffRank} supportRank={context.SupportRank} autoA=[{FormatAutoGroup(_autoGroupAIds)}] autoB=[{FormatAutoGroup(_autoGroupBIds)}]");
+            $"CONTEXT_OK source={source} wave={_currentWave} stage={_currentStage} reference={FormatMapPosition(_referenceMapPosition)} pattern={FormatPattern(context.Pattern)} side={context.Side} debuff={context.Debuff} debuffRank={context.DebuffRank} supportRank={context.SupportRank} first=[{FormatResolvingSet(_firstSetIds)}] second=[{FormatResolvingSet(_secondSetIds)}]");
     }
 
     private string FormatPlayers(IEnumerable<IPlayerCharacter> players)
@@ -2076,6 +1930,14 @@ public class P2_Forsaken_beta : SplatoonScript
     private string DebugPlayer(IPlayerCharacter player)
     {
         return $"{player.Name}(0x{player.EntityId:X8},{CurrentDebuffFromPlayer(player)})";
+    }
+
+    private static string DebugIdentity(IPlayerCharacter player)
+    {
+        var world = player.HomeWorld.ValueNullable?.Name.ToString();
+        return string.IsNullOrWhiteSpace(world)
+            ? $"{player.Name} 0x{player.EntityId:X8}"
+            : $"{player.Name}@{world} 0x{player.EntityId:X8}";
     }
 
     private string FormatInitialHeadPartnerDebuffs()
@@ -2161,15 +2023,15 @@ public class P2_Forsaken_beta : SplatoonScript
         _pendingTowerDisplayWave = 0;
         _pendingTowerDisplayReference = 0;
         _currentStage = StageKind.Tower;
-        _stageContext = null;
+        _stageContexts.Clear();
         _allowLiveContextRefresh = false;
         _currentInstruction = "";
         _hasDestination = false;
         _myDestination = Vector3.Zero;
         _pendingTowerSpawnPositions.Clear();
         _pendingTowerClearPositions.Clear();
-        _autoGroupAIds.Clear();
-        _autoGroupBIds.Clear();
+        _firstSetIds.Clear();
+        _secondSetIds.Clear();
         _initialHeadPartnerDebuffs.Clear();
         _lastPattern = new PatternInfo();
         _lastRuleLabel = "";
@@ -2223,8 +2085,8 @@ public class P2_Forsaken_beta : SplatoonScript
 
     private static readonly string[] WaveGroupLabels =
     [
-        "1238 set",
-        "4567 set",
+        "First set",
+        "Second set",
         "All",
     ];
 
@@ -2268,19 +2130,6 @@ public class P2_Forsaken_beta : SplatoonScript
         GroupA,
         GroupB,
         All
-    }
-
-    public enum AutoAssignmentMode
-    {
-        InitialForecastPriority,
-        PriorityIndexPairs1238_4567,
-        PriorityIndexPairSplit1238_4567
-    }
-
-    public enum InitialHeadStackRankMode
-    {
-        PartnerDebuff,
-        PriorityOrder
     }
 
     public enum PositionBasis
@@ -2638,16 +2487,8 @@ public class P2_Forsaken_beta : SplatoonScript
         public override int GetNumPlayers() => 2;
     }
 
-    public sealed class PriorityData4 : PriorityData
-    {
-        public override int GetNumPlayers() => 4;
-    }
-
     public sealed class Config : IEzConfig
     {
-        public AutoAssignmentMode AssignmentMode;
-        public InitialHeadStackRankMode InitialHeadStackRankMode = InitialHeadStackRankMode.PartnerDebuff;
-
         public InternationalString ActiveInstructionText = new()
         {
             En = "W{0} {1}: go to {2}",
@@ -2700,18 +2541,6 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             En = "Future's End",
             Jp = "未来の終焉"
-        };
-
-        public PriorityData4 GroupA = new()
-        {
-            Name = "Forsaken beta legacy 1238 set",
-            Description = "Legacy compatibility field. Not used by the current pair-setting assignment."
-        };
-
-        public PriorityData4 GroupB = new()
-        {
-            Name = "Forsaken beta legacy 4567 set",
-            Description = "Legacy compatibility field. Not used by the current pair-setting assignment."
         };
 
         public InternationalString HeadStackDebuffText = new()
@@ -2810,7 +2639,7 @@ public class P2_Forsaken_beta : SplatoonScript
         public PriorityData PriorityData = new()
         {
             Name = "Forsaken beta global priority",
-            Description = "Used for automatic 1238-set circle/fan selection and dynamic same-debuff rank ordering. Default order is fitted to the observed AAABBBBA fixed-partner samples.",
+            Description = "Used for priority pairs 1+3, 2+4, 5+7, 6+8 and dynamic same-debuff rank ordering. Default: H2 H1 OT MT M1 M2 R1 R2.",
             PriorityLists =
             [
                 new PriorityList
@@ -2892,18 +2721,11 @@ public class P2_Forsaken_beta : SplatoonScript
         public void EnsureDefaults()
         {
             PriorityData ??= new PriorityData();
-            GroupA ??= new PriorityData4();
-            GroupB ??= new PriorityData4();
             EnsurePairSettings();
             NormalizePriorityData(PriorityData, true);
-            NormalizePriorityData(GroupA, false);
-            NormalizePriorityData(GroupB, false);
             foreach (var pair in Pairs)
                 NormalizePriorityData(pair, false);
-            if ((int)AssignmentMode < 0 || (int)AssignmentMode >= AssignmentModeLabels.Length)
-                AssignmentMode = AutoAssignmentMode.InitialForecastPriority;
-            if ((int)InitialHeadStackRankMode < 0 || (int)InitialHeadStackRankMode >= InitialHeadStackRankModeLabels.Length)
-                InitialHeadStackRankMode = InitialHeadStackRankMode.PartnerDebuff;
+            MigrateUiTerminology();
             PastFixedText ??= new InternationalString { En = "Tower gap", Jp = "塔間" };
             FutureFixedText ??= new InternationalString { En = "Opposite side", Jp = "反対側" };
             PastFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 45f, 4f);
@@ -2986,6 +2808,12 @@ public class P2_Forsaken_beta : SplatoonScript
                 DefaultsVersion = 10;
             }
 
+            if (DefaultsVersion < 11)
+            {
+                MigrateIncompletePriorityOrder();
+                DefaultsVersion = 11;
+            }
+
             for (var i = 0; i < Waves.Length; i++)
             {
                 Waves[i] ??= new WaveConfig();
@@ -2995,6 +2823,17 @@ public class P2_Forsaken_beta : SplatoonScript
             PreviewWave = Math.Clamp(PreviewWave, 1, WaveCount);
             if ((int)PreviewStage < 0 || (int)PreviewStage >= StageCount)
                 PreviewStage = StageKind.Tower;
+        }
+
+        private void MigrateUiTerminology()
+        {
+            var oldPriorityDescription =
+                "Used for " + "R" + "inon-compatible fallback pairs 1+3, 2+4, 5+7, 6+8 and dynamic same-debuff rank ordering. Default: H2 H1 OT MT M1 M2 R1 R2.";
+            const string newPriorityDescription =
+                "Used for priority pairs 1+3, 2+4, 5+7, 6+8 and dynamic same-debuff rank ordering. Default: H2 H1 OT MT M1 M2 R1 R2.";
+
+            if (PriorityData.Description == oldPriorityDescription)
+                PriorityData.Description = newPriorityDescription;
         }
 
         private void EnsurePairSettings()
@@ -3013,7 +2852,7 @@ public class P2_Forsaken_beta : SplatoonScript
                 Pairs[i] ??= CreateEmptyPairSettings()[i];
                 Pairs[i].Name = $"Forsaken beta Pair {i + 1}";
                 Pairs[i].Description =
-                    "Explicit 1238/4567 pair. If one player has head-stack, that player goes 1238; if both players have fan/circle, the first player goes 1238.";
+                    "Explicit Forsaken pair. Pairs containing one head-stack become the first set; pairs with two fan/circle players become the second set.";
             }
         }
 
@@ -3114,6 +2953,22 @@ public class P2_Forsaken_beta : SplatoonScript
 
             for (var i = 0; i < LegacyGenericRolePriority.Length; i++)
                 if (currentRoles[i] != LegacyGenericRolePriority[i])
+                    return;
+
+            list.List = CreateDefaultPriorityList();
+        }
+
+        private void MigrateIncompletePriorityOrder()
+        {
+            var list = PriorityData.PriorityLists?.FirstOrDefault(item => item.IsRole);
+            if (list?.List == null) return;
+
+            var currentRoles = list.List.Select(item => item.Role).ToArray();
+            if (currentRoles.Length != LegacyIncompleteRolePriority.Length)
+                return;
+
+            for (var i = 0; i < LegacyIncompleteRolePriority.Length; i++)
+                if (currentRoles[i] != LegacyIncompleteRolePriority[i])
                     return;
 
             list.List = CreateDefaultPriorityList();
@@ -3284,7 +3139,7 @@ public class P2_Forsaken_beta : SplatoonScript
             {
                 Name = $"Forsaken beta Pair {index + 1}",
                 Description =
-                    "Explicit 1238/4567 pair. If one player has head-stack, that player goes 1238; if both players have fan/circle, the first player goes 1238."
+                    "Explicit Forsaken pair. Pairs containing one head-stack become the first set; pairs with two fan/circle players become the second set."
             })
             .ToArray();
     }

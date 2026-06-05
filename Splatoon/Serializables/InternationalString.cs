@@ -3,6 +3,7 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using ECommons.LanguageHelpers;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using TerraFX.Interop.Windows;
 
 namespace Splatoon;
@@ -17,26 +18,80 @@ public class InternationalString
     [DefaultValue("")] public string Fr = string.Empty;
     [DefaultValue("")] public string Other = string.Empty;
 
+    public InternationalString() { }
+
+    public InternationalString(string en = "", string jp = "", string de = "", string fr = "", string other = "")
+    {
+        this.En = en;
+        this.Jp = jp;
+        this.De = de;
+        this.Fr = fr;
+        this.Other = other;
+    }
+
+    /// <summary>
+    /// If you want to print strings depending on game locale, use this.
+    /// </summary>
+    /// <param name="default"></param>
+    /// <param name="en"></param>
+    /// <param name="jp"></param>
+    /// <param name="de"></param>
+    /// <param name="fr"></param>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public static string Print(string @default = "", string en = "", string jp = "", string de = "", string fr = "", string other = "")
+    {
+        return new InternationalString(en, jp, de, fr, other).Get(@default);
+    }
+
     public string Get(string defaultString = "", ClientLanguage? language = null)
     {
+        string ret;
         language ??= Svc.Data.Language;
         if(language == ClientLanguage.English)
         {
-            return En == string.Empty ? defaultString : En;
+            ret = En == string.Empty ? defaultString : En;
         }
         else if(language == ClientLanguage.Japanese)
         {
-            return Jp == string.Empty ? defaultString : Jp;
+            ret = Jp == string.Empty ? defaultString : Jp;
         }
         else if(language == ClientLanguage.German)
         {
-            return De == string.Empty ? defaultString : De;
+            ret = De == string.Empty ? defaultString : De;
         }
         else if(language == ClientLanguage.French)
         {
-            return Fr == string.Empty ? defaultString : Fr;
+            ret = Fr == string.Empty ? defaultString : Fr;
         }
-        else return Other == string.Empty ? defaultString : Other;
+        else
+        {
+            ret = Other == string.Empty ? defaultString : Other;
+        }
+        if(ret == string.Empty)
+        {
+            if(En != string.Empty)
+            {
+                ret = En;
+            }
+            else if(Other != string.Empty)
+            {
+                ret = Other;
+            }
+            else if(Jp != string.Empty)
+            {
+                ret = Jp;
+            }
+            else if(De != string.Empty)
+            {
+                ret = De;
+            }
+            else if(Fr != string.Empty)
+            {
+                ret = Fr;
+            }
+        }
+        return ret;
     }
 
     internal ref string CurrentLangString

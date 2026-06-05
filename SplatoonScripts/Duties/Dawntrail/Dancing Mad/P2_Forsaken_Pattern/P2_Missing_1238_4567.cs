@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -18,11 +19,11 @@ using Splatoon.Utility;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
-internal class P2_Missing_Poikos_Strat : SplatoonScript
+internal class P2_Missing_1238_4567 : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -35,8 +36,22 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
     private const uint StatusSpread = 5085;
     private const uint StatusCone = 5086;
 
-    private const uint DataIdTower = 0x233C;
-    private const float SlotMatchRadius = 0.5f;
+    private const uint FuturesEndCast = 47826;
+    private const uint PastsEndCast = 47827;
+    private const uint AllThingsEndingCast1 = 47836;
+    private const uint AllThingsEndingCast2 = 47837;
+    private const float InterludeNavDistanceFromCenter = 4f;
+
+    // Map effect indices 1-8 (P2_Forsaken_beta): spawn 1/2, clear 4/8.
+    private const uint MapEffectTowerIndexMin = 1;
+    private const uint MapEffectTowerIndexMax = 8;
+    private const ushort MapEffectTowerSpawnData1 = 1;
+    private const ushort MapEffectTowerSpawnData2 = 2;
+    private const ushort MapEffectTowerClearData1 = 4;
+    private const ushort MapEffectTowerClearData2 = 8;
+    // Two towers are 90° apart on the 8-slot ring (+2 indices), not opposite (+4).
+    private const int TowerPairMapStepOffset = 2;
+
     private const int SceneP2 = 7;
     private const int PartyPlayerCount = 8;
 
@@ -45,14 +60,15 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
     private const int Step1PartySegment1Index = 0;
     private const int Step1PartySegment2Index = 4;
 
-    // MechanicHalf.First / Second tower phase steps.
-    private const int FirstHalfStepMin = 1;
-    private const int FirstHalfStepMax = 4;
-    private const int SecondHalfStepMin = 5;
-    private const int SecondHalfStepMax = 8;
+    // Step1 initial role display uses step 1 only.
+    private const int Step1DisplayStep = 1;
 
-    private const int ActiveStepMin = FirstHalfStepMin;
-    private const int ActiveStepMax = SecondHalfStepMax;
+    private const int ActiveStepMin = 1;
+    private const int ActiveStepMax = 8;
+
+    // FirstHalf group towers on steps 1,2,3,8; SecondHalf on steps 4,5,6,7.
+    private static readonly HashSet<int> FirstHalfTowerSteps = [1, 2, 3, 8];
+    private static readonly HashSet<int> SecondHalfTowerSteps = [4, 5, 6, 7];
 
     private const int InitialGroupSpreadCount = 3;
     private const int InitialGroupStackCount = 1;
@@ -63,7 +79,7 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
     private const float AngleTolerance = 22.5f;
     private const float DefaultRangeInside = 3.25f;
     private const float DefaultRangeOutside = 4.75f;
-    private const int PatternCount = 3;
+    private const int PatternCount = 2;
     private const int MaxPatternAssignments = 8;
     private const int DebugPatternPreviewNone = -1;
     private const int DebugPatternPreviewRoleNone = -1;
@@ -93,7 +109,6 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         "None",
         "211 (2/1/1)",
         "022 (0/2/2)",
-        "400 (4/0/0)",
     ];
 
     private static readonly PatternDefinition[] Patterns =
@@ -119,17 +134,6 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
             Rule("022_RightDemise3", PositionBasis.Center, 45f, 3.55f),
             Rule("022_RightDemise4", PositionBasis.Center, 135f, 3.5f),
         ]),
-        new(2, 4, 0, 0,
-        [
-            Rule("400_LeftTowerStackLeft", PositionBasis.LeftTower, 90f, DefaultRangeInside),
-            Rule("400_LeftTowerStackRight", PositionBasis.LeftTower, 270f, DefaultRangeInside),
-            Rule("400_RightTowerStackLeft", PositionBasis.RightTower, 90f, DefaultRangeInside),
-            Rule("400_RightTowerStackRight", PositionBasis.RightTower, 270f, DefaultRangeInside),
-            Rule("400_LeftDemise1", PositionBasis.Center, 315f, 3.5f),
-            Rule("400_LeftDemise2", PositionBasis.Center, 225f, 3.5f),
-            Rule("400_RightDemise3", PositionBasis.Center, 45f, 3.55f),
-            Rule("400_RightDemise4", PositionBasis.Center, 135f, 3.5f),
-        ]),
     ];
 
     #endregion
@@ -145,12 +149,15 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
 
     private readonly Vector3[] _activeTowerPositions = [Vector3.Zero, Vector3.Zero];
     private readonly uint[] _activeTowerEntityIds = [0, 0];
-    private readonly HashSet<uint> _knownTowerEntityIds = [];
+    private readonly List<uint> _pendingTowerSpawnPositions = [];
+    private readonly List<uint> _pendingTowerClearPositions = [];
     private bool _hasActiveTowers;
     private int _step;
     private Tower1Side _tower1Side = Tower1Side.Unknown;
     private readonly List<PlayerInfo> _infos = [];
     private bool _initialGroupResolved;
+    private InterludeNavPhase _interludeNavPhase;
+    private bool _interludeBossCastSeen;
 
     #endregion
 
@@ -190,6 +197,15 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         None,
         First,
         Second,
+    }
+
+    private enum InterludeNavPhase
+    {
+        None,
+        CastingPast,
+        CastingFuture,
+        PastGap,
+        FutureOpposite,
     }
 
     private sealed class PlayerInfo
@@ -317,13 +333,35 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
             return;
         }
 
-        UpdateActiveTowers();
+        UpdateInterludeNavPhase();
         UpdateActiveTowerMarkers();
         UpdateFieldMarkers();
     }
 
     public override void OnReset()
         => ResetState();
+
+    public override void OnStartingCast(uint source, uint castId)
+    {
+        if(!IsPhaseActive())
+            return;
+
+        if(castId == PastsEndCast)
+        {
+            _interludeNavPhase = InterludeNavPhase.CastingPast;
+            _interludeBossCastSeen = false;
+        }
+        else if(castId == FuturesEndCast)
+        {
+            _interludeNavPhase = InterludeNavPhase.CastingFuture;
+            _interludeBossCastSeen = false;
+        }
+        else if(castId is AllThingsEndingCast1 or AllThingsEndingCast2)
+        {
+            _interludeNavPhase = InterludeNavPhase.None;
+            _interludeBossCastSeen = false;
+        }
+    }
 
     public override void OnDirectorUpdate(DirectorUpdateCategory category)
     {
@@ -332,9 +370,24 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
             ResetState();
     }
 
+    public override void OnMapEffect(uint position, ushort data1, ushort data2)
+    {
+        if(!IsPhaseActive())
+            return;
+
+        if(IsTowerSpawnMapEffect(data1, data2) && IsTowerMapPosition(position))
+        {
+            AddTowerSpawnPosition(position);
+            return;
+        }
+
+        if(IsTowerClearMapEffect(data1, data2) && IsTowerMapPosition(position))
+            AddTowerClearPosition(position);
+    }
+
     public override void OnSettingsDraw()
     {
-        if(ImGui.BeginTabBar("##P2PoikosSettings"))
+        if(ImGui.BeginTabBar("##P212384567Settings"))
         {
             if(ImGui.BeginTabItem("Main###tabMain"))
             {
@@ -366,6 +419,7 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         ImGui.TextUnformatted(
             $"Priority — slots {Step1PartySegment1Index + 1}-{Step1PartySegment1Index + Step1PartySegmentSize} and " +
             $"{Step1PartySegment2Index + 1}-{Step1PartySegment2Index + Step1PartySegmentSize} are used for Step1 initial group only.");
+        ImGui.TextUnformatted("Step2+: FirstHalf towers on steps 1,2,3,8; SecondHalf towers on steps 4,5,6,7.");
 
         ImGui.Spacing();
         ImGui.TextUnformatted($"Priority list");
@@ -473,9 +527,21 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         ImGui.TextUnformatted(_initialGroupResolved ? "Initial group: resolved" : "Initial group: —");
         if(_hasActiveTowers && _step is >= ActiveStepMin and <= ActiveStepMax)
         {
+            if(TryGetActiveMechanicHalf(out var activeHalf))
+            {
+                CountDebuffKindsFromActiveGroup(out var stack, out var spread, out var cone);
+                ImGui.TextUnformatted(
+                    $"Active group ({FormatHalf(activeHalf)}): stack={stack} spread={spread} cone={cone}");
+            }
+
             ImGui.TextUnformatted(TryDetectPartyPattern(out var patternId)
                 ? $"Live pattern: {DebugPatternPreviewLabels[patternId + 1]}"
                 : "Live pattern: — (no match)");
+
+            ImGui.TextUnformatted($"Active tower ids: {_activeTowerEntityIds[0]}, {_activeTowerEntityIds[1]}");
+            ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
+            ImGui.TextUnformatted($"Pending clears: {FormatMapPositionList(_pendingTowerClearPositions)}");
+            ImGui.TextUnformatted($"Interlude nav: {_interludeNavPhase}");
         }
     }
 
@@ -535,7 +601,7 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
             return;
         }
 
-        if(!ImGui.BeginTable($"##poikosInfos{title}", 6,
+        if(!ImGui.BeginTable($"##12384567Infos{title}", 6,
                ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingStretchProp))
             return;
 
@@ -662,32 +728,47 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
 
     #region Tower Tracking
 
-    private void UpdateActiveTowers()
+    private void AddTowerSpawnPosition(uint position)
     {
-        var hits = ScanTowers();
+        AddUniquePairPosition(_pendingTowerSpawnPositions, position);
+        if(_pendingTowerSpawnPositions.Count != 2)
+            return;
 
-        if(hits.Count == 0)
+        if(!TryGetTowerPairReference(_pendingTowerSpawnPositions[0], _pendingTowerSpawnPositions[1],
+                out var reference, out var paired))
         {
-            ResetState();
+            _pendingTowerSpawnPositions.Clear();
             return;
         }
 
-        if(hits.Count == 2 && !_hasActiveTowers)
+        _pendingTowerSpawnPositions.Clear();
+        _pendingTowerClearPositions.Clear();
+        SetActiveTowers(CreateTowerHits(reference, paired));
+    }
+
+    private void AddTowerClearPosition(uint position)
+    {
+        AddUniquePairPosition(_pendingTowerClearPositions, position);
+        if(_pendingTowerClearPositions.Count != 2)
+            return;
+
+        if(!TryGetTowerPairReference(_pendingTowerClearPositions[0], _pendingTowerClearPositions[1],
+                out _, out _))
         {
-            SetActiveTowers(hits);
+            _pendingTowerClearPositions.Clear();
             return;
         }
 
-        if(hits.Count >= 4 && _hasActiveTowers)
-        {
-            var currentIds = hits.Select(x => x.EntityId).ToHashSet();
-            var newIds = currentIds.Except(_knownTowerEntityIds).ToHashSet();
-            if(newIds.Count == 2)
-            {
-                var newHits = hits.Where(x => newIds.Contains(x.EntityId)).ToList();
-                SetActiveTowers(newHits);
-            }
-        }
+        _pendingTowerClearPositions.Clear();
+    }
+
+    private static void AddUniquePairPosition(List<uint> list, uint position)
+    {
+        if(list.Count >= 2)
+            list.Clear();
+
+        if(!list.Contains(position))
+            list.Add(position);
     }
 
     private void SetActiveTowers(List<TowerHit> hits)
@@ -699,47 +780,125 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         _activeTowerPositions[1] = hits[1].SlotPosition;
         _activeTowerEntityIds[0] = hits[0].EntityId;
         _activeTowerEntityIds[1] = hits[1].EntityId;
-        _knownTowerEntityIds.Add(hits[0].EntityId);
-        _knownTowerEntityIds.Add(hits[1].EntityId);
         _hasActiveTowers = true;
 
         _step++;
         _tower1Side = ResolveTower1Side(hits[0].SlotPosition, hits[1].SlotPosition);
     }
 
-    private List<TowerHit> ScanTowers()
+    private static List<TowerHit> CreateTowerHits(uint reference, uint paired)
+        => [CreateTowerHit(reference), CreateTowerHit(paired)];
+
+    private static TowerHit CreateTowerHit(uint mapIndex)
     {
-        var slotBest = new Dictionary<int, (float Distance, TowerHit Hit)>();
+        var slot = TowerSlots[mapIndex - 1];
+        return new TowerHit(slot.Label, slot.Position, mapIndex);
+    }
 
-        foreach(var obj in Svc.Objects.Where(x => x.DataId == DataIdTower))
+    private static bool IsTowerMapPosition(uint position)
+        => position is >= MapEffectTowerIndexMin and <= MapEffectTowerIndexMax;
+
+    private static bool IsTowerSpawnMapEffect(ushort data1, ushort data2)
+        => data1 == MapEffectTowerSpawnData1 && data2 == MapEffectTowerSpawnData2;
+
+    private static bool IsTowerClearMapEffect(ushort data1, ushort data2)
+        => data1 == MapEffectTowerClearData1 && data2 == MapEffectTowerClearData2;
+
+    private static bool TryGetTowerPairReference(uint first, uint second, out uint reference, out uint paired)
+    {
+        if(AddMapSteps(first, TowerPairMapStepOffset) == second)
         {
-            var bestSlotIndex = -1;
-            var bestDistance = float.MaxValue;
-
-            for(var i = 0; i < TowerSlots.Length; i++)
-            {
-                var distance = Distance2d(obj.Position, TowerSlots[i].Position);
-                if(distance > SlotMatchRadius || distance >= bestDistance)
-                    continue;
-
-                bestDistance = distance;
-                bestSlotIndex = i;
-            }
-
-            if(bestSlotIndex < 0)
-                continue;
-
-            var slot = TowerSlots[bestSlotIndex];
-            var hit = new TowerHit(slot.Label, slot.Position, obj.EntityId);
-
-            if(!slotBest.TryGetValue(bestSlotIndex, out var existing) || bestDistance < existing.Distance)
-                slotBest[bestSlotIndex] = (bestDistance, hit);
+            reference = first;
+            paired = second;
+            return true;
         }
 
-        return slotBest.Values
-            .Select(x => x.Hit)
-            .OrderBy(x => Array.FindIndex(TowerSlots, s => s.Label == x.Label))
-            .ToList();
+        if(AddMapSteps(second, TowerPairMapStepOffset) == first)
+        {
+            reference = second;
+            paired = first;
+            return true;
+        }
+
+        reference = 0;
+        paired = 0;
+        return false;
+    }
+
+    private static uint AddMapSteps(uint position, int steps)
+        => (uint)(((int)position - 1 + steps + 8) % 8 + 1);
+
+    private static string FormatMapPositionList(IReadOnlyList<uint> positions)
+        => positions.Count == 0 ? "none" : string.Join(", ", positions);
+
+    private void UpdateInterludeNavPhase()
+    {
+        switch(_interludeNavPhase)
+        {
+            case InterludeNavPhase.CastingPast:
+                if(IsAnyBossCasting(PastsEndCast))
+                    _interludeBossCastSeen = true;
+                else if(_interludeBossCastSeen)
+                    _interludeNavPhase = InterludeNavPhase.PastGap;
+                break;
+            case InterludeNavPhase.CastingFuture:
+                if(IsAnyBossCasting(FuturesEndCast))
+                    _interludeBossCastSeen = true;
+                else if(_interludeBossCastSeen)
+                    _interludeNavPhase = InterludeNavPhase.FutureOpposite;
+                break;
+            case InterludeNavPhase.PastGap:
+                if(IsAnyBossCasting(PastsEndCast))
+                {
+                    _interludeNavPhase = InterludeNavPhase.CastingPast;
+                    _interludeBossCastSeen = true;
+                }
+                break;
+            case InterludeNavPhase.FutureOpposite:
+                if(IsAnyBossCasting(FuturesEndCast))
+                {
+                    _interludeNavPhase = InterludeNavPhase.CastingFuture;
+                    _interludeBossCastSeen = true;
+                }
+                break;
+        }
+    }
+
+    private static bool IsAnyBossCasting(uint castId)
+        => Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsTargetable && x.IsCasting && x.CastActionId == castId);
+
+    private bool IsInterludeEndCastActive()
+        => IsAnyBossCasting(PastsEndCast) || IsAnyBossCasting(FuturesEndCast);
+
+    private bool TryGetInterludeNavPosition(out Vector3 position, out string label)
+    {
+        position = default;
+        label = "";
+        if(_interludeNavPhase is not (InterludeNavPhase.PastGap or InterludeNavPhase.FutureOpposite))
+            return false;
+        if(IsInterludeEndCastActive())
+            return false;
+        if(!_hasActiveTowers)
+            return false;
+
+        position = ResolveInterludeNavPosition();
+        label = _interludeNavPhase == InterludeNavPhase.PastGap ? "between towers" : "opposite side";
+        return true;
+    }
+
+    // Past: toward active tower pair at 4m from center; Future: opposite side through center at 4m.
+    private Vector3 ResolveInterludeNavPosition()
+    {
+        var pairMidpoint = (_activeTowerPositions[0] + _activeTowerPositions[1]) * 0.5f;
+        var towardTowers = pairMidpoint - ArenaCenter;
+        towardTowers.Y = 0;
+        if(towardTowers.LengthSquared() < 0.0001f)
+            towardTowers = new Vector3(0f, 0f, -1f);
+        towardTowers = Vector3.Normalize(towardTowers);
+
+        return _interludeNavPhase == InterludeNavPhase.PastGap
+            ? ArenaCenter + towardTowers * InterludeNavDistanceFromCenter
+            : ArenaCenter - towardTowers * InterludeNavDistanceFromCenter;
     }
 
     private void UpdateActiveTowerMarkers()
@@ -770,13 +929,16 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         _hasActiveTowers = false;
         _step = 0;
         _tower1Side = Tower1Side.Unknown;
-        _knownTowerEntityIds.Clear();
+        _pendingTowerSpawnPositions.Clear();
+        _pendingTowerClearPositions.Clear();
         _activeTowerPositions[0] = Vector3.Zero;
         _activeTowerPositions[1] = Vector3.Zero;
         _activeTowerEntityIds[0] = 0;
         _activeTowerEntityIds[1] = 0;
         _infos.Clear();
         _initialGroupResolved = false;
+        _interludeNavPhase = InterludeNavPhase.None;
+        _interludeBossCastSeen = false;
 
         if(Controller.TryGetElementByName(ElActiveTower0, out var tower0))
             tower0.Enabled = false;
@@ -817,6 +979,13 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         }
 
         DisableAllRolePreviewMarkers();
+
+        if(TryGetInterludeNavPosition(out var interludePosition, out var interludeLabel))
+        {
+            EnableRoleMarker(ElMyRole, interludePosition, interludeLabel, tether: true);
+            return;
+        }
+
         DisableMyRoleMarker();
 
         if(!_hasActiveTowers || _step is < ActiveStepMin or > ActiveStepMax)
@@ -1172,13 +1341,39 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
             info.Debuff = GetDebuffKind(info.Player);
     }
 
-    private void CountDebuffKindsFromInfos(out int stack, out int spread, out int cone)
+    // Returns the mechanic half whose debuffs are used for pattern detection at the current step.
+    private bool TryGetActiveMechanicHalf(out MechanicHalf half)
+    {
+        if(FirstHalfTowerSteps.Contains(_step))
+        {
+            half = MechanicHalf.First;
+            return true;
+        }
+
+        if(SecondHalfTowerSteps.Contains(_step))
+        {
+            half = MechanicHalf.Second;
+            return true;
+        }
+
+        half = MechanicHalf.None;
+        return false;
+    }
+
+    // Counts debuffs among players in the active half group for the current step.
+    private void CountDebuffKindsFromActiveGroup(out int stack, out int spread, out int cone)
     {
         stack = 0;
         spread = 0;
         cone = 0;
+        if(!TryGetActiveMechanicHalf(out var activeHalf))
+            return;
+
         foreach(var info in _infos)
         {
+            if(info.Half != activeHalf)
+                continue;
+
             switch(info.Debuff)
             {
                 case DebuffKind.Stack: stack++; break;
@@ -1213,7 +1408,10 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         if(!TryEnsureInfos())
             return false;
 
-        CountDebuffKindsFromInfos(out var stack, out var spread, out var cone);
+        if(!TryGetActiveMechanicHalf(out _))
+            return false;
+
+        CountDebuffKindsFromActiveGroup(out var stack, out var spread, out var cone);
 
         for(var i = 0; i < PatternCount; i++)
         {
@@ -1234,8 +1432,13 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
     }
 
     private bool IsTower(PlayerInfo info)
-        => (info.Half == MechanicHalf.First && _step is >= FirstHalfStepMin and <= FirstHalfStepMax)
-           || (info.Half == MechanicHalf.Second && _step is >= SecondHalfStepMin and <= SecondHalfStepMax);
+    {
+        if(FirstHalfTowerSteps.Contains(_step))
+            return info.Half == MechanicHalf.First;
+        if(SecondHalfTowerSteps.Contains(_step))
+            return info.Half == MechanicHalf.Second;
+        return false;
+    }
 
     private bool TryResolveInitialGroup()
     {
@@ -1342,7 +1545,6 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         {
             0 => ResolvePattern211(info),
             1 => ResolvePattern022(info),
-            2 => ResolvePattern400(info),
             _ => null,
         };
     }
@@ -1414,34 +1616,6 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
         };
     }
 
-    private string? ResolvePattern400(PlayerInfo info)
-    {
-        if(IsTower(info))
-        {
-            if(info.Debuff != DebuffKind.Stack)
-                return null;
-
-            return GetPriorityRank(
-                _infos.Where(i => IsTower(i) && i.Debuff == DebuffKind.Stack), info) switch
-            {
-                0 => "400_RightTowerStackLeft",
-                1 => "400_RightTowerStackRight",
-                2 => "400_LeftTowerStackLeft",
-                3 => "400_LeftTowerStackRight",
-                _ => null,
-            };
-        }
-
-        return GetPriorityRank(_infos.Where(i => !IsTower(i)), info) switch
-        {
-            0 => "400_LeftDemise1",
-            1 => "400_LeftDemise2",
-            2 => "400_RightDemise3",
-            3 => "400_RightDemise4",
-            _ => null,
-        };
-    }
-
     private int GetPriorityRank(IEnumerable<PlayerInfo> subset, PlayerInfo target)
     {
         var ordered = OrderInfosByPriority(subset).ToList();
@@ -1466,7 +1640,7 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
 
         UpdateDebuffs();
 
-        if(_step == FirstHalfStepMin && !_initialGroupResolved)
+        if(_step == Step1DisplayStep && !_initialGroupResolved)
         {
             if(!TryResolveInitialGroup())
                 return false;
@@ -1474,7 +1648,7 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
             _initialGroupResolved = true;
         }
 
-        if(_step == FirstHalfStepMin)
+        if(_step == Step1DisplayStep)
         {
             if(!_initialGroupResolved)
                 return false;
@@ -1487,6 +1661,9 @@ internal class P2_Missing_Poikos_Strat : SplatoonScript
             roleLabel = info.RoleLabel;
             return true;
         }
+
+        if(!_initialGroupResolved)
+            return false;
 
         if(!TryDetectPartyPattern(out patternId))
             return false;

@@ -10,6 +10,7 @@ using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -24,6 +25,9 @@ public class P2_Forsaken_beta : SplatoonScript
     private const uint UltimateEmbrace = 49740;
     private const uint FuturesEndCast = 47826;
     private const uint PastsEndCast = 47827;
+    private const uint FuturesEndAction1 = 47830;
+    private const uint PastsEndAction = 47831;
+    private const uint FuturesEndAction2 = 47832;
     private const uint AllThingsEndingCast1 = 47836;
     private const uint AllThingsEndingCast2 = 47837;
     private const uint MissingInventoryStatus = 5083;
@@ -38,6 +42,7 @@ public class P2_Forsaken_beta : SplatoonScript
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
+    private const int CurrentDefaultsVersion = 9;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -87,6 +92,14 @@ public class P2_Forsaken_beta : SplatoonScript
         RolePosition.R2
     ];
 
+    private static readonly (int A, int B)[] PriorityIndexPairSlots1238_4567 =
+    [
+        (0, 2),
+        (1, 3),
+        (4, 6),
+        (5, 7)
+    ];
+
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
@@ -103,6 +116,42 @@ public class P2_Forsaken_beta : SplatoonScript
             "全体優先順位と任意の固定Group A/Bを設定します。Group A/Bが両方空の場合、Group Aはミッシング初期予兆から頭割り2名+優先順位が高い円1名+扇1名として自動取得し、Group Bは残り4名にします。"
     };
 
+    private static readonly InternationalString AssignmentModeLabelText = new()
+    {
+        En = "Grouping mode",
+        Jp = "グループ決定方式"
+    };
+
+    private static readonly InternationalString InitialForecastPriorityModeDescriptionText = new()
+    {
+        En =
+            "Empty Group A/B: Group A becomes both head-stack players plus the highest-priority circle and fan players.",
+        Jp =
+            "Group A/Bが空の場合、Group Aを頭割り2名+優先順位が高い円1名+扇1名として取得します。"
+    };
+
+    private static readonly InternationalString PriorityIndexPairsModeDescriptionText = new()
+    {
+        En =
+            "Empty Group A/B: priority slots 1+3, 2+4, 5+7, and 6+8 are treated as pairs. Pairs containing one head-stack become Group A for waves 1,2,3,8; non-stack pairs become Group B for waves 4,5,6,7.",
+        Jp =
+            "Group A/Bが空の場合、優先順位の1+3、2+4、5+7、6+8をペアとして扱います。頭割りを1名含むペアを1,2,3,8回目用のGroup A、頭割りを含まないペアを4,5,6,7回目用のGroup Bにします。"
+    };
+
+    private static readonly InternationalString[] AssignmentModeLabels =
+    [
+        new()
+        {
+            En = "Initial forecast priority",
+            Jp = "初期予兆+優先順位"
+        },
+        new()
+        {
+            En = "Priority index pairs 1238/4567",
+            Jp = "優先順位ペア 1238/4567"
+        }
+    ];
+
     private static readonly InternationalString WaveTableDescriptionText = new()
     {
         En =
@@ -115,6 +164,7 @@ public class P2_Forsaken_beta : SplatoonScript
     private readonly List<uint> _pendingTowerClearPositions = [];
     private readonly List<uint> _autoGroupAIds = [];
     private readonly List<uint> _autoGroupBIds = [];
+    private readonly Dictionary<uint, LiveDebuffKind> _initialHeadPartnerDebuffs = [];
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
     private string _lastSelectorLabel = "";
@@ -126,14 +176,26 @@ public class P2_Forsaken_beta : SplatoonScript
     private bool _hasTowerReference;
     private bool _hasStage;
     private int _currentWave;
+    private int _observedTowerWave;
     private uint _referenceMapPosition;
+    private bool _hasPendingTowerDisplay;
+    private int _pendingTowerDisplayWave;
+    private uint _pendingTowerDisplayReference;
     private StageKind _currentStage;
+    private LiveContext? _stageContext;
+    private bool _allowLiveContextRefresh;
     private string _currentInstruction = "";
     private bool _hasDestination;
     private Vector3 _myDestination = Vector3.Zero;
+    private int _settingsPreviewIndex;
+    private bool _settingsPreviewDrewReference;
+    private string _lastCaptureBlockLog = "";
+    private string _lastContextFailureLog = "";
+    private string _lastContextResolvedLog = "";
+    private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
 
     private Config C => Controller.GetConfig<Config>();
     private IPlayerCharacter BasePlayer => Controller.BasePlayer;
@@ -157,9 +219,10 @@ public class P2_Forsaken_beta : SplatoonScript
         Controller.RegisterElement("Destination", new Element(0)
         {
             Enabled = false,
-            radius = 1.35f,
-            thicc = 5f,
-            fillIntensity = 0.25f,
+            radius = 0.25f,
+            Donut = 0.1f,
+            thicc = 3f,
+            fillIntensity = 0.55f,
             color = 0xC800FFFF,
             tether = true,
             overlayBGColor = 0xC8000000,
@@ -217,28 +280,53 @@ public class P2_Forsaken_beta : SplatoonScript
             ResetState();
             _active = true;
             _currentInstruction = C.CollectingAssignmentsText.Get();
+            DebugLog($"CAST_START Forsaken active={_active}");
             ApplyDisplay();
             return;
         }
 
         if (!_active && !HasPartyMissingStatus()) return;
 
-        if (castId == PastsEndCast)
-            SetStage(StageKind.Past);
-        else if (castId == FuturesEndCast)
-            SetStage(StageKind.Future);
-        else if (castId is AllThingsEndingCast1 or AllThingsEndingCast2)
-            SetStage(StageKind.AllThingsEnding);
+        if (castId is PastsEndCast or FuturesEndCast)
+        {
+            DebugLog($"CAST_START {(castId == PastsEndCast ? "Past's End" : "Future's End")} pendingWave={_pendingTowerDisplayWave} hasPending={_hasPendingTowerDisplay} observedWave={_observedTowerWave} currentWave={_currentWave}");
+            TryActivatePendingTowerDisplay(StageKind.Tower, wave => wave is >= 4 and <= WaveCount && wave % 2 == 0);
+            return;
+        }
+
+        if (castId is AllThingsEndingCast1 or AllThingsEndingCast2)
+        {
+            DebugLog($"CAST_START All Things Ending pendingWave={_pendingTowerDisplayWave} hasPending={_hasPendingTowerDisplay} observedWave={_observedTowerWave} currentWave={_currentWave}");
+            TryActivatePendingTowerDisplay(StageKind.AllThingsEnding, wave => wave is >= 3 and <= WaveCount && wave % 2 == 1);
+        }
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action?.RowId != Forsaken) return;
+        var actionId = set.Action?.RowId ?? 0;
 
-        _active = true;
-        TryCaptureAutoGroups();
-        UpdateWaitingInstruction();
-        ApplyDisplay();
+        if (actionId == Forsaken)
+        {
+            _active = true;
+            DebugLog("ACTION Forsaken");
+            TryCaptureAutoGroups();
+            UpdateWaitingInstruction();
+            ApplyDisplay();
+            return;
+        }
+
+        if (!_active && !HasPartyMissingStatus()) return;
+
+        if (actionId == PastsEndAction)
+        {
+            DebugLog("ACTION Past's End resolved");
+            SetStage(StageKind.Past);
+        }
+        else if (actionId is FuturesEndAction1 or FuturesEndAction2)
+        {
+            DebugLog("ACTION Future's End resolved");
+            SetStage(StageKind.Future);
+        }
     }
 
     public override void OnGainBuffEffect(uint sourceId, Status status)
@@ -246,7 +334,11 @@ public class P2_Forsaken_beta : SplatoonScript
         if (!IsMissingStatus(status.StatusId)) return;
 
         _active = true;
+        DebugLogOnce(ref _lastCaptureBlockLog, $"status-{sourceId:X8}-{status.StatusId}", $"STATUS_GAIN missing source=0x{sourceId:X8} status={status.StatusId} debuff={DebuffFromStatus(status.StatusId)}");
         TryCaptureAutoGroups();
+        if (DebuffFromStatus(status.StatusId) != LiveDebuffKind.None && _allowLiveContextRefresh)
+            _stageContext = null;
+
         UpdateWaitingInstruction();
         ApplyDisplay();
     }
@@ -261,16 +353,23 @@ public class P2_Forsaken_beta : SplatoonScript
 
         if (IsTowerSpawnMapEffect(data1, data2) && IsTowerMapPosition(position))
         {
+            DebugLog($"MAP_EFFECT tower spawn pos={FormatMapPosition(position)} pendingBefore={FormatMapPositionList(_pendingTowerSpawnPositions)} observedWave={_observedTowerWave}");
             AddTowerSpawnPosition(position);
             return;
         }
 
         if (IsTowerClearMapEffect(data1, data2) && IsTowerMapPosition(position))
+        {
+            DebugLog($"MAP_EFFECT tower clear pos={FormatMapPosition(position)} pendingBefore={FormatMapPositionList(_pendingTowerClearPositions)} observedWave={_observedTowerWave} currentWave={_currentWave}");
             AddTowerClearPosition(position);
+        }
     }
 
     public override void OnUpdate()
     {
+        if (_active)
+            TryCaptureAutoGroups();
+
         if (_active && _hasStage)
             UpdateStageInstruction();
 
@@ -280,6 +379,8 @@ public class P2_Forsaken_beta : SplatoonScript
     public override void OnSettingsDraw()
     {
         C.EnsureDefaults();
+        _settingsPreviewIndex = 0;
+        _settingsPreviewDrewReference = false;
 
         ImGui.TextWrapped(MainDescriptionText.Get());
         ImGui.Separator();
@@ -288,6 +389,8 @@ public class P2_Forsaken_beta : SplatoonScript
         {
             ImGui.Indent();
             ImGui.TextWrapped(AssignmentDescriptionText.Get());
+            DrawAssignmentModeSettings();
+            ImGui.Spacing();
             ImGui.TextUnformatted("Global priority");
             C.PriorityData.Draw();
             ImGui.Spacing();
@@ -331,6 +434,16 @@ public class P2_Forsaken_beta : SplatoonScript
         }
 
         DrawDebugSettings();
+    }
+
+    private void DrawAssignmentModeSettings()
+    {
+        var mode = (int)C.AssignmentMode;
+        ImGui.SetNextItemWidth(280f);
+        if (ImGui.Combo(AssignmentModeLabelText.Get(), ref mode, BuildAssignmentModeComboLabels(), AssignmentModeLabels.Length))
+            C.AssignmentMode = (AutoAssignmentMode)Math.Clamp(mode, 0, AssignmentModeLabels.Length - 1);
+
+        ImGui.TextWrapped(AssignmentModeDescription(C.AssignmentMode).Get());
     }
 
     private void DrawWaveSettings()
@@ -389,6 +502,7 @@ public class P2_Forsaken_beta : SplatoonScript
             if (ImGui.TreeNode(FormatPattern(pattern.Pattern)))
             {
                 DrawPatternPlacementTable(pattern);
+                DrawOpenPatternPreviewElements(pattern);
                 ImGui.TreePop();
             }
 
@@ -530,11 +644,19 @@ public class P2_Forsaken_beta : SplatoonScript
         ImGui.Indent();
         ImGui.TextUnformatted($"Active: {_active}");
         ImGui.TextUnformatted($"Current wave: {_currentWave}");
+        ImGui.TextUnformatted($"Observed tower wave: {_observedTowerWave}");
         ImGui.TextUnformatted($"Current stage: {(_hasStage ? _currentStage.ToString() : "none")}");
+        ImGui.TextUnformatted($"Live context refresh: {_allowLiveContextRefresh}");
         ImGui.TextUnformatted($"Reference tower: {FormatMapPosition(_referenceMapPosition)}");
         ImGui.TextUnformatted($"Pair tower: {FormatMapPosition(IsTowerMapPosition(_referenceMapPosition) ? AddMapSteps(_referenceMapPosition, 2) : 0)}");
+        ImGui.TextUnformatted($"Past/Future reference: {FormatMapPosition(FixedStageReference())}");
+        ImGui.TextUnformatted(_hasPendingTowerDisplay
+            ? $"Pending tower display: wave {_pendingTowerDisplayWave} ref {FormatMapPosition(_pendingTowerDisplayReference)}"
+            : "Pending tower display: none");
+        ImGui.TextUnformatted($"Assignment mode: {C.AssignmentMode}");
         ImGui.TextUnformatted($"Auto Group A: {FormatAutoGroup(_autoGroupAIds)}");
         ImGui.TextUnformatted($"Auto Group B: {FormatAutoGroup(_autoGroupBIds)}");
+        ImGui.TextUnformatted($"Initial head partners: {FormatInitialHeadPartnerDebuffs()}");
         ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
         ImGui.TextUnformatted($"Pending clears: {FormatMapPositionList(_pendingTowerClearPositions)}");
         ImGui.TextUnformatted($"Last pattern: H{_lastPattern.Head}/C{_lastPattern.Circle}/F{_lastPattern.Fan}");
@@ -587,21 +709,30 @@ public class P2_Forsaken_beta : SplatoonScript
         if (_pendingTowerSpawnPositions.Count != 2) return;
 
         if (!TryGetPairReference(_pendingTowerSpawnPositions[0], _pendingTowerSpawnPositions[1],
-                out _referenceMapPosition))
+                out var reference))
         {
+            DebugLog($"TOWER_SPAWN pair rejected positions={FormatMapPositionList(_pendingTowerSpawnPositions)}");
             _pendingTowerSpawnPositions.Clear();
             return;
         }
 
         _pendingTowerSpawnPositions.Clear();
         _pendingTowerClearPositions.Clear();
-        _currentWave = WaveFromReference(_referenceMapPosition);
-        _hasTowerReference = true;
-        _currentStage = StageKind.Tower;
-        _hasStage = true;
+        if (_observedTowerWave >= WaveCount)
+            return;
 
-        UpdateStageInstruction();
-        ApplyDisplay();
+        _observedTowerWave++;
+        DebugLog($"TOWER_SPAWN wave={_observedTowerWave} reference={FormatMapPosition(reference)} pair={FormatMapPosition(AddMapSteps(reference, 2))}");
+        if (_observedTowerWave <= 2)
+        {
+            ActivateTowerDisplay(_observedTowerWave, reference, StageKind.Tower);
+            return;
+        }
+
+        _hasPendingTowerDisplay = true;
+        _pendingTowerDisplayWave = _observedTowerWave;
+        _pendingTowerDisplayReference = reference;
+        DebugLog($"TOWER_PENDING wave={_pendingTowerDisplayWave} reference={FormatMapPosition(_pendingTowerDisplayReference)}");
     }
 
     private void AddTowerClearPosition(uint position)
@@ -609,16 +740,9 @@ public class P2_Forsaken_beta : SplatoonScript
         AddUniquePairPosition(_pendingTowerClearPositions, position);
         if (_pendingTowerClearPositions.Count != 2) return;
 
-        if (TryGetPairReference(_pendingTowerClearPositions[0], _pendingTowerClearPositions[1], out var reference) &&
-            _currentWave == WaveFromReference(reference) &&
-            _hasStage &&
-            _currentStage == StageKind.Tower)
-        {
-            _currentInstruction = "";
-            ClearDestination();
-        }
-
         _pendingTowerClearPositions.Clear();
+        _allowLiveContextRefresh = false;
+        DebugLog($"TOWER_CLEAR currentWave={_currentWave} stage={_currentStage} liveRefresh={_allowLiveContextRefresh}");
         ApplyDisplay();
     }
 
@@ -627,7 +751,42 @@ public class P2_Forsaken_beta : SplatoonScript
         _active = true;
         _currentStage = stage;
         _hasStage = true;
+        _stageContext = null;
+        _allowLiveContextRefresh = StageUsesLiveContext(stage);
 
+        DebugLog($"SET_STAGE wave={_currentWave} stage={stage} reference={FormatMapPosition(_referenceMapPosition)} liveRefresh={_allowLiveContextRefresh}");
+        UpdateStageInstruction();
+        ApplyDisplay();
+    }
+
+    private bool TryActivatePendingTowerDisplay(StageKind stage, Func<int, bool> waveFilter)
+    {
+        if (!_hasPendingTowerDisplay || !waveFilter(_pendingTowerDisplayWave))
+        {
+            DebugLog($"PENDING_TOWER not activated stage={stage} hasPending={_hasPendingTowerDisplay} pendingWave={_pendingTowerDisplayWave} currentWave={_currentWave}");
+            return false;
+        }
+
+        DebugLog($"PENDING_TOWER activate stage={stage} wave={_pendingTowerDisplayWave} reference={FormatMapPosition(_pendingTowerDisplayReference)}");
+        ActivateTowerDisplay(_pendingTowerDisplayWave, _pendingTowerDisplayReference, stage);
+        _hasPendingTowerDisplay = false;
+        _pendingTowerDisplayWave = 0;
+        _pendingTowerDisplayReference = 0;
+        return true;
+    }
+
+    private void ActivateTowerDisplay(int wave, uint reference, StageKind stage)
+    {
+        _active = true;
+        _currentWave = wave;
+        _referenceMapPosition = reference;
+        _hasTowerReference = true;
+        _currentStage = stage;
+        _hasStage = true;
+        _stageContext = null;
+        _allowLiveContextRefresh = StageUsesLiveContext(stage);
+
+        DebugLog($"ACTIVATE_TOWER wave={wave} stage={stage} reference={FormatMapPosition(reference)} group={C.Waves[Math.Clamp(wave, 1, WaveCount) - 1].ResolvingGroup} liveRefresh={_allowLiveContextRefresh}");
         UpdateStageInstruction();
         ApplyDisplay();
     }
@@ -667,20 +826,71 @@ public class P2_Forsaken_beta : SplatoonScript
             return;
         }
 
-        if (!TryBuildLiveContext(me, out var context))
+        if (_currentStage == StageKind.Past)
         {
+            ApplyFixedStageInstruction(C.PastFixedText, C.PastFixedPosition);
+            return;
+        }
+
+        if (_currentStage == StageKind.Future)
+        {
+            ApplyFixedStageInstruction(C.FutureFixedText, C.FutureFixedPosition);
+            return;
+        }
+
+        var shouldRefreshContext = StageUsesLiveContext(_currentStage) && _allowLiveContextRefresh;
+        var context = _stageContext;
+        if (!context.HasValue || shouldRefreshContext)
+        {
+            if (TryBuildLiveContext(me, out var freshContext, out var failureReason))
+            {
+                if (HasConfiguredPattern(freshContext.Pattern))
+                {
+                    context = freshContext;
+                    _stageContext = context;
+                    LogContextResolved("fresh", freshContext);
+                }
+                else
+                {
+                    LogContextFailure($"no configured pattern {FormatPattern(freshContext.Pattern)} wave={_currentWave} stage={_currentStage}");
+                    if (!_stageContext.HasValue)
+                    {
+                        _currentInstruction = C.WaitingForAssignmentText.Get();
+                        ClearDestination();
+                        return;
+                    }
+                }
+            }
+            else if (!_stageContext.HasValue)
+            {
+                LogContextFailure(failureReason);
+                _currentInstruction = C.WaitingForAssignmentText.Get();
+                ClearDestination();
+                return;
+            }
+            else
+            {
+                context = _stageContext;
+            }
+        }
+
+        if (!context.HasValue)
+        {
+            LogContextFailure($"context empty wave={_currentWave} stage={_currentStage}");
             _currentInstruction = C.WaitingForAssignmentText.Get();
             ClearDestination();
             return;
         }
 
-        _lastPattern = context.Pattern;
-        _lastSide = context.Side;
-        _lastDebuff = context.Debuff;
-        _lastDebuffRank = context.DebuffRank;
-        _lastSupportRank = context.SupportRank;
+        var liveContext = context.Value;
 
-        if (TryApplyBasicInstruction(context))
+        _lastPattern = liveContext.Pattern;
+        _lastSide = liveContext.Side;
+        _lastDebuff = liveContext.Debuff;
+        _lastDebuffRank = liveContext.DebuffRank;
+        _lastSupportRank = liveContext.SupportRank;
+
+        if (TryApplyBasicInstruction(liveContext))
             return;
 
         _lastRuleLabel = "";
@@ -688,19 +898,13 @@ public class P2_Forsaken_beta : SplatoonScript
         _currentInstruction = FormatText(
             C.InactiveInstructionText,
             _currentWave,
-            DebuffLabel(context.Debuff),
+            DebuffLabel(liveContext.Debuff),
             StageLabel(_currentStage));
         ClearDestination();
     }
 
     private bool TryApplyBasicInstruction(LiveContext context)
     {
-        if (_currentStage == StageKind.Past)
-            return ApplyFixedStageInstruction(C.PastFixedText, C.PastFixedPosition);
-
-        if (_currentStage == StageKind.Future)
-            return ApplyFixedStageInstruction(C.FutureFixedText, C.FutureFixedPosition);
-
         var stageKind = BasicStageFromStage(_currentStage);
         var stage = C.BasicStages.FirstOrDefault(item => item.Kind == stageKind);
         if (stage == null) return false;
@@ -709,7 +913,11 @@ public class P2_Forsaken_beta : SplatoonScript
         if (pattern == null) return false;
 
         var placement = pattern.Placements.FirstOrDefault(item => item.Matches(context));
-        if (placement == null) return false;
+        if (placement == null)
+        {
+            LogContextFailure($"no placement wave={_currentWave} stage={_currentStage} pattern={FormatPattern(context.Pattern)} side={context.Side} debuff={context.Debuff} debuffRank={context.DebuffRank} supportRank={context.SupportRank}");
+            return false;
+        }
 
         _lastRuleLabel = placement.Text.Get();
         _lastSelectorLabel = SelectorLabel(placement.Selector);
@@ -719,20 +927,48 @@ public class P2_Forsaken_beta : SplatoonScript
             _currentWave,
             StageLabel(_currentStage),
             placement.Text.Get());
+        DebugLogOnce(ref _lastInstructionLog,
+            $"{_currentWave}|{_currentStage}|{FormatPattern(context.Pattern)}|{context.Side}|{context.Debuff}|{context.DebuffRank}|{context.SupportRank}|{_lastRuleLabel}|{FormatVector3(_myDestination)}",
+            $"INSTRUCTION wave={_currentWave} stage={_currentStage} pattern={FormatPattern(context.Pattern)} side={context.Side} debuff={context.Debuff} debuffRank={context.DebuffRank} supportRank={context.SupportRank} rule=\"{_lastRuleLabel}\" selector={_lastSelectorLabel} destination={FormatVector3(_myDestination)}");
         return true;
+    }
+
+    private bool HasConfiguredPattern(PatternInfo pattern)
+    {
+        var stageKind = BasicStageFromStage(_currentStage);
+        var stage = C.BasicStages.FirstOrDefault(item => item.Kind == stageKind);
+        return stage?.Patterns.Any(item => item.Pattern.Matches(pattern)) == true;
     }
 
     private bool ApplyFixedStageInstruction(InternationalString text, PositionRule position)
     {
         _lastRuleLabel = text.Get();
         _lastSelectorLabel = "";
-        SetDestination(ResolvePosition(position, _referenceMapPosition));
+        var reference = FixedStageReference();
+        if (IsTowerMapPosition(reference))
+            SetDestination(ResolvePosition(position, reference));
+        else
+            ClearDestination();
+
         _currentInstruction = FormatText(
             C.ActiveInstructionText,
             _currentWave,
             StageLabel(_currentStage),
             text.Get());
         return true;
+    }
+
+    private static bool StageUsesLiveContext(StageKind stage)
+    {
+        return stage is StageKind.Tower or StageKind.AllThingsEnding;
+    }
+
+    private uint FixedStageReference()
+    {
+        if (_hasPendingTowerDisplay && IsTowerMapPosition(_pendingTowerDisplayReference))
+            return _pendingTowerDisplayReference;
+
+        return 0;
     }
 
     private void ClearDestination()
@@ -747,15 +983,25 @@ public class P2_Forsaken_beta : SplatoonScript
         _myDestination = destination;
     }
 
-    private bool TryBuildLiveContext(IPlayerCharacter me, out LiveContext context)
+    private bool TryBuildLiveContext(IPlayerCharacter me, out LiveContext context, out string failureReason)
     {
         context = default;
+        failureReason = "";
         var wave = C.Waves[_currentWave - 1];
         var party = GetPriorityOrderedParty();
-        if (party.Count == 0) return false;
+        if (party.Count == 0)
+        {
+            failureReason = $"party empty wave={_currentWave} stage={_currentStage}";
+            return false;
+        }
 
         var resolvingGroup = GetGroupPlayers(wave.ResolvingGroup, party);
-        if (resolvingGroup.Count == 0) return false;
+        if (resolvingGroup.Count == 0)
+        {
+            failureReason =
+                $"resolving group empty wave={_currentWave} stage={_currentStage} configuredGroup={wave.ResolvingGroup} priority=[{FormatPlayers(party)}] autoA=[{FormatAutoGroup(_autoGroupAIds)}] autoB=[{FormatAutoGroup(_autoGroupBIds)}]";
+            return false;
+        }
 
         var supportGroup = GetSupportGroup(wave.ResolvingGroup, party, resolvingGroup);
         var side = resolvingGroup.Any(p => p.EntityId == me.EntityId)
@@ -771,6 +1017,7 @@ public class P2_Forsaken_beta : SplatoonScript
             .ToList();
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
+        debuffRank = AdjustDebuffRankForInitialPairMode(me, side, debuff, debuffRank);
         var supportRank = side == ParticipantSide.SupportGroup
             ? supportGroup.FindIndex(player => player.EntityId == me.EntityId) + 1
             : 0;
@@ -782,6 +1029,29 @@ public class P2_Forsaken_beta : SplatoonScript
             supportRank,
             PatternInfo.FromPlayers(resolvingGroup));
         return true;
+    }
+
+    private int AdjustDebuffRankForInitialPairMode(
+        IPlayerCharacter player,
+        ParticipantSide side,
+        LiveDebuffKind debuff,
+        int currentRank)
+    {
+        if (C.AssignmentMode != AutoAssignmentMode.PriorityIndexPairs1238_4567)
+            return currentRank;
+
+        if (_currentWave != 1 || side != ParticipantSide.ResolvingGroup || debuff != LiveDebuffKind.HeadStack)
+            return currentRank;
+
+        if (!_initialHeadPartnerDebuffs.TryGetValue(player.EntityId, out var partnerDebuff))
+            return currentRank;
+
+        return partnerDebuff switch
+        {
+            LiveDebuffKind.Fan => 1,
+            LiveDebuffKind.Circle => 2,
+            _ => currentRank
+        };
     }
 
     private List<IPlayerCharacter> GetPriorityOrderedParty()
@@ -852,16 +1122,40 @@ public class P2_Forsaken_beta : SplatoonScript
         if (_autoGroupAIds.Count == 4 && _autoGroupBIds.Count == 4) return;
 
         var party = GetPriorityOrderedParty();
-        if (party.Count < 8) return;
+        if (party.Count < 8)
+        {
+            DebugLogOnce(ref _lastCaptureBlockLog, $"party-count-{party.Count}",
+                $"AUTO_GROUP waiting: party count {party.Count} priority=[{FormatPlayers(party)}]");
+            return;
+        }
 
         if (GetConfiguredGroup(C.GroupA, party).Count > 0 || GetConfiguredGroup(C.GroupB, party).Count > 0)
+        {
+            _initialHeadPartnerDebuffs.Clear();
+            DebugLogOnce(ref _lastCaptureBlockLog, "configured-groups", "AUTO_GROUP skipped: fixed Group A/B configuration is present");
             return;
+        }
 
+        if (C.AssignmentMode == AutoAssignmentMode.PriorityIndexPairs1238_4567)
+        {
+            TryCapturePriorityIndexPairGroups(party);
+            return;
+        }
+
+        TryCaptureInitialForecastPriorityGroups(party);
+    }
+
+    private void TryCaptureInitialForecastPriorityGroups(IReadOnlyList<IPlayerCharacter> party)
+    {
         var heads = party.Where(player => CurrentDebuffFromPlayer(player) == LiveDebuffKind.HeadStack).ToList();
         var circles = party.Where(player => CurrentDebuffFromPlayer(player) == LiveDebuffKind.Circle).ToList();
         var fans = party.Where(player => CurrentDebuffFromPlayer(player) == LiveDebuffKind.Fan).ToList();
         if (heads.Count != 2 || circles.Count != 3 || fans.Count != 3)
+        {
+            DebugLogOnce(ref _lastCaptureBlockLog, $"initial-counts-{heads.Count}-{circles.Count}-{fans.Count}",
+                $"AUTO_GROUP waiting initial forecast heads={heads.Count} circles={circles.Count} fans={fans.Count} priority=[{FormatPlayers(party)}]");
             return;
+        }
 
         var groupA = heads
             .Concat(circles.Take(1))
@@ -874,10 +1168,91 @@ public class P2_Forsaken_beta : SplatoonScript
         var groupB = party.Where(player => !groupAIds.Contains(player.EntityId)).Take(4).ToList();
         if (groupB.Count != 4) return;
 
+        SetAutoGroups(groupA, groupB);
+    }
+
+    private void TryCapturePriorityIndexPairGroups(IReadOnlyList<IPlayerCharacter> party)
+    {
+        if (party.Count < 8)
+        {
+            DebugLogOnce(ref _lastCaptureBlockLog, $"pair-party-count-{party.Count}",
+                $"AUTO_GROUP waiting 1238/4567: party count {party.Count} priority=[{FormatPlayers(party)}]");
+            return;
+        }
+
+        var groupA = new List<IPlayerCharacter>();
+        var groupB = new List<IPlayerCharacter>();
+        var headPartnerDebuffs = new Dictionary<uint, LiveDebuffKind>();
+        foreach (var (firstIndex, secondIndex) in PriorityIndexPairSlots1238_4567)
+        {
+            var first = party[firstIndex];
+            var second = party[secondIndex];
+            var firstDebuff = CurrentDebuffFromPlayer(first);
+            var secondDebuff = CurrentDebuffFromPlayer(second);
+            var firstIsHead = firstDebuff == LiveDebuffKind.HeadStack;
+            var secondIsHead = secondDebuff == LiveDebuffKind.HeadStack;
+
+            if (firstIsHead && secondIsHead)
+            {
+                DebugLogOnce(ref _lastCaptureBlockLog, $"pair-both-head-{first.EntityId:X8}-{second.EntityId:X8}",
+                    $"AUTO_GROUP waiting: pair has two heads pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                return;
+            }
+
+            if (firstIsHead || secondIsHead)
+            {
+                var partnerDebuff = firstIsHead ? secondDebuff : firstDebuff;
+                if (partnerDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
+                {
+                    DebugLogOnce(ref _lastCaptureBlockLog, $"pair-head-no-partner-{first.EntityId:X8}-{second.EntityId:X8}-{partnerDebuff}",
+                        $"AUTO_GROUP waiting: head pair partner debuff not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                    return;
+                }
+
+                groupA.Add(first);
+                groupA.Add(second);
+                headPartnerDebuffs[firstIsHead ? first.EntityId : second.EntityId] = partnerDebuff;
+                continue;
+            }
+
+            if (firstDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan) ||
+                secondDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
+            {
+                DebugLogOnce(ref _lastCaptureBlockLog, $"pair-non-head-not-ready-{first.EntityId:X8}-{second.EntityId:X8}-{firstDebuff}-{secondDebuff}",
+                    $"AUTO_GROUP waiting: non-head pair debuffs not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                return;
+            }
+
+            groupB.Add(first);
+            groupB.Add(second);
+        }
+
+        if (groupA.Count != 4 || groupB.Count != 4)
+        {
+            DebugLogOnce(ref _lastCaptureBlockLog, $"pair-counts-{groupA.Count}-{groupB.Count}",
+                $"AUTO_GROUP waiting: group counts invalid groupA={groupA.Count} groupB={groupB.Count} priority=[{FormatPlayers(party)}]");
+            return;
+        }
+
+        SetAutoGroups(groupA, groupB);
+        _initialHeadPartnerDebuffs.Clear();
+        foreach (var (id, debuff) in headPartnerDebuffs)
+            _initialHeadPartnerDebuffs[id] = debuff;
+    }
+
+    private void SetAutoGroups(IReadOnlyList<IPlayerCharacter> groupA, IReadOnlyList<IPlayerCharacter> groupB)
+    {
+        var groupAIds = groupA.Select(player => player.EntityId).ToHashSet();
+        var groupBIds = groupB.Select(player => player.EntityId).ToHashSet();
+        if (groupAIds.Count != 4 || groupBIds.Count != 4 || groupAIds.Overlaps(groupBIds))
+            return;
+
         _autoGroupAIds.Clear();
         _autoGroupAIds.AddRange(groupA.Select(player => player.EntityId));
         _autoGroupBIds.Clear();
         _autoGroupBIds.AddRange(groupB.Select(player => player.EntityId));
+        _lastCaptureBlockLog = "";
+        DebugLog($"AUTO_GROUP set A=[{FormatPlayers(groupA)}] B=[{FormatPlayers(groupB)}]");
     }
 
     private List<IPlayerCharacter> GetSupportGroup(
@@ -936,13 +1311,13 @@ public class P2_Forsaken_beta : SplatoonScript
 
         if (stageKind == StageKind.Past)
         {
-            DrawPreviewElement(index, ResolvePosition(C.PastFixedPosition, reference), C.PastFixedText.Get(), 0xC8FFD040, 0.6f);
+            DrawPreviewElement(index, ResolvePosition(C.PastFixedPosition, AddMapSteps(reference, 1)), C.PastFixedText.Get(), 0xC8FFD040, 0.6f);
             return;
         }
 
         if (stageKind == StageKind.Future)
         {
-            DrawPreviewElement(index, ResolvePosition(C.FutureFixedPosition, reference), C.FutureFixedText.Get(), 0xC840C0FF, 0.6f);
+            DrawPreviewElement(index, ResolvePosition(C.FutureFixedPosition, AddMapSteps(reference, 1)), C.FutureFixedText.Get(), 0xC840C0FF, 0.6f);
             return;
         }
 
@@ -958,6 +1333,49 @@ public class P2_Forsaken_beta : SplatoonScript
             DrawPreviewElement(index, position, $"{wave}: {placement.Text.Get()}", SelectorColor(placement.Selector), 0.6f);
             index++;
         }
+    }
+
+    private void DrawOpenPatternPreviewElements(PatternPlacementConfig pattern)
+    {
+        if (!IsEnabled) return;
+        if (pattern.Placements.Length == 0) return;
+
+        var reference = GetSettingsPreviewReference();
+        if (!IsTowerMapPosition(reference)) return;
+
+        if (!_settingsPreviewDrewReference)
+        {
+            DrawSettingsPreviewElement(TowerPosition(reference), C.ReferenceTowerPreviewText.Get(), 0xC8FFFFFF, 0.95f);
+            DrawSettingsPreviewElement(TowerPosition(AddMapSteps(reference, 2)), C.PairedTowerPreviewText.Get(), 0xC840FF40, 0.95f);
+            _settingsPreviewDrewReference = true;
+        }
+
+        var wave = _currentWave is >= 1 and <= WaveCount ? _currentWave : C.PreviewWave;
+        foreach (var placement in pattern.Placements.Where(placement => placement.Enabled))
+        {
+            var position = ResolvePosition(placement.Position, reference);
+            var label = $"{wave}: {placement.Text.Get()}";
+            DrawSettingsPreviewElement(position, label, SelectorColor(placement.Selector), 0.6f);
+        }
+    }
+
+    private uint GetSettingsPreviewReference()
+    {
+        if (IsTowerMapPosition(_referenceMapPosition))
+            return _referenceMapPosition;
+
+        if (_hasPendingTowerDisplay && IsTowerMapPosition(_pendingTowerDisplayReference))
+            return _pendingTowerDisplayReference;
+
+        return GetPreviewReference(C.PreviewWave);
+    }
+
+    private void DrawSettingsPreviewElement(Vector3 position, string text, uint color, float radius)
+    {
+        if (_settingsPreviewIndex >= PreviewElementCount) return;
+
+        DrawPreviewElement(_settingsPreviewIndex, position, text, color, radius);
+        _settingsPreviewIndex++;
     }
 
     private void DrawPreviewElement(int index, Vector3 position, string text, uint color, float radius)
@@ -1073,11 +1491,6 @@ public class P2_Forsaken_beta : SplatoonScript
         return (uint)(((wave - 1 + 3) % 8) + 1);
     }
 
-    private static int WaveFromReference(uint reference)
-    {
-        return ((int)reference - 4 + 8) % 8 + 1;
-    }
-
     private static Vector3 TowerPosition(uint mapPosition)
     {
         if (!IsTowerMapPosition(mapPosition)) return ArenaCenter;
@@ -1137,6 +1550,20 @@ public class P2_Forsaken_beta : SplatoonScript
     private string[] BuildStageComboLabels()
     {
         return AllStages().Select(StageLabel).ToArray();
+    }
+
+    private static string[] BuildAssignmentModeComboLabels()
+    {
+        return AssignmentModeLabels.Select(label => label.Get()).ToArray();
+    }
+
+    private static InternationalString AssignmentModeDescription(AutoAssignmentMode mode)
+    {
+        return mode switch
+        {
+            AutoAssignmentMode.PriorityIndexPairs1238_4567 => PriorityIndexPairsModeDescriptionText,
+            _ => InitialForecastPriorityModeDescriptionText
+        };
     }
 
     private string BasicStageLabel(BasicStageKind stage)
@@ -1215,6 +1642,55 @@ public class P2_Forsaken_beta : SplatoonScript
         return string.Join(", ", ids.Select(id => players.GetValueOrDefault(id, $"0x{id:X8}")));
     }
 
+    private void DebugLog(string message)
+    {
+        PluginLog.Information($"[DMU P2 Forsaken beta] {message}");
+    }
+
+    private void DebugLogOnce(ref string lastKey, string key, string message)
+    {
+        if (lastKey == key) return;
+        lastKey = key;
+        DebugLog(message);
+    }
+
+    private void LogContextFailure(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            reason = $"unknown wave={_currentWave} stage={_currentStage}";
+
+        DebugLogOnce(ref _lastContextFailureLog, reason, $"CONTEXT_FAIL {reason}");
+    }
+
+    private void LogContextResolved(string source, LiveContext context)
+    {
+        var key = $"{source}|{_currentWave}|{_currentStage}|{FormatPattern(context.Pattern)}|{context.Side}|{context.Debuff}|{context.DebuffRank}|{context.SupportRank}";
+        DebugLogOnce(ref _lastContextResolvedLog, key,
+            $"CONTEXT_OK source={source} wave={_currentWave} stage={_currentStage} reference={FormatMapPosition(_referenceMapPosition)} pattern={FormatPattern(context.Pattern)} side={context.Side} debuff={context.Debuff} debuffRank={context.DebuffRank} supportRank={context.SupportRank} autoA=[{FormatAutoGroup(_autoGroupAIds)}] autoB=[{FormatAutoGroup(_autoGroupBIds)}]");
+    }
+
+    private string FormatPlayers(IEnumerable<IPlayerCharacter> players)
+    {
+        var list = players.Select(DebugPlayer).ToList();
+        return list.Count == 0 ? "none" : string.Join(", ", list);
+    }
+
+    private string DebugPlayer(IPlayerCharacter player)
+    {
+        return $"{player.Name}(0x{player.EntityId:X8},{CurrentDebuffFromPlayer(player)})";
+    }
+
+    private string FormatInitialHeadPartnerDebuffs()
+    {
+        if (_initialHeadPartnerDebuffs.Count == 0) return "none";
+
+        var players = Controller.GetPartyMembers()
+            .OfType<IPlayerCharacter>()
+            .ToDictionary(player => player.EntityId, player => player.Name.ToString());
+        return string.Join(", ", _initialHeadPartnerDebuffs.Select(item =>
+            $"{players.GetValueOrDefault(item.Key, $"0x{item.Key:X8}")}:{item.Value}"));
+    }
+
     private static string FormatVector3(Vector3 position)
     {
         return $"{position.X:0.00}, {position.Y:0.00}, {position.Z:0.00}";
@@ -1281,8 +1757,14 @@ public class P2_Forsaken_beta : SplatoonScript
         _hasTowerReference = false;
         _hasStage = false;
         _currentWave = 0;
+        _observedTowerWave = 0;
         _referenceMapPosition = 0;
+        _hasPendingTowerDisplay = false;
+        _pendingTowerDisplayWave = 0;
+        _pendingTowerDisplayReference = 0;
         _currentStage = StageKind.Tower;
+        _stageContext = null;
+        _allowLiveContextRefresh = false;
         _currentInstruction = "";
         _hasDestination = false;
         _myDestination = Vector3.Zero;
@@ -1290,6 +1772,7 @@ public class P2_Forsaken_beta : SplatoonScript
         _pendingTowerClearPositions.Clear();
         _autoGroupAIds.Clear();
         _autoGroupBIds.Clear();
+        _initialHeadPartnerDebuffs.Clear();
         _lastPattern = new PatternInfo();
         _lastRuleLabel = "";
         _lastDebuff = LiveDebuffKind.Any;
@@ -1297,6 +1780,10 @@ public class P2_Forsaken_beta : SplatoonScript
         _lastSupportRank = 0;
         _lastSide = ParticipantSide.Any;
         _lastSelectorLabel = "";
+        _lastCaptureBlockLog = "";
+        _lastContextFailureLog = "";
+        _lastContextResolvedLog = "";
+        _lastInstructionLog = "";
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
@@ -1364,6 +1851,12 @@ public class P2_Forsaken_beta : SplatoonScript
         GroupA,
         GroupB,
         All
+    }
+
+    public enum AutoAssignmentMode
+    {
+        InitialForecastPriority,
+        PriorityIndexPairs1238_4567
     }
 
     public enum PositionBasis
@@ -1529,7 +2022,11 @@ public class P2_Forsaken_beta : SplatoonScript
                 return false;
             if (Debuff != LiveDebuffKind.Any && context.Debuff != Debuff)
                 return false;
-            return Rank <= 0 || context.DebuffRank == Rank;
+
+            var rank = context.Side == ParticipantSide.SupportGroup && Debuff == LiveDebuffKind.Any
+                ? context.SupportRank
+                : context.DebuffRank;
+            return Rank <= 0 || rank == Rank;
         }
 
         public static RoleSelector FromLegacy(RoleKind role)
@@ -1580,7 +2077,7 @@ public class P2_Forsaken_beta : SplatoonScript
 
         public RolePlacement(ParticipantSide side, LiveDebuffKind debuff, int rank, string en, string jp, PositionBasis basis, float angle, float range)
         {
-            Role = RoleKind.Head1;
+            Role = RoleFromSelector(side, debuff, rank);
             Selector = new RoleSelector(side, debuff, rank);
             Text = new InternationalString { En = en, Jp = jp };
             Position = new PositionRule(basis, angle, range);
@@ -1604,6 +2101,50 @@ public class P2_Forsaken_beta : SplatoonScript
             Selector ??= RoleSelector.FromLegacy(Role);
             Selector.Ensure();
             return Selector.Matches(context);
+        }
+
+        private static RoleKind RoleFromSelector(ParticipantSide side, LiveDebuffKind debuff, int rank)
+        {
+            if (side == ParticipantSide.SupportGroup)
+            {
+                return rank switch
+                {
+                    1 => RoleKind.Support1,
+                    2 => RoleKind.Support2,
+                    3 => RoleKind.Support3,
+                    4 => RoleKind.Support4,
+                    _ => RoleKind.Support1
+                };
+            }
+
+            return debuff switch
+            {
+                LiveDebuffKind.HeadStack => rank switch
+                {
+                    1 => RoleKind.Head1,
+                    2 => RoleKind.Head2,
+                    3 => RoleKind.Head3,
+                    4 => RoleKind.Head4,
+                    _ => RoleKind.Head1
+                },
+                LiveDebuffKind.Circle => rank switch
+                {
+                    1 => RoleKind.Circle1,
+                    2 => RoleKind.Circle2,
+                    3 => RoleKind.Circle3,
+                    4 => RoleKind.Circle4,
+                    _ => RoleKind.Circle1
+                },
+                LiveDebuffKind.Fan => rank switch
+                {
+                    1 => RoleKind.Fan1,
+                    2 => RoleKind.Fan2,
+                    3 => RoleKind.Fan3,
+                    4 => RoleKind.Fan4,
+                    _ => RoleKind.Fan1
+                },
+                _ => RoleKind.Support1
+            };
         }
     }
 
@@ -1675,6 +2216,8 @@ public class P2_Forsaken_beta : SplatoonScript
 
     public sealed class Config : IEzConfig
     {
+        public AutoAssignmentMode AssignmentMode;
+
         public InternationalString ActiveInstructionText = new()
         {
             En = "W{0} {1}: go to {2}",
@@ -1813,7 +2356,7 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "塔間"
         };
 
-        public PositionRule PastFixedPosition = new(PositionBasis.TowerPairCenter, 0f, 0f);
+        public PositionRule PastFixedPosition = new(PositionBasis.ArenaCenter, 45f, 4f);
 
         public InternationalString PastStageLabelText = new()
         {
@@ -1827,7 +2370,7 @@ public class P2_Forsaken_beta : SplatoonScript
             Jp = "反対側"
         };
 
-        public PositionRule FutureFixedPosition = new(PositionBasis.OppositeTowerPairCenter, 0f, 0f);
+        public PositionRule FutureFixedPosition = new(PositionBasis.ArenaCenter, 225f, 4f);
 
         public int PreviewWave = 1;
         public StageKind PreviewStage = StageKind.Tower;
@@ -1906,7 +2449,7 @@ public class P2_Forsaken_beta : SplatoonScript
 
         public WaveConfig[] Waves = CreateDefaultWaves();
 
-        public int DefaultsVersion;
+        public int DefaultsVersion = CurrentDefaultsVersion;
 
         public InternationalString WestLabelText = new()
         {
@@ -1919,10 +2462,15 @@ public class P2_Forsaken_beta : SplatoonScript
             PriorityData ??= new PriorityData();
             GroupA ??= new PriorityData4();
             GroupB ??= new PriorityData4();
+            NormalizePriorityData(PriorityData, true);
+            NormalizePriorityData(GroupA, false);
+            NormalizePriorityData(GroupB, false);
+            if ((int)AssignmentMode < 0 || (int)AssignmentMode >= AssignmentModeLabels.Length)
+                AssignmentMode = AutoAssignmentMode.InitialForecastPriority;
             PastFixedText ??= new InternationalString { En = "Tower gap", Jp = "塔間" };
             FutureFixedText ??= new InternationalString { En = "Opposite side", Jp = "反対側" };
-            PastFixedPosition ??= new PositionRule(PositionBasis.TowerPairCenter, 0f, 0f);
-            FutureFixedPosition ??= new PositionRule(PositionBasis.OppositeTowerPairCenter, 0f, 0f);
+            PastFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 45f, 4f);
+            FutureFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 225f, 4f);
             PastFixedPosition.Ensure();
             FutureFixedPosition.Ensure();
 
@@ -1984,6 +2532,18 @@ public class P2_Forsaken_beta : SplatoonScript
                 DefaultsVersion = 7;
             }
 
+            if (DefaultsVersion < 8)
+            {
+                MigrateMirageCoordinateDefaults();
+                DefaultsVersion = 8;
+            }
+
+            if (DefaultsVersion < 9)
+            {
+                MigratePriorityJobMode();
+                DefaultsVersion = 9;
+            }
+
             for (var i = 0; i < Waves.Length; i++)
             {
                 Waves[i] ??= new WaveConfig();
@@ -1993,6 +2553,36 @@ public class P2_Forsaken_beta : SplatoonScript
             PreviewWave = Math.Clamp(PreviewWave, 1, WaveCount);
             if ((int)PreviewStage < 0 || (int)PreviewStage >= StageCount)
                 PreviewStage = StageKind.Tower;
+        }
+
+        private static void NormalizePriorityData(PriorityData priorityData, bool createDefaultList)
+        {
+            if (priorityData.PriorityLists == null || priorityData.PriorityLists.Count == 0)
+            {
+                if (!createDefaultList) return;
+
+                priorityData.PriorityLists =
+                [
+                    new PriorityList
+                    {
+                        IsRole = true,
+                        List = CreateDefaultPriorityList()
+                    }
+                ];
+                return;
+            }
+
+            foreach (var list in priorityData.PriorityLists)
+            {
+                if (list == null) continue;
+                list.List ??= [];
+                var hasNameOrJob = list.List.Any(player =>
+                    !string.IsNullOrWhiteSpace(player.Name) || player.Jobs.Count > 0);
+                var looksLikePureRoleList = !hasNameOrJob &&
+                                            list.List.Any(player => player.Role != RolePosition.Not_Selected);
+                if (looksLikePureRoleList)
+                    list.IsRole = true;
+            }
         }
 
         private void MigrateValidatedCoordinateDefaults()
@@ -2065,6 +2655,96 @@ public class P2_Forsaken_beta : SplatoonScript
                     return;
 
             list.List = CreateDefaultPriorityList();
+        }
+
+        private void MigrateMirageCoordinateDefaults()
+        {
+            UpdatePositionIfOldDefault(PastFixedPosition, PositionBasis.TowerPairCenter, 0f, 0f, PositionBasis.ArenaCenter, 45f, 4f);
+            UpdatePositionIfOldDefault(FutureFixedPosition, PositionBasis.OppositeTowerPairCenter, 0f, 0f, PositionBasis.ArenaCenter, 225f, 4f);
+
+            var stage = BasicStages?.FirstOrDefault(item => item.Kind == BasicStageKind.Tower);
+            if (stage == null) return;
+
+            var h2c1f1 = stage.Patterns.FirstOrDefault(item => item.Pattern.Matches(new PatternInfo(2, 1, 1)));
+            if (h2c1f1 != null)
+            {
+                UpdateIfOldDefault(h2c1f1, RoleKind.Head1, PositionBasis.LeftTower, 0f, 2.2f, PositionBasis.LeftTower, 60f, 3.25f);
+                UpdateIfOldDefault(h2c1f1, RoleKind.Head2, PositionBasis.RightTower, 10f, 3.2f, PositionBasis.RightTower, 270f, 3.25f);
+                UpdateIfOldDefault(h2c1f1, RoleKind.Fan1, PositionBasis.LeftTower, 180f, 1.9f, PositionBasis.LeftTower, 330f, 3.25f);
+                UpdateIfOldDefault(h2c1f1, RoleKind.Circle1, PositionBasis.RightTower, 187f, 3.4f, PositionBasis.RightTower, 90f, 3.25f);
+                UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support1, PositionBasis.LeftTower, 180f, 4.60f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 1, "Left stack support", "左塔頭補助", PositionBasis.LeftTower, 60f, 4.75f);
+                UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support2, PositionBasis.LeftTower, 358f, 4.59f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 2, "Bait fan", "扇誘導", PositionBasis.LeftTower, 330f, 4.75f);
+                UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support3, PositionBasis.RightTower, 9f, 4.71f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 3, "Right stack support", "右塔頭補助", PositionBasis.RightTower, 270f, 4.75f);
+                UpdateSupportIfOldDefault(h2c1f1, RoleKind.Support4, PositionBasis.RightTower, 9f, 4.71f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 4, "Right stack support", "右塔頭補助", PositionBasis.RightTower, 270f, 4.75f);
+            }
+
+            var h0c2f2 = stage.Patterns.FirstOrDefault(item => item.Pattern.Matches(new PatternInfo(0, 2, 2)));
+            if (h0c2f2 != null)
+            {
+                UpdateIfOldDefault(h0c2f2, RoleKind.Fan1, PositionBasis.LeftTower, 182f, 3.54f, PositionBasis.LeftTower, 30f, 3.25f);
+                UpdateIfOldDefault(h0c2f2, RoleKind.Fan2, PositionBasis.LeftTower, 205f, 3.46f, PositionBasis.LeftTower, 0f, 3.25f);
+                UpdateIfOldDefault(h0c2f2, RoleKind.Circle1, PositionBasis.RightTower, 278f, 3.55f, PositionBasis.RightTower, 90f, 3.25f);
+                UpdateIfOldDefault(h0c2f2, RoleKind.Circle2, PositionBasis.RightTower, 104f, 3.5f, PositionBasis.RightTower, 270f, 3.25f);
+                UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support1, PositionBasis.ArenaCenter, 271f, 6.14f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 1, "Demise NW", "消滅NW", PositionBasis.ArenaCenter, 315f, 3.5f);
+                UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support2, PositionBasis.ArenaCenter, 350f, 3.55f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 2, "Demise SW", "消滅SW", PositionBasis.ArenaCenter, 225f, 3.5f);
+                UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support3, PositionBasis.ArenaCenter, 201f, 4.56f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 3, "Demise NE", "消滅NE", PositionBasis.ArenaCenter, 45f, 3.55f);
+                UpdateSupportIfOldDefault(h0c2f2, RoleKind.Support4, PositionBasis.ArenaCenter, 96f, 3.58f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 4, "Demise SE", "消滅SE", PositionBasis.ArenaCenter, 135f, 3.5f);
+            }
+
+            var h4c0f0 = stage.Patterns.FirstOrDefault(item => item.Pattern.Matches(new PatternInfo(4, 0, 0)));
+            if (h4c0f0 != null)
+            {
+                UpdateIfOldDefault(h4c0f0, RoleKind.Head1, PositionBasis.LeftTower, 90f, 3.25f, PositionBasis.RightTower, 90f, 3.25f);
+                UpdateIfOldDefault(h4c0f0, RoleKind.Head2, PositionBasis.LeftTower, 270f, 3.25f, PositionBasis.RightTower, 270f, 3.25f);
+                UpdateIfOldDefault(h4c0f0, RoleKind.Head3, PositionBasis.RightTower, 90f, 3.25f, PositionBasis.LeftTower, 90f, 3.25f);
+                UpdateIfOldDefault(h4c0f0, RoleKind.Head4, PositionBasis.RightTower, 270f, 3.25f, PositionBasis.LeftTower, 270f, 3.25f);
+                UpdateSupportIfOldDefault(h4c0f0, RoleKind.Support1, PositionBasis.ArenaCenter, 0f, 0f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 1, "Demise NW", "消滅NW", PositionBasis.ArenaCenter, 315f, 3.5f);
+                UpdateSupportIfOldDefault(h4c0f0, RoleKind.Support2, PositionBasis.ArenaCenter, 0f, 5f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 2, "Demise SW", "消滅SW", PositionBasis.ArenaCenter, 225f, 3.5f);
+                UpdateSupportIfOldDefault(h4c0f0, RoleKind.Support3, PositionBasis.ArenaCenter, 45f, 5f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 3, "Demise NE", "消滅NE", PositionBasis.ArenaCenter, 45f, 3.55f);
+                UpdateSupportIfOldDefault(h4c0f0, RoleKind.Support4, PositionBasis.ArenaCenter, 315f, 5f,
+                    ParticipantSide.SupportGroup, LiveDebuffKind.Any, 4, "Demise SE", "消滅SE", PositionBasis.ArenaCenter, 135f, 3.5f);
+            }
+        }
+
+        private void MigratePriorityJobMode()
+        {
+            var list = PriorityData.PriorityLists?.FirstOrDefault();
+            if (list?.List == null) return;
+            if (!list.IsRole) return;
+            if (!list.List.Any(player => player.Jobs.Count > 0)) return;
+            if (list.List.Any(player => !string.IsNullOrWhiteSpace(player.Name))) return;
+
+            list.IsRole = false;
+        }
+
+        private static void UpdatePositionIfOldDefault(
+            PositionRule position,
+            PositionBasis oldBasis,
+            float oldAngle,
+            float oldRange,
+            PositionBasis newBasis,
+            float newAngle,
+            float newRange)
+        {
+            if (position == null) return;
+            if (position.Basis != oldBasis) return;
+            if (!NearlyEqual(position.AngleDeg, oldAngle)) return;
+            if (!NearlyEqual(position.Range, oldRange)) return;
+
+            position.Basis = newBasis;
+            position.AngleDeg = newAngle;
+            position.Range = newRange;
         }
 
         private static void UpdateIfOldDefault(
@@ -2169,34 +2849,34 @@ public class P2_Forsaken_beta : SplatoonScript
                 Role(RoleKind.Support4, "Stack support", "頭割り補助", PositionBasis.LeftTower, 240f, 4.75f)),
             new PatternPlacementConfig(
                 new PatternInfo(2, 1, 1),
-                Role(RoleKind.Head1, "Debuff stack 1", "デバフ頭1", PositionBasis.LeftTower, 0f, 2.2f),
-                Role(RoleKind.Head2, "Debuff stack 2", "デバフ頭2", PositionBasis.RightTower, 10f, 3.2f),
-                Role(RoleKind.Fan1, "Debuff fan", "デバフ扇", PositionBasis.LeftTower, 180f, 1.9f),
-                Role(RoleKind.Circle1, "Debuff circle", "デバフ円", PositionBasis.RightTower, 187f, 3.4f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Head 2 support", "頭2補助", PositionBasis.RightTower, 9f, 4.71f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Head 2 support", "頭2補助", PositionBasis.RightTower, 9f, 4.71f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Head 1 support", "頭1補助", PositionBasis.LeftTower, 358f, 4.59f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Bait fan", "扇誘導", PositionBasis.LeftTower, 180f, 4.60f)),
+                Role(RoleKind.Head1, "Debuff stack 1", "デバフ頭1", PositionBasis.LeftTower, 60f, 3.25f),
+                Role(RoleKind.Head2, "Debuff stack 2", "デバフ頭2", PositionBasis.RightTower, 270f, 3.25f),
+                Role(RoleKind.Fan1, "Debuff fan", "デバフ扇", PositionBasis.LeftTower, 330f, 3.25f),
+                Role(RoleKind.Circle1, "Debuff circle", "デバフ円", PositionBasis.RightTower, 90f, 3.25f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 1, "Left stack support", "左塔頭補助", PositionBasis.LeftTower, 60f, 4.75f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 2, "Bait fan", "扇誘導", PositionBasis.LeftTower, 330f, 4.75f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 3, "Right stack support", "右塔頭補助", PositionBasis.RightTower, 270f, 4.75f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 4, "Right stack support", "右塔頭補助", PositionBasis.RightTower, 270f, 4.75f)),
             new PatternPlacementConfig(
                 new PatternInfo(0, 2, 2),
-                Role(RoleKind.Fan1, "Debuff fan 1", "デバフ扇1", PositionBasis.LeftTower, 182f, 3.54f),
-                Role(RoleKind.Fan2, "Debuff fan 2", "デバフ扇2", PositionBasis.LeftTower, 205f, 3.46f),
-                Role(RoleKind.Circle1, "Debuff circle 1", "デバフ円1", PositionBasis.RightTower, 278f, 3.55f),
-                Role(RoleKind.Circle2, "Debuff circle 2", "デバフ円2", PositionBasis.RightTower, 104f, 3.5f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 1, "Outer circle", "外側円", PositionBasis.ArenaCenter, 271f, 6.14f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Circle, 2, "Inner circle", "内側円", PositionBasis.ArenaCenter, 350f, 3.55f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 1, "Back fan", "奥扇", PositionBasis.ArenaCenter, 201f, 4.56f),
-                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Fan, 2, "Side fan", "横扇", PositionBasis.ArenaCenter, 96f, 3.58f)),
+                Role(RoleKind.Fan1, "Debuff fan 1", "デバフ扇1", PositionBasis.LeftTower, 30f, 3.25f),
+                Role(RoleKind.Fan2, "Debuff fan 2", "デバフ扇2", PositionBasis.LeftTower, 0f, 3.25f),
+                Role(RoleKind.Circle1, "Debuff circle 1", "デバフ円1", PositionBasis.RightTower, 90f, 3.25f),
+                Role(RoleKind.Circle2, "Debuff circle 2", "デバフ円2", PositionBasis.RightTower, 270f, 3.25f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 1, "Demise NW", "消滅NW", PositionBasis.ArenaCenter, 315f, 3.5f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 2, "Demise SW", "消滅SW", PositionBasis.ArenaCenter, 225f, 3.5f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 3, "Demise NE", "消滅NE", PositionBasis.ArenaCenter, 45f, 3.55f),
+                Role(ParticipantSide.SupportGroup, LiveDebuffKind.Any, 4, "Demise SE", "消滅SE", PositionBasis.ArenaCenter, 135f, 3.5f)),
             new PatternPlacementConfig(
                 new PatternInfo(4, 0, 0),
-                Role(RoleKind.Head1, "Head pattern 4-1", "頭4処理1", PositionBasis.LeftTower, 90f, 3.25f),
-                Role(RoleKind.Head2, "Head pattern 4-2", "頭4処理2", PositionBasis.LeftTower, 270f, 3.25f),
-                Role(RoleKind.Head3, "Head pattern 4-3", "頭4処理3", PositionBasis.RightTower, 90f, 3.25f),
-                Role(RoleKind.Head4, "Head pattern 4-4", "頭4処理4", PositionBasis.RightTower, 270f, 3.25f),
-                Role(RoleKind.Support1, "Demise spread 1", "消滅散開1", PositionBasis.ArenaCenter, 0f, 0f),
-                Role(RoleKind.Support2, "Demise spread 2", "消滅散開2", PositionBasis.ArenaCenter, 0f, 5f),
-                Role(RoleKind.Support3, "Demise spread 3", "消滅散開3", PositionBasis.ArenaCenter, 45f, 5f),
-                Role(RoleKind.Support4, "Demise spread 4", "消滅散開4", PositionBasis.ArenaCenter, 315f, 5f)));
+                Role(RoleKind.Head1, "Head pattern 4-1", "頭4処理1", PositionBasis.RightTower, 90f, 3.25f),
+                Role(RoleKind.Head2, "Head pattern 4-2", "頭4処理2", PositionBasis.RightTower, 270f, 3.25f),
+                Role(RoleKind.Head3, "Head pattern 4-3", "頭4処理3", PositionBasis.LeftTower, 90f, 3.25f),
+                Role(RoleKind.Head4, "Head pattern 4-4", "頭4処理4", PositionBasis.LeftTower, 270f, 3.25f),
+                Role(RoleKind.Support1, "Demise NW", "消滅NW", PositionBasis.ArenaCenter, 315f, 3.5f),
+                Role(RoleKind.Support2, "Demise SW", "消滅SW", PositionBasis.ArenaCenter, 225f, 3.5f),
+                Role(RoleKind.Support3, "Demise NE", "消滅NE", PositionBasis.ArenaCenter, 45f, 3.55f),
+                Role(RoleKind.Support4, "Demise SE", "消滅SE", PositionBasis.ArenaCenter, 135f, 3.5f)));
     }
 
     private static RolePlacement Role(RoleKind role, string en, string jp, PositionBasis basis, float angle, float range)

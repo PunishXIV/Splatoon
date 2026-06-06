@@ -74,18 +74,6 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     private const string JsonFinalStackLabel =
         """{"Name":"","type":1,"Enabled":false,"radius":0.0,"overlayTextColor":4244635647,"overlayVOffset":4.0,"overlayFScale":2.0,"overlayText":"Stack","refActorType":1}""";
 
-    private static readonly Dictionary<PartyRole, PartyRole> FalseSpreadSwap = new()
-    {
-        [PartyRole.T1] = PartyRole.M1,
-        [PartyRole.T2] = PartyRole.M2,
-        [PartyRole.H1] = PartyRole.R1,
-        [PartyRole.H2] = PartyRole.R2,
-        [PartyRole.M1] = PartyRole.T1,
-        [PartyRole.M2] = PartyRole.T2,
-        [PartyRole.R1] = PartyRole.H1,
-        [PartyRole.R2] = PartyRole.H2,
-    };
-
     private static readonly Dictionary<DiagonalPattern, Dictionary<PartyRole, Vector2>> Spots = new()
     {
         [DiagonalPattern.NwToSe] = new()
@@ -191,7 +179,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         if(C.ShowPreview)
         {
             EnablePreviewElements(C.PreviewPattern);
-            EnablePatternSpots(C.PreviewPattern, allRoles: true, keftaTrue: true);
+            EnablePatternSpots(C.PreviewPattern, allRoles: true);
             return;
         }
 
@@ -201,7 +189,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         EnableFinalSpreadStackLabel(final);
 
         if(final == SpreadStackKind.Spread)
-            EnablePatternSpots(pattern, allRoles: false, keftaTrue);
+            EnablePatternSpots(pattern, allRoles: false);
     }
 
     public override void OnCombatStart() => ResetState();
@@ -309,7 +297,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     }
 
     // Enable spot circles for one role or all roles in preview mode.
-    private void EnablePatternSpots(DiagonalPattern pattern, bool allRoles, bool keftaTrue)
+    private void EnablePatternSpots(DiagonalPattern pattern, bool allRoles)
     {
         if(allRoles)
         {
@@ -318,7 +306,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
             return;
         }
 
-        EnableSpotElement(GetSpotElementName(pattern, ResolveDisplayRole(C.Role, keftaTrue)));
+        EnableSpotElement(GetSpotElementName(pattern, C.Role));
     }
 
     // Enable a spread spot with rainbow tether when Attention Color is configured.
@@ -385,9 +373,6 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         }
 
         ImGui.TextUnformatted($"Final: {ResolveFinalSpreadStack(mark, keftaTrue)}");
-
-        if(!keftaTrue)
-            ImGui.TextUnformatted($"Spot role: {ResolveDisplayRole(C.Role, false)} (from {C.Role})");
     }
 
     // Draw spread/stack party mark presence in settings.
@@ -559,10 +544,6 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     // Apply Kefta inversion to the resolved spread/stack mark.
     private static SpreadStackKind ResolveFinalSpreadStack(SpreadStackKind mark, bool keftaTrue)
         => keftaTrue ? mark : mark == SpreadStackKind.Spread ? SpreadStackKind.Stack : SpreadStackKind.Spread;
-
-    // Map configured role to spot role; false spread swaps T/H with M/R pairs.
-    private static PartyRole ResolveDisplayRole(PartyRole role, bool keftaTrue)
-        => keftaTrue ? role : FalseSpreadSwap[role];
 
     // Return whether any caster X is within epsilon of a pattern anchor.
     private static bool AnyCasterAtAnyX(IEnumerable<IBattleNpc> casters, float[] xs)

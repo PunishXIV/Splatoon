@@ -43,7 +43,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 12;
+    private const int CurrentDefaultsVersion = 13;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -123,17 +123,31 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private static readonly InternationalString AssignmentDescriptionText = new()
     {
         En =
-            "Set global priority and optional explicit pairs. If all four pairs are configured, pairs containing one head-stack become the first set and non-head pairs become the second set. Without explicit pairs, the script uses priority pairs 1+3, 2+4, 5+7, and 6+8.",
+            "Set global priority, optional explicit pairs, and how those pairs split into the 1/2/3/8 set and the 4/5/6/7 set. Without explicit pairs, the script uses priority pairs 1+3, 2+4, 5+7, and 6+8.",
         Jp =
-            "全体優先順位と任意の明示ペアを設定します。4ペアすべてが設定されている場合、頭割りを1名含むペアを前半セット、頭割りを含まないペアを後半セットにします。明示ペアがない場合は、優先順位の1+3、2+4、5+7、6+8をペアにします。"
+            "全体優先順位、任意の明示ペア、そのペアを1/2/3/8組と4/5/6/7組へ分ける方法を設定します。明示ペアがない場合は、優先順位の1+3、2+4、5+7、6+8をペアにします。"
     };
 
     private static readonly InternationalString PairSettingsDescriptionText = new()
     {
         En =
-            "Explicit pairs override the priority-pair fallback when all four pairs match the party. Pairs containing one head-stack resolve as the first set; pairs with two fan/circle players resolve as the second set.",
+            "Explicit pairs override the priority-pair fallback when all four pairs match the party. Keep pair splitting off for whole-pair strategies where the pair containing a head-stack resolves together on waves 1/2/3/8.",
         Jp =
-            "4ペアすべてがPTに一致する場合、優先順位ペアより明示ペアを優先します。頭割りを1名含むペアは前半セット、2人とも扇/円のペアは後半セットとして処理します。"
+            "4ペアすべてがPTに一致する場合、優先順位ペアより明示ペアを優先します。頭割りを含むペアごと1/2/3/8回目を処理する戦略では、ペア分割をOFFのまま使います。"
+    };
+
+    private static readonly InternationalString SplitHeadStackPairsText = new()
+    {
+        En = "Split head-stack pairs",
+        Jp = "頭割りペアを分割する"
+    };
+
+    private static readonly InternationalString SplitHeadStackPairsDescriptionText = new()
+    {
+        En =
+            "Off: a pair containing one head-stack player resolves together on waves 1/2/3/8, and non-head pairs resolve together on waves 4/5/6/7. On: only the head-stack player from a head pair resolves on waves 1/2/3/8; that player's pair buddy resolves on waves 4/5/6/7. Pairs without a head-stack split by global priority, with the higher-priority player going to 1/2/3/8 and the lower-priority player going to 4/5/6/7.",
+        Jp =
+            "OFF: 頭割りを1名含むペアはペアごと1/2/3/8回目を処理し、頭割りを含まないペアはペアごと4/5/6/7回目を処理します。ON: 頭割りペアでは頭割り本人だけが1/2/3/8回目を処理し、その相方は4/5/6/7回目を処理します。頭割りを含まないペアは全体優先順位で分割し、優先順位が高い人を1/2/3/8、低い人を4/5/6/7へ送ります。"
     };
 
     private static readonly InternationalString PairHeaderText = new()
@@ -191,7 +205,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(6, "Garume");
+    public override Metadata Metadata => new(7, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -444,6 +458,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private void DrawPairSettings()
     {
         ImGui.TextWrapped(PairSettingsDescriptionText.Get());
+        ImGui.Checkbox(SplitHeadStackPairsText.Get(), ref C.SplitHeadStackPairs);
+        ImGui.TextWrapped(SplitHeadStackPairsDescriptionText.Get());
+        ImGui.Spacing();
         for (var i = 0; i < PairCount; i++)
         {
             ImGui.PushID($"ExplicitPair{i}");
@@ -484,9 +501,19 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         var configuredCount = configured.Count(item => item);
         if (configuredCount == 0)
         {
-            lines.Add(PairValidationLine.Info(
-                "No explicit pairs are configured. The script will use priority pairs 1+3, 2+4, 5+7, and 6+8.",
-                "明示ペアは未設定です。優先順位の1+3、2+4、5+7、6+8をペアとして使用します。"));
+            if (C.SplitHeadStackPairs)
+            {
+                lines.Add(PairValidationLine.Warning(
+                    "Head-stack pair splitting is enabled, but no explicit pairs are configured. The script will still use fallback priority pairs 1+3, 2+4, 5+7, and 6+8.",
+                    "頭割りペア分割がONですが、明示ペアが未設定です。このままだと優先順位の1+3、2+4、5+7、6+8をペアとして使用します。"));
+            }
+            else
+            {
+                lines.Add(PairValidationLine.Info(
+                    "No explicit pairs are configured. The script will use priority pairs 1+3, 2+4, 5+7, and 6+8.",
+                    "明示ペアは未設定です。優先順位の1+3、2+4、5+7、6+8をペアとして使用します。"));
+            }
+
             return lines;
         }
 
@@ -567,13 +594,14 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 "明示ペアは現在PT8人を重複なく覆っています。"));
         }
 
-        ValidateCurrentDebuffPairSplit(lines, pairs);
+        ValidateCurrentDebuffPairSplit(lines, pairs, C.SplitHeadStackPairs);
         return lines;
     }
 
     private static void ValidateCurrentDebuffPairSplit(
         List<PairValidationLine> lines,
-        IReadOnlyList<(int Index, IPlayerCharacter First, IPlayerCharacter Second)> pairs)
+        IReadOnlyList<(int Index, IPlayerCharacter First, IPlayerCharacter Second)> pairs,
+        bool splitHeadPairs)
     {
         var debuffs = pairs
             .SelectMany(pair => new[] { CurrentDebuffFromPlayer(pair.First), CurrentDebuffFromPlayer(pair.Second) })
@@ -628,8 +656,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 secondDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
             {
                 lines.Add(PairValidationLine.Warning(
-                    $"Pair {pair.Index + 1} has no head-stack player and is currently {firstDebuff}/{secondDebuff}. The script needs both players to be circle/fan to classify it as the second set.",
-                    $"ペア{pair.Index + 1}は頭割りを含まず、現在デバフは{firstDebuff}/{secondDebuff}です。後半セットとして分類するには2人とも円/扇である必要があります。"));
+                    $"Pair {pair.Index + 1} has no head-stack player and is currently {firstDebuff}/{secondDebuff}. The script needs both players to be circle/fan to classify the pair.",
+                    $"ペア{pair.Index + 1}は頭割りを含まず、現在デバフは{firstDebuff}/{secondDebuff}です。ペアを分類するには2人とも円/扇である必要があります。"));
             }
         }
 
@@ -644,8 +672,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         if (visibleDebuffs == 8 && dynamicErrors == 0)
         {
             lines.Add(PairValidationLine.Info(
-                "Current debuffs can determine first/second set assignment by the explicit pair rules.",
-                "現在デバフは明示ペアルールで前半/後半セットを決定可能です。"));
+                splitHeadPairs
+                    ? "Current debuffs can determine first/second set assignment by the split head-stack pair rule."
+                    : "Current debuffs can determine first/second set assignment by the whole-pair rule.",
+                splitHeadPairs
+                    ? "現在デバフは頭割りペア分割ルールで前半/後半セットを決定可能です。"
+                    : "現在デバフはペアごと処理ルールで前半/後半セットを決定可能です。"));
         }
     }
 
@@ -889,6 +921,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ImGui.TextUnformatted(TryGetExplicitPairs(priorityParty, out _, out var explicitPairFailure)
             ? "Explicit pairs: ready"
             : $"Explicit pairs: {(HasAnyPairConfiguration() ? explicitPairFailure : "not configured")}");
+        ImGui.TextUnformatted($"Pair split rule: {(C.SplitHeadStackPairs ? "head-stack-player-first" : "whole-head-pair-first")}");
         ImGui.TextUnformatted($"First set: {FormatResolvingSet(_firstSetIds)}");
         ImGui.TextUnformatted($"Second set: {FormatResolvingSet(_secondSetIds)}");
         ImGui.TextUnformatted($"Initial head partners: {FormatInitialHeadPartnerDebuffs()}");
@@ -1475,6 +1508,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         IReadOnlyList<IPlayerCharacter> party,
         bool trackHeadPartnerDebuffs)
     {
+        if (C.SplitHeadStackPairs)
+        {
+            TryCaptureSplitHeadStackPairSets(pairs, debugSource, party, trackHeadPartnerDebuffs);
+            return;
+        }
+
         var firstSet = new List<IPlayerCharacter>();
         var secondSet = new List<IPlayerCharacter>();
         var headPartnerDebuffs = new Dictionary<uint, LiveDebuffKind>();
@@ -1530,6 +1569,78 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
 
         DebugLog($"SET_ASSIGN {debugSource} captured first=[{FormatPlayers(firstSet)}] second=[{FormatPlayers(secondSet)}]");
+        SetResolvingSets(firstSet, secondSet);
+        _initialHeadPartnerDebuffs.Clear();
+        foreach (var (id, debuff) in headPartnerDebuffs)
+            _initialHeadPartnerDebuffs[id] = debuff;
+    }
+
+    private void TryCaptureSplitHeadStackPairSets(
+        IReadOnlyList<(IPlayerCharacter First, IPlayerCharacter Second)> pairs,
+        string debugSource,
+        IReadOnlyList<IPlayerCharacter> party,
+        bool trackHeadPartnerDebuffs)
+    {
+        var firstSet = new List<IPlayerCharacter>();
+        var secondSet = new List<IPlayerCharacter>();
+        var headPartnerDebuffs = new Dictionary<uint, LiveDebuffKind>();
+        foreach (var (first, second) in pairs)
+        {
+            var firstDebuff = CurrentDebuffFromPlayer(first);
+            var secondDebuff = CurrentDebuffFromPlayer(second);
+            var firstIsHead = firstDebuff == LiveDebuffKind.HeadStack;
+            var secondIsHead = secondDebuff == LiveDebuffKind.HeadStack;
+
+            if (firstIsHead && secondIsHead)
+            {
+                DebugLogOnce(ref _lastCaptureBlockLog, $"split-head-pair-both-head-{first.EntityId:X8}-{second.EntityId:X8}",
+                    $"SET_ASSIGN waiting {debugSource} split head-stack pairs: pair has two heads pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                return;
+            }
+
+            if (firstIsHead || secondIsHead)
+            {
+                var head = firstIsHead ? first : second;
+                var partner = firstIsHead ? second : first;
+                var partnerDebuff = firstIsHead ? secondDebuff : firstDebuff;
+                if (partnerDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
+                {
+                    DebugLogOnce(ref _lastCaptureBlockLog, $"split-head-pair-head-no-partner-{head.EntityId:X8}-{partner.EntityId:X8}-{partnerDebuff}",
+                        $"SET_ASSIGN waiting {debugSource} split head-stack pairs: head pair partner debuff not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                    return;
+                }
+
+                firstSet.Add(head);
+                secondSet.Add(partner);
+
+                if (trackHeadPartnerDebuffs)
+                    headPartnerDebuffs[head.EntityId] = partnerDebuff;
+                continue;
+            }
+
+            if (firstDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan) ||
+                secondDebuff is not (LiveDebuffKind.Circle or LiveDebuffKind.Fan))
+            {
+                DebugLogOnce(ref _lastCaptureBlockLog, $"split-head-pair-non-head-not-ready-{first.EntityId:X8}-{second.EntityId:X8}-{firstDebuff}-{secondDebuff}",
+                    $"SET_ASSIGN waiting {debugSource} split head-stack pairs: non-head pair debuffs not ready pair={DebugPlayer(first)} / {DebugPlayer(second)} priority=[{FormatPlayers(party)}]");
+                return;
+            }
+
+            var firstPriority = IndexOfPlayer(party, first.EntityId);
+            var secondPriority = IndexOfPlayer(party, second.EntityId);
+            var firstGoesFirst = firstPriority >= 0 && (secondPriority < 0 || firstPriority <= secondPriority);
+            firstSet.Add(firstGoesFirst ? first : second);
+            secondSet.Add(firstGoesFirst ? second : first);
+        }
+
+        if (firstSet.Count != 4 || secondSet.Count != 4)
+        {
+            DebugLogOnce(ref _lastCaptureBlockLog, $"split-head-pair-counts-{firstSet.Count}-{secondSet.Count}",
+                $"SET_ASSIGN waiting {debugSource} split head-stack pairs: set counts invalid first={firstSet.Count} second={secondSet.Count} priority=[{FormatPlayers(party)}]");
+            return;
+        }
+
+        DebugLog($"SET_ASSIGN {debugSource} split head-stack pairs captured first=[{FormatPlayers(firstSet)}] second=[{FormatPlayers(secondSet)}]");
         SetResolvingSets(firstSet, secondSet);
         _initialHeadPartnerDebuffs.Clear();
         foreach (var (id, debuff) in headPartnerDebuffs)
@@ -2714,6 +2825,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         public int PreviewWave = 1;
         public StageKind PreviewStage = StageKind.Tower;
 
+        public bool SplitHeadStackPairs;
+
         public PriorityData2[] Pairs = CreateEmptyPairSettings();
 
         public PriorityData PriorityData = new()
@@ -2898,6 +3011,11 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             {
                 EnableDisplayTextDefaults();
                 DefaultsVersion = 12;
+            }
+
+            if (DefaultsVersion < 13)
+            {
+                DefaultsVersion = 13;
             }
 
             for (var i = 0; i < Waves.Length; i++)

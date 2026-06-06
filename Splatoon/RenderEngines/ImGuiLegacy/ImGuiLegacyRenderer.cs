@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Objects.Types;
 using ECommons.Configuration;
 using ECommons.GameFunctions;
+using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -93,7 +94,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 }
             }
             else if(element.refActorType == 2 && Svc.Targets.Target != null
-                && Svc.Targets.Target is IBattleNpc && LayoutUtils.CheckCharacterAttributes(element, Svc.Targets.Target, true))
+                && Svc.Targets.Target.IsBattleNpc() && LayoutUtils.CheckCharacterAttributes(element, Svc.Targets.Target, true))
             {
                 if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, Svc.Targets.Target.GetPositionXZY()))
                 {

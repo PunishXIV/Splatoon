@@ -46,7 +46,7 @@ public static unsafe class CommonRenderUtils
                 ret = ret
                 .Replace("$ANIMATIONID", $"{eobj.AnimationId.Format()}");
             }
-            if(go is IBattleChara chr)
+            if(go.IsBattleChara(out var chr))
             {
                 ret = ret
                 .Replace("$MODELID", $"{chr.ModelId.Format()}")

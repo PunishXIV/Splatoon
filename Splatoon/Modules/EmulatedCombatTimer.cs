@@ -17,7 +17,7 @@ internal static class EmulatedCombatTimer
         {
             if(CombatStart == 0)
             {
-                if(Svc.Objects.OfType<IBattleNpc>().Any(x => x.IsTargetable && x.CurrentHp < x.MaxHp))
+                if(Svc.Objects.OfTypeIBattleNpc().Any(x => x.IsTargetable && x.CurrentHp < x.MaxHp))
                 {
                     CombatStart = Environment.TickCount64;
                     PluginLog.Debug($"Combat simulation starts");

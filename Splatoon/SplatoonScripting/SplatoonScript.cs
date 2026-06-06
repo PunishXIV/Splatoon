@@ -4,11 +4,13 @@ using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.LanguageHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Common.Configuration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
@@ -307,14 +309,14 @@ public abstract class SplatoonScript
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Paste, "Paste from clipboard".Loc()))
             {
                 string? paste = null;
-                ExportedScriptConfiguration? m = null;
+                ExportedScriptConfiguration? importedConfiguration = null;
                 try
                 {
                     paste = Paste();
                     foreach(var x in paste!.Split("\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                     {
-                        m = JsonConvert.DeserializeObject<ExportedScriptConfiguration>(x) ?? throw new NullReferenceException();
-                        if(!ApplyExportedConfiguration(m, out var error))
+                        importedConfiguration = JsonConvert.DeserializeObject<ExportedScriptConfiguration>(x) ?? throw new NullReferenceException();
+                        if(!ApplyExportedConfiguration(importedConfiguration, out var error))
                         {
                             Notify.Error(error);
                         }
@@ -324,18 +326,23 @@ public abstract class SplatoonScript
                 {
                     e.Log();
                     Notify.Error(e.Message);
-                    PluginLog.Information($"== Log: ==");
-                    try
-                    {
-                        PluginLog.Information($"Paste dump:\n{paste}");
-                    }
-                    catch(Exception ex) { ex.LogInfo(); }
-                    try
-                    {
-                        PluginLog.Information($"Paste decode:\n{paste}");
-                    }
-                    catch(Exception ex) { ex.LogInfo(); }
                 }
+                PluginLog.Debug($"== Import Log: ==");
+                try
+                {
+                    PluginLog.Debug($"Paste dump:\n{paste}");
+                }
+                catch(Exception ex) { ex.LogDebug(); }
+                try
+                {
+                    PluginLog.Debug($"Imported configuration's configuration:\n{importedConfiguration.Configuration.ToHexString()}");
+                }
+                catch(Exception ex) { ex.LogDebug(); }
+                try
+                {
+                    PluginLog.Debug($"Imported configuration's overrides:\n{importedConfiguration.Overrides.ToHexString()}");
+                }
+                catch(Exception ex) { ex.LogDebug(); }
             }
             ImGui.SameLine();
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy selected configurations"))
@@ -649,6 +656,9 @@ public abstract class SplatoonScript
         P.Config.ScriptConfigurationNames.GetOrCreate(InternalData.FullName)[newKey] = configuration.ConfigurationName;
         error = null;
         return true;
+
+        Treasure t;
+        
     }
 
     internal bool TryGetAvailableConfigurations([NotNullWhen(true)] out Dictionary<string, string>? confList)

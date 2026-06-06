@@ -1,5 +1,6 @@
 ﻿using Dalamud.Utility;
 using ECommons.GameFunctions;
+using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.MathHelpers;
 using ECommons.ObjectLifeTracker;
 using Splatoon.Memory;
@@ -268,7 +269,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 }
             }
             else if(element.refActorType == 2 && Svc.Targets.Target != null
-                && Svc.Targets.Target is IBattleNpc && LayoutUtils.CheckCharacterAttributes(element, Svc.Targets.Target, true))
+                && Svc.Targets.Target.IsBattleNpc() && LayoutUtils.CheckCharacterAttributes(element, Svc.Targets.Target, true))
             {
                 if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, Svc.Targets.Target.GetPositionXZY()))
                 {

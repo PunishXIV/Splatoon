@@ -36,7 +36,7 @@ public static unsafe class Extensions
     /// <returns>Whether object was found.</returns>
     public static bool TryGetBattleNpc(this uint objectID, [NotNullWhen(true)] out IBattleNpc? obj)
     {
-        obj = objectID.GetObject() as IBattleNpc;
+        obj = objectID.GetObject().AsBattleNpc();
         return obj != null;
     }
 

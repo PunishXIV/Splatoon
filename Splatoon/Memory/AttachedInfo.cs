@@ -3,6 +3,7 @@ using Dalamud.Hooking;
 using ECommons.DalamudServices.Legacy;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.GameHelpers;
 using ECommons.GameHelpers.LegacyPlayer;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -85,14 +86,14 @@ public static unsafe class AttachedInfo
                     var text = $"VFX {vfxPath} spawned on {targetText} npc id={c.NameId}, model id={c.Struct()->ModelContainer.ModelCharaId}, name npc id={c.NameId}, position={c.Position}, name={c.Name}";
                     P.ChatMessageQueue.Enqueue(text);
                     if(P.Config.Logging) Logger.Log(text);
-                    if(c is IBattleNpc) P.LogWindow.Log(text);
+                    if(c.IsBattleNpc()) P.LogWindow.Log(text);
                 }
                 else
                 {
                     var text = $"VFX {vfxPath} spawned on {obj.DataId} npc id={obj.Struct()->GetNameId()}, position={obj.Position}";
                     P.ChatMessageQueue.Enqueue(text);
                     if(P.Config.Logging) Logger.Log(text);
-                    if(obj is IBattleNpc) P.LogWindow.Log(text);
+                    if(obj.IsBattleNpc()) P.LogWindow.Log(text);
                 }
             }
         }
@@ -150,7 +151,7 @@ public static unsafe class AttachedInfo
     {
         foreach(var x in Svc.Objects)
         {
-            if(x is IBattleChara b)
+            if(x.IsBattleChara(out var b))
             {
                 bool isCasting;
                 try
@@ -183,7 +184,7 @@ public static unsafe class AttachedInfo
                         if(P.Config.Logging)
                         {
                             Logger.Log(text);
-                            if(b is IBattleNpc) P.LogWindow.Log(text);
+                            if(b.IsBattleNpc()) P.LogWindow.Log(text);
                         }
                     }
                 }

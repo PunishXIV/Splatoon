@@ -64,7 +64,7 @@ public static unsafe class TabProjection
                 ImGui.TableNextColumn();
                 ImGuiEx.Text(ExcelActionHelper.GetActionName(x.Descriptor.Id, true));
                 ImGui.TableNextColumn();
-                var obj = Svc.Objects.OfType<IBattleNpc>().FirstOrDefault(o => o.EntityId == x.CasterObjectID);
+                var obj = Svc.Objects.OfTypeIBattleNpc().FirstOrDefault(o => o.EntityId == x.CasterObjectID);
                 if(obj != null)
                 {
                     ImGuiEx.Text($"{obj.Name}");

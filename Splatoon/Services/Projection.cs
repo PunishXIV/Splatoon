@@ -1,5 +1,6 @@
 ﻿using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.MathHelpers;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -89,7 +90,7 @@ internal class Projection : IDisposable
         List<(IBattleNpc obj, Element element)> injectedElements = [];
         foreach(var x in Svc.Objects)
         {
-            if(x is IBattleNpc b && b.GetNameplateKind() != NameplateKind.FriendlyBattleNPC && b.IsCasting() && b.CastInfo.ActionType == (int)ActionType.Action && Svc.Data.GetExcelSheet<Action>().TryGetRow(b.CastInfo.ActionId, out var data))
+            if(x.IsBattleNpc(out var b) && b.GetNameplateKind() != NameplateKind.FriendlyBattleNPC && b.IsCasting() && b.CastInfo.ActionType == (int)ActionType.Action && Svc.Data.GetExcelSheet<Action>().TryGetRow(b.CastInfo.ActionId, out var data))
             {
                 var shape = GuessShapeAndSize(data, b);
                 var info = b.CastInfo;

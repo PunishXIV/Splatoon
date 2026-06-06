@@ -2,6 +2,8 @@
 using ECommons.GameFunctions;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Splatoon.Memory;
 
 namespace Splatoon.Gui;
@@ -48,6 +50,9 @@ internal static unsafe class Explorer
 
     internal static void DrawGameObject(IGameObject obj)
     {
+        ImGuiEx.TextCopy($"VTable: {(nint)obj.Struct()->VirtualTable:X16} / {VTableClassifier.Classify(obj.Struct())}");
+        ImGuiEx.TextCopy($"Struct kind: {obj.Struct()->ObjectKind}/{obj.Struct()->SubKind}/{obj.Struct()->BattleNpcSubKind}");
+        ImGuiEx.TextCopy($"GOID: {obj.Struct()->GetGameObjectId().ObjectId}/{obj.Struct()->GetGameObjectId().Type}");
         ImGuiEx.TextCopy($"GameObject {obj}");
         ImGuiEx.TextCopy($"ObjectKind: {obj.ObjectKind}");
         ImGuiEx.TextCopy($"{"Position".Loc()}: {obj.Position.X} {obj.Position.Y} {obj.Position.Z}");
@@ -113,9 +118,11 @@ internal static unsafe class Explorer
             }
             ImGuiEx.TextCopy($"IsFlying: {*(byte*)(c.Address + 528 + 1020):X16}");
         }
-        if(obj is IBattleChara b)
+        if(obj.IsBattleChara(out var b))
         {
             ImGuiEx.TextCopy("---------- Battle chara ----------");
+            ImGuiEx.TextCopy($"StatusManager: {(nint)b.Struct()->GetStatusManager()}");
+            ImGuiEx.TextCopy($"CastInfo: {(nint)b.Struct()->GetCastInfo()}");
             ImGuiEx.TextCopy($"{"Casting".Loc()}: {b.IsCasting}, {"Action ID".Loc()} = {b.CastInfo.ActionId.Format()}, {"Type".Loc()} = {b.CastInfo.ActionType}, {"Cast time".Loc()}: {b.CastInfo.CurrentCastTime:F1}/{b.CastInfo.TotalCastTime:F1}");
             if(AttachedInfo.CastInfos.TryGetValue(b.Address, out var info))
             {

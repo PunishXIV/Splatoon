@@ -9,19 +9,14 @@ using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.Game.UI;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using FFXIVClientStructs.FFXIV.Client.UI.Arrays;
 using Newtonsoft.Json;
 using Splatoon.Memory;
-using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using TerraFX.Interop.Windows;
 using S = Splatoon.Services.S;
 
 namespace Splatoon.Utility;
@@ -472,7 +467,7 @@ public static unsafe class Utils
     {
         if(!e.RotationOverride)
         {
-            if(e.UseCastRotation && obj is IBattleChara b)
+            if(e.UseCastRotation && obj.IsBattleChara(out var b))
             {
                 if(b.IsCasting() && b.CastInfo.ActionId.EqualsAny(e.refActorCastId))
                 {

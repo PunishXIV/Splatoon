@@ -809,7 +809,7 @@ internal unsafe static partial class ScriptingProcessor
                 catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActionEffectEvent)); }
             }
         }
-        if(set.Source is IBattleNpc n && set.Action != null)
+        if(set.Source.IsBattleNpc(out var n) && set.Action != null)
         {
             var printed = false;
             foreach(var effect in set.TargetEffects)

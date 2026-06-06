@@ -95,10 +95,10 @@ public static unsafe class LayoutUtils
     {
         return
             (ignoreVisibility || !element.onlyVisible || (gameObject is ICharacter chr && chr.IsCharacterVisible()))
-            && (!element.refActorRequireCast || (gameObject is IBattleChara chr2 && IsCastingMatches(element, chr2) != element.refActorCastReverse))
-            && (!element.refActorRequireBuff || (element.refActorBuffId.Count > 0 && gameObject is IBattleChara chr3 && CheckEffect(element, chr3)))
-            && (!element.refActorUseTransformation || (gameObject is IBattleChara chr4 && CheckTransformationID(element, chr4)))
-            && (!element.refMark || (gameObject is IBattleChara chr5 && Marking.HaveMark(chr5, (uint)element.refMarkID)))
+            && (!element.refActorRequireCast || (gameObject.IsBattleChara(out var chr2) && IsCastingMatches(element, chr2) != element.refActorCastReverse))
+            && (!element.refActorRequireBuff || (element.refActorBuffId.Count > 0 && gameObject.IsBattleChara(out var chr3) && CheckEffect(element, chr3)))
+            && (!element.refActorUseTransformation || (gameObject.IsBattleChara(out var chr4) && CheckTransformationID(element, chr4)))
+            && (!element.refMark || (gameObject.IsBattleChara(out var chr5) && Marking.HaveMark(chr5, (uint)element.refMarkID)))
             && (!element.refActorTether || IsTetherMatches(element, gameObject) == !element.refActorIsTetherInvert)
             && (element.AnimationIds.Count == 0 || (gameObject is IEventObj eobj && CheckAnimationId(element, eobj)));
     }
@@ -308,7 +308,7 @@ public static unsafe class LayoutUtils
 
     public static float CastFraction(Element e, IGameObject go)
     {
-        if(go is IBattleChara chr)
+        if(go.IsBattleChara(out var chr))
         {
             float castTime = -1;
             float totalCastTime = 1;

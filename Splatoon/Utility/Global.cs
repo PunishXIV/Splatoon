@@ -25,3 +25,4 @@ global using static ECommons.LanguageHelpers.Localization;
 global using static Splatoon.Splatoon;
 global using static Splatoon.Utility.Shortcuts;
 global using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+global using ECommons.GameFunctions.VirtualTableClassifier;

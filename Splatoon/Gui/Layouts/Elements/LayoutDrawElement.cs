@@ -700,7 +700,7 @@ internal unsafe partial class CGui
                 if(ImGui.BeginPopup("FromCastingEntity"))
                 {
                     var i = 0;
-                    foreach(var x in Svc.Objects.OfType<IBattleNpc>().Where(x => x.IsCasting()))
+                    foreach(var x in Svc.Objects.OfTypeIBattleNpc().Where(x => x.IsCasting()))
                     {
                         ImGui.PushID(i++);
                         if(ImGui.Selectable($"{ExcelActionHelper.GetActionName(x.CastInfo.ActionId, true)} - {x.CastInfo.CurrentCastTime:F1}/{x.CastInfo.TotalCastTime:F1} - from {x.Name} N#{x.NameId} D#{x.DataId}", selected: el.refActorCastId.Contains(x.CastInfo.ActionId), flags: ImGuiSelectableFlags.DontClosePopups))
@@ -802,12 +802,12 @@ internal unsafe partial class CGui
                         }
                     }
                     ImGui.Separator();
-                    var nameIds = Svc.Objects.OfType<IBattleNpc>().Select(x => x.NameId).ToHashSet();
+                    var nameIds = Svc.Objects.OfTypeIBattleNpc().Select(x => x.NameId).ToHashSet();
                     foreach(var nameId in nameIds)
                     {
                         HashSet<(IStatus, RowRef<Status>)> list = [];
                         string name = null;
-                        foreach(var x in Svc.Objects.OfType<IBattleNpc>())
+                        foreach(var x in Svc.Objects.OfTypeIBattleNpc())
                         {
                             if(x.NameId == nameId)
                             {
@@ -868,7 +868,7 @@ internal unsafe partial class CGui
                         }
                     }
                 }
-                if(Svc.Targets.Target != null && Svc.Targets.Target is IBattleChara bchr)
+                if(Svc.Targets.Target != null && Svc.Targets.Target.IsBattleChara(out var bchr))
                 {
                     ImGui.SameLine();
                     if(ImGui.Button("Add from target".Loc() + "##bybuffname"))

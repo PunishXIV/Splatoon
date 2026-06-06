@@ -114,8 +114,8 @@ internal class P2_Missing_1238_4567_KT_ResolveBySameTower : SplatoonScript
         [
             Rule("211_StackPriority1", PositionBasis.LeftTower, 180f, 2.0f),
             Rule("211_StackPriority2", PositionBasis.RightTower, 180f, 3.25f),
-            Rule("211_OtherPriority1", PositionBasis.RightTower, 0f, 3.25f),
-            Rule("211_OtherPriority2", PositionBasis.LeftTower, 0f, 3.25f),
+            Rule("211_OtherPriority1", PositionBasis.LeftTower, 0f, 3.25f),
+            Rule("211_OtherPriority2", PositionBasis.RightTower, 0f, 3.25f),
             Rule("211_NotTowerPriority1", PositionBasis.LeftTower, 0f, 4.75f),
             Rule("211_NotTowerPriority2", PositionBasis.LeftTower, 180f, 4.75f),
             Rule("211_NotTowerPriority3", PositionBasis.RightTower, 180f, 4.75f),

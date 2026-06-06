@@ -43,7 +43,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 14;
+    private const int CurrentDefaultsVersion = 13;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -228,7 +228,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(8, "Garume");
+    public override Metadata Metadata => new(7, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -3125,14 +3125,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
             if (DefaultsVersion < 13)
             {
-                DefaultsVersion = 13;
-            }
-
-            if (DefaultsVersion < 14)
-            {
                 if (AssignmentMode == 2)
                     SplitHeadStackPairs = true;
-                DefaultsVersion = 14;
+                DefaultsVersion = 13;
             }
 
             for (var i = 0; i < Waves.Length; i++)

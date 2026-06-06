@@ -119,8 +119,6 @@ internal class P2_Missing_1238_4567_KTBased_ResolveOnTower : SplatoonScript
             Rule("211_StackPriority2", PositionBasis.RightTower, 180f, 3.25f),
             Rule("211_OtherPriority1", PositionBasis.LeftTower, 0f, 3.25f),
             Rule("211_OtherPriority2", PositionBasis.RightTower, 0f, 3.25f),
-            Rule("211_Spread", PositionBasis.RightTower, 0f, 3.25f),
-            Rule("211_Cone", PositionBasis.LeftTower, 0f, 3.25f),
             Rule("211_NotTowerPriority1", PositionBasis.LeftTower, 0f, 4.75f),
             Rule("211_NotTowerPriority2", PositionBasis.LeftTower, 180f, 4.75f),
             Rule("211_NotTowerPriority3", PositionBasis.RightTower, 180f, 4.75f),

@@ -148,7 +148,7 @@ public static unsafe class Utils
             {
                 var index = (int)element.TargetAlteration - 1100;
                 var i = 0;
-                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderBy(o => Vector3.DistanceSquared(o.Position, go.Position)))
+                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().Where(x => !x.IsDead).OrderBy(o => Vector3.DistanceSquared(o.Position, go.Position)))
                 {
                     if(index == i)
                     {
@@ -166,7 +166,7 @@ public static unsafe class Utils
             {
                 var index = (int)element.TargetAlteration - 2100;
                 var i = 0;
-                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().OrderByDescending(o => Vector3.DistanceSquared(o.Position, go.Position)))
+                foreach(var x in Svc.Objects.OfType<IPlayerCharacter>().Where(x => !x.IsDead).OrderByDescending(o => Vector3.DistanceSquared(o.Position, go.Position)))
                 {
                     if(index == i)
                     {

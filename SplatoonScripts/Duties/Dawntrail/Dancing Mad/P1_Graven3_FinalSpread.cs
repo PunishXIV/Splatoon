@@ -22,7 +22,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(2, "mirage");
+    public override Metadata? Metadata => new(3, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion

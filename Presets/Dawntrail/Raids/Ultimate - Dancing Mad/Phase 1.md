@@ -149,6 +149,31 @@ Configuration:
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Teletrouncing_Image3.cs
 ```
 
+### [Script] [Beta] [UNTESTED] P1 Graven3 FinalSpread
+
+Show Graven3 Final Spread Candidate position. Please use with Thunder Layout. Nothing is displayed in the case of a Stack.
+
+Default Config RaidPlan: https://raidplan.io/plan/c4hq7pchxv6cdsu3
+
+Configuration
+- Select Role
+- If you have other dispersal plans, please configure the elements with Preview.
+
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_Graven3_FinalSpread.cs
+```
+
+### [Script] [Beta] [UNTESTED] P1 DoubleTroubleTrap Automarker (self only)
+
+This script assign self marker when Double Trouble Trap is detected.
+
+Configuration
+- Command and Random delay.
+
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P1_DoubleTroubleTrap_AutoMarker.cs
+```
+
 ### **[Script]** [Beta] **[UNTESTED]** P1 GravenImage Reminder
 Graven Image reminder. This script support for Tether, Half-AOE, Gaze.
 

@@ -22,11 +22,11 @@ public class InternationalString
 
     public InternationalString(string en = "", string jp = "", string de = "", string fr = "", string other = "")
     {
-        this.En = en;
-        this.Jp = jp;
-        this.De = de;
-        this.Fr = fr;
-        this.Other = other;
+        this.En = en ?? string.Empty;
+        this.Jp = jp ?? string.Empty;
+        this.De = de ?? string.Empty;
+        this.Fr = fr ?? string.Empty;
+        this.Other = other ?? string.Empty;
     }
 
     /// <summary>
@@ -46,52 +46,43 @@ public class InternationalString
 
     public string Get(string defaultString = "", ClientLanguage? language = null)
     {
-        string ret;
+        Normalize();
+        defaultString ??= string.Empty;
         language ??= Svc.Data.Language;
-        if(language == ClientLanguage.English)
+        var ret = language switch
         {
-            ret = En == string.Empty ? defaultString : En;
-        }
-        else if(language == ClientLanguage.Japanese)
-        {
-            ret = Jp == string.Empty ? defaultString : Jp;
-        }
-        else if(language == ClientLanguage.German)
-        {
-            ret = De == string.Empty ? defaultString : De;
-        }
-        else if(language == ClientLanguage.French)
-        {
-            ret = Fr == string.Empty ? defaultString : Fr;
-        }
-        else
-        {
-            ret = Other == string.Empty ? defaultString : Other;
-        }
-        if(ret == string.Empty)
-        {
-            if(En != string.Empty)
-            {
-                ret = En;
-            }
-            else if(Other != string.Empty)
-            {
-                ret = Other;
-            }
-            else if(Jp != string.Empty)
-            {
-                ret = Jp;
-            }
-            else if(De != string.Empty)
-            {
-                ret = De;
-            }
-            else if(Fr != string.Empty)
-            {
-                ret = Fr;
-            }
-        }
-        return ret;
+            ClientLanguage.English => En,
+            ClientLanguage.Japanese => Jp,
+            ClientLanguage.German => De,
+            ClientLanguage.French => Fr,
+            _ => Other
+        };
+
+        if(!ret.IsNullOrEmpty())
+            return ret;
+        if(!En.IsNullOrEmpty())
+            return En;
+        if(!defaultString.IsNullOrEmpty())
+            return defaultString;
+        if(!Other.IsNullOrEmpty())
+            return Other;
+        if(!Jp.IsNullOrEmpty())
+            return Jp;
+        if(!De.IsNullOrEmpty())
+            return De;
+        if(!Fr.IsNullOrEmpty())
+            return Fr;
+        return string.Empty;
+    }
+
+    private void Normalize()
+    {
+        guid ??= Guid.NewGuid().ToString();
+        En ??= string.Empty;
+        Jp ??= string.Empty;
+        De ??= string.Empty;
+        Fr ??= string.Empty;
+        Other ??= string.Empty;
     }
 
     internal ref string CurrentLangString
@@ -123,6 +114,8 @@ public class InternationalString
 
     public void ImGuiEdit(ref string DefaultValue, string helpMessage = null)
     {
+        Normalize();
+        DefaultValue ??= string.Empty;
         if(ImGui.BeginCombo($"##{guid}", Get(DefaultValue)))
         {
             ImGuiEx.LineCentered($"line{guid}", delegate
@@ -173,11 +166,13 @@ public class InternationalString
 
     public bool IsEmpty()
     {
+        Normalize();
         return En.IsNullOrEmpty() && Jp.IsNullOrEmpty() && De.IsNullOrEmpty() && Fr.IsNullOrEmpty() && Other.IsNullOrEmpty();
     }
 
     public ref string GetRefString(ClientLanguage language)
     {
+        Normalize();
         if(language == ClientLanguage.English) return ref En;
         else if(language == ClientLanguage.Japanese) return ref Jp;
         else if(language == ClientLanguage.German) return ref De;
@@ -187,6 +182,7 @@ public class InternationalString
 
     private void EditLangSpecificString(ClientLanguage language, ref string str)
     {
+        str ??= string.Empty;
         var col = false;
         if(str == string.Empty)
         {

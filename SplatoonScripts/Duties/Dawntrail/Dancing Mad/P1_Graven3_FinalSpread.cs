@@ -100,6 +100,21 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         },
     };
 
+    // v3 stack spots (plan.md L76-79).
+    private static readonly Dictionary<DiagonalPattern, Dictionary<RoleGroup, Vector2>> StackSpots = new()
+    {
+        [DiagonalPattern.NwToSe] = new()
+        {
+            [RoleGroup.Dps] = new(95.78495f, 95.69587f),
+            [RoleGroup.TankHealer] = new(104.37233f, 103.95186f),
+        },
+        [DiagonalPattern.NeToSw] = new()
+        {
+            [RoleGroup.Dps] = new(103.052155f, 96.77839f),
+            [RoleGroup.TankHealer] = new(96.55574f, 103.384964f),
+        },
+    };
+
     #endregion
 
     #region Config
@@ -140,6 +155,12 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         Stack,
     }
 
+    private enum RoleGroup
+    {
+        Dps,
+        TankHealer,
+    }
+
     private sealed class Config : IEzConfig
     {
         public PartyRole Role = PartyRole.T1;
@@ -164,6 +185,17 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
             }
         }
 
+        foreach(var (pattern, groups) in StackSpots)
+        {
+            foreach(var (group, spot) in groups)
+            {
+                Controller.RegisterElementFromCode(
+                    GetStackElementName(pattern, group),
+                    string.Format(CultureInfo.InvariantCulture, SpotElementTemplate, spot.X, spot.Y),
+                    overwrite: true);
+            }
+        }
+
         Controller.RegisterElementFromCode(ElNwToSePreview1, JsonNwToSePreview1, overwrite: true);
         Controller.RegisterElementFromCode(ElNwToSePreview2, JsonNwToSePreview2, overwrite: true);
         Controller.RegisterElementFromCode(ElNeToSwPreview1, JsonNeToSwPreview1, overwrite: true);
@@ -180,6 +212,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         {
             EnablePreviewElements(C.PreviewPattern);
             EnablePatternSpots(C.PreviewPattern, allRoles: true);
+            EnableStackSpots(C.PreviewPattern, allGroups: true);
             return;
         }
 
@@ -190,6 +223,8 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 
         if(final == SpreadStackKind.Spread)
             EnablePatternSpots(pattern, allRoles: false);
+        else
+            EnableStackSpot(pattern, GetRoleGroup(C.Role));
     }
 
     public override void OnCombatStart() => ResetState();
@@ -309,6 +344,23 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         EnableSpotElement(GetSpotElementName(pattern, C.Role));
     }
 
+    // Enable stack spot circles for one role group or both groups in preview mode.
+    private void EnableStackSpots(DiagonalPattern pattern, bool allGroups)
+    {
+        if(allGroups)
+        {
+            foreach(var group in StackSpots[pattern].Keys)
+                EnableSpotElement(GetStackElementName(pattern, group));
+            return;
+        }
+
+        EnableStackSpot(pattern, GetRoleGroup(C.Role));
+    }
+
+    // Enable a single stack spot for the resolved pattern and role group.
+    private void EnableStackSpot(DiagonalPattern pattern, RoleGroup group)
+        => EnableSpotElement(GetStackElementName(pattern, group));
+
     // Enable a spread spot with rainbow tether when Attention Color is configured.
     private void EnableSpotElement(string name)
     {
@@ -372,7 +424,14 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
             return;
         }
 
-        ImGui.TextUnformatted($"Final: {ResolveFinalSpreadStack(mark, keftaTrue)}");
+        var final = ResolveFinalSpreadStack(mark, keftaTrue);
+        ImGui.TextUnformatted($"Final: {final}");
+
+        if(final == SpreadStackKind.Stack && TryDetectPattern(out var pattern))
+            ImGui.TextUnformatted(
+                $"Stack spot: {GetPatternLabel(pattern)} / {GetRoleGroupLabel(GetRoleGroup(C.Role))} (from {C.Role})");
+        else if(final == SpreadStackKind.Stack)
+            ImGui.TextUnformatted("Stack spot: (waiting for pattern)");
     }
 
     // Draw spread/stack party mark presence in settings.
@@ -552,6 +611,25 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     // Build the registered spot element name for a pattern and role.
     private static string GetSpotElementName(DiagonalPattern pattern, PartyRole role)
         => $"{GetPatternLabel(pattern)}_{role}";
+
+    // Build the registered stack element name for a pattern and role group.
+    private static string GetStackElementName(DiagonalPattern pattern, RoleGroup group)
+        => $"{GetPatternLabel(pattern)}_{GetRoleGroupLabel(group)}";
+
+    // Map a configured party slot to DPS or tank/healer stack group.
+    private static RoleGroup GetRoleGroup(PartyRole role)
+        => role is PartyRole.M1 or PartyRole.M2 or PartyRole.R1 or PartyRole.R2
+            ? RoleGroup.Dps
+            : RoleGroup.TankHealer;
+
+    // Return the display label for a stack role group.
+    private static string GetRoleGroupLabel(RoleGroup group)
+        => group switch
+        {
+            RoleGroup.Dps => "DPS",
+            RoleGroup.TankHealer => "TankHealer",
+            _ => "?",
+        };
 
     // Return the display label for a diagonal pattern.
     private static string GetPatternLabel(DiagonalPattern pattern)

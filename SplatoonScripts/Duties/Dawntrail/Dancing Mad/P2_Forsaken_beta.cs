@@ -1939,12 +1939,14 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
     private static LiveDebuffKind CurrentDebuffFromPlayer(IPlayerCharacter player)
     {
-        var current = player.StatusList
-            .Select(status => (Debuff: DebuffFromStatus(status.StatusId), status.RemainingTime))
-            .Where(item => item.Debuff != LiveDebuffKind.None)
-            .OrderByDescending(item => item.RemainingTime)
-            .ToArray();
-        return current.Length > 0 ? current[0].Debuff : LiveDebuffKind.None;
+        foreach (var status in player.StatusList)
+        {
+            var debuff = DebuffFromStatus(status.StatusId);
+            if (debuff != LiveDebuffKind.None)
+                return debuff;
+        }
+
+        return LiveDebuffKind.None;
     }
 
     private static LiveDebuffKind DebuffFromStatus(uint statusId)

@@ -31,7 +31,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -175,6 +175,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                     var pos = (this.MapEffect2TowerPos[this.ActiveMapEffects[0]] + this.MapEffect2TowerPos[this.ActiveMapEffects[1]]) / 2;
                     e.Enabled = true;
                     e.RefPosition = pos.ToVector3();
+                    e.color = Controller.AttentionColor;
                 }
                 else
                 {
@@ -182,6 +183,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                     var i2 = (((this.ActiveMapEffects[1] - 1) + 4) % 8) + 1;
                     var pos = (this.MapEffect2TowerPos[i1] + this.MapEffect2TowerPos[i2]) / 2;
                     e.Enabled = true;
+                    e.color = Controller.AttentionColor;
                     e.RefPosition = pos.ToVector3();
                 }
                 return;

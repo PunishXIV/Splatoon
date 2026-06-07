@@ -61,6 +61,18 @@ public class P2_Trine_Beta : SplatoonScript
         Jp =
             "P2トライン用です。半面攻撃の待機位置、1回目トライン後の移動先、最後の強攻撃散開位置を表示します。下の優先順位は最後の強攻撃用で、1番目のタンクが近く、2番目のタンクが外周です。"
     };
+    private static readonly InternationalString ShowSharedRouteMarkersText = new()
+    {
+        En = "Show shared route markers",
+        Jp = "移動先をまとめて表示"
+    };
+    private static readonly InternationalString ShowSharedRouteMarkersDescriptionText = new()
+    {
+        En =
+            "When enabled, shows two route markers: party and tank. After final tankbuster spots are resolved, tanks see their own MT/OT spot plus the party spot; non-tanks see party plus MT near.",
+        Jp =
+            "有効にすると、パーティ用とタンク用の2点を同時に表示します。最後はタンクなら自分のMT/OT位置とパーティ位置、非タンクならパーティ位置とMT近を表示します。"
+    };
 
     private readonly List<Vector3> _currentWavePositions = [];
     private readonly HashSet<uint> _currentWaveSources = [];
@@ -71,7 +83,6 @@ public class P2_Trine_Beta : SplatoonScript
 
     private bool _active;
     private bool _hasDestination;
-    private bool _tankbusterStarted;
     private int _currentWaveIndex;
     private int _noSourceSignals;
     private Vector3? _fallbackPartyDestination;
@@ -81,7 +92,7 @@ public class P2_Trine_Beta : SplatoonScript
     private Vector3 _firstWavePartyDestination;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(2, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
 
     private Config C
     {
@@ -103,6 +114,24 @@ public class P2_Trine_Beta : SplatoonScript
             thicc = 5.0f,
             fillIntensity = 0.25f,
             color = 0xC800BFFF,
+            tether = true
+        });
+        Controller.RegisterElement("TankDestination", new Element(0)
+        {
+            Enabled = false,
+            radius = 1.25f,
+            thicc = 5.0f,
+            fillIntensity = 0.25f,
+            color = 0xC84080FF,
+            tether = true
+        });
+        Controller.RegisterElement("PartyDestination", new Element(0)
+        {
+            Enabled = false,
+            radius = 1.25f,
+            thicc = 5.0f,
+            fillIntensity = 0.25f,
+            color = 0xC800FF80,
             tether = true
         });
     }
@@ -148,7 +177,6 @@ public class P2_Trine_Beta : SplatoonScript
 
         if (castId == TankbusterCast)
         {
-            _tankbusterStarted = true;
             TryCompleteCurrentWave(partialAllowed: true);
             TryApplyFinalDestination();
         }
@@ -190,6 +218,9 @@ public class P2_Trine_Beta : SplatoonScript
         C.EnsureDefaults();
 
         ImGui.TextWrapped(MainDescriptionText.Get());
+        ImGui.Separator();
+        ImGui.Checkbox(ShowSharedRouteMarkersText.Get(), ref C.ShowSharedRouteMarkers);
+        ImGui.TextWrapped(ShowSharedRouteMarkersDescriptionText.Get());
         ImGui.Separator();
         C.PriorityData.Draw();
     }
@@ -359,12 +390,14 @@ public class P2_Trine_Beta : SplatoonScript
         if (reliableSafeGroups.Count > 0)
             safeGroups = reliableSafeGroups;
 
-        var tankGroup = SelectTankSafeGroup(safeGroups, firstTriangles);
-        tankDestination = SelectClosestCandidateToMiddleSide(tankGroup);
-        var partyGroup = SelectPartySafeGroup(safeGroups, tankGroup, tankDestination);
-        partyDestination = ReferenceEquals(partyGroup, tankGroup)
-            ? SelectAwayCandidate(partyGroup, tankDestination)
-            : SelectClosestCandidateToMiddleSide(partyGroup);
+        var singleGroup = SelectSingleSafeGroup(safeGroups, firstTriangles);
+        partyDestination = SelectClosestCandidateToMiddleSide(singleGroup);
+
+        var tankGroup = SelectDoubleSafeGroup(safeGroups, singleGroup, partyDestination);
+        tankDestination = ReferenceEquals(tankGroup, singleGroup)
+            ? SelectAwayCandidate(tankGroup, partyDestination)
+            : SelectClosestCandidateToMiddleSide(tankGroup);
+
         partyDestination = MoveOutwardFromArenaCenter(partyDestination, PartyOutwardOffset);
 
         return true;
@@ -448,7 +481,7 @@ public class P2_Trine_Beta : SplatoonScript
             .ToList();
     }
 
-    private static SafeCandidateGroup SelectTankSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
+    private static SafeCandidateGroup SelectSingleSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
         IReadOnlyList<TrineTriangle> firstTriangles)
     {
         return safeGroups
@@ -457,16 +490,16 @@ public class P2_Trine_Beta : SplatoonScript
             .First();
     }
 
-    private static SafeCandidateGroup SelectPartySafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
-        SafeCandidateGroup tankGroup, Vector3 tankDestination)
+    private static SafeCandidateGroup SelectDoubleSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
+        SafeCandidateGroup singleGroup, Vector3 partyDestination)
     {
         if (safeGroups.Count == 1)
-            return tankGroup;
+            return singleGroup;
 
         return safeGroups
-            .Where(group => !ReferenceEquals(group, tankGroup))
-            .OrderBy(group => DotXZ(group.Direction, tankGroup.Direction))
-            .ThenByDescending(group => DistanceSquaredXZ(SelectClosestCandidateToMiddleSide(group), tankDestination))
+            .Where(group => !ReferenceEquals(group, singleGroup))
+            .OrderBy(group => DotXZ(group.Direction, singleGroup.Direction))
+            .ThenByDescending(group => DistanceSquaredXZ(SelectClosestCandidateToMiddleSide(group), partyDestination))
             .ThenByDescending(group => group.Candidates.Count)
             .First();
     }
@@ -944,6 +977,17 @@ public class P2_Trine_Beta : SplatoonScript
         var me = BasePlayer;
         if (me == null) return;
 
+        if (_active && C.ShowSharedRouteMarkers && _hasFirstWaveRoute &&
+            _fallbackTankDestination.HasValue && _fallbackPartyDestination.HasValue)
+        {
+            var tankDestination = me.GetRole() == CombatRole.Tank && TryGetCachedDestination(me, out var myDestination)
+                ? myDestination
+                : _fallbackTankDestination.Value;
+            ShowDestinationElement("TankDestination", tankDestination, 0xC84080FF);
+            ShowDestinationElement("PartyDestination", _fallbackPartyDestination.Value, 0xC800FF80);
+            return;
+        }
+
         if (_active && _hasDestination && TryGetCachedDestination(me, out var cached) &&
             Controller.TryGetElementByName("Destination", out var destination))
         {
@@ -952,6 +996,17 @@ public class P2_Trine_Beta : SplatoonScript
             destination.color = GetRainbowColor();
             destination.overlayText = "";
         }
+    }
+
+    private void ShowDestinationElement(string name, Vector3 position, uint color)
+    {
+        if (!Controller.TryGetElementByName(name, out var element))
+            return;
+
+        element.Enabled = true;
+        element.SetRefPosition(position);
+        element.color = color;
+        element.overlayText = "";
     }
 
     private static uint GetRainbowColor()
@@ -993,7 +1048,6 @@ public class P2_Trine_Beta : SplatoonScript
     {
         _active = false;
         ClearDestinationCache();
-        _tankbusterStarted = false;
         _currentWaveIndex = 0;
         _noSourceSignals = 0;
         _hasFirstWaveRoute = false;
@@ -1106,6 +1160,8 @@ public class P2_Trine_Beta : SplatoonScript
 
     public sealed class Config : IEzConfig
     {
+        public bool ShowSharedRouteMarkers;
+
         public TankPriorityData PriorityData = new()
         {
             Name = "Trine MT/OT priority",

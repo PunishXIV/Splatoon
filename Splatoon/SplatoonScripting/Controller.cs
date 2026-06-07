@@ -126,6 +126,14 @@ public unsafe class Controller
         return TryRegisterLayout($"unnamed-{AutoIncrement}", layout, overwrite);
     }
 
+    public void RegisterLayoutFromCode(string key, string code)
+    {
+        if(!TryRegisterLayoutFromCode(key, code, out _, false))
+        {
+            throw new InvalidOperationException($"Duplicate layout registration: {key}");
+        }
+    }
+
     /// <summary>
     /// Attempts to register previously constructed element for further usage. End user will be able to edit this element as they wish and results of the edit will be saved. Enabled elements are subject for immediate processing when the script is enabled.
     /// </summary>
@@ -318,6 +326,12 @@ public unsafe class Controller
         return FakeParty.Get();
     }
 
+    public void ApplySingleLayoutOverride(string key, Layout value)
+    {
+        Layouts[key] = value.DSFClone();
+        OriginalLayoutsDirect[key] = value.DSFClone();
+    }
+
     public void ApplyOverrides()
     {
         foreach(var x in Script.InternalData.Overrides.Elements)
@@ -329,11 +343,20 @@ public unsafe class Controller
                 OriginalElementsDirect[x.Key] = x.Value.DSFClone();
             }
         }
+        foreach(var x in Script.InternalData.Overrides.Layouts)
+        {
+            if(Layouts.ContainsKey(x.Key))
+            {
+                PluginLog.Debug($"[{Script.InternalData.FullName}] Overriding {x.Key} layout with custom data");
+                Layouts[x.Key] = x.Value.DSFClone();
+                OriginalLayoutsDirect[x.Key] = x.Value.DSFClone();
+            }
+        }
     }
 
     public void SaveOverrides()
     {
-        if(Script.InternalData.Overrides.Elements.Count > 0)
+        if(Script.InternalData.Overrides.Elements.Count > 0 || Script.InternalData.Overrides.Layouts.Count > 0)
         {
             EzConfig.SaveConfiguration(Script.InternalData.Overrides, Script.InternalData.OverridesPath, true, false);
         }

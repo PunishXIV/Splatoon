@@ -1,13 +1,7 @@
-﻿using ECommons.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Splatoon.SplatoonScripting;
 
-namespace Splatoon.SplatoonScripting;
-
-public class OverrideData : IEzConfig
+public class OverrideData
 {
     public Dictionary<string, Element> Elements = [];
+    public Dictionary<string, Layout> Layouts = [];
 }

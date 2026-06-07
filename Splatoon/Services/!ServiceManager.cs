@@ -1,4 +1,5 @@
-﻿using Splatoon.Memory;
+﻿using Splatoon.Gui.Windows;
+using Splatoon.Memory;
 using Splatoon.RenderEngines;
 using System;
 using System.Collections.Generic;
@@ -22,4 +23,5 @@ public static class S
     internal static LogHooks LogHooks { get; private set; }
     internal static SystemLogProcessor SystemLogProcessor { get; private set; }
     internal static ObjectEffectProcessor ObjectEffectProcessor { get; private set; }
+    internal static PinnedLayoutEdit PinnedLayoutEdit { get; private set; }
 }

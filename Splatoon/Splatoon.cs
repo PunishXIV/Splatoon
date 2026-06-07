@@ -23,6 +23,7 @@ using NotificationMasterAPI;
 using Splatoon.Gui;
 using Splatoon.Gui.Priority;
 using Splatoon.Gui.Scripting;
+using Splatoon.Gui.Windows;
 using Splatoon.Memory;
 using Splatoon.Modules;
 using Splatoon.RenderEngines.DirectX11;
@@ -591,8 +592,26 @@ public unsafe class Splatoon : IDalamudPlugin
                     ProcessLayout(i);
                 }
 
-                ScriptingProcessor.Scripts.Each(x => { if(x.IsEnabled) x.Controller.Layouts.Values.Each(ProcessLayout); });
-                ScriptingProcessor.Scripts.Each(x => { if(x.IsEnabled || x.InternalData.UnconditionalDraw) x.Controller.Elements.Each(z => S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key))); });
+                foreach(var x in ScriptingProcessor.Scripts)
+                {
+                    if(x.IsEnabled || x.InternalData.UnconditionalDraw)
+                    {
+                        foreach(var z in x.Controller.Layouts)
+                        {
+                            ProcessLayout(z.Value, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawLayouts.Contains(z.Key));
+                        }
+                    }
+                }
+                foreach(var x in ScriptingProcessor.Scripts) 
+                { 
+                    if(x.IsEnabled || x.InternalData.UnconditionalDraw) 
+                    {
+                        foreach(var z in x.Controller.Elements)
+                        {
+                            S.RenderManager.GetRenderer(z.Value).ProcessElement(z.Value, null, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawElements.Contains(z.Key));
+                        }
+                    }
+                }
                 foreach(var e in InjectedElements)
                 {
                     S.RenderManager.GetRenderer(e).ProcessElement(e);
@@ -667,10 +686,10 @@ public unsafe class Splatoon : IDalamudPlugin
         ScriptingProcessor.Scripts.Each(x => x.Controller.Layouts.Values.Each(ResetLayout));
     }
 
-    internal void ProcessLayout(Layout l)
+    internal void ProcessLayout(Layout l, bool forceVisible = false)
     {
         l.ConditionalStatus = null;
-        if(LayoutUtils.IsLayoutVisible(l))
+        if(LayoutUtils.IsLayoutVisible(l) || forceVisible)
         {
             LayoutAmount++;
             if(l.Freezing)

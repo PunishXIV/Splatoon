@@ -32,12 +32,12 @@ public abstract class RenderEngine : IDisposable
 
     internal void AddCapturedObject(Layout l, Element e, Vector3 pos)
     {
-        CapturedPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName()).Add(pos);
+        CapturedPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName(l)).Add(pos);
     }
 
     internal void AddCapturedObject(Layout l, Element e, IGameObject pos)
     {
-        CapturedObjectPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName()).Add(pos);
+        CapturedObjectPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName(l)).Add(pos);
     }
 
     internal void StoreDisplayObjects()

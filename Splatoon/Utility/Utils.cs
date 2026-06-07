@@ -842,13 +842,14 @@ public static unsafe class Utils
         }
     }
 
-    public static string GetName(this Element e)
+    public static string GetName(this Element e, Layout owner = null)
     {
         if(e.InternationalName.Get(e.Name).IsNullOrEmpty())
         {
-            if(P.Config.LayoutsL.TryGetFirst(x => x.GetElementsWithSubconfiguration().Contains(e), out var l))
+            owner ??= P.Config.LayoutsL.FirstOrDefault(x => x.GetElementsWithSubconfiguration().Contains(e));
+            if(owner != null)
             {
-                var index = l.GetElementsWithSubconfiguration().IndexOf(e);
+                var index = owner.GetElementsWithSubconfiguration().IndexOf(e);
                 if(index >= 0)
                 {
                     return $"Unnamed element {index}";

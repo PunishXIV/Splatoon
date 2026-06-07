@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Splatoon.Gui;
+namespace Splatoon.Gui.Windows;
 
 internal class PinnedElementEdit : Window
 {

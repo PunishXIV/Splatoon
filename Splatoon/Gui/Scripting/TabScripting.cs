@@ -314,7 +314,7 @@ internal static class TabScripting
                         }
                         ImGuiEx.Tooltip("Open script's settings".Loc());
                     }
-                    else if(script.Controller.GetRegisteredElements().Count > 0)
+                    else if(script.Controller.GetRegisteredElements().Count > 0 || script.Controller.GetRegisteredLayouts().Count > 0)
                     {
                         if(ImGuiEx.IconButton(FontAwesomeIcon.PaintBrush))
                         {
@@ -397,6 +397,7 @@ internal static class TabScripting
                     }
                 }, null, false),
                 (openConfig.Controller.GetRegisteredElements().Count > 0 ? "Registered elements" : null, openConfig.DrawRegisteredElements, null, false),
+                (openConfig.Controller.GetRegisteredLayouts().Count > 0 ? "Registered layouts" : null, openConfig.DrawRegisteredLayouts, null, false),
                 ("Saved Configurations", openConfig.DrawConfigurations, null, false)
                 );
 

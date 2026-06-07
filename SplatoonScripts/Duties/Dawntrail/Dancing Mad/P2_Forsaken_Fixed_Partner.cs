@@ -31,7 +31,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -359,11 +359,11 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         ImGui.Checkbox("I will flex if my partner and I both have stacks while in tower", ref C.IsFlexerAsActive);
         ImGuiEx.Text("When in passive group during even towers, I will:");
         ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Bait boss clone", "Bait active group's fan", ref C.IsCloneBaitingAsPassive);
+        ImGuiEx.RadioButtonBool("Bait boss clone (melee)", "Bait active group's fan (ranged)", ref C.IsCloneBaitingAsPassive);
         ImGui.Unindent();
         ImGuiEx.Text("(ignore for stack+spread tower) When helping active odd tower with fan, I will:");
         ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Stack", "Bait fan", ref C.IsStackTakerAsPassive);
+        ImGuiEx.RadioButtonBool("Stack (tank)", "Bait fan (healer)", ref C.IsStackTakerAsPassive);
         ImGui.Unindent();
 
         if(ImGui.CollapsingHeader("Debug"))

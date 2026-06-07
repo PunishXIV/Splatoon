@@ -6,7 +6,9 @@
 >
 > Until then, you can browse and pick whatever you think will help you.
 >
-> Otherwise, please wait. 
+> Otherwise, please wait.
+>
+> [Meow3 / Kroxy/Rinon script here](https://github.com/PunishXIV/Splatoon/blob/main/Presets/Dawntrail/Raids/Ultimate%20-%20Dancing%20Mad/Phase%202.md#script-beta-p2-forsaken-fixed-partners)
 
 ## [Script] Forsaken Visualizer
 

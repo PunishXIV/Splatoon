@@ -228,7 +228,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(7, "Garume");
+    public override Metadata Metadata => new(8, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -348,12 +348,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
 
         if (!_active && !HasPartyMissingStatus()) return;
-
-        if (IsAllThingsEnding(actionId) && (_currentWave >= WaveCount || _observedTowerWave >= WaveCount))
-        {
-            ResetState();
-            return;
-        }
 
         if (actionId == PastsEndAction)
         {
@@ -1070,8 +1064,10 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         _pendingTowerClearPositions.Clear();
         _allowLiveContextRefresh = false;
-        DebugLog($"TOWER_CLEAR currentWave={_currentWave} stage={_currentStage} liveRefresh={_allowLiveContextRefresh}");
-        ApplyDisplay();
+        var activatedPending = TryActivatePendingTowerDisplayFromClear();
+        DebugLog($"TOWER_CLEAR currentWave={_currentWave} stage={_currentStage} liveRefresh={_allowLiveContextRefresh} activatedPending={activatedPending}");
+        if (!activatedPending)
+            ApplyDisplay();
     }
 
     private void SetStage(StageKind stage)
@@ -1103,6 +1099,18 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _pendingTowerDisplayWave = 0;
         _pendingTowerDisplayReference = 0;
         return true;
+    }
+
+    private bool TryActivatePendingTowerDisplayFromClear()
+    {
+        if (!_hasPendingTowerDisplay || _pendingTowerDisplayWave is < 3 or > WaveCount)
+            return false;
+
+        var stage = _pendingTowerDisplayWave % 2 == 0
+            ? StageKind.Tower
+            : StageKind.AllThingsEnding;
+        DebugLog($"PENDING_TOWER clear fallback stage={stage} wave={_pendingTowerDisplayWave} reference={FormatMapPosition(_pendingTowerDisplayReference)}");
+        return TryActivatePendingTowerDisplay(stage, _ => true);
     }
 
     private void ActivateTowerDisplay(int wave, uint reference, StageKind stage)

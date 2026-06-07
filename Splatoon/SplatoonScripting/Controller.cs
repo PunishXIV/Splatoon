@@ -7,12 +7,8 @@ using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using Splatoon.Gui.Priority;
 using Splatoon.SplatoonScripting.Priority;
 using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.DirectoryServices.ActiveDirectory;
 using System.Runtime.CompilerServices;
-using System.Xml.Linq;
-using TerraFX.Interop.Windows;
 #nullable enable
 namespace Splatoon.SplatoonScripting;
 
@@ -100,7 +96,9 @@ public unsafe class Controller
 
     public bool TryRegisterLayoutFromCode(string ExportString, [NotNullWhen(true)] out Layout? layout, bool overwrite = false)
     {
-        return TryRegisterLayoutFromCode($"unnamed-{AutoIncrement}", ExportString, out layout, overwrite);
+        var ret = ScriptingEngine.TryDecodeLayout(ExportString, out layout) && TryRegisterLayout(layout.Name, layout, overwrite);
+        if(ret) ElementNamesAsKeys.Add(layout.Name);
+        return ret;
     }
 
     /// <summary>
@@ -131,6 +129,14 @@ public unsafe class Controller
         if(!TryRegisterLayoutFromCode(key, code, out _, false))
         {
             throw new InvalidOperationException($"Duplicate layout registration: {key}");
+        }
+    }
+
+    public void RegisterLayoutFromCode(string code)
+    {
+        if(!TryRegisterLayoutFromCode(code, out _, false))
+        {
+            throw new InvalidOperationException($"Duplicate layout registration: {code.Trim(100)}");
         }
     }
 
@@ -180,6 +186,7 @@ public unsafe class Controller
     }
 
     internal HashSet<string> ElementNamesAsKeys = [];
+    internal HashSet<string> LayoutNamesAsKeys = [];
 
     /// <summary>
     /// Tries to get previously registered layout by name.

@@ -59,7 +59,7 @@ internal class PinnedLayoutEdit : Window
                 }
                 else
                 {
-                    ImGuiEx.TextWrapped("Select element to edit. Changing element's name may break the script.");
+                    P.ConfigGui.LayoutDrawHeader(EditingLayout);
                 }
                 ImGui.EndChild();
 

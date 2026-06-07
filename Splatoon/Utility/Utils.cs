@@ -9,6 +9,7 @@ using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Common.Lua;
 using Newtonsoft.Json;
 using Splatoon.Memory;
 using Splatoon.Serializables;
@@ -18,11 +19,74 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using S = Splatoon.Services.S;
+#nullable enable
 
 namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    /// <summary>
+    /// Returns element from layout by name, or null, if absent. If multiple elements of the same name are present, will return first only.
+    /// </summary>
+    /// <param name="layout"></param>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static Element? GetElement(this Layout layout, string name)
+    {
+        return layout.ElementsL.FirstOrDefault(x => x.Name == name);
+    }
+
+    /// <summary>
+    /// Returns element from layout by index, or null, if absent. Does not throws on index out of bounds.
+    /// </summary>
+    /// <param name="layout"></param>
+    /// <param name="index"></param>
+    /// <returns></returns>
+    public static Element? GetElement(this Layout layout, int index)
+    {
+        return layout.ElementsL.SafeSelect(index);
+    }
+
+    public static IEnumerable<Element> GetElements(this Layout layout, string name)
+    {
+        foreach(var x in layout.ElementsL)
+        {
+            if(x.Name == name) yield return x;
+        }
+    }
+
+    /// <summary>
+    /// Disables all elements of layout
+    /// </summary>
+    /// <param name="layout"></param>
+    public static void Hide(this Layout layout)
+    {
+        foreach(var x in layout.ElementsL)
+        {
+            x.Enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// Enables all elements of layout
+    /// </summary>
+    /// <param name="layout"></param>
+    public static void Show(this Layout layout)
+    {
+        foreach(var x in layout.ElementsL)
+        {
+            x.Enabled = true;
+        }
+    }
+
+    public static void SetElementsColor(this Layout v, uint col)
+    {
+        foreach(var x in v.ElementsL)
+        {
+            x.color = col;
+        }
+    }
+
     public static Vector4 GetAttentionColor()
     {
         var cycleSeconds = Math.Max(P.Config.AttentionColorCycle, 0.1f);

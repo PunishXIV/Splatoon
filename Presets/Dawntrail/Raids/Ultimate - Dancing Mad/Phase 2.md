@@ -283,6 +283,17 @@ Script file in this repository:
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Trine_Beta.cs
 ```
 
+## **[Script] [Beta]** P2 Trine Effects
+
+This script displays Trine's effects in order (3-1-3).
+Use this if 'Trine guide' is unavailable.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Trine_Beta.cs
+```
+
+
+
 # Individual scripts
 > [!Important]
 >
@@ -359,4 +370,10 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 
 ```
 ~Lv2~{"Name":"Clones bait","Group":"DMU","ZoneLockH":[1363],"ElementsL":[{"Name":"Kefka Casts","type":1,"radius":5.5,"Donut":0.1,"color":3370385663,"fillIntensity":0.4,"refActorNPCNameID":7131,"refActorRequireCast":true,"refActorCastId":[47826,47827],"refActorUseCastTime":true,"refActorCastTimeMin":3.0,"refActorCastTimeMax":8.0,"refActorComparisonType":6,"Conditional":true,"Nodraw":true},{"Name":"Aoe 1","type":1,"radius":5.0,"Donut":0.1,"color":3370385663,"fillIntensity":0.4,"refActorModelID":4967,"TargetAlteration":1100,"refActorComparisonType":1,"onlyVisible":true,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":9.0,"IsDead":false},{"Name":"Aoe 2","type":1,"radius":5.0,"Donut":0.1,"color":3370385663,"fillIntensity":0.4,"refActorModelID":4967,"TargetAlteration":1101,"refActorComparisonType":1,"onlyVisible":true,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":9.0,"IsDead":false},{"Name":"Aoe 3","type":1,"radius":5.0,"Donut":0.1,"color":3370385663,"fillIntensity":0.4,"refActorModelID":4967,"TargetAlteration":1102,"refActorComparisonType":1,"onlyVisible":true,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":9.0,"IsDead":false},{"Name":"Aoe 4","type":1,"radius":5.0,"Donut":0.1,"color":3370385663,"fillIntensity":0.4,"refActorModelID":4967,"TargetAlteration":1103,"refActorComparisonType":1,"onlyVisible":true,"LimitDistance":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":9.0}],"ForcedProjectorActions":[47836,47837]}
+```
+
+### [International] Wings of Destruction (left or right)
+
+```
+~Lv2~{"Name":"Wings of Destruction","Group":"Dancing Mad (Ultimate) P2","ZoneLockH":[1363],"ElementsL":[{"Name":"LeftSide","type":4,"radius":20.0,"coneAngleMin":180,"coneAngleMax":360,"refActorDataID":19506,"refActorRequireCast":true,"refActorCastId":[47821],"refActorComparisonType":3,"includeRotation":true},{"Name":"RightSide","type":4,"radius":20.0,"coneAngleMax":180,"refActorDataID":19506,"refActorRequireCast":true,"refActorCastId":[47822],"refActorComparisonType":3,"includeRotation":true}]}
 ```

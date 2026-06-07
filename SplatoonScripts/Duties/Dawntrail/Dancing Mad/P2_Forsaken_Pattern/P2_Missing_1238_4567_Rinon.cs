@@ -23,7 +23,7 @@ internal class P2_Missing_1238_4567_Rinon : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(3, "mirage, Poneglyph");
+    public override Metadata? Metadata => new(4, "mirage, Poneglyph");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -112,24 +112,24 @@ internal class P2_Missing_1238_4567_Rinon : SplatoonScript
     [
         new(0, 2, 1, 1,
         [
-            Rule("211_LeftTowerStack", PositionBasis.LeftTower, 180f, 2f),
-            Rule("211_LeftTowerCone", PositionBasis.LeftTower, 0f, 2.5f),
-            Rule("211_LeftTowerStackOutside", PositionBasis.LeftTower, 0f, 4.75f),
-            Rule("211_LeftTowerBaitCone", PositionBasis.LeftTower, 180f, 4.75f),
-            Rule("211_RightTowerStack", PositionBasis.RightTower, 225f, 3.50f),
-            Rule("211_RightTowerSpread", PositionBasis.RightTower, 45f, 3.25f),
-            Rule("211_RightTowerStackOutside", PositionBasis.RightTower, 225f, 4.75f),
+            Rule("211_LeftTowerStack", PositionBasis.LeftTower, 182f, 1.2f),
+            Rule("211_LeftTowerCone", PositionBasis.LeftTower, 0f, 3.15f),
+            Rule("211_LeftTowerStackOutside", PositionBasis.LeftTower, 0f, 5f),
+            Rule("211_LeftTowerBaitCone", PositionBasis.LeftTower, 173f, 4.55f),
+            Rule("211_RightTowerStack", PositionBasis.RightTower, 211f, 3.5f),
+            Rule("211_RightTowerSpread", PositionBasis.RightTower, 43f, 3.55f),
+            Rule("211_RightTowerStackOutside", PositionBasis.RightTower, 193f, 4.45f),
         ]),
         new(1, 0, 2, 2,
         [
-            Rule("022_LeftTowerCone", PositionBasis.LeftTower, 135f, 3.25f),
-            Rule("022_RightTowerCone", PositionBasis.RightTower, 225f, 3.25f),
-            Rule("022_LeftTowerSpread", PositionBasis.LeftTower, 315f, 3.5f),
-            Rule("022_RightTowerSpread", PositionBasis.RightTower, 45f, 3.5f),
-            Rule("022_LeftHelper", PositionBasis.LeftTower, 45f, 4.9f),
-            Rule("022_LeftBait", PositionBasis.Center, 320f, 8f),
-            Rule("022_RightHelper", PositionBasis.RightTower, 315f, 4.9f),
-            Rule("022_RightBait", PositionBasis.Center, 40f, 8f),
+            Rule("022_LeftTowerCone", PositionBasis.LeftTower, 179f, 3.5f),
+            Rule("022_RightTowerCone", PositionBasis.RightTower, 183f, 3.65f),
+            Rule("022_LeftTowerSpread", PositionBasis.LeftTower, 338f, 3.5f),
+            Rule("022_RightTowerSpread", PositionBasis.RightTower, 20f, 3.6f),
+            Rule("022_LeftHelper", PositionBasis.LeftTower, 91f, 4.55f),
+            Rule("022_LeftBait", PositionBasis.Center, 316f, 5.4f),
+            Rule("022_RightHelper", PositionBasis.RightTower, 267f, 4.4f),
+            Rule("022_RightBait", PositionBasis.Center, 40f, 5.7f),
         ]),
     ];
 

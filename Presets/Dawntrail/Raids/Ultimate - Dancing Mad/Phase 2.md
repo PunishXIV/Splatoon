@@ -278,6 +278,8 @@ Script to resolve Forsaken ONLY for strategies that rely always on your fixed pa
 
 Default configuration is for Kroxy/Rinon strat.
 
+Update at 2026-06-07 21:35:23 UTC: significantly improved Rinon positions
+
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Fixed_Partner.cs
 ```

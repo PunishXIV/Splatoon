@@ -23,7 +23,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(6, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -226,6 +226,10 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                 {
                     isCone = !isCone;
                 }
+                if(SequenceCount == 1 && IsStack(BasePlayer))
+                {
+                    isCone = IsFan(partner);
+                }
                 if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
                 {
                     if(ShowRotatedLayout($"1357_{(isCone ? "Left" : "Right")}", isCone, out var l))
@@ -351,8 +355,9 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         ImGuiEx.Text("My tower, looking at boss:");
         ImGui.Indent();
         ImGuiEx.RadioButtonBool("Left", "Right", ref C.IsLeftDefaultTower);
-        ImGui.Unindent();
         ImGui.Checkbox("I will flex if my partner and I both have stacks while in tower", ref C.IsFlexerAsActive);
+        ImGui.Checkbox("Follow partner for first tower if I have stack", ref C.FirstTowerFollowsPartner);
+        ImGui.Unindent();
         ImGuiEx.Text("When in passive group during even towers, I will:");
         ImGui.Indent();
         ImGuiEx.RadioButtonBool("Bait boss clone (melee)", "Bait active group's fan (ranged)", ref C.IsCloneBaitingAsPassive);
@@ -398,6 +403,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         public bool IsFlexerAsActive = false;
         public bool IsStackTakerAsPassive = false;
         public bool IsCloneBaitingAsPassive = false;
+        public bool FirstTowerFollowsPartner = false;
         public Prio1 MyPartner = new();
     }
 

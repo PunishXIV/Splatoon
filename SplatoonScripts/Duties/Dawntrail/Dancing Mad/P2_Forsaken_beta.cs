@@ -217,6 +217,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private bool _allowLiveContextRefresh;
     private bool _waitingForLiveDebuffRefresh;
     private int _waitingForLiveDebuffRefreshWave;
+    private bool _finalAllThingsEndingCastSeen;
     private string _currentInstruction = "";
     private bool _hasDestination;
     private Vector3 _myDestination = Vector3.Zero;
@@ -228,7 +229,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(8, "Garume");
+    public override Metadata Metadata => new(9, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -329,6 +330,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         if (IsAllThingsEnding(actionId: castId))
         {
             DebugLog($"CAST_START All Things Ending pendingWave={_pendingTowerDisplayWave} hasPending={_hasPendingTowerDisplay} observedWave={_observedTowerWave} currentWave={_currentWave}");
+            if (_currentWave >= WaveCount && _currentStage == StageKind.Future)
+            {
+                _finalAllThingsEndingCastSeen = true;
+                DebugLog("CAST_START final All Things Ending");
+            }
+
             TryActivatePendingTowerDisplay(StageKind.AllThingsEnding, wave => wave is >= 3 and <= WaveCount && wave % 2 == 1);
         }
     }
@@ -348,6 +355,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
 
         if (!_active && !HasPartyMissingStatus()) return;
+
+        if (IsAllThingsEnding(actionId) && _finalAllThingsEndingCastSeen && _currentWave >= WaveCount)
+        {
+            DebugLog("ACTION final All Things Ending resolved; reset");
+            ResetState();
+            return;
+        }
 
         if (actionId == PastsEndAction)
         {
@@ -2277,6 +2291,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _allowLiveContextRefresh = false;
         _waitingForLiveDebuffRefresh = false;
         _waitingForLiveDebuffRefreshWave = 0;
+        _finalAllThingsEndingCastSeen = false;
         _currentInstruction = "";
         _hasDestination = false;
         _myDestination = Vector3.Zero;

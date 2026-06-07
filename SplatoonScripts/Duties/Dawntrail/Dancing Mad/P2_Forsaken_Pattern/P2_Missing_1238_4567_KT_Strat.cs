@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using ECommons.PartyFunctions;
 using Splatoon;
+using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using Splatoon.Utility;
@@ -23,7 +27,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(2, "mirage");
+    public override Metadata? Metadata => new(5, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -69,12 +73,26 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private const int ActiveStepMin = 1;
     private const int ActiveStepMax = 8;
+    private const int Step4AutoMarkTrigger = 4;
+    private const float Step4AutoMarkDelayBaseSec = 3f;
+    private const float Step4AutoMarkDelayRandomSpanSec = 1.5f;
+    private const int Step8MarkerResolveTrigger = 8;
+
+    private const uint MarkerIndexAttack1 = 0;
+    private const uint MarkerIndexAttack2 = 1;
+    private const uint MarkerIndexBind1 = 5;
+    private const uint MarkerIndexBind2 = 6;
+    private const uint MarkerIndexStop1 = 8;
+    private const uint MarkerIndexStop2 = 9;
+
+    private static readonly string[] MarkerResolveKindLabels = ["None", "Attack", "Stop", "Bind"];
 
     // FirstHalf group towers on steps 1,2,3,8; SecondHalf on steps 4,5,6,7.
     private static readonly HashSet<int> FirstHalfTowerSteps = [1, 2, 3, 8];
     private static readonly HashSet<int> SecondHalfTowerSteps = [4, 5, 6, 7];
 
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
+    private static readonly Vector3 Step8InterludeNavPosition = new(100f, 0f, 95f);
     private static readonly Vector3 TrueNorth = new(100f, 0f, 120f);
     private const float AngleTolerance = 22.5f;
     private const float DefaultRangeInside = 3.25f;
@@ -157,6 +175,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private Tower1Side _tower1Side = Tower1Side.Unknown;
     private readonly List<PlayerInfo> _infos = [];
     private bool _initialGroupResolved;
+    private bool _step4AutoMarkSent;
+    private string? _step4AutoMarkSkipReason;
+    private bool _step4AutoMarkSkipLogged;
+    private long _step4AutoMarkDueAt;
     private InterludeNavPhase _interludeNavPhase;
     private bool _interludeBossCastSeen;
 
@@ -215,6 +237,14 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         Adjacent,
     }
 
+    private enum MarkerResolveKind
+    {
+        None,
+        Attack,
+        Stop,
+        Bind,
+    }
+
     private sealed class PlayerInfo
     {
         public required IPlayerCharacter Player;
@@ -238,6 +268,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         public int DebugPatternPreview = DebugPatternPreviewNone;
         public int DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
         public int Step1PairMode = (int)Step1PairModeKind.Alternate;
+        public MarkerResolveKind SpreadMarkerType = MarkerResolveKind.Stop;
+        public MarkerResolveKind ConeMarkerType = MarkerResolveKind.Bind;
         public PatternRuleSettings[][] PatternRules = CreateDefaultPatternRules();
 
         public void EnsureDefaults()
@@ -248,6 +280,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             DebugPatternPreviewRole = ClampPatternPreviewRole(DebugPatternPreview, DebugPatternPreviewRole);
             if(Step1PairMode is < (int)Step1PairModeKind.Alternate or > (int)Step1PairModeKind.Adjacent)
                 Step1PairMode = (int)Step1PairModeKind.Alternate;
+            SpreadMarkerType = ClampMarkerResolveKind(SpreadMarkerType);
+            ConeMarkerType = ClampMarkerResolveKind(ConeMarkerType);
             PatternRules = EnsurePatternRules(PatternRules);
         }
 
@@ -257,8 +291,13 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
             Step1PairMode = (int)Step1PairModeKind.Alternate;
+            SpreadMarkerType = MarkerResolveKind.Stop;
+            ConeMarkerType = MarkerResolveKind.Bind;
             PatternRules = CreateDefaultPatternRules();
         }
+
+        private static MarkerResolveKind ClampMarkerResolveKind(MarkerResolveKind kind)
+            => Enum.IsDefined(kind) ? kind : MarkerResolveKind.None;
 
         private static PriorityData CreateDefaultPriorityData()
             => new()
@@ -344,6 +383,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
         UpdateInterludeNavPhase();
         UpdateActiveTowerMarkers();
+        TryRunStep4AutoMark();
+        LogStep4AutoMarkSkipOnce();
         UpdateFieldMarkers();
     }
 
@@ -425,19 +466,34 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private void DrawPrioritySettings()
     {
         C.EnsureDefaults();
+        ImGui.TextDisabled("Pair Mode");
+        ImGui.Separator();
         var pairMode = C.Step1PairMode;
         if(ImGui.Combo("Step1 pair mode", ref pairMode, Step1PairModeLabels, Step1PairModeLabels.Length))
             C.Step1PairMode = pairMode;
-
-        ImGui.TextUnformatted(GetStep1PairModeDescription(C.Step1PairMode));
         if(IsAdjacentStep1PairMode())
-            ImGui.TextUnformatted("Initial group (Adjacent): Stack->FirstHalf / partner->SecondHalf; Spreadx2 or Conex2 split by priority.");
+        {
+            ImGui.TextUnformatted("Stack->FirstHalf / partner->SecondHalf; Spread x 2 or Cone x 2 pairs split by priority.");
+            ImGui.TextUnformatted("Pair: [T1, T2], [H1, H2], [M1, M2], [R1, R2].");
+        }
         else
-            ImGui.TextUnformatted("Initial group (Alternate): Stack pairs->FirstHalf; non-stack pairs->SecondHalf.");
-        ImGui.TextUnformatted("Step2+: FirstHalf towers on steps 1,2,3,8; SecondHalf towers on steps 4,5,6,7.");
+        {
+            ImGui.TextUnformatted("Stack pairs->FirstHalf; non-stack pairs->SecondHalf.");
+            ImGui.TextUnformatted("Pair: [T1, H1], [T2, H2], [M1, R1], [M2, R2].");
+        }
 
         ImGui.Spacing();
-        ImGui.TextUnformatted($"Priority list");
+        ImGui.TextDisabled("Marker Rule");
+        ImGui.Separator();
+        DrawMarkerResolveKindCombo("Spread marker type", ref C.SpreadMarkerType);
+        DrawMarkerResolveKindCombo("Cone marker type", ref C.ConeMarkerType);
+
+        ImGui.TextUnformatted("Step4: FirstHalf Spread/Cone self-mark from marker type (None skips).");
+        ImGui.TextUnformatted($"Step4 mark delay: {Step4AutoMarkDelayBaseSec:0}s + random(0, {Step4AutoMarkDelayRandomSpanSec:0.#}s).");
+        ImGui.TextUnformatted("Step8: Spread/Cone tower roles resolve by marker type. When None; set by priority.");
+
+        ImGui.Spacing();
+        ImGui.TextDisabled("Marker Settings");
         ImGui.Separator();
 
         C.PriorityData.Draw();
@@ -540,6 +596,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         ImGui.Separator();
         ImGui.TextUnformatted(_hasActiveTowers ? $"Step: {_step}" : "Step: —");
         ImGui.TextUnformatted(_initialGroupResolved ? "Initial group (KT pairs): resolved" : "Initial group (KT pairs): —");
+        DrawPartyDebuffStatus();
+        DrawDebugStep8MarkerSection();
         if(_hasActiveTowers && _step is >= ActiveStepMin and <= ActiveStepMax)
         {
             if(TryGetActiveMechanicHalf(out var activeHalf))
@@ -557,7 +615,70 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
             ImGui.TextUnformatted($"Pending clears: {FormatMapPositionList(_pendingTowerClearPositions)}");
             ImGui.TextUnformatted($"Interlude nav: {_interludeNavPhase}");
+            if(_step == Step8MarkerResolveTrigger
+                && _interludeNavPhase is InterludeNavPhase.PastGap or InterludeNavPhase.FutureOpposite)
+                ImGui.TextUnformatted("Interlude nav target: north (100, 0, 90)");
         }
+    }
+
+    private static void DrawMarkerResolveKindCombo(string label, ref MarkerResolveKind kind)
+    {
+        var idx = (int)kind;
+        if(idx < 0 || idx >= MarkerResolveKindLabels.Length)
+            idx = 0;
+
+        ImGui.SetNextItemWidth(200f);
+        if(ImGui.Combo(label, ref idx, MarkerResolveKindLabels, MarkerResolveKindLabels.Length))
+            kind = (MarkerResolveKind)idx;
+    }
+
+    private static string FormatMarkerResolveKind(MarkerResolveKind kind)
+        => MarkerResolveKindLabels[(int)kind];
+
+    private void DrawDebugStep8MarkerSection()
+    {
+        C.EnsureDefaults();
+        ImGui.Spacing();
+        ImGui.TextUnformatted("Step8 marker resolve");
+        ImGui.Separator();
+        ImGui.TextUnformatted($"Spread marker: {FormatMarkerResolveKind(C.SpreadMarkerType)}");
+        ImGui.TextUnformatted($"Cone marker: {FormatMarkerResolveKind(C.ConeMarkerType)}");
+        ImGui.TextUnformatted(_step4AutoMarkSent ? "Step4 auto-mark: sent" : "Step4 auto-mark: not sent");
+        if(!_step4AutoMarkSent && _step4AutoMarkDueAt != 0)
+        {
+            var remainingSec = MathF.Max(0f, (_step4AutoMarkDueAt - Environment.TickCount64) / 1000f);
+            ImGui.TextUnformatted($"Step4 auto-mark pending: {remainingSec:0.0}s");
+        }
+
+        if(!_step4AutoMarkSent && _step4AutoMarkSkipReason != null)
+            ImGui.TextUnformatted($"Step4 auto-mark skip: {_step4AutoMarkSkipReason}");
+
+        if(BasePlayer == null)
+        {
+            ImGui.TextUnformatted("My markers: (no player)");
+            return;
+        }
+
+        ImGui.TextUnformatted($"My markers: {FormatPlayerMarkerDebug(BasePlayer)}");
+
+        if(_step != Step8MarkerResolveTrigger || !TryEnsureInfos())
+            return;
+
+        UpdateDebuffs();
+        var baseInfo = GetBasePlayerInfo();
+        if(baseInfo == null)
+            return;
+
+        var step8Role = baseInfo.Debuff switch
+        {
+            DebuffKind.Spread => ResolvePattern022SpreadRole(baseInfo),
+            DebuffKind.Cone => ResolvePattern022ConeRole(baseInfo),
+            _ => null,
+        };
+        if(step8Role != null)
+            ImGui.TextUnformatted($"Step8 role: {step8Role}");
+        else
+            ImGui.TextUnformatted("Step8 role: —");
     }
 
     private void DrawDebugStep1PairsSection()
@@ -714,16 +835,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
         CountDebuffKindsFromTowerInfos(out var stack, out var spread, out var cone);
         ImGui.TextUnformatted($"Tower counts: stack={stack} spread={spread} cone={cone}");
-    }
-
-    private static string GetStep1PairModeDescription(int pairMode)
-    {
-        if(pairMode == (int)Step1PairModeKind.Adjacent)
-        {
-            return "Priority — Step1 pairs by list: [T1, T2], [H1, H2], [M1, M2], [R1, R2] (index: 0-1, 2-3, 4-5, 6-7).";
-        }
-
-        return "Priority — Step1 pairs by list: [T1, H1], [T2, H2], [M1, R1], [M2, R2] (index: 0-2, 1-3, 4-6, 5-7).";
     }
 
     private bool IsAdjacentStep1PairMode()
@@ -955,6 +1066,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
         _step++;
         _tower1Side = ResolveTower1Side(hits[0].SlotPosition, hits[1].SlotPosition);
+        TryRunStep4AutoMark();
     }
 
     private static List<TowerHit> CreateTowerHits(uint reference, uint paired)
@@ -1052,6 +1164,13 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(!_hasActiveTowers)
             return false;
 
+        if(_step == Step8MarkerResolveTrigger)
+        {
+            position = Step8InterludeNavPosition;
+            label = "step8 north";
+            return true;
+        }
+
         position = ResolveInterludeNavPosition();
         label = _interludeNavPhase == InterludeNavPhase.PastGap ? "between towers" : "opposite side";
         return true;
@@ -1083,7 +1202,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(!Controller.TryGetElementByName(elementName, out var element))
             return;
 
-        if(!_hasActiveTowers)
+        if(!_hasActiveTowers || !AllPartyMembersHaveMechanicDebuff())
         {
             element.Enabled = false;
             return;
@@ -1108,6 +1227,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         _activeTowerEntityIds[1] = 0;
         _infos.Clear();
         _initialGroupResolved = false;
+        _step4AutoMarkSent = false;
+        _step4AutoMarkSkipReason = null;
+        _step4AutoMarkSkipLogged = false;
+        _step4AutoMarkDueAt = 0;
         _interludeNavPhase = InterludeNavPhase.None;
         _interludeBossCastSeen = false;
 
@@ -1440,6 +1563,37 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(player.StatusList.Any(s => s.StatusId == StatusCone))
             return DebuffKind.Cone;
         return DebuffKind.None;
+    }
+
+    private static bool HasMechanicDebuff(DebuffKind debuff)
+        => debuff is DebuffKind.Stack or DebuffKind.Spread or DebuffKind.Cone;
+
+    private bool AllPartyMembersHaveMechanicDebuff()
+    {
+        var party = GetOrderedPartyPlayers();
+        if(party.Count != PartyPlayerCount)
+            return false;
+
+        return party.All(p => HasMechanicDebuff(GetDebuffKind(p)));
+    }
+
+    private int CountPartyMembersWithMechanicDebuff()
+        => GetOrderedPartyPlayers().Count(p => HasMechanicDebuff(GetDebuffKind(p)));
+
+    private void DrawPartyDebuffStatus()
+    {
+        var party = GetOrderedPartyPlayers();
+        if(party.Count != PartyPlayerCount)
+        {
+            ImGui.TextUnformatted("Party debuffs: waiting (party not ready)");
+            return;
+        }
+
+        var assigned = CountPartyMembersWithMechanicDebuff();
+        if(assigned == PartyPlayerCount)
+            ImGui.TextUnformatted("Party debuffs: all assigned");
+        else
+            ImGui.TextUnformatted($"Party debuffs: waiting ({assigned}/{PartyPlayerCount})");
     }
 
     private List<IPlayerCharacter> GetOrderedPartyPlayers()
@@ -1872,6 +2026,14 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     {
         if(IsTower(info))
         {
+            if(_step == Step8MarkerResolveTrigger)
+            {
+                if(info.Debuff == DebuffKind.Spread)
+                    return ResolvePattern022SpreadRole(info);
+                if(info.Debuff == DebuffKind.Cone)
+                    return ResolvePattern022ConeRole(info);
+            }
+
             if(info.Debuff == DebuffKind.Spread)
             {
                 return GetPriorityRank(
@@ -1907,6 +2069,32 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         };
     }
 
+    private string? ResolvePattern022SpreadRole(PlayerInfo info)
+    {
+        if(C.SpreadMarkerType != MarkerResolveKind.None)
+            return Resolve022RoleByMarker(info, C.SpreadMarkerType, "022_SpreadPriority1", "022_SpreadPriority2");
+
+        return GetPriorityRank(_infos.Where(i => IsTower(i) && i.Debuff == DebuffKind.Spread), info) switch
+        {
+            0 => "022_SpreadPriority1",
+            1 => "022_SpreadPriority2",
+            _ => null,
+        };
+    }
+
+    private string? ResolvePattern022ConeRole(PlayerInfo info)
+    {
+        if(C.ConeMarkerType != MarkerResolveKind.None)
+            return Resolve022RoleByMarker(info, C.ConeMarkerType, "022_ConePriority1", "022_ConePriority2");
+
+        return GetPriorityRank(_infos.Where(i => IsTower(i) && i.Debuff == DebuffKind.Cone), info) switch
+        {
+            0 => "022_ConePriority1",
+            1 => "022_ConePriority2",
+            _ => null,
+        };
+    }
+
     private int GetPriorityRank(IEnumerable<PlayerInfo> subset, PlayerInfo target)
     {
         var ordered = OrderInfosByPriority(subset).ToList();
@@ -1919,6 +2107,179 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             return null;
 
         return _infos.FirstOrDefault(i => i.Player.EntityId == BasePlayer.EntityId);
+    }
+
+    private void TryRunStep4AutoMark()
+    {
+        C.EnsureDefaults();
+
+        if(_step4AutoMarkSent)
+        {
+            _step4AutoMarkSkipReason = null;
+            return;
+        }
+
+        if(_step != Step4AutoMarkTrigger)
+        {
+            _step4AutoMarkSkipReason = null;
+            if(!_step4AutoMarkSent)
+                _step4AutoMarkDueAt = 0;
+            return;
+        }
+
+        if(!TryEnsureInfos())
+        {
+            _step4AutoMarkSkipReason = "party not ready";
+            return;
+        }
+
+        UpdateDebuffs();
+
+        if(!_initialGroupResolved)
+        {
+            if(!TryResolveInitialGroup())
+            {
+                _step4AutoMarkSkipReason = "initial group unresolved";
+                return;
+            }
+
+            _initialGroupResolved = true;
+        }
+
+        var baseInfo = GetBasePlayerInfo();
+        if(baseInfo == null)
+        {
+            _step4AutoMarkSkipReason = "self not in party list";
+            return;
+        }
+
+        if(baseInfo.Half != MechanicHalf.First)
+        {
+            _step4AutoMarkSkipReason = $"half is {FormatHalf(baseInfo.Half)} (need first)";
+            return;
+        }
+
+        var command = baseInfo.Debuff switch
+        {
+            DebuffKind.Spread => GetMarkCommand(C.SpreadMarkerType),
+            DebuffKind.Cone => GetMarkCommand(C.ConeMarkerType),
+            _ => null,
+        };
+
+        if(command == null)
+        {
+            _step4AutoMarkSkipReason = baseInfo.Debuff switch
+            {
+                DebuffKind.Spread => "Spread marker type is None",
+                DebuffKind.Cone => "Cone marker type is None",
+                _ => $"debuff is {FormatDebuffKindDebug(baseInfo.Debuff)} (need Spread/Cone)",
+            };
+            return;
+        }
+
+        if(_step4AutoMarkDueAt == 0)
+        {
+            _step4AutoMarkDueAt = Environment.TickCount64 + ComputeStep4AutoMarkDelayMs();
+            _step4AutoMarkSkipReason = null;
+            return;
+        }
+
+        if(Environment.TickCount64 < _step4AutoMarkDueAt)
+            return;
+
+        _step4AutoMarkSent = true;
+        _step4AutoMarkSkipReason = null;
+        _step4AutoMarkSkipLogged = false;
+        _step4AutoMarkDueAt = 0;
+        RunMarkCommand(command);
+    }
+
+    // Returns a random mark delay of at least Step4AutoMarkDelayBaseSec.
+    private static long ComputeStep4AutoMarkDelayMs()
+    {
+        var seconds = Step4AutoMarkDelayBaseSec + Random.Shared.NextSingle() * Step4AutoMarkDelayRandomSpanSec;
+        return (long)(seconds * 1000f);
+    }
+
+    private void LogStep4AutoMarkSkipOnce()
+    {
+        if(_step4AutoMarkSent || _step <= Step4AutoMarkTrigger || _step4AutoMarkSkipReason == null
+            || _step4AutoMarkSkipLogged || _step4AutoMarkDueAt != 0)
+            return;
+
+        if(!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            return;
+
+        DuoLog.Information($"Step4 auto-mark skipped: {_step4AutoMarkSkipReason}");
+        _step4AutoMarkSkipLogged = true;
+    }
+
+    private static void RunMarkCommand(string command)
+    {
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            DuoLog.Information($"Step4 auto-mark: {command}");
+        else
+            Chat.Instance.ExecuteCommand(command);
+    }
+
+    private static string? GetMarkCommand(MarkerResolveKind kind)
+        => kind switch
+        {
+            MarkerResolveKind.Attack => "/mk attack <me>",
+            MarkerResolveKind.Stop => "/mk stop <me>",
+            MarkerResolveKind.Bind => "/mk bind <me>",
+            _ => null,
+        };
+
+    private static bool TryGetMarkerPriorityIndices(MarkerResolveKind kind, out uint indexPriority1,
+        out uint indexPriority2)
+    {
+        switch(kind)
+        {
+            case MarkerResolveKind.Attack:
+                indexPriority1 = MarkerIndexAttack1;
+                indexPriority2 = MarkerIndexAttack2;
+                return true;
+            case MarkerResolveKind.Bind:
+                indexPriority1 = MarkerIndexBind1;
+                indexPriority2 = MarkerIndexBind2;
+                return true;
+            case MarkerResolveKind.Stop:
+                indexPriority1 = MarkerIndexStop1;
+                indexPriority2 = MarkerIndexStop2;
+                return true;
+            default:
+                indexPriority1 = 0;
+                indexPriority2 = 0;
+                return false;
+        }
+    }
+
+    private static string Resolve022RoleByMarker(PlayerInfo info, MarkerResolveKind kind, string labelPriority1,
+        string labelPriority2)
+    {
+        if(!TryGetMarkerPriorityIndices(kind, out var indexPriority1, out _))
+            return labelPriority2;
+
+        return Marking.HaveMark(info.Player, indexPriority1) ? labelPriority1 : labelPriority2;
+    }
+
+    private static string FormatPlayerMarkerDebug(IPlayerCharacter player)
+    {
+        var marks = new List<string>(6);
+        if(Marking.HaveMark(player, MarkerIndexAttack1))
+            marks.Add("attack1");
+        if(Marking.HaveMark(player, MarkerIndexAttack2))
+            marks.Add("attack2");
+        if(Marking.HaveMark(player, MarkerIndexBind1))
+            marks.Add("bind1");
+        if(Marking.HaveMark(player, MarkerIndexBind2))
+            marks.Add("bind2");
+        if(Marking.HaveMark(player, MarkerIndexStop1))
+            marks.Add("stop1");
+        if(Marking.HaveMark(player, MarkerIndexStop2))
+            marks.Add("stop2");
+        return marks.Count == 0 ? "(none)" : string.Join(", ", marks);
     }
 
     private bool TryUpdateLiveRoles(out int patternId, out string roleLabel)

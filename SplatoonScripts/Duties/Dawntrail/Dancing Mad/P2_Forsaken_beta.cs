@@ -41,6 +41,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private const int PreviewElementCount = 64;
     private const string PreviewElementPrefix = "Preview";
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
+    private const float FinalAllThingsEndingOffset = 4f;
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
     private const int CurrentDefaultsVersion = 13;
@@ -217,6 +218,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private bool _allowLiveContextRefresh;
     private bool _waitingForLiveDebuffRefresh;
     private int _waitingForLiveDebuffRefreshWave;
+    private bool _finalAllThingsEndingCastSeen;
     private string _currentInstruction = "";
     private bool _hasDestination;
     private Vector3 _myDestination = Vector3.Zero;
@@ -228,7 +230,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(7, "Garume");
+    public override Metadata Metadata => new(8, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -329,6 +331,15 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         if (IsAllThingsEnding(actionId: castId))
         {
             DebugLog($"CAST_START All Things Ending pendingWave={_pendingTowerDisplayWave} hasPending={_hasPendingTowerDisplay} observedWave={_observedTowerWave} currentWave={_currentWave}");
+            if (IsFinalWavePastFutureStage())
+            {
+                _finalAllThingsEndingCastSeen = true;
+                DebugLog("CAST_START final All Things Ending");
+                UpdateStageInstruction();
+                ApplyDisplay();
+                return;
+            }
+
             TryActivatePendingTowerDisplay(StageKind.AllThingsEnding, wave => wave is >= 3 and <= WaveCount && wave % 2 == 1);
         }
     }
@@ -349,8 +360,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         if (!_active && !HasPartyMissingStatus()) return;
 
-        if (IsAllThingsEnding(actionId) && (_currentWave >= WaveCount || _observedTowerWave >= WaveCount))
+        if (IsAllThingsEnding(actionId) && _finalAllThingsEndingCastSeen && _currentWave >= WaveCount)
         {
+            DebugLog("ACTION final All Things Ending resolved; reset");
             ResetState();
             return;
         }
@@ -368,6 +380,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     }
 
     private static bool IsAllThingsEnding(uint actionId) => actionId is AllThingsEndingCast1 or AllThingsEndingCast2;
+
+    private bool IsFinalWavePastFutureStage() =>
+        _currentWave >= WaveCount && (_currentStage is StageKind.Past or StageKind.Future);
 
     public override void OnGainBuffEffect(uint sourceId, Status status)
     {
@@ -780,6 +795,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             DrawPositionRule(C.FutureFixedPosition);
             ImGui.PopID();
 
+            ImGui.PushID("FinalAllThingsEnding");
+            ImGui.TextUnformatted(C.AllThingsEndingStageLabelText.Get());
+            DrawDisplayTextSetting("Gather north text", ref C.ShowFinalAllThingsEndingGatherNorthText, C.FinalAllThingsEndingGatherNorthText);
+            DrawDisplayTextSetting("Past text", ref C.ShowFinalAllThingsEndingPastText, C.FinalAllThingsEndingPastText);
+            DrawDisplayTextSetting("Future text", ref C.ShowFinalAllThingsEndingFutureText, C.FinalAllThingsEndingFutureText);
+            ImGui.PopID();
+
             ImGui.TreePop();
         }
 
@@ -1171,6 +1193,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             return;
         }
 
+        if (IsFinalWavePastFutureStage())
+        {
+            ApplyFinalAllThingsEndingInstruction();
+            return;
+        }
+
         if (_currentStage == StageKind.Past)
         {
             ApplyFixedStageInstruction(C.PastFixedText, C.ShowPastFixedText, C.PastFixedPosition);
@@ -1282,6 +1310,50 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             _currentWave,
             StageLabel(_currentStage),
             DisplayText(showText, text));
+        return true;
+    }
+
+    private bool ApplyFinalAllThingsEndingInstruction()
+    {
+        var label = _finalAllThingsEndingCastSeen
+            ? C.AllThingsEndingStageLabelText.Get()
+            : StageLabel(_currentStage);
+
+        InternationalString text;
+        bool showText;
+        Vector3 destination;
+
+        if (!_finalAllThingsEndingCastSeen)
+        {
+            text = C.FinalAllThingsEndingGatherNorthText;
+            showText = C.ShowFinalAllThingsEndingGatherNorthText;
+            destination = FinalAllThingsEndingNorthPosition();
+        }
+        else if (_currentStage == StageKind.Past)
+        {
+            text = C.FinalAllThingsEndingPastText;
+            showText = C.ShowFinalAllThingsEndingPastText;
+            destination = FinalAllThingsEndingNorthPosition();
+        }
+        else
+        {
+            text = C.FinalAllThingsEndingFutureText;
+            showText = C.ShowFinalAllThingsEndingFutureText;
+            destination = FinalAllThingsEndingSouthPosition();
+        }
+
+        _lastRuleLabel = text.Get();
+        _lastSelectorLabel = "";
+        SetDestination(destination);
+        _currentInstruction = FormatDisplayText(
+            C.ShowActiveInstructionText,
+            C.ActiveInstructionText,
+            _currentWave,
+            label,
+            DisplayText(showText, text));
+        DebugLogOnce(ref _lastInstructionLog,
+            $"{_currentWave}|FinalAllThingsEnding|{_currentStage}|{_finalAllThingsEndingCastSeen}|{_lastRuleLabel}|{FormatVector3(_myDestination)}",
+            $"INSTRUCTION wave={_currentWave} stage={_currentStage} finalAllThingsEndingCastSeen={_finalAllThingsEndingCastSeen} rule=\"{_lastRuleLabel}\" destination={FormatVector3(_myDestination)}");
         return true;
     }
 
@@ -2016,6 +2088,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             origin.Z - MathF.Cos(rad) * range);
     }
 
+    private static Vector3 FinalAllThingsEndingNorthPosition() =>
+        OffsetFrom(ArenaCenter, 0f, FinalAllThingsEndingOffset);
+
+    private static Vector3 FinalAllThingsEndingSouthPosition() =>
+        OffsetFrom(ArenaCenter, 180f, FinalAllThingsEndingOffset);
+
     private static float NormalizeAngle360(float angle)
     {
         return (angle % 360f + 360f) % 360f;
@@ -2283,6 +2361,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _allowLiveContextRefresh = false;
         _waitingForLiveDebuffRefresh = false;
         _waitingForLiveDebuffRefreshWave = 0;
+        _finalAllThingsEndingCastSeen = false;
         _currentInstruction = "";
         _hasDestination = false;
         _myDestination = Vector3.Zero;
@@ -2825,6 +2904,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         public bool ShowPairedTowerPreviewText = true;
         public bool ShowPastFixedText = true;
         public bool ShowFutureFixedText = true;
+        public bool ShowFinalAllThingsEndingGatherNorthText = true;
+        public bool ShowFinalAllThingsEndingPastText = true;
+        public bool ShowFinalAllThingsEndingFutureText = true;
 
         public InternationalString EastLabelText = new()
         {
@@ -2894,8 +2976,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         public InternationalString PastFutureDescriptionText = new()
         {
-            En = "Past and Future are fixed tower-relative movements. Tower and All Things Ending share the same role placement table.",
-            Jp = "過去と未来は塔基準の固定移動として扱います。塔と消滅の脚は同じ役割配置表を使います。"
+            En = "Past and Future use fixed movement. On wave 8, gather north after Past/Future, then move north/south when All Things Ending starts.",
+            Jp = "過去と未来は固定移動として扱います。8回目は過去/未来後に北集合し、消滅の脚詠唱開始後に北/南へ誘導します。"
         };
 
         public InternationalString PastFutureHeaderText = new()
@@ -2925,6 +3007,24 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         };
 
         public PositionRule FutureFixedPosition = new(PositionBasis.ArenaCenter, 225f, 4f);
+
+        public InternationalString FinalAllThingsEndingGatherNorthText = new()
+        {
+            En = "North stack",
+            Jp = "北集合"
+        };
+
+        public InternationalString FinalAllThingsEndingPastText = new()
+        {
+            En = "North",
+            Jp = "北"
+        };
+
+        public InternationalString FinalAllThingsEndingFutureText = new()
+        {
+            En = "South",
+            Jp = "南"
+        };
 
         public int PreviewWave = 1;
         public StageKind PreviewStage = StageKind.Tower;
@@ -3031,6 +3131,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             MigrateUiTerminology();
             PastFixedText ??= new InternationalString { En = "Tower gap", Jp = "塔間" };
             FutureFixedText ??= new InternationalString { En = "Opposite side", Jp = "反対側" };
+            FinalAllThingsEndingGatherNorthText ??= new InternationalString { En = "North stack", Jp = "北集合" };
+            FinalAllThingsEndingPastText ??= new InternationalString { En = "North", Jp = "北" };
+            FinalAllThingsEndingFutureText ??= new InternationalString { En = "South", Jp = "南" };
             PastFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 45f, 4f);
             FutureFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 225f, 4f);
             PastFixedPosition.Ensure();

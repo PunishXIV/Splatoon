@@ -23,7 +23,7 @@ internal class P2_Missing_1238_4567_Rinon : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(3, "mirage, Poneglyph");
+    public override Metadata? Metadata => new(4, "mirage, Poneglyph");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion

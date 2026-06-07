@@ -267,6 +267,26 @@ This priority is chosen so the auto group picks the head players, the highest-pr
 ```
 </details>
 
+## [Script] [Beta] P2 Forsaken Fixed Partners
+Script to resolve Forsaken ONLY for strategies that rely always on your fixed partner pair.
+
+> [!Warning]
+>
+> Positions may be not very precise yet. General direction should be okay.
+>
+> Requires configuration for each role you play.
+
+Default configuration is for Kroxy/Rinon strat.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Fixed_Partner.cs
+```
+
+### Configuration for Meow strat
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Forsaken_Fixed_Partner","ConfigurationName":"Meow","Configuration":"G9sBYKwK7LbYQ1bCPXyj1kK1E6Pe2/19R7Q60p0DrX+TJsJCwbo57T9tFfEUUcPy8vJK0TXULDAzOrKhK89/b826XsT47NmwKaawScGET5KFdrtWr8azdv0ffEtx0wyyuGh7h5d5A/lO0Jde0AYUWbd+4Zu4voahRsTNb38yBRfLEaa49Ot1eI4QPCmMQ33SZ5OZXooA7hdhna1e7NkeoeTfRETeZBo5lH25p4IQCwFLQYNFQNB9slIQSb+WBVTYfVnHvxEIFLqUcYJKmXqU5o6rLW1qGJ5yIODYbVXCAQ==","Overrides":"GwLtACwObHA/xWAYipC3sH4shgdeKHd/3/fXT09XKsfOr1oRgWnKD10qSR9hYm7/g4zpeKBfhXJtJS0shYVOgbD4/e+XWkLnWS0dn7NyVRJj9s68F+QCK0L93s5MAUnFZVWFrzU91SJALrJxX8jI1mQ4KxV9MUKLN/yOTA+s0+JY/pGDOOP//59ZmBD1GIvq9EXP/UGH/ESTe0FCuIAaLy2UOm4zGnyG7gVZqEveiO4XtQNkJkhU2CEbt9eY0AxQVQB2nW/l/epcZ8xFb//llicTU23tCAIFvxUs3o+f+hrsy+wwl9bj/6B5x0ZuLBJhD7fyz1OknsU/voV4s/8DHVm7RjY61WZcnDAfniuKhLq7EnigGAHYBCpC3JU4KGBid/2xI+uOYpZDKEGYvhWTj0q39wIkiDBx3Dg/TeB3/uYUkmL8GUczl9XG+pdFDKu8DNLuz1Nte14sXel+T8N6m+ufEy7VJxLCypGxXiY2raPaOdPvOqUYSsGwyM/0XN1lagb2UUhdrF8Z5tp8ZRKIG8IBXI5zuNKsHqm1fOGzEhMDIIiJLVWOqyo+7XdkIYSMjpyeww3MJHoNUYhJvAd15J+W3sj7vAHtjKg0WnxV9JYO4/NlnyTGOA0Jy0e7jHhj5d1Nyh0RWBeYzWds14gDMKaYg8TkTnwcoKuGFlROIJ5BHZgrLjjXGJSfD/WJw9GytcCX7tCAl96zdwx7NWazv3x/5T0E4gPl/X65fx1onmvzbe61+SU6KPsHgbkNA2arr0NZFbMEwPAqep5PlfcJT1LmOAueRUmroHAc07JblNbyZR1P9r7DT14OTSTZWV7BubDrcEZQ0j33nCcnFFHxMZ2w2qd8ziFc9/BsZVmLYmABdX2izllZXx7TVAJG2nuFau9FavZQtsTYyh22Ljc2N+7FrMpDjmwWjksjNo/QmsmlzaV7kavykFObiUN9g2fooz5xgp4ttJKpc0y/cRHLc0vaLkubqUP+qSVR5Zvgg+PjhNyH1hd8OjRk7ZwXmOmsJwAmtr6zojPPgYs8aM+mcnKZ+dVMWyf2Trsyn3X91tAj21YC4aD4DK5wW3dmQ1UZb1wmEDk9FOW5qA2u8ivX+uaTn9rJ4OlRR0lk2Vl4MKgU5ln2L8skfrxLBUyh+KrYjY/X4NgKiJTh5W2twjG9i12X+6mByHKX9WfnyhGMTQo+EuGhPhxFIbN/WZSOmXYsr3eZvvO1nbrOrIPKZ1BDTI7031bn9wOzdajMFFfZvUGJLuif639peY80gMe+NLjVu+G7pMoAgGAJGaJRdkwsJucRbYO4W2cAMBcnE/B6JRWZCym0EyUDADYuU5ZqhjvRBkWzdG0ZLrFx/9j/GvAkQ+BGDzC7eWFbShZJV8DB2v0yAPh0fGvMVsyS33tOrgwAel6z8oH9ZctA3RLVkykDgEyam4Lx/9GXb30NdzC64axWitz+siQI3e+rGQA8nNzsnCmqfwkJnHF/zQBAgrb5v1T3wlgBSsPyC+yMp3/qDABiOC0lbk81gKvAv1vVbkmSAYCc5qZVfLdesZ28bTyrlbLhZt3mY6ni/QUzAFA1K78W/Lv11ZDUGQBUH8B/pdWIL5cYkOmTJAMAvsH4r65a8BPikCcv20oGAKXkG9nCDH4Y+gc="}
+```
+
 ## **[Script] [Beta]** P2 Trine guide
 
 Self-only helper for P2 Trine. It shows:

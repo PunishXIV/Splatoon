@@ -60,10 +60,10 @@ public class InternationalString
 
         if(!ret.IsNullOrEmpty())
             return ret;
-        if(!En.IsNullOrEmpty())
-            return En;
         if(!defaultString.IsNullOrEmpty())
             return defaultString;
+        if(!En.IsNullOrEmpty())
+            return En;
         if(!Other.IsNullOrEmpty())
             return Other;
         if(!Jp.IsNullOrEmpty())

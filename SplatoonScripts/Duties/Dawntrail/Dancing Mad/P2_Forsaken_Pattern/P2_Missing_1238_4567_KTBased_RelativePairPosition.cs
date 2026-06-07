@@ -19,11 +19,11 @@ using Splatoon.Utility;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
-internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
+internal class P2_Missing_1238_4567_KTBased_RelativePairPosition : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(2, "mirage");
+    public override Metadata? Metadata => new(1, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -55,15 +55,9 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private const int SceneP2 = 7;
     private const int PartyPlayerCount = 8;
 
-    // Step1 ResolveInitialGroup: party pairs by priority index (plan5).
-    private static readonly (int A, int B)[] Step1PartyPairIndicesAlternate = [(0, 2), (1, 3), (4, 6), (5, 7)];
-    private static readonly (int A, int B)[] Step1PartyPairIndicesAdjacent = [(0, 1), (2, 3), (4, 5), (6, 7)];
+    // Step1 ResolveInitialGroup: party pairs [0,2]/[1,3]/[4,6]/[5,7] (plan9).
+    private static readonly (int A, int B)[] Step1PartyPairIndices = [(0, 2), (1, 3), (4, 6), (5, 7)];
     private const int Step1PartyPairCount = 4;
-    private static readonly string[] Step1PairModeLabels =
-    [
-        "[Yarn] Alternate (T1H1, T2H2, M1R1, M2R2)",
-        "[Reen] Adjacent (T1T2, H1H2, M1M2, R1R2)",
-    ];
     private const int StackPairCount = 2;
     private const int NonStackPairCount = 2;
 
@@ -80,7 +74,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private const float DefaultRangeInside = 3.25f;
     private const float DefaultRangeOutside = 4.75f;
     private const int PatternCount = 2;
-    private const int MaxPatternAssignments = 8;
+    private const int MaxPatternAssignments = 10;
     private const int DebugPatternPreviewNone = -1;
     private const int DebugPatternPreviewRoleNone = -1;
     private const float TowerOffsetCardinal = 8f;
@@ -101,6 +95,12 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private const string ElActiveTower0 = "ActiveTower0";
     private const string ElActiveTower1 = "ActiveTower1";
     private const string ElMyRole = "MyRole";
+    private const string ElMyRoleAlt = "MyRoleAlt";
+    private const string ElPairLineSelf = "PairLineSelf";
+    private const string ElPairLinePartner = "PairLinePartner";
+    private const uint PairLineColor = 3372214272;
+    private const float PairLineThicc = 30f;
+    private const float PairLineVerticalOffY = 2f;
 
     private static readonly string[] BasisComboLabels = ["LeftTower", "RightTower", "Center"];
 
@@ -117,6 +117,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         [
             Rule("211_StackPriority1", PositionBasis.LeftTower, 180f, 2.0f),
             Rule("211_StackPriority2", PositionBasis.RightTower, 180f, 3.25f),
+            Rule("211_OtherPriority1", PositionBasis.LeftTower, 0f, 3.25f),
+            Rule("211_OtherPriority2", PositionBasis.RightTower, 0f, 3.25f),
             Rule("211_Spread", PositionBasis.RightTower, 0f, 3.25f),
             Rule("211_Cone", PositionBasis.LeftTower, 0f, 3.25f),
             Rule("211_NotTowerPriority1", PositionBasis.LeftTower, 0f, 4.75f),
@@ -209,12 +211,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         FutureOpposite,
     }
 
-    private enum Step1PairModeKind
-    {
-        Alternate,
-        Adjacent,
-    }
-
     private sealed class PlayerInfo
     {
         public required IPlayerCharacter Player;
@@ -237,7 +233,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         public PriorityData PriorityData = CreateDefaultPriorityData();
         public int DebugPatternPreview = DebugPatternPreviewNone;
         public int DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
-        public int Step1PairMode = (int)Step1PairModeKind.Alternate;
         public PatternRuleSettings[][] PatternRules = CreateDefaultPatternRules();
 
         public void EnsureDefaults()
@@ -246,8 +241,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             if(DebugPatternPreview >= PatternCount)
                 DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = ClampPatternPreviewRole(DebugPatternPreview, DebugPatternPreviewRole);
-            if(Step1PairMode is < (int)Step1PairModeKind.Alternate or > (int)Step1PairModeKind.Adjacent)
-                Step1PairMode = (int)Step1PairModeKind.Alternate;
             PatternRules = EnsurePatternRules(PatternRules);
         }
 
@@ -256,7 +249,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             PriorityData = CreateDefaultPriorityData();
             DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
-            Step1PairMode = (int)Step1PairModeKind.Alternate;
             PatternRules = CreateDefaultPatternRules();
         }
 
@@ -330,6 +322,30 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             Donut = 0.1f,
             fillIntensity = 0.544f,
             tether = true,
+        });
+        Controller.RegisterElement(ElMyRoleAlt, new Element(0)
+        {
+            Enabled = false,
+            radius = 0.25f,
+            Donut = 0.1f,
+            fillIntensity = 0.544f,
+            tether = true,
+        });
+        Controller.RegisterElement(ElPairLineSelf, new Element(2)
+        {
+            Enabled = false,
+            radius = 0f,
+            color = PairLineColor,
+            fillIntensity = 0.345f,
+            thicc = PairLineThicc,
+        });
+        Controller.RegisterElement(ElPairLinePartner, new Element(2)
+        {
+            Enabled = false,
+            radius = 0f,
+            color = PairLineColor,
+            fillIntensity = 0.345f,
+            thicc = PairLineThicc,
         });
     }
 
@@ -425,15 +441,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private void DrawPrioritySettings()
     {
         C.EnsureDefaults();
-        var pairMode = C.Step1PairMode;
-        if(ImGui.Combo("Step1 pair mode", ref pairMode, Step1PairModeLabels, Step1PairModeLabels.Length))
-            C.Step1PairMode = pairMode;
-
-        ImGui.TextUnformatted(GetStep1PairModeDescription(C.Step1PairMode));
-        if(IsAdjacentStep1PairMode())
-            ImGui.TextUnformatted("Initial group (Adjacent): Stack->FirstHalf / partner->SecondHalf; Spreadx2 or Conex2 split by priority.");
-        else
-            ImGui.TextUnformatted("Initial group (Alternate): Stack pairs->FirstHalf; non-stack pairs->SecondHalf.");
+        ImGui.TextUnformatted(
+            "Priority — Step1 pairs: [T1,H1], [T2,H2], [M1,R1], [M2,R2] (index: 0-2, 1-3, 4-6, 5-7).");
         ImGui.TextUnformatted("Step2+: FirstHalf towers on steps 1,2,3,8; SecondHalf towers on steps 4,5,6,7.");
 
         ImGui.Spacing();
@@ -562,18 +571,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private void DrawDebugStep1PairsSection()
     {
-        ImGui.TextUnformatted($"Step1 pair mode: {Step1PairModeLabels[C.Step1PairMode]}");
-        ImGui.TextUnformatted("Step1 pairs (priority index)");
-
-        if(IsAdjacentStep1PairMode())
-            DrawDebugStep1PairsAdjacentSection();
-        else
-            DrawDebugStep1PairsAlternateSection();
-    }
-
-    private void DrawDebugStep1PairsAlternateSection()
-    {
-        var pairIndices = Step1PartyPairIndicesAlternate;
+        ImGui.TextUnformatted("Step1 pairs (priority index): [0,2] [1,3] [4,6] [5,7]");
         for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
         {
             if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
@@ -582,109 +580,37 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
                 continue;
             }
 
-            var (indexA, indexB) = pairIndices[pairIndex];
-            if(!TryGetAlternatePairHalves(playerA, playerB, out var halfA, out var halfB))
+            var (indexA, indexB) = Step1PartyPairIndices[pairIndex];
+            if(!TryClassifyStep1Pair(playerA, playerB, out _, out var partner, out var isStackPair))
             {
                 ImGui.TextUnformatted(
                     $"  P{pairIndex} [{indexA},{indexB}]: {FormatPlayerDebuff(playerA)} + {FormatPlayerDebuff(playerB)} (invalid)");
                 continue;
             }
 
-            DrawStep1PairAssignmentLine(pairIndex, indexA, indexB, playerA, playerB, halfA, halfB);
-        }
-    }
-
-    private void DrawDebugStep1PairsAdjacentSection()
-    {
-        var pairIndices = Step1PartyPairIndicesAdjacent;
-        for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
-        {
-            if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
+            if(isStackPair)
             {
-                ImGui.TextUnformatted($"  P{pairIndex}: (invalid)");
-                continue;
+                var roleSuffix = _step == ActiveStepMin && TryDetectPartyPattern(out var patternId) && patternId == 0
+                    ? $" ({GetStep1StackPairRoleLabels(partner.Debuff)})"
+                    : "";
+                ImGui.TextUnformatted(
+                    $"  P{pairIndex} [{indexA},{indexB}]: Stack+{FormatDebuffKindDebug(partner.Debuff)} -> FirstHalf{roleSuffix}");
             }
-
-            var (indexA, indexB) = pairIndices[pairIndex];
-            if(!TryGetAdjacentPairHalves(playerA, playerB, out var halfA, out var halfB))
+            else
             {
                 ImGui.TextUnformatted(
-                    $"  P{pairIndex} [{indexA},{indexB}]: {FormatPlayerDebuff(playerA)} + {FormatPlayerDebuff(playerB)} (invalid)");
-                continue;
+                    $"  P{pairIndex} [{indexA},{indexB}]: {FormatPlayerDebuff(playerA)} + {FormatPlayerDebuff(playerB)} -> SecondHalf");
             }
-
-            DrawStep1PairAssignmentLine(pairIndex, indexA, indexB, playerA, playerB, halfA, halfB);
         }
     }
 
-    private static void DrawStep1PairAssignmentLine(int pairIndex, int indexA, int indexB, PlayerInfo playerA,
-        PlayerInfo playerB, MechanicHalf halfA, MechanicHalf halfB)
-    {
-        ImGui.TextUnformatted(
-            $"  P{pairIndex} [{indexA},{indexB}]: {FormatStep1PairPlayerAssignment(playerA, halfA)} / {FormatStep1PairPlayerAssignment(playerB, halfB)}");
-    }
-
-    private static string FormatStep1PairPlayerAssignment(PlayerInfo info, MechanicHalf half)
-        => $"{info.Player.Name} ({FormatDebuffKindDebug(info.Debuff)}) → {FormatDebugHalfLabel(half)}";
-
-    private static string FormatDebugHalfLabel(MechanicHalf half)
-        => half switch
+    private static string GetStep1StackPairRoleLabels(DebuffKind partnerDebuff)
+        => partnerDebuff switch
         {
-            MechanicHalf.First => "FirstHalf",
-            MechanicHalf.Second => "SecondHalf",
-            _ => "—",
+            DebuffKind.Cone => "211_StackPriority1 / 211_OtherPriority1",
+            DebuffKind.Spread => "211_StackPriority2 / 211_OtherPriority2",
+            _ => "?",
         };
-
-    private static bool TryGetAlternatePairHalves(PlayerInfo playerA, PlayerInfo playerB, out MechanicHalf halfA,
-        out MechanicHalf halfB)
-    {
-        halfA = MechanicHalf.None;
-        halfB = MechanicHalf.None;
-
-        if(!TryClassifyStep1Pair(playerA, playerB, out _, out _, out var isStackPair))
-            return false;
-
-        var half = isStackPair ? MechanicHalf.First : MechanicHalf.Second;
-        halfA = half;
-        halfB = half;
-        return true;
-    }
-
-    private bool TryGetAdjacentPairHalves(PlayerInfo playerA, PlayerInfo playerB, out MechanicHalf halfA,
-        out MechanicHalf halfB)
-    {
-        halfA = MechanicHalf.None;
-        halfB = MechanicHalf.None;
-
-        if(!TryClassifyAdjacentPair(playerA, playerB, out var stackPlayer, out var partnerPlayer, out var pairKind))
-            return false;
-
-        if(pairKind is AdjacentPairKind.StackAndSpread or AdjacentPairKind.StackAndCone)
-        {
-            MapPairHalves(playerA, playerB, stackPlayer, partnerPlayer, out halfA, out halfB);
-            return true;
-        }
-
-        if(pairKind is AdjacentPairKind.DoubleSpread or AdjacentPairKind.DoubleCone)
-        {
-            var ordered = OrderInfosByPriority([playerA, playerB]).ToList();
-            MapPairHalves(playerA, playerB, ordered[0], ordered[1], out halfA, out halfB);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static void MapPairHalves(PlayerInfo playerA, PlayerInfo playerB, PlayerInfo firstHalfPlayer,
-        PlayerInfo secondHalfPlayer, out MechanicHalf halfA, out MechanicHalf halfB)
-    {
-        halfA = playerA.Player.EntityId == firstHalfPlayer.Player.EntityId
-            ? MechanicHalf.First
-            : MechanicHalf.Second;
-        halfB = playerB.Player.EntityId == firstHalfPlayer.Player.EntityId
-            ? MechanicHalf.First
-            : MechanicHalf.Second;
-    }
 
     private static string FormatPlayerDebuff(PlayerInfo info)
         => $"{info.Player.Name} ({FormatDebuffKindDebug(info.Debuff)})";
@@ -692,7 +618,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private void DrawDebugInfosSection()
     {
         C.EnsureDefaults();
-        ImGui.TextUnformatted("Player infos (live, KT pair strat)");
+        ImGui.TextUnformatted("Player infos (live, RelativePairPosition)");
         ImGui.Separator();
 
         if(_infos.Count == 0)
@@ -716,30 +642,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         ImGui.TextUnformatted($"Tower counts: stack={stack} spread={spread} cone={cone}");
     }
 
-    private static string GetStep1PairModeDescription(int pairMode)
-    {
-        if(pairMode == (int)Step1PairModeKind.Adjacent)
-        {
-            return "Priority — Step1 pairs by list: [T1, T2], [H1, H2], [M1, M2], [R1, R2] (index: 0-1, 2-3, 4-5, 6-7).";
-        }
-
-        return "Priority — Step1 pairs by list: [T1, H1], [T2, H2], [M1, R1], [M2, R2] (index: 0-2, 1-3, 4-6, 5-7).";
-    }
-
-    private bool IsAdjacentStep1PairMode()
-        => C.Step1PairMode == (int)Step1PairModeKind.Adjacent;
-
-    private bool IsAlternateStep1PairMode()
-        => C.Step1PairMode == (int)Step1PairModeKind.Alternate;
-
-    private (int A, int B)[] GetStep1PartyPairIndices()
-    {
-        if(IsAdjacentStep1PairMode())
-            return Step1PartyPairIndicesAdjacent;
-
-        return Step1PartyPairIndicesAlternate;
-    }
-
     // Returns two players for a step1 pair by priority-list indices.
     private bool TryGetStep1Pair(int pairIndex, out PlayerInfo playerA, out PlayerInfo playerB)
     {
@@ -748,7 +650,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(pairIndex < 0 || pairIndex >= Step1PartyPairCount || _infos.Count != PartyPlayerCount)
             return false;
 
-        var (indexA, indexB) = GetStep1PartyPairIndices()[pairIndex];
+        var (indexA, indexB) = Step1PartyPairIndices[pairIndex];
         if(indexA < 0 || indexA >= PartyPlayerCount || indexB < 0 || indexB >= PartyPlayerCount)
             return false;
 
@@ -1116,7 +1018,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(Controller.TryGetElementByName(ElActiveTower1, out var tower1))
             tower1.Enabled = false;
         DisableAllRolePreviewMarkers();
-        DisableMyRoleMarker();
+        DisableMyRoleMarkers();
     }
 
     private void DisableAllMarkers()
@@ -1126,7 +1028,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(Controller.TryGetElementByName(ElActiveTower1, out var tower1))
             tower1.Enabled = false;
         DisableAllRolePreviewMarkers();
-        DisableMyRoleMarker();
+        DisableMyRoleMarkers();
     }
 
     #endregion
@@ -1138,14 +1040,14 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(!IsPhaseActive())
         {
             DisableAllRolePreviewMarkers();
-            DisableMyRoleMarker();
+            DisableMyRoleMarkers();
             return;
         }
 
         if(IsPatternPreviewActive())
         {
             UpdatePatternPreviewMarkers();
-            DisableMyRoleMarker();
+            DisableMyRoleMarkers();
             return;
         }
 
@@ -1153,17 +1055,27 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
         if(TryGetInterludeNavPosition(out var interludePosition, out var interludeLabel))
         {
+            DisableDualMarkers();
             EnableRoleMarker(ElMyRole, interludePosition, interludeLabel, tether: true);
             return;
         }
 
-        DisableMyRoleMarker();
+        DisableMyRoleMarkers();
 
         if(!_hasActiveTowers || _step is < ActiveStepMin or > ActiveStepMax)
             return;
 
         if(!TryUpdateLiveRoles(out var patternId, out var roleLabel))
             return;
+
+        var baseInfo = GetBasePlayerInfo();
+        if(baseInfo != null
+            && TryGetDualCandidateRoleLabels(roleLabel, out _, out _)
+            && FindSameDebuffTowerPartner(baseInfo) != null)
+        {
+            UpdateDualCandidateMarkers(patternId, roleLabel, baseInfo);
+            return;
+        }
 
         var assignmentIndex = FindAssignmentIndex(patternId, roleLabel);
         if(assignmentIndex < 0)
@@ -1172,7 +1084,113 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(ResolvePositionRule(GetConfiguredRule(patternId, assignmentIndex)) is not { } position)
             return;
 
+        DisableDualMarkers();
         EnableRoleMarker(ElMyRole, position, roleLabel, tether: true);
+    }
+
+    // Dual stack/spread/cone nav: both priority positions + line to same-debuff tower partner.
+    private static bool TryGetDualCandidateRoleLabels(string roleLabel, out string labelA, out string labelB)
+    {
+        labelA = "";
+        labelB = "";
+        switch(roleLabel)
+        {
+            case "211_StackPriority1":
+            case "211_StackPriority2":
+                labelA = "211_StackPriority1";
+                labelB = "211_StackPriority2";
+                return true;
+            case "022_SpreadPriority1":
+            case "022_SpreadPriority2":
+                labelA = "022_SpreadPriority1";
+                labelB = "022_SpreadPriority2";
+                return true;
+            case "022_ConePriority1":
+            case "022_ConePriority2":
+                labelA = "022_ConePriority1";
+                labelB = "022_ConePriority2";
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // Returns the other tower player with the same debuff (plan9).
+    private PlayerInfo? FindSameDebuffTowerPartner(PlayerInfo baseInfo)
+    {
+        if(!IsTower(baseInfo))
+            return null;
+
+        return _infos.FirstOrDefault(i => i.Player.EntityId != baseInfo.Player.EntityId
+            && IsTower(i) && i.Debuff == baseInfo.Debuff);
+    }
+
+    private bool TryResolvePositionForRoleLabel(int patternId, string roleLabel, out Vector3 position)
+    {
+        position = default;
+        var index = FindAssignmentIndex(patternId, roleLabel);
+        if(index < 0)
+            return false;
+        if(ResolvePositionRule(GetConfiguredRule(patternId, index)) is not { } pos)
+            return false;
+        position = pos;
+        return true;
+    }
+
+    private void UpdateDualCandidateMarkers(int patternId, string roleLabel, PlayerInfo baseInfo)
+    {
+        if(!TryGetDualCandidateRoleLabels(roleLabel, out var labelA, out var labelB))
+        {
+            DisableDualMarkers();
+            return;
+        }
+
+        var partner = FindSameDebuffTowerPartner(baseInfo);
+        if(partner == null
+            || !TryResolvePositionForRoleLabel(patternId, labelA, out var posA)
+            || !TryResolvePositionForRoleLabel(patternId, labelB, out var posB))
+        {
+            DisableDualMarkers();
+            return;
+        }
+
+        if(roleLabel == labelA)
+        {
+            EnableRoleMarker(ElMyRole, posA, labelA, tether: true);
+            EnableRoleMarker(ElMyRoleAlt, posB, labelB, tether: true);
+        }
+        else
+        {
+            EnableRoleMarker(ElMyRole, posB, labelB, tether: true);
+            EnableRoleMarker(ElMyRoleAlt, posA, labelA, tether: true);
+        }
+
+        EnableVerticalPairLine(ElPairLineSelf, baseInfo.Player.Position);
+        EnableVerticalPairLine(ElPairLinePartner, partner.Player.Position);
+    }
+
+    private void EnableVerticalPairLine(string elementName, Vector3 playerPosition)
+    {
+        if(!Controller.TryGetElementByName(elementName, out var line))
+            return;
+
+        line.SetRefPosition(playerPosition);
+        line.SetOffPosition(new Vector3(playerPosition.X, PairLineVerticalOffY, playerPosition.Z));
+        line.Enabled = true;
+    }
+
+    private void DisableDualMarkers()
+    {
+        if(Controller.TryGetElementByName(ElMyRoleAlt, out var alt))
+        {
+            alt.Enabled = false;
+            alt.tether = false;
+        }
+
+        if(Controller.TryGetElementByName(ElPairLineSelf, out var selfLine))
+            selfLine.Enabled = false;
+        if(Controller.TryGetElementByName(ElPairLinePartner, out var partnerLine))
+            partnerLine.Enabled = false;
     }
 
     private void EnableRoleMarker(string elementName, Vector3 position, string label, bool tether)
@@ -1202,13 +1220,15 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         }
     }
 
-    private void DisableMyRoleMarker()
+    private void DisableMyRoleMarkers()
     {
         if(Controller.TryGetElementByName(ElMyRole, out var element))
         {
             element.Enabled = false;
             element.tether = false;
         }
+
+        DisableDualMarkers();
     }
 
     private void UpdatePatternPreviewMarkers()
@@ -1618,18 +1638,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
         UpdateDebuffs();
 
-        if(IsAdjacentStep1PairMode())
-            return TryResolveInitialGroupAdjacent();
-
-        if(IsAlternateStep1PairMode())
-            return TryResolveInitialGroupAlternate();
-
-        return false;
-    }
-
-    // Alternate: stack pairs -> FirstHalf, non-stack pairs -> SecondHalf (whole pair).
-    private bool TryResolveInitialGroupAlternate()
-    {
         var stackPairCount = 0;
         var nonStackPlayerCount = 0;
 
@@ -1659,133 +1667,6 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             return false;
 
         return _infos.All(i => i.Half != MechanicHalf.None);
-    }
-
-    // Adjacent v2: per-player half within each pair.
-    private bool TryResolveInitialGroupAdjacent()
-    {
-        foreach(var info in _infos)
-            info.Half = MechanicHalf.None;
-
-        for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
-        {
-            if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
-                return false;
-
-            if(!TryClassifyAdjacentPair(playerA, playerB, out var stackPlayer, out var partnerPlayer, out var pairKind))
-                return false;
-
-            if(pairKind is AdjacentPairKind.StackAndSpread or AdjacentPairKind.StackAndCone)
-            {
-                stackPlayer.Half = MechanicHalf.First;
-                partnerPlayer.Half = MechanicHalf.Second;
-                continue;
-            }
-
-            if(pairKind is AdjacentPairKind.DoubleSpread or AdjacentPairKind.DoubleCone)
-            {
-                var ordered = OrderInfosByPriority([playerA, playerB]).ToList();
-                ordered[0].Half = MechanicHalf.First;
-                ordered[1].Half = MechanicHalf.Second;
-                continue;
-            }
-
-            return false;
-        }
-
-        if(_infos.Count(i => i.Half == MechanicHalf.First) != PartyPlayerCount / 2)
-            return false;
-        if(_infos.Count(i => i.Half == MechanicHalf.Second) != PartyPlayerCount / 2)
-            return false;
-
-        return _infos.All(i => i.Half != MechanicHalf.None);
-    }
-
-    private enum AdjacentPairKind
-    {
-        StackAndSpread,
-        StackAndCone,
-        DoubleSpread,
-        DoubleCone,
-    }
-
-    private static bool TryClassifyAdjacentPair(PlayerInfo playerA, PlayerInfo playerB, out PlayerInfo stackPlayer,
-        out PlayerInfo partnerPlayer, out AdjacentPairKind pairKind)
-    {
-        stackPlayer = null!;
-        partnerPlayer = null!;
-        pairKind = default;
-
-        CountPairDebuffs(playerA, playerB, out var stack, out var spread, out var cone);
-
-        if(stack == 1 && spread == 1 && cone == 0)
-        {
-            if(!TryGetStackPartnerPlayers(playerA, playerB, out stackPlayer, out partnerPlayer))
-                return false;
-            pairKind = AdjacentPairKind.StackAndSpread;
-            return true;
-        }
-
-        if(stack == 1 && spread == 0 && cone == 1)
-        {
-            if(!TryGetStackPartnerPlayers(playerA, playerB, out stackPlayer, out partnerPlayer))
-                return false;
-            pairKind = AdjacentPairKind.StackAndCone;
-            return true;
-        }
-
-        if(stack == 0 && spread == 2 && cone == 0)
-        {
-            pairKind = AdjacentPairKind.DoubleSpread;
-            return true;
-        }
-
-        if(stack == 0 && spread == 0 && cone == 2)
-        {
-            pairKind = AdjacentPairKind.DoubleCone;
-            return true;
-        }
-
-        return false;
-    }
-
-    private static void CountPairDebuffs(PlayerInfo playerA, PlayerInfo playerB, out int stack, out int spread,
-        out int cone)
-    {
-        stack = 0;
-        spread = 0;
-        cone = 0;
-        foreach(var info in new[] { playerA, playerB })
-        {
-            switch(info.Debuff)
-            {
-                case DebuffKind.Stack: stack++; break;
-                case DebuffKind.Spread: spread++; break;
-                case DebuffKind.Cone: cone++; break;
-            }
-        }
-    }
-
-    private static bool TryGetStackPartnerPlayers(PlayerInfo playerA, PlayerInfo playerB, out PlayerInfo stackPlayer,
-        out PlayerInfo partnerPlayer)
-    {
-        if(playerA.Debuff == DebuffKind.Stack)
-        {
-            stackPlayer = playerA;
-            partnerPlayer = playerB;
-            return true;
-        }
-
-        if(playerB.Debuff == DebuffKind.Stack)
-        {
-            stackPlayer = playerB;
-            partnerPlayer = playerA;
-            return true;
-        }
-
-        stackPlayer = null!;
-        partnerPlayer = null!;
-        return false;
     }
 
     // Classifies a step1 pair as stack+partner or non-stack pair.
@@ -1841,6 +1722,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private string? ResolvePattern211(PlayerInfo info)
     {
+        if(_step == ActiveStepMin && IsTower(info)
+            && TryResolvePattern211Step1TowerRole(info, out var step1Role))
+            return step1Role;
+
         if(IsTower(info))
         {
             return info.Debuff switch
@@ -1866,6 +1751,44 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             3 => "211_NotTowerPriority4",
             _ => null,
         };
+    }
+
+    // Assign step1 FirstHalf tower roles from stack pairs (plan9).
+    private bool TryResolvePattern211Step1TowerRole(PlayerInfo info, out string? roleLabel)
+    {
+        roleLabel = null;
+
+        for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
+        {
+            if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
+                return false;
+
+            if(!TryClassifyStep1Pair(playerA, playerB, out var stackPlayer, out var partnerPlayer, out var isStackPair)
+                || !isStackPair)
+                continue;
+
+            if(stackPlayer.Player.EntityId != info.Player.EntityId
+                && partnerPlayer.Player.EntityId != info.Player.EntityId)
+                continue;
+
+            roleLabel = info.Player.EntityId == stackPlayer.Player.EntityId
+                ? partnerPlayer.Debuff switch
+                {
+                    DebuffKind.Cone => "211_StackPriority1",
+                    DebuffKind.Spread => "211_StackPriority2",
+                    _ => null,
+                }
+                : partnerPlayer.Debuff switch
+                {
+                    DebuffKind.Cone => "211_OtherPriority1",
+                    DebuffKind.Spread => "211_OtherPriority2",
+                    _ => null,
+                };
+
+            return roleLabel != null;
+        }
+
+        return false;
     }
 
     private string? ResolvePattern022(PlayerInfo info)

@@ -196,6 +196,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private readonly List<uint> _firstSetIds = [];
     private readonly List<uint> _secondSetIds = [];
     private readonly Dictionary<uint, LiveDebuffKind> _initialHeadPartnerDebuffs = [];
+    private readonly Dictionary<uint, LiveDebuffKind> _observedDebuffs = [];
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
     private string _lastSelectorLabel = "";
@@ -228,7 +229,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(8, "Garume");
+    public override Metadata Metadata => new(9, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -369,6 +370,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         _active = true;
         var debuff = DebuffFromStatus(status.StatusId);
+        if (debuff != LiveDebuffKind.None)
+            _observedDebuffs[sourceId] = debuff;
+
         DebugLogOnce(ref _lastCaptureBlockLog, $"status-{sourceId:X8}-{status.StatusId}", $"STATUS_GAIN missing source=0x{sourceId:X8} status={status.StatusId} debuff={debuff}");
         TryCaptureResolvingSets();
         if (debuff != LiveDebuffKind.None && _allowLiveContextRefresh)
@@ -640,13 +644,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         return lines;
     }
 
-    private static void ValidateCurrentDebuffPairSplit(
+    private void ValidateCurrentDebuffPairSplit(
         List<PairValidationLine> lines,
         IReadOnlyList<(int Index, IPlayerCharacter First, IPlayerCharacter Second)> pairs,
         bool splitHeadPairs)
     {
         var debuffs = pairs
-            .SelectMany(pair => new[] { CurrentDebuffFromPlayer(pair.First), CurrentDebuffFromPlayer(pair.Second) })
+            .SelectMany(pair => new[] { CurrentDebuff(pair.First), CurrentDebuff(pair.Second) })
             .ToList();
         var visibleDebuffs = debuffs.Count(debuff => debuff is LiveDebuffKind.HeadStack or LiveDebuffKind.Circle or LiveDebuffKind.Fan);
         if (visibleDebuffs == 0)
@@ -667,8 +671,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         var dynamicErrors = 0;
         foreach (var pair in pairs)
         {
-            var firstDebuff = CurrentDebuffFromPlayer(pair.First);
-            var secondDebuff = CurrentDebuffFromPlayer(pair.Second);
+            var firstDebuff = CurrentDebuff(pair.First);
+            var secondDebuff = CurrentDebuff(pair.Second);
             var firstIsHead = firstDebuff == LiveDebuffKind.HeadStack;
             var secondIsHead = secondDebuff == LiveDebuffKind.HeadStack;
 
@@ -989,7 +993,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         {
             ImGui.TextUnformatted($"BasePlayer: {DebugIdentity(me)}");
             ImGui.TextUnformatted($"BasePlayer source: {(local != null && me.AddressEquals(local) ? "LocalPlayer/fallback" : "override")}");
-            ImGui.TextUnformatted($"BasePlayer current debuff: {CurrentDebuffFromPlayer(me)}");
+            ImGui.TextUnformatted($"BasePlayer current debuff: {CurrentDebuff(me)}");
             ImGui.TextUnformatted(_stageContexts.TryGetValue(me.EntityId, out var cachedContext)
                 ? $"BasePlayer cached context: {cachedContext.Side} {cachedContext.Debuff} #{cachedContext.DebuffRank} support#{cachedContext.SupportRank}"
                 : "BasePlayer cached context: none");
@@ -1018,7 +1022,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         if (ImGui.TreeNode("Live debuffs"))
         {
             foreach (var player in priorityParty)
-                ImGui.TextUnformatted($"{player.Name}: 0x{player.EntityId:X8} {CurrentDebuffFromPlayer(player)}");
+                ImGui.TextUnformatted($"{player.Name}: 0x{player.EntityId:X8} {CurrentDebuff(player)}");
             ImGui.TreePop();
         }
 
@@ -1147,7 +1151,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         var me = BasePlayer;
         if (me == null) return;
 
-        var debuff = CurrentDebuffFromPlayer(me);
+        var debuff = CurrentDebuff(me);
         ClearDestination();
         _currentInstruction = debuff == LiveDebuffKind.None
             ? DisplayText(C.ShowWaitingForAssignmentText, C.WaitingForAssignmentText)
@@ -1164,7 +1168,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             _currentInstruction = FormatDisplayText(
                 C.ShowWaitingForWaveText,
                 C.WaitingForWaveText,
-                DisplayDebuffLabel(CurrentDebuffFromPlayer(me)));
+                DisplayDebuffLabel(CurrentDebuff(me)));
             ClearDestination();
             return;
         }
@@ -1174,7 +1178,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             _currentInstruction = FormatDisplayText(
                 C.ShowWaitingForWaveText,
                 C.WaitingForWaveText,
-                DisplayDebuffLabel(CurrentDebuffFromPlayer(me)));
+                DisplayDebuffLabel(CurrentDebuff(me)));
             ClearDestination();
             return;
         }
@@ -1350,7 +1354,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
 
         var supportGroup = GetSupportGroup(wave.ResolvingGroup, party, resolvingGroup);
-        var pattern = PatternInfo.FromPlayers(resolvingGroup);
+        var pattern = PatternFromPlayers(resolvingGroup);
         if (!HasConfiguredPattern(pattern))
         {
             failureReason = $"no configured pattern {FormatPattern(pattern)} wave={_currentWave} stage={_currentStage}";
@@ -1370,6 +1374,28 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         return _stageContexts.Count > 0;
     }
 
+    private PatternInfo PatternFromPlayers(IEnumerable<IPlayerCharacter> players)
+    {
+        var info = new PatternInfo(0, 0, 0);
+        foreach (var player in players)
+        {
+            switch (CurrentDebuff(player))
+            {
+                case LiveDebuffKind.HeadStack:
+                    info.Head++;
+                    break;
+                case LiveDebuffKind.Circle:
+                    info.Circle++;
+                    break;
+                case LiveDebuffKind.Fan:
+                    info.Fan++;
+                    break;
+            }
+        }
+
+        return info;
+    }
+
     private LiveContext BuildLiveContext(
         IPlayerCharacter me,
         IReadOnlyList<IPlayerCharacter> resolvingGroup,
@@ -1383,9 +1409,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 : ParticipantSide.Any;
 
         var sideGroup = side == ParticipantSide.SupportGroup ? supportGroup : resolvingGroup;
-        var debuff = CurrentDebuffFromPlayer(me);
+        var debuff = CurrentDebuff(me);
         var sameDebuffPlayers = sideGroup
-            .Where(player => CurrentDebuffFromPlayer(player) == debuff)
+            .Where(player => CurrentDebuff(player) == debuff)
             .ToList();
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
@@ -1617,8 +1643,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         var headPartnerDebuffs = new Dictionary<uint, LiveDebuffKind>();
         foreach (var (first, second) in pairs)
         {
-            var firstDebuff = CurrentDebuffFromPlayer(first);
-            var secondDebuff = CurrentDebuffFromPlayer(second);
+            var firstDebuff = CurrentDebuff(first);
+            var secondDebuff = CurrentDebuff(second);
             var firstIsHead = firstDebuff == LiveDebuffKind.HeadStack;
             var secondIsHead = secondDebuff == LiveDebuffKind.HeadStack;
 
@@ -1684,8 +1710,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         var headPartnerDebuffs = new Dictionary<uint, LiveDebuffKind>();
         foreach (var (first, second) in pairs)
         {
-            var firstDebuff = CurrentDebuffFromPlayer(first);
-            var secondDebuff = CurrentDebuffFromPlayer(second);
+            var firstDebuff = CurrentDebuff(first);
+            var secondDebuff = CurrentDebuff(second);
             var firstIsHead = firstDebuff == LiveDebuffKind.HeadStack;
             var secondIsHead = secondDebuff == LiveDebuffKind.HeadStack;
 
@@ -1799,7 +1825,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 C.ShowDestinationOverlayText,
                 C.DestinationOverlayText,
                 _currentWave,
-                DisplayDebuffLabel(CurrentDebuffFromPlayer(me)),
+                DisplayDebuffLabel(CurrentDebuff(me)),
                 StageLabel(_currentStage));
         }
     }
@@ -1935,6 +1961,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         return Controller.GetPartyMembers()
             .OfType<IPlayerCharacter>()
             .Any(player => player.StatusList.Any(status => IsMissingStatus(status.StatusId)));
+    }
+
+    private LiveDebuffKind CurrentDebuff(IPlayerCharacter player)
+    {
+        return _observedDebuffs.TryGetValue(player.EntityId, out var debuff) && debuff != LiveDebuffKind.None
+            ? debuff
+            : CurrentDebuffFromPlayer(player);
     }
 
     private static LiveDebuffKind CurrentDebuffFromPlayer(IPlayerCharacter player)
@@ -2184,7 +2217,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
     private string DebugPlayer(IPlayerCharacter player)
     {
-        return $"{player.Name}(0x{player.EntityId:X8},{CurrentDebuffFromPlayer(player)})";
+        return $"{player.Name}(0x{player.EntityId:X8},{CurrentDebuff(player)})";
     }
 
     private static string DebugIdentity(IPlayerCharacter player)
@@ -2297,6 +2330,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _firstSetIds.Clear();
         _secondSetIds.Clear();
         _initialHeadPartnerDebuffs.Clear();
+        _observedDebuffs.Clear();
         _lastPattern = new PatternInfo();
         _lastRuleLabel = "";
         _lastDebuff = LiveDebuffKind.Any;

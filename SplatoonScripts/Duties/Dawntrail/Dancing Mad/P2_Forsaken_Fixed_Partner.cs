@@ -1,16 +1,11 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Interface;
-using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.CircularBuffers;
-using ECommons.Configuration;
-using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
-using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
@@ -23,15 +18,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using TerraFX.Interop.DirectX;
-using TerraFX.Interop.Windows;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(6, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -175,6 +167,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                     var pos = (this.MapEffect2TowerPos[this.ActiveMapEffects[0]] + this.MapEffect2TowerPos[this.ActiveMapEffects[1]]) / 2;
                     e.Enabled = true;
                     e.RefPosition = pos.ToVector3();
+                    e.color = Controller.AttentionColor;
                 }
                 else
                 {
@@ -182,6 +175,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                     var i2 = (((this.ActiveMapEffects[1] - 1) + 4) % 8) + 1;
                     var pos = (this.MapEffect2TowerPos[i1] + this.MapEffect2TowerPos[i2]) / 2;
                     e.Enabled = true;
+                    e.color = Controller.AttentionColor;
                     e.RefPosition = pos.ToVector3();
                 }
                 return;
@@ -227,10 +221,14 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             }
             else
             {
-                var isCone = IsFan(BasePlayer) || C.IsLeftDefaultTower;
+                var isCone = IsFan(BasePlayer) || (C.IsLeftDefaultTower && !IsSpread(BasePlayer));
                 if(C.IsFlexerAsActive && MustAdjust(partner))
                 {
                     isCone = !isCone;
+                }
+                if(SequenceCount == 1 && IsStack(BasePlayer))
+                {
+                    isCone = IsFan(partner);
                 }
                 if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
                 {
@@ -313,6 +311,8 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
     {
         this.TowerCount = 0;
         this.FirstTaker = null;
+        this.ActiveMapEffects = new(2);
+        this.StoredAoe = null;
     }
 
     public override void OnSettingsDraw()
@@ -355,15 +355,16 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         ImGuiEx.Text("My tower, looking at boss:");
         ImGui.Indent();
         ImGuiEx.RadioButtonBool("Left", "Right", ref C.IsLeftDefaultTower);
-        ImGui.Unindent();
         ImGui.Checkbox("I will flex if my partner and I both have stacks while in tower", ref C.IsFlexerAsActive);
+        ImGui.Checkbox("Follow partner for first tower if I have stack", ref C.FirstTowerFollowsPartner);
+        ImGui.Unindent();
         ImGuiEx.Text("When in passive group during even towers, I will:");
         ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Bait boss clone", "Bait active group's fan", ref C.IsCloneBaitingAsPassive);
+        ImGuiEx.RadioButtonBool("Bait boss clone (melee)", "Bait active group's fan (ranged)", ref C.IsCloneBaitingAsPassive);
         ImGui.Unindent();
         ImGuiEx.Text("(ignore for stack+spread tower) When helping active odd tower with fan, I will:");
         ImGui.Indent();
-        ImGuiEx.RadioButtonBool("Stack", "Bait fan", ref C.IsStackTakerAsPassive);
+        ImGuiEx.RadioButtonBool("Stack (tank)", "Bait fan (healer)", ref C.IsStackTakerAsPassive);
         ImGui.Unindent();
 
         if(ImGui.CollapsingHeader("Debug"))
@@ -402,6 +403,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         public bool IsFlexerAsActive = false;
         public bool IsStackTakerAsPassive = false;
         public bool IsCloneBaitingAsPassive = false;
+        public bool FirstTowerFollowsPartner = false;
         public Prio1 MyPartner = new();
     }
 

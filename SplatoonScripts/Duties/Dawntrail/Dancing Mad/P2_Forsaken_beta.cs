@@ -54,7 +54,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private const float FinalAllThingsEndingOffset = 4f;
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 15;
+    private const int CurrentDefaultsVersion = 14;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -201,20 +201,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             "ONの場合、8回目の円/扇ランクを選択したマーカー種別から判定します。OFFの場合は従来通りデバフと優先順位で判定します。"
     };
 
-    private static readonly InternationalString UseLastKnownDebuffsText = new()
-    {
-        En = "Continue with last known debuffs",
-        Jp = "最後に確認したデバフで継続"
-    };
-
-    private static readonly InternationalString UseLastKnownDebuffsDescriptionText = new()
-    {
-        En =
-            "When the current status pattern is incomplete, retry assignment with the last observed Missing debuff for each player. This keeps guidance visible after deaths or incorrect tower soaks.",
-        Jp =
-            "現在ステータスのパターンが不完全な場合、各プレイヤーで最後に確認したミッシングデバフを使って再判定します。死亡や塔踏みミス後もナビを継続しやすくします。"
-    };
-
     private static readonly InternationalString CircleMarkerKindText = new()
     {
         En = "Circle marker type",
@@ -295,7 +281,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private readonly List<uint> _firstSetIds = [];
     private readonly List<uint> _secondSetIds = [];
     private readonly Dictionary<uint, LiveDebuffKind> _initialHeadPartnerDebuffs = [];
-    private readonly Dictionary<uint, LiveDebuffKind> _lastKnownDebuffs = [];
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
     private string _lastSelectorLabel = "";
@@ -331,7 +316,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(10, "Garume");
+    public override Metadata Metadata => new(9, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -491,8 +476,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         _active = true;
         var debuff = DebuffFromStatus(status.StatusId);
-        if (debuff != LiveDebuffKind.None)
-            _lastKnownDebuffs[sourceId] = debuff;
         DebugLogOnce(ref _lastCaptureBlockLog, $"status-{sourceId:X8}-{status.StatusId}", $"STATUS_GAIN missing source=0x{sourceId:X8} status={status.StatusId} debuff={debuff}");
         TryCaptureResolvingSets();
         if (debuff != LiveDebuffKind.None && _allowLiveContextRefresh)
@@ -900,10 +883,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         DrawMarkerCommandInput(FanMarkerCommandText.Get(), ref C.FanMarkerCommand);
 
         ImGui.Spacing();
-        ImGui.Checkbox(UseLastKnownDebuffsText.Get(), ref C.UseLastKnownDebuffs);
-        ImGui.TextWrapped(UseLastKnownDebuffsDescriptionText.Get());
-
-        ImGui.Spacing();
         ImGui.Checkbox(UseWave8MarkerResolutionText.Get(), ref C.UseWave8MarkerResolution);
         ImGui.TextWrapped(UseWave8MarkerResolutionDescriptionText.Get());
         if (C.UseWave8MarkerResolution)
@@ -1149,7 +1128,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ImGui.TextUnformatted($"First set: {FormatResolvingSet(_firstSetIds)}");
         ImGui.TextUnformatted($"Second set: {FormatResolvingSet(_secondSetIds)}");
         ImGui.TextUnformatted($"Initial head partners: {FormatInitialHeadPartnerDebuffs()}");
-        ImGui.TextUnformatted($"Last known debuffs: {FormatLastKnownDebuffs()}");
         ImGui.TextUnformatted($"Pending spawns: {FormatMapPositionList(_pendingTowerSpawnPositions)}");
         ImGui.TextUnformatted($"Pending clears: {FormatMapPositionList(_pendingTowerClearPositions)}");
         ImGui.TextUnformatted($"Last pattern: H{_lastPattern.Head}/C{_lastPattern.Circle}/F{_lastPattern.Fan}");
@@ -1646,7 +1624,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             return false;
         }
 
-        RememberVisibleDebuffs(party);
         var resolvingGroup = GetGroupPlayers(wave.ResolvingGroup, party);
         if (resolvingGroup.Count == 0)
         {
@@ -1657,7 +1634,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         var supportGroup = GetSupportGroup(wave.ResolvingGroup, party, resolvingGroup);
         var useWave8MarkerContext = HasCompleteWave8MarkerCoverage(resolvingGroup);
-        var pattern = BuildLivePattern(resolvingGroup, useWave8MarkerContext, out var useLastKnownDebuffContext);
+        var pattern = BuildLivePattern(resolvingGroup, useWave8MarkerContext);
         if (!HasConfiguredPattern(pattern))
         {
             failureReason = $"no configured pattern {FormatPattern(pattern)} wave={_currentWave} stage={_currentStage}";
@@ -1667,40 +1644,25 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _stageContexts.Clear();
         foreach (var player in party)
         {
-            var context = BuildLiveContext(player, resolvingGroup, supportGroup, pattern, useWave8MarkerContext, useLastKnownDebuffContext);
+            var context = BuildLiveContext(player, resolvingGroup, supportGroup, pattern, useWave8MarkerContext);
             _stageContexts[player.EntityId] = context;
         }
 
         if (!_stageContexts.ContainsKey(currentPlayer.EntityId))
-            _stageContexts[currentPlayer.EntityId] = BuildLiveContext(currentPlayer, resolvingGroup, supportGroup, pattern, useWave8MarkerContext, useLastKnownDebuffContext);
+            _stageContexts[currentPlayer.EntityId] = BuildLiveContext(currentPlayer, resolvingGroup, supportGroup, pattern, useWave8MarkerContext);
 
         return _stageContexts.Count > 0;
     }
 
-    private PatternInfo BuildLivePattern(
-        IReadOnlyList<IPlayerCharacter> resolvingGroup,
-        bool useWave8MarkerContext,
-        out bool useLastKnownDebuffContext)
+    private PatternInfo BuildLivePattern(IReadOnlyList<IPlayerCharacter> resolvingGroup, bool useWave8MarkerContext)
     {
-        useLastKnownDebuffContext = false;
         var statusPattern = PatternInfo.FromPlayers(resolvingGroup);
-        if (useWave8MarkerContext)
-        {
-            var markerPattern = PatternInfo.FromPlayers(resolvingGroup, Wave8MarkerEffectiveDebuff);
-            if (HasConfiguredPattern(markerPattern))
-                return markerPattern;
-        }
-
-        if (HasConfiguredPattern(statusPattern) || !C.UseLastKnownDebuffs)
+        if (!useWave8MarkerContext)
             return statusPattern;
 
-        var fallbackPattern = PatternInfo.FromPlayers(resolvingGroup, LastKnownDebuffFromPlayer);
-        if (HasConfiguredPattern(fallbackPattern))
-        {
-            useLastKnownDebuffContext = true;
-            DebugLog($"LAST_KNOWN_DEBUFF_PATTERN wave={_currentWave} stage={_currentStage} current={FormatPattern(statusPattern)} fallback={FormatPattern(fallbackPattern)}");
-            return fallbackPattern;
-        }
+        var markerPattern = PatternInfo.FromPlayers(resolvingGroup, Wave8MarkerEffectiveDebuff);
+        if (HasConfiguredPattern(markerPattern))
+            return markerPattern;
 
         return statusPattern;
     }
@@ -1710,8 +1672,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         IReadOnlyList<IPlayerCharacter> resolvingGroup,
         IReadOnlyList<IPlayerCharacter> supportGroup,
         PatternInfo pattern,
-        bool useWave8MarkerContext,
-        bool useLastKnownDebuffContext)
+        bool useWave8MarkerContext)
     {
         var side = resolvingGroup.Any(p => p.EntityId == me.EntityId)
             ? ParticipantSide.ResolvingGroup
@@ -1720,9 +1681,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 : ParticipantSide.Any;
 
         var sideGroup = side == ParticipantSide.SupportGroup ? supportGroup : resolvingGroup;
-        var debuff = DebuffForLiveContext(me, side, useWave8MarkerContext, useLastKnownDebuffContext);
+        var debuff = DebuffForLiveContext(me, side, useWave8MarkerContext);
         var sameDebuffPlayers = sideGroup
-            .Where(player => DebuffForLiveContext(player, side, useWave8MarkerContext, useLastKnownDebuffContext) == debuff)
+            .Where(player => DebuffForLiveContext(player, side, useWave8MarkerContext) == debuff)
             .ToList();
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
@@ -1740,38 +1701,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             pattern);
     }
 
-    private LiveDebuffKind DebuffForLiveContext(
-        IPlayerCharacter player,
-        ParticipantSide side,
-        bool useWave8MarkerContext,
-        bool useLastKnownDebuffContext)
+    private LiveDebuffKind DebuffForLiveContext(IPlayerCharacter player, ParticipantSide side, bool useWave8MarkerContext)
     {
         if (side == ParticipantSide.ResolvingGroup && useWave8MarkerContext)
             return Wave8MarkerEffectiveDebuff(player);
 
-        if (useLastKnownDebuffContext)
-            return LastKnownDebuffFromPlayer(player);
-
         return CurrentDebuffFromPlayer(player);
-    }
-
-    private void RememberVisibleDebuffs(IEnumerable<IPlayerCharacter> players)
-    {
-        foreach (var player in players)
-        {
-            var debuff = CurrentDebuffFromPlayer(player);
-            if (debuff != LiveDebuffKind.None)
-                _lastKnownDebuffs[player.EntityId] = debuff;
-        }
-    }
-
-    private LiveDebuffKind LastKnownDebuffFromPlayer(IPlayerCharacter player)
-    {
-        var current = CurrentDebuffFromPlayer(player);
-        if (current != LiveDebuffKind.None)
-            return current;
-
-        return _lastKnownDebuffs.GetValueOrDefault(player.EntityId, LiveDebuffKind.None);
     }
 
     private LiveDebuffKind Wave8MarkerEffectiveDebuff(IPlayerCharacter player)
@@ -2658,9 +2593,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
     private string DebugPlayer(IPlayerCharacter player)
     {
-        var current = CurrentDebuffFromPlayer(player);
-        var known = _lastKnownDebuffs.GetValueOrDefault(player.EntityId, LiveDebuffKind.None);
-        return $"{player.Name}(0x{player.EntityId:X8},{current},known={known})";
+        return $"{player.Name}(0x{player.EntityId:X8},{CurrentDebuffFromPlayer(player)})";
     }
 
     private static string DebugIdentity(IPlayerCharacter player)
@@ -2679,17 +2612,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             .OfType<IPlayerCharacter>()
             .ToDictionary(player => player.EntityId, player => player.Name.ToString());
         return string.Join(", ", _initialHeadPartnerDebuffs.Select(item =>
-            $"{players.GetValueOrDefault(item.Key, $"0x{item.Key:X8}")}:{item.Value}"));
-    }
-
-    private string FormatLastKnownDebuffs()
-    {
-        if (_lastKnownDebuffs.Count == 0) return "none";
-
-        var players = Controller.GetPartyMembers()
-            .OfType<IPlayerCharacter>()
-            .ToDictionary(player => player.EntityId, player => player.Name.ToString());
-        return string.Join(", ", _lastKnownDebuffs.Select(item =>
             $"{players.GetValueOrDefault(item.Key, $"0x{item.Key:X8}")}:{item.Value}"));
     }
 
@@ -2787,7 +2709,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _firstSetIds.Clear();
         _secondSetIds.Clear();
         _initialHeadPartnerDebuffs.Clear();
-        _lastKnownDebuffs.Clear();
         _lastPattern = new PatternInfo();
         _lastRuleLabel = "";
         _lastDebuff = LiveDebuffKind.Any;
@@ -3339,7 +3260,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         public bool EnableLiveMarkerCommands;
         public bool UseWave8MarkerResolution;
-        public bool UseLastKnownDebuffs = true;
         public string CircleMarkerCommand = "/mk stop <me>";
         public string FanMarkerCommand = "/mk bind <me>";
         public P2_Forsaken_beta.MarkerResolveKind CircleMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Stop;
@@ -3681,12 +3601,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 CircleMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Stop;
                 FanMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Bind;
                 DefaultsVersion = 14;
-            }
-
-            if (DefaultsVersion < 15)
-            {
-                UseLastKnownDebuffs = true;
-                DefaultsVersion = 15;
             }
 
             for (var i = 0; i < Waves.Length; i++)

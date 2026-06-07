@@ -330,7 +330,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         if (IsAllThingsEnding(actionId: castId))
         {
             DebugLog($"CAST_START All Things Ending pendingWave={_pendingTowerDisplayWave} hasPending={_hasPendingTowerDisplay} observedWave={_observedTowerWave} currentWave={_currentWave}");
-            if (_currentWave >= WaveCount && _currentStage == StageKind.Future)
+            if (_currentWave >= WaveCount && _currentStage is StageKind.Past or StageKind.Future)
             {
                 _finalAllThingsEndingCastSeen = true;
                 DebugLog("CAST_START final All Things Ending");

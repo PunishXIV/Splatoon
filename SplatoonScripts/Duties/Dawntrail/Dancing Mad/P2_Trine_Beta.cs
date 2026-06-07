@@ -44,6 +44,7 @@ public class P2_Trine_Beta : SplatoonScript
     private const float PartyFinalSearchRadius = 4.0f;
     private const float PartyOutwardOffset = 2.0f;
     private const float PartyFinalOutwardOffset = 2.0f;
+    private const float TankNearFinalOutwardOffset = 1.5f;
     private const float TankNearSearchMaxRadius = 13.0f;
     private const float TankFarRadius = 17.0f;
     private const float OffTankFinalOutwardOffset = 2.0f;
@@ -92,7 +93,7 @@ public class P2_Trine_Beta : SplatoonScript
     private Vector3 _firstWavePartyDestination;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(3, "Garume");
+    public override Metadata Metadata => new(4, "Garume");
 
     private Config C
     {
@@ -351,6 +352,9 @@ public class P2_Trine_Beta : SplatoonScript
             TrineExplosionClearance, 0.0f, TankNearSearchMaxRadius);
         mainTankDestination = RefineTankNearDestinationInward(mainTankDestination, centralTriangle.Center, direction,
             hazardPoints, TrineExplosionClearance);
+        mainTankDestination = MoveOutwardFromArenaCenter(mainTankDestination, TankNearFinalOutwardOffset);
+        mainTankDestination = AdjustPointAwayFromHazardPoints(mainTankDestination, hazardPoints, TrineExplosionClearance,
+            1.5f);
         var offTankDestination = AdjustPointAwayFromHazardPoints(centralTriangle.Center + direction * TankFarRadius,
             hazardPoints, TrineExplosionClearance, 1.5f);
         offTankDestination = MoveOutwardFromArenaCenter(offTankDestination, OffTankFinalOutwardOffset);

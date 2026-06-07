@@ -1064,10 +1064,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         _pendingTowerClearPositions.Clear();
         _allowLiveContextRefresh = false;
-        var activatedPending = TryActivatePendingTowerDisplayFromClear();
-        DebugLog($"TOWER_CLEAR currentWave={_currentWave} stage={_currentStage} liveRefresh={_allowLiveContextRefresh} activatedPending={activatedPending}");
-        if (!activatedPending)
-            ApplyDisplay();
+        DebugLog($"TOWER_CLEAR currentWave={_currentWave} stage={_currentStage} liveRefresh={_allowLiveContextRefresh}");
+        ApplyDisplay();
     }
 
     private void SetStage(StageKind stage)
@@ -1099,18 +1097,6 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _pendingTowerDisplayWave = 0;
         _pendingTowerDisplayReference = 0;
         return true;
-    }
-
-    private bool TryActivatePendingTowerDisplayFromClear()
-    {
-        if (!_hasPendingTowerDisplay || _pendingTowerDisplayWave is < 3 or > WaveCount)
-            return false;
-
-        var stage = _pendingTowerDisplayWave % 2 == 0
-            ? StageKind.Tower
-            : StageKind.AllThingsEnding;
-        DebugLog($"PENDING_TOWER clear fallback stage={stage} wave={_pendingTowerDisplayWave} reference={FormatMapPosition(_pendingTowerDisplayReference)}");
-        return TryActivatePendingTowerDisplay(stage, _ => true);
     }
 
     private void ActivateTowerDisplay(int wave, uint reference, StageKind stage)

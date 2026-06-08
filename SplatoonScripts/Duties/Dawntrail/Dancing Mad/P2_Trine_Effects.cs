@@ -19,7 +19,7 @@ internal class P2_Trine_Effects : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage, Poneglyph");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -42,6 +42,11 @@ internal class P2_Trine_Effects : SplatoonScript
     private const float FillLifeMax = 13f;
     private const float FillLifeRange = FillLifeMax - FillLifeMin;
     private const float FillIntensityMax = 0.8f;
+
+    private const float VortexCheckX = 88.5f;
+    private const float VortexCheckY = 90.0f;
+    private const float VortexProximityTolerance = 1.0f;
+    private const float VortexRotationAngle = 60.0f; // degrees
 
     private static readonly (float X, float Y)[] OffsetsA =
     [
@@ -80,6 +85,8 @@ internal class P2_Trine_Effects : SplatoonScript
         public uint Wave1Color = Colors.Yellow;
         public uint Wave2Color = Colors.Red;
         public uint Wave3Color = Colors.DarkRed;
+        public float ElementOffZ = 0f;
+        public bool NWTrineFix = true;
     }
 
     private sealed class TelegraphRecord(int order, uint dataId, uint entityId)
@@ -103,7 +110,7 @@ internal class P2_Trine_Effects : SplatoonScript
                 {
                     Enabled = false,
                     radius = 6.0f,
-                    offZ = 0.5f,
+                    offZ = 0f,
                     fillIntensity = 0f,
                     color = GetWaveColor(order),
                 });
@@ -148,6 +155,9 @@ internal class P2_Trine_Effects : SplatoonScript
             var position = NormalizeY(obj.Position);
             var fill = ComputeFillIntensity(obj.GetLifeTimeSeconds());
             var offsets = GetVertexOffsets(record.DataId);
+            
+            if (C.NWTrineFix && IsNearVortexCoords(position))
+                offsets = RotateOffsets(offsets, VortexRotationAngle);
 
             for (var vertex = 0; vertex < VertexCount; vertex++)
             {
@@ -158,6 +168,7 @@ internal class P2_Trine_Effects : SplatoonScript
                 element.color = GetWaveColor(record.Order);
                 element.offX = offsets[vertex].X;
                 element.offY = offsets[vertex].Y;
+                element.offZ = C.ElementOffZ;
                 element.SetRefPosition(position);
                 element.fillIntensity = fill;
             }
@@ -180,6 +191,11 @@ internal class P2_Trine_Effects : SplatoonScript
         DrawWaveColorPicker("Wave 1 (spawns 1-3)", ref C.Wave1Color);
         DrawWaveColorPicker("Wave 2 (spawn 4)", ref C.Wave2Color);
         DrawWaveColorPicker("Wave 3 (spawns 5-7)", ref C.Wave3Color);
+        
+        ImGui.Spacing();
+        ImGui.Text("Element Settings");
+        ImGui.DragFloat("Element Offset Z", ref C.ElementOffZ, 0.1f, 0f, 5f);
+        ImGui.Checkbox("NW Trine Fix (60° rotation)", ref C.NWTrineFix);
     }
 
     #endregion
@@ -284,6 +300,33 @@ internal class P2_Trine_Effects : SplatoonScript
     private static (float X, float Y)[] GetVertexOffsets(uint dataId)
     {
         return dataId == TelegraphDataIdA ? OffsetsA : OffsetsB;
+    }
+
+    private static bool IsNearVortexCoords(Vector3 position)
+    {
+        var distX = Math.Abs(position.X - VortexCheckX);
+        var distZ = Math.Abs(position.Z - VortexCheckY);
+        return distX <= VortexProximityTolerance && distZ <= VortexProximityTolerance;
+    }
+
+    private static (float X, float Y)[] RotateOffsets((float X, float Y)[] offsets, float angleDegrees)
+    {
+        var angleRadians = angleDegrees * (float)Math.PI / 180f;
+        var cos = (float)Math.Cos(angleRadians);
+        var sin = (float)Math.Sin(angleRadians);
+
+        var rotated = new (float X, float Y)[offsets.Length];
+        for (var i = 0; i < offsets.Length; i++)
+        {
+            var x = offsets[i].X;
+            var y = offsets[i].Y;
+            rotated[i] = (
+                x * cos - y * sin,
+                x * sin + y * cos
+            );
+        }
+
+        return rotated;
     }
 
     // Element name shared by OnSetup registration and OnUpdate lookup.

@@ -59,7 +59,11 @@ public class P2_Trine_Beta : SplatoonScript
     private static readonly Vector3 ArenaCenter = new(100.0f, 0.0f, 100.0f);
     private static readonly Vector3 HalfRoomWestSafeDestination = new(97.0f, 0.0f, 100.0f);
     private static readonly Vector3 HalfRoomEastSafeDestination = new(103.0f, 0.0f, 100.0f);
+    private static readonly Vector3 NorthDirection = new(0.0f, 0.0f, -1.0f);
     private static readonly Vector3 NorthEastDirection = NormalizeXZ(new Vector3(1.0f, 0.0f, -1.0f));
+    private static readonly Vector3 EastDirection = new(1.0f, 0.0f, 0.0f);
+    private static readonly Vector3 SouthDirection = new(0.0f, 0.0f, 1.0f);
+    private static readonly Vector3 WestDirection = new(-1.0f, 0.0f, 0.0f);
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
@@ -87,9 +91,9 @@ public class P2_Trine_Beta : SplatoonScript
     private static readonly InternationalString FirstMoveRouteModeDescriptionText = new()
     {
         En =
-            "Clockwise from north uses arena directions, not field markers: party takes the first safe route clockwise from north, and tanks take the first non-party safe route counter-clockwise from north-east. Legacy keeps the older single/double-side selector.",
+            "Clockwise from north uses arena directions, not field markers: party takes the first safe route clockwise from north, and tanks take the first non-party safe route counter-clockwise from north-east. Yan Flash prioritizes party south then east, and tanks north then west while avoiding the party route when possible. Legacy keeps the older single/double-side selector.",
         Jp =
-            "北から時計回りはフィールドマーカーではなくアリーナ方角を基準にします。パーティは北から時計回りで最初の安全側、タンクは北東から反時計回りでパーティ以外の最初の安全側を使います。従来方式は旧来の単体/2連側選択を維持します。"
+            "北から時計回りはフィールドマーカーではなくアリーナ方角を基準にします。パーティは北から時計回りで最初の安全側、タンクは北東から反時計回りでパーティ以外の最初の安全側を使います。ヤーン速報式はパーティが南→東、タンクが北→西を優先し、可能ならパーティ側を避けます。従来方式は旧来の単体/2連側選択を維持します。"
     };
     private static readonly InternationalString ClockwiseFromNorthModeText = new()
     {
@@ -100,6 +104,11 @@ public class P2_Trine_Beta : SplatoonScript
     {
         En = "Legacy single/double side",
         Jp = "従来の単体/2連側"
+    };
+    private static readonly InternationalString YanCardinalPriorityModeText = new()
+    {
+        En = "Yan Flash cardinal priority",
+        Jp = "ヤーン速報 方角優先"
     };
 
     private readonly List<Vector3> _currentWavePositions = [];
@@ -124,7 +133,7 @@ public class P2_Trine_Beta : SplatoonScript
     private Vector3 _earlyFirstWavePartyDestination;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(7, "Garume");
+    public override Metadata Metadata => new(8, "Garume");
 
     private Config C
     {
@@ -270,7 +279,8 @@ public class P2_Trine_Beta : SplatoonScript
     private static string[] BuildFirstMoveRouteModeLabels() =>
     [
         ClockwiseFromNorthModeText.Get(),
-        LegacySingleDoubleModeText.Get()
+        LegacySingleDoubleModeText.Get(),
+        YanCardinalPriorityModeText.Get()
     ];
 
     private void StartTrine()
@@ -642,6 +652,7 @@ public class P2_Trine_Beta : SplatoonScript
         return routeMode switch
         {
             FirstMoveRouteMode.LegacySingleDouble => SelectLegacySingleSafeGroup(safeGroups, firstTriangles),
+            FirstMoveRouteMode.YanCardinalPriority => SelectYanPartySafeGroup(safeGroups),
             _ => SelectClockwiseFromNorthSafeGroup(safeGroups)
         };
     }
@@ -652,6 +663,7 @@ public class P2_Trine_Beta : SplatoonScript
         return routeMode switch
         {
             FirstMoveRouteMode.LegacySingleDouble => SelectLegacyDoubleSafeGroup(safeGroups, partyGroup, partyDestination),
+            FirstMoveRouteMode.YanCardinalPriority => SelectYanTankSafeGroup(safeGroups, partyGroup, partyDestination),
             _ => SelectCounterClockwiseFromNorthEastSafeGroup(safeGroups, partyGroup, partyDestination)
         };
     }
@@ -699,6 +711,47 @@ public class P2_Trine_Beta : SplatoonScript
             .ThenByDescending(group => DistanceSquaredXZ(SelectClosestCandidateToMiddleSide(group), partyDestination))
             .ThenByDescending(group => group.Candidates.Count)
             .First();
+    }
+
+    private static SafeCandidateGroup SelectYanPartySafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups)
+    {
+        return SelectByDirectionalPriority(safeGroups, [SouthDirection, EastDirection]);
+    }
+
+    private static SafeCandidateGroup SelectYanTankSafeGroup(
+        IReadOnlyList<SafeCandidateGroup> safeGroups, SafeCandidateGroup partyGroup, Vector3 partyDestination)
+    {
+        if (safeGroups.Count == 1)
+            return partyGroup;
+
+        var tankGroups = safeGroups
+            .Where(group => !ReferenceEquals(group, partyGroup))
+            .ToList();
+        if (tankGroups.Count == 0)
+            return partyGroup;
+
+        return SelectByDirectionalPriority(tankGroups, [NorthDirection, WestDirection], partyDestination);
+    }
+
+    private static SafeCandidateGroup SelectByDirectionalPriority(
+        IReadOnlyList<SafeCandidateGroup> safeGroups, IReadOnlyList<Vector3> priorities, Vector3? oppositeOf = null)
+    {
+        var ordered = safeGroups
+            .OrderByDescending(group => DirectionalPriorityScore(group, priorities, 0))
+            .ThenByDescending(group => DirectionalPriorityScore(group, priorities, 1))
+            .ThenByDescending(group => group.Candidates.Count);
+
+        return oppositeOf.HasValue
+            ? ordered.ThenByDescending(group => DistanceSquaredXZ(SelectClosestCandidateToMiddleSide(group), oppositeOf.Value))
+                .First()
+            : ordered.First();
+    }
+
+    private static float DirectionalPriorityScore(SafeCandidateGroup group, IReadOnlyList<Vector3> priorities, int index)
+    {
+        return index < priorities.Count
+            ? DotXZ(NormalizeXZ(GetRouteRepresentativePosition(group) - ArenaCenter), priorities[index])
+            : 0.0f;
     }
 
     private static Vector3 GetRouteRepresentativePosition(SafeCandidateGroup group)
@@ -1451,7 +1504,8 @@ public class P2_Trine_Beta : SplatoonScript
     public enum FirstMoveRouteMode
     {
         ClockwiseFromNorth = 0,
-        LegacySingleDouble = 1
+        LegacySingleDouble = 1,
+        YanCardinalPriority = 2
     }
 
     public sealed class TankPriorityData : PriorityData

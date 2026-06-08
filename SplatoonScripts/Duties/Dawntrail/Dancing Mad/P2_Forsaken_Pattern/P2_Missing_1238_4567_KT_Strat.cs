@@ -87,6 +87,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private static readonly string[] MarkerResolveKindLabels = ["None", "Attack", "Stop", "Bind"];
 
+    private const string DefaultSpreadEchoText = "Circle";
+    private const string DefaultConeEchoText = "Cone";
+    private const int MarkerEchoTextMaxLength = 64;
+
     // FirstHalf group towers on steps 1,2,3,8; SecondHalf on steps 4,5,6,7.
     private static readonly HashSet<int> FirstHalfTowerSteps = [1, 2, 3, 8];
     private static readonly HashSet<int> SecondHalfTowerSteps = [4, 5, 6, 7];
@@ -268,8 +272,14 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         public int DebugPatternPreview = DebugPatternPreviewNone;
         public int DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
         public int Step1PairMode = (int)Step1PairModeKind.Alternate;
-        public MarkerResolveKind SpreadMarkerType = MarkerResolveKind.Stop;
-        public MarkerResolveKind ConeMarkerType = MarkerResolveKind.Bind;
+        public MarkerResolveKind SpreadMarkerType = MarkerResolveKind.None;
+        public MarkerResolveKind ConeMarkerType = MarkerResolveKind.None;
+        public bool SpreadUseEcho = false;
+        public bool SpreadUseMarker = false;
+        public bool ConeUseEcho = false;
+        public bool ConeUseMarker = false;
+        public string SpreadEchoText = DefaultSpreadEchoText;
+        public string ConeEchoText = DefaultConeEchoText;
         public PatternRuleSettings[][] PatternRules = CreateDefaultPatternRules();
 
         public void EnsureDefaults()
@@ -282,6 +292,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
                 Step1PairMode = (int)Step1PairModeKind.Alternate;
             SpreadMarkerType = ClampMarkerResolveKind(SpreadMarkerType);
             ConeMarkerType = ClampMarkerResolveKind(ConeMarkerType);
+            SpreadEchoText = NormalizeEchoText(SpreadEchoText, DefaultSpreadEchoText);
+            ConeEchoText = NormalizeEchoText(ConeEchoText, DefaultConeEchoText);
             PatternRules = EnsurePatternRules(PatternRules);
         }
 
@@ -291,8 +303,14 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
             Step1PairMode = (int)Step1PairModeKind.Alternate;
-            SpreadMarkerType = MarkerResolveKind.Stop;
-            ConeMarkerType = MarkerResolveKind.Bind;
+            SpreadMarkerType = MarkerResolveKind.None;
+            ConeMarkerType = MarkerResolveKind.None;
+            SpreadUseEcho = false;
+            SpreadUseMarker = false;
+            ConeUseEcho = false;
+            ConeUseMarker = false;
+            SpreadEchoText = DefaultSpreadEchoText;
+            ConeEchoText = DefaultConeEchoText;
             PatternRules = CreateDefaultPatternRules();
         }
 
@@ -483,15 +501,15 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         }
 
         ImGui.Spacing();
-        ImGui.TextDisabled("Marker Rule");
+        ImGui.TextDisabled("Wave8 Debuff Reminder");
         ImGui.Separator();
-        DrawMarkerResolveKindCombo("Spread marker type", ref C.SpreadMarkerType);
-        DrawMarkerResolveKindCombo("Cone marker type", ref C.ConeMarkerType);
-
-        ImGui.TextUnformatted("Step4: FirstHalf Spread/Cone self-mark from marker type (None skips).");
-        ImGui.TextUnformatted($"Step4 mark delay: {Step4AutoMarkDelayBaseSec:0}s + random(0, {Step4AutoMarkDelayRandomSpanSec:0.#}s).");
-        ImGui.TextUnformatted("Step8: Spread/Cone tower roles resolve by marker type. When None; set by priority.");
-
+        ImGui.TextUnformatted("Spread:");
+        DrawMarkerEchoRow("Echo Message##Spread", ref C.SpreadUseEcho, ref C.SpreadEchoText, DefaultSpreadEchoText);
+        DrawMarkerKindRow("Auto Marking##Spread", ref C.SpreadUseMarker, ref C.SpreadMarkerType);
+        ImGui.TextUnformatted("Cone:");
+        DrawMarkerEchoRow("Echo Message##Cone", ref C.ConeUseEcho, ref C.ConeEchoText, DefaultConeEchoText);
+        DrawMarkerKindRow("Auto Marking##Cone", ref C.ConeUseMarker, ref C.ConeMarkerType);
+        
         ImGui.Spacing();
         ImGui.TextDisabled("Marker Settings");
         ImGui.Separator();
@@ -632,6 +650,45 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             kind = (MarkerResolveKind)idx;
     }
 
+    // Draw one echo row: checkbox and text field on the same line.
+    private void DrawMarkerEchoRow(string label, ref bool enabled, ref string echoText, string defaultEchoText)
+    {
+        ImGui.PushID($"{label}EchoRow");
+        ImGui.Checkbox(label, ref enabled);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(200f);
+        ImGui.BeginDisabled(!enabled);
+        ImGui.InputText("##text", ref echoText, MarkerEchoTextMaxLength);
+        ImGui.EndDisabled();
+        ImGui.PopID();
+
+        if(enabled && string.IsNullOrWhiteSpace(echoText))
+            echoText = defaultEchoText;
+    }
+
+    // Draw one marker row: checkbox and marker combo on the same line.
+    private void DrawMarkerKindRow(string label, ref bool enabled, ref MarkerResolveKind markerType)
+    {
+        ImGui.PushID($"{label}MarkerRow");
+        ImGui.Checkbox(label, ref enabled);
+        ImGui.SameLine();
+        ImGui.BeginDisabled(!enabled);
+        DrawMarkerResolveKindCombo("##type", ref markerType);
+        ImGui.EndDisabled();
+        ImGui.PopID();
+    }
+
+    private static string FormatMarkerRuleDebug(bool useEcho, string echoText, bool useMarker,
+        MarkerResolveKind markerType)
+    {
+        var parts = new List<string>(2);
+        if(useEcho)
+            parts.Add($"Echo \"{echoText}\"");
+        if(useMarker)
+            parts.Add($"Marker {FormatMarkerResolveKind(markerType)}");
+        return parts.Count == 0 ? "(none)" : string.Join(" + ", parts);
+    }
+
     private static string FormatMarkerResolveKind(MarkerResolveKind kind)
         => MarkerResolveKindLabels[(int)kind];
 
@@ -641,8 +698,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         ImGui.Spacing();
         ImGui.TextUnformatted("Step8 marker resolve");
         ImGui.Separator();
-        ImGui.TextUnformatted($"Spread marker: {FormatMarkerResolveKind(C.SpreadMarkerType)}");
-        ImGui.TextUnformatted($"Cone marker: {FormatMarkerResolveKind(C.ConeMarkerType)}");
+        ImGui.TextUnformatted(
+            $"Spread: {FormatMarkerRuleDebug(C.SpreadUseEcho, C.SpreadEchoText, C.SpreadUseMarker, C.SpreadMarkerType)}");
+        ImGui.TextUnformatted(
+            $"Cone: {FormatMarkerRuleDebug(C.ConeUseEcho, C.ConeEchoText, C.ConeUseMarker, C.ConeMarkerType)}");
         ImGui.TextUnformatted(_step4AutoMarkSent ? "Step4 auto-mark: sent" : "Step4 auto-mark: not sent");
         if(!_step4AutoMarkSent && _step4AutoMarkDueAt != 0)
         {
@@ -1298,14 +1357,15 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         EnableRoleMarker(ElMyRole, position, roleLabel, tether: true);
     }
 
-    private void EnableRoleMarker(string elementName, Vector3 position, string label, bool tether)
+    private void EnableRoleMarker(string elementName, Vector3 position, string label, bool tether,
+        bool showOverlayText = false)
     {
         if(!Controller.TryGetElementByName(elementName, out var element))
             return;
 
         element.SetRefPosition(position);
         element.color = Controller.AttentionColor;
-        element.overlayText = label;
+        element.overlayText = showOverlayText ? label : "";
         element.tether = tether;
         element.Enabled = true;
     }
@@ -1355,7 +1415,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             if(ResolvePositionRule(GetConfiguredRule(C.DebugPatternPreview, i)) is not { } position)
                 continue;
 
-            EnableRoleMarker(GetRolePreviewElementName(i), position, pattern.Assignments[i].Label, showRoleTether);
+            EnableRoleMarker(GetRolePreviewElementName(i), position, pattern.Assignments[i].Label, showRoleTether,
+                showOverlayText: true);
         }
     }
 
@@ -2071,7 +2132,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private string? ResolvePattern022SpreadRole(PlayerInfo info)
     {
-        if(C.SpreadMarkerType != MarkerResolveKind.None)
+        if(C.SpreadUseMarker && C.SpreadMarkerType != MarkerResolveKind.None)
             return Resolve022RoleByMarker(info, C.SpreadMarkerType, "022_SpreadPriority1", "022_SpreadPriority2");
 
         return GetPriorityRank(_infos.Where(i => IsTower(i) && i.Debuff == DebuffKind.Spread), info) switch
@@ -2084,7 +2145,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private string? ResolvePattern022ConeRole(PlayerInfo info)
     {
-        if(C.ConeMarkerType != MarkerResolveKind.None)
+        if(C.ConeUseMarker && C.ConeMarkerType != MarkerResolveKind.None)
             return Resolve022RoleByMarker(info, C.ConeMarkerType, "022_ConePriority1", "022_ConePriority2");
 
         return GetPriorityRank(_infos.Where(i => IsTower(i) && i.Debuff == DebuffKind.Cone), info) switch
@@ -2159,19 +2220,33 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             return;
         }
 
-        var command = baseInfo.Debuff switch
-        {
-            DebuffKind.Spread => GetMarkCommand(C.SpreadMarkerType),
-            DebuffKind.Cone => GetMarkCommand(C.ConeMarkerType),
-            _ => null,
-        };
+        string? echoText = null;
+        string? markCommand = null;
 
-        if(command == null)
+        switch(baseInfo.Debuff)
+        {
+            case DebuffKind.Spread:
+                if(C.SpreadUseEcho)
+                    echoText = NormalizeEchoText(C.SpreadEchoText, DefaultSpreadEchoText);
+                if(C.SpreadUseMarker)
+                    markCommand = GetMarkCommand(C.SpreadMarkerType);
+                break;
+            case DebuffKind.Cone:
+                if(C.ConeUseEcho)
+                    echoText = NormalizeEchoText(C.ConeEchoText, DefaultConeEchoText);
+                if(C.ConeUseMarker)
+                    markCommand = GetMarkCommand(C.ConeMarkerType);
+                break;
+        }
+
+        if(echoText == null && markCommand == null)
         {
             _step4AutoMarkSkipReason = baseInfo.Debuff switch
             {
-                DebuffKind.Spread => "Spread marker type is None",
-                DebuffKind.Cone => "Cone marker type is None",
+                DebuffKind.Spread =>
+                    "Debuff: Spread. If You Need Marking, Please Set Auto Marking Config.",
+                DebuffKind.Cone =>
+                    "Debuff: Cone. If You Need Marking, Please Set Auto Marking Config.",
                 _ => $"debuff is {FormatDebuffKindDebug(baseInfo.Debuff)} (need Spread/Cone)",
             };
             return;
@@ -2191,7 +2266,11 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         _step4AutoMarkSkipReason = null;
         _step4AutoMarkSkipLogged = false;
         _step4AutoMarkDueAt = 0;
-        RunMarkCommand(command);
+
+        if(echoText != null)
+            RunEchoCommand(echoText);
+        if(markCommand != null)
+            RunMarkCommand(markCommand);
     }
 
     // Returns a random mark delay of at least Step4AutoMarkDelayBaseSec.
@@ -2207,17 +2286,35 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             || _step4AutoMarkSkipLogged || _step4AutoMarkDueAt != 0)
             return;
 
-        if(!Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-            return;
+        if(_step4AutoMarkSkipReason.StartsWith("Debuff:", StringComparison.Ordinal))
+            DuoLog.Information(_step4AutoMarkSkipReason);
+        else if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            DuoLog.Information($"Step4 auto-mark skipped: {_step4AutoMarkSkipReason}");
 
-        DuoLog.Information($"Step4 auto-mark skipped: {_step4AutoMarkSkipReason}");
         _step4AutoMarkSkipLogged = true;
+    }
+
+    // Trim echo text and fall back when empty.
+    private static string NormalizeEchoText(string? text, string fallback)
+    {
+        var normalized = text?.Trim();
+        return string.IsNullOrEmpty(normalized) ? fallback : normalized;
     }
 
     private static void RunMarkCommand(string command)
     {
         if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
             DuoLog.Information($"Step4 auto-mark: {command}");
+        else
+            Chat.Instance.ExecuteCommand(command);
+    }
+
+    // Send configured echo text to Echo chat.
+    private static void RunEchoCommand(string text)
+    {
+        var command = $"/echo {text}";
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            DuoLog.Information($"Step4 auto-echo: {command}");
         else
             Chat.Instance.ExecuteCommand(command);
     }

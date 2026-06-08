@@ -344,7 +344,7 @@ This script displays Trine's effects in order (3-1-3).
 Use this if 'Trine guide' is unavailable.
 
 ```
-https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Trine_Beta.cs
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Trine_Effects.cs
 ```
 
 
@@ -417,6 +417,10 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ## [NA/EU] Rinon
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Pattern/P2_Missing_1238_4567_Rinon.cs
+```
+### Updated config with new spots for the Rinon script
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Missing_1238_4567_Rinon","ConfigurationName":"Updated Rinon spots","Configuration":"G+IJACwHbGMh2QeF25H34tFgaDzx4bRoobXC7u+7BhHp6mu2LVVu3d1+PxiYCUaDjWSweQobcEoBxdPAi50iQUnJ0qCTZ25z/j/37s/GAg4wDXBR53Pk3dcatBZ4IGNuTwh6FmDD2EUPsLQtFtOd1IVzg8qyAmUawUuT3SVN3n3/tzYZHguyovTWLkBVoWmisTs8ckDpJfaXCYMbmI6qI82ns8IC1LLS2oRKRAktpLNvb+NNFMS5VKLPNZzNJWJO0kZ/8hr17QYYoIsYAPAgZADAwIErW0hbZdWeYcahRCqoLdox0cmmoduZJc8ZzWeyDWWg1q1lhUqgExcjU3IPEzv9lo3TmXKuvM+cd3TX4nSSJERG++7Br+4zGPs/KqBPrGrwBiTxI0Jra3uDmxzoI8NEuwXJMOFuGL3EFpERfGlGw51idMdye79fqtXeG9NGLjPtkJU3pmF0f6TCG7+JGJPmUtuA3K15mw+R7BRGpuUcHIn4AQ==","Overrides":null}
 ```
 
 ## Presets

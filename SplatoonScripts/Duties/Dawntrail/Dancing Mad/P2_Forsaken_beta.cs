@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.Automation;
 using ECommons;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
@@ -13,6 +16,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon;
+using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 
@@ -39,11 +43,18 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private const int BasicStageCount = 1;
     private const int PairCount = 4;
     private const int PreviewElementCount = 64;
+    private const uint MarkerIndexAttack1 = 0;
+    private const uint MarkerIndexAttack2 = 1;
+    private const uint MarkerIndexBind1 = 5;
+    private const uint MarkerIndexBind2 = 6;
+    private const uint MarkerIndexStop1 = 8;
+    private const uint MarkerIndexStop2 = 9;
     private const string PreviewElementPrefix = "Preview";
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
+    private const float FinalAllThingsEndingOffset = 4f;
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 13;
+    private const int CurrentDefaultsVersion = 14;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -136,6 +147,72 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             "4ペアすべてがPTに一致する場合、優先順位ペアより明示ペアを優先します。頭割りを含むペアごと1/2/3/8回目を処理する戦略では、ペア分割をOFFのまま使います。"
     };
 
+    private static readonly InternationalString MarkerSettingsHeaderText = new()
+    {
+        En = "Marker commands",
+        Jp = "マーカーコマンド"
+    };
+
+    private static readonly InternationalString MarkerSettingsDescriptionText = new()
+    {
+        En =
+            "After wave 3, first-set circle/fan players can self-mark for wave 8. Live command execution is opt-in; duty replay only logs the intended command.",
+        Jp =
+            "3回目塔処理後、前半セットの円/扇担当が8回目用に自分へマーカーを付けます。実戦でのコマンド実行は明示的にONにした場合のみで、リプレイ中は予定コマンドをログに出すだけです。"
+    };
+
+    private static readonly InternationalString EnableLiveMarkerCommandsText = new()
+    {
+        En = "Execute marker commands in live duty",
+        Jp = "実戦でマーカーコマンドを実行"
+    };
+
+    private static readonly InternationalString EnableLiveMarkerCommandsDescriptionText = new()
+    {
+        En =
+            "Off: print the command locally instead of sending it. On: send the configured command only outside duty recorder playback.",
+        Jp =
+            "OFF: コマンドは送信せずローカルログに表示します。ON: Duty Recorder以外の実戦中だけ設定コマンドを送信します。"
+    };
+
+    private static readonly InternationalString CircleMarkerCommandText = new()
+    {
+        En = "Circle command",
+        Jp = "円コマンド"
+    };
+
+    private static readonly InternationalString FanMarkerCommandText = new()
+    {
+        En = "Fan command",
+        Jp = "扇コマンド"
+    };
+
+    private static readonly InternationalString UseWave8MarkerResolutionText = new()
+    {
+        En = "Use markers for wave 8 resolution",
+        Jp = "8回目をマーカー基準で判定"
+    };
+
+    private static readonly InternationalString UseWave8MarkerResolutionDescriptionText = new()
+    {
+        En =
+            "When enabled, wave 8 circle/fan rank can be resolved from the selected marker family. When disabled, the existing debuff and priority logic is unchanged.",
+        Jp =
+            "ONの場合、8回目の円/扇ランクを選択したマーカー種別から判定します。OFFの場合は従来通りデバフと優先順位で判定します。"
+    };
+
+    private static readonly InternationalString CircleMarkerKindText = new()
+    {
+        En = "Circle marker type",
+        Jp = "円の読取マーカー"
+    };
+
+    private static readonly InternationalString FanMarkerKindText = new()
+    {
+        En = "Fan marker type",
+        Jp = "扇の読取マーカー"
+    };
+
     private static readonly InternationalString SplitHeadStackPairsText = new()
     {
         En = "Split head-stack pairs",
@@ -169,6 +246,14 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         new() { En = "Partner debuff", Jp = "相方デバフ" },
         new() { En = "Priority order", Jp = "優先順位" },
         new() { En = "Role side", Jp = "ロール側" }
+    ];
+
+    private static readonly InternationalString[] MarkerResolveKindLabelTexts =
+    [
+        new() { En = "None", Jp = "なし" },
+        new() { En = "Attack", Jp = "Attack" },
+        new() { En = "Stop", Jp = "Stop" },
+        new() { En = "Bind", Jp = "Bind" }
     ];
 
     private static readonly InternationalString PairHeaderText = new()
@@ -217,6 +302,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private bool _allowLiveContextRefresh;
     private bool _waitingForLiveDebuffRefresh;
     private int _waitingForLiveDebuffRefreshWave;
+    private bool _finalAllThingsEndingCastSeen;
+    private bool _wave4SelfMarkerHandled;
+    private string _lastWave4SelfMarkerState = "";
     private string _currentInstruction = "";
     private bool _hasDestination;
     private Vector3 _myDestination = Vector3.Zero;
@@ -228,7 +316,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(7, "Garume");
+    public override Metadata Metadata => new(9, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -329,6 +417,15 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         if (IsAllThingsEnding(actionId: castId))
         {
             DebugLog($"CAST_START All Things Ending pendingWave={_pendingTowerDisplayWave} hasPending={_hasPendingTowerDisplay} observedWave={_observedTowerWave} currentWave={_currentWave}");
+            if (IsFinalWavePastFutureStage())
+            {
+                _finalAllThingsEndingCastSeen = true;
+                DebugLog("CAST_START final All Things Ending");
+                UpdateStageInstruction();
+                ApplyDisplay();
+                return;
+            }
+
             TryActivatePendingTowerDisplay(StageKind.AllThingsEnding, wave => wave is >= 3 and <= WaveCount && wave % 2 == 1);
         }
     }
@@ -349,8 +446,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         if (!_active && !HasPartyMissingStatus()) return;
 
-        if (IsAllThingsEnding(actionId) && (_currentWave >= WaveCount || _observedTowerWave >= WaveCount))
+        if (IsAllThingsEnding(actionId) && _finalAllThingsEndingCastSeen && _currentWave >= WaveCount)
         {
+            DebugLog("ACTION final All Things Ending resolved; reset");
             ResetState();
             return;
         }
@@ -368,6 +466,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     }
 
     private static bool IsAllThingsEnding(uint actionId) => actionId is AllThingsEndingCast1 or AllThingsEndingCast2;
+
+    private bool IsFinalWavePastFutureStage() =>
+        _currentWave >= WaveCount && (_currentStage is StageKind.Past or StageKind.Future);
 
     public override void OnGainBuffEffect(uint sourceId, Status status)
     {
@@ -428,6 +529,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         if (_active)
             TryCaptureResolvingSets();
 
+        if (_active)
+            TryRunWave4SelfMarker();
+
         if (_active && _hasStage)
             UpdateStageInstruction();
 
@@ -465,6 +569,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             ImGui.Indent();
             ImGui.TextWrapped(WaveTableDescriptionText.Get());
             DrawWaveSettings();
+            ImGui.Unindent();
+        }
+
+        if (ImGui.CollapsingHeader(MarkerSettingsHeaderText.Get(), ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            ImGui.Indent();
+            DrawMarkerSettings();
             ImGui.Unindent();
         }
 
@@ -762,6 +873,43 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
     }
 
+    private void DrawMarkerSettings()
+    {
+        ImGui.TextWrapped(MarkerSettingsDescriptionText.Get());
+        ImGui.Checkbox(EnableLiveMarkerCommandsText.Get(), ref C.EnableLiveMarkerCommands);
+        ImGui.TextWrapped(EnableLiveMarkerCommandsDescriptionText.Get());
+
+        DrawMarkerCommandInput(CircleMarkerCommandText.Get(), ref C.CircleMarkerCommand);
+        DrawMarkerCommandInput(FanMarkerCommandText.Get(), ref C.FanMarkerCommand);
+
+        ImGui.Spacing();
+        ImGui.Checkbox(UseWave8MarkerResolutionText.Get(), ref C.UseWave8MarkerResolution);
+        ImGui.TextWrapped(UseWave8MarkerResolutionDescriptionText.Get());
+        if (C.UseWave8MarkerResolution)
+        {
+            DrawMarkerResolveKindCombo(CircleMarkerKindText.Get(), ref C.CircleMarkerKind);
+            DrawMarkerResolveKindCombo(FanMarkerKindText.Get(), ref C.FanMarkerKind);
+        }
+    }
+
+    private static void DrawMarkerCommandInput(string label, ref string command)
+    {
+        command ??= "";
+        ImGui.SetNextItemWidth(-1f);
+        ImGui.InputText(label, ref command, 160);
+    }
+
+    private static void DrawMarkerResolveKindCombo(string label, ref MarkerResolveKind kind)
+    {
+        var index = (int)kind;
+        if (index < 0 || index >= MarkerResolveKindLabelTexts.Length)
+            index = 0;
+
+        ImGui.SetNextItemWidth(200f);
+        if (ImGui.Combo(label, ref index, BuildMarkerResolveKindLabels(), MarkerResolveKindLabelTexts.Length))
+            kind = (MarkerResolveKind)Math.Clamp(index, 0, MarkerResolveKindLabelTexts.Length - 1);
+    }
+
     private void DrawBasicPositionSettings()
     {
         if (ImGui.TreeNode(C.PastFutureHeaderText.Get()))
@@ -778,6 +926,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             ImGui.TextUnformatted(C.FutureStageLabelText.Get());
             DrawDisplayTextSetting("Text", ref C.ShowFutureFixedText, C.FutureFixedText);
             DrawPositionRule(C.FutureFixedPosition);
+            ImGui.PopID();
+
+            ImGui.PushID("FinalAllThingsEnding");
+            ImGui.TextUnformatted(C.AllThingsEndingStageLabelText.Get());
+            DrawDisplayTextSetting("Gather north text", ref C.ShowFinalAllThingsEndingGatherNorthText, C.FinalAllThingsEndingGatherNorthText);
+            DrawDisplayTextSetting("Past text", ref C.ShowFinalAllThingsEndingPastText, C.FinalAllThingsEndingPastText);
+            DrawDisplayTextSetting("Future text", ref C.ShowFinalAllThingsEndingFutureText, C.FinalAllThingsEndingFutureText);
             ImGui.PopID();
 
             ImGui.TreePop();
@@ -982,6 +1137,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ImGui.TextUnformatted($"Last selector: {(_lastSelectorLabel.Length == 0 ? "none" : _lastSelectorLabel)}");
         ImGui.TextUnformatted($"Last matched rule: {_lastRuleLabel}");
         ImGui.TextUnformatted($"Context cache: {_stageContexts.Count} players");
+        ImGui.TextUnformatted($"Wave 4 self marker: {(_wave4SelfMarkerHandled ? "handled" : "pending")} {(_lastWave4SelfMarkerState.Length == 0 ? "" : _lastWave4SelfMarkerState)}");
 
         var overrideName = global::Splatoon.Splatoon.BasePlayerOverride;
         var local = global::ECommons.DalamudServices.Svc.Objects.LocalPlayer;
@@ -1123,6 +1279,91 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ApplyDisplay();
     }
 
+    private void TryRunWave4SelfMarker()
+    {
+        if (_wave4SelfMarkerHandled)
+            return;
+
+        if (!_hasStage || _currentWave < 4)
+            return;
+
+        if (_currentWave > 4 || _currentStage != StageKind.Tower)
+        {
+            _wave4SelfMarkerHandled = true;
+            _lastWave4SelfMarkerState = "skipped: wave 4 tower window passed";
+            DebugLog($"WAVE4_MARKER {_lastWave4SelfMarkerState}");
+            return;
+        }
+
+        if (_firstSetIds.Count == 0)
+        {
+            _lastWave4SelfMarkerState = "waiting: first set unresolved";
+            return;
+        }
+
+        var me = BasePlayer;
+        if (me == null)
+        {
+            _lastWave4SelfMarkerState = "waiting: base player unresolved";
+            return;
+        }
+
+        if (!_firstSetIds.Contains(me.EntityId))
+        {
+            _wave4SelfMarkerHandled = true;
+            _lastWave4SelfMarkerState = "skipped: player is not in first set";
+            DebugLog($"WAVE4_MARKER {_lastWave4SelfMarkerState} player=0x{me.EntityId:X8}");
+            return;
+        }
+
+        var debuff = CurrentDebuffFromPlayer(me);
+        var command = debuff switch
+        {
+            LiveDebuffKind.Circle => C.CircleMarkerCommand,
+            LiveDebuffKind.Fan => C.FanMarkerCommand,
+            _ => null
+        };
+
+        if (command == null)
+        {
+            _lastWave4SelfMarkerState = $"waiting: debuff is {debuff}";
+            return;
+        }
+
+        command = command.Trim();
+        if (command.Length == 0)
+        {
+            _wave4SelfMarkerHandled = true;
+            _lastWave4SelfMarkerState = $"skipped: {debuff} marker command is empty";
+            DebugLog($"WAVE4_MARKER {_lastWave4SelfMarkerState}");
+            return;
+        }
+
+        _wave4SelfMarkerHandled = true;
+        RunWave4MarkerCommand(command, debuff);
+    }
+
+    private void RunWave4MarkerCommand(string command, LiveDebuffKind debuff)
+    {
+        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+        {
+            _lastWave4SelfMarkerState = $"replay log: {command}";
+            DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} (suppressed in duty recorder playback)");
+        }
+        else if (!C.EnableLiveMarkerCommands)
+        {
+            _lastWave4SelfMarkerState = $"dry run: {command}";
+            DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} (not sent; enable marker commands in settings to execute it)");
+        }
+        else
+        {
+            _lastWave4SelfMarkerState = $"sent: {command}";
+            Chat.ExecuteCommand(command);
+        }
+
+        DebugLog($"WAVE4_MARKER state=\"{_lastWave4SelfMarkerState}\" debuff={debuff} liveEnabled={C.EnableLiveMarkerCommands} replay={Svc.Condition[ConditionFlag.DutyRecorderPlayback]}");
+    }
+
     private static void AddUniquePairPosition(List<uint> list, uint position)
     {
         if (list.Count >= 2)
@@ -1168,6 +1409,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 C.WaitingForWaveText,
                 DisplayDebuffLabel(CurrentDebuffFromPlayer(me)));
             ClearDestination();
+            return;
+        }
+
+        if (IsFinalWavePastFutureStage())
+        {
+            ApplyFinalAllThingsEndingInstruction();
             return;
         }
 
@@ -1285,6 +1532,50 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         return true;
     }
 
+    private bool ApplyFinalAllThingsEndingInstruction()
+    {
+        var label = _finalAllThingsEndingCastSeen
+            ? C.AllThingsEndingStageLabelText.Get()
+            : StageLabel(_currentStage);
+
+        InternationalString text;
+        bool showText;
+        Vector3 destination;
+
+        if (!_finalAllThingsEndingCastSeen)
+        {
+            text = C.FinalAllThingsEndingGatherNorthText;
+            showText = C.ShowFinalAllThingsEndingGatherNorthText;
+            destination = FinalAllThingsEndingNorthPosition();
+        }
+        else if (_currentStage == StageKind.Past)
+        {
+            text = C.FinalAllThingsEndingPastText;
+            showText = C.ShowFinalAllThingsEndingPastText;
+            destination = FinalAllThingsEndingNorthPosition();
+        }
+        else
+        {
+            text = C.FinalAllThingsEndingFutureText;
+            showText = C.ShowFinalAllThingsEndingFutureText;
+            destination = FinalAllThingsEndingSouthPosition();
+        }
+
+        _lastRuleLabel = text.Get();
+        _lastSelectorLabel = "";
+        SetDestination(destination);
+        _currentInstruction = FormatDisplayText(
+            C.ShowActiveInstructionText,
+            C.ActiveInstructionText,
+            _currentWave,
+            label,
+            DisplayText(showText, text));
+        DebugLogOnce(ref _lastInstructionLog,
+            $"{_currentWave}|FinalAllThingsEnding|{_currentStage}|{_finalAllThingsEndingCastSeen}|{_lastRuleLabel}|{FormatVector3(_myDestination)}",
+            $"INSTRUCTION wave={_currentWave} stage={_currentStage} finalAllThingsEndingCastSeen={_finalAllThingsEndingCastSeen} rule=\"{_lastRuleLabel}\" destination={FormatVector3(_myDestination)}");
+        return true;
+    }
+
     private static bool StageUsesLiveContext(StageKind stage)
     {
         return stage is StageKind.Tower or StageKind.AllThingsEnding;
@@ -1342,7 +1633,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
 
         var supportGroup = GetSupportGroup(wave.ResolvingGroup, party, resolvingGroup);
-        var pattern = PatternInfo.FromPlayers(resolvingGroup);
+        var useWave8MarkerContext = HasCompleteWave8MarkerCoverage(resolvingGroup);
+        var pattern = BuildLivePattern(resolvingGroup, useWave8MarkerContext);
         if (!HasConfiguredPattern(pattern))
         {
             failureReason = $"no configured pattern {FormatPattern(pattern)} wave={_currentWave} stage={_currentStage}";
@@ -1352,21 +1644,35 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _stageContexts.Clear();
         foreach (var player in party)
         {
-            var context = BuildLiveContext(player, resolvingGroup, supportGroup, pattern);
+            var context = BuildLiveContext(player, resolvingGroup, supportGroup, pattern, useWave8MarkerContext);
             _stageContexts[player.EntityId] = context;
         }
 
         if (!_stageContexts.ContainsKey(currentPlayer.EntityId))
-            _stageContexts[currentPlayer.EntityId] = BuildLiveContext(currentPlayer, resolvingGroup, supportGroup, pattern);
+            _stageContexts[currentPlayer.EntityId] = BuildLiveContext(currentPlayer, resolvingGroup, supportGroup, pattern, useWave8MarkerContext);
 
         return _stageContexts.Count > 0;
+    }
+
+    private PatternInfo BuildLivePattern(IReadOnlyList<IPlayerCharacter> resolvingGroup, bool useWave8MarkerContext)
+    {
+        var statusPattern = PatternInfo.FromPlayers(resolvingGroup);
+        if (!useWave8MarkerContext)
+            return statusPattern;
+
+        var markerPattern = PatternInfo.FromPlayers(resolvingGroup, Wave8MarkerEffectiveDebuff);
+        if (HasConfiguredPattern(markerPattern))
+            return markerPattern;
+
+        return statusPattern;
     }
 
     private LiveContext BuildLiveContext(
         IPlayerCharacter me,
         IReadOnlyList<IPlayerCharacter> resolvingGroup,
         IReadOnlyList<IPlayerCharacter> supportGroup,
-        PatternInfo pattern)
+        PatternInfo pattern,
+        bool useWave8MarkerContext)
     {
         var side = resolvingGroup.Any(p => p.EntityId == me.EntityId)
             ? ParticipantSide.ResolvingGroup
@@ -1375,13 +1681,14 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 : ParticipantSide.Any;
 
         var sideGroup = side == ParticipantSide.SupportGroup ? supportGroup : resolvingGroup;
-        var debuff = CurrentDebuffFromPlayer(me);
+        var debuff = DebuffForLiveContext(me, side, useWave8MarkerContext);
         var sameDebuffPlayers = sideGroup
-            .Where(player => CurrentDebuffFromPlayer(player) == debuff)
+            .Where(player => DebuffForLiveContext(player, side, useWave8MarkerContext) == debuff)
             .ToList();
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
         debuffRank = AdjustInitialHeadRankFromExplicitPair(me, side, debuff, debuffRank);
+        debuffRank = AdjustWave8MarkerRank(me, side, debuff, debuffRank, useWave8MarkerContext);
         var supportRank = side == ParticipantSide.SupportGroup
             ? IndexOfPlayer(supportGroup, me.EntityId) + 1
             : 0;
@@ -1392,6 +1699,103 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             debuffRank,
             supportRank,
             pattern);
+    }
+
+    private LiveDebuffKind DebuffForLiveContext(IPlayerCharacter player, ParticipantSide side, bool useWave8MarkerContext)
+    {
+        if (side == ParticipantSide.ResolvingGroup && useWave8MarkerContext)
+            return Wave8MarkerEffectiveDebuff(player);
+
+        return CurrentDebuffFromPlayer(player);
+    }
+
+    private LiveDebuffKind Wave8MarkerEffectiveDebuff(IPlayerCharacter player)
+    {
+        var current = CurrentDebuffFromPlayer(player);
+        var circleMarker = HasMarkerKind(player, C.CircleMarkerKind);
+        var fanMarker = HasMarkerKind(player, C.FanMarkerKind);
+
+        return (circleMarker, fanMarker) switch
+        {
+            (true, false) => LiveDebuffKind.Circle,
+            (false, true) => LiveDebuffKind.Fan,
+            _ => current
+        };
+    }
+
+    private int AdjustWave8MarkerRank(
+        IPlayerCharacter player,
+        ParticipantSide side,
+        LiveDebuffKind debuff,
+        int currentRank,
+        bool useWave8MarkerContext)
+    {
+        if (side != ParticipantSide.ResolvingGroup || !useWave8MarkerContext)
+            return currentRank;
+
+        var markerKind = debuff switch
+        {
+            LiveDebuffKind.Circle => C.CircleMarkerKind,
+            LiveDebuffKind.Fan => C.FanMarkerKind,
+            _ => MarkerResolveKind.None
+        };
+
+        if (!TryGetMarkerPriorityIndices(markerKind, out var priority1, out var priority2))
+            return currentRank;
+
+        if (Marking.HaveMark(player, priority1))
+            return 1;
+        if (Marking.HaveMark(player, priority2))
+            return 2;
+
+        return currentRank;
+    }
+
+    private bool ShouldUseWave8MarkerResolution()
+    {
+        return C.UseWave8MarkerResolution && _currentWave == WaveCount;
+    }
+
+    private bool HasCompleteWave8MarkerCoverage(IReadOnlyList<IPlayerCharacter> resolvingGroup)
+    {
+        return ShouldUseWave8MarkerResolution() && resolvingGroup.Count > 0 &&
+               resolvingGroup.All(HasExactlyOneWave8MarkerKind);
+    }
+
+    private bool HasExactlyOneWave8MarkerKind(IPlayerCharacter player)
+    {
+        var circleMarker = HasMarkerKind(player, C.CircleMarkerKind);
+        var fanMarker = HasMarkerKind(player, C.FanMarkerKind);
+        return circleMarker != fanMarker;
+    }
+
+    private static bool HasMarkerKind(IPlayerCharacter player, MarkerResolveKind kind)
+    {
+        return TryGetMarkerPriorityIndices(kind, out var priority1, out var priority2) &&
+               (Marking.HaveMark(player, priority1) || Marking.HaveMark(player, priority2));
+    }
+
+    private static bool TryGetMarkerPriorityIndices(MarkerResolveKind kind, out uint priority1, out uint priority2)
+    {
+        switch (kind)
+        {
+            case MarkerResolveKind.Attack:
+                priority1 = MarkerIndexAttack1;
+                priority2 = MarkerIndexAttack2;
+                return true;
+            case MarkerResolveKind.Stop:
+                priority1 = MarkerIndexStop1;
+                priority2 = MarkerIndexStop2;
+                return true;
+            case MarkerResolveKind.Bind:
+                priority1 = MarkerIndexBind1;
+                priority2 = MarkerIndexBind2;
+                return true;
+            default:
+                priority1 = 0;
+                priority2 = 0;
+                return false;
+        }
     }
 
     private static int IndexOfPlayer(IReadOnlyList<IPlayerCharacter> players, uint entityId)
@@ -2016,6 +2420,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             origin.Z - MathF.Cos(rad) * range);
     }
 
+    private static Vector3 FinalAllThingsEndingNorthPosition() =>
+        OffsetFrom(ArenaCenter, 0f, FinalAllThingsEndingOffset);
+
+    private static Vector3 FinalAllThingsEndingSouthPosition() =>
+        OffsetFrom(ArenaCenter, 180f, FinalAllThingsEndingOffset);
+
     private static float NormalizeAngle360(float angle)
     {
         return (angle % 360f + 360f) % 360f;
@@ -2065,6 +2475,11 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private static string[] BuildInitialHeadStackRankModeLabels()
     {
         return InitialHeadStackRankModeLabelTexts.Select(item => item.Get()).ToArray();
+    }
+
+    private static string[] BuildMarkerResolveKindLabels()
+    {
+        return MarkerResolveKindLabelTexts.Select(item => item.Get()).ToArray();
     }
 
     private string BasicStageLabel(BasicStageKind stage)
@@ -2283,6 +2698,9 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _allowLiveContextRefresh = false;
         _waitingForLiveDebuffRefresh = false;
         _waitingForLiveDebuffRefreshWave = 0;
+        _finalAllThingsEndingCastSeen = false;
+        _wave4SelfMarkerHandled = false;
+        _lastWave4SelfMarkerState = "";
         _currentInstruction = "";
         _hasDestination = false;
         _myDestination = Vector3.Zero;
@@ -2416,6 +2834,14 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         RoleSide
     }
 
+    public enum MarkerResolveKind
+    {
+        None,
+        Attack,
+        Stop,
+        Bind
+    }
+
     public enum BasicStageKind
     {
         Tower
@@ -2498,12 +2924,15 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                    (Fan < 0 || Fan == actual.Fan);
         }
 
-        public static PatternInfo FromPlayers(IEnumerable<IPlayerCharacter> players)
+        public static PatternInfo FromPlayers(
+            IEnumerable<IPlayerCharacter> players,
+            Func<IPlayerCharacter, LiveDebuffKind>? debuffSelector = null)
         {
             var info = new PatternInfo(0, 0, 0);
             foreach (var player in players)
             {
-                switch (CurrentDebuffFromPlayer(player))
+                var debuff = debuffSelector?.Invoke(player) ?? CurrentDebuffFromPlayer(player);
+                switch (debuff)
                 {
                     case LiveDebuffKind.HeadStack:
                         info.Head++;
@@ -2825,6 +3254,16 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         public bool ShowPairedTowerPreviewText = true;
         public bool ShowPastFixedText = true;
         public bool ShowFutureFixedText = true;
+        public bool ShowFinalAllThingsEndingGatherNorthText = true;
+        public bool ShowFinalAllThingsEndingPastText = true;
+        public bool ShowFinalAllThingsEndingFutureText = true;
+
+        public bool EnableLiveMarkerCommands;
+        public bool UseWave8MarkerResolution;
+        public string CircleMarkerCommand = "/mk stop <me>";
+        public string FanMarkerCommand = "/mk bind <me>";
+        public P2_Forsaken_beta.MarkerResolveKind CircleMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Stop;
+        public P2_Forsaken_beta.MarkerResolveKind FanMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Bind;
 
         public InternationalString EastLabelText = new()
         {
@@ -2894,8 +3333,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         public InternationalString PastFutureDescriptionText = new()
         {
-            En = "Past and Future are fixed tower-relative movements. Tower and All Things Ending share the same role placement table.",
-            Jp = "過去と未来は塔基準の固定移動として扱います。塔と消滅の脚は同じ役割配置表を使います。"
+            En = "Past and Future use fixed movement. On wave 8, gather north after Past/Future, then move north/south when All Things Ending starts.",
+            Jp = "過去と未来は固定移動として扱います。8回目は過去/未来後に北集合し、消滅の脚詠唱開始後に北/南へ誘導します。"
         };
 
         public InternationalString PastFutureHeaderText = new()
@@ -2925,6 +3364,24 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         };
 
         public PositionRule FutureFixedPosition = new(PositionBasis.ArenaCenter, 225f, 4f);
+
+        public InternationalString FinalAllThingsEndingGatherNorthText = new()
+        {
+            En = "North stack",
+            Jp = "北集合"
+        };
+
+        public InternationalString FinalAllThingsEndingPastText = new()
+        {
+            En = "North",
+            Jp = "北"
+        };
+
+        public InternationalString FinalAllThingsEndingFutureText = new()
+        {
+            En = "South",
+            Jp = "南"
+        };
 
         public int PreviewWave = 1;
         public StageKind PreviewStage = StageKind.Tower;
@@ -3031,6 +3488,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             MigrateUiTerminology();
             PastFixedText ??= new InternationalString { En = "Tower gap", Jp = "塔間" };
             FutureFixedText ??= new InternationalString { En = "Opposite side", Jp = "反対側" };
+            FinalAllThingsEndingGatherNorthText ??= new InternationalString { En = "North stack", Jp = "北集合" };
+            FinalAllThingsEndingPastText ??= new InternationalString { En = "North", Jp = "北" };
+            FinalAllThingsEndingFutureText ??= new InternationalString { En = "South", Jp = "南" };
+            CircleMarkerCommand ??= "/mk stop <me>";
+            FanMarkerCommand ??= "/mk bind <me>";
+            CircleMarkerKind = ClampMarkerResolveKind(CircleMarkerKind);
+            FanMarkerKind = ClampMarkerResolveKind(FanMarkerKind);
             PastFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 45f, 4f);
             FutureFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 225f, 4f);
             PastFixedPosition.Ensure();
@@ -3130,6 +3594,15 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 DefaultsVersion = 13;
             }
 
+            if (DefaultsVersion < 14)
+            {
+                CircleMarkerCommand ??= "/mk stop <me>";
+                FanMarkerCommand ??= "/mk bind <me>";
+                CircleMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Stop;
+                FanMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Bind;
+                DefaultsVersion = 14;
+            }
+
             for (var i = 0; i < Waves.Length; i++)
             {
                 Waves[i] ??= new WaveConfig();
@@ -3139,6 +3612,11 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             PreviewWave = Math.Clamp(PreviewWave, 1, WaveCount);
             if ((int)PreviewStage < 0 || (int)PreviewStage >= StageCount)
                 PreviewStage = StageKind.Tower;
+        }
+
+        private static P2_Forsaken_beta.MarkerResolveKind ClampMarkerResolveKind(P2_Forsaken_beta.MarkerResolveKind kind)
+        {
+            return Enum.IsDefined(kind) ? kind : P2_Forsaken_beta.MarkerResolveKind.None;
         }
 
         private void MigrateUiTerminology()

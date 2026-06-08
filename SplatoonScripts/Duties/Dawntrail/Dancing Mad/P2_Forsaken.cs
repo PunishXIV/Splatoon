@@ -7,6 +7,7 @@ using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
+using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using Splatoon.Utility;
@@ -54,31 +55,25 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 8; i++)
-        {
-            Controller.RegisterElementFromCode($"Stack{i}", """
+        Controller.RegisterElementFromCode($"Stack", """
                 {"Name":"Stack","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4278779648,"overlayVOffset":1.2,"thicc":0.0,"overlayText":">>> Stack <<<","refActorComparisonType":2}
                 """);
-            Controller.RegisterElementFromCode($"Spread{i}", """
+        Controller.RegisterElementFromCode($"Spread", """
                 {"Name":"Spread","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4278190335,"overlayVOffset":1.2,"thicc":0.0,"overlayText":"<<< Spread >>>","refActorComparisonType":2}
                 """);
-            Controller.RegisterElementFromCode($"Fan{i}", """
+        Controller.RegisterElementFromCode($"Fan", """
                 {"Name":"Cone","type":1,"radius":0.0,"color":3372220160,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4294180608,"overlayVOffset":1.2,"thicc":0.0,"overlayText":"^^^ Cone ^^^","refActorComparisonType":2}
                 """);
-        }
 
-        for(int i = 0; i < 8; i++)
-        {
-            Controller.RegisterElementFromCode($"VStack{i}", """
+        Controller.RegisterElementFromCode($"VStack", """
                 {"Name":"Stack","type":1,"radius":5.0,"Donut":0.5,"color":3357277952,"fillIntensity":0.5,"overlayTextColor":4278779648,"overlayVOffset":1.2,"overlayText":"","refActorComparisonType":2}
                 """);
-            Controller.RegisterElementFromCode($"VSpread{i}", """
+        Controller.RegisterElementFromCode($"VSpread", """
                 {"Name":"Spread","type":1,"radius":5.0,"fillIntensity":0.5,"Donut":0.5,"overlayTextColor":4278190335,"overlayVOffset":1.2,"overlayText":"","refActorComparisonType":2}
                 """);
-            Controller.RegisterElementFromCode($"VFan{i}", """
+        Controller.RegisterElementFromCode($"VFan", """
                 {"Name":"Cone","type":4,"radius":40.0,"coneAngleMin":-45,"coneAngleMax":45,"fillIntensity":0.3,"overlayTextColor":4294180608,"overlayVOffset":1.2,"overlayText":"","thicc":8.0,"includeRotation":true,"FaceMe":true,"refActorComparisonType":2}
                 """);
-        }
 
         for(int i = 0; i < 2; i++)
         {
@@ -115,14 +110,27 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
         this.TowerCount = 0;
     }
 
-    void ShowNextElement(uint id, string kind, bool applyText)
+    Element GetOrCreateElementAtIndex(string name, int index)
+    {
+        if(Controller.TryGetElementByName($"{name}{index}", out var e))
+        {
+            return e;
+        }
+        else
+        {
+            Controller.RegisterElement($"{name}{index}", Controller.GetElementByName(name).JSONClone());
+            return Controller.GetElementByName($"{name}{index}");
+        }
+    }
+
+    void ShowNextElement(uint id, string kind, bool applyText, bool force = false)
     {
         for(int i = 0; i < 8; i++)
         {
-            var eName = $"{kind}{i}";
-            if(Controller.TryGetElementByName(eName, out var e) && !e.Enabled)
+            var e = GetOrCreateElementAtIndex(kind, i);
+            if(!e.Enabled)
             {
-                if(!C.ShowAll)
+                if(!C.ShowAll && !force)
                 {
                     if(id.TryGetPlayer(out var p) && (p.AddressEquals(BasePlayer) || (C.ShowOnlyPartner && C.Partner.GetPlayer(x => true)?.IGameObject?.ObjectId == id)))
                     {
@@ -143,16 +151,16 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
                         if((this.TowerCount / 2).EqualsAny<uint>(C.Switchers)) isTaking = !isTaking;
                         if(!isTaking)
                         {
-                            e.overlayText = Controller.OriginalElements[eName].overlayText + "| -- OUT --";
+                            e.overlayText = Controller.OriginalElements[kind].overlayText + "| -- OUT --";
                         }
                         else
                         {
-                            e.overlayText = Controller.OriginalElements[eName].overlayText + "| ++ IN ++";
+                            e.overlayText = Controller.OriginalElements[kind].overlayText + "| ++ IN ++";
                         }
                     }
                     else
                     {
-                        e.overlayText = Controller.OriginalElements[eName].overlayText;
+                        e.overlayText = Controller.OriginalElements[kind].overlayText;
                     }
                 }
                 return;
@@ -239,7 +247,8 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
                             .OrderBy(x => Vector3.DistanceSquared(x.Position, source.Position))
                             .FirstOrDefault();
 
-                        if(nearest != null && Controller.TryGetElementByName($"VFan{j}", out var e))
+                        var e = GetOrCreateElementAtIndex("VFan", j);
+                        if(nearest != null)
                         {
                             e.refActorComparisonType = 2;
                             e.refActorObjectID = source.EntityId;
@@ -251,8 +260,8 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 
                 foreach(var x in Controller.GetPartyMembers().Where(IsPlayerInActiveTower))
                 {
-                    if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "VStack", false);
-                    if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "VSpread", false);
+                    if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "VStack", false, true);
+                    if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "VSpread", false, true);
                 }
             }
         }

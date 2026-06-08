@@ -18,7 +18,7 @@ internal partial class CGui
 {
     private string NewGroupName = "";
 
-    private void LayoutDrawHeader(Layout layout)
+    internal void LayoutDrawHeader(Layout layout, bool ignoreGroup = false)
     {
         if(ImGui.BeginTable("SingleLayoutEdit", 2, ImGuiTableFlags.NoSavedSettings | ImGuiTableFlags.BordersInnerH))
         {
@@ -26,51 +26,54 @@ internal partial class CGui
             ImGui.TableSetupColumn("##LayoutEdit2", ImGuiTableColumnFlags.WidthStretch);
 
             //ImGui.TableHeadersRow();
-            ImGui.TableNextColumn();
-            var groupCol = P.Config.DisabledGroups.Contains(layout.Group);
-            if(groupCol) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
-            ImGuiEx.TextV("Group:".Loc());
-            ImGui.TableNextColumn();
-            ImGuiEx.SetNextItemFullWidth();
-            if(ImGui.BeginCombo("##group", $"{(layout.Group == "" ? "- No group -".Loc() : $"{layout.Group}")}"))
+            if(!ignoreGroup)
             {
-                if(groupCol) ImGui.PopStyleColor();
-                if(ImGui.Selectable("- No group -".Loc()))
+                ImGui.TableNextColumn();
+                var groupCol = P.Config.DisabledGroups.Contains(layout.Group);
+                if(groupCol) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
+                ImGuiEx.TextV("Group:".Loc());
+                ImGui.TableNextColumn();
+                ImGuiEx.SetNextItemFullWidth();
+                if(ImGui.BeginCombo("##group", $"{(layout.Group == "" ? "- No group -".Loc() : $"{layout.Group}")}"))
                 {
-                    layout.Group = "";
-                }
-                foreach(var x in P.Config.GroupOrder)
-                {
-                    if(ImGui.Selectable(x))
+                    if(groupCol) ImGui.PopStyleColor();
+                    if(ImGui.Selectable("- No group -".Loc()))
                     {
-                        layout.Group = x;
+                        layout.Group = "";
                     }
-                }
-                void Add()
-                {
-                    layout.Group = NewGroupName;
-                    NewGroupName = "";
-                    ImGui.CloseCurrentPopup();
-                }
-                ImGuiEx.InputWithRightButtonsArea("SelectGroup", delegate
-                {
-                    if(ImGui.InputTextWithHint("##NewGroupName", "New group...".Loc(), ref NewGroupName, 100, ImGuiInputTextFlags.EnterReturnsTrue))
+                    foreach(var x in P.Config.GroupOrder)
                     {
-                        Add();
+                        if(ImGui.Selectable(x))
+                        {
+                            layout.Group = x;
+                        }
                     }
-                    NewGroupName = NewGroupName.SanitizeName();
-                }, delegate
-                {
-                    if(ImGui.Button("Add".Loc()))
+                    void Add()
                     {
-                        Add();
+                        layout.Group = NewGroupName;
+                        NewGroupName = "";
+                        ImGui.CloseCurrentPopup();
                     }
-                });
-                ImGui.EndCombo();
-            }
-            else
-            {
-                if(groupCol) ImGui.PopStyleColor();
+                    ImGuiEx.InputWithRightButtonsArea("SelectGroup", delegate
+                    {
+                        if(ImGui.InputTextWithHint("##NewGroupName", "New group...".Loc(), ref NewGroupName, 100, ImGuiInputTextFlags.EnterReturnsTrue))
+                        {
+                            Add();
+                        }
+                        NewGroupName = NewGroupName.SanitizeName();
+                    }, delegate
+                    {
+                        if(ImGui.Button("Add".Loc()))
+                        {
+                            Add();
+                        }
+                    });
+                    ImGui.EndCombo();
+                }
+                else
+                {
+                    if(groupCol) ImGui.PopStyleColor();
+                }
             }
 
             ImGui.TableNextColumn();

@@ -12,6 +12,7 @@ using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.PartyFunctions;
 using Splatoon;
+using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 
@@ -44,11 +45,15 @@ public class P2_Trine_Beta : SplatoonScript
     private const float PartyFinalSearchRadius = 4.0f;
     private const float PartyOutwardOffset = 2.0f;
     private const float PartyFinalOutwardOffset = 2.0f;
+    private const float TankNearFinalOutwardOffset = 1.5f;
     private const float TankNearSearchMaxRadius = 13.0f;
     private const float TankFarRadius = 17.0f;
     private const float OffTankFinalOutwardOffset = 2.0f;
     private const float TankNearInwardSearchRadius = 2.0f;
     private const float ArenaUsableRadius = 19.0f;
+    private const float RouteArrowStartDistance = 2.0f;
+    private const float RouteArrowEndPadding = 1.0f;
+    private const float RouteArrowThickness = 18.0f;
 
     private static readonly int[] ExpectedWaveCounts = [9, 3, 9];
     private static readonly Vector3 ArenaCenter = new(100.0f, 0.0f, 100.0f);
@@ -69,9 +74,9 @@ public class P2_Trine_Beta : SplatoonScript
     private static readonly InternationalString ShowSharedRouteMarkersDescriptionText = new()
     {
         En =
-            "When enabled, shows two route markers: party and tank. After final tankbuster spots are resolved, tanks see their own MT/OT spot plus the party spot; non-tanks see party plus MT near.",
+            "When enabled, shows tank and party route markers. First-move shared markers include thick arrows; self-only destination markers hide those arrows.",
         Jp =
-            "有効にすると、パーティ用とタンク用の2点を同時に表示します。最後はタンクなら自分のMT/OT位置とパーティ位置、非タンクならパーティ位置とMT近を表示します。"
+            "有効にすると、パーティ用とタンク用の2点を同時に表示します。1回目移動の共有表示では太い矢印も表示し、自分用の移動先表示では矢印を消します。"
     };
 
     private readonly List<Vector3> _currentWavePositions = [];
@@ -88,11 +93,12 @@ public class P2_Trine_Beta : SplatoonScript
     private Vector3? _fallbackPartyDestination;
     private Vector3? _fallbackTankDestination;
     private bool _hasFirstWaveRoute;
+    private bool _showFirstMoveRouteArrows;
     private Vector3 _firstWaveTankDestination;
     private Vector3 _firstWavePartyDestination;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(3, "Garume");
+    public override Metadata Metadata => new(5, "Garume");
 
     private Config C
     {
@@ -134,6 +140,8 @@ public class P2_Trine_Beta : SplatoonScript
             color = 0xC800FF80,
             tether = true
         });
+        Controller.RegisterElement("TankRouteArrow", CreateRouteArrowElement(0xC84080FF));
+        Controller.RegisterElement("PartyRouteArrow", CreateRouteArrowElement(0xC800FF80));
     }
 
     public override void OnCombatStart()
@@ -351,6 +359,9 @@ public class P2_Trine_Beta : SplatoonScript
             TrineExplosionClearance, 0.0f, TankNearSearchMaxRadius);
         mainTankDestination = RefineTankNearDestinationInward(mainTankDestination, centralTriangle.Center, direction,
             hazardPoints, TrineExplosionClearance);
+        mainTankDestination = MoveOutwardFromArenaCenter(mainTankDestination, TankNearFinalOutwardOffset);
+        mainTankDestination = AdjustPointAwayFromHazardPoints(mainTankDestination, hazardPoints, TrineExplosionClearance,
+            1.5f);
         var offTankDestination = AdjustPointAwayFromHazardPoints(centralTriangle.Center + direction * TankFarRadius,
             hazardPoints, TrineExplosionClearance, 1.5f);
         offTankDestination = MoveOutwardFromArenaCenter(offTankDestination, OffTankFinalOutwardOffset);
@@ -862,6 +873,7 @@ public class P2_Trine_Beta : SplatoonScript
         _fallbackPartyDestination = partyPosition;
         _fallbackTankDestination = tankPosition;
         _hasDestination = true;
+        _showFirstMoveRouteArrows = true;
     }
 
     private void CacheFinalDestinations(Vector3 partyDestination, Vector3 mainTankDestination,
@@ -897,6 +909,7 @@ public class P2_Trine_Beta : SplatoonScript
         _fallbackPartyDestination = null;
         _fallbackTankDestination = null;
         _hasDestination = false;
+        _showFirstMoveRouteArrows = false;
     }
 
     private void CacheDestinationForPlayer(IPlayerCharacter player, Vector3 destination)
@@ -985,6 +998,11 @@ public class P2_Trine_Beta : SplatoonScript
                 : _fallbackTankDestination.Value;
             ShowDestinationElement("TankDestination", tankDestination, 0xC84080FF);
             ShowDestinationElement("PartyDestination", _fallbackPartyDestination.Value, 0xC800FF80);
+            if (_showFirstMoveRouteArrows)
+            {
+                ShowRouteArrow("TankRouteArrow", _firstWaveTankDestination, 0xC84080FF);
+                ShowRouteArrow("PartyRouteArrow", _firstWavePartyDestination, 0xC800FF80);
+            }
             return;
         }
 
@@ -1005,6 +1023,43 @@ public class P2_Trine_Beta : SplatoonScript
 
         element.Enabled = true;
         element.SetRefPosition(position);
+        element.color = color;
+        element.overlayText = "";
+    }
+
+    private static Element CreateRouteArrowElement(uint color) => new(2)
+    {
+        Enabled = false,
+        radius = 0.0f,
+        thicc = RouteArrowThickness,
+        color = color,
+        LineEndB = LineEnd.Arrow
+    };
+
+    private void ShowRouteArrow(string name, Vector3 destination, uint color)
+    {
+        if (!Controller.TryGetElementByName(name, out var element))
+            return;
+
+        var direction = NormalizeXZ(destination - ArenaCenter);
+        if (direction == Vector3.Zero)
+            return;
+
+        var distance = DistanceXZ(ArenaCenter, destination);
+        var startDistance = MathF.Min(RouteArrowStartDistance, distance * 0.4f);
+        var endPadding = MathF.Min(RouteArrowEndPadding, MathF.Max(0.0f, distance - startDistance) * 0.3f);
+        var start = ArenaCenter + direction * startDistance;
+        var end = destination - direction * endPadding;
+
+        if (DistanceSquaredXZ(start, end) < 0.25f)
+        {
+            start = ArenaCenter;
+            end = destination;
+        }
+
+        element.Enabled = true;
+        element.SetRefPosition(start);
+        element.SetOffPosition(end);
         element.color = color;
         element.overlayText = "";
     }

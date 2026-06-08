@@ -16,3 +16,12 @@ Script file in this repository:
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Limit_Cut.cs
 ```
+
+## **[Script]** [Beta] **[UNTESTED]**  P3 Bowels of Agony TLB
+This strategy uses wind and water crystals as a basis for resolving issues in a static position.
+
+https://yan-flash.com/ultimate/yosei-ranbu#ult-phase-3
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Bowels_of_Agony_TLB.cs
+```

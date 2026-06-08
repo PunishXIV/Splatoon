@@ -1,4 +1,4 @@
-﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.CircularBuffers;
@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(7, "NightmareXIV, Poneglyph");
+    public override Metadata Metadata { get; } = new(8, "NightmareXIV, Poneglyph");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
@@ -213,8 +213,8 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
                 var n2 = $"TowerSplit2-{i}";
                 if(Controller.TryGetElementByName(n1, out var e1)&& Controller.TryGetElementByName(n2, out var e2))
                 {
-                    e1.Enabled = true;
-                    e2.Enabled = true;
+                    e1.Enabled = !C.HideTowerSplit;
+                    e2.Enabled = !C.HideTowerSplit;
                     e1.DistanceSourceX = MapEffect2TowerPos[x].X;
                     e1.DistanceSourceY = MapEffect2TowerPos[x].Y;
                     e2.DistanceSourceX = MapEffect2TowerPos[x].X;
@@ -222,11 +222,14 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
                 }
                 i++;
             }
-            foreach(var x in Controller.GetPartyMembers())
+            if(!C.VisualizerOnly)
             {
-                if(x.StatusList.Any(s => s.StatusId == this.EffectFan)) ShowNextElement(x.ObjectId, "Fan", true);
-                if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "Stack", true);
-                if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "Spread", true);
+                foreach(var x in Controller.GetPartyMembers())
+                {
+                    if(x.StatusList.Any(s => s.StatusId == this.EffectFan)) ShowNextElement(x.ObjectId, "Fan", true);
+                    if(x.StatusList.Any(s => s.StatusId == this.EffectStack)) ShowNextElement(x.ObjectId, "Stack", true);
+                    if(x.StatusList.Any(s => s.StatusId == this.EffectSpread)) ShowNextElement(x.ObjectId, "Spread", true);
+                }
             }
 
             if(C.Visualize)
@@ -300,6 +303,8 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
             ImGui.Unindent();
         }
         ImGui.Checkbox("Visualize attacks from towers", ref C.Visualize);
+        ImGui.Checkbox("Visualizer only (hide all text elements)", ref C.VisualizerOnly);
+        ImGui.Checkbox("Hide tower split indicators", ref C.HideTowerSplit);
         ImGui.Checkbox("Show in/out", ref C.ShowInOut);
         if(C.ShowInOut)
         {
@@ -340,6 +345,8 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
         public bool Visualize = false;
         public bool ShowOnlyPartner = false;
         public bool ShowInOut = true;
+        public bool VisualizerOnly = false;
+        public bool HideTowerSplit = false;
         public HashSet<uint> Switchers = [1, 2, 5, 6];
         public Prio1 Partner = new();
     }

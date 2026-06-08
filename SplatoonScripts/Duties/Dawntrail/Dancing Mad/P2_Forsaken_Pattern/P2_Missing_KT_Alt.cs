@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using Splatoon;
 using Splatoon.SplatoonScripting;
@@ -24,7 +27,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(1, "mirage");
+    public override Metadata Metadata { get; } = new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -63,6 +66,15 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private const int DebugPatternPreviewNone = -1;
     private const int DebugPatternPreviewRoleNone = -1;
 
+    private const int Step4DebuffReminderTrigger = 4;
+    private const float Step4DebuffReminderDelayBaseSec = 3f;
+    private const float Step4DebuffReminderDelayRandomSpanSec = 1.5f;
+    private const string DefaultSpreadEchoText = "Circle";
+    private const string DefaultConeEchoText = "Cone";
+    private const int MarkerEchoTextMaxLength = 64;
+
+    private static readonly string[] MarkerResolveKindLabels = ["None", "Attack", "Stop", "Bind"];
+
     private const float InterludeNavDistanceFromCenter = 4f;
     private static readonly Vector3 Step8InterludeNavPosition = new(100f, 0f, 95f);
     private const float DefaultRangeInside = 3.25f;
@@ -86,10 +98,10 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private const string Role211Cone = "211_Cone";
     private const string Role211RightStack = "211_RightStack";
     private const string Role211Spread = "211_Spread";
-    private const string Role211LeftMelee = "211_LeftMelee";
-    private const string Role211LeftRange = "211_LeftRange";
-    private const string Role211RightMelee = "211_RightMelee";
-    private const string Role211RightRange = "211_RightRange";
+    private const string Role211Tank = "211_Tank";
+    private const string Role211Healer = "211_Healer";
+    private const string Role211Melee = "211_Melee";
+    private const string Role211Range = "211_Range";
     private const string Role022LeftCone = "022_LeftCone";
     private const string Role022LeftSpread = "022_LeftSpread";
     private const string Role022RightCone = "022_RightCone";
@@ -119,10 +131,10 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             Rule(Role211Cone, PositionBasis.LeftTower, 315f, DefaultRangeInside),
             Rule(Role211RightStack, PositionBasis.RightTower, 200f, DefaultRangeInside),
             Rule(Role211Spread, PositionBasis.RightTower, 0f, DefaultRangeInside),
-            Rule(Role211LeftMelee, PositionBasis.LeftTower, 225f, DefaultRangeOutside),
-            Rule(Role211LeftRange, PositionBasis.LeftTower, 315f, DefaultRangeOutside),
-            Rule(Role211RightMelee, PositionBasis.RightTower, 135f, DefaultRangeOutside),
-            Rule(Role211RightRange, PositionBasis.RightTower, 135f, DefaultRangeOutside),
+            Rule(Role211Tank, PositionBasis.LeftTower, 225f, DefaultRangeOutside),
+            Rule(Role211Healer, PositionBasis.LeftTower, 315f, DefaultRangeOutside),
+            Rule(Role211Melee, PositionBasis.RightTower, 135f, DefaultRangeOutside),
+            Rule(Role211Range, PositionBasis.RightTower, 135f, DefaultRangeOutside),
         ]),
         new(1, 0, 2, 2,
         [
@@ -159,6 +171,15 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         public int DebugPatternPreview = DebugPatternPreviewNone;
         public int DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
         public int Step1RoleMode = (int)Step1AssignmentMode.ChangeWithPair;
+        public int TowerPairSwapSideMode = (int)TowerPairSwapSide.BackSide;
+        public MarkerResolveKind SpreadMarkerType = MarkerResolveKind.None;
+        public MarkerResolveKind ConeMarkerType = MarkerResolveKind.None;
+        public bool SpreadUseEcho;
+        public bool SpreadUseMarker;
+        public bool ConeUseEcho;
+        public bool ConeUseMarker;
+        public string SpreadEchoText = DefaultSpreadEchoText;
+        public string ConeEchoText = DefaultConeEchoText;
 
         public void EnsureDefaults()
         {
@@ -168,6 +189,11 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
                 DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = ClampPatternPreviewRole(DebugPatternPreview, DebugPatternPreviewRole);
             Step1RoleMode = ClampStep1RoleMode(Step1RoleMode);
+            TowerPairSwapSideMode = ClampTowerPairSwapSide(TowerPairSwapSideMode);
+            SpreadMarkerType = ClampMarkerResolveKind(SpreadMarkerType);
+            ConeMarkerType = ClampMarkerResolveKind(ConeMarkerType);
+            SpreadEchoText = NormalizeReminderEchoText(SpreadEchoText, DefaultSpreadEchoText);
+            ConeEchoText = NormalizeReminderEchoText(ConeEchoText, DefaultConeEchoText);
         }
 
         public void ResetToDefaults()
@@ -177,7 +203,19 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
             Step1RoleMode = (int)Step1AssignmentMode.ChangeWithPair;
+            TowerPairSwapSideMode = (int)TowerPairSwapSide.BackSide;
+            SpreadMarkerType = MarkerResolveKind.None;
+            ConeMarkerType = MarkerResolveKind.None;
+            SpreadUseEcho = false;
+            SpreadUseMarker = false;
+            ConeUseEcho = false;
+            ConeUseMarker = false;
+            SpreadEchoText = DefaultSpreadEchoText;
+            ConeEchoText = DefaultConeEchoText;
         }
+
+        private static MarkerResolveKind ClampMarkerResolveKind(MarkerResolveKind kind)
+            => Enum.IsDefined(kind) ? kind : MarkerResolveKind.None;
 
         private static PriorityData CreateDefaultPriorityData()
             => new()
@@ -220,6 +258,10 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private int _lastTowerRoleStep;
     private InterludeNavPhase _interludeNavPhase;
     private string? _lastTowerDebuffSignature;
+    private bool _step4DebuffReminderSent;
+    private string? _step4DebuffReminderSkipReason;
+    private bool _step4DebuffReminderSkipLogged;
+    private long _step4DebuffReminderDueAt;
 
     #endregion
 
@@ -267,6 +309,20 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     {
         ChangeWithPair,
         ChangeStackOnly,
+    }
+
+    private enum TowerPairSwapSide
+    {
+        BackSide,
+        FrontSide,
+    }
+
+    private enum MarkerResolveKind
+    {
+        None,
+        Attack,
+        Stop,
+        Bind,
     }
 
     private sealed class PlayerInfo
@@ -322,6 +378,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         UpdateInterludeNavPhase();
         UpdateActiveTowerMarkers();
+        TryRunStep4DebuffReminder();
+        LogStep4DebuffReminderSkipOnce();
         UpdateFieldMarkers();
     }
 
@@ -417,33 +475,24 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             if(!TryClassifyStep1Pair(playerA, playerB, out var stackPlayer, out var partnerPlayer, out var isStackPair))
                 return;
 
+            if(!isStackPair)
+                continue;
+
             CountPairDebuffKinds(playerA, playerB, out var stack, out var cone, out var spread);
 
-            if(isStackPair)
+            if(stack == 1 && cone == 1 && spread == 0)
             {
-                if(stack == 1 && cone == 1 && spread == 0)
-                {
-                    stackPlayer.RoleLabel = Role211LeftStack;
-                    partnerPlayer.RoleLabel = Role211Cone;
-                }
-                else if(stack == 1 && cone == 0 && spread == 1)
-                {
-                    stackPlayer.RoleLabel = Role211RightStack;
-                    partnerPlayer.RoleLabel = Role211Spread;
-                }
-
-                continue;
+                stackPlayer.RoleLabel = Role211LeftStack;
+                partnerPlayer.RoleLabel = Role211Cone;
             }
-
-            if(stack == 0 && cone == 2 && spread == 0)
+            else if(stack == 1 && cone == 0 && spread == 1)
             {
-                AssignPriorityRoles(playerA, playerB, Role211LeftMelee, Role211LeftRange);
-                continue;
+                stackPlayer.RoleLabel = Role211RightStack;
+                partnerPlayer.RoleLabel = Role211Spread;
             }
-
-            if(stack == 0 && cone == 0 && spread == 2)
-                AssignPriorityRoles(playerA, playerB, Role211RightMelee, Role211RightRange);
         }
+
+        AssignStep1SecondGroupRoles();
     }
 
     // Assign Step1 roles with stack players resolved by priority across FirstGroup pairs.
@@ -459,28 +508,17 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             if(!TryClassifyStep1Pair(playerA, playerB, out var stackPlayer, out var partnerPlayer, out var isStackPair))
                 return;
 
-            CountPairDebuffKinds(playerA, playerB, out var stack, out var cone, out var spread);
-
-            if(isStackPair)
-            {
-                stackPlayers.Add(stackPlayer);
-                partnerPlayer.RoleLabel = partnerPlayer.Debuff switch
-                {
-                    DebuffKind.Cone => Role211Cone,
-                    DebuffKind.Spread => Role211Spread,
-                    _ => partnerPlayer.RoleLabel,
-                };
+            if(!isStackPair)
                 continue;
-            }
 
-            if(stack == 0 && cone == 2 && spread == 0)
+            CountPairDebuffKinds(playerA, playerB, out _, out _, out _);
+            stackPlayers.Add(stackPlayer);
+            partnerPlayer.RoleLabel = partnerPlayer.Debuff switch
             {
-                AssignPriorityRoles(playerA, playerB, Role211LeftMelee, Role211LeftRange);
-                continue;
-            }
-
-            if(stack == 0 && cone == 0 && spread == 2)
-                AssignPriorityRoles(playerA, playerB, Role211RightMelee, Role211RightRange);
+                DebuffKind.Cone => Role211Cone,
+                DebuffKind.Spread => Role211Spread,
+                _ => partnerPlayer.RoleLabel,
+            };
         }
 
         var orderedStacks = OrderInfosByPriority(stackPlayers).ToList();
@@ -488,6 +526,21 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             orderedStacks[0].RoleLabel = Role211LeftStack;
         if(orderedStacks.Count > 1)
             orderedStacks[1].RoleLabel = Role211RightStack;
+
+        AssignStep1SecondGroupRoles();
+    }
+
+    // Assign Step1 SecondGroup field roles by priority rank across all four players.
+    private void AssignStep1SecondGroupRoles()
+    {
+        var secondGroupPlayers = OrderInfosByPriority(_infos.Where(i => i.Half == MechanicHalf.Second)).ToList();
+        if(secondGroupPlayers.Count != 4)
+            return;
+
+        secondGroupPlayers[0].RoleLabel = Role211Tank;
+        secondGroupPlayers[1].RoleLabel = Role211Healer;
+        secondGroupPlayers[2].RoleLabel = Role211Melee;
+        secondGroupPlayers[3].RoleLabel = Role211Range;
     }
 
     // Assign Step4 tower 022 roles and field THMR, then caller caches tower OldRole.
@@ -508,12 +561,12 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
             if(stack == 0 && cone == 2 && spread == 0)
             {
-                AssignPriorityRoles(playerA, playerB, Role022LeftCone, Role022LeftSpread);
+                AssignPriorityRoles(playerA, playerB, Role022LeftCone, Role022RightCone);
                 continue;
             }
 
             if(stack == 0 && cone == 0 && spread == 2)
-                AssignPriorityRoles(playerA, playerB, Role022RightCone, Role022RightSpread);
+                AssignPriorityRoles(playerA, playerB, Role022LeftSpread, Role022RightSpread);
         }
 
         var fieldPlayers = OrderInfosByPriority(_infos.Where(i => !IsTower(i))).ToList();
@@ -792,7 +845,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     }
 
     // Pattern0 left 022 cached pair -> 211 roles.
-    private static void ApplyPattern0Left022Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
+    private void ApplyPattern0Left022Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
     {
         CountPairDebuffKinds(frontPlayer, backPlayer, out var stack, out var cone, out var spread);
 
@@ -804,8 +857,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         if(stack == 2 && cone == 0 && spread == 0)
         {
-            frontPlayer.RoleLabel = Role211LeftStack;
-            backPlayer.RoleLabel = Role211RightStack;
+            AssignCrossTowerPairRoles(frontPlayer, backPlayer, Role211LeftStack, Role211RightStack);
             return;
         }
 
@@ -828,7 +880,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     }
 
     // Pattern0 right 022 cached pair -> 211 roles.
-    private static void ApplyPattern0Right022Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
+    private void ApplyPattern0Right022Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
     {
         CountPairDebuffKinds(frontPlayer, backPlayer, out var stack, out var cone, out var spread);
 
@@ -840,8 +892,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         if(stack == 2 && cone == 0 && spread == 0)
         {
-            frontPlayer.RoleLabel = Role211RightStack;
-            backPlayer.RoleLabel = Role211LeftStack;
+            AssignCrossTowerPairRoles(frontPlayer, backPlayer, Role211RightStack, Role211LeftStack);
             return;
         }
 
@@ -873,7 +924,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     }
 
     // Pattern1 left 211 cached pair -> 022 roles.
-    private static void ApplyPattern1Left211Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
+    private void ApplyPattern1Left211Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
     {
         CountPairDebuffKinds(frontPlayer, backPlayer, out var stack, out var cone, out var spread);
 
@@ -888,20 +939,16 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         if(stack == 0 && cone == 2 && spread == 0)
         {
-            frontPlayer.RoleLabel = Role022LeftCone;
-            backPlayer.RoleLabel = Role022RightCone;
+            AssignCrossTowerPairRoles(frontPlayer, backPlayer, Role022LeftCone, Role022RightCone);
             return;
         }
 
         if(stack == 0 && cone == 0 && spread == 2)
-        {
-            frontPlayer.RoleLabel = Role022LeftSpread;
-            backPlayer.RoleLabel = Role022RightSpread;
-        }
+            AssignCrossTowerPairRoles(frontPlayer, backPlayer, Role022LeftSpread, Role022RightSpread);
     }
 
     // Pattern1 right 211 cached pair -> 022 roles.
-    private static void ApplyPattern1Right211Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
+    private void ApplyPattern1Right211Pair(PlayerInfo frontPlayer, PlayerInfo backPlayer)
     {
         CountPairDebuffKinds(frontPlayer, backPlayer, out var stack, out var cone, out var spread);
 
@@ -916,16 +963,27 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         if(stack == 0 && cone == 2 && spread == 0)
         {
-            frontPlayer.RoleLabel = Role022RightCone;
-            backPlayer.RoleLabel = Role022LeftCone;
+            AssignCrossTowerPairRoles(frontPlayer, backPlayer, Role022RightCone, Role022LeftCone);
             return;
         }
 
         if(stack == 0 && cone == 0 && spread == 2)
+            AssignCrossTowerPairRoles(frontPlayer, backPlayer, Role022RightSpread, Role022LeftSpread);
+    }
+
+    // Assign front/back roles when one side crosses to the opposite tower Side.
+    private void AssignCrossTowerPairRoles(PlayerInfo frontPlayer, PlayerInfo backPlayer, string frontSideRole,
+        string oppositeSideRole)
+    {
+        if((TowerPairSwapSide)C.TowerPairSwapSideMode == TowerPairSwapSide.FrontSide)
         {
-            frontPlayer.RoleLabel = Role022RightSpread;
-            backPlayer.RoleLabel = Role022LeftSpread;
+            frontPlayer.RoleLabel = oppositeSideRole;
+            backPlayer.RoleLabel = frontSideRole;
+            return;
         }
+
+        frontPlayer.RoleLabel = frontSideRole;
+        backPlayer.RoleLabel = oppositeSideRole;
     }
 
     // Assign field roles for non-tower players from pattern id.
@@ -949,10 +1007,10 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         {
             return rank switch
             {
-                0 => Role211LeftMelee,
-                1 => Role211LeftRange,
-                2 => Role211RightMelee,
-                3 => Role211RightRange,
+                0 => Role211Tank,
+                1 => Role211Healer,
+                2 => Role211Melee,
+                3 => Role211Range,
                 _ => null,
             };
         }
@@ -1181,6 +1239,169 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         return _infos.FirstOrDefault(i => i.Player.EntityId == BasePlayer.EntityId);
     }
 
+    // Run Step4 FirstGroup debuff echo/marker reminder once per pull when configured.
+    private void TryRunStep4DebuffReminder()
+    {
+        C.EnsureDefaults();
+
+        if(_step4DebuffReminderSent)
+        {
+            _step4DebuffReminderSkipReason = null;
+            return;
+        }
+
+        if(_step != Step4DebuffReminderTrigger)
+        {
+            _step4DebuffReminderSkipReason = null;
+            if(!_step4DebuffReminderSent)
+                _step4DebuffReminderDueAt = 0;
+            return;
+        }
+
+        if(!TryEnsureInfos())
+        {
+            _step4DebuffReminderSkipReason = "party not ready";
+            return;
+        }
+
+        UpdateDebuffs();
+
+        if(!_initialGroupResolved)
+        {
+            if(!TryResolveInitialGroup())
+            {
+                _step4DebuffReminderSkipReason = "initial group unresolved";
+                return;
+            }
+
+            _initialGroupResolved = true;
+        }
+
+        var baseInfo = GetBasePlayerInfo();
+        if(baseInfo == null)
+        {
+            _step4DebuffReminderSkipReason = "self not in party list";
+            return;
+        }
+
+        if(baseInfo.Half != MechanicHalf.First)
+        {
+            _step4DebuffReminderSkipReason = $"half is {FormatHalf(baseInfo.Half)} (need first)";
+            return;
+        }
+
+        string? echoText = null;
+        string? markCommand = null;
+
+        switch(baseInfo.Debuff)
+        {
+            case DebuffKind.Spread:
+                if(C.SpreadUseEcho)
+                    echoText = NormalizeReminderEchoText(C.SpreadEchoText, DefaultSpreadEchoText);
+                if(C.SpreadUseMarker)
+                    markCommand = GetMarkCommand(C.SpreadMarkerType);
+                break;
+            case DebuffKind.Cone:
+                if(C.ConeUseEcho)
+                    echoText = NormalizeReminderEchoText(C.ConeEchoText, DefaultConeEchoText);
+                if(C.ConeUseMarker)
+                    markCommand = GetMarkCommand(C.ConeMarkerType);
+                break;
+        }
+
+        if(echoText == null && markCommand == null)
+        {
+            _step4DebuffReminderSkipReason = baseInfo.Debuff switch
+            {
+                DebuffKind.Spread =>
+                    "Debuff: Spread. If You Need Marking, Please Set Auto Marking Config.",
+                DebuffKind.Cone =>
+                    "Debuff: Cone. If You Need Marking, Please Set Auto Marking Config.",
+                _ => $"debuff is {FormatDebuffKindDebug(baseInfo.Debuff)} (need Spread/Cone)",
+            };
+            return;
+        }
+
+        if(_step4DebuffReminderDueAt == 0)
+        {
+            _step4DebuffReminderDueAt = Environment.TickCount64 + ComputeStep4DebuffReminderDelayMs();
+            _step4DebuffReminderSkipReason = null;
+            return;
+        }
+
+        if(Environment.TickCount64 < _step4DebuffReminderDueAt)
+            return;
+
+        _step4DebuffReminderSent = true;
+        _step4DebuffReminderSkipReason = null;
+        _step4DebuffReminderSkipLogged = false;
+        _step4DebuffReminderDueAt = 0;
+
+        if(echoText != null)
+            RunEchoCommand(echoText);
+        if(markCommand != null)
+            RunMarkCommand(markCommand);
+    }
+
+    // Log Step4 debuff reminder skip reason once when reminder will not fire.
+    private void LogStep4DebuffReminderSkipOnce()
+    {
+        if(_step4DebuffReminderSent || _step <= Step4DebuffReminderTrigger || _step4DebuffReminderSkipReason == null
+            || _step4DebuffReminderSkipLogged || _step4DebuffReminderDueAt != 0)
+            return;
+
+        if(_step4DebuffReminderSkipReason.StartsWith("Debuff:", StringComparison.Ordinal))
+            DuoLog.Information(_step4DebuffReminderSkipReason);
+        else if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            DuoLog.Information($"Step4 debuff reminder skipped: {_step4DebuffReminderSkipReason}");
+
+        _step4DebuffReminderSkipLogged = true;
+    }
+
+    // Return random Step4 debuff reminder delay in milliseconds.
+    private static long ComputeStep4DebuffReminderDelayMs()
+    {
+        var seconds = Step4DebuffReminderDelayBaseSec
+            + Random.Shared.NextSingle() * Step4DebuffReminderDelayRandomSpanSec;
+        return (long)(seconds * 1000f);
+    }
+
+    // Execute a self-target marker chat command.
+    private static void RunMarkCommand(string command)
+    {
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            DuoLog.Information($"Step4 debuff reminder mark: {command}");
+        else
+            Chat.Instance.ExecuteCommand(command);
+    }
+
+    // Execute an echo chat command with configured text.
+    private static void RunEchoCommand(string text)
+    {
+        var command = $"/echo {text}";
+        if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            DuoLog.Information($"Step4 debuff reminder echo: {command}");
+        else
+            Chat.Instance.ExecuteCommand(command);
+    }
+
+    // Trim echo text and fall back when empty.
+    private static string NormalizeReminderEchoText(string? text, string fallback)
+    {
+        var normalized = text?.Trim();
+        return string.IsNullOrEmpty(normalized) ? fallback : normalized;
+    }
+
+    // Map marker kind to self-target mark command.
+    private static string? GetMarkCommand(MarkerResolveKind kind)
+        => kind switch
+        {
+            MarkerResolveKind.Attack => "/mk attack <me>",
+            MarkerResolveKind.Stop => "/mk stop <me>",
+            MarkerResolveKind.Bind => "/mk bind <me>",
+            _ => null,
+        };
+
     // Find role assignment index across all patterns.
     private static bool TryFindRoleAssignment(string roleLabel, out int patternId, out int assignmentIndex)
     {
@@ -1387,6 +1608,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         _activeTowerEntityIds[1] = hits[1].EntityId;
         _hasActiveTowers = true;
         _step++;
+        TryRunStep4DebuffReminder();
     }
 
     // Create tower hit tuple from map slot index.
@@ -1535,14 +1757,15 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         => EnableRoleMarker(ElMyRole, position, label, tether: true);
 
     // Enable a role marker element at a world position.
-    private void EnableRoleMarker(string elementName, Vector3 position, string label, bool tether)
+    private void EnableRoleMarker(string elementName, Vector3 position, string label, bool tether,
+        bool showOverlayText = false)
     {
         if(!Controller.TryGetElementByName(elementName, out var element))
             return;
 
         element.SetRefPosition(position);
         element.color = Controller.AttentionColor;
-        element.overlayText = label;
+        element.overlayText = showOverlayText ? label : "";
         element.tether = tether;
         element.Enabled = true;
     }
@@ -1638,7 +1861,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             if(ResolvePositionRule(GetConfiguredRule(C.DebugPatternPreview, i)) is not { } position)
                 continue;
 
-            EnableRoleMarker(GetRolePreviewElementName(i), position, pattern.Assignments[i].Label, showRoleTether);
+            EnableRoleMarker(GetRolePreviewElementName(i), position, pattern.Assignments[i].Label, showRoleTether,
+                showOverlayText: true);
         }
     }
 
@@ -1670,6 +1894,10 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         _activeTowerEntityIds[0] = 0;
         _activeTowerEntityIds[1] = 0;
         _infos.Clear();
+        _step4DebuffReminderSent = false;
+        _step4DebuffReminderSkipReason = null;
+        _step4DebuffReminderSkipLogged = false;
+        _step4DebuffReminderDueAt = 0;
     }
 
     // Draw debug tab with live player info and pattern preview controls.
@@ -1705,6 +1933,32 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
                 ? $"Live pattern: {DebugPatternPreviewLabels[patternId + 1]}"
                 : "Live pattern: — (no match)");
         }
+
+        DrawDebugStep4DebuffReminderSection();
+    }
+
+    // Draw Step4 FirstGroup debuff reminder debug status.
+    private void DrawDebugStep4DebuffReminderSection()
+    {
+        C.EnsureDefaults();
+        ImGui.Spacing();
+        ImGui.TextUnformatted("Step4 debuff reminder");
+        ImGui.Separator();
+        ImGui.TextUnformatted(
+            $"Spread: {FormatMarkerRuleDebug(C.SpreadUseEcho, C.SpreadEchoText, C.SpreadUseMarker, C.SpreadMarkerType)}");
+        ImGui.TextUnformatted(
+            $"Cone: {FormatMarkerRuleDebug(C.ConeUseEcho, C.ConeEchoText, C.ConeUseMarker, C.ConeMarkerType)}");
+        ImGui.TextUnformatted(_step4DebuffReminderSent
+            ? "Step4 debuff reminder: sent"
+            : "Step4 debuff reminder: not sent");
+        if(!_step4DebuffReminderSent && _step4DebuffReminderDueAt != 0)
+        {
+            var remainingSec = MathF.Max(0f, (_step4DebuffReminderDueAt - Environment.TickCount64) / 1000f);
+            ImGui.TextUnformatted($"Step4 debuff reminder pending: {remainingSec:0.0}s");
+        }
+
+        if(!_step4DebuffReminderSent && _step4DebuffReminderSkipReason != null)
+            ImGui.TextUnformatted($"Step4 debuff reminder skip: {_step4DebuffReminderSkipReason}");
     }
 
     // Draw live player info tables split by mechanic half.
@@ -1863,6 +2117,14 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             _ => (int)Step1AssignmentMode.ChangeWithPair,
         };
 
+    // Clamp tower pair swap side to valid enum range.
+    private static int ClampTowerPairSwapSide(int mode)
+        => mode switch
+        {
+            (int)TowerPairSwapSide.FrontSide => (int)TowerPairSwapSide.FrontSide,
+            _ => (int)TowerPairSwapSide.BackSide,
+        };
+
     // Return whether a pattern preview index selects an active preview.
     private static bool IsPatternPreviewActive(int patternPreview)
         => patternPreview >= 0 && patternPreview < PatternCount;
@@ -1926,6 +2188,17 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         DrawSettingsSectionHeader("First Stack Swap Rule");
         DrawStep1RoleModeSettings();
 
+        DrawSettingsSectionHeader("Tower Pair Swap Side");
+        DrawTowerPairSwapSideSettings();
+
+        DrawSettingsSectionHeader("Step4 Debuff Reminder");
+        ImGui.TextUnformatted("Spread:");
+        DrawMarkerEchoRow("Echo Message##Spread", ref C.SpreadUseEcho, ref C.SpreadEchoText, DefaultSpreadEchoText);
+        DrawMarkerKindRow("Auto Marking##Spread", ref C.SpreadUseMarker, ref C.SpreadMarkerType);
+        ImGui.TextUnformatted("Cone:");
+        DrawMarkerEchoRow("Echo Message##Cone", ref C.ConeUseEcho, ref C.ConeEchoText, DefaultConeEchoText);
+        DrawMarkerKindRow("Auto Marking##Cone", ref C.ConeUseMarker, ref C.ConeMarkerType);
+
         DrawSettingsSectionHeader("Priority");
         ImGui.TextUnformatted("T1, T2, H1, H2, M1, M2, R1, R2");
         C.PriorityData.Draw();
@@ -1947,6 +2220,76 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             mode = (int)Step1AssignmentMode.ChangeStackOnly;
         C.Step1RoleMode = ClampStep1RoleMode(mode);
     }
+
+    // Draw tower pair front/back swap side toggles for pattern recalculation.
+    private void DrawTowerPairSwapSideSettings()
+    {
+        C.EnsureDefaults();
+        var mode = C.TowerPairSwapSideMode;
+        if(ImGui.RadioButton("Back Side crosses (default)###towerPairBackSide",
+                mode == (int)TowerPairSwapSide.BackSide))
+            mode = (int)TowerPairSwapSide.BackSide;
+        if(ImGui.RadioButton("Front Side crosses###towerPairFrontSide",
+                mode == (int)TowerPairSwapSide.FrontSide))
+            mode = (int)TowerPairSwapSide.FrontSide;
+        C.TowerPairSwapSideMode = ClampTowerPairSwapSide(mode);
+    }
+
+    // Draw marker kind combo for Step4 debuff reminder settings.
+    private static void DrawMarkerResolveKindCombo(string label, ref MarkerResolveKind kind)
+    {
+        var idx = (int)kind;
+        if(idx < 0 || idx >= MarkerResolveKindLabels.Length)
+            idx = 0;
+
+        ImGui.SetNextItemWidth(120f);
+        if(ImGui.Combo(label, ref idx, MarkerResolveKindLabels, MarkerResolveKindLabels.Length))
+            kind = (MarkerResolveKind)idx;
+    }
+
+    // Draw one echo row: checkbox and text field on the same line.
+    private void DrawMarkerEchoRow(string label, ref bool enabled, ref string echoText, string defaultEchoText)
+    {
+        ImGui.PushID($"{label}EchoRow");
+        ImGui.Checkbox(label, ref enabled);
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(200f);
+        ImGui.BeginDisabled(!enabled);
+        ImGui.InputText("##text", ref echoText, MarkerEchoTextMaxLength);
+        ImGui.EndDisabled();
+        ImGui.PopID();
+
+        if(enabled && string.IsNullOrWhiteSpace(echoText))
+            echoText = defaultEchoText;
+    }
+
+    // Draw one marker row: checkbox and marker combo on the same line.
+    private void DrawMarkerKindRow(string label, ref bool enabled, ref MarkerResolveKind markerType)
+    {
+        ImGui.PushID($"{label}MarkerRow");
+        ImGui.Checkbox(label, ref enabled);
+        ImGui.SameLine();
+        ImGui.BeginDisabled(!enabled);
+        DrawMarkerResolveKindCombo("##type", ref markerType);
+        ImGui.EndDisabled();
+        ImGui.PopID();
+    }
+
+    // Format configured echo/marker rule for debug display.
+    private static string FormatMarkerRuleDebug(bool useEcho, string echoText, bool useMarker,
+        MarkerResolveKind markerType)
+    {
+        var parts = new List<string>(2);
+        if(useEcho)
+            parts.Add($"Echo \"{echoText}\"");
+        if(useMarker)
+            parts.Add($"Marker {FormatMarkerResolveKind(markerType)}");
+        return parts.Count == 0 ? "(none)" : string.Join(" + ", parts);
+    }
+
+    // Format marker resolve kind for debug display.
+    private static string FormatMarkerResolveKind(MarkerResolveKind kind)
+        => MarkerResolveKindLabels[(int)kind];
 
     // Draw a settings section header with spacing, disabled title, and separator.
     private static void DrawSettingsSectionHeader(string title)

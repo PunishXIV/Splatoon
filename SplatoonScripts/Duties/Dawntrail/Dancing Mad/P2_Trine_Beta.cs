@@ -59,6 +59,7 @@ public class P2_Trine_Beta : SplatoonScript
     private static readonly Vector3 ArenaCenter = new(100.0f, 0.0f, 100.0f);
     private static readonly Vector3 HalfRoomWestSafeDestination = new(97.0f, 0.0f, 100.0f);
     private static readonly Vector3 HalfRoomEastSafeDestination = new(103.0f, 0.0f, 100.0f);
+    private static readonly Vector3 NorthEastDirection = NormalizeXZ(new Vector3(1.0f, 0.0f, -1.0f));
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
@@ -77,6 +78,28 @@ public class P2_Trine_Beta : SplatoonScript
             "When enabled, shows tank and party route markers. First-move shared markers include thick arrows; self-only destination markers hide those arrows.",
         Jp =
             "有効にすると、パーティ用とタンク用の2点を同時に表示します。1回目移動の共有表示では太い矢印も表示し、自分用の移動先表示では矢印を消します。"
+    };
+    private static readonly InternationalString FirstMoveRouteModeText = new()
+    {
+        En = "First move route rule",
+        Jp = "1回目移動ルール"
+    };
+    private static readonly InternationalString FirstMoveRouteModeDescriptionText = new()
+    {
+        En =
+            "Clockwise from north uses arena directions, not field markers: party takes the first safe route clockwise from north, and tanks take the first non-party safe route counter-clockwise from north-east. Legacy keeps the older single/double-side selector.",
+        Jp =
+            "北から時計回りはフィールドマーカーではなくアリーナ方角を基準にします。パーティは北から時計回りで最初の安全側、タンクは北東から反時計回りでパーティ以外の最初の安全側を使います。従来方式は旧来の単体/2連側選択を維持します。"
+    };
+    private static readonly InternationalString ClockwiseFromNorthModeText = new()
+    {
+        En = "Clockwise from north",
+        Jp = "北から時計回り"
+    };
+    private static readonly InternationalString LegacySingleDoubleModeText = new()
+    {
+        En = "Legacy single/double side",
+        Jp = "従来の単体/2連側"
     };
 
     private readonly List<Vector3> _currentWavePositions = [];
@@ -98,7 +121,7 @@ public class P2_Trine_Beta : SplatoonScript
     private Vector3 _firstWavePartyDestination;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(5, "Garume");
+    public override Metadata Metadata => new(6, "Garume");
 
     private Config C
     {
@@ -227,11 +250,28 @@ public class P2_Trine_Beta : SplatoonScript
 
         ImGui.TextWrapped(MainDescriptionText.Get());
         ImGui.Separator();
+        DrawFirstMoveRouteModeSetting();
+        ImGui.Separator();
         ImGui.Checkbox(ShowSharedRouteMarkersText.Get(), ref C.ShowSharedRouteMarkers);
         ImGui.TextWrapped(ShowSharedRouteMarkersDescriptionText.Get());
         ImGui.Separator();
         C.PriorityData.Draw();
     }
+
+    private void DrawFirstMoveRouteModeSetting()
+    {
+        var routeMode = (int)C.RouteMode;
+        var labels = BuildFirstMoveRouteModeLabels();
+        if (ImGui.Combo(FirstMoveRouteModeText.Get(), ref routeMode, labels, labels.Length))
+            C.RouteMode = (FirstMoveRouteMode)Math.Clamp(routeMode, 0, labels.Length - 1);
+        ImGui.TextWrapped(FirstMoveRouteModeDescriptionText.Get());
+    }
+
+    private static string[] BuildFirstMoveRouteModeLabels() =>
+    [
+        ClockwiseFromNorthModeText.Get(),
+        LegacySingleDoubleModeText.Get()
+    ];
 
     private void StartTrine()
     {
@@ -401,11 +441,11 @@ public class P2_Trine_Beta : SplatoonScript
         if (reliableSafeGroups.Count > 0)
             safeGroups = reliableSafeGroups;
 
-        var singleGroup = SelectSingleSafeGroup(safeGroups, firstTriangles);
-        partyDestination = SelectClosestCandidateToMiddleSide(singleGroup);
+        var partyGroup = SelectPartySafeGroup(safeGroups, firstTriangles, C.RouteMode);
+        partyDestination = SelectClosestCandidateToMiddleSide(partyGroup);
 
-        var tankGroup = SelectDoubleSafeGroup(safeGroups, singleGroup, partyDestination);
-        tankDestination = ReferenceEquals(tankGroup, singleGroup)
+        var tankGroup = SelectTankSafeGroup(safeGroups, partyGroup, partyDestination, C.RouteMode);
+        tankDestination = ReferenceEquals(tankGroup, partyGroup)
             ? SelectAwayCandidate(tankGroup, partyDestination)
             : SelectClosestCandidateToMiddleSide(tankGroup);
 
@@ -492,7 +532,27 @@ public class P2_Trine_Beta : SplatoonScript
             .ToList();
     }
 
-    private static SafeCandidateGroup SelectSingleSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
+    private static SafeCandidateGroup SelectPartySafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
+        IReadOnlyList<TrineTriangle> firstTriangles, FirstMoveRouteMode routeMode)
+    {
+        return routeMode switch
+        {
+            FirstMoveRouteMode.LegacySingleDouble => SelectLegacySingleSafeGroup(safeGroups, firstTriangles),
+            _ => SelectClockwiseFromNorthSafeGroup(safeGroups)
+        };
+    }
+
+    private static SafeCandidateGroup SelectTankSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
+        SafeCandidateGroup partyGroup, Vector3 partyDestination, FirstMoveRouteMode routeMode)
+    {
+        return routeMode switch
+        {
+            FirstMoveRouteMode.LegacySingleDouble => SelectLegacyDoubleSafeGroup(safeGroups, partyGroup, partyDestination),
+            _ => SelectCounterClockwiseFromNorthEastSafeGroup(safeGroups, partyGroup, partyDestination)
+        };
+    }
+
+    private static SafeCandidateGroup SelectLegacySingleSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
         IReadOnlyList<TrineTriangle> firstTriangles)
     {
         return safeGroups
@@ -501,18 +561,45 @@ public class P2_Trine_Beta : SplatoonScript
             .First();
     }
 
-    private static SafeCandidateGroup SelectDoubleSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
-        SafeCandidateGroup singleGroup, Vector3 partyDestination)
+    private static SafeCandidateGroup SelectLegacyDoubleSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups,
+        SafeCandidateGroup partyGroup, Vector3 partyDestination)
     {
         if (safeGroups.Count == 1)
-            return singleGroup;
+            return partyGroup;
 
         return safeGroups
-            .Where(group => !ReferenceEquals(group, singleGroup))
-            .OrderBy(group => DotXZ(group.Direction, singleGroup.Direction))
+            .Where(group => !ReferenceEquals(group, partyGroup))
+            .OrderBy(group => DotXZ(group.Direction, partyGroup.Direction))
             .ThenByDescending(group => DistanceSquaredXZ(SelectClosestCandidateToMiddleSide(group), partyDestination))
             .ThenByDescending(group => group.Candidates.Count)
             .First();
+    }
+
+    private static SafeCandidateGroup SelectClockwiseFromNorthSafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups)
+    {
+        return safeGroups
+            .OrderBy(group => ClockwiseAngleFromNorth(GetRouteRepresentativePosition(group)))
+            .ThenByDescending(group => group.Candidates.Count)
+            .First();
+    }
+
+    private static SafeCandidateGroup SelectCounterClockwiseFromNorthEastSafeGroup(
+        IReadOnlyList<SafeCandidateGroup> safeGroups, SafeCandidateGroup partyGroup, Vector3 partyDestination)
+    {
+        if (safeGroups.Count == 1)
+            return partyGroup;
+
+        return safeGroups
+            .Where(group => !ReferenceEquals(group, partyGroup))
+            .OrderBy(group => CounterClockwiseAngleFromNorthEast(GetRouteRepresentativePosition(group)))
+            .ThenByDescending(group => DistanceSquaredXZ(SelectClosestCandidateToMiddleSide(group), partyDestination))
+            .ThenByDescending(group => group.Candidates.Count)
+            .First();
+    }
+
+    private static Vector3 GetRouteRepresentativePosition(SafeCandidateGroup group)
+    {
+        return SelectClosestCandidateToMiddleSide(group);
     }
 
     private static Vector3 SelectClosestCandidateToMiddleSide(SafeCandidateGroup group)
@@ -806,6 +893,33 @@ public class P2_Trine_Beta : SplatoonScript
     private static float DotXZ(Vector3 a, Vector3 b)
     {
         return a.X * b.X + a.Z * b.Z;
+    }
+
+    private static float ClockwiseAngleFromNorth(Vector3 position)
+    {
+        var direction = NormalizeXZ(position - ArenaCenter);
+        if (direction == Vector3.Zero)
+            return float.PositiveInfinity;
+
+        var angle = MathF.Atan2(direction.X, -direction.Z);
+        return NormalizeRadians(angle);
+    }
+
+    private static float CounterClockwiseAngleFromNorthEast(Vector3 position)
+    {
+        var direction = NormalizeXZ(position - ArenaCenter);
+        if (direction == Vector3.Zero)
+            return float.PositiveInfinity;
+
+        var angle = ClockwiseAngleFromNorth(ArenaCenter + direction);
+        var start = ClockwiseAngleFromNorth(ArenaCenter + NorthEastDirection);
+        return NormalizeRadians(start - angle);
+    }
+
+    private static float NormalizeRadians(float angle)
+    {
+        var normalized = angle % (2.0f * MathF.PI);
+        return normalized < 0.0f ? normalized + 2.0f * MathF.PI : normalized;
     }
 
     private static bool IsInsideUsableArena(Vector3 position)
@@ -1208,6 +1322,12 @@ public class P2_Trine_Beta : SplatoonScript
         public TrineTriangle Triangle { get; }
     }
 
+    public enum FirstMoveRouteMode
+    {
+        ClockwiseFromNorth = 0,
+        LegacySingleDouble = 1
+    }
+
     public sealed class TankPriorityData : PriorityData
     {
         public override int GetNumPlayers() => 2;
@@ -1215,6 +1335,7 @@ public class P2_Trine_Beta : SplatoonScript
 
     public sealed class Config : IEzConfig
     {
+        public FirstMoveRouteMode RouteMode = FirstMoveRouteMode.ClockwiseFromNorth;
         public bool ShowSharedRouteMarkers;
 
         public TankPriorityData PriorityData = new()
@@ -1237,6 +1358,9 @@ public class P2_Trine_Beta : SplatoonScript
 
         public void EnsureDefaults()
         {
+            if (!Enum.IsDefined(typeof(FirstMoveRouteMode), RouteMode))
+                RouteMode = FirstMoveRouteMode.ClockwiseFromNorth;
+
             PriorityData ??= new TankPriorityData();
             PriorityData.Name = "Trine MT/OT priority";
             PriorityData.Description = "Default: T1 then T2. Used only for MT/OT tankbuster split.";

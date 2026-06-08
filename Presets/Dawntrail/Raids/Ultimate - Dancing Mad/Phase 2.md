@@ -280,6 +280,7 @@ Script to resolve Forsaken ONLY for strategies that rely always on your fixed pa
 
 Default configuration is for Kroxy/Rinon strat.
 
+Update at 2026-06-08 09:29:37 UTC: added new rinon positions
 Update at 2026-06-07 22:03:17 UTC: added positions per role
 Update at 2026-06-07 21:35:23 UTC: significantly improved Rinon positions
 

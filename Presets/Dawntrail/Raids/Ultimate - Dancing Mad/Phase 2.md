@@ -369,6 +369,43 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 >
 > There is a good chance that they will remain temporary until merging into a single script. 
 
+## [JP] Yarn or Reen AAABBBBA
+Always Resolve Debuff & Priority.
+
+Configuration
+- Priority H1 > H2 > T1 > T2 > M1 > M2 > R1 > R2
+- First Pair Mode
+    - [Yarn] Alternate : T1H1 / T2H2 / M1R1 / M2R2
+    - [Reen] Alternate : T1T2 / H1H2 / M1M2 / R1R2
+
+Reference
+- [Yarn Flash](https://yan-flash.com/ultimate/yosei-ranbu#ult-phase-2)
+- [Reen X Post](https://x.com/Reen_Kelly/status/2062438946399994034)
+
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Pattern/P2_Missing_1238_4567_KT_Strat.cs
+```
+
+## [JP] KTDN AAABBBBA
+Resolve by Current Debuff & Latest Tower Side.
+
+Configuration
+- Priority H1 > H2 > T1 > T2 > M1 > M2 > R1 > R2
+- First Stack Rule
+    - Pair Debuff (Cone + Stack => Left, Spread + Stack => Right)
+    - Stack Priority (Swap Stack Only)
+- Latest Tower Pair Swap Side
+    - Bask Side
+    - Front Side
+    - Priority (Left => Lower to Right, Right: Higher to Left)
+
+Reference
+- [せいくおい Youtube](https://www.youtube.com/watch?v=21_YaTEUGH8)
+
+```
+https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Pattern/P2_Missing_KT_Alt.cs
+```
+
 ## [JP] Old Yarn
 
 P2_Missing_1238_4567 (called Old Yarn)
@@ -381,7 +418,7 @@ Resolve By Party Priority [0-3] / [4-7]
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Pattern/P2_Missing_1234_5678.cs
 ```
 
-## [JP] New Yarn
+## [JP] Old Yarn
 
 Resolve By Party Priority [0, 2] / [1, 3] / [4, 6] / [5, 7]
 

@@ -354,7 +354,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(10, "Garume");
+    public override Metadata Metadata => new(11, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 

@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(8, "NightmareXIV, Poneglyph");
+    public override Metadata Metadata { get; } = new(9, "NightmareXIV, Poneglyph, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
@@ -83,6 +83,9 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
             Controller.RegisterElementFromCode($"TowerSplit1-{i}", """
                 {"Name":"","type":3,"refY":4.0,"offY":-4.0,"radius":0.0,"refActorDataID":9020,"refActorPlaceholder":[],"refActorNPCNameID":7131,"refActorComparisonAnd":true,"refActorComparisonType":3,"includeRotation":true,"onlyUnTargetable":true,"LimitDistance":true,"DistanceSourceX":107.919945,"DistanceSourceY":100.056015,"DistanceSourceZ":3.8146973E-06,"DistanceMax":0.1,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
                 """);
+            Controller.RegisterElementFromCode($"TowerLifetime-{i}", """
+                {"Name":"","type":0,"radius":0.0,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":2.0,"overlayFScale":2.0,"thicc":0.0,"overlayText":"","refX":100.0,"refY":100.0}
+                """);
         }
     }
 
@@ -108,6 +111,7 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
     {
         FirstTakers.Clear();
         this.TowerCount = 0;
+        _towerSpawnTickByMapEffect.Clear();
     }
 
     Element GetOrCreateElementAtIndex(string name, int index)
@@ -169,6 +173,7 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
     }
 
     private const float TowerCoordinateRadius = 4f;
+    private const float TowerLifetimeSeconds = 10f;
     private bool IsPlayerInActiveTower(IPlayerCharacter player)
     {
         if(player.IsDead)
@@ -203,6 +208,8 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
     public override void OnUpdate()
     {
         Controller.Hide();
+        if(C.ShowTowerCountdown)
+            UpdateTowerLifetimeElements();
         if(Controller.GetPartyMembers().Any(x => x.StatusList.Any(s => s.StatusId == DebuffSpellsTrouble)))
         {
             var pcs = Svc.Objects.OfType<IPlayerCharacter>().ToList();
@@ -271,12 +278,41 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
     }
 
     CircularArray<uint> ActiveMapEffects = new(2);
+    readonly Dictionary<uint, long> _towerSpawnTickByMapEffect = [];
+
+    // Show tower lifetime at ActiveMapEffects slot coordinates.
+    private void UpdateTowerLifetimeElements()
+    {
+        if(ActiveMapEffects.Count() == 0)
+        {
+            return;
+        }
+
+        var i = 0;
+        foreach(var mapEffectIndex in ActiveMapEffects)
+        {
+            if(!MapEffect2TowerPos.TryGetValue(mapEffectIndex, out var towerPos)
+                || !_towerSpawnTickByMapEffect.TryGetValue(mapEffectIndex, out var spawnTick)
+                || !Controller.TryGetElementByName($"TowerLifetime-{i}", out var lifetimeElement))
+            {
+                i++;
+                continue;
+            }
+
+            lifetimeElement.Enabled = true;
+            lifetimeElement.refX = towerPos.X;
+            lifetimeElement.refY = towerPos.Y;
+            lifetimeElement.overlayText = $"{MathF.Max(0f, TowerLifetimeSeconds - (Environment.TickCount64 - spawnTick) / 1000f):F1}";
+            i++;
+        }
+    }
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
         if(this.MapEffect2TowerPos.ContainsKey(position) && data1 == 1)
         {
             ActiveMapEffects.Push(position);
+            _towerSpawnTickByMapEffect[position] = Environment.TickCount64;
         }
     }
     private string GetPlayerOrder(IPlayerCharacter c)
@@ -305,6 +341,7 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
         ImGui.Checkbox("Visualize attacks from towers", ref C.Visualize);
         ImGui.Checkbox("Visualizer only (hide all text elements)", ref C.VisualizerOnly);
         ImGui.Checkbox("Hide tower split indicators", ref C.HideTowerSplit);
+        ImGui.Checkbox("Show tower countdown", ref C.ShowTowerCountdown);
         ImGui.Checkbox("Show in/out", ref C.ShowInOut);
         if(C.ShowInOut)
         {
@@ -347,6 +384,7 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
         public bool ShowInOut = true;
         public bool VisualizerOnly = false;
         public bool HideTowerSplit = false;
+        public bool ShowTowerCountdown = false;
         public HashSet<uint> Switchers = [1, 2, 5, 6];
         public Prio1 Partner = new();
     }

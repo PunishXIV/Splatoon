@@ -54,7 +54,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private const float FinalAllThingsEndingOffset = 4f;
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 14;
+    private const int CurrentDefaultsVersion = 15;
+    private const int MarkerCommandDelayLimitMs = 5000;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -185,6 +186,24 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     {
         En = "Fan command",
         Jp = "扇コマンド"
+    };
+
+    private static readonly InternationalString MarkerCommandDelayDescriptionText = new()
+    {
+        En = "Live marker commands are sent after a random delay in this range. Replay and dry-run logging stay immediate.",
+        Jp = "実戦のマーカーコマンドをこの範囲のランダム遅延後に送信します。リプレイとdry-runのログは即時のままです。"
+    };
+
+    private static readonly InternationalString MarkerCommandDelayMinText = new()
+    {
+        En = "Min delay, ms",
+        Jp = "最小遅延(ms)"
+    };
+
+    private static readonly InternationalString MarkerCommandDelayMaxText = new()
+    {
+        En = "Max delay, ms",
+        Jp = "最大遅延(ms)"
     };
 
     private static readonly InternationalString UseWave8MarkerResolutionText = new()
@@ -319,6 +338,10 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private int _waitingForLiveDebuffRefreshWave;
     private bool _finalAllThingsEndingCastSeen;
     private bool _wave4SelfMarkerHandled;
+    private bool _hasPendingWave4MarkerCommand;
+    private string _pendingWave4MarkerCommand = "";
+    private LiveDebuffKind _pendingWave4MarkerDebuff = LiveDebuffKind.None;
+    private long _pendingWave4MarkerDueTick;
     private string _lastWave4SelfMarkerState = "";
     private string _currentInstruction = "";
     private bool _hasDestination;
@@ -552,6 +575,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         if (_active)
             TryRunWave4SelfMarker();
+
+        TryExecutePendingWave4MarkerCommand();
 
         if (_active && _hasStage)
             UpdateStageInstruction();
@@ -914,6 +939,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         DrawMarkerCommandInput(CircleMarkerCommandText.Get(), ref C.CircleMarkerCommand);
         DrawMarkerCommandInput(FanMarkerCommandText.Get(), ref C.FanMarkerCommand);
+        ImGui.TextWrapped(MarkerCommandDelayDescriptionText.Get());
+        ImGui.SetNextItemWidth(180f);
+        ImGui.SliderInt(MarkerCommandDelayMinText.Get(), ref C.MarkerCommandDelayMinMs, 0, MarkerCommandDelayLimitMs);
+        ImGui.SetNextItemWidth(180f);
+        ImGui.SliderInt(MarkerCommandDelayMaxText.Get(), ref C.MarkerCommandDelayMaxMs, 0, MarkerCommandDelayLimitMs);
+        C.NormalizeMarkerCommandDelay();
 
         ImGui.Spacing();
         ImGui.Checkbox(UseWave8MarkerResolutionText.Get(), ref C.UseWave8MarkerResolution);
@@ -1390,11 +1421,61 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
         else
         {
-            _lastWave4SelfMarkerState = $"sent: {command}";
-            Chat.ExecuteCommand(command);
+            ScheduleWave4MarkerCommand(command, debuff);
         }
 
         DebugLog($"WAVE4_MARKER state=\"{_lastWave4SelfMarkerState}\" debuff={debuff} liveEnabled={C.EnableLiveMarkerCommands} replay={Svc.Condition[ConditionFlag.DutyRecorderPlayback]}");
+    }
+
+    private void ScheduleWave4MarkerCommand(string command, LiveDebuffKind debuff)
+    {
+        C.NormalizeMarkerCommandDelay();
+        var delay = Random.Shared.Next(C.MarkerCommandDelayMinMs, C.MarkerCommandDelayMaxMs + 1);
+        if (delay <= 0)
+        {
+            ExecuteWave4MarkerCommand(command, debuff);
+            return;
+        }
+
+        _hasPendingWave4MarkerCommand = true;
+        _pendingWave4MarkerCommand = command;
+        _pendingWave4MarkerDebuff = debuff;
+        _pendingWave4MarkerDueTick = Environment.TickCount64 + delay;
+        _lastWave4SelfMarkerState = $"scheduled: {command} after {delay}ms";
+        DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} scheduled after {delay}ms");
+    }
+
+    private void TryExecutePendingWave4MarkerCommand()
+    {
+        if (!_hasPendingWave4MarkerCommand || Environment.TickCount64 < _pendingWave4MarkerDueTick)
+            return;
+
+        var command = _pendingWave4MarkerCommand;
+        var debuff = _pendingWave4MarkerDebuff;
+        ClearPendingWave4MarkerCommand();
+        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback] || !C.EnableLiveMarkerCommands)
+        {
+            _lastWave4SelfMarkerState = $"canceled: {command}";
+            DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} canceled before send");
+            return;
+        }
+
+        ExecuteWave4MarkerCommand(command, debuff);
+    }
+
+    private void ExecuteWave4MarkerCommand(string command, LiveDebuffKind debuff)
+    {
+        _lastWave4SelfMarkerState = $"sent: {command}";
+        Chat.ExecuteCommand(command);
+        DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} sent");
+    }
+
+    private void ClearPendingWave4MarkerCommand()
+    {
+        _hasPendingWave4MarkerCommand = false;
+        _pendingWave4MarkerCommand = "";
+        _pendingWave4MarkerDebuff = LiveDebuffKind.None;
+        _pendingWave4MarkerDueTick = 0;
     }
 
     private static void AddUniquePairPosition(List<uint> list, uint position)
@@ -2755,6 +2836,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _waitingForLiveDebuffRefreshWave = 0;
         _finalAllThingsEndingCastSeen = false;
         _wave4SelfMarkerHandled = false;
+        ClearPendingWave4MarkerCommand();
         _lastWave4SelfMarkerState = "";
         _currentInstruction = "";
         _hasDestination = false;
@@ -3318,6 +3400,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         public bool UseWave8MarkerResolution;
         public string CircleMarkerCommand = "/mk stop <me>";
         public string FanMarkerCommand = "/mk bind <me>";
+        public int MarkerCommandDelayMinMs;
+        public int MarkerCommandDelayMaxMs;
         public P2_Forsaken_beta.MarkerResolveKind CircleMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Stop;
         public P2_Forsaken_beta.MarkerResolveKind FanMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Bind;
 
@@ -3550,6 +3634,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             FinalAllThingsEndingFutureText ??= new InternationalString { En = "South", Jp = "南" };
             CircleMarkerCommand ??= "/mk stop <me>";
             FanMarkerCommand ??= "/mk bind <me>";
+            NormalizeMarkerCommandDelay();
             CircleMarkerKind = ClampMarkerResolveKind(CircleMarkerKind);
             FanMarkerKind = ClampMarkerResolveKind(FanMarkerKind);
             PastFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 45f, 4f);
@@ -3660,6 +3745,11 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 DefaultsVersion = 14;
             }
 
+            if (DefaultsVersion < 15)
+            {
+                DefaultsVersion = 15;
+            }
+
             for (var i = 0; i < Waves.Length; i++)
             {
                 Waves[i] ??= new WaveConfig();
@@ -3669,6 +3759,14 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             PreviewWave = Math.Clamp(PreviewWave, 1, WaveCount);
             if ((int)PreviewStage < 0 || (int)PreviewStage >= StageCount)
                 PreviewStage = StageKind.Tower;
+        }
+
+        public void NormalizeMarkerCommandDelay()
+        {
+            MarkerCommandDelayMinMs = Math.Clamp(MarkerCommandDelayMinMs, 0, MarkerCommandDelayLimitMs);
+            MarkerCommandDelayMaxMs = Math.Clamp(MarkerCommandDelayMaxMs, 0, MarkerCommandDelayLimitMs);
+            if (MarkerCommandDelayMaxMs < MarkerCommandDelayMinMs)
+                MarkerCommandDelayMaxMs = MarkerCommandDelayMinMs;
         }
 
         private static P2_Forsaken_beta.MarkerResolveKind ClampMarkerResolveKind(P2_Forsaken_beta.MarkerResolveKind kind)

@@ -27,7 +27,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(2, "mirage");
+    public override Metadata Metadata { get; } = new(3, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -72,6 +72,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private const string DefaultSpreadEchoText = "Circle";
     private const string DefaultConeEchoText = "Cone";
     private const int MarkerEchoTextMaxLength = 64;
+    // UI font scale for priority notice banner (unrelated to RegisterElementFromCode JSON).
 
     private static readonly string[] MarkerResolveKindLabels = ["None", "Attack", "Stop", "Bind"];
 
@@ -227,10 +228,10 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
                         IsRole = true,
                         List =
                         [
-                            new JobbedPlayer { Role = RolePosition.T1 },
-                            new JobbedPlayer { Role = RolePosition.T2 },
                             new JobbedPlayer { Role = RolePosition.H1 },
                             new JobbedPlayer { Role = RolePosition.H2 },
+                            new JobbedPlayer { Role = RolePosition.T1 },
+                            new JobbedPlayer { Role = RolePosition.T2 },
                             new JobbedPlayer { Role = RolePosition.M1 },
                             new JobbedPlayer { Role = RolePosition.M2 },
                             new JobbedPlayer { Role = RolePosition.R1 },
@@ -315,6 +316,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     {
         BackSide,
         FrontSide,
+        Priority,
     }
 
     private enum MarkerResolveKind
@@ -537,8 +539,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         if(secondGroupPlayers.Count != 4)
             return;
 
-        secondGroupPlayers[0].RoleLabel = Role211Tank;
-        secondGroupPlayers[1].RoleLabel = Role211Healer;
+        secondGroupPlayers[0].RoleLabel = Role211Healer;
+        secondGroupPlayers[1].RoleLabel = Role211Tank;
         secondGroupPlayers[2].RoleLabel = Role211Melee;
         secondGroupPlayers[3].RoleLabel = Role211Range;
     }
@@ -573,8 +575,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         if(fieldPlayers.Count != 4)
             return;
 
-        fieldPlayers[0].RoleLabel = Role022Tank;
-        fieldPlayers[1].RoleLabel = Role022Healer;
+        fieldPlayers[0].RoleLabel = Role022Healer;
+        fieldPlayers[1].RoleLabel = Role022Tank;
         fieldPlayers[2].RoleLabel = Role022Melee;
         fieldPlayers[3].RoleLabel = Role022Range;
     }
@@ -975,6 +977,12 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private void AssignCrossTowerPairRoles(PlayerInfo frontPlayer, PlayerInfo backPlayer, string frontSideRole,
         string oppositeSideRole)
     {
+        if((TowerPairSwapSide)C.TowerPairSwapSideMode == TowerPairSwapSide.Priority)
+        {
+            AssignCrossTowerPairRolesByPriority(frontPlayer, backPlayer, frontSideRole, oppositeSideRole);
+            return;
+        }
+
         if((TowerPairSwapSide)C.TowerPairSwapSideMode == TowerPairSwapSide.FrontSide)
         {
             frontPlayer.RoleLabel = oppositeSideRole;
@@ -985,6 +993,21 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         frontPlayer.RoleLabel = frontSideRole;
         backPlayer.RoleLabel = oppositeSideRole;
     }
+
+    // Assign cross-tower roles by priority: higher -> left role, lower -> right role.
+    private void AssignCrossTowerPairRolesByPriority(PlayerInfo playerA, PlayerInfo playerB, string roleA,
+        string roleB)
+    {
+        var leftRole = IsLeftTowerRole(roleA) ? roleA : roleB;
+        var rightRole = IsLeftTowerRole(roleA) ? roleB : roleA;
+        var ordered = OrderInfosByPriority([playerA, playerB]).ToList();
+        ordered[0].RoleLabel = leftRole;
+        ordered[1].RoleLabel = rightRole;
+    }
+
+    // Return whether a role label is the left-tower slot for cross-tower assignment.
+    private static bool IsLeftTowerRole(string roleLabel)
+        => roleLabel is Role211LeftStack or Role022LeftCone or Role022LeftSpread;
 
     // Assign field roles for non-tower players from pattern id.
     private void ResolveFieldRoles(int patternId)
@@ -1007,8 +1030,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         {
             return rank switch
             {
-                0 => Role211Tank,
-                1 => Role211Healer,
+                0 => Role211Healer,
+                1 => Role211Tank,
                 2 => Role211Melee,
                 3 => Role211Range,
                 _ => null,
@@ -1017,8 +1040,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         return rank switch
         {
-            0 => Role022Tank,
-            1 => Role022Healer,
+            0 => Role022Healer,
+            1 => Role022Tank,
             2 => Role022Melee,
             3 => Role022Range,
             _ => null,
@@ -2122,6 +2145,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         => mode switch
         {
             (int)TowerPairSwapSide.FrontSide => (int)TowerPairSwapSide.FrontSide,
+            (int)TowerPairSwapSide.Priority => (int)TowerPairSwapSide.Priority,
             _ => (int)TowerPairSwapSide.BackSide,
         };
 
@@ -2181,8 +2205,16 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private void DrawMainSettings()
     {
         C.EnsureDefaults();
+
+        ImGui.Spacing();
+        ImGui.SetWindowFontScale(1.2f);
+        DrawCenteredText(EColor.YellowBright, "Please Set Priority");
+        DrawCenteredText(EColor.YellowBright, "H1, H2, T1, T2, M1, M2, R1, R2");
+        ImGui.SetWindowFontScale(1f);
+        ImGui.Spacing();
+
         DrawSettingsSectionHeader("General");
-        ImGui.TextUnformatted("Starting Pairs: [MT,H1], [ST,H2], [M1,R1], [M2,R2].");
+        ImGui.TextUnformatted("Starting Pairs: [H1,T1], [H2,T2], [M1,R1], [M2,R2].");
         ImGui.TextUnformatted("Steps 1,2,3,8 = FirstGroup tower. / Steps 4,5,6,7 = SecondGroup tower.");
         
         DrawSettingsSectionHeader("First Stack Swap Rule");
@@ -2191,7 +2223,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         DrawSettingsSectionHeader("Tower Pair Swap Side");
         DrawTowerPairSwapSideSettings();
 
-        DrawSettingsSectionHeader("Step4 Debuff Reminder");
+        DrawSettingsSectionHeader("Debuff Reminder");
+        ImGui.TextUnformatted("For Step8, FirstGroup saves debuff in Step4.");
         ImGui.TextUnformatted("Spread:");
         DrawMarkerEchoRow("Echo Message##Spread", ref C.SpreadUseEcho, ref C.SpreadEchoText, DefaultSpreadEchoText);
         DrawMarkerKindRow("Auto Marking##Spread", ref C.SpreadUseMarker, ref C.SpreadMarkerType);
@@ -2200,7 +2233,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         DrawMarkerKindRow("Auto Marking##Cone", ref C.ConeUseMarker, ref C.ConeMarkerType);
 
         DrawSettingsSectionHeader("Priority");
-        ImGui.TextUnformatted("T1, T2, H1, H2, M1, M2, R1, R2");
+        ImGui.TextUnformatted("H1, H2, T1, T2, M1, M2, R1, R2");
         C.PriorityData.Draw();
 
         DrawSettingsSectionHeader("Pattern");
@@ -2215,7 +2248,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         if(ImGui.RadioButton("Pair Debuff (Cone => Left, Spread => Right)###step1WithPair",
                 mode == (int)Step1AssignmentMode.ChangeWithPair))
             mode = (int)Step1AssignmentMode.ChangeWithPair;
-        if(ImGui.RadioButton("Stack Debuff Priority###step1StackOnly",
+        if(ImGui.RadioButton("Stack Debuff Priority (Swap Stack Only)###step1StackOnly",
                 mode == (int)Step1AssignmentMode.ChangeStackOnly))
             mode = (int)Step1AssignmentMode.ChangeStackOnly;
         C.Step1RoleMode = ClampStep1RoleMode(mode);
@@ -2226,12 +2259,15 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     {
         C.EnsureDefaults();
         var mode = C.TowerPairSwapSideMode;
-        if(ImGui.RadioButton("Back Side crosses (default)###towerPairBackSide",
+        if(ImGui.RadioButton("Back Side###towerPairBackSide",
                 mode == (int)TowerPairSwapSide.BackSide))
             mode = (int)TowerPairSwapSide.BackSide;
-        if(ImGui.RadioButton("Front Side crosses###towerPairFrontSide",
+        if(ImGui.RadioButton("Front Side###towerPairFrontSide",
                 mode == (int)TowerPairSwapSide.FrontSide))
             mode = (int)TowerPairSwapSide.FrontSide;
+        if(ImGui.RadioButton("Priority (Left: Lower to Right / Right: Higher to Left)###towerPairPriority",
+                mode == (int)TowerPairSwapSide.Priority))
+            mode = (int)TowerPairSwapSide.Priority;
         C.TowerPairSwapSideMode = ClampTowerPairSwapSide(mode);
     }
 
@@ -2290,6 +2326,14 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     // Format marker resolve kind for debug display.
     private static string FormatMarkerResolveKind(MarkerResolveKind kind)
         => MarkerResolveKindLabels[(int)kind];
+
+    // Draw colored text centered in the current content region.
+    private static void DrawCenteredText(Vector4 color, string text)
+    {
+        var textWidth = ImGui.CalcTextSize(text).X;
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (ImGui.GetContentRegionAvail().X - textWidth) * 0.5f);
+        ImGuiEx.Text(color, text);
+    }
 
     // Draw a settings section header with spacing, disabled title, and separator.
     private static void DrawSettingsSectionHeader(string title)

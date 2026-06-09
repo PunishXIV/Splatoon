@@ -246,6 +246,20 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             "OFF: 頭割りを1名含むペアはペアごと1/2/3/8回目を処理し、頭割りを含まないペアはペアごと4/5/6/7回目を処理します。ON: 頭割りペアでは頭割り本人だけが1/2/3/8回目を処理し、その相方は4/5/6/7回目を処理します。頭割りを含まないペアは全体優先順位で分割し、優先順位が高い人を1/2/3/8、低い人を4/5/6/7へ送ります。"
     };
 
+    private static readonly InternationalString SortHeadStackByPrevDebuffText = new()
+    {
+        En = "Sort head-stack by previous debuff",
+        Jp = "頭割りを前回デバフでソート"
+    };
+
+    private static readonly InternationalString SortHeadStackByPrevDebuffDescriptionText = new()
+    {
+        En =
+            "When enabled, head-stack left/right assignment on waves 2+ is based on each player's previous debuff: previous Fan → left stack, previous Circle → right stack. When disabled, the assignment uses the group list order.",
+        Jp =
+            "ON の場合、2回目以降の頭割りの左右判定を各プレイヤーの前回デバフで決めます: 前Fan→左頭割り、前Circle→右頭割り。OFF の場合はグループリスト順を使用します。"
+    };
+
     private static readonly InternationalString InitialHeadStackRankModeText = new()
     {
         En = "Initial head-stack rank",
@@ -300,6 +314,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private readonly List<uint> _firstSetIds = [];
     private readonly List<uint> _secondSetIds = [];
     private readonly Dictionary<uint, LiveDebuffKind> _initialHeadPartnerDebuffs = [];
+    private readonly Dictionary<uint, LiveDebuffKind> _previousPlayerDebuffs = [];
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
     private string _lastSelectorLabel = "";
@@ -339,7 +354,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(10, "Garume");
+    public override Metadata Metadata => new(11, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -500,6 +515,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _active = true;
         var debuff = DebuffFromStatus(status.StatusId);
         DebugLogOnce(ref _lastCaptureBlockLog, $"status-{sourceId:X8}-{status.StatusId}", $"STATUS_GAIN missing source=0x{sourceId:X8} status={status.StatusId} debuff={debuff}");
+
+        // Track the last known non-HeadStack debuff per player for resolving two-head-stack pairs.
+        // When a player gains Circle or Fan, record it. When they gain HeadStack, keep the old value.
+        if (debuff is LiveDebuffKind.Circle or LiveDebuffKind.Fan)
+            _previousPlayerDebuffs[sourceId] = debuff;
+
         TryCaptureResolvingSets();
         if (debuff != LiveDebuffKind.None && _allowLiveContextRefresh)
             _stageContexts.Clear();
@@ -637,6 +658,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ImGui.TextWrapped(PairSettingsDescriptionText.Get());
         ImGui.Checkbox(SplitHeadStackPairsText.Get(), ref C.SplitHeadStackPairs);
         ImGui.TextWrapped(SplitHeadStackPairsDescriptionText.Get());
+        ImGui.Checkbox(SortHeadStackByPrevDebuffText.Get(), ref C.SortHeadStackByPrevDebuff);
+        ImGui.TextWrapped(SortHeadStackByPrevDebuffDescriptionText.Get());
         var initialHeadStackRankMode = (int)C.InitialHeadStackRankMode;
         ImGui.SetNextItemWidth(260f);
         if (ImGui.Combo(InitialHeadStackRankModeText.Get(), ref initialHeadStackRankMode,
@@ -778,14 +801,15 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 "明示ペアは現在PT8人を重複なく覆っています。"));
         }
 
-        ValidateCurrentDebuffPairSplit(lines, pairs, C.SplitHeadStackPairs);
+        ValidateCurrentDebuffPairSplit(lines, pairs, C.SplitHeadStackPairs, C.SortHeadStackByPrevDebuff);
         return lines;
     }
 
     private static void ValidateCurrentDebuffPairSplit(
         List<PairValidationLine> lines,
         IReadOnlyList<(int Index, IPlayerCharacter First, IPlayerCharacter Second)> pairs,
-        bool splitHeadPairs)
+        bool splitHeadPairs,
+        bool sortHeadStackByPrevDebuff = false)
     {
         var debuffs = pairs
             .SelectMany(pair => new[] { CurrentDebuffFromPlayer(pair.First), CurrentDebuffFromPlayer(pair.Second) })
@@ -816,10 +840,19 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
             if (firstIsHead && secondIsHead)
             {
-                lines.Add(PairValidationLine.Error(
-                    $"Pair {pair.Index + 1} has two head-stack players right now: {pair.First.Name} / {pair.Second.Name}. It cannot determine first/second set assignment.",
-                    $"ペア{pair.Index + 1}は現在、頭割り2人です: {pair.First.Name} / {pair.Second.Name}。前半/後半セットを決定できません。"));
-                dynamicErrors++;
+                if (sortHeadStackByPrevDebuff)
+                {
+                    lines.Add(PairValidationLine.Info(
+                        $"Pair {pair.Index + 1} has two head-stack players ({pair.First.Name}/{pair.Second.Name}). The \"Sort head-stack by previous debuff\" setting will resolve left/right assignment automatically.",
+                        $"ペア{pair.Index + 1}は頭割り2人です({pair.First.Name}/{pair.Second.Name})。「頭割りを前回デバフでソート」設定で左右が自動解決されます。"));
+                }
+                else
+                {
+                    lines.Add(PairValidationLine.Error(
+                        $"Pair {pair.Index + 1} has two head-stack players right now: {pair.First.Name} / {pair.Second.Name}. It cannot determine first/second set assignment.",
+                        $"ペア{pair.Index + 1}は現在、頭割り2人です: {pair.First.Name} / {pair.Second.Name}。前半/後半セットを決定できません。"));
+                    dynamicErrors++;
+                }
                 continue;
             }
 
@@ -1766,6 +1799,21 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         var sameDebuffPlayers = sideGroup
             .Where(player => DebuffForLiveContext(player, side, useWave8MarkerContext) == debuff)
             .ToList();
+
+        // For HeadStack players in the resolving group after wave 1, when the setting is enabled,
+        // sort by previous debuff so that Fan → rank 1 (Left stack), Circle → rank 2 (Right stack).
+        if (C.SortHeadStackByPrevDebuff && debuff == LiveDebuffKind.HeadStack && side == ParticipantSide.ResolvingGroup && _currentWave != 1)
+        {
+            sameDebuffPlayers = sameDebuffPlayers
+                .OrderBy(player => PreviousDebuffFromPlayer(player) switch
+                {
+                    LiveDebuffKind.Fan => 0,
+                    LiveDebuffKind.Circle => 1,
+                    _ => 2
+                })
+                .ToList();
+        }
+
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
         debuffRank = AdjustInitialHeadRankFromExplicitPair(me, side, debuff, debuffRank);
@@ -2426,6 +2474,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         return LiveDebuffKind.None;
     }
 
+    private LiveDebuffKind PreviousDebuffFromPlayer(IPlayerCharacter player)
+    {
+        return player != null && _previousPlayerDebuffs.TryGetValue(player.EntityId, out var debuff)
+            ? debuff
+            : LiveDebuffKind.None;
+    }
+
     private static LiveDebuffKind DebuffFromStatus(uint statusId)
     {
         return statusId switch
@@ -2791,6 +2846,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _firstSetIds.Clear();
         _secondSetIds.Clear();
         _initialHeadPartnerDebuffs.Clear();
+        _previousPlayerDebuffs.Clear();
         _lastPattern = new PatternInfo();
         _lastRuleLabel = "";
         _lastDebuff = LiveDebuffKind.Any;
@@ -3471,6 +3527,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         public StageKind PreviewStage = StageKind.Tower;
 
         public bool SplitHeadStackPairs;
+        public bool SortHeadStackByPrevDebuff = false;
         public P2_Forsaken_beta.InitialHeadStackRankMode InitialHeadStackRankMode =
             P2_Forsaken_beta.InitialHeadStackRankMode.PartnerDebuff;
         public int AssignmentMode;

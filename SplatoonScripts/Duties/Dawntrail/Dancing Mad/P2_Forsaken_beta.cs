@@ -54,7 +54,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private const float FinalAllThingsEndingOffset = 4f;
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 15;
+    private const int CurrentDefaultsVersion = 16;
     private const int MarkerCommandDelayLimitMs = 5000;
 
     private static readonly Vector3[] TowerPositions =
@@ -220,6 +220,20 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             "ONの場合、8回目の円/扇ランクを選択したマーカー種別から判定します。OFFの場合は従来通りデバフと優先順位で判定します。"
     };
 
+    private static readonly InternationalString UseWave8MarkerNumberRankText = new()
+    {
+        En = "Use marker number as wave 8 rank",
+        Jp = "8回目Rankをマーカー番号で判定"
+    };
+
+    private static readonly InternationalString UseWave8MarkerNumberRankDescriptionText = new()
+    {
+        En =
+            "When enabled, marker 1 becomes rank 1 and marker 2 becomes rank 2 on wave 8. Use this for strategies where the post-wave-3 self marker means left 1 / right 2.",
+        Jp =
+            "ONの場合、8回目はマーカー1をRank1、マーカー2をRank2として扱います。3回目後の自己マーカーが左1 / 右2を意味する処理法で使用します。"
+    };
+
     private static readonly InternationalString CircleMarkerKindText = new()
     {
         En = "Circle marker type",
@@ -258,6 +272,20 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             "When enabled, head-stack left/right assignment on waves 2+ is based on each player's previous debuff: previous Fan → left stack, previous Circle → right stack. When disabled, the assignment uses the group list order.",
         Jp =
             "ON の場合、2回目以降の頭割りの左右判定を各プレイヤーの前回デバフで決めます: 前Fan→左頭割り、前Circle→右頭割り。OFF の場合はグループリスト順を使用します。"
+    };
+
+    private static readonly InternationalString AdjustSameMarkerByPreviousTowerDistanceText = new()
+    {
+        En = "Adjust same marker by previous tower distance",
+        Jp = "同マーカーを前回塔の中心距離で調整"
+    };
+
+    private static readonly InternationalString AdjustSameMarkerByPreviousTowerDistanceDescriptionText = new()
+    {
+        En =
+            "When enabled, if players with the same current marker shared the previous tower, the player closer to arena center keeps the earlier rank and the farther player gets the later rank. The position table still decides where each rank goes.",
+        Jp =
+            "ONの場合、現在同じマーカーのプレイヤーが前回同じ塔を処理していたとき、フィールド中心に近い人を若いRank、遠い人を後ろのRankにします。各Rankの行き先は従来どおり配置表で決まります。"
     };
 
     private static readonly InternationalString InitialHeadStackRankModeText = new()
@@ -315,6 +343,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private readonly List<uint> _secondSetIds = [];
     private readonly Dictionary<uint, LiveDebuffKind> _initialHeadPartnerDebuffs = [];
     private readonly Dictionary<uint, LiveDebuffKind> _previousPlayerDebuffs = [];
+    private readonly Dictionary<uint, PreviousTowerClearContext> _previousTowerClearContexts = [];
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
     private string _lastSelectorLabel = "";
@@ -354,7 +383,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(11, "Garume");
+    public override Metadata Metadata => new(12, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -660,6 +689,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ImGui.TextWrapped(SplitHeadStackPairsDescriptionText.Get());
         ImGui.Checkbox(SortHeadStackByPrevDebuffText.Get(), ref C.SortHeadStackByPrevDebuff);
         ImGui.TextWrapped(SortHeadStackByPrevDebuffDescriptionText.Get());
+        ImGui.Checkbox(AdjustSameMarkerByPreviousTowerDistanceText.Get(), ref C.AdjustSameMarkerByPreviousTowerDistance);
+        ImGui.TextWrapped(AdjustSameMarkerByPreviousTowerDistanceDescriptionText.Get());
         var initialHeadStackRankMode = (int)C.InitialHeadStackRankMode;
         ImGui.SetNextItemWidth(260f);
         if (ImGui.Combo(InitialHeadStackRankModeText.Get(), ref initialHeadStackRankMode,
@@ -951,6 +982,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ImGui.TextWrapped(UseWave8MarkerResolutionDescriptionText.Get());
         if (C.UseWave8MarkerResolution)
         {
+            ImGui.Checkbox(UseWave8MarkerNumberRankText.Get(), ref C.UseWave8MarkerNumberRank);
+            ImGui.TextWrapped(UseWave8MarkerNumberRankDescriptionText.Get());
             DrawMarkerResolveKindCombo(CircleMarkerKindText.Get(), ref C.CircleMarkerKind);
             DrawMarkerResolveKindCombo(FanMarkerKindText.Get(), ref C.FanMarkerKind);
         }
@@ -1288,10 +1321,39 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         AddUniquePairPosition(_pendingTowerClearPositions, position);
         if (_pendingTowerClearPositions.Count != 2) return;
 
+        CapturePreviousTowerClearContexts(_pendingTowerClearPositions);
         _pendingTowerClearPositions.Clear();
         _allowLiveContextRefresh = false;
         DebugLog($"TOWER_CLEAR currentWave={_currentWave} stage={_currentStage} liveRefresh={_allowLiveContextRefresh}");
         ApplyDisplay();
+    }
+
+    private void CapturePreviousTowerClearContexts(IReadOnlyList<uint> towerPositions)
+    {
+        _previousTowerClearContexts.Clear();
+        if (_currentWave is < 1 or > WaveCount)
+            return;
+
+        var clearPositions = towerPositions
+            .Where(IsTowerMapPosition)
+            .Distinct()
+            .ToList();
+        if (clearPositions.Count != 2)
+            return;
+
+        var party = GetPriorityOrderedParty();
+        if (party.Count == 0)
+            return;
+
+        var resolvingGroup = GetGroupPlayers(C.Waves[_currentWave - 1].ResolvingGroup, party);
+        foreach (var player in resolvingGroup)
+        {
+            var nearestTower = clearPositions
+                .OrderBy(position => Vector3.DistanceSquared(player.Position, TowerPosition(position)))
+                .First();
+            _previousTowerClearContexts[player.EntityId] =
+                new PreviousTowerClearContext(_currentWave, nearestTower, player.Position);
+        }
     }
 
     private void SetStage(StageKind stage)
@@ -1814,6 +1876,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 .ToList();
         }
 
+        sameDebuffPlayers = AdjustSameMarkerByPreviousTowerDistance(side, debuff, sameDebuffPlayers);
+
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
         debuffRank = AdjustInitialHeadRankFromExplicitPair(me, side, debuff, debuffRank);
@@ -1828,6 +1892,50 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             debuffRank,
             supportRank,
             pattern);
+    }
+
+    private List<IPlayerCharacter> AdjustSameMarkerByPreviousTowerDistance(
+        ParticipantSide side,
+        LiveDebuffKind debuff,
+        List<IPlayerCharacter> sameDebuffPlayers)
+    {
+        if (!C.AdjustSameMarkerByPreviousTowerDistance
+            || side != ParticipantSide.ResolvingGroup
+            || _currentWave <= 1
+            || sameDebuffPlayers.Count < 2
+            || debuff is not (LiveDebuffKind.HeadStack or LiveDebuffKind.Circle or LiveDebuffKind.Fan))
+            return sameDebuffPlayers;
+
+        var previousWave = _currentWave - 1;
+        var indexedPlayers = sameDebuffPlayers
+            .Select((player, index) => (Player: player, Index: index))
+            .Where(item =>
+                _previousTowerClearContexts.TryGetValue(item.Player.EntityId, out var context) &&
+                context.Wave == previousWave)
+            .Select(item => (
+                item.Player,
+                item.Index,
+                Context: _previousTowerClearContexts[item.Player.EntityId]))
+            .GroupBy(item => item.Context.TowerMapPosition);
+
+        var result = sameDebuffPlayers.ToList();
+        foreach (var towerGroup in indexedPlayers)
+        {
+            var entries = towerGroup.ToList();
+            if (entries.Count != 2)
+                continue;
+
+            var indexes = entries.Select(item => item.Index).OrderBy(index => index).ToArray();
+            var nearToFar = entries
+                .OrderBy(item => Vector3.DistanceSquared(item.Context.Position, ArenaCenter))
+                .ThenBy(item => item.Index)
+                .ToArray();
+
+            result[indexes[0]] = nearToFar[0].Player;
+            result[indexes[1]] = nearToFar[1].Player;
+        }
+
+        return result;
     }
 
     private LiveDebuffKind DebuffForLiveContext(IPlayerCharacter player, ParticipantSide side, bool useWave8MarkerContext)
@@ -1859,7 +1967,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         int currentRank,
         bool useWave8MarkerContext)
     {
-        if (side != ParticipantSide.ResolvingGroup || !useWave8MarkerContext)
+        if (side != ParticipantSide.ResolvingGroup || !useWave8MarkerContext || !C.UseWave8MarkerNumberRank)
             return currentRank;
 
         var markerKind = debuff switch
@@ -2847,6 +2955,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _secondSetIds.Clear();
         _initialHeadPartnerDebuffs.Clear();
         _previousPlayerDebuffs.Clear();
+        _previousTowerClearContexts.Clear();
         _lastPattern = new PatternInfo();
         _lastRuleLabel = "";
         _lastDebuff = LiveDebuffKind.Any;
@@ -3094,6 +3203,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         int DebuffRank,
         int SupportRank,
         PatternInfo Pattern);
+
+    private readonly record struct PreviousTowerClearContext(int Wave, uint TowerMapPosition, Vector3 Position);
 
     public sealed class RoleSelector
     {
@@ -3398,6 +3509,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         public bool EnableLiveMarkerCommands;
         public bool UseWave8MarkerResolution;
+        public bool UseWave8MarkerNumberRank = true;
         public string CircleMarkerCommand = "/mk stop <me>";
         public string FanMarkerCommand = "/mk bind <me>";
         public int MarkerCommandDelayMinMs;
@@ -3528,6 +3640,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         public bool SplitHeadStackPairs;
         public bool SortHeadStackByPrevDebuff = false;
+        public bool AdjustSameMarkerByPreviousTowerDistance;
         public P2_Forsaken_beta.InitialHeadStackRankMode InitialHeadStackRankMode =
             P2_Forsaken_beta.InitialHeadStackRankMode.PartnerDebuff;
         public int AssignmentMode;
@@ -3748,6 +3861,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             if (DefaultsVersion < 15)
             {
                 DefaultsVersion = 15;
+            }
+
+            if (DefaultsVersion < 16)
+            {
+                UseWave8MarkerNumberRank = true;
+                DefaultsVersion = 16;
             }
 
             for (var i = 0; i < Waves.Length; i++)

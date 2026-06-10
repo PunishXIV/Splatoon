@@ -36,6 +36,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
     public uint CastFuturesEnd = 47826;
     public uint CastPastsEnd = 47827;
     public uint[] CastAllThingsEnding = [47836, 47837];
+    public List<uint> AoeMapEffectsBlock = [];
 
 
     uint TowerCount = 0;
@@ -103,8 +104,16 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             {
                 this.TowerCount++;
             }
-            if(set.Action.Value.RowId == this.CastFuturesEnd) StoredAoe = true;
-            if(set.Action.Value.RowId == this.CastPastsEnd) StoredAoe = false;
+            if(set.Action.Value.RowId == this.CastFuturesEnd)
+            {
+                StoredAoe = true;
+                AoeMapEffectsBlock = this.ActiveMapEffects.ToList();
+            }
+            if(set.Action.Value.RowId == this.CastPastsEnd)
+            {
+                StoredAoe = false;
+                AoeMapEffectsBlock = this.ActiveMapEffects.ToList();
+            }
         }
     }
 
@@ -316,6 +325,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         this.FirstTaker = null;
         this.ActiveMapEffects = new(2);
         this.StoredAoe = null;
+        this.AoeMapEffectsBlock.Clear();
     }
 
     public override void OnSettingsDraw()

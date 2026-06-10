@@ -867,6 +867,7 @@ public abstract class SplatoonScript
                             InternalData.Overrides = x;
                             Controller.ApplyOverrides();
                             Notify.Success("Import success");
+                            Controller.SaveOverrides();
                         }
                         else
                         {

@@ -54,7 +54,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private const float FinalAllThingsEndingOffset = 4f;
     private const float TowerOffsetCardinal = 8f;
     private const float TowerOffsetDiagonal = 5.7f;
-    private const int CurrentDefaultsVersion = 14;
+    private const int CurrentDefaultsVersion = 16;
+    private const int MarkerCommandDelayLimitMs = 5000;
 
     private static readonly Vector3[] TowerPositions =
     [
@@ -187,6 +188,24 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         Jp = "扇コマンド"
     };
 
+    private static readonly InternationalString MarkerCommandDelayDescriptionText = new()
+    {
+        En = "Live marker commands are sent after a random delay in this range. Replay and dry-run logging stay immediate.",
+        Jp = "実戦のマーカーコマンドをこの範囲のランダム遅延後に送信します。リプレイとdry-runのログは即時のままです。"
+    };
+
+    private static readonly InternationalString MarkerCommandDelayMinText = new()
+    {
+        En = "Min delay, ms",
+        Jp = "最小遅延(ms)"
+    };
+
+    private static readonly InternationalString MarkerCommandDelayMaxText = new()
+    {
+        En = "Max delay, ms",
+        Jp = "最大遅延(ms)"
+    };
+
     private static readonly InternationalString UseWave8MarkerResolutionText = new()
     {
         En = "Use markers for wave 8 resolution",
@@ -199,6 +218,20 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             "When enabled, wave 8 circle/fan rank can be resolved from the selected marker family. When disabled, the existing debuff and priority logic is unchanged.",
         Jp =
             "ONの場合、8回目の円/扇ランクを選択したマーカー種別から判定します。OFFの場合は従来通りデバフと優先順位で判定します。"
+    };
+
+    private static readonly InternationalString UseWave8MarkerNumberRankText = new()
+    {
+        En = "Use marker number as wave 8 rank",
+        Jp = "8回目Rankをマーカー番号で判定"
+    };
+
+    private static readonly InternationalString UseWave8MarkerNumberRankDescriptionText = new()
+    {
+        En =
+            "When enabled, marker 1 becomes rank 1 and marker 2 becomes rank 2 on wave 8. Use this for strategies where the post-wave-3 self marker means left 1 / right 2.",
+        Jp =
+            "ONの場合、8回目はマーカー1をRank1、マーカー2をRank2として扱います。3回目後の自己マーカーが左1 / 右2を意味する処理法で使用します。"
     };
 
     private static readonly InternationalString CircleMarkerKindText = new()
@@ -225,6 +258,34 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             "Off: a pair containing one head-stack player resolves together on waves 1/2/3/8, and non-head pairs resolve together on waves 4/5/6/7. On: only the head-stack player from a head pair resolves on waves 1/2/3/8; that player's pair buddy resolves on waves 4/5/6/7. Pairs without a head-stack split by global priority, with the higher-priority player going to 1/2/3/8 and the lower-priority player going to 4/5/6/7.",
         Jp =
             "OFF: 頭割りを1名含むペアはペアごと1/2/3/8回目を処理し、頭割りを含まないペアはペアごと4/5/6/7回目を処理します。ON: 頭割りペアでは頭割り本人だけが1/2/3/8回目を処理し、その相方は4/5/6/7回目を処理します。頭割りを含まないペアは全体優先順位で分割し、優先順位が高い人を1/2/3/8、低い人を4/5/6/7へ送ります。"
+    };
+
+    private static readonly InternationalString SortHeadStackByPrevDebuffText = new()
+    {
+        En = "Sort head-stack by previous debuff",
+        Jp = "頭割りを前回デバフでソート"
+    };
+
+    private static readonly InternationalString SortHeadStackByPrevDebuffDescriptionText = new()
+    {
+        En =
+            "When enabled, head-stack left/right assignment on waves 2+ is based on each player's previous debuff: previous Fan → left stack, previous Circle → right stack. When disabled, the assignment uses the group list order.",
+        Jp =
+            "ON の場合、2回目以降の頭割りの左右判定を各プレイヤーの前回デバフで決めます: 前Fan→左頭割り、前Circle→右頭割り。OFF の場合はグループリスト順を使用します。"
+    };
+
+    private static readonly InternationalString AdjustSameMarkerByPreviousTowerDistanceText = new()
+    {
+        En = "Adjust same marker by previous tower distance",
+        Jp = "同マーカーを前回塔の中心距離で調整"
+    };
+
+    private static readonly InternationalString AdjustSameMarkerByPreviousTowerDistanceDescriptionText = new()
+    {
+        En =
+            "When enabled, if players with the same current marker shared the previous tower, the player closer to arena center keeps the earlier rank and the farther player gets the later rank. The position table still decides where each rank goes.",
+        Jp =
+            "ONの場合、現在同じマーカーのプレイヤーが前回同じ塔を処理していたとき、フィールド中心に近い人を若いRank、遠い人を後ろのRankにします。各Rankの行き先は従来どおり配置表で決まります。"
     };
 
     private static readonly InternationalString InitialHeadStackRankModeText = new()
@@ -281,6 +342,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private readonly List<uint> _firstSetIds = [];
     private readonly List<uint> _secondSetIds = [];
     private readonly Dictionary<uint, LiveDebuffKind> _initialHeadPartnerDebuffs = [];
+    private readonly Dictionary<uint, LiveDebuffKind> _previousPlayerDebuffs = [];
+    private readonly Dictionary<uint, PreviousTowerClearContext> _previousTowerClearContexts = [];
     private PatternInfo _lastPattern = new();
     private string _lastRuleLabel = "";
     private string _lastSelectorLabel = "";
@@ -304,6 +367,10 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private int _waitingForLiveDebuffRefreshWave;
     private bool _finalAllThingsEndingCastSeen;
     private bool _wave4SelfMarkerHandled;
+    private bool _hasPendingWave4MarkerCommand;
+    private string _pendingWave4MarkerCommand = "";
+    private LiveDebuffKind _pendingWave4MarkerDebuff = LiveDebuffKind.None;
+    private long _pendingWave4MarkerDueTick;
     private string _lastWave4SelfMarkerState = "";
     private string _currentInstruction = "";
     private bool _hasDestination;
@@ -316,7 +383,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
     private string _lastInstructionLog = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(9, "Garume");
+    public override Metadata Metadata => new(12, "Garume");
 
     private new IPlayerCharacter BasePlayer => global::Splatoon.Splatoon.BasePlayer;
 
@@ -477,6 +544,12 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _active = true;
         var debuff = DebuffFromStatus(status.StatusId);
         DebugLogOnce(ref _lastCaptureBlockLog, $"status-{sourceId:X8}-{status.StatusId}", $"STATUS_GAIN missing source=0x{sourceId:X8} status={status.StatusId} debuff={debuff}");
+
+        // Track the last known non-HeadStack debuff per player for resolving two-head-stack pairs.
+        // When a player gains Circle or Fan, record it. When they gain HeadStack, keep the old value.
+        if (debuff is LiveDebuffKind.Circle or LiveDebuffKind.Fan)
+            _previousPlayerDebuffs[sourceId] = debuff;
+
         TryCaptureResolvingSets();
         if (debuff != LiveDebuffKind.None && _allowLiveContextRefresh)
             _stageContexts.Clear();
@@ -531,6 +604,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         if (_active)
             TryRunWave4SelfMarker();
+
+        TryExecutePendingWave4MarkerCommand();
 
         if (_active && _hasStage)
             UpdateStageInstruction();
@@ -612,6 +687,10 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         ImGui.TextWrapped(PairSettingsDescriptionText.Get());
         ImGui.Checkbox(SplitHeadStackPairsText.Get(), ref C.SplitHeadStackPairs);
         ImGui.TextWrapped(SplitHeadStackPairsDescriptionText.Get());
+        ImGui.Checkbox(SortHeadStackByPrevDebuffText.Get(), ref C.SortHeadStackByPrevDebuff);
+        ImGui.TextWrapped(SortHeadStackByPrevDebuffDescriptionText.Get());
+        ImGui.Checkbox(AdjustSameMarkerByPreviousTowerDistanceText.Get(), ref C.AdjustSameMarkerByPreviousTowerDistance);
+        ImGui.TextWrapped(AdjustSameMarkerByPreviousTowerDistanceDescriptionText.Get());
         var initialHeadStackRankMode = (int)C.InitialHeadStackRankMode;
         ImGui.SetNextItemWidth(260f);
         if (ImGui.Combo(InitialHeadStackRankModeText.Get(), ref initialHeadStackRankMode,
@@ -753,14 +832,15 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 "明示ペアは現在PT8人を重複なく覆っています。"));
         }
 
-        ValidateCurrentDebuffPairSplit(lines, pairs, C.SplitHeadStackPairs);
+        ValidateCurrentDebuffPairSplit(lines, pairs, C.SplitHeadStackPairs, C.SortHeadStackByPrevDebuff);
         return lines;
     }
 
     private static void ValidateCurrentDebuffPairSplit(
         List<PairValidationLine> lines,
         IReadOnlyList<(int Index, IPlayerCharacter First, IPlayerCharacter Second)> pairs,
-        bool splitHeadPairs)
+        bool splitHeadPairs,
+        bool sortHeadStackByPrevDebuff = false)
     {
         var debuffs = pairs
             .SelectMany(pair => new[] { CurrentDebuffFromPlayer(pair.First), CurrentDebuffFromPlayer(pair.Second) })
@@ -791,10 +871,19 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
             if (firstIsHead && secondIsHead)
             {
-                lines.Add(PairValidationLine.Error(
-                    $"Pair {pair.Index + 1} has two head-stack players right now: {pair.First.Name} / {pair.Second.Name}. It cannot determine first/second set assignment.",
-                    $"ペア{pair.Index + 1}は現在、頭割り2人です: {pair.First.Name} / {pair.Second.Name}。前半/後半セットを決定できません。"));
-                dynamicErrors++;
+                if (sortHeadStackByPrevDebuff)
+                {
+                    lines.Add(PairValidationLine.Info(
+                        $"Pair {pair.Index + 1} has two head-stack players ({pair.First.Name}/{pair.Second.Name}). The \"Sort head-stack by previous debuff\" setting will resolve left/right assignment automatically.",
+                        $"ペア{pair.Index + 1}は頭割り2人です({pair.First.Name}/{pair.Second.Name})。「頭割りを前回デバフでソート」設定で左右が自動解決されます。"));
+                }
+                else
+                {
+                    lines.Add(PairValidationLine.Error(
+                        $"Pair {pair.Index + 1} has two head-stack players right now: {pair.First.Name} / {pair.Second.Name}. It cannot determine first/second set assignment.",
+                        $"ペア{pair.Index + 1}は現在、頭割り2人です: {pair.First.Name} / {pair.Second.Name}。前半/後半セットを決定できません。"));
+                    dynamicErrors++;
+                }
                 continue;
             }
 
@@ -881,12 +970,20 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         DrawMarkerCommandInput(CircleMarkerCommandText.Get(), ref C.CircleMarkerCommand);
         DrawMarkerCommandInput(FanMarkerCommandText.Get(), ref C.FanMarkerCommand);
+        ImGui.TextWrapped(MarkerCommandDelayDescriptionText.Get());
+        ImGui.SetNextItemWidth(180f);
+        ImGui.SliderInt(MarkerCommandDelayMinText.Get(), ref C.MarkerCommandDelayMinMs, 0, MarkerCommandDelayLimitMs);
+        ImGui.SetNextItemWidth(180f);
+        ImGui.SliderInt(MarkerCommandDelayMaxText.Get(), ref C.MarkerCommandDelayMaxMs, 0, MarkerCommandDelayLimitMs);
+        C.NormalizeMarkerCommandDelay();
 
         ImGui.Spacing();
         ImGui.Checkbox(UseWave8MarkerResolutionText.Get(), ref C.UseWave8MarkerResolution);
         ImGui.TextWrapped(UseWave8MarkerResolutionDescriptionText.Get());
         if (C.UseWave8MarkerResolution)
         {
+            ImGui.Checkbox(UseWave8MarkerNumberRankText.Get(), ref C.UseWave8MarkerNumberRank);
+            ImGui.TextWrapped(UseWave8MarkerNumberRankDescriptionText.Get());
             DrawMarkerResolveKindCombo(CircleMarkerKindText.Get(), ref C.CircleMarkerKind);
             DrawMarkerResolveKindCombo(FanMarkerKindText.Get(), ref C.FanMarkerKind);
         }
@@ -1224,10 +1321,39 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         AddUniquePairPosition(_pendingTowerClearPositions, position);
         if (_pendingTowerClearPositions.Count != 2) return;
 
+        CapturePreviousTowerClearContexts(_pendingTowerClearPositions);
         _pendingTowerClearPositions.Clear();
         _allowLiveContextRefresh = false;
         DebugLog($"TOWER_CLEAR currentWave={_currentWave} stage={_currentStage} liveRefresh={_allowLiveContextRefresh}");
         ApplyDisplay();
+    }
+
+    private void CapturePreviousTowerClearContexts(IReadOnlyList<uint> towerPositions)
+    {
+        _previousTowerClearContexts.Clear();
+        if (_currentWave is < 1 or > WaveCount)
+            return;
+
+        var clearPositions = towerPositions
+            .Where(IsTowerMapPosition)
+            .Distinct()
+            .ToList();
+        if (clearPositions.Count != 2)
+            return;
+
+        var party = GetPriorityOrderedParty();
+        if (party.Count == 0)
+            return;
+
+        var resolvingGroup = GetGroupPlayers(C.Waves[_currentWave - 1].ResolvingGroup, party);
+        foreach (var player in resolvingGroup)
+        {
+            var nearestTower = clearPositions
+                .OrderBy(position => Vector3.DistanceSquared(player.Position, TowerPosition(position)))
+                .First();
+            _previousTowerClearContexts[player.EntityId] =
+                new PreviousTowerClearContext(_currentWave, nearestTower, player.Position);
+        }
     }
 
     private void SetStage(StageKind stage)
@@ -1357,11 +1483,61 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         }
         else
         {
-            _lastWave4SelfMarkerState = $"sent: {command}";
-            Chat.ExecuteCommand(command);
+            ScheduleWave4MarkerCommand(command, debuff);
         }
 
         DebugLog($"WAVE4_MARKER state=\"{_lastWave4SelfMarkerState}\" debuff={debuff} liveEnabled={C.EnableLiveMarkerCommands} replay={Svc.Condition[ConditionFlag.DutyRecorderPlayback]}");
+    }
+
+    private void ScheduleWave4MarkerCommand(string command, LiveDebuffKind debuff)
+    {
+        C.NormalizeMarkerCommandDelay();
+        var delay = Random.Shared.Next(C.MarkerCommandDelayMinMs, C.MarkerCommandDelayMaxMs + 1);
+        if (delay <= 0)
+        {
+            ExecuteWave4MarkerCommand(command, debuff);
+            return;
+        }
+
+        _hasPendingWave4MarkerCommand = true;
+        _pendingWave4MarkerCommand = command;
+        _pendingWave4MarkerDebuff = debuff;
+        _pendingWave4MarkerDueTick = Environment.TickCount64 + delay;
+        _lastWave4SelfMarkerState = $"scheduled: {command} after {delay}ms";
+        DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} scheduled after {delay}ms");
+    }
+
+    private void TryExecutePendingWave4MarkerCommand()
+    {
+        if (!_hasPendingWave4MarkerCommand || Environment.TickCount64 < _pendingWave4MarkerDueTick)
+            return;
+
+        var command = _pendingWave4MarkerCommand;
+        var debuff = _pendingWave4MarkerDebuff;
+        ClearPendingWave4MarkerCommand();
+        if (Svc.Condition[ConditionFlag.DutyRecorderPlayback] || !C.EnableLiveMarkerCommands)
+        {
+            _lastWave4SelfMarkerState = $"canceled: {command}";
+            DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} canceled before send");
+            return;
+        }
+
+        ExecuteWave4MarkerCommand(command, debuff);
+    }
+
+    private void ExecuteWave4MarkerCommand(string command, LiveDebuffKind debuff)
+    {
+        _lastWave4SelfMarkerState = $"sent: {command}";
+        Chat.ExecuteCommand(command);
+        DuoLog.Information($"[DMU P2 Forsaken beta] Wave 4 self marker for {debuff}: {command} sent");
+    }
+
+    private void ClearPendingWave4MarkerCommand()
+    {
+        _hasPendingWave4MarkerCommand = false;
+        _pendingWave4MarkerCommand = "";
+        _pendingWave4MarkerDebuff = LiveDebuffKind.None;
+        _pendingWave4MarkerDueTick = 0;
     }
 
     private static void AddUniquePairPosition(List<uint> list, uint position)
@@ -1685,6 +1861,23 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         var sameDebuffPlayers = sideGroup
             .Where(player => DebuffForLiveContext(player, side, useWave8MarkerContext) == debuff)
             .ToList();
+
+        // For HeadStack players in the resolving group after wave 1, when the setting is enabled,
+        // sort by previous debuff so that Fan → rank 1 (Left stack), Circle → rank 2 (Right stack).
+        if (C.SortHeadStackByPrevDebuff && debuff == LiveDebuffKind.HeadStack && side == ParticipantSide.ResolvingGroup && _currentWave != 1)
+        {
+            sameDebuffPlayers = sameDebuffPlayers
+                .OrderBy(player => PreviousDebuffFromPlayer(player) switch
+                {
+                    LiveDebuffKind.Fan => 0,
+                    LiveDebuffKind.Circle => 1,
+                    _ => 2
+                })
+                .ToList();
+        }
+
+        sameDebuffPlayers = AdjustSameMarkerByPreviousTowerDistance(side, debuff, sameDebuffPlayers);
+
         var debuffIndex = sameDebuffPlayers.FindIndex(player => player.EntityId == me.EntityId);
         var debuffRank = debuff == LiveDebuffKind.None || debuffIndex < 0 ? 0 : debuffIndex + 1;
         debuffRank = AdjustInitialHeadRankFromExplicitPair(me, side, debuff, debuffRank);
@@ -1699,6 +1892,50 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             debuffRank,
             supportRank,
             pattern);
+    }
+
+    private List<IPlayerCharacter> AdjustSameMarkerByPreviousTowerDistance(
+        ParticipantSide side,
+        LiveDebuffKind debuff,
+        List<IPlayerCharacter> sameDebuffPlayers)
+    {
+        if (!C.AdjustSameMarkerByPreviousTowerDistance
+            || side != ParticipantSide.ResolvingGroup
+            || _currentWave <= 1
+            || sameDebuffPlayers.Count < 2
+            || debuff is not (LiveDebuffKind.HeadStack or LiveDebuffKind.Circle or LiveDebuffKind.Fan))
+            return sameDebuffPlayers;
+
+        var previousWave = _currentWave - 1;
+        var indexedPlayers = sameDebuffPlayers
+            .Select((player, index) => (Player: player, Index: index))
+            .Where(item =>
+                _previousTowerClearContexts.TryGetValue(item.Player.EntityId, out var context) &&
+                context.Wave == previousWave)
+            .Select(item => (
+                item.Player,
+                item.Index,
+                Context: _previousTowerClearContexts[item.Player.EntityId]))
+            .GroupBy(item => item.Context.TowerMapPosition);
+
+        var result = sameDebuffPlayers.ToList();
+        foreach (var towerGroup in indexedPlayers)
+        {
+            var entries = towerGroup.ToList();
+            if (entries.Count != 2)
+                continue;
+
+            var indexes = entries.Select(item => item.Index).OrderBy(index => index).ToArray();
+            var nearToFar = entries
+                .OrderBy(item => Vector3.DistanceSquared(item.Context.Position, ArenaCenter))
+                .ThenBy(item => item.Index)
+                .ToArray();
+
+            result[indexes[0]] = nearToFar[0].Player;
+            result[indexes[1]] = nearToFar[1].Player;
+        }
+
+        return result;
     }
 
     private LiveDebuffKind DebuffForLiveContext(IPlayerCharacter player, ParticipantSide side, bool useWave8MarkerContext)
@@ -1730,7 +1967,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         int currentRank,
         bool useWave8MarkerContext)
     {
-        if (side != ParticipantSide.ResolvingGroup || !useWave8MarkerContext)
+        if (side != ParticipantSide.ResolvingGroup || !useWave8MarkerContext || !C.UseWave8MarkerNumberRank)
             return currentRank;
 
         var markerKind = debuff switch
@@ -2345,6 +2582,13 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         return LiveDebuffKind.None;
     }
 
+    private LiveDebuffKind PreviousDebuffFromPlayer(IPlayerCharacter player)
+    {
+        return player != null && _previousPlayerDebuffs.TryGetValue(player.EntityId, out var debuff)
+            ? debuff
+            : LiveDebuffKind.None;
+    }
+
     private static LiveDebuffKind DebuffFromStatus(uint statusId)
     {
         return statusId switch
@@ -2700,6 +2944,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _waitingForLiveDebuffRefreshWave = 0;
         _finalAllThingsEndingCastSeen = false;
         _wave4SelfMarkerHandled = false;
+        ClearPendingWave4MarkerCommand();
         _lastWave4SelfMarkerState = "";
         _currentInstruction = "";
         _hasDestination = false;
@@ -2709,6 +2954,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         _firstSetIds.Clear();
         _secondSetIds.Clear();
         _initialHeadPartnerDebuffs.Clear();
+        _previousPlayerDebuffs.Clear();
+        _previousTowerClearContexts.Clear();
         _lastPattern = new PatternInfo();
         _lastRuleLabel = "";
         _lastDebuff = LiveDebuffKind.Any;
@@ -2956,6 +3203,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         int DebuffRank,
         int SupportRank,
         PatternInfo Pattern);
+
+    private readonly record struct PreviousTowerClearContext(int Wave, uint TowerMapPosition, Vector3 Position);
 
     public sealed class RoleSelector
     {
@@ -3260,8 +3509,11 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
 
         public bool EnableLiveMarkerCommands;
         public bool UseWave8MarkerResolution;
+        public bool UseWave8MarkerNumberRank = true;
         public string CircleMarkerCommand = "/mk stop <me>";
         public string FanMarkerCommand = "/mk bind <me>";
+        public int MarkerCommandDelayMinMs;
+        public int MarkerCommandDelayMaxMs;
         public P2_Forsaken_beta.MarkerResolveKind CircleMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Stop;
         public P2_Forsaken_beta.MarkerResolveKind FanMarkerKind = P2_Forsaken_beta.MarkerResolveKind.Bind;
 
@@ -3387,6 +3639,8 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
         public StageKind PreviewStage = StageKind.Tower;
 
         public bool SplitHeadStackPairs;
+        public bool SortHeadStackByPrevDebuff = false;
+        public bool AdjustSameMarkerByPreviousTowerDistance;
         public P2_Forsaken_beta.InitialHeadStackRankMode InitialHeadStackRankMode =
             P2_Forsaken_beta.InitialHeadStackRankMode.PartnerDebuff;
         public int AssignmentMode;
@@ -3493,6 +3747,7 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             FinalAllThingsEndingFutureText ??= new InternationalString { En = "South", Jp = "南" };
             CircleMarkerCommand ??= "/mk stop <me>";
             FanMarkerCommand ??= "/mk bind <me>";
+            NormalizeMarkerCommandDelay();
             CircleMarkerKind = ClampMarkerResolveKind(CircleMarkerKind);
             FanMarkerKind = ClampMarkerResolveKind(FanMarkerKind);
             PastFixedPosition ??= new PositionRule(PositionBasis.ArenaCenter, 45f, 4f);
@@ -3603,6 +3858,17 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
                 DefaultsVersion = 14;
             }
 
+            if (DefaultsVersion < 15)
+            {
+                DefaultsVersion = 15;
+            }
+
+            if (DefaultsVersion < 16)
+            {
+                UseWave8MarkerNumberRank = true;
+                DefaultsVersion = 16;
+            }
+
             for (var i = 0; i < Waves.Length; i++)
             {
                 Waves[i] ??= new WaveConfig();
@@ -3612,6 +3878,14 @@ public class P2_Forsaken_beta : SplatoonScript<P2_Forsaken_beta.Config>
             PreviewWave = Math.Clamp(PreviewWave, 1, WaveCount);
             if ((int)PreviewStage < 0 || (int)PreviewStage >= StageCount)
                 PreviewStage = StageKind.Tower;
+        }
+
+        public void NormalizeMarkerCommandDelay()
+        {
+            MarkerCommandDelayMinMs = Math.Clamp(MarkerCommandDelayMinMs, 0, MarkerCommandDelayLimitMs);
+            MarkerCommandDelayMaxMs = Math.Clamp(MarkerCommandDelayMaxMs, 0, MarkerCommandDelayLimitMs);
+            if (MarkerCommandDelayMaxMs < MarkerCommandDelayMinMs)
+                MarkerCommandDelayMaxMs = MarkerCommandDelayMinMs;
         }
 
         private static P2_Forsaken_beta.MarkerResolveKind ClampMarkerResolveKind(P2_Forsaken_beta.MarkerResolveKind kind)

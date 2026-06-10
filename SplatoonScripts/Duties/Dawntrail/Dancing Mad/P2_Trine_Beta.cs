@@ -6,7 +6,6 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
-using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
@@ -29,8 +28,8 @@ public class P2_Trine_Beta : SplatoonScript
     private const uint TankbusterHit = 47823;
     private const uint UltimateEmbrace = 49740;
     private const uint DefinitionOfInsanity = 47842;
-    private const uint TrineTelegraphDataIdA = 0x001EBFB2;
-    private const uint TrineTelegraphDataIdB = 0x001EBFB3;
+    private const uint TrineTelegraphBaseIdA = 0x001EBFB2;
+    private const uint TrineTelegraphBaseIdB = 0x001EBFB3;
     private const float TrineCenterToSideX = 2.886751f;
     private const float TrineCenterToPointX = 5.773502f;
     private const float TrineCenterToPointZ = 5.0f;
@@ -39,9 +38,9 @@ public class P2_Trine_Beta : SplatoonScript
     private const float CloseTriangleCenterDistance = 15.275f;
     private const float MediumTriangleCenterDistance = 26.457f;
     private const float FarTriangleCenterDistance = 30.550f;
-    private const float FirstMoveClearance = 5.5f;
     private const int MinimumSafeCandidatesPerSpot = 2;
     private const float TrineExplosionClearance = 6.4f;
+    private const float FirstMoveAdjustmentRadius = 3.0f;
     private const float PartyFinalSearchRadius = 4.0f;
     private const float PartyOutwardOffset = 2.0f;
     private const float PartyFinalOutwardOffset = 2.0f;
@@ -51,6 +50,14 @@ public class P2_Trine_Beta : SplatoonScript
     private const float OffTankFinalOutwardOffset = 2.0f;
     private const float TankNearInwardSearchRadius = 2.0f;
     private const float ArenaUsableRadius = 19.0f;
+    private const float DirectionalNearRadius = 7.5f;
+    private const float DirectionalMiddleRadius = 14.0f;
+    private const float DirectionalFarRadius = 17.0f;
+    private const float DirectionalSearchRadius = 5.0f;
+    private const float DirectionalSearchStep = 0.25f;
+    private const float DirectionalMaxAngleDegrees = 32.0f;
+    private const float DestinationRadius = 1.25f;
+    private const float MainTankDestinationRadius = DestinationRadius / 2.0f;
     private const float RouteArrowStartDistance = 2.0f;
     private const float RouteArrowEndPadding = 1.0f;
     private const float RouteArrowThickness = 18.0f;
@@ -59,7 +66,11 @@ public class P2_Trine_Beta : SplatoonScript
     private static readonly Vector3 ArenaCenter = new(100.0f, 0.0f, 100.0f);
     private static readonly Vector3 HalfRoomWestSafeDestination = new(97.0f, 0.0f, 100.0f);
     private static readonly Vector3 HalfRoomEastSafeDestination = new(103.0f, 0.0f, 100.0f);
+    private static readonly Vector3 NorthDirection = new(0.0f, 0.0f, -1.0f);
     private static readonly Vector3 NorthEastDirection = NormalizeXZ(new Vector3(1.0f, 0.0f, -1.0f));
+    private static readonly Vector3 EastDirection = new(1.0f, 0.0f, 0.0f);
+    private static readonly Vector3 SouthDirection = new(0.0f, 0.0f, 1.0f);
+    private static readonly Vector3 WestDirection = new(-1.0f, 0.0f, 0.0f);
     private static readonly InternationalString MainDescriptionText = new()
     {
         En =
@@ -87,9 +98,9 @@ public class P2_Trine_Beta : SplatoonScript
     private static readonly InternationalString FirstMoveRouteModeDescriptionText = new()
     {
         En =
-            "Clockwise from north uses arena directions, not field markers: party takes the first safe route clockwise from north, and tanks take the first non-party safe route counter-clockwise from north-east. Legacy keeps the older single/double-side selector.",
+            "Clockwise from north uses arena directions, not field markers: party takes the first safe route clockwise from north, and tanks take the first non-party safe route counter-clockwise from north-east. Yan Flash prioritizes party south then east, and tanks north then west while avoiding the party route when possible. Legacy keeps the older single/double-side selector.",
         Jp =
-            "北から時計回りはフィールドマーカーではなくアリーナ方角を基準にします。パーティは北から時計回りで最初の安全側、タンクは北東から反時計回りでパーティ以外の最初の安全側を使います。従来方式は旧来の単体/2連側選択を維持します。"
+            "北から時計回りはフィールドマーカーではなくアリーナ方角を基準にします。パーティは北から時計回りで最初の安全側、タンクは北東から反時計回りでパーティ以外の最初の安全側を使います。ヤーン速報式はパーティが南→東、タンクが北→西を優先し、可能ならパーティ側を避けます。従来方式は旧来の単体/2連側選択を維持します。"
     };
     private static readonly InternationalString ClockwiseFromNorthModeText = new()
     {
@@ -101,6 +112,11 @@ public class P2_Trine_Beta : SplatoonScript
         En = "Legacy single/double side",
         Jp = "従来の単体/2連側"
     };
+    private static readonly InternationalString YanCardinalPriorityModeText = new()
+    {
+        En = "Yan Flash cardinal priority",
+        Jp = "ヤーン速報 方角優先"
+    };
 
     private readonly List<Vector3> _currentWavePositions = [];
     private readonly HashSet<uint> _currentWaveSources = [];
@@ -108,6 +124,7 @@ public class P2_Trine_Beta : SplatoonScript
     private readonly List<TelegraphTriangleSignal> _telegraphTriangles = [];
     private readonly HashSet<uint> _telegraphSignalSources = [];
     private readonly Dictionary<string, Vector3> _destinationCache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _smallDestinationRadiusPlayerKeys = new(StringComparer.OrdinalIgnoreCase);
 
     private bool _active;
     private bool _hasDestination;
@@ -116,12 +133,17 @@ public class P2_Trine_Beta : SplatoonScript
     private Vector3? _fallbackPartyDestination;
     private Vector3? _fallbackTankDestination;
     private bool _hasFirstWaveRoute;
+    private bool _hasEarlyFirstMoveRoute;
     private bool _showFirstMoveRouteArrows;
     private Vector3 _firstWaveTankDestination;
     private Vector3 _firstWavePartyDestination;
+    private Vector3 _earlyFirstWaveTankDestination;
+    private Vector3 _earlyFirstWavePartyDestination;
+    private Vector3 _firstWaveTankDirection;
+    private Vector3 _firstWavePartyDirection;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(6, "Garume");
+    public override Metadata Metadata => new(7, "Garume");
 
     private Config C
     {
@@ -139,7 +161,7 @@ public class P2_Trine_Beta : SplatoonScript
         Controller.RegisterElement("Destination", new Element(0)
         {
             Enabled = false,
-            radius = 1.25f,
+            radius = DestinationRadius,
             thicc = 5.0f,
             fillIntensity = 0.25f,
             color = 0xC800BFFF,
@@ -148,7 +170,7 @@ public class P2_Trine_Beta : SplatoonScript
         Controller.RegisterElement("TankDestination", new Element(0)
         {
             Enabled = false,
-            radius = 1.25f,
+            radius = DestinationRadius,
             thicc = 5.0f,
             fillIntensity = 0.25f,
             color = 0xC84080FF,
@@ -157,7 +179,7 @@ public class P2_Trine_Beta : SplatoonScript
         Controller.RegisterElement("PartyDestination", new Element(0)
         {
             Enabled = false,
-            radius = 1.25f,
+            radius = DestinationRadius,
             thicc = 5.0f,
             fillIntensity = 0.25f,
             color = 0xC800FF80,
@@ -208,8 +230,11 @@ public class P2_Trine_Beta : SplatoonScript
 
         if (castId == TankbusterCast)
         {
-            TryCompleteCurrentWave(partialAllowed: true);
-            TryApplyFinalDestination();
+            if (C.RouteMode == FirstMoveRouteMode.LegacySingleDouble)
+            {
+                TryCompleteCurrentWave(partialAllowed: true);
+                TryApplyFinalDestination();
+            }
         }
     }
 
@@ -270,7 +295,8 @@ public class P2_Trine_Beta : SplatoonScript
     private static string[] BuildFirstMoveRouteModeLabels() =>
     [
         ClockwiseFromNorthModeText.Get(),
-        LegacySingleDoubleModeText.Get()
+        LegacySingleDoubleModeText.Get(),
+        YanCardinalPriorityModeText.Get()
     ];
 
     private void StartTrine()
@@ -309,17 +335,25 @@ public class P2_Trine_Beta : SplatoonScript
         if (!_telegraphSignalSources.Add(target))
             return;
 
-        var order = _telegraphTriangles.Count + 1;
         var position = NormalizeY(obj.Position);
-        _telegraphTriangles.Add(new TelegraphTriangleSignal(order, obj.DataId, position));
+        _telegraphTriangles.Add(new TelegraphTriangleSignal(_telegraphTriangles.Count + 1, obj.BaseId, position));
+        TrySetEarlyFirstMoveDirections();
+        TryRetryDirectionalSolveAfterWaveOne();
+        TrySolveDestinationFromTelegraphs();
+    }
+
+    private void TryRetryDirectionalSolveAfterWaveOne()
+    {
+        if (C.RouteMode == FirstMoveRouteMode.LegacySingleDouble || _hasFirstWaveRoute || _firstWavePositions.Count == 0)
+            return;
+
+        SolveDestination(_firstWavePositions);
     }
 
     private void TryCompleteCurrentWave(bool partialAllowed)
     {
         if (_currentWaveIndex < 0 || _currentWaveIndex >= ExpectedWaveCounts.Length)
-        {
             return;
-        }
 
         var observedCount = _currentWaveSources.Count + _noSourceSignals;
         if (!partialAllowed && observedCount < ExpectedWaveCounts[_currentWaveIndex])
@@ -350,6 +384,9 @@ public class P2_Trine_Beta : SplatoonScript
 
     private void SolveDestinationAfterFirstWave()
     {
+        if (_hasFirstWaveRoute)
+            return;
+
         SolveDestination(_firstWavePositions);
     }
 
@@ -362,20 +399,148 @@ public class P2_Trine_Beta : SplatoonScript
 
     private void SolveDestination(IReadOnlyList<Vector3> firstWavePositions)
     {
-        if (!TrySolveFirstWaveRoute(firstWavePositions, out var tankDestination, out var partyDestination))
+        var firstTriangles = BuildFirstWaveTriangles(firstWavePositions);
+        if (firstTriangles.Count != 3)
         {
-            ClearDestinationCache();
+            if (!_hasEarlyFirstMoveRoute)
+                ClearDestinationCache();
             return;
         }
 
+        if (C.RouteMode == FirstMoveRouteMode.LegacySingleDouble)
+        {
+            if (!TrySolveFirstWaveRouteFromTriangles(firstTriangles, out var tankDestination, out var partyDestination))
+            {
+                if (!_hasEarlyFirstMoveRoute)
+                    ClearDestinationCache();
+                return;
+            }
+
+            CacheFirstWaveRoute(tankDestination, partyDestination);
+            return;
+        }
+
+        if (!TrySolveDirectionalDestinationsFromTriangles(firstTriangles, out var partyMiddle, out var tankNear,
+                out var tankFar))
+        {
+            if (!_hasEarlyFirstMoveRoute)
+                ClearDestinationCache();
+            return;
+        }
+
+        CacheDirectionalFinalDestinations(partyMiddle, tankNear, tankFar);
+    }
+
+    private void TrySetEarlyFirstMoveDirections()
+    {
+        if (_hasEarlyFirstMoveRoute || _hasFirstWaveRoute || C.RouteMode == FirstMoveRouteMode.LegacySingleDouble)
+            return;
+
+        if (!TryBuildFirstWaveTelegraphTriangles(out var firstTriangles))
+            return;
+
+        if (!TrySetFirstMoveDirections(firstTriangles))
+            return;
+
+        _earlyFirstWavePartyDestination = DirectionDestination(ArenaCenter + _firstWavePartyDirection);
+        _earlyFirstWaveTankDestination = DirectionDestination(ArenaCenter + _firstWaveTankDirection);
+        _hasEarlyFirstMoveRoute = true;
+        _showFirstMoveRouteArrows = true;
+    }
+
+    private bool TrySetFirstMoveDirections(IReadOnlyList<TrineTriangle> firstTriangles)
+    {
+        if (C.RouteMode == FirstMoveRouteMode.LegacySingleDouble)
+            return false;
+
+        if (!TrySelectFirstMoveTriangles(firstTriangles, out var partyTriangle, out var tankTriangle))
+            return false;
+
+        _firstWavePartyDirection = NormalizeXZ(partyTriangle.Center - ArenaCenter);
+        _firstWaveTankDirection = NormalizeXZ(tankTriangle.Center - ArenaCenter);
+        if (_firstWavePartyDirection == Vector3.Zero || _firstWaveTankDirection == Vector3.Zero)
+            return false;
+
+        return true;
+    }
+
+    private bool TrySelectFirstMoveTriangles(IReadOnlyList<TrineTriangle> firstTriangles,
+        out TrineTriangle partyTriangle, out TrineTriangle tankTriangle)
+    {
+        partyTriangle = TrineTriangle.Empty;
+        tankTriangle = TrineTriangle.Empty;
+        if (firstTriangles.Count == 0)
+            return false;
+
+        if (C.RouteMode == FirstMoveRouteMode.YanCardinalPriority)
+        {
+            partyTriangle = SelectTriangleByDirectionalPriority(firstTriangles, [SouthDirection, EastDirection]);
+            var selectedPartyTriangle = partyTriangle;
+            tankTriangle = SelectTriangleByDirectionalPriority(
+                firstTriangles.Where(triangle => !ReferenceEquals(triangle, selectedPartyTriangle)).ToList(),
+                [NorthDirection, WestDirection]);
+            return !ReferenceEquals(tankTriangle, TrineTriangle.Empty);
+        }
+
+        partyTriangle = firstTriangles
+            .OrderBy(triangle => ClockwiseAngleFromNorth(triangle.Center))
+            .First();
+        var selectedClockwisePartyTriangle = partyTriangle;
+        tankTriangle = firstTriangles
+            .Where(triangle => !ReferenceEquals(triangle, selectedClockwisePartyTriangle))
+            .OrderBy(triangle => CounterClockwiseAngleFromNorthEast(triangle.Center))
+            .FirstOrDefault() ?? TrineTriangle.Empty;
+        return !ReferenceEquals(tankTriangle, TrineTriangle.Empty);
+    }
+
+    private static TrineTriangle SelectTriangleByDirectionalPriority(IReadOnlyList<TrineTriangle> triangles,
+        IReadOnlyList<Vector3> priorities)
+    {
+        if (triangles.Count == 0)
+            return TrineTriangle.Empty;
+
+        var ordered = triangles
+            .OrderByDescending(triangle => DirectionalPriorityScore(triangle.Center, priorities, 0))
+            .ThenByDescending(triangle => DirectionalPriorityScore(triangle.Center, priorities, 1))
+            .ThenBy(triangle => ClockwiseAngleFromNorth(triangle.Center));
+        return ordered.First();
+    }
+
+    private static float DirectionalPriorityScore(Vector3 position, IReadOnlyList<Vector3> priorities, int index)
+    {
+        return index < priorities.Count
+            ? DotXZ(NormalizeXZ(position - ArenaCenter), priorities[index])
+            : 0.0f;
+    }
+
+    private void TrySolveDestinationFromTelegraphs()
+    {
+        if (_hasFirstWaveRoute)
+            return;
+
+        if (C.RouteMode != FirstMoveRouteMode.LegacySingleDouble)
+            return;
+
+        if (!TrySolveFirstWaveRouteFromTelegraphs(out var tankDestination, out var partyDestination))
+            return;
+
+        CacheFirstWaveRoute(tankDestination, partyDestination);
+    }
+
+    private void CacheFirstWaveRoute(Vector3 tankDestination, Vector3 partyDestination)
+    {
         _hasFirstWaveRoute = true;
         _firstWaveTankDestination = tankDestination;
         _firstWavePartyDestination = partyDestination;
         CacheRoleDestinations(partyDestination, tankDestination);
+        _showFirstMoveRouteArrows = true;
     }
 
     private void TryApplyFinalDestination()
     {
+        if (C.RouteMode != FirstMoveRouteMode.LegacySingleDouble)
+            return;
+
         if (!_hasFirstWaveRoute)
             return;
 
@@ -394,6 +559,9 @@ public class P2_Trine_Beta : SplatoonScript
             PartyFinalSearchRadius);
 
         var centralTriangle = thirdTriangles.MinBy(triangle => DistanceSquaredXZ(triangle.Center, ArenaCenter));
+        if (centralTriangle == null)
+            return;
+
         var direction = SelectCentralEdgeDirection(centralTriangle, _firstWaveTankDestination);
         var mainTankDestination = FindNearestSafePointOnRay(centralTriangle.Center, direction, hazardPoints,
             TrineExplosionClearance, 0.0f, TankNearSearchMaxRadius);
@@ -411,14 +579,14 @@ public class P2_Trine_Beta : SplatoonScript
         CacheFinalDestinations(partyDestination, mainTankDestination, offTankDestination);
     }
 
-    private bool TrySolveFirstWaveRoute(IReadOnlyList<Vector3> firstWavePositions, out Vector3 tankDestination,
-        out Vector3 partyDestination)
+    private bool TrySolveDirectionalDestinationsFromTriangles(IReadOnlyList<TrineTriangle> firstTriangles,
+        out Vector3 partyMiddle, out Vector3 tankNear, out Vector3 tankFar)
     {
-        tankDestination = Vector3.Zero;
-        partyDestination = Vector3.Zero;
+        partyMiddle = Vector3.Zero;
+        tankNear = Vector3.Zero;
+        tankFar = Vector3.Zero;
 
-        var firstTriangles = BuildFirstWaveTriangles(firstWavePositions);
-        if (firstTriangles.Count != 3)
+        if (!TrySetFirstMoveDirections(firstTriangles))
             return false;
 
         if (!TryBuildSecondWaveTelegraphTriangle(out var secondTriangle))
@@ -427,7 +595,105 @@ public class P2_Trine_Beta : SplatoonScript
         if (!TryBuildThirdWaveTelegraphTriangles(out var thirdTriangles))
             return false;
 
+        var hazardPoints = secondTriangle.Vertices
+            .Concat(thirdTriangles.SelectMany(triangle => triangle.Vertices))
+            .ToList();
+
+        if (!TryFindDirectionalSafePoint(_firstWavePartyDirection, DirectionalMiddleRadius, hazardPoints,
+                out partyMiddle))
+            return false;
+
+        if (!TryFindDirectionalSafePoint(_firstWaveTankDirection, DirectionalNearRadius, hazardPoints,
+                out tankNear))
+            return false;
+
+        if (!TryFindDirectionalSafePoint(_firstWaveTankDirection, DirectionalFarRadius, hazardPoints,
+                out tankFar))
+            return false;
+
+        _firstWavePartyDestination = partyMiddle;
+        _firstWaveTankDestination = tankNear;
+        return true;
+    }
+
+    private bool TryFindDirectionalSafePoint(Vector3 direction, float preferredRadius,
+        IReadOnlyList<Vector3> hazardPoints, out Vector3 destination)
+    {
+        destination = Vector3.Zero;
+        var normalizedDirection = NormalizeXZ(direction);
+        if (normalizedDirection == Vector3.Zero)
+            return false;
+
+        var lateral = new Vector3(-normalizedDirection.Z, 0.0f, normalizedDirection.X);
+        var minimumDot = MathF.Cos(DirectionalMaxAngleDegrees * MathF.PI / 180.0f);
+        var best = Vector3.Zero;
+        var bestScore = float.PositiveInfinity;
+
+        for (var radialOffset = -DirectionalSearchRadius; radialOffset <= DirectionalSearchRadius + 0.001f;
+             radialOffset += DirectionalSearchStep)
+        {
+            var radius = preferredRadius + radialOffset;
+            if (radius < 0.5f || radius > ArenaUsableRadius)
+                continue;
+
+            for (var lateralOffset = -DirectionalSearchRadius; lateralOffset <= DirectionalSearchRadius + 0.001f;
+                 lateralOffset += DirectionalSearchStep)
+            {
+                var candidate = NormalizeY(ArenaCenter + normalizedDirection * radius + lateral * lateralOffset);
+                if (!IsInsideUsableArena(candidate))
+                    continue;
+
+                var candidateDirection = NormalizeXZ(candidate - ArenaCenter);
+                if (candidateDirection == Vector3.Zero || DotXZ(candidateDirection, normalizedDirection) < minimumDot)
+                    continue;
+
+                var clearance = MinimumDistanceToPoints(candidate, hazardPoints);
+                if (clearance < TrineExplosionClearance)
+                    continue;
+
+                var score = MathF.Abs(radialOffset) + MathF.Abs(lateralOffset) * 1.25f - clearance * 0.02f;
+                if (score >= bestScore)
+                    continue;
+
+                best = candidate;
+                bestScore = score;
+            }
+        }
+
+        if (best == Vector3.Zero)
+            return false;
+
+        destination = best;
+        return true;
+    }
+
+    private bool TrySolveFirstWaveRouteFromTelegraphs(out Vector3 tankDestination, out Vector3 partyDestination)
+    {
+        tankDestination = Vector3.Zero;
+        partyDestination = Vector3.Zero;
+
+        if (!TryBuildFirstWaveTelegraphTriangles(out var firstTriangles))
+            return false;
+
+        return TrySolveFirstWaveRouteFromTriangles(firstTriangles, out tankDestination, out partyDestination);
+    }
+
+    private bool TrySolveFirstWaveRouteFromTriangles(IReadOnlyList<TrineTriangle> firstTriangles,
+        out Vector3 tankDestination, out Vector3 partyDestination)
+    {
+        tankDestination = Vector3.Zero;
+        partyDestination = Vector3.Zero;
+
+        if (!TryBuildSecondWaveTelegraphTriangle(out var secondTriangle))
+            return false;
+
+        if (!TryBuildThirdWaveTelegraphTriangles(out var thirdTriangles))
+            return false;
+
         var middleTriangle = thirdTriangles.MinBy(triangle => DistanceSquaredXZ(triangle.Center, ArenaCenter));
+        if (middleTriangle == null)
+            return false;
+
         var remainingHazardPoints = secondTriangle.Vertices
             .Concat(thirdTriangles.SelectMany(triangle => triangle.Vertices))
             .ToList();
@@ -449,7 +715,16 @@ public class P2_Trine_Beta : SplatoonScript
             ? SelectAwayCandidate(tankGroup, partyDestination)
             : SelectClosestCandidateToMiddleSide(tankGroup);
 
+        tankDestination = AdjustPointAwayFromHazardPoints(tankDestination, remainingHazardPoints,
+            TrineExplosionClearance, FirstMoveAdjustmentRadius);
+        if (!IsPointClearOfHazardPoints(tankDestination, remainingHazardPoints, TrineExplosionClearance))
+            return false;
+
         partyDestination = MoveOutwardFromArenaCenter(partyDestination, PartyOutwardOffset);
+        partyDestination = AdjustPointAwayFromHazardPoints(partyDestination, remainingHazardPoints,
+            TrineExplosionClearance, FirstMoveAdjustmentRadius);
+        if (!IsPointClearOfHazardPoints(partyDestination, remainingHazardPoints, TrineExplosionClearance))
+            return false;
 
         return true;
     }
@@ -463,8 +738,36 @@ public class P2_Trine_Beta : SplatoonScript
             return false;
         }
 
-        if (!TryBuildTelegraphTriangle(secondSignal.Center, secondSignal.DataId, out triangle))
+        if (!TryBuildTelegraphTriangle(secondSignal.Center, secondSignal.BaseId, out triangle))
             return false;
+
+        return true;
+    }
+
+    private bool TryBuildFirstWaveTelegraphTriangles(out List<TrineTriangle> triangles)
+    {
+        var firstSignals = _telegraphTriangles
+            .Where(signal => signal.Order is >= 1 and <= 3)
+            .OrderBy(signal => signal.Order)
+            .ToList();
+
+        if (firstSignals.Count != 3)
+        {
+            triangles = [];
+            return false;
+        }
+
+        triangles = [];
+        foreach (var signal in firstSignals)
+        {
+            if (!TryBuildTelegraphTriangle(signal.Center, signal.BaseId, out var triangle))
+            {
+                triangles.Clear();
+                return false;
+            }
+
+            triangles.Add(triangle);
+        }
 
         return true;
     }
@@ -485,7 +788,7 @@ public class P2_Trine_Beta : SplatoonScript
         triangles = [];
         foreach (var signal in thirdSignals)
         {
-            if (!TryBuildTelegraphTriangle(signal.Center, signal.DataId, out var triangle))
+            if (!TryBuildTelegraphTriangle(signal.Center, signal.BaseId, out var triangle))
             {
                 triangles.Clear();
                 return false;
@@ -512,7 +815,7 @@ public class P2_Trine_Beta : SplatoonScript
                 continue;
 
             var clearance = MinimumDistanceToPoints(candidate, remainingHazardPoints);
-            if (clearance < FirstMoveClearance)
+            if (clearance < TrineExplosionClearance)
                 continue;
 
             var candidateDirection = NormalizeXZ(candidate - middleTriangle.Center);
@@ -538,6 +841,7 @@ public class P2_Trine_Beta : SplatoonScript
         return routeMode switch
         {
             FirstMoveRouteMode.LegacySingleDouble => SelectLegacySingleSafeGroup(safeGroups, firstTriangles),
+            FirstMoveRouteMode.YanCardinalPriority => SelectYanPartySafeGroup(safeGroups),
             _ => SelectClockwiseFromNorthSafeGroup(safeGroups)
         };
     }
@@ -548,6 +852,7 @@ public class P2_Trine_Beta : SplatoonScript
         return routeMode switch
         {
             FirstMoveRouteMode.LegacySingleDouble => SelectLegacyDoubleSafeGroup(safeGroups, partyGroup, partyDestination),
+            FirstMoveRouteMode.YanCardinalPriority => SelectYanTankSafeGroup(safeGroups, partyGroup, partyDestination),
             _ => SelectCounterClockwiseFromNorthEastSafeGroup(safeGroups, partyGroup, partyDestination)
         };
     }
@@ -597,6 +902,47 @@ public class P2_Trine_Beta : SplatoonScript
             .First();
     }
 
+    private static SafeCandidateGroup SelectYanPartySafeGroup(IReadOnlyList<SafeCandidateGroup> safeGroups)
+    {
+        return SelectByDirectionalPriority(safeGroups, [SouthDirection, EastDirection]);
+    }
+
+    private static SafeCandidateGroup SelectYanTankSafeGroup(
+        IReadOnlyList<SafeCandidateGroup> safeGroups, SafeCandidateGroup partyGroup, Vector3 partyDestination)
+    {
+        if (safeGroups.Count == 1)
+            return partyGroup;
+
+        var tankGroups = safeGroups
+            .Where(group => !ReferenceEquals(group, partyGroup))
+            .ToList();
+        if (tankGroups.Count == 0)
+            return partyGroup;
+
+        return SelectByDirectionalPriority(tankGroups, [NorthDirection, WestDirection], partyDestination);
+    }
+
+    private static SafeCandidateGroup SelectByDirectionalPriority(
+        IReadOnlyList<SafeCandidateGroup> safeGroups, IReadOnlyList<Vector3> priorities, Vector3? oppositeOf = null)
+    {
+        var ordered = safeGroups
+            .OrderByDescending(group => DirectionalPriorityScore(group, priorities, 0))
+            .ThenByDescending(group => DirectionalPriorityScore(group, priorities, 1))
+            .ThenByDescending(group => group.Candidates.Count);
+
+        return oppositeOf.HasValue
+            ? ordered.ThenByDescending(group => DistanceSquaredXZ(SelectClosestCandidateToMiddleSide(group), oppositeOf.Value))
+                .First()
+            : ordered.First();
+    }
+
+    private static float DirectionalPriorityScore(SafeCandidateGroup group, IReadOnlyList<Vector3> priorities, int index)
+    {
+        return index < priorities.Count
+            ? DotXZ(NormalizeXZ(GetRouteRepresentativePosition(group) - ArenaCenter), priorities[index])
+            : 0.0f;
+    }
+
     private static Vector3 GetRouteRepresentativePosition(SafeCandidateGroup group)
     {
         return SelectClosestCandidateToMiddleSide(group);
@@ -621,18 +967,18 @@ public class P2_Trine_Beta : SplatoonScript
             .First();
     }
 
-    private static bool TryBuildTelegraphTriangle(Vector3 center, uint dataId, out TrineTriangle triangle)
+    private static bool TryBuildTelegraphTriangle(Vector3 center, uint baseId, out TrineTriangle triangle)
     {
         var normalized = NormalizeY(center);
-        triangle = dataId switch
+        triangle = baseId switch
         {
-            TrineTelegraphDataIdA => new TrineTriangle(
+            TrineTelegraphBaseIdA => new TrineTriangle(
             [
                 new Vector3(normalized.X + TrineCenterToPointX, 0.0f, normalized.Z),
                 new Vector3(normalized.X - TrineCenterToSideX, 0.0f, normalized.Z + TrineCenterToPointZ),
                 new Vector3(normalized.X - TrineCenterToSideX, 0.0f, normalized.Z - TrineCenterToPointZ)
             ]),
-            TrineTelegraphDataIdB => new TrineTriangle(
+            TrineTelegraphBaseIdB => new TrineTriangle(
             [
                 new Vector3(normalized.X - TrineCenterToPointX, 0.0f, normalized.Z),
                 new Vector3(normalized.X + TrineCenterToSideX, 0.0f, normalized.Z + TrineCenterToPointZ),
@@ -916,6 +1262,15 @@ public class P2_Trine_Beta : SplatoonScript
         return NormalizeRadians(start - angle);
     }
 
+    private static Vector3 DirectionDestination(Vector3 position)
+    {
+        var direction = NormalizeXZ(position - ArenaCenter);
+        if (direction == Vector3.Zero)
+            return ArenaCenter;
+
+        return NormalizeY(ArenaCenter + direction * ArenaUsableRadius);
+    }
+
     private static float NormalizeRadians(float angle)
     {
         var normalized = angle % (2.0f * MathF.PI);
@@ -964,7 +1319,7 @@ public class P2_Trine_Beta : SplatoonScript
 
     private void CacheSameDestinationForAllPlayers(Vector3 destination)
     {
-        ClearDestinationCache();
+        ClearDestinationCache(clearEarlyRoute: false);
 
         var normalizedDestination = NormalizeY(destination);
         foreach (var player in GetPartyPlayers())
@@ -1002,27 +1357,48 @@ public class P2_Trine_Beta : SplatoonScript
 
         foreach (var player in GetPartyPlayers())
         {
+            var isOffTank = orderedTanks.Count > 1 && SameCharacter(player, orderedTanks[1]);
+            var isMainTank = player.GetRole() == CombatRole.Tank && !isOffTank;
             var position = player.GetRole() switch
             {
-                CombatRole.Tank when orderedTanks.Count > 1 && SameCharacter(player, orderedTanks[1]) =>
-                    offTankPosition,
+                CombatRole.Tank when isOffTank => offTankPosition,
                 CombatRole.Tank => mainTankPosition,
                 _ => partyPosition
             };
             CacheDestinationForPlayer(player, position);
+            if (isMainTank)
+                _smallDestinationRadiusPlayerKeys.Add(GetPlayerKey(player));
         }
 
         _fallbackPartyDestination = partyPosition;
         _fallbackTankDestination = mainTankPosition;
         _hasDestination = true;
+        _showFirstMoveRouteArrows = false;
     }
 
-    private void ClearDestinationCache()
+    private void CacheDirectionalFinalDestinations(Vector3 partyDestination, Vector3 mainTankDestination,
+        Vector3 offTankDestination)
+    {
+        _hasFirstWaveRoute = true;
+        _hasEarlyFirstMoveRoute = false;
+        _firstWavePartyDestination = partyDestination;
+        _firstWaveTankDestination = mainTankDestination;
+        CacheFinalDestinations(partyDestination, mainTankDestination, offTankDestination);
+    }
+
+    private void ClearDestinationCache(bool clearEarlyRoute = true)
     {
         _destinationCache.Clear();
+        _smallDestinationRadiusPlayerKeys.Clear();
         _fallbackPartyDestination = null;
         _fallbackTankDestination = null;
         _hasDestination = false;
+        if (clearEarlyRoute)
+        {
+            _hasEarlyFirstMoveRoute = false;
+            _earlyFirstWaveTankDestination = Vector3.Zero;
+            _earlyFirstWavePartyDestination = Vector3.Zero;
+        }
         _showFirstMoveRouteArrows = false;
     }
 
@@ -1054,9 +1430,11 @@ public class P2_Trine_Beta : SplatoonScript
 
     private List<IPlayerCharacter> GetOrderedTanksForFinal()
     {
-        var orderedTanks = C.PriorityData.GetPlayers(member =>
-                member.IGameObject is IPlayerCharacter player && player.GetRole() == CombatRole.Tank)
-            .Select(member => (IPlayerCharacter)member.IGameObject)
+        var priorityMembers = C.PriorityData.GetPlayers(member =>
+            member.IGameObject is IPlayerCharacter player && player.GetRole() == CombatRole.Tank);
+        var orderedTanks = (priorityMembers ?? [])
+            .Select(member => member.IGameObject)
+            .OfType<IPlayerCharacter>()
             .Take(2)
             .ToList();
 
@@ -1102,9 +1480,9 @@ public class P2_Trine_Beta : SplatoonScript
         Controller.GetRegisteredElements().Each(element => element.Value.Enabled = false);
 
         var me = BasePlayer;
-        if (me == null) return;
+        if (me == null || !_active) return;
 
-        if (_active && C.ShowSharedRouteMarkers && _hasFirstWaveRoute &&
+        if (C.ShowSharedRouteMarkers && _hasFirstWaveRoute &&
             _fallbackTankDestination.HasValue && _fallbackPartyDestination.HasValue)
         {
             var tankDestination = me.GetRole() == CombatRole.Tank && TryGetCachedDestination(me, out var myDestination)
@@ -1117,14 +1495,22 @@ public class P2_Trine_Beta : SplatoonScript
                 ShowRouteArrow("TankRouteArrow", _firstWaveTankDestination, 0xC84080FF);
                 ShowRouteArrow("PartyRouteArrow", _firstWavePartyDestination, 0xC800FF80);
             }
-            return;
         }
 
-        if (_active && _hasDestination && TryGetCachedDestination(me, out var cached) &&
+        if (C.ShowSharedRouteMarkers && _hasEarlyFirstMoveRoute && !_hasFirstWaveRoute)
+        {
+            ShowRouteArrow("TankRouteArrow", _earlyFirstWaveTankDestination, 0xC84080FF);
+            ShowRouteArrow("PartyRouteArrow", _earlyFirstWavePartyDestination, 0xC800FF80);
+        }
+
+        if (_hasDestination && TryGetCachedDestination(me, out var cached) &&
             Controller.TryGetElementByName("Destination", out var destination))
         {
             destination.Enabled = true;
             destination.SetRefPosition(cached);
+            destination.radius = _smallDestinationRadiusPlayerKeys.Contains(GetPlayerKey(me))
+                ? MainTankDestinationRadius
+                : DestinationRadius;
             destination.color = GetRainbowColor();
             destination.overlayText = "";
         }
@@ -1220,8 +1606,13 @@ public class P2_Trine_Beta : SplatoonScript
         _currentWaveIndex = 0;
         _noSourceSignals = 0;
         _hasFirstWaveRoute = false;
+        _hasEarlyFirstMoveRoute = false;
         _firstWaveTankDestination = Vector3.Zero;
         _firstWavePartyDestination = Vector3.Zero;
+        _earlyFirstWaveTankDestination = Vector3.Zero;
+        _earlyFirstWavePartyDestination = Vector3.Zero;
+        _firstWaveTankDirection = Vector3.Zero;
+        _firstWavePartyDirection = Vector3.Zero;
         _currentWavePositions.Clear();
         _currentWaveSources.Clear();
         _firstWavePositions.Clear();
@@ -1232,7 +1623,7 @@ public class P2_Trine_Beta : SplatoonScript
 
     private static bool IsTrineTelegraphObject(IGameObject obj)
     {
-        return obj.DataId is TrineTelegraphDataIdA or TrineTelegraphDataIdB;
+        return obj.BaseId is TrineTelegraphBaseIdA or TrineTelegraphBaseIdB;
     }
 
     private static void AddUniquePosition(List<Vector3> positions, Vector3 candidate)
@@ -1269,15 +1660,15 @@ public class P2_Trine_Beta : SplatoonScript
 
     private readonly struct TelegraphTriangleSignal
     {
-        public TelegraphTriangleSignal(int order, uint dataId, Vector3 center)
+        public TelegraphTriangleSignal(int order, uint baseId, Vector3 center)
         {
             Order = order;
-            DataId = dataId;
+            BaseId = baseId;
             Center = center;
         }
 
         public int Order { get; }
-        public uint DataId { get; }
+        public uint BaseId { get; }
         public Vector3 Center { get; }
     }
 
@@ -1325,7 +1716,8 @@ public class P2_Trine_Beta : SplatoonScript
     public enum FirstMoveRouteMode
     {
         ClockwiseFromNorth = 0,
-        LegacySingleDouble = 1
+        LegacySingleDouble = 1,
+        YanCardinalPriority = 2
     }
 
     public sealed class TankPriorityData : PriorityData
@@ -1333,7 +1725,7 @@ public class P2_Trine_Beta : SplatoonScript
         public override int GetNumPlayers() => 2;
     }
 
-    public sealed class Config : IEzConfig
+    public sealed class Config
     {
         public FirstMoveRouteMode RouteMode = FirstMoveRouteMode.ClockwiseFromNorth;
         public bool ShowSharedRouteMarkers;

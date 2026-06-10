@@ -6,6 +6,8 @@
 >
 > [Meow3 / Kroxy/Rinon script here](https://github.com/PunishXIV/Splatoon/blob/main/Presets/Dawntrail/Raids/Ultimate%20-%20Dancing%20Mad/Phase%202.md#script-beta-p2-forsaken-fixed-partners)
 >
+> Also make sure to install [Forsaken Visualizer](https://github.com/PunishXIV/Splatoon/blob/main/Presets/Dawntrail/Raids/Ultimate%20-%20Dancing%20Mad/Phase%202.md#script-forsaken-visualizer) script and import "Declutter" configuration for it for extra precision. 
+>
 > Otherwise, keep scrolling for other strats. 
 
 ## [Script] Forsaken Visualizer
@@ -18,6 +20,14 @@ This script just displays order of mechanics, your (or other players) markers, a
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken.cs
+```
+
+### Declutter configuration for Forsaken Visualizer
+
+This configuration will only provide visual indicators and it has tuned them to be less cluttery than default values. It is recommended to use forsaken visualizer script in conjunction with one of the scripts below so you can always micro-adjust. 
+
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Forsaken","ConfigurationName":"Declutter","Configuration":"G+0BIBwJ2RnmRarDyeJPqaPwbm0zJEM/Ln8QdOuLwmB0+fhhIAuvlom1+3u/81/PEwspxO8HpKhAhqO7o/FoArNt+Uj6VBTU9EJk+4zD+64QQE7QuVpjsLM8NymLzvsbX3FvrThENhmRR3n9n/I9c1yWHEwURYTSDDVNziK6SWB0Ne+EWjaQZcsTP9IpRZHAu7J65oe6gP+uVGAzxxdg8JWdU3lAvAV60XCzWol6IPTEHrxRdIrkxaRVFc2MjRQXao99RqjJ0qsYPs3bR53qmDY=","Overrides":"G0coYJwFdiwPKAwfVYvD1HUNsvv7rkT6dDqVv95JKe0YF7dqx2yb9h82dc3P0IYN+UMxDinD/9rvN78RScTk2n/oDJF39ux+RDQyNPM3ey+iFhKEEMgRQiIkLYFlOUOKzJ8NJumWctq9zYn1yIa6g489wXOq484x/uAwqJiA1z6ghqVRepE1ucv+i0LYnhHjQ0qIsz2PwJYRSZeaUxyavDWlFB5OFHon0sCUS+QNVW52jwm8NJPPpKGRtZe4Mv+B7h+grbq+KI9DLj9PD3RyrCtQWTnTKbapUHHbL2qPqzghsE0ilJqM4MxA00eYmKvNBp0jXBtDN8m5upyBxKEGw5U3z4AIuVOmjTWXSd4FMNeQegWJV6K8EzQOQ8wImjZVOCFCtUtCHNPu3NlltUDSp9QA20XClLz7YOGCvqfkzva2Ehud9lYw+zEukNhF58w6liHtMjL+vMgL4ao7fD4v27PK2Fcv8QPGFRQk+XKehnBVqWCXU5zkes72CBpF4Uo7Ej4dmHljWY2tdj8+bcKnBaWCnQFeUEh3Ub+4Lfw6/RcvPVvlEidcMfoyCxgjFQ6OdUBjF3QTni9w4G5gAIYYtWbPuUCct+hBJjqU4hgKQacThWZ8l1ExuMAZi4kxbnJOlSSzTrJOj38OVTaQTFKiRlJul+84u0h20ZM6hyrbSEYURM6HtAAwdNOOWHk5cNU45W7E5SwKoZJZIJmhHLFkmDhSXXCwEHB4WtZk03UW5eDJDrosB/LwKrsqAvuZsbxqooD260WWp5mbtZbWsKyWx6WGIN/iG6mfsDwfhQqv0Ffl9c0EDAW09FLwhHhxHOD4xMGBYT0wz1/fkPNk8VGctODFObmSKMCCJy4CysVJcW6DJykx+v9NmV/bCIGrRDFyhNGljdnb+WMuYWvu1EGcAGg72DmzZoulCy56W/Ze+5QFoeUyamgROZd8nXSnNCSOE6uYbZz+4W+Zj6foX2hGb4iyUTFD7TAabu3XYRTXkZUVYR/0drkDx0xl21LJPn2mChz9MVSZfwINAIhdnjG0j8QKQWdRBRgowECCgfd0rHWAoCYghHh9vo1zySsD7Ui0uT7Watqjb7p4eI7zv+1RHmywL1PX+O17l2u8wMajtFpfZrDaqmB/dQ=="}
 ```
 
 ## **[Script] [Beta]** P2 Forsaken beta guide

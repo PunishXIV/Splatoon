@@ -27,7 +27,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(3, "mirage");
+    public override Metadata Metadata { get; } = new(4, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -545,30 +545,26 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         secondGroupPlayers[3].RoleLabel = Role211Range;
     }
 
-    // Assign Step4 tower 022 roles and field THMR, then caller caches tower OldRole.
+    // Assign Step4 tower 022 roles by debuff kind and field THMR, then caller caches tower OldRole.
     private void AssignStep4Roles()
     {
-        for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
+        var towerPlayers = OrderInfosByPriority(_infos.Where(IsTower)).ToList();
+        if(towerPlayers.Count == 4)
         {
-            if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
-                return;
+            var conePlayers = OrderInfosByPriority(towerPlayers.Where(i => i.Debuff == DebuffKind.Cone)).ToList();
+            var spreadPlayers = OrderInfosByPriority(towerPlayers.Where(i => i.Debuff == DebuffKind.Spread)).ToList();
 
-            if(!TryClassifyStep1Pair(playerA, playerB, out _, out _, out var isStackPair))
-                return;
-
-            if(isStackPair || !IsTower(playerA) || !IsTower(playerB))
-                continue;
-
-            CountPairDebuffKinds(playerA, playerB, out var stack, out var cone, out var spread);
-
-            if(stack == 0 && cone == 2 && spread == 0)
+            if(conePlayers.Count == 2)
             {
-                AssignPriorityRoles(playerA, playerB, Role022LeftCone, Role022RightCone);
-                continue;
+                conePlayers[0].RoleLabel = Role022LeftCone;
+                conePlayers[1].RoleLabel = Role022RightCone;
             }
 
-            if(stack == 0 && cone == 0 && spread == 2)
-                AssignPriorityRoles(playerA, playerB, Role022LeftSpread, Role022RightSpread);
+            if(spreadPlayers.Count == 2)
+            {
+                spreadPlayers[0].RoleLabel = Role022LeftSpread;
+                spreadPlayers[1].RoleLabel = Role022RightSpread;
+            }
         }
 
         var fieldPlayers = OrderInfosByPriority(_infos.Where(i => !IsTower(i))).ToList();
@@ -802,7 +798,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         if(stepChanged || towerDebuffsChanged)
             _lastTowerDebuffSignature = towerDebuffSignature;
 
-        if(_step != 1)
+        if(IsPatternRecalculationStep(_step))
             ResolveFieldRoles(patternId);
 
         var baseInfo = GetBasePlayerInfo();

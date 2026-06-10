@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
@@ -11,6 +12,7 @@ using ECommons.DalamudServices;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
@@ -21,7 +23,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(1, "mirage");
+    public override Metadata? Metadata => new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -49,10 +51,16 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
     private const uint Cyclone = 47864;
     private const uint VacuumWave = 47891;
 
+    private const ushort StatusEntropy = 1600;
+    private const ushort StatusDynamicFluid = 1601;
+
     private const uint StatusBattleChaos = 4192;
     private const uint StatusBattleExdeath = 4194;
 
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
+    private static readonly Regex LimitCutVfxRegex =
+        new(@"^vfx/lockon/eff/(?:m0361trg_[ab][1-8]t|sph_lockon2_num0[1-8]_s8[pt])\.avfx$",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private const string ElNavi = "BowelsNavi";
     private const string ElImplosionLine1 = "implosion_line1";
@@ -67,7 +75,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
     private static readonly string[] RoleColumnLabels = ["T1", "T2", "H1", "H2", "M1", "M2", "R1", "R2"];
 
     private static readonly string[] SpreadComboLabels =
-        ["windinside", "windoutside", "fireleft", "fireright"];
+        ["windinside", "windoutside", "fireleft", "fireright", "water"];
 
     private static readonly string[] KnockbackComboLabels =
         ["near", "far", "left", "right"];
@@ -82,7 +90,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
     private const float SpreadKnockbackTableRoleColumnWidth = 102f;
     private const float SpreadKnockbackTableComboWidth = 96f;
 
-    private const int PositionSpotCount = 20;
+    private static readonly int PositionSpotCount = Enum.GetValues<PositionSpot>().Length;
 
     // Position rules table column widths (fixed to prevent layout shift).
     private const float PositionRulesTableLabelColumnWidth = 220f;
@@ -112,10 +120,13 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         "near stack",
         "left stack",
         "right stack",
+        "water",
+        "water avoid vertical",
+        "water avoid horizontal",
     ];
 
     private static readonly string[] PositionBasisLabels =
-        ["Wind", "Water", "Chaos", "Exdeath"];
+        ["Wind", "Water", "Chaos", "Exdeath", "Fire"];
 
     #endregion
 
@@ -132,6 +143,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         public BaitBusterCombo BaitBusterRule = BaitBusterCombo.FirstBaiter;
         public BaitSmashCombo BaitSmashRole = BaitSmashCombo.R1;
         public bool DebugPreviewAllDestinations;
+        public bool FixFireLeftRightByWaterSideFromWind;
         public PositionRuleSettings[] PositionRules = CreateDefaultPositionRules();
 
         public void EnsureDefaults()
@@ -208,22 +220,30 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         private static PositionRuleSettings[] EnsurePositionRules(PositionRuleSettings[]? current)
         {
             var defaults = CreateDefaultPositionRules();
-            if(current == null || current.Length != PositionSpotCount)
+            if(current == null)
                 return defaults;
 
-            for(var i = 0; i < PositionSpotCount; i++)
+            for(var i = 0; i < Math.Min(current.Length, defaults.Length); i++)
             {
-                if(current[i].Basis is not (PositionBasis.WindCrystal or PositionBasis.WaterCrystal
-                        or PositionBasis.Chaos or PositionBasis.Exdeath))
+                if(current[i] == null)
+                    continue;
+
+                if(!IsValidPositionBasis(current[i].Basis))
                     current[i].Basis = defaults[i].Basis;
                 if(float.IsNaN(current[i].AngleDeg) || float.IsInfinity(current[i].AngleDeg))
                     current[i].AngleDeg = defaults[i].AngleDeg;
                 if(float.IsNaN(current[i].Range) || float.IsInfinity(current[i].Range) || current[i].Range < 0f)
                     current[i].Range = defaults[i].Range;
+
+                defaults[i] = current[i];
             }
 
-            return current;
+            return defaults;
         }
+
+        private static bool IsValidPositionBasis(PositionBasis basis)
+            => basis is PositionBasis.WindCrystal or PositionBasis.WaterCrystal or PositionBasis.Chaos
+                or PositionBasis.Exdeath or PositionBasis.FireCrystal;
 
         private static PositionRuleSettings[] CreateDefaultPositionRules()
             =>
@@ -232,14 +252,14 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
                 Rule(PositionBasis.WindCrystal, 180f, 5f),
                 Rule(PositionBasis.WaterCrystal, 225f, 5f),
                 Rule(PositionBasis.WaterCrystal, 135f, 5f),
-                Rule(PositionBasis.Chaos, 55f, 5f),
-                Rule(PositionBasis.Chaos, 235f, 5f),
-                Rule(PositionBasis.Chaos, 55f, 10f),
-                Rule(PositionBasis.Chaos, 55f, 10f),
-                Rule(PositionBasis.Chaos, 35f, 5f),
                 Rule(PositionBasis.Chaos, 215f, 5f),
-                Rule(PositionBasis.Chaos, 35f, 10f),
-                Rule(PositionBasis.Chaos, 35f, 10f),
+                Rule(PositionBasis.Chaos, 30f, 5f),
+                Rule(PositionBasis.Chaos, 215f, 10f),
+                Rule(PositionBasis.Chaos, 215f, 10f),
+                Rule(PositionBasis.Chaos, 235f, 5f),
+                Rule(PositionBasis.Chaos, 55f, 5f),
+                Rule(PositionBasis.Chaos, 235f, 10f),
+                Rule(PositionBasis.Chaos, 235f, 10f),
                 Rule(PositionBasis.Exdeath, 0f, 5f),
                 Rule(PositionBasis.Exdeath, 0f, 5f),
                 Rule(PositionBasis.Exdeath, 45f, 5f),
@@ -248,6 +268,9 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
                 Rule(PositionBasis.Exdeath, 0f, 5f),
                 Rule(PositionBasis.Exdeath, 45f, 10f),
                 Rule(PositionBasis.Exdeath, 315f, 10f),
+                Rule(PositionBasis.FireCrystal, 0f, 0f),
+                Rule(PositionBasis.FireCrystal, 0f, 0f),
+                Rule(PositionBasis.FireCrystal, 0f, 0f),
             ];
 
         private static PositionRuleSettings Rule(PositionBasis basis, float angleDeg, float range)
@@ -259,6 +282,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
     #region State
 
     private State _state = State.Wait;
+    private bool _isAgony;
     private int _basterCount;
     private int _implosionCount;
     private PositionsCache _positions;
@@ -293,6 +317,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         WindOutside,
         FireLeft,
         FireRight,
+        Water,
     }
 
     private enum KnockbackCombo
@@ -322,6 +347,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         WaterCrystal,
         Chaos,
         Exdeath,
+        FireCrystal,
     }
 
     private enum PositionSpot
@@ -346,6 +372,9 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         NearStack,
         LeftStack,
         RightStack,
+        Water,
+        WaterAvoidVertical,
+        WaterAvoidHorizontal,
     }
 
     private sealed class PositionRuleSettings
@@ -366,14 +395,17 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         public Vector3 WindOutsidePosition;
         public Vector3 FireLeftPosition;
         public Vector3 FireRightPosition;
+        public Vector3 WaterPosition;
         public Vector3 WindInsideAvoidVerticalPosition;
         public Vector3 WindOutsideAvoidVerticalPosition;
         public Vector3 FireLeftAvoidVerticalPosition;
         public Vector3 FireRightAvoidVerticalPosition;
+        public Vector3 WaterAvoidVerticalPosition;
         public Vector3 WindInsideAvoidHorizontalPosition;
         public Vector3 WindOutsideAvoidHorizontalPosition;
         public Vector3 FireLeftAvoidHorizontalPosition;
         public Vector3 FireRightAvoidHorizontalPosition;
+        public Vector3 WaterAvoidHorizontalPosition;
         public Vector3 FarPosition;
         public Vector3 NearPosition;
         public Vector3 LeftPosition;
@@ -432,6 +464,15 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         if(!IsPhaseActive())
             return;
 
+        if(castId == BowelsOfAgony)
+        {
+            _isAgony = true;
+            return;
+        }
+
+        if(!_isAgony)
+            return;
+
         switch(castId)
         {
             case ThunderCircle:
@@ -459,6 +500,9 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             return;
 
         var actionId = set.Action?.RowId ?? 0;
+
+        if(!_isAgony)
+            return;
 
         switch(actionId)
         {
@@ -508,12 +552,34 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         }
     }
 
+    public override void OnVFXSpawn(uint target, string vfxPath)
+    {
+        if(IsPhaseActive() && LimitCutVfxRegex.IsMatch(vfxPath))
+            ResetState();
+    }
+
+    public override void OnRemoveBuffEffect(uint sourceId, Status status)
+    {
+        if(!_isAgony)
+            return;
+
+        if(_state == State.SpreadSecond && status.StatusId is StatusEntropy or StatusDynamicFluid)
+            _state = State.BaitSmash;
+    }
+
     public override void OnUpdate()
     {
         if(!IsPhaseActive())
         {
             ResetState();
             _naviBlockReason = "Scene != 8";
+            return;
+        }
+
+        if(!_isAgony)
+        {
+            ResetState();
+            _naviBlockReason = "Agony not active";
             return;
         }
 
@@ -606,7 +672,20 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             C.BaitSmashRole = (BaitSmashCombo)baitSmashRole;
 
         ImGui.Spacing();
+        DrawFireLeftRightSettings();
+
+        ImGui.Spacing();
         DrawPositionRulesTable();
+    }
+
+    // Draws fire left/right side correction option.
+    private void DrawFireLeftRightSettings()
+    {
+        ImGui.TextDisabled("Fire left / right");
+        ImGui.Separator();
+        ImGui.Checkbox(
+            "Fix FireLeft / FireRight position at Water, by Side seen from Wind.###fixFireLeftRightByWaterSide",
+            ref C.FixFireLeftRightByWaterSideFromWind);
     }
 
     // Draws live runtime state and local player resolution info.
@@ -637,6 +716,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         ImGui.TextUnformatted("State");
         ImGui.Separator();
         ImGui.TextUnformatted($"Scene: {Controller.Scene} (P3 active: {IsPhaseActive()})");
+        ImGui.TextUnformatted($"Agony active: {_isAgony}");
         ImGui.TextUnformatted($"State: {_state}");
         ImGui.TextUnformatted($"Buster count: {_basterCount}");
         ImGui.TextUnformatted($"Implosion count: {_implosionCount}");
@@ -863,8 +943,8 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
 
             ImGui.TableNextColumn();
             if(objectPositionsReady &&
-               ResolvePositionFromRule(settings, windCrystalPosition, waterCrystalPosition, chaosPosition,
-                   exdeathPosition) is { } position)
+               ResolvePositionFromRule(settings, (PositionSpot)i, windCrystalPosition, waterCrystalPosition,
+                   chaosPosition, exdeathPosition, GetChaosFacingDegree()) is { } position)
             {
                 ImGui.TextUnformatted(FormatVector3(position));
             }
@@ -889,6 +969,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
     private void ResetState()
     {
         _state = State.Wait;
+        _isAgony = false;
         _basterCount = 0;
         _implosionCount = 0;
         _positions = new PositionsCache();
@@ -1013,6 +1094,11 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         return null;
     }
 
+    // Finds object rotation by DataId, then optional NameId fallback.
+    private static float? TryGetObjectRotation(uint dataId, uint nameId = 0)
+        => Svc.Objects.FirstOrDefault(x => x.DataId == dataId)?.Rotation
+           ?? (nameId == 0 ? null : Svc.Objects.OfType<ICharacter>().FirstOrDefault(x => x.NameId == nameId)?.Rotation);
+
     // Flattens a world position onto the arena floor.
     private static Vector3 FlattenPosition(Vector3 position)
         => new(position.X, 0f, position.Z);
@@ -1046,6 +1132,34 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
     // Normalizes an angle to 0°–360°.
     private static float NormalizeAngle(float degree)
         => (degree % 360f + 360f) % 360f;
+
+    // Rounds an angle to the nearest step and normalizes to 0°–360°.
+    private static float RoundAngleByStep(float degree, float step)
+        => NormalizeAngle((float)Math.Round(degree / step) * step);
+    // Returns angle from arena center with wind crystal treated as 0° north.
+    private static float GetAngleFromWindNorth(Vector3 windCrystalPosition, Vector3 targetPosition)
+    {
+        var windAngle = MathHelper.GetRelativeAngle(ArenaCenter, windCrystalPosition);
+        var targetAngle = MathHelper.GetRelativeAngle(ArenaCenter, targetPosition);
+        return NormalizeAngle(targetAngle - windAngle);
+    }
+    // Returns whether fire left/right should be swapped when water is at 90° from wind north.
+    private static bool ShouldSwapFireLeftRightAtWater(Vector3 windCrystalPosition, Vector3 waterCrystalPosition)
+        => RoundAngleByStep(GetAngleFromWindNorth(windCrystalPosition, waterCrystalPosition), 90f) == 90f;
+    // Swaps resolved fire left/right position caches.
+    private void SwapFireLeftRightPositions()
+    {
+        (_positions.FireLeftPosition, _positions.FireRightPosition) =
+            (_positions.FireRightPosition, _positions.FireLeftPosition);
+        (_positions.FireLeftAvoidVerticalPosition, _positions.FireRightAvoidVerticalPosition) =
+            (_positions.FireRightAvoidVerticalPosition, _positions.FireLeftAvoidVerticalPosition);
+        (_positions.FireLeftAvoidHorizontalPosition, _positions.FireRightAvoidHorizontalPosition) =
+            (_positions.FireRightAvoidHorizontalPosition, _positions.FireLeftAvoidHorizontalPosition);
+    }
+
+    // Converts actor rotation radians to the script's world-degree convention.
+    private static float ActorRotationToWorldDegree(float rotationRad)
+        => NormalizeAngle(180f - rotationRad * 180f / MathF.PI);
 
     // Stores live crystal position in cache when the object is present.
     private void TryCacheCrystalPosition(uint dataId, ref Vector3? cache)
@@ -1088,6 +1202,8 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             waterCrystalPosition, chaosPosition, exdeathPosition);
         _positions.FireRightPosition = ResolveConfiguredPosition(PositionSpot.FireRight, windCrystalPosition,
             waterCrystalPosition, chaosPosition, exdeathPosition);
+        _positions.WaterPosition = ResolveConfiguredPosition(PositionSpot.Water, windCrystalPosition,
+            waterCrystalPosition, chaosPosition, exdeathPosition);
 
         _positions.WindInsideAvoidVerticalPosition = ResolveConfiguredPosition(PositionSpot.WindInsideAvoidVertical,
             windCrystalPosition, waterCrystalPosition, chaosPosition, exdeathPosition);
@@ -1096,6 +1212,8 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         _positions.FireLeftAvoidVerticalPosition = ResolveConfiguredPosition(PositionSpot.FireLeftAvoidVertical,
             windCrystalPosition, waterCrystalPosition, chaosPosition, exdeathPosition);
         _positions.FireRightAvoidVerticalPosition = ResolveConfiguredPosition(PositionSpot.FireRightAvoidVertical,
+            windCrystalPosition, waterCrystalPosition, chaosPosition, exdeathPosition);
+        _positions.WaterAvoidVerticalPosition = ResolveConfiguredPosition(PositionSpot.WaterAvoidVertical,
             windCrystalPosition, waterCrystalPosition, chaosPosition, exdeathPosition);
 
         _positions.WindInsideAvoidHorizontalPosition = ResolveConfiguredPosition(PositionSpot.WindInsideAvoidHorizontal,
@@ -1107,6 +1225,12 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             windCrystalPosition, waterCrystalPosition, chaosPosition, exdeathPosition);
         _positions.FireRightAvoidHorizontalPosition = ResolveConfiguredPosition(PositionSpot.FireRightAvoidHorizontal,
             windCrystalPosition, waterCrystalPosition, chaosPosition, exdeathPosition);
+        _positions.WaterAvoidHorizontalPosition = ResolveConfiguredPosition(PositionSpot.WaterAvoidHorizontal,
+            windCrystalPosition, waterCrystalPosition, chaosPosition, exdeathPosition);
+
+        if(C.FixFireLeftRightByWaterSideFromWind
+           && ShouldSwapFireLeftRightAtWater(windCrystalPosition, waterCrystalPosition))
+            SwapFireLeftRightPositions();
 
         _positions.FarPosition = ResolveConfiguredPosition(PositionSpot.Far, windCrystalPosition, waterCrystalPosition,
             chaosPosition, exdeathPosition);
@@ -1141,27 +1265,46 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         Vector3 waterCrystalPosition,
         Vector3 chaosPosition,
         Vector3 exdeathPosition)
-        => ResolvePositionFromRule(GetPositionRule(spot), windCrystalPosition, waterCrystalPosition, chaosPosition,
-            exdeathPosition);
+        => ResolvePositionFromRule(GetPositionRule(spot), spot, windCrystalPosition, waterCrystalPosition,
+            chaosPosition, exdeathPosition, GetChaosFacingDegree());
 
     // Resolves a position from rule settings and live base object positions.
-    private static Vector3 ResolvePositionFromRule(
+    private Vector3 ResolvePositionFromRule(
         PositionRuleSettings rule,
+        PositionSpot spot,
         Vector3 windCrystalPosition,
         Vector3 waterCrystalPosition,
         Vector3 chaosPosition,
-        Vector3 exdeathPosition)
+        Vector3 exdeathPosition,
+        float? chaosFacingDegree)
     {
         var basePosition = rule.Basis switch
         {
             PositionBasis.WindCrystal => windCrystalPosition,
             PositionBasis.WaterCrystal => waterCrystalPosition,
+            PositionBasis.FireCrystal => _cachedFireCrystalPosition ?? windCrystalPosition,
             PositionBasis.Chaos => chaosPosition,
             PositionBasis.Exdeath => exdeathPosition,
             _ => windCrystalPosition,
         };
 
+        if(rule.Basis == PositionBasis.Chaos && IsAvoidImplosionSpot(spot) && chaosFacingDegree.HasValue)
+            return CalculatePointCircle(basePosition, rule.Range, NormalizeAngle(chaosFacingDegree.Value + rule.AngleDeg));
+
         return GetRelativePosition(basePosition, ArenaCenter, rule.AngleDeg, rule.Range);
+    }
+
+    // Returns whether a configurable spot is for Horizontal/Vertical Implosion dodging.
+    private static bool IsAvoidImplosionSpot(PositionSpot spot)
+        => spot is >= PositionSpot.WindInsideAvoidVertical and <= PositionSpot.FireRightAvoidHorizontal
+            or PositionSpot.WaterAvoidVertical or PositionSpot.WaterAvoidHorizontal;
+
+    // Returns live Chaos facing for Horizontal/Vertical Implosion positioning.
+    private float? GetChaosFacingDegree()
+    {
+        return TryGetObjectRotation(ChaosDataId, ChaosNameId) is { } chaosRotation
+            ? ActorRotationToWorldDegree(chaosRotation)
+            : null;
     }
 
     // Returns whether live base object positions are available for preview.
@@ -1181,7 +1324,8 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         exdeathPosition = default;
 
         if(_cachedWindCrystalPosition is not { } wind ||
-           _cachedWaterCrystalPosition is not { } water)
+           _cachedWaterCrystalPosition is not { } water ||
+           _cachedFireCrystalPosition is not { })
             return false;
 
         if(TryGetObjectPosition(ChaosDataId, ChaosNameId) is not { } chaosRaw)
@@ -1204,6 +1348,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             (int)PositionBasis.WaterCrystal => PositionBasis.WaterCrystal,
             (int)PositionBasis.Chaos => PositionBasis.Chaos,
             (int)PositionBasis.Exdeath => PositionBasis.Exdeath,
+            (int)PositionBasis.FireCrystal => PositionBasis.FireCrystal,
             _ => PositionBasis.WindCrystal,
         };
 
@@ -1300,6 +1445,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             SpreadCombo.WindOutside => _positions.WindOutsidePosition,
             SpreadCombo.FireLeft => _positions.FireLeftPosition,
             SpreadCombo.FireRight => _positions.FireRightPosition,
+            SpreadCombo.Water => _positions.WaterPosition,
             _ => _positions.WindInsidePosition,
         };
 
@@ -1311,6 +1457,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             SpreadCombo.WindOutside => _positions.WindOutsideAvoidVerticalPosition,
             SpreadCombo.FireLeft => _positions.FireLeftAvoidVerticalPosition,
             SpreadCombo.FireRight => _positions.FireRightAvoidVerticalPosition,
+            SpreadCombo.Water => _positions.WaterAvoidVerticalPosition,
             _ => _positions.WindInsideAvoidVerticalPosition,
         };
 
@@ -1322,6 +1469,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             SpreadCombo.WindOutside => _positions.WindOutsideAvoidHorizontalPosition,
             SpreadCombo.FireLeft => _positions.FireLeftAvoidHorizontalPosition,
             SpreadCombo.FireRight => _positions.FireRightAvoidHorizontalPosition,
+            SpreadCombo.Water => _positions.WaterAvoidHorizontalPosition,
             _ => _positions.WindInsideAvoidHorizontalPosition,
         };
 

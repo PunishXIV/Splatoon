@@ -24,7 +24,7 @@ public class P3_Limit_Cut : SplatoonScript
     private const uint KefkaDashStartDataId = 19451;
     private const uint ThunderIIICast = 47881;
     private const uint UltimateEmbrace = 49740;
-    private const float DestinationRadius = 17.0f;
+    private const float DestinationRadius = 19.0f;
     private const float DestinationHalfStepOffset = 0.5f;
     private const float CenterIgnoreRadius = 5.0f;
     private const string DestinationElementName = "Destination";

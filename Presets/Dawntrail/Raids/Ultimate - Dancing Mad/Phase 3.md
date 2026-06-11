@@ -39,3 +39,10 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 ```
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Bowels_of_Agony_TLB","ConfigurationName":"NA TLB strat","Configuration":"G4AMACwK7MZiITpDOz9HDXGIyt3fd6u/H+nOCT6LnwUSFVDqpmxTTUjvv10wAolbUHKh0CwNOl3/d01bVxb6nC2z0vdTREXCAEn+KcLYyRk1IfXF5U3VJHbbgwG8Wlx/EQnqAmxQg4YWoiUb+F+HFPNdDjvmCryepxfJK7Ad1EkPeB6gv/he8QuLj0gUBiVB4SIoInLqF4+foMJErdmFmBLSIXSA1OqcnuK3SEvAUskd7gOaS0b2GkpzeYxK6hADmiMGRAyY2DAxINI3UlRvrTR3AwcOGd1D+28ac/k/tKp4AYhoV3yjrmqttDaEroFjEzOW9jTn/QFp4zGsH+IlGvOhRUek7SE+Jmxu0bkfona9eEz3ZhnkKhBQbS44kv7kwwCfrO90Iop1nEBPwpDRcQsZIUW6k4EnG0/wqR5Kpaz94W0JylN0iompLzyG+C081jivIw15BRsXP6sURy4OKs//QGnM+1+IHGnI+uxfGLdz911GSAjFzxS9kBk23lJiEUoJfTf0XgZqvNdP4352kaigZVxGoYXIcJGROQ==","Overrides":null}
 ```
+
+## **[Script]** [Beta] **[UNTESTED]** P3 Earthquake
+Guides your own Black Hole line, mid-mechanic dodges, and final spread/tower positions.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Earthquake.cs
+```

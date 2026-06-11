@@ -21,26 +21,26 @@ internal partial class CGui
     {
         ImGuiEx.Text("Game version: ".Loc());
         ImGui.SameLine(0, 0);
-        ImGuiEx.TextCopy(p.loader.gVersion);
+        ImGuiEx.TextCopy(P.loader.gVersion);
         new NuiBuilder().Section("Logging and Web API", collapsible: false)
             .Widget(() =>
             {
                 ImGuiUtils.SizedText("Use web API".Loc(), WidthLayout);
                 ImGui.SameLine();
-                if(ImGui.Checkbox("##usewebapi", ref p.Config.UseHttpServer))
+                if(ImGui.Checkbox("##usewebapi", ref P.Config.UseHttpServer))
                 {
-                    p.SetupShutdownHttp(p.Config.UseHttpServer);
+                    P.SetupShutdownHttp(P.Config.UseHttpServer);
                 }
                 ImGui.SameLine();
-                if(p.Config.UseHttpServer)
+                if(P.Config.UseHttpServer)
                 {
-                    ImGuiEx.Text("http://127.0.0.1:" + p.Config.port + "/");
+                    ImGuiEx.Text("http://127.0.0.1:" + P.Config.port + "/");
                     if(ImGui.IsItemHovered())
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         if(ImGui.IsMouseReleased(ImGuiMouseButton.Left) && ImGui.GetMouseDragDelta(ImGuiMouseButton.Left) == Vector2.Zero)
                         {
-                            Utils.ProcessStart("http://127.0.0.1:" + p.Config.port + "/");
+                            Utils.ProcessStart("http://127.0.0.1:" + P.Config.port + "/");
                         }
                     }
                 }
@@ -49,17 +49,17 @@ internal partial class CGui
                     ImGuiEx.Text("Port: ".Loc());
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(100f);
-                    ImGui.DragInt("##webapiport", ref p.Config.port, float.Epsilon, 1, 65535);
+                    ImGui.DragInt("##webapiport", ref P.Config.port, float.Epsilon, 1, 65535);
                     if(ImGui.IsItemHovered())
                     {
                         ImGui.SetTooltip("Please only change if you have really good reason".Loc());
                     }
-                    if(p.Config.port < 1 || p.Config.port > 65535) p.Config.port = 47774;
+                    if(P.Config.port < 1 || P.Config.port > 65535) P.Config.port = 47774;
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(100f);
                     if(ImGui.Button("Default".Loc()))
                     {
-                        p.Config.port = 47774;
+                        P.Config.port = 47774;
                     }
                 }
                 ImGui.SameLine();
@@ -69,13 +69,13 @@ internal partial class CGui
                     Utils.ProcessStart("https://github.com/PunishXIV/Splatoon#web-api-beta");
                 }
 
-                if(ImGui.Checkbox("Enable logging".Loc(), ref P.Config.Logging))
+                if(ImGui.Checkbox("Enable logging".Loc(), ref Splatoon.P.Config.Logging))
                 {
                     Logger.OnTerritoryChanged();
                 }
                 ImGuiComponents.HelpMarker("Enable logging, which will log chat messages, casts and VFX info into log files. ".Loc());
                 ImGui.SameLine();
-                ImGui.Checkbox("Log position".Loc(), ref P.Config.LogPosition);
+                ImGui.Checkbox("Log position".Loc(), ref Splatoon.P.Config.LogPosition);
                 ImGuiComponents.HelpMarker("Log object position in casting information log lines".Loc());
             })
 
@@ -106,28 +106,28 @@ internal partial class CGui
                 ImGuiEx.TextV("Splatoon language: ".Loc());
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(150f.Scale());
-                if(ImGui.BeginCombo("##langsel", P.Config.PluginLanguage == null ? "Game language".Loc() : P.Config.PluginLanguage.Loc()))
+                if(ImGui.BeginCombo("##langsel", Splatoon.P.Config.PluginLanguage == null ? "Game language".Loc() : Splatoon.P.Config.PluginLanguage.Loc()))
                 {
                     if(ImGui.Selectable("Game language".Loc()))
                     {
-                        P.Config.PluginLanguage = null;
+                        Splatoon.P.Config.PluginLanguage = null;
                         Localization.Init(GameLanguageString);
                     }
                     foreach(var x in GetAvaliableLanguages())
                     {
                         if(ImGui.Selectable(x.Loc()))
                         {
-                            P.Config.PluginLanguage = x;
-                            Localization.Init(P.Config.PluginLanguage);
+                            Splatoon.P.Config.PluginLanguage = x;
+                            Localization.Init(Splatoon.P.Config.PluginLanguage);
                         }
                     }
                     ImGui.EndCombo();
                 }
                 ImGui.Checkbox("Localization logging".Loc(), ref Localization.Logging);
                 ImGui.SameLine();
-                if(ImGui.Button("Save entries: ??".Loc(P.Config.PluginLanguage ?? GameLanguageString)))
+                if(ImGui.Button("Save entries: ??".Loc(Splatoon.P.Config.PluginLanguage ?? GameLanguageString)))
                 {
-                    Localization.Save(P.Config.PluginLanguage ?? GameLanguageString);
+                    Localization.Save(Splatoon.P.Config.PluginLanguage ?? GameLanguageString);
                 }
                 ImGui.SameLine();
                 if(ImGui.Button("Rescan language files".Loc()))
@@ -139,28 +139,28 @@ internal partial class CGui
             .Section("UI settings", collapsible: false)
             .Widget(() =>
             {
-                ImGui.Checkbox("Use hexadecimal numbers".Loc(), ref p.Config.Hexadecimal);
-                ImGui.Checkbox("Enable tether on Splatoon find command".Loc(), ref p.Config.TetherOnFind);
-                ImGui.Checkbox("Force show Splatoon's UI when game UI is hidden".Loc(), ref p.Config.ShowOnUiHide);
+                ImGui.Checkbox("Use hexadecimal numbers".Loc(), ref P.Config.Hexadecimal);
+                ImGui.Checkbox("Enable tether on Splatoon find command".Loc(), ref P.Config.TetherOnFind);
+                ImGui.Checkbox("Force show Splatoon's UI when game UI is hidden".Loc(), ref P.Config.ShowOnUiHide);
             })
 
             .Section("Scripts configuration and priority lists", collapsible: false)
             .Widget(() =>
             {
-                ImGui.Checkbox("Disable script cache".Loc(), ref p.Config.DisableScriptCache);
+                ImGui.Checkbox("Disable script cache".Loc(), ref P.Config.DisableScriptCache);
                 var state = DalamudReflector.GetDtrEntryState(InfoBar.EntryName);
                 if(ImGui.Checkbox("Enable info bar priority indicator", ref state))
                 {
                     DalamudReflector.SetDtrEntryState(InfoBar.EntryName, state);
                 }
                 ImGui.SetNextItemWidth(150f);
-                ImGuiEx.EnumCombo("Priority assignment auto-loading notification", ref P.Config.ScriptPriorityNotification);
+                ImGuiEx.EnumCombo("Priority assignment auto-loading notification", ref Splatoon.P.Config.ScriptPriorityNotification);
                 ImGuiEx.TreeNodeCollapsingHeader("Preferred Role Assignments", () =>
                 {
                     ImGuiEx.Text($"Select role assignments that you would like to assigned to yourself via autofill function");
-                    foreach(var j in Enum.GetValues<Job>().Where(x => x > 0 && !x.IsUpgradeable() && x.IsCombat()).OrderBy(x => P.PriorityPopupWindow.GetOrderedRoleIndex(x)))
+                    foreach(var j in Enum.GetValues<Job>().Where(x => x > 0 && !x.IsUpgradeable() && x.IsCombat()).OrderBy(x => Splatoon.P.PriorityPopupWindow.GetOrderedRoleIndex(x)))
                     {
-                        var pref = P.Config.PreferredPositions.SafeSelect(j);
+                        var pref = Splatoon.P.Config.PreferredPositions.SafeSelect(j);
                         var name = PriorityPopupWindow.ConfiguredNames.SafeSelect(pref) ?? "No preferred position";
                         ImGui.PushID(j.ToString());
                         ImGui.SetNextItemWidth(150f);
@@ -170,7 +170,7 @@ internal partial class CGui
                             {
                                 if(ImGui.Selectable(PriorityPopupWindow.ConfiguredNames.SafeSelect(x) ?? "No preferred position", pref == x))
                                 {
-                                    P.Config.PreferredPositions[j] = x;
+                                    Splatoon.P.Config.PreferredPositions[j] = x;
                                 }
                             }
                             ImGui.EndCombo();
@@ -188,7 +188,7 @@ internal partial class CGui
                 ImGuiEx.TreeNodeCollapsingHeader("Edit saved priority lists", () =>
                 {
                     Dictionary<uint, List<RolePlayerAssignment>> dict = [];
-                    foreach(var x in P.Config.RolePlayerAssignments)
+                    foreach(var x in Splatoon.P.Config.RolePlayerAssignments)
                     {
                         if(!dict.TryGetValue(x.Territory, out var list))
                         {
@@ -218,7 +218,7 @@ internal partial class CGui
                                     ImGui.TableNextColumn();
                                     if(ImGuiEx.IconButton(FontAwesomeIcon.Trash))
                                     {
-                                        new TickScheduler(() => P.Config.RolePlayerAssignments.Remove(a));
+                                        new TickScheduler(() => Splatoon.P.Config.RolePlayerAssignments.Remove(a));
                                     }
                                     ImGui.PopID();
                                 }
@@ -253,28 +253,28 @@ internal partial class CGui
                     Svc.Chat.Print("[Splatoon] Server invite link: ".Loc() + Splatoon.DiscordURL);
                     Utils.ProcessStart(Splatoon.DiscordURL);
                 }
-                ImGui.Checkbox("Disable stream notice (effective only after restart)".Loc(), ref P.Config.NoStreamWarning);
+                ImGui.Checkbox("Disable stream notice (effective only after restart)".Loc(), ref Splatoon.P.Config.NoStreamWarning);
             })
 
             .Section("Script auto-reloading (for developers)", collapsible: true)
             .TextWrapped("Add pathes to folders that contain scripts that you are editing. Do NOT add Splatoon's own configuration folder here.")
             .Widget(() =>
             {
-                for(var i = 0; i < P.Config.FileWatcherPathes.Count; i++)
+                for(var i = 0; i < Splatoon.P.Config.FileWatcherPathes.Count; i++)
                 {
                     var index = i;
-                    var f = P.Config.FileWatcherPathes[i];
+                    var f = Splatoon.P.Config.FileWatcherPathes[i];
                     ImGuiEx.InputWithRightButtonsArea(() =>
                     {
                         if(ImGui.InputTextWithHint("##path to folder" + index, "Path to folder...", ref f, 2000))
                         {
-                            P.Config.FileWatcherPathes[index] = f;
+                            Splatoon.P.Config.FileWatcherPathes[index] = f;
                         }
                     }, () =>
                     {
                         if(ImGuiEx.IconButton(FontAwesomeIcon.Trash, "Trash" + index))
                         {
-                            new TickScheduler(() => P.Config.FileWatcherPathes.RemoveAt(index));
+                            new TickScheduler(() => Splatoon.P.Config.FileWatcherPathes.RemoveAt(index));
                         }
                     });
                 }
@@ -282,7 +282,7 @@ internal partial class CGui
                 {
                     if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add New"))
                     {
-                        P.Config.FileWatcherPathes.Add("");
+                        Splatoon.P.Config.FileWatcherPathes.Add("");
                     }
                     ImGui.SameLine();
                     if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Apply settings"))
@@ -292,6 +292,6 @@ internal partial class CGui
                 });
             }).Draw();
 
-        Svc.PluginInterface.UiBuilder.DisableUserUiHide = p.Config.ShowOnUiHide;
+        Svc.PluginInterface.UiBuilder.DisableUserUiHide = P.Config.ShowOnUiHide;
     }
 }

@@ -22,11 +22,11 @@ internal partial class CGui
                 .Widget(() =>
                 {
                     ImGuiEx.TextWrapped($"Mac OS or Linux operating system detected.");
-                    if(P.Config.DX11EnabledOnMacLinux)
+                    if(Splatoon.P.Config.DX11EnabledOnMacLinux)
                     {
                         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Times, "Disable DirectX11 renderer on Mac OS/Linux"))
                         {
-                            P.Config.DX11EnabledOnMacLinux = false;
+                            Splatoon.P.Config.DX11EnabledOnMacLinux = false;
                         }
                     }
                     else
@@ -34,9 +34,9 @@ internal partial class CGui
                         ImGuiEx.TextWrapped($"Due to issues unrelated to Splatoon or Dalamud, DirectX11 renderer often causes crashes on these systems. Please press the following button to test whether you have this issue or not:");
                         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ExclamationTriangle, "Reload DirectX11 render engine"))
                         {
-                            P.ForceLoadDX11 = true;
+                            Splatoon.P.ForceLoadDX11 = true;
                             S.RenderManager.ReloadEngine(RenderEngineKind.DirectX11);
-                            P.AddDynamicElements("Test", [new(1)
+                            Splatoon.P.AddDynamicElements("Test", [new(1)
                             {
                                 refActorType = 1,
                                 radius = 5f,
@@ -48,8 +48,8 @@ internal partial class CGui
                         ImGuiEx.Text($"If your game hasn't crashed and you see red circle around you, you should be safe to enable DirectX11 render engine.");
                         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Enable DirectX11 renderer on Mac OS/Linux", enabled: Tested))
                         {
-                            P.Config.DX11EnabledOnMacLinux = true;
-                            P.RemoveDynamicElements("Test");
+                            Splatoon.P.Config.DX11EnabledOnMacLinux = true;
+                            Splatoon.P.RemoveDynamicElements("Test");
                         }
                     }
                 }).Draw();
@@ -67,7 +67,7 @@ internal partial class CGui
                 ImGuiUtils.SizedText("Drawing distance:".Loc(), WidthLayout);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                ImGui.DragFloat("##maxdistance", ref p.Config.maxdistance, 0.25f, 10f, 200f);
+                ImGui.DragFloat("##maxdistance", ref P.Config.maxdistance, 0.25f, 10f, 200f);
                 ImGuiComponents.HelpMarker("Only try to draw objects that are not further away from you than this value".Loc());
 
                 if(ImGui.Button("Edit Draw Zones".Loc()))
@@ -106,13 +106,13 @@ internal partial class CGui
 
                 ImGuiUtils.SizedText("[EXPERIMENTAL] Use VFX Rendering:".Loc(), WidthLayout);
                 ImGui.SameLine();
-                ImGui.Checkbox("##usevfxrendering", ref p.Config.UseVfxRendering);
+                ImGui.Checkbox("##usevfxrendering", ref P.Config.UseVfxRendering);
                 ImGuiComponents.HelpMarker("If possible, render elements with in-game omen VFX. Some donut and cone sizes are not supported; these will fall back to DirectX rendering.".Loc());
 
                 ImGuiUtils.SizedText("Alpha Blend Mode:".Loc(), WidthLayout);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                ImGuiUtils.EnumCombo("##alphablendmode", ref p.Config.AlphaBlendMode, AlphaBlendModes.Names, AlphaBlendModes.Tooltips);
+                ImGuiUtils.EnumCombo("##alphablendmode", ref P.Config.AlphaBlendMode, AlphaBlendModes.Names, AlphaBlendModes.Tooltips);
                 if(ImGui.IsItemHovered())
                 {
                     ImGui.SetTooltip("Change how overlapping elements' transparency is blended");
@@ -196,7 +196,7 @@ internal partial class CGui
                 ImGuiUtils.SizedText("Circle smoothness:".Loc(), WidthLayout);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                ImGui.DragInt("##circlesmoothness", ref p.Config.segments, 0.1f, 10, 150);
+                ImGui.DragInt("##circlesmoothness", ref P.Config.segments, 0.1f, 10, 150);
                 ImGuiComponents.HelpMarker("Higher - smoother circle, higher cpu usage".Loc());
 
                 ImGui.Checkbox("Disable circle fix while enabling drawing circles above your point of view".Loc(), ref P.Config.NoCircleFix);
@@ -205,14 +205,14 @@ internal partial class CGui
                 ImGuiUtils.SizedText("Line segments:".Loc(), WidthLayout);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(100f);
-                ImGui.DragInt("##linesegments", ref p.Config.lineSegments, 0.1f, 10, 50);
-                p.Config.lineSegments.ValidateRange(10, 100);
+                ImGui.DragInt("##linesegments", ref P.Config.lineSegments, 0.1f, 10, 50);
+                P.Config.lineSegments.ValidateRange(10, 100);
                 ImGuiComponents.HelpMarker("Increase this if your lines stop drawing too far from the screen edges or if line disappears when you are zoomed in and near it's edge. Increasing this setting hurts performance EXTRAORDINARILY.".Loc());
-                if(p.Config.lineSegments > 10)
+                if(P.Config.lineSegments > 10)
                 {
                     ImGuiEx.TextWrapped(ImGuiColors.DalamudOrange, "Non-standard line segment setting. Performance of your game may be impacted. Please CAREFULLY increase this setting until everything works as intended and do not increase it further. \nConsider increasing minimal rectangle fill line thickness to mitigate performance loss, if you will experience it.".Loc());
                 }
-                if(p.Config.lineSegments > 25)
+                if(P.Config.lineSegments > 25)
                 {
                     ImGuiEx.TextWrapped(Environment.TickCount % 1000 > 500 ? ImGuiColors.DalamudRed : ImGuiColors.DalamudYellow,
                         "Your line segment setting IS EXTREMELY HIGH AND MAY SIGNIFICANTLY IMPACT PERFORMANCE.\nIf you really have to set it to this value to make it work, please contact developer and provide details.".Loc());
@@ -240,25 +240,25 @@ internal partial class CGui
                 ImGuiComponents.HelpMarker("Fill rectangles with stroke instead of full color. This will remove clipping issues, but may feel more disturbing.".Loc());
 
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("Minimal rectangle fill line interval".Loc(), ref p.Config.AltRectStep, 0.001f, 0, float.MaxValue);
+                ImGui.DragFloat("Minimal rectangle fill line interval".Loc(), ref P.Config.AltRectStep, 0.001f, 0, float.MaxValue);
                 ImGui.SameLine();
                 ImGui.Checkbox($"{Loc("Always force this value")}##1", ref P.Config.AltRectStepOverride);
 
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("Minimal rectangle fill line thickness".Loc(), ref p.Config.AltRectMinLineThickness, 0.001f, 0.01f, float.MaxValue);
+                ImGui.DragFloat("Minimal rectangle fill line thickness".Loc(), ref P.Config.AltRectMinLineThickness, 0.001f, 0.01f, float.MaxValue);
                 ImGuiComponents.HelpMarker("Problems with performance while rectangles are visible? Increase this value.".Loc());
                 ImGui.SameLine();
                 ImGui.Checkbox($"{Loc("Always force this value")}##2", ref P.Config.AltRectForceMinLineThickness);
-                ImGui.Checkbox("Additionally highlight rectangle outline".Loc(), ref p.Config.AltRectHighlightOutline);
+                ImGui.Checkbox("Additionally highlight rectangle outline".Loc(), ref P.Config.AltRectHighlightOutline);
 
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragFloat("Minimal donut fill line interval".Loc(), ref p.Config.AltDonutStep, 0.001f, 0.01f, float.MaxValue);
+                ImGui.DragFloat("Minimal donut fill line interval".Loc(), ref P.Config.AltDonutStep, 0.001f, 0.01f, float.MaxValue);
                 ImGuiComponents.HelpMarker("Problems with performance while rectangles are visible? Increase this value.".Loc());
                 ImGui.SameLine();
                 ImGui.Checkbox("Always force this value".Loc() + "##3", ref P.Config.AltDonutStepOverride);
 
                 ImGui.SetNextItemWidth(60f);
-                ImGui.DragInt("Minimal cone fill line interval".Loc(), ref p.Config.AltConeStep, 0.1f, 1, int.MaxValue);
+                ImGui.DragInt("Minimal cone fill line interval".Loc(), ref P.Config.AltConeStep, 0.1f, 1, int.MaxValue);
                 ImGui.SameLine();
                 ImGui.Checkbox("Always force this value".Loc() + "##4", ref P.Config.AltConeStepOverride);
                 ImGui.Checkbox($"Use full donut filling".Loc(), ref P.Config.UseFullDonutFill);

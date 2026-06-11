@@ -62,7 +62,7 @@ public class ScriptUpdateWindow : Window
                         ImGui.TableNextColumn();
                         if(ImGuiEx.IconButton(FontAwesomeIcon.Cog))
                         {
-                            P.ConfigGui.Open = true;
+                            P.ConfigGui.IsOpen = true;
                             P.ConfigGui.TabRequest = "Scripts".Loc();
                             Svc.Framework.RunOnTick(() =>
                             {

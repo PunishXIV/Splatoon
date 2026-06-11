@@ -56,7 +56,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             cx = rotatedPoint.X;
             cy = rotatedPoint.Y;
         }
-        if(e.tether && !e.Nodraw)
+        if(e.tether && !e.Nodraw && P.Draw)
         {
             Vector3 origin = new(cx, z + e.offZ, cy);
             var end = Utils.XZY(Utils.GetPlayerPositionXZY());
@@ -70,7 +70,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         {
             AddCapturedObject(layout, e, new Vector3(cx, z + e.offZ, cy));
         }
-        if(e.Nodraw) return;
+        if(e.Nodraw || !P.Draw) return;
         if(!LayoutUtils.ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
         if(r > 0)
         {
@@ -121,7 +121,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             {
                 AddCapturedObject(layout, e, new Vector3(center.X, center.Z, center.Y));
             }
-            if(e.Nodraw) return;
+            if(e.Nodraw || !P.Draw) return;
             if(!LayoutUtils.ShouldDraw(center.X, Utils.GetPlayerPositionXZY().X, center.Z, Utils.GetPlayerPositionXZY().Y)) return;
             float innerRadius = 0;
             var outerRadius = radius ?? e.radius;
@@ -130,7 +130,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 innerRadius = outerRadius;
                 outerRadius = innerRadius + e.Donut;
             }
-            if(e.tether && !e.Nodraw)
+            if(e.tether && !e.Nodraw && P.Draw)
             {
                 var end = Utils.XZY(Utils.GetPlayerPositionXZY());
                 if(e.ExtraTetherLength > 0)
@@ -156,7 +156,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
                 DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), pointA.X, pointA.Y, pointA.Z,
@@ -180,7 +180,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
 
                 if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;
@@ -199,7 +199,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
                 DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), pointA.X, pointA.Y, pointA.Z,
@@ -221,7 +221,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
 
                 if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;
@@ -241,10 +241,13 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         var radius = element.radius;
         if(element.type == 0)
         {
-            if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, element.refX, element.refY, element.refZ))
+            foreach(var x in CommonRenderUtils.ProcessFixedPositionShape(element, layout))
             {
-                ret = true;
-                DrawCircle(layout, element, element.refX, element.refY, element.refZ, radius, 0f);
+                if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, x.refX, x.refY, x.refZ))
+                {
+                    ret = true;
+                    DrawCircle(layout, element, x.refX, x.refY, x.refZ, radius, 0f);
+                }
             }
         }
         else if(element.type == 1 || element.type == 3 || element.type == 4)
@@ -285,7 +288,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     {
                         if(element.FaceMe)
                         {
-                            var list = Utils.GetFacePositions(layout, element, Svc.Targets.Target, element.faceplayer);
+                            var list = Utils.GetFacePositions(layout, Svc.Targets.Target, element.faceplayer);
                             if(list != null)
                             {
                                 foreach(var pos in list)
@@ -305,7 +308,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     {
                         if(element.FaceMe)
                         {
-                            var list = Utils.GetFacePositions(layout, element, Svc.Targets.Target, element.faceplayer);
+                            var list = Utils.GetFacePositions(layout, Svc.Targets.Target, element.faceplayer);
                             if(list != null)
                             {
                                 foreach(var pos in list)
@@ -357,7 +360,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                         {
                             if(element.FaceMe)
                             {
-                                var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
+                                var list = Utils.GetFacePositions(layout, obj, element.faceplayer);
                                 if(list != null)
                                 {
                                     foreach(var pos in list)
@@ -378,7 +381,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                         {
                             if(element.FaceMe)
                             {
-                                var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
+                                var list = Utils.GetFacePositions(layout, obj, element.faceplayer);
                                 if(list != null)
                                 {
                                     foreach(var pos in list)
@@ -401,36 +404,43 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         }
         else if(element.type == 2)
         {
-            if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(layout, element))
+            foreach(var x in CommonRenderUtils.ProcessLineAtFixedCoords(element, layout))
             {
-                if(!LayoutUtils.ShouldDraw(element.refX, Utils.GetPlayerPositionXZY().X, element.refY, Utils.GetPlayerPositionXZY().Y)
-    && !LayoutUtils.ShouldDraw(element.offX, Utils.GetPlayerPositionXZY().X, element.offY, Utils.GetPlayerPositionXZY().Y)) return ret;
-                ret = true;
-                AddLine(new Vector3(element.refX, element.refZ, element.refY), new Vector3(element.offX, element.offZ, element.offY), element.radius, element.GetDisplayStyleWithOverride(), element.LineEndA, element.LineEndB);
+                if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(layout, new(x.refX, x.refY, x.refZ), new(x.refX, x.refY, x.refZ)))
+                {
+                    if(!LayoutUtils.ShouldDraw(x.refX, Utils.GetPlayerPositionXZY().X, x.refY, Utils.GetPlayerPositionXZY().Y) && !LayoutUtils.ShouldDraw(x.offX, Utils.GetPlayerPositionXZY().X, x.offY, Utils.GetPlayerPositionXZY().Y)) continue;
+                    //PluginLog.Information($"{layout?.Name}/{element?.Name}/{CommonRenderUtils.ProcessLineAtFixedCoords(element, layout).Count}/{x}");
+                    ret = true;
+                    AddLine(new Vector3(x.refX, x.refZ, x.refY), new Vector3(x.offX, x.offZ, x.offY), element.radius, element.GetDisplayStyleWithOverride(), element.LineEndA, element.LineEndB);
+                }
             }
         }
         else if(element.type == 5)
         {
-            if(element.FaceMe)
+            foreach(var x in CommonRenderUtils.ProcessFixedPositionShape(element, layout))
             {
-                var list = Utils.GetFacePositions(layout, element, null, element.faceplayer);
-                if(list != null)
+                if(element.FaceMe)
                 {
-                    foreach(var fpos in list)
+                    var list = Utils.GetFacePositions(layout, null, element.faceplayer);
+                    if(list != null)
                     {
-                        var baseAngle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(new Vector2(element.refX + element.offX, element.refY + element.offY), fpos.ToVector2())).DegreesToRadians();
-                        var pos = new Vector3(element.refX + element.offX, element.refY + element.offY, element.refZ + element.offZ);
-                        DrawCone(layout, element, element.FaceInvert ? fpos.ToXZY() : pos, radius, baseAngle);
+                        foreach(var fpos in list)
+                        {
+                            var baseAngle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(new Vector2(x.refX + element.offX, x.refY + element.offY), fpos.ToVector2())).DegreesToRadians();
+                            var pos = new Vector3(x.refX + element.offX, x.refY + element.offY, x.refZ + element.offZ);
+                            ret = true;
+                            DrawCone(layout, element, element.FaceInvert ? fpos.ToXZY() : pos, radius, baseAngle);
+                        }
                     }
                 }
+                else
+                {
+                    var baseAngle = 0f;
+                    var pos = new Vector3(x.refX + element.offX, x.refY + element.offY, x.refZ + element.offZ);
+                    ret = true;
+                    DrawCone(layout, element, pos, radius, baseAngle);
+                }
             }
-            else
-            {
-                var baseAngle = 0f;
-                var pos = new Vector3(element.refX + element.offX, element.refY + element.offY, element.refZ + element.offZ);
-                DrawCone(layout, element, pos, radius, baseAngle);
-            }
-
         }
         return ret;
     }

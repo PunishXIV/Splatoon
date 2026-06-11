@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using ECommons.Collections;
 using ECommons.CSExtensions;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
@@ -14,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using TerraFX.Interop.Windows;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Splatoon.RenderEngines;
@@ -201,7 +203,7 @@ public static unsafe class CommonRenderUtils
         {
             foreach(var p in element.DistanceSourcePlaceholder)
             {
-                var pos = Utils.GetFacePositions(layout, element, go, p);
+                var pos = Utils.GetFacePositions(layout, go, p);
                 foreach(var x in pos)
                 {
                     if(Vector3.Distance(go.Position, x).InRange(element.DistanceMin, element.DistanceMax).Invert(element.LimitDistanceInvert)) return true;
@@ -212,6 +214,75 @@ public static unsafe class CommonRenderUtils
         else
         {
             return Vector3.Distance(go.GetPositionXZY(), new(element.DistanceSourceX, element.DistanceSourceY, element.DistanceSourceZ)).InRange(element.DistanceMin, element.DistanceMax).Invert(element.LimitDistanceInvert);
+        }
+    }
+
+    internal static List<Vector3> GetPointsFromPlaceholderList(Layout layout, IGameObject go, List<string> placeholders)
+    {
+        var ret = new List<Vector3>();
+        foreach(var p in placeholders)
+        {
+            var pos = Utils.GetFacePositions(layout, go, p);
+            foreach(var x in pos)
+            {
+                ret.Add(x);
+            }
+        }
+        return ret;
+    }
+
+    internal readonly record struct RefOffCoords(float refX, float refY, float refZ, float offX, float offY, float offZ);
+    internal static OneOrMany<RefOffCoords> ProcessLineAtFixedCoords(Element element, Layout layout)
+    {
+        if(!element.UsePlaceholderAsRefPosition && !element.UsePlaceholderAsOffPosition)
+        {
+            return new(new RefOffCoords(element.refX, element.refY, element.refZ, element.offX, element.offY, element.offZ));
+        }
+        else
+        {
+            var ret = new List<RefOffCoords>();
+            List<Vector3> posA = element.UsePlaceholderAsRefPosition ? CommonRenderUtils.GetPointsFromPlaceholderList(layout, null, element.PlaceholdersRefPosition) : [element.RefPosition];
+            List<Vector3> posB = element.UsePlaceholderAsOffPosition ? CommonRenderUtils.GetPointsFromPlaceholderList(layout, null, element.PlaceholdersOffPosition) : [element.OffPosition];
+            if(element.PairingMode == PairingMode.One_to_one)
+            {
+                for(int i = 0; i < Math.Min(posA.Count, posB.Count); i++)
+                {
+                    var r = posA[i];
+                    var o = posB[i];
+                    ret.Add(new(r.X, r.Z, r.Y, o.X, o.Z, o.Y));
+                }
+            }
+            else if(element.PairingMode == PairingMode.Every_to_every)
+            {
+                foreach(var r in posA)
+                {
+                    foreach(var o in posB)
+                    {
+                        ret.Add(new(r.X, r.Z, r.Y, o.X, o.Z, o.Y));
+                    }
+                }
+            }
+            return new(ret);
+        }
+    }
+
+    internal readonly record struct RefCoords(float refX, float refY, float refZ);
+
+    internal static OneOrMany<RefCoords> ProcessFixedPositionShape(Element element, Layout layout)
+    {
+        if(!element.UsePlaceholderAsRefPosition)
+        {
+            return new(new RefCoords(element.refX, element.refY, element.refZ));
+        }
+        else
+        {
+            var ret = new List<RefCoords>();
+            List<Vector3> posA = CommonRenderUtils.GetPointsFromPlaceholderList(layout, null, element.PlaceholdersRefPosition);
+            foreach(var r in posA)
+            {
+                ret.Add(new(r.X, r.Z, r.Y));
+            }
+            return new(ret);
         }
     }
 }

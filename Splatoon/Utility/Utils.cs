@@ -244,13 +244,20 @@ public static unsafe class Utils
         return ret;
     }
 
-    public static List<Vector3> GetFacePositions(Layout layout, Element element, IGameObject go, string placeholder)
+    /// <summary>
+    /// XYZ format
+    /// </summary>
+    /// <param name="layout"></param>
+    /// <param name="go"></param>
+    /// <param name="placeholder"></param>
+    /// <returns></returns>
+    public static List<Vector3> GetFacePositions(Layout layout, IGameObject go, string placeholder)
     {
         if(placeholder.StartsWith("<element:"))
         {
             var details = placeholder[1..^1].Split(":");
             var list = details.Length == 2
-                ? Splatoon.CapturedPositions.SafeSelect(layout.GetName())?.SafeSelect(details[1])
+                ? Splatoon.CapturedPositions.SafeSelect(layout?.GetName())?.SafeSelect(details[1])
                 : Splatoon.CapturedPositions.SafeSelect(details[1])?.SafeSelect(details[2]);
             return list ?? [];
         }
@@ -292,7 +299,7 @@ public static unsafe class Utils
                     for(var i = 0; i < c->Vfx.Tethers.Length; i++)
                     {
                         var t = c->Vfx.Tethers[i];
-                        if(t.Id != 0 && t.TargetId == go.GameObjectId)
+                        if(t.Id != 0 && t.TargetId == go?.GameObjectId)
                         {
                             ret.Add(x.Position);
                         }

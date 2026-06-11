@@ -339,6 +339,12 @@ public unsafe class Controller
         OriginalLayoutsDirect[key] = value.DSFClone();
     }
 
+    public void ApplySingleElementOverride(string key, Element value)
+    {
+        Elements[key] = value.DSFClone();
+        OriginalElementsDirect[key] = value.DSFClone();
+    }
+
     public void ApplyOverrides()
     {
         foreach(var x in Script.InternalData.Overrides.Elements)

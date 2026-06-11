@@ -89,8 +89,9 @@ internal class PinnedLayoutEdit : Window
             OnClose();
         }
         EditingLayout = s.InternalData.Overrides.Layouts[key];
+        this.CurrentElement = null;
         Script = s;
-        WindowName = $"Editing element [{key}] from {s.InternalData.FullName}###Pinned element editor";
+        WindowName = $"Editing layout [{key}] from {s.InternalData.FullName}###Pinned element editor";
         IsOpen = true;
     }
 

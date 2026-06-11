@@ -83,11 +83,11 @@ internal unsafe partial class CGui
             catch(Exception e) { e.Log(); }
         }
         {
-            var t = Environment.TickCount64 - p.CombatStarted;
+            var t = Environment.TickCount64 - P.CombatStarted;
             ImGuiEx.Text("CombatStarted = " + t);
         }
         ImGui.SetNextItemWidth(60f);
-        ImGui.DragInt($"Message concurrency", ref p.dequeueConcurrency, float.Epsilon);
+        ImGui.DragInt($"Message concurrency", ref P.dequeueConcurrency, float.Epsilon);
         ImGui.Separator();
         if(Svc.ClientState.LocalPlayer != null)
         {

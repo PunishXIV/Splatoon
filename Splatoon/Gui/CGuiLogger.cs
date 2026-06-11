@@ -12,14 +12,14 @@ internal partial class CGui
     private bool IsViewer = false;
     private void DisplayLogger()
     {
-        ImGui.Checkbox("Enable logger".Loc(), ref p.LogObjects);
+        ImGui.Checkbox("Enable logger".Loc(), ref P.LogObjects);
         ImGui.SameLine();
         ImGui.Checkbox("Viewer mode".Loc(), ref IsViewer);
         ImGuiComponents.HelpMarker("When enabled, only currently present objects are displayed".Loc());
         ImGui.SameLine();
         if(ImGui.Button("Clear list".Loc()))
         {
-            p.loggedObjectList.Clear();
+            P.loggedObjectList.Clear();
         }
         ImGui.SameLine();
         ImGuiEx.Text("Filter:".Loc());
@@ -43,7 +43,7 @@ internal partial class CGui
         ImGui.TableSetupColumn("Life".Loc());
         ImGui.TableHeadersRow();
         var i = 0;
-        foreach(var x in p.loggedObjectList)
+        foreach(var x in P.loggedObjectList)
         {
             i++;
             var mid = !x.Value.IsChar ? "--" : $"{x.Key.ModelID.Format()}";
@@ -79,8 +79,8 @@ internal partial class CGui
             ImGui.SameLine();
             if(ImGui.SmallButton("Find".Loc() + "##" + i))
             {
-                p.SFind.Clear();
-                p.SFind.Add(new()
+                P.SFind.Clear();
+                P.SFind.Add(new()
                 {
                     IncludeUntargetable = true,
                     ObjectID = x.Key.EntityId,
@@ -117,7 +117,7 @@ internal partial class CGui
         ImGui.EndTable();
         if(IsViewer)
         {
-            p.loggedObjectList.Clear();
+            P.loggedObjectList.Clear();
         }
     }
 }

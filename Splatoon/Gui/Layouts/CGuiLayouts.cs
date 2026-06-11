@@ -38,7 +38,7 @@ internal partial class CGui
     private void BuildLayoutFolderStructure()
     {
         LayoutFolderStructure = new("", "");
-        foreach(var x in P.Config.LayoutsL)
+        foreach(var x in Splatoon.P.Config.LayoutsL)
         {
             var currentLayout = LayoutFolderStructure;
             if(x.Group != "")
@@ -71,7 +71,7 @@ internal partial class CGui
 
     private int FindOrderIndex(string fullPath)
     {
-        var i = P.Config.GroupOrder.IndexOf(fullPath);
+        var i = Splatoon.P.Config.GroupOrder.IndexOf(fullPath);
         return i == -1 ? int.MaxValue : i;
     }
 
@@ -85,8 +85,8 @@ internal partial class CGui
 
     public uint FilteredTerritory
     {
-        get => P.Config.FilteredTerritoryLayout;
-        set => P.Config.FilteredTerritoryLayout = value;
+        get => Splatoon.P.Config.FilteredTerritoryLayout;
+        set => Splatoon.P.Config.FilteredTerritoryLayout = value;
     }
 
     private void DislayLayouts()
@@ -143,15 +143,15 @@ internal partial class CGui
                     }
                     ImGuiEx.Tooltip("Add new layout...".Loc());
                     ImGui.SameLine(0, 1);
-                    if(ImGuiEx.IconButton(P.Config.FocusMode ? FontAwesomeIcon.SearchMinus : FontAwesomeIcon.SearchPlus))
+                    if(ImGuiEx.IconButton(Splatoon.P.Config.FocusMode ? FontAwesomeIcon.SearchMinus : FontAwesomeIcon.SearchPlus))
                     {
-                        P.Config.FocusMode = !P.Config.FocusMode;
+                        Splatoon.P.Config.FocusMode = !Splatoon.P.Config.FocusMode;
                     }
                     ImGuiEx.Tooltip("Toggle focus mode.\nFocus mode: when layout is selected, hide all other layouts.".Loc());
                     ImGui.SameLine(0, 2);
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Sort))
                     {
-                        P.Config.GroupOrder.Sort();
+                        Splatoon.P.Config.GroupOrder.Sort();
                     }
                     ImGuiEx.Tooltip("Sorts groups alphabetically.".Loc());
                 });
@@ -261,38 +261,38 @@ internal partial class CGui
     private void DrawOldSelector()
     {
 
-        foreach(var x in P.Config.LayoutsL)
+        foreach(var x in Splatoon.P.Config.LayoutsL)
         {
             x.Group ??= "";
-            if(x.Group != "" && !P.Config.GroupOrder.Contains(x.Group))
+            if(x.Group != "" && !Splatoon.P.Config.GroupOrder.Contains(x.Group))
             {
-                P.Config.GroupOrder.Add(x.Group);
+                Splatoon.P.Config.GroupOrder.Add(x.Group);
             }
         }
-        var takenLayouts = P.Config.LayoutsL.ToArray();
-        if(!P.Config.FocusMode || CurrentLayout == null)
+        var takenLayouts = Splatoon.P.Config.LayoutsL.ToArray();
+        if(!Splatoon.P.Config.FocusMode || CurrentLayout == null)
         {
-            for(var i = 0; i < P.Config.GroupOrder.Count; i++)
+            for(var i = 0; i < Splatoon.P.Config.GroupOrder.Count; i++)
             {
-                var g = P.Config.GroupOrder[i];
+                var g = Splatoon.P.Config.GroupOrder[i];
                 if(LayoutFilter != "" &&
-                    !P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(LayoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
+                    !Splatoon.P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(LayoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
 
                 if(FilteredTerritory == 0)
                 {
-                    if(ActiveExpansion != null && !P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineExpansion() == ActiveExpansion.Value)) continue;
-                    if(ActiveContentCategory != null && !P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineContentCategory() == ActiveContentCategory.Value)) continue;
+                    if(ActiveExpansion != null && !Splatoon.P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineExpansion() == ActiveExpansion.Value)) continue;
+                    if(ActiveContentCategory != null && !Splatoon.P.Config.LayoutsL.Any(x => x.Group == g && x.DetermineContentCategory() == ActiveContentCategory.Value)) continue;
                 }
                 else
                 {
-                    if(!P.Config.LayoutsL.Any(x => x.Group == g && x.ZoneLockH.Contains((ushort)FilteredTerritory) && x.ZoneLockH.Count > 0))
+                    if(!Splatoon.P.Config.LayoutsL.Any(x => x.Group == g && x.ZoneLockH.Contains((ushort)FilteredTerritory) && x.ZoneLockH.Count > 0))
                     {
                         continue;
                     }
                 }
 
                 ImGui.PushID(g);
-                ImGui.PushStyleColor(ImGuiCol.Text, P.Config.DisabledGroups.Contains(g) ? EColor.Yellow : EColor.YellowBright);
+                ImGui.PushStyleColor(ImGuiCol.Text, Splatoon.P.Config.DisabledGroups.Contains(g) ? EColor.Yellow : EColor.YellowBright);
 
                 if(HighlightGroup == g)
                 {
@@ -333,7 +333,7 @@ internal partial class CGui
                         HighlightGroup = g;
                         if(ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                         {
-                            P.Config.LayoutsL[indexOfMovedObj].Group = g;
+                            Splatoon.P.Config.LayoutsL[indexOfMovedObj].Group = g;
                         }
                     }
                     if(ImGuiDragDrop.AcceptDragDropPayload("MoveGroup", out int indexOfMovedGroup
@@ -342,17 +342,17 @@ internal partial class CGui
                         ImGuiUtils.DrawLine(curpos, contRegion);
                         if(ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                         {
-                            var exch = P.Config.GroupOrder[indexOfMovedGroup];
-                            P.Config.GroupOrder[indexOfMovedGroup] = null;
-                            P.Config.GroupOrder.Insert(i, exch);
-                            P.Config.GroupOrder.RemoveAll(x => x == null);
+                            var exch = Splatoon.P.Config.GroupOrder[indexOfMovedGroup];
+                            Splatoon.P.Config.GroupOrder[indexOfMovedGroup] = null;
+                            Splatoon.P.Config.GroupOrder.Insert(i, exch);
+                            Splatoon.P.Config.GroupOrder.RemoveAll(x => x == null);
                         }
                     }
                     ImGui.EndDragDropTarget();
                 }
                 if(ImGui.IsItemClicked(ImGuiMouseButton.Middle))
                 {
-                    P.Config.DisabledGroups.Toggle(g);
+                    Splatoon.P.Config.DisabledGroups.Toggle(g);
                 }
                 if(ImGui.IsItemClicked(ImGuiMouseButton.Right))
                 {
@@ -367,7 +367,7 @@ internal partial class CGui
                     ImGui.SameLine();
                     if(ImGui.Button("OK".Loc()) || result)
                     {
-                        if(P.Config.GroupOrder.Contains(PopupRename))
+                        if(Splatoon.P.Config.GroupOrder.Contains(PopupRename))
                         {
                             Notify.Error("Error: this name is already exists".Loc());
                         }
@@ -382,37 +382,37 @@ internal partial class CGui
                                 OpenedGroup.Add(PopupRename);
                                 OpenedGroup.Remove(g);
                             }
-                            foreach(var x in P.Config.LayoutsL)
+                            foreach(var x in Splatoon.P.Config.LayoutsL)
                             {
                                 if(x.Group == g)
                                 {
                                     x.Group = PopupRename;
                                 }
                             }
-                            P.Config.GroupOrder[i] = PopupRename;
+                            Splatoon.P.Config.GroupOrder[i] = PopupRename;
                             PopupRename = "";
                         }
                     }
                     if(ImGui.Selectable("Archive group".Loc()) && ImGui.GetIO().KeyCtrl)
                     {
-                        foreach(var l in P.Config.LayoutsL)
+                        foreach(var l in Splatoon.P.Config.LayoutsL)
                         {
                             if(l.Group == g)
                             {
-                                P.Archive.LayoutsL.Add(l.JSONClone());
+                                Splatoon.P.Archive.LayoutsL.Add(l.JSONClone());
                                 l.Group = "";
-                                new TickScheduler(() => P.Config.LayoutsL.Remove(l));
+                                new TickScheduler(() => Splatoon.P.Config.LayoutsL.Remove(l));
                             }
                         }
                         var index = i;
-                        new TickScheduler(() => P.Config.GroupOrder.RemoveAt(index));
-                        P.SaveArchive();
+                        new TickScheduler(() => Splatoon.P.Config.GroupOrder.RemoveAt(index));
+                        Splatoon.P.SaveArchive();
                     }
                     ImGuiEx.Tooltip("Hold CTRL+click".Loc());
                     ImGui.Separator();
                     if(ImGui.Selectable("Remove group and disband layouts".Loc()) && ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift)
                     {
-                        foreach(var l in P.Config.LayoutsL)
+                        foreach(var l in Splatoon.P.Config.LayoutsL)
                         {
                             if(l.Group == g)
                             {
@@ -420,27 +420,27 @@ internal partial class CGui
                             }
                         }
                         var index = i;
-                        new TickScheduler(() => P.Config.GroupOrder.RemoveAt(index));
+                        new TickScheduler(() => Splatoon.P.Config.GroupOrder.RemoveAt(index));
                     }
                     ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
                     if(ImGui.Selectable("Remove group and it's layouts".Loc()) && ImGui.GetIO().KeyCtrl && ImGui.GetIO().KeyShift)
                     {
-                        foreach(var l in P.Config.LayoutsL)
+                        foreach(var l in Splatoon.P.Config.LayoutsL)
                         {
                             if(l.Group == g)
                             {
                                 l.Group = "";
-                                new TickScheduler(() => P.Config.LayoutsL.Remove(l));
+                                new TickScheduler(() => Splatoon.P.Config.LayoutsL.Remove(l));
                             }
                         }
                         var index = i;
-                        new TickScheduler(() => P.Config.GroupOrder.RemoveAt(index));
+                        new TickScheduler(() => Splatoon.P.Config.GroupOrder.RemoveAt(index));
                     }
                     ImGuiEx.Tooltip("Hold CTRL+SHIFT+click".Loc());
                     if(ImGui.Selectable("Export Group".Loc()))
                     {
                         List<string> Export = [];
-                        foreach(var l in P.Config.LayoutsL)
+                        foreach(var l in Splatoon.P.Config.LayoutsL)
                         {
                             if(l.Group == g)
                             {
@@ -449,7 +449,7 @@ internal partial class CGui
                         }
                         ImGui.SetClipboardText(Export.Join("\n"));
                     }
-                    ImGuiEx.CollectionCheckbox("Group Enabled", g, P.Config.DisabledGroups, inverted: true);
+                    ImGuiEx.CollectionCheckbox("Group Enabled", g, Splatoon.P.Config.DisabledGroups, inverted: true);
                     ImGui.EndPopup();
                 }
                 for(var n = 0; n < takenLayouts.Length; n++)
@@ -470,7 +470,7 @@ internal partial class CGui
         for(var i = 0; i < takenLayouts.Length; i++)
         {
             var x = takenLayouts[i];
-            if(!P.Config.FocusMode || CurrentLayout == x || CurrentLayout == null)
+            if(!Splatoon.P.Config.FocusMode || CurrentLayout == x || CurrentLayout == null)
             {
                 x?.DrawSelector(null, i);
             }

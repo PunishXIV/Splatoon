@@ -82,7 +82,7 @@ internal class Projection : IDisposable
     {
         Stopwatch.Reset();
         Stopwatch.Start();
-        if(P.ConfigGui.Open)
+        if(P.ConfigGui.IsOpen)
         {
             ProjectingItems.Clear();
         }
@@ -109,7 +109,7 @@ internal class Projection : IDisposable
                     {
                         blacklisted = true;
                     }
-                    ProjectionItemDescriptor descriptor = P.ConfigGui.Open ? new(new(b.CastInfo.ActionType, b.CastInfo.ActionId), b.ObjectId, blacklisted) : null;
+                    ProjectionItemDescriptor descriptor = P.ConfigGui.IsOpen ? new(new(b.CastInfo.ActionType, b.CastInfo.ActionId), b.ObjectId, blacklisted) : null;
                     ProjectingItems.Add(descriptor);
                     bool? showOverride = null;
                     var isAlreadyProcessed = false;

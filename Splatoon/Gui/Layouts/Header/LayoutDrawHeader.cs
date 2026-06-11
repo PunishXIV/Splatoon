@@ -29,7 +29,7 @@ internal partial class CGui
             if(!ignoreGroup)
             {
                 ImGui.TableNextColumn();
-                var groupCol = P.Config.DisabledGroups.Contains(layout.Group);
+                var groupCol = Splatoon.P.Config.DisabledGroups.Contains(layout.Group);
                 if(groupCol) ImGui.PushStyleColor(ImGuiCol.Text, EColor.RedBright);
                 ImGuiEx.TextV("Group:".Loc());
                 ImGui.TableNextColumn();
@@ -41,7 +41,7 @@ internal partial class CGui
                     {
                         layout.Group = "";
                     }
-                    foreach(var x in P.Config.GroupOrder)
+                    foreach(var x in Splatoon.P.Config.GroupOrder)
                     {
                         if(ImGui.Selectable(x))
                         {

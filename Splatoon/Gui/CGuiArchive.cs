@@ -26,7 +26,7 @@ internal unsafe partial class CGui
             if(group == "") continue;
             if(ImGuiEx.TreeNode(group))
             {
-                var grp = P.Archive.LayoutsL.Where(x => x.Group == group);
+                var grp = Splatoon.P.Archive.LayoutsL.Where(x => x.Group == group);
                 if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Copy, "Copy group"))
                 {
                     Copy(grp.Select(x => EzConfig.DefaultSerializationFactory.Serialize(x, false)).Join("\n"));
@@ -36,8 +36,8 @@ internal unsafe partial class CGui
                 {
                     foreach(var x in grp)
                     {
-                        P.Config.LayoutsL.Add(x.JSONClone());
-                        new TickScheduler(() => P.Archive.LayoutsL.Remove(x));
+                        Splatoon.P.Config.LayoutsL.Add(x.JSONClone());
+                        new TickScheduler(() => Splatoon.P.Archive.LayoutsL.Remove(x));
                     }
                 }
                 ImGui.SameLine();
@@ -45,7 +45,7 @@ internal unsafe partial class CGui
                 {
                     foreach(var x in grp)
                     {
-                        new TickScheduler(() => P.Archive.LayoutsL.Remove(x));
+                        new TickScheduler(() => Splatoon.P.Archive.LayoutsL.Remove(x));
                     }
                 }
                 ImGui.PushID(group);
@@ -54,7 +54,7 @@ internal unsafe partial class CGui
                 ImGui.TreePop();
             }
         }
-        var nogrp = P.Archive.LayoutsL.Where(x => x.Group == "");
+        var nogrp = Splatoon.P.Archive.LayoutsL.Where(x => x.Group == "");
         if(nogrp.Any()) DrawArchiveEntries(nogrp);
     }
 
@@ -87,13 +87,13 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ArrowCircleLeft, "Restore"))
                 {
-                    P.Config.LayoutsL.Add(x.JSONClone());
-                    new TickScheduler(() => P.Archive.LayoutsL.Remove(x));
+                    Splatoon.P.Config.LayoutsL.Add(x.JSONClone());
+                    new TickScheduler(() => Splatoon.P.Archive.LayoutsL.Remove(x));
                 }
                 ImGui.SameLine();
                 if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Trash, "Delete", ImGuiEx.Ctrl))
                 {
-                    new TickScheduler(() => P.Archive.LayoutsL.Remove(x));
+                    new TickScheduler(() => Splatoon.P.Archive.LayoutsL.Remove(x));
                 }
                 ImGui.PopID();
             }

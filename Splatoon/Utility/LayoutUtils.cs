@@ -490,10 +490,10 @@ public static unsafe class LayoutUtils
         return true;
     }
 
-    public static bool CheckDistanceToLineCondition(Layout i, Element e)
+    public static bool CheckDistanceToLineCondition(Layout i, Vector3 vRef, Vector3 vOff)
     {
         if(i.DistanceLimitType != 1) return true;
-        var dist = Vector3.Distance(Utils.FindClosestPointOnLine(Utils.GetPlayerPositionXZY(), new Vector3(e.refX, e.refY, e.refZ), new Vector3(e.offX, e.offY, e.offZ)), Utils.GetPlayerPositionXZY());
+        var dist = Vector3.Distance(Utils.FindClosestPointOnLine(Utils.GetPlayerPositionXZY(), vRef, vOff), Utils.GetPlayerPositionXZY());
         if(!(dist >= i.MinDistance && dist < i.MaxDistance)) return false;
         return true;
     }

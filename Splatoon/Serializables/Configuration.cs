@@ -141,7 +141,7 @@ internal class Configuration : IEzConfig
         ZipSemaphore = new SemaphoreSlim(1);
         Svc.PluginInterface.UiBuilder.OpenConfigUi += delegate
         {
-            plugin.ConfigGui.Open = true;
+            plugin.ConfigGui.IsOpen = true;
         };
         NuiTools.SetState(NightmareUIState);
     }

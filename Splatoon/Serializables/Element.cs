@@ -239,9 +239,16 @@ public class Element
     public Point2 EnumerationStart = Vector2.Zero.ToPoint2();
     public List<uint> AnimationIds = [];
     [DefaultValue(false)] public bool AnimationInverted = false;
+    [DefaultValue(false)] public bool UsePlaceholderAsRefPosition = false;
+    [DefaultValue(false)] public bool UsePlaceholderAsOffPosition = false;
+    [DefaultValue(PairingMode.One_to_one)] public PairingMode PairingMode = PairingMode.One_to_one;
+    public List<string> PlaceholdersRefPosition = [];
+    public List<string> PlaceholdersOffPosition = [];
 
     internal float CastFractionOverride = 0f;
 
+    public bool ShouldSerializePlaceholdersRefPosition() => PlaceholdersRefPosition.Count > 0 && UsePlaceholderAsRefPosition;
+    public bool ShouldSerializePlaceholdersOffPosition() => PlaceholdersOffPosition.Count > 0 && UsePlaceholderAsOffPosition;
     public bool ShouldSerializeAnimationIds() => AnimationIds.Count > 0;
     public bool ShouldSerializeEnumerationCenter() => Enumeration != EnumerationType.None;
     public bool ShouldSerializeEnumerationStart() => Enumeration != EnumerationType.None;
@@ -308,7 +315,18 @@ public class Element
             refZ = value.Y;
         }
     }
+    public Vector3 RefPositionXZY
+    {
+        get => new(refX, refY, refZ);
+        set
+        {
+            refX = value.X;
+            refY = value.Y;
+            refZ = value.Z;
+        }
+    }
     public bool ShouldSerializeRefPosition() => false;
+    public bool ShouldSerializeRefPositionXZY() => false;
 
     public Vector3 OffPosition
     {
@@ -320,5 +338,16 @@ public class Element
             offZ = value.Y;
         }
     }
+    public Vector3 OffPositionXZY
+    {
+        get => new(offX, offY, offZ);
+        set
+        {
+            offX = value.X;
+            offY = value.Y;
+            offZ = value.Z;
+        }
+    }
     public bool ShouldSerializeOffPosition() => false;
+    public bool ShouldSerializeOffPositionXZY() => false;
 }

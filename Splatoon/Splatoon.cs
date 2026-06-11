@@ -49,6 +49,7 @@ public unsafe class Splatoon : IDalamudPlugin
     internal Configuration Config;
     internal Dictionary<ushort, TerritoryType> Zones;
     public static string BasePlayerOverride = "";
+    public bool Draw = true;
     public static IPlayerCharacter BasePlayer
     {
         get
@@ -160,8 +161,7 @@ public unsafe class Splatoon : IDalamudPlugin
         dynamicElements = [];
         SetupShutdownHttp(Config.UseHttpServer);
 
-        ConfigGui = new CGui(this);
-        EzConfigGui.Init(() => { });
+        ConfigGui = new CGui();
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= EzConfigGui.Open;
         PinnedElementEditWindow = new();
         EzConfigGui.WindowSystem.AddWindow(PinnedElementEditWindow);
@@ -598,7 +598,10 @@ public unsafe class Splatoon : IDalamudPlugin
                     {
                         foreach(var z in x.Controller.Layouts)
                         {
-                            ProcessLayout(z.Value, x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawLayouts.Contains(z.Key));
+                            ProcessLayout(z.Value, 
+                                (x.InternalData.UnconditionalDraw && x.InternalData.UnconditionalDrawLayouts.Contains(z.Key)) 
+                                || (S.PinnedLayoutEdit.IsOpen && ReferenceEquals(S.PinnedLayoutEdit.EditingLayout, z.Value))
+                                );
                         }
                     }
                 }

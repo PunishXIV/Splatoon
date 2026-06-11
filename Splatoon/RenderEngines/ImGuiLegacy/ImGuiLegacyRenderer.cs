@@ -58,10 +58,13 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         var radius = element.radius;
         if(element.type == 0)
         {
-            if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, element.refX, element.refY, element.refZ))
+            foreach(var x in CommonRenderUtils.ProcessFixedPositionShape(element, layout))
             {
-                ret = true;
-                DrawCircle(layout, element, element.refX, element.refY, element.refZ, radius, 0f);
+                if(layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceCondition(layout, x.refX, x.refY, x.refZ))
+                {
+                    ret = true;
+                    DrawCircle(layout, element, x.refX, x.refY, x.refZ, radius, 0f);
+                }
             }
         }
         else if(element.type == 1 || element.type == 3 || element.type == 4)
@@ -110,7 +113,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     {
                         if(element.FaceMe)
                         {
-                            var list = Utils.GetFacePositions(layout, element, Svc.Targets.Target, element.faceplayer);
+                            var list = Utils.GetFacePositions(layout, Svc.Targets.Target, element.faceplayer);
                             if(list != null)
                             {
                                 foreach(var pos in list)
@@ -135,7 +138,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                             {
                                 if(element.FaceMe)
                                 {
-                                    var list = Utils.GetFacePositions(layout, element, Svc.Targets.Target, element.faceplayer);
+                                    var list = Utils.GetFacePositions(layout, Svc.Targets.Target, element.faceplayer);
                                     if(list != null)
                                     {
                                         foreach(var pos in list)
@@ -173,7 +176,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                             {
                                 if(element.FaceMe)
                                 {
-                                    var list = Utils.GetFacePositions(layout, element, Svc.Targets.Target, element.faceplayer);
+                                    var list = Utils.GetFacePositions(layout, Svc.Targets.Target, element.faceplayer);
                                     if(list != null)
                                     {
                                         foreach(var pos in list)
@@ -231,7 +234,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                         {
                             if(element.FaceMe)
                             {
-                                var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
+                                var list = Utils.GetFacePositions(layout, obj, element.faceplayer);
                                 if(list != null)
                                 {
                                     foreach(var pos in list)
@@ -256,7 +259,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                                 {
                                     if(element.FaceMe)
                                     {
-                                        var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
+                                        var list = Utils.GetFacePositions(layout, obj, element.faceplayer);
                                         if(list != null)
                                         {
                                             foreach(var pos in list)
@@ -294,7 +297,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                                 {
                                     if(element.FaceMe)
                                     {
-                                        var list = Utils.GetFacePositions(layout, element, obj, element.faceplayer);
+                                        var list = Utils.GetFacePositions(layout, obj, element.faceplayer);
                                         if(list != null)
                                         {
                                             foreach(var pos in list)
@@ -323,156 +326,158 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         }
         else if(element.type == 2)
         {
-            if(element.radius > 0)
+            foreach(var x in CommonRenderUtils.ProcessLineAtFixedCoords(element, layout))
             {
-                if(!LayoutUtils.ShouldDraw(element.refX, Utils.GetPlayerPositionXZY().X, element.refY, Utils.GetPlayerPositionXZY().Y)
-                    && !LayoutUtils.ShouldDraw(element.offX, Utils.GetPlayerPositionXZY().X, element.offY, Utils.GetPlayerPositionXZY().Y)) return ret;
-                ret = true;
-                Utils.PerpOffset(new Vector2(element.refX, element.refY), new Vector2(element.offX, element.offY), 0f, element.radius, out _, out var p1);
-                Utils.PerpOffset(new Vector2(element.refX, element.refY), new Vector2(element.offX, element.offY), 0f, -element.radius, out _, out var p2);
-                Utils.PerpOffset(new Vector2(element.refX, element.refY), new Vector2(element.offX, element.offY), 1f, element.radius, out _, out var p3);
-                Utils.PerpOffset(new Vector2(element.refX, element.refY), new Vector2(element.offX, element.offY), 1f, -element.radius, out _, out var p4);
-                var rect = new DisplayObjectRect()
+                if(element.radius > 0)
                 {
-                    l1 = new DisplayObjectLine(p1.X, p1.Y, element.refZ,
-                    p2.X, p2.Y, element.refZ,
-                    element.thicc, element.color),
-                    l2 = new DisplayObjectLine(p3.X, p3.Y, element.offZ,
-                    p4.X, p4.Y, element.offZ,
-                    element.thicc, element.color)
-                };
-                if(P.Config.AltRectFill)
-                {
-                    AddAlternativeFillingRect(rect, GetFillStepRect(element.FillStep), element.fillIntensity ?? Utils.DefaultFillIntensity, element.Filled);
-                }
-            }
-            else
-            {
-                if(
-                    (
-                        layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(layout, element)
-                    ) &&
-                    (
-                LayoutUtils.ShouldDraw(element.offX, Utils.GetPlayerPositionXZY().X, element.offY, Utils.GetPlayerPositionXZY().Y)
-                    || LayoutUtils.ShouldDraw(element.refX, Utils.GetPlayerPositionXZY().X, element.refY, Utils.GetPlayerPositionXZY().Y)
-                    )
-                    )
-                {
+                    if(!LayoutUtils.ShouldDraw(x.refX, Utils.GetPlayerPositionXZY().X, x.refY, Utils.GetPlayerPositionXZY().Y)
+                        && !LayoutUtils.ShouldDraw(x.offX, Utils.GetPlayerPositionXZY().X, x.offY, Utils.GetPlayerPositionXZY().Y)) continue;
                     ret = true;
-                    DisplayObjects.Add(new DisplayObjectLine(element.refX, element.refY, element.refZ, element.offX, element.offY, element.offZ, element.thicc, element.color));
+                    Utils.PerpOffset(new Vector2(x.refX, x.refY), new Vector2(x.offX, x.offY), 0f, element.radius, out _, out var p1);
+                    Utils.PerpOffset(new Vector2(x.refX, x.refY), new Vector2(x.offX, x.offY), 0f, -element.radius, out _, out var p2);
+                    Utils.PerpOffset(new Vector2(x.refX, x.refY), new Vector2(x.offX, x.offY), 1f, element.radius, out _, out var p3);
+                    Utils.PerpOffset(new Vector2(x.refX, x.refY), new Vector2(x.offX, x.offY), 1f, -element.radius, out _, out var p4);
+                    var rect = new DisplayObjectRect()
+                    {
+                        l1 = new DisplayObjectLine(p1.X, p1.Y, x.refZ, p2.X, p2.Y, x.refZ, element.thicc, element.color),
+                        l2 = new DisplayObjectLine(p3.X, p3.Y, x.offZ, p4.X, p4.Y, x.offZ, element.thicc, element.color)
+                    };
+                    if(P.Config.AltRectFill)
+                    {
+                        AddAlternativeFillingRect(rect, GetFillStepRect(element.FillStep), element.fillIntensity ?? Utils.DefaultFillIntensity, element.Filled);
+                    }
+                }
+                else
+                {
+                    if(
+                        (
+                            layout == null || !layout.UseDistanceLimit || LayoutUtils.CheckDistanceToLineCondition(layout, new(x.refX, x.refY, x.refZ), new(x.refX, x.refY, x.refZ))
+                        ) &&
+                        (
+                    LayoutUtils.ShouldDraw(x.offX, Utils.GetPlayerPositionXZY().X, x.offY, Utils.GetPlayerPositionXZY().Y)
+                        || LayoutUtils.ShouldDraw(x.refX, Utils.GetPlayerPositionXZY().X, x.refY, Utils.GetPlayerPositionXZY().Y)
+                        )
+                        )
+                    {
+                        ret = true;
+                        DisplayObjects.Add(new DisplayObjectLine(x.refX, x.refY, x.refZ, x.offX, x.offY, x.offZ, element.thicc, element.color));
+                    }
                 }
             }
         }
         else if(element.type == 5)
         {
-            if(element.coneAngleMax > element.coneAngleMin)
+            foreach(var coords in CommonRenderUtils.ProcessFixedPositionShape(element, layout))
             {
-                var pos = new Vector3(element.refX + element.offX, element.refY + element.offY, element.refZ + element.offZ);
-                if(!LayoutUtils.ShouldDraw(pos.X, Utils.GetPlayerPositionXZY().X, pos.Y, Utils.GetPlayerPositionXZY().Y)) return ret;
-                ret = true;
-                if(P.Config.FillCone)
+                if(element.coneAngleMax > element.coneAngleMin)
                 {
-                    if(element.FaceMe)
+                    var pos = new Vector3(coords.refX + element.offX, coords.refY + element.offY, coords.refZ + element.offZ);
+                    if(!LayoutUtils.ShouldDraw(pos.X, Utils.GetPlayerPositionXZY().X, pos.Y, Utils.GetPlayerPositionXZY().Y)) return ret;
+                    ret = true;
+                    if(P.Config.FillCone)
                     {
-                        var list = Utils.GetFacePositions(layout, element, null, element.faceplayer);
-                        if(list != null)
+                        if(element.FaceMe)
                         {
-                            foreach(var fpos in list)
+                            var list = Utils.GetFacePositions(layout, null, element.faceplayer);
+                            if(list != null)
                             {
-                                var baseAngle = ((element.FaceInvert ? 180 : 0) + MathHelper.GetRelativeAngle(new Vector2(element.refX + element.offX, element.refY + element.offY), fpos.ToVector2())).DegreesToRadians() + MathF.PI;
-                                var startRad = baseAngle + element.coneAngleMin.Float().DegreesToRadians() + (MathF.PI / 2);
-                                var endRad = baseAngle + element.coneAngleMax.Float().DegreesToRadians() + (MathF.PI / 2);
-                                AddCone(layout, element.FaceInvert ? pos.ToXZY() : pos, startRad, endRad, element, element.radius);
+                                foreach(var fpos in list)
+                                {
+                                    var baseAngle = ((element.FaceInvert ? 180 : 0) + MathHelper.GetRelativeAngle(new Vector2(coords.refX + element.offX, coords.refY + element.offY), fpos.ToVector2())).DegreesToRadians() + MathF.PI;
+                                    var startRad = baseAngle + element.coneAngleMin.Float().DegreesToRadians() + (MathF.PI / 2);
+                                    var endRad = baseAngle + element.coneAngleMax.Float().DegreesToRadians() + (MathF.PI / 2);
+                                    AddCone(layout, element.FaceInvert ? pos.ToXZY() : pos, startRad, endRad, element, element.radius);
+                                }
                             }
                         }
+                        else
+                        {
+                            var baseAngle = 0f;
+                            var startRad = baseAngle + element.coneAngleMin.Float().DegreesToRadians() + (MathF.PI / 2);
+                            var endRad = baseAngle + element.coneAngleMax.Float().DegreesToRadians() + (MathF.PI / 2);
+                            AddCone(layout, pos, startRad, endRad, element, element.radius);
+                        }
+
                     }
                     else
                     {
-                        var baseAngle = 0f;
-                        var startRad = baseAngle + element.coneAngleMin.Float().DegreesToRadians() + (MathF.PI / 2);
-                        var endRad = baseAngle + element.coneAngleMax.Float().DegreesToRadians() + (MathF.PI / 2);
-                        AddCone(layout, pos, startRad, endRad, element, element.radius);
-                    }
-
-                }
-                else
-                {
-                    for(var x = element.coneAngleMin; x < element.coneAngleMax; x += GetFillStepCone(element.FillStep))
-                    {
-                        if(element.FaceMe)
+                        for(var x = element.coneAngleMin; x < element.coneAngleMax; x += GetFillStepCone(element.FillStep))
                         {
-                            var list = Utils.GetFacePositions(layout, element, null, element.faceplayer);
-                            if(list != null)
+                            if(element.FaceMe)
                             {
-                                foreach(var fpos in list)
+                                var list = Utils.GetFacePositions(layout, null, element.faceplayer);
+                                if(list != null)
                                 {
-                                    var angle = ((element.FaceInvert ? 0 : 180) - (MathHelper.GetRelativeAngle(
-                                        new Vector2(element.refX + element.offX, element.refY + element.offY),
-                                        fpos.ToVector2()
-                                    ) - x.Float())).DegreesToRadians();
+                                    foreach(var fpos in list)
+                                    {
+                                        var angle = ((element.FaceInvert ? 0 : 180) - (MathHelper.GetRelativeAngle(
+                                            new Vector2(coords.refX + element.offX, coords.refY + element.offY),
+                                            fpos.ToVector2()
+                                        ) - x.Float())).DegreesToRadians();
 
-                                    var baseAngle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(
-                                        new Vector2(element.refX + element.offX, element.refY + element.offY),
-                                        fpos.ToVector2()
-                                    )).DegreesToRadians();
+                                        var baseAngle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(
+                                            new Vector2(coords.refX + element.offX, coords.refY + element.offY),
+                                            fpos.ToVector2()
+                                        )).DegreesToRadians();
 
-                                    AddConeLine(
-                                        element.FaceInvert ? fpos.ToXZY() : pos,
-                                        baseAngle,
-                                        angle,
-                                        element,
-                                        element.radius,
-                                        x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity,
-                                        false
-                                    );
+                                        AddConeLine(
+                                            element.FaceInvert ? fpos.ToXZY() : pos,
+                                            baseAngle,
+                                            angle,
+                                            element,
+                                            element.radius,
+                                            x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity,
+                                            false
+                                        );
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            var angle = (-x.Float()).DegreesToRadians();
-                            var baseAngle = 0f;
-                            AddConeLine(
-                                pos,
-                                baseAngle,
-                                angle,
-                                element,
-                                element.radius,
-                                x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity,
-                                false
-                            );
-                        }
-
-                    }
-                    {
-                        if(element.FaceMe)
-                        {
-                            var list = Utils.GetFacePositions(layout, element, null, element.faceplayer);
-                            if(list != null)
+                            else
                             {
-                                foreach(var fpos in list)
+                                var angle = (-x.Float()).DegreesToRadians();
+                                var baseAngle = 0f;
+                                AddConeLine(
+                                    pos,
+                                    baseAngle,
+                                    angle,
+                                    element,
+                                    element.radius,
+                                    x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity,
+                                    false
+                                );
+                            }
+
+                        }
+                        {
+                            if(element.FaceMe)
+                            {
+                                var list = Utils.GetFacePositions(layout, null, element.faceplayer);
+                                if(list != null)
                                 {
-                                    var angle = (180 - (MathHelper.GetRelativeAngle(
-                                        new Vector2(element.refX + element.offX, element.refY + element.offY),
-                                        fpos.ToVector2()
-                                    ) - element.coneAngleMax.Float())).DegreesToRadians();
+                                    foreach(var fpos in list)
+                                    {
+                                        var angle = (180 - (MathHelper.GetRelativeAngle(
+                                            new Vector2(coords.refX + element.offX, coords.refY + element.offY),
+                                            fpos.ToVector2()
+                                        ) - element.coneAngleMax.Float())).DegreesToRadians();
 
-                                    var baseAngle = (180 - MathHelper.GetRelativeAngle(
-                                        new Vector2(element.refX + element.offX, element.refY + element.offY),
-                                        fpos.ToVector2()
-                                    )).DegreesToRadians();
+                                        var baseAngle = (180 - MathHelper.GetRelativeAngle(
+                                            new Vector2(coords.refX + element.offX, coords.refY + element.offY),
+                                            fpos.ToVector2()
+                                        )).DegreesToRadians();
 
-                                    AddConeLine(pos, baseAngle, angle, element, element.radius, 1f, true);
+                                        AddConeLine(pos, baseAngle, angle, element, element.radius, 1f, true);
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            var angle = (-element.coneAngleMax.Float()).DegreesToRadians();
-                            var baseAngle = 0f;
-                            AddConeLine(pos, baseAngle, angle, element, element.radius, 1f, true);
-                        }
+                            else
+                            {
+                                var angle = (-element.coneAngleMax.Float()).DegreesToRadians();
+                                var baseAngle = 0f;
+                                AddConeLine(pos, baseAngle, angle, element, element.radius, 1f, true);
+                            }
 
+                        }
                     }
                 }
             }
@@ -490,7 +495,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
             cx = rotatedPoint.X;
             cy = rotatedPoint.Y;
         }
-        if(e.tether && !e.Nodraw)
+        if(e.tether && !e.Nodraw && P.Draw)
         {
             DisplayObjects.Add(new DisplayObjectLine(cx,
                 cy,
@@ -502,7 +507,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         {
             AddCapturedObject(layout, e, new Vector3(cx, z + e.offZ, cy));
         }
-        if(e.Nodraw) return;
+        if(e.Nodraw || !P.Draw) return;
         if(!LayoutUtils.ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
         if(e.thicc > 0)
         {
@@ -544,7 +549,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
 
     private void DrawText(Element element, IGameObject associatedGameObject, float cx, float cy, float z)
     {
-        if(element.Nodraw) return;
+        if(element.Nodraw || !P.Draw) return;
         if(element.overlayTextIntl.Get(element.overlayText).Length > 0)
         {
             var text = element.overlayTextIntl.Get(element.overlayText);
@@ -567,7 +572,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
                 DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
@@ -606,7 +611,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     tPos.Z + e.refZ));
                     AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
 
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)
@@ -637,7 +642,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
                 DisplayObjects.Add(new DisplayObjectLine(pointA.X, pointA.Y, pointA.Z,
@@ -672,7 +677,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     tPos.Z + e.refZ));
                     AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
-                if(e.Nodraw) return;
+                if(e.Nodraw || !P.Draw) return;
 
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)
@@ -703,7 +708,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
         {
             AddCapturedObject(layout, e, new Vector3(center.X, center.Z, center.Y));
         }
-        if(e.Nodraw) return;
+        if(e.Nodraw || !P.Draw) return;
         DisplayObjects.Add(new DisplayObjectCone(
             center.X, center.Y, center.Z, radius, startRad, endRad,
             e.thicc, e.color, true

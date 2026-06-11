@@ -35,7 +35,7 @@ public class LinuxWarningPopup : Window
             """);
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Cog, "Open configuration"))
         {
-            P.ConfigGui.Open = true;
+            P.ConfigGui.IsOpen = true;
         }
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.EyeSlash, "Permanently hide this window"))
         {

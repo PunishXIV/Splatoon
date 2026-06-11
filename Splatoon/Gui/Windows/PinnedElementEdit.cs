@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerraFX.Interop.Windows;
 
 namespace Splatoon.Gui.Windows;
 
@@ -13,6 +14,7 @@ internal class PinnedElementEdit : Window
     internal Layout DummyLayout = new();
     internal Element EditingElement;
     internal SplatoonScript Script;
+    internal string Key;
     public PinnedElementEdit() : base("###Pinned element editor")
     {
         SizeConstraints = new()
@@ -50,6 +52,7 @@ internal class PinnedElementEdit : Window
 
     internal void Open(SplatoonScript s, string name)
     {
+        Key = name;
         if(EditingElement != null && Script != null)
         {
             OnClose();
@@ -63,5 +66,10 @@ internal class PinnedElementEdit : Window
     public override bool DrawConditions()
     {
         return P.s2wInfo == null;
+    }
+
+    public override void Update()
+    {
+        Script.Controller.ApplySingleElementOverride(Key, EditingElement);
     }
 }

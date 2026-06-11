@@ -16,7 +16,7 @@ internal class Commands : IDisposable
         {
             if(arguments == "")
             {
-                P.ConfigGui.Open = !P.ConfigGui.Open;
+                P.ConfigGui.IsOpen = !P.ConfigGui.IsOpen;
             }
             else if(arguments.EqualsIgnoreCaseAny("p", "priority", "prio"))
             {

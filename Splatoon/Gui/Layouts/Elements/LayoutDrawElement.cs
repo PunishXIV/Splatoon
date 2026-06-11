@@ -56,57 +56,57 @@ internal unsafe partial class CGui
         ImGui.SameLine();
         if(ImGuiEx.IconButton(FontAwesomeIcon.EyeDropper))
         {
-            p.Clipboard = JsonConvert.DeserializeObject<Element>(JsonConvert.SerializeObject(el));
+            P.Clipboard = JsonConvert.DeserializeObject<Element>(JsonConvert.SerializeObject(el));
         }
         ImGuiEx.Tooltip("Copy style");
-        if(p.Clipboard != null)
+        if(P.Clipboard != null)
         {
             ImGui.SameLine();
             if(ImGuiEx.IconButton(FontAwesomeIcon.FillDrip))
             {
-                el.color = p.Clipboard.color;
-                el.thicc = p.Clipboard.thicc;
+                el.color = P.Clipboard.color;
+                el.thicc = P.Clipboard.thicc;
 
-                if(p.Clipboard.Filled)
+                if(P.Clipboard.Filled)
                 {
-                    el.Filled = p.Clipboard.Filled;
-                    el.fillIntensity = p.Clipboard.fillIntensity;
-                    if(p.Clipboard.overrideFillColor)
+                    el.Filled = P.Clipboard.Filled;
+                    el.fillIntensity = P.Clipboard.fillIntensity;
+                    if(P.Clipboard.overrideFillColor)
                     {
-                        el.overrideFillColor = p.Clipboard.overrideFillColor;
-                        el.originFillColor = p.Clipboard.originFillColor;
-                        el.endFillColor = p.Clipboard.endFillColor;
+                        el.overrideFillColor = P.Clipboard.overrideFillColor;
+                        el.originFillColor = P.Clipboard.originFillColor;
+                        el.endFillColor = P.Clipboard.endFillColor;
                     }
                 }
 
-                if(p.Clipboard.castAnimation != CastAnimationKind.Unspecified)
+                if(P.Clipboard.castAnimation != CastAnimationKind.Unspecified)
                 {
-                    el.castAnimation = p.Clipboard.castAnimation;
-                    el.animationColor = p.Clipboard.animationColor;
-                    el.pulseSize = p.Clipboard.pulseSize;
-                    el.pulseFrequency = p.Clipboard.pulseFrequency;
+                    el.castAnimation = P.Clipboard.castAnimation;
+                    el.animationColor = P.Clipboard.animationColor;
+                    el.pulseSize = P.Clipboard.pulseSize;
+                    el.pulseFrequency = P.Clipboard.pulseFrequency;
                 }
 
-                el.overlayBGColor = p.Clipboard.overlayBGColor;
-                el.overlayTextColor = p.Clipboard.overlayTextColor;
-                el.tether = p.Clipboard.tether;
-                el.ExtraTetherLength = p.Clipboard.ExtraTetherLength;
-                el.LineEndA = p.Clipboard.LineEndA;
-                el.LineEndB = p.Clipboard.LineEndB;
-                el.overlayVOffset = p.Clipboard.overlayVOffset;
+                el.overlayBGColor = P.Clipboard.overlayBGColor;
+                el.overlayTextColor = P.Clipboard.overlayTextColor;
+                el.tether = P.Clipboard.tether;
+                el.ExtraTetherLength = P.Clipboard.ExtraTetherLength;
+                el.LineEndA = P.Clipboard.LineEndA;
+                el.LineEndB = P.Clipboard.LineEndB;
+                el.overlayVOffset = P.Clipboard.overlayVOffset;
                 if(ImGui.GetIO().KeyCtrl)
                 {
-                    el.radius = p.Clipboard.radius;
-                    el.includeHitbox = p.Clipboard.includeHitbox;
-                    el.includeOwnHitbox = p.Clipboard.includeOwnHitbox;
-                    el.includeRotation = p.Clipboard.includeRotation;
-                    el.onlyTargetable = p.Clipboard.onlyTargetable;
+                    el.radius = P.Clipboard.radius;
+                    el.includeHitbox = P.Clipboard.includeHitbox;
+                    el.includeOwnHitbox = P.Clipboard.includeOwnHitbox;
+                    el.includeRotation = P.Clipboard.includeRotation;
+                    el.onlyTargetable = P.Clipboard.onlyTargetable;
                 }
                 if(ImGui.GetIO().KeyShift && el.type != 2)
                 {
-                    el.refX = p.Clipboard.refX;
-                    el.refY = p.Clipboard.refY;
-                    el.refZ = p.Clipboard.refZ;
+                    el.refX = P.Clipboard.refX;
+                    el.refY = P.Clipboard.refY;
+                    el.refZ = P.Clipboard.refZ;
                 }
             }
             if(ImGui.IsItemHovered())
@@ -114,60 +114,60 @@ internal unsafe partial class CGui
                 ImGui.BeginTooltip();
                 ImGuiEx.Text("Paste style".Loc());
                 ImGuiEx.Text("Copied style:".Loc());
-                ImGuiEx.Text($"Color: 0x{p.Clipboard.color:X8}");
+                ImGuiEx.Text($"Color: 0x{P.Clipboard.color:X8}");
                 ImGui.SameLine();
-                ImGuiUtils.DisplayColor(p.Clipboard.color);
-                ImGuiEx.Text($"Thickness: {p.Clipboard.thicc}");
-                if(p.Clipboard.Filled)
+                ImGuiUtils.DisplayColor(P.Clipboard.color);
+                ImGuiEx.Text($"Thickness: {P.Clipboard.thicc}");
+                if(P.Clipboard.Filled)
                 {
-                    if(p.Clipboard.overrideFillColor)
+                    if(P.Clipboard.overrideFillColor)
                     {
-                        ImGuiEx.Text($"Origin Fill Color: 0x{p.Clipboard.originFillColor:X8}");
+                        ImGuiEx.Text($"Origin Fill Color: 0x{P.Clipboard.originFillColor:X8}");
                         ImGui.SameLine();
-                        ImGuiUtils.DisplayColor(p.Clipboard.originFillColor ?? 0);
-                        ImGuiEx.Text($"End Fill Color: 0x{p.Clipboard.endFillColor:X8}");
+                        ImGuiUtils.DisplayColor(P.Clipboard.originFillColor ?? 0);
+                        ImGuiEx.Text($"End Fill Color: 0x{P.Clipboard.endFillColor:X8}");
                         ImGui.SameLine();
-                        ImGuiUtils.DisplayColor(p.Clipboard.endFillColor ?? 0);
+                        ImGuiUtils.DisplayColor(P.Clipboard.endFillColor ?? 0);
                     }
                     else
                     {
-                        ImGuiEx.Text($"Fill Intensity: {p.Clipboard.fillIntensity}");
+                        ImGuiEx.Text($"Fill Intensity: {P.Clipboard.fillIntensity}");
                     }
                 }
-                if(p.Clipboard.castAnimation != CastAnimationKind.Unspecified)
+                if(P.Clipboard.castAnimation != CastAnimationKind.Unspecified)
                 {
-                    ImGuiEx.Text($"Animation: {CastAnimations.Names[(int)p.Clipboard.castAnimation]}");
-                    ImGuiEx.Text($"Animation Color: 0x{p.Clipboard.animationColor:X8}");
+                    ImGuiEx.Text($"Animation: {CastAnimations.Names[(int)P.Clipboard.castAnimation]}");
+                    ImGuiEx.Text($"Animation Color: 0x{P.Clipboard.animationColor:X8}");
                     ImGui.SameLine();
-                    ImGuiUtils.DisplayColor(p.Clipboard.animationColor);
-                    if(p.Clipboard.castAnimation == CastAnimationKind.Pulse)
+                    ImGuiUtils.DisplayColor(P.Clipboard.animationColor);
+                    if(P.Clipboard.castAnimation == CastAnimationKind.Pulse)
                     {
-                        ImGuiEx.Text($"Pulse Size: {p.Clipboard.pulseSize}");
-                        ImGuiEx.Text($"Pulse Frequency: {p.Clipboard.pulseFrequency}");
+                        ImGuiEx.Text($"Pulse Size: {P.Clipboard.pulseSize}");
+                        ImGuiEx.Text($"Pulse Frequency: {P.Clipboard.pulseFrequency}");
                     }
                 }
-                ImGuiEx.Text($"Overlay BG color: 0x{p.Clipboard.overlayBGColor:X8}");
+                ImGuiEx.Text($"Overlay BG color: 0x{P.Clipboard.overlayBGColor:X8}");
                 ImGui.SameLine();
-                ImGuiUtils.DisplayColor(p.Clipboard.overlayBGColor);
-                ImGuiEx.Text($"Overlay text color: 0x{p.Clipboard.overlayTextColor:X8}");
+                ImGuiUtils.DisplayColor(P.Clipboard.overlayBGColor);
+                ImGuiEx.Text($"Overlay text color: 0x{P.Clipboard.overlayTextColor:X8}");
                 ImGui.SameLine();
-                ImGuiUtils.DisplayColor(p.Clipboard.overlayTextColor);
-                ImGuiEx.Text($"Overlay vertical offset: {p.Clipboard.overlayVOffset}");
-                ImGuiEx.Text($"Tether: {p.Clipboard.tether}");
+                ImGuiUtils.DisplayColor(P.Clipboard.overlayTextColor);
+                ImGuiEx.Text($"Overlay vertical offset: {P.Clipboard.overlayVOffset}");
+                ImGuiEx.Text($"Tether: {P.Clipboard.tether}");
                 ImGui.Separator();
                 ImGuiEx.Text((ImGui.GetIO().KeyCtrl ? Colors.Green : Colors.Gray).ToVector4(),
                     "Holding CTRL when clicking will also paste:".Loc());
-                ImGuiEx.Text($"Radius: {p.Clipboard.radius}");
-                ImGuiEx.Text($"Include target hitbox: {p.Clipboard.includeHitbox}");
-                ImGuiEx.Text($"Include own hitbox: {p.Clipboard.includeOwnHitbox}");
-                ImGuiEx.Text($"Include rotation: {p.Clipboard.includeRotation}");
-                ImGuiEx.Text($"Only targetable: {p.Clipboard.onlyTargetable}");
+                ImGuiEx.Text($"Radius: {P.Clipboard.radius}");
+                ImGuiEx.Text($"Include target hitbox: {P.Clipboard.includeHitbox}");
+                ImGuiEx.Text($"Include own hitbox: {P.Clipboard.includeOwnHitbox}");
+                ImGuiEx.Text($"Include rotation: {P.Clipboard.includeRotation}");
+                ImGuiEx.Text($"Only targetable: {P.Clipboard.onlyTargetable}");
                 ImGui.Separator();
                 ImGuiEx.Text((ImGui.GetIO().KeyShift ? Colors.Green : Colors.Gray).ToVector4(),
                     "Holding SHIFT when clicking will also paste:".Loc());
-                ImGuiEx.Text($"X offset: {p.Clipboard.offX}");
-                ImGuiEx.Text($"Y offset: {p.Clipboard.offY}");
-                ImGuiEx.Text($"Z offset: {p.Clipboard.offZ}");
+                ImGuiEx.Text($"X offset: {P.Clipboard.offX}");
+                ImGuiEx.Text($"Y offset: {P.Clipboard.offY}");
+                ImGuiEx.Text($"Z offset: {P.Clipboard.offZ}");
 
                 ImGui.EndTooltip();
             }
@@ -185,7 +185,7 @@ internal unsafe partial class CGui
         ImGui.SameLine();
         if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "SelOnScreenRot"))
         {
-            P.BeginS2W(this, "CenterX", "CenterY", null);
+            Splatoon.P.BeginS2W(this, "CenterX", "CenterY", null);
         }
         ImGuiEx.Tooltip("Select on screen");
         ImGui.SameLine();
@@ -309,7 +309,7 @@ internal unsafe partial class CGui
                     ImGui.SameLine();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "RotateTowards"))
                     {
-                        P.BeginS2W(el.RotationOverridePoint, "X", "Y", null);
+                        Splatoon.P.BeginS2W(el.RotationOverridePoint, "X", "Y", null);
                     }
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(50f);
@@ -544,7 +544,7 @@ internal unsafe partial class CGui
                         ImGui.SameLine();
                         if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "SelEnumCenter"))
                         {
-                            P.BeginS2W(el.EnumerationCenter, "X", "Y", null);
+                            Splatoon.P.BeginS2W(el.EnumerationCenter, "X", "Y", null);
                         }
 
                         ImGuiUtils.SizedText("Starting Position:".Loc(), WidthElement);
@@ -561,7 +561,7 @@ internal unsafe partial class CGui
                         ImGui.SameLine();
                         if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "SelEnumStart"))
                         {
-                            P.BeginS2W(el.EnumerationStart, "X", "Y", null);
+                            Splatoon.P.BeginS2W(el.EnumerationStart, "X", "Y", null);
                         }
 
                         ImGuiUtils.SizedText("Enumeration Positions:".Loc(), WidthElement);
@@ -912,75 +912,7 @@ internal unsafe partial class CGui
             if(el.LimitDistance)
             {
                 ImGui.SameLine();
-                ImGuiEx.ButtonCheckbox(FontAwesomeIcon.Bullseye, ref el.UseDistanceSourcePlaceholder);
-                ImGuiEx.Tooltip($"Check distance against placeholder instead of fixed coordinates. Multiple entries are treated as combined with \"or\".".Loc());
-
-                ImGui.SameLine();
-
-                if(el.UseDistanceSourcePlaceholder)
-                {
-                    ImGui.SetNextItemWidth(200f);
-                    ImGuiEx.InputListString("##pholder2", el.DistanceSourcePlaceholder);
-                    ImGui.SameLine();
-                    if(ImGuiEx.IconButton(FontAwesomeIcon.AngleDoubleDown))
-                    {
-                        ImGui.OpenPopup("PlaceholderFastSelect2");
-                    }
-                    if(ImGui.BeginPopup("PlaceholderFastSelect2"))
-                    {
-                        foreach(var option in FaceOptions)
-                        {
-                            if(ImGui.Selectable(option, el.DistanceSourcePlaceholder.Contains(option), ImGuiSelectableFlags.DontClosePopups))
-                            {
-                                el.DistanceSourcePlaceholder.Toggle(option);
-                            }
-                        }
-                        ImGui.EndPopup();
-                    }
-                }
-                else
-                {
-                    ImGuiEx.Text("X:");
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(60f);
-                    ImGui.DragFloat("##distX", ref el.DistanceSourceX, 0.02f, float.MinValue, float.MaxValue);
-                    ImGui.SameLine();
-                    ImGuiEx.Text("Y:");
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(60f);
-                    ImGui.DragFloat("##distY", ref el.DistanceSourceY, 0.02f, float.MinValue, float.MaxValue);
-                    ImGui.SameLine();
-                    ImGuiEx.Text("Z:");
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(60f);
-                    ImGui.DragFloat("##distZ", ref el.DistanceSourceZ, 0.02f, float.MinValue, float.MaxValue);
-                    ImGui.SameLine();
-                    if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##dist"))
-                    {
-                        el.DistanceSourceX = 0;
-                        el.DistanceSourceY = 0;
-                        el.DistanceSourceZ = 0;
-                    }
-                    ImGuiEx.Tooltip("0 0 0");
-                    ImGui.SameLine();
-                    if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##dist"))
-                    {
-                        el.DistanceSourceX = Utils.GetPlayerPositionXZY().X;
-                        el.DistanceSourceY = Utils.GetPlayerPositionXZY().Y;
-                        el.DistanceSourceZ = Utils.GetPlayerPositionXZY().Z;
-                    }
-                    ImGuiEx.Tooltip("My position");
-                    ImGui.SameLine();
-                    if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##dist"))
-                    {
-                        SetCursorTo(el.DistanceSourceX, el.DistanceSourceY, el.DistanceSourceZ);
-                        p.BeginS2W(el, "DistanceSourceX", "DistanceSourceY", "DistanceSourceZ");
-                    }
-                    ImGuiEx.Tooltip("Select on screen".Loc());
-                    ImGui.SameLine();
-                    DrawRounding(ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ);
-                }
-
+                DrawVector3OrPlaceholder("DistLimit", $"Check distance against placeholder instead of fixed coordinates. Multiple entries are treated as combined with \"or\".".Loc(), ref el.UseDistanceSourcePlaceholder, el.DistanceSourcePlaceholder, ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ, el, nameof(el.DistanceSourceX), nameof(el.DistanceSourceY), nameof(el.DistanceSourceZ), true, true);
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
@@ -1204,70 +1136,8 @@ internal unsafe partial class CGui
                 }
             }
             ImGui.SameLine();
-            ImGuiEx.Text("X:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##refx", ref el.refX, 0.02f, float.MinValue, float.MaxValue);
-            ImGui.SameLine();
-            ImGuiEx.Text("Y:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##refy", ref el.refY, 0.02f, float.MinValue, float.MaxValue);
-            ImGui.SameLine();
-            ImGuiEx.Text("Z:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##refz", ref el.refZ, 0.02f, float.MinValue, float.MaxValue);
-            ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
-            {
-                ImGui.SetClipboardText(JsonConvert.SerializeObject(new Vector3(el.refX, el.refZ, el.refY)));
-            }
-            ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.Paste))
-            {
-                try
-                {
-                    var v = JsonConvert.DeserializeObject<Vector3>(ImGui.GetClipboardText());
-                    el.refX = v.X;
-                    el.refY = v.Z;
-                    el.refZ = v.Y;
-                }
-                catch(Exception e)
-                {
-                    e.Log();
-                    Notify.Error(e.Message);
-                }
-            }
-            ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##ref"))
-            {
-                el.refX = 0;
-                el.refY = 0;
-                el.refZ = 0;
-            }
-            ImGuiEx.Tooltip("0 0 0");
-            if(el.type != 3)
-            {
-                ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##ref"))
-                {
-                    el.refX = Utils.GetPlayerPositionXZY().X;
-                    el.refY = Utils.GetPlayerPositionXZY().Y;
-                    el.refZ = Utils.GetPlayerPositionXZY().Z;
-                }
-                ImGuiEx.Tooltip("My position".Loc());
-                ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w1"))
-                {
-                    SetCursorTo(el.refX, el.refZ, el.refY);
-                    p.BeginS2W(el, "refX", "refY", "refZ");
-                }
-                ImGuiEx.Tooltip("Select on screen".Loc());
-                ImGui.SameLine();
-                DrawRounding(ref el.refX, ref el.refY, ref el.refZ);
-            }
-
+            this.DrawVector3OrPlaceholder("RefX", null, ref el.UsePlaceholderAsRefPosition, el.PlaceholdersRefPosition, ref el.refX, ref el.refY, ref el.refZ, el, nameof(el.refX), nameof(el.refY), nameof(el.refZ), el.type != 3, el.type != 3);
+            
             if(el.type.EqualsAny(1, 3) && el.includeRotation)
             {
                 ImGui.SameLine();
@@ -1296,44 +1166,12 @@ internal unsafe partial class CGui
             }
         }
 
-        if(true)
+        if(true) //lol
         {
-
             ImGuiUtils.SizedText((el.type == 2 || el.type == 3) ? "Point B".Loc() : "Offset: ".Loc(), WidthElement);
             ImGui.SameLine();
-            ImGuiEx.Text("X:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##offx", ref el.offX, 0.02f, float.MinValue, float.MaxValue);
-            ImGui.SameLine();
-            ImGuiEx.Text("Y:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##offy", ref el.offY, 0.02f, float.MinValue, float.MaxValue);
-            ImGui.SameLine();
-            ImGuiEx.Text("Z:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##offz", ref el.offZ, 0.02f, float.MinValue, float.MaxValue);
-            ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##off"))
-            {
-                el.offX = 0;
-                el.offY = 0;
-                el.offZ = 0;
-            }
-            ImGuiEx.Tooltip("0 0 0");
-            if(el.type == 2)
-            {
-                ImGui.SameLine();
-                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##off"))
-                {
-                    el.offX = Utils.GetPlayerPositionXZY().X;
-                    el.offY = Utils.GetPlayerPositionXZY().Y;
-                    el.offZ = Utils.GetPlayerPositionXZY().Z;
-                }
-                ImGuiEx.Tooltip("My position".Loc());
-            }
+            this.DrawVector3OrPlaceholder("offX", null, ref el.UsePlaceholderAsOffPosition, el.PlaceholdersOffPosition, ref el.offX, ref el.offY, ref el.offZ, el, nameof(el.offX), nameof(el.offY), nameof(el.offZ), el.type == 2, el.type == 2);
+            
             if((el.type == 3) && el.refActorType != 1)
             {
                 ImGuiUtils.SizedText("", WidthElement);
@@ -1356,6 +1194,14 @@ internal unsafe partial class CGui
             }
         }
 
+
+        if(el.type == 2 && (el.UsePlaceholderAsOffPosition || el.UsePlaceholderAsRefPosition))
+        {
+            ImGuiUtils.SizedText("Pairing Mode:", WidthElement);
+            ImGui.SameLine();
+            ImGuiEx.EnumCombo("##pairing", ref el.PairingMode);
+        }
+
         if(el.type.EqualsAny(4, 5))
         {
             ImGuiUtils.SizedText("Angle:".Loc(), WidthElement);
@@ -1371,21 +1217,6 @@ internal unsafe partial class CGui
             ImGui.SameLine();
             ImGui.SetNextItemWidth(50f);
             ImGui.DragInt("##angle2", ref el.coneAngleMax, 0.1f);
-        }
-
-        //ImGui.SameLine();
-        //ImGui.Checkbox("Actor relative##rota"+i+k, ref el.includeRotation);
-        if(el.type == 2)
-        {
-            ImGui.SameLine();
-            if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World".Loc() + "##s2w2"))
-            {
-                SetCursorTo(el.offX, el.offZ, el.offY);
-                p.BeginS2W(el, "offX", "offY", "offZ");
-            }
-            ImGuiEx.Tooltip("Select on screen".Loc());
-            ImGui.SameLine();
-            DrawRounding(ref el.offX, ref el.offY, ref el.offZ);
         }
 
         if(!el.Nodraw)
@@ -1648,7 +1479,7 @@ internal unsafe partial class CGui
         {
             if(el.Enumeration != EnumerationType.None)
             {
-                P.InjectElement(new(0)
+                Splatoon.P.InjectElement(new(0)
                 {
                     Filled = false,
                     overlayVOffset = 2,
@@ -1658,7 +1489,7 @@ internal unsafe partial class CGui
                     refY = el.EnumerationCenter.Y,
                     refZ = BasePlayer?.Position.Y ?? 0
                 });
-                P.InjectElement(new(0)
+                Splatoon.P.InjectElement(new(0)
                 {
                     Filled = false,
                     overlayVOffset = 2,
@@ -1673,7 +1504,7 @@ internal unsafe partial class CGui
             {
                 if(!el.UseDistanceSourcePlaceholder)
                 {
-                    P.InjectElement(new(0)
+                    Splatoon.P.InjectElement(new(0)
                     {
                         Filled = false,
                         overlayVOffset = 2,
@@ -1684,7 +1515,7 @@ internal unsafe partial class CGui
                         refZ = el.DistanceSourceZ,
                         radius = el.DistanceMin,
                     });
-                    P.InjectElement(new(0)
+                    Splatoon.P.InjectElement(new(0)
                     {
                         Filled = false,
                         overlayVOffset = 2,
@@ -1701,7 +1532,7 @@ internal unsafe partial class CGui
             {
                 if(!el.RotationOverrideAngleOnlyMode)
                 {
-                    P.InjectElement(new(0)
+                    Splatoon.P.InjectElement(new(0)
                     {
                         Filled = false,
                         overlayVOffset = 2,
@@ -1714,5 +1545,109 @@ internal unsafe partial class CGui
                 }
             }
         }
+    }
+
+    public void DrawVector3OrPlaceholder(string id, string tooltip, ref bool usePlaceholder, List<string> placeholders, ref float x, ref float y, ref float z, object coordinatesHolder, string nameX, string nameY, string nameZ, bool showAbsPosButtons, bool allowUsePlaceholder)
+    {
+        ImGui.PushID(id);
+        if(allowUsePlaceholder)
+        {
+            ImGuiEx.ButtonCheckbox(FontAwesomeIcon.Bullseye, ref usePlaceholder);
+            ImGuiEx.Tooltip(tooltip ?? $"Use placeholder instead of fixed coordinates.".Loc());
+            ImGui.SameLine();
+        }
+        if(usePlaceholder && allowUsePlaceholder)
+        {
+            ImGui.SetNextItemWidth(200f);
+            ImGuiEx.InputListString("##pholder2", placeholders);
+            ImGui.SameLine();
+            if(ImGuiEx.IconButton(FontAwesomeIcon.AngleDoubleDown))
+            {
+                ImGui.OpenPopup("PlaceholderFastSelect2");
+            }
+            if(ImGui.BeginPopup("PlaceholderFastSelect2"))
+            {
+                foreach(var option in FaceOptions)
+                {
+                    if(ImGui.Selectable(option, placeholders.Contains(option), ImGuiSelectableFlags.DontClosePopups))
+                    {
+                        placeholders.Toggle(option);
+                    }
+                }
+                ImGui.EndPopup();
+            }
+        }
+        else
+        {
+            ImGuiEx.Text("X:");
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(60f);
+            ImGui.DragFloat("##distX", ref x, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.SameLine();
+            ImGuiEx.Text("Y:");
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(60f);
+            ImGui.DragFloat("##distY", ref y, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.SameLine();
+            ImGuiEx.Text("Z:");
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(60f);
+            ImGui.DragFloat("##distZ", ref z, 0.02f, float.MinValue, float.MaxValue);
+            ImGui.SameLine();
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
+            {
+                ImGui.SetClipboardText(JsonConvert.SerializeObject(new Vector3(x, z, y)));
+            }
+            ImGuiEx.Tooltip("Copy".Loc());
+            ImGui.SameLine(0, 2);
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Paste))
+            {
+                try
+                {
+                    var v = JsonConvert.DeserializeObject<Vector3>(ImGui.GetClipboardText());
+                    x = v.X;
+                    y = v.Z;
+                    z = v.Y;
+                }
+                catch(Exception e)
+                {
+                    e.Log();
+                    Notify.Error(e.Message);
+                }
+            }
+            ImGuiEx.Tooltip("Paste".Loc());
+            ImGui.SameLine(0, 2);
+            if(ImGuiEx.IconButton(FontAwesomeIcon.Circle, "0 0 0##dist"))
+            {
+                x = 0;
+                y = 0;
+                z = 0;
+            }
+            ImGuiEx.Tooltip("0 0 0");
+            if(showAbsPosButtons)
+            {
+                ImGui.SameLine(0, 2);
+                if(ImGuiEx.IconButton(FontAwesomeIcon.MapMarked, "My position".Loc() + "##dist"))
+                {
+                    x = Utils.GetPlayerPositionXZY().X;
+                    y = Utils.GetPlayerPositionXZY().Y;
+                    z = Utils.GetPlayerPositionXZY().Z;
+                }
+                ImGuiEx.Tooltip("My position".Loc());
+                if(coordinatesHolder != null)
+                {
+                    ImGui.SameLine(0, 2);
+                    if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World" + "##dist"))
+                    {
+                        SetCursorTo(x, y, z);
+                        P.BeginS2W(coordinatesHolder, nameX, nameY, nameZ);
+                    }
+                }
+                ImGuiEx.Tooltip("Select on screen".Loc());
+            }
+            ImGui.SameLine(0, 2);
+            DrawRounding(ref x, ref y, ref z);
+        }
+        ImGui.PopID();
     }
 }

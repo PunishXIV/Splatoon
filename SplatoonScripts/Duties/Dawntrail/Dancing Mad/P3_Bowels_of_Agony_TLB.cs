@@ -63,14 +63,6 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     private const string ElNavi = "BowelsNavi";
-    private const string ElImplosionLine1 = "implosion_line1";
-    private const string ElImplosionLine2 = "implosion_line2";
-
-    private const string JsonImplosionLine1 =
-        """{"Name":"implosion_line1","type":3,"refY":30.0,"offY":-30.0,"radius":0.0,"fillIntensity":0.345,"thicc":7.0,"refActorDataID":19508,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":0.7853982}""";
-
-    private const string JsonImplosionLine2 =
-        """{"Name":"implosion_line2","type":3,"refY":30.0,"offY":-30.0,"radius":0.0,"fillIntensity":0.345,"thicc":7.0,"refActorDataID":19508,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":2.3561945,"DistanceSourceX":100.67891,"DistanceSourceY":100.679085,"DistanceSourceZ":1.9073486E-06,"DistanceMax":20.2}""";
 
     private static readonly string[] RoleColumnLabels = ["T1", "T2", "H1", "H2", "M1", "M2", "R1", "R2"];
 
@@ -143,6 +135,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         public BaitBusterCombo BaitBusterRule = BaitBusterCombo.FirstBaiter;
         public BaitSmashCombo BaitSmashRole = BaitSmashCombo.R1;
         public bool DebugPreviewAllDestinations;
+        public bool EnableAvoidNavi;
         public bool FixFireLeftRightByWaterSideFromWind;
         public PositionRuleSettings[] PositionRules = CreateDefaultPositionRules();
 
@@ -445,8 +438,6 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             }, overwrite: true);
         }
 
-        Controller.RegisterElementFromCode(ElImplosionLine1, JsonImplosionLine1, overwrite: true);
-        Controller.RegisterElementFromCode(ElImplosionLine2, JsonImplosionLine2, overwrite: true);
     }
 
     public override void OnReset()
@@ -521,6 +512,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
                         break;
                     case State.PairStack:
                         _state = State.Wait;
+                        ResetState();
                         break;
                 }
 
@@ -552,12 +544,6 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         }
     }
 
-    public override void OnVFXSpawn(uint target, string vfxPath)
-    {
-        if(IsPhaseActive() && LimitCutVfxRegex.IsMatch(vfxPath))
-            ResetState();
-    }
-
     public override void OnRemoveBuffEffect(uint sourceId, Status status)
     {
         if(!_isAgony)
@@ -584,7 +570,6 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         }
 
         UpdateDebugPreviewMarkers();
-        UpdateImplosionLineMarkers();
 
         if(_state == State.Wait)
         {
@@ -611,6 +596,13 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         if(TryResolveDestination(priorityIndex) is not { } destination)
         {
             _naviBlockReason = "No destination for current state/role";
+            DisableNavi();
+            return;
+        }
+
+        if(IsAvoidImplosionState() && !C.EnableAvoidNavi)
+        {
+            _naviBlockReason = "Avoid nav disabled";
             DisableNavi();
             return;
         }
@@ -672,10 +664,23 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
             C.BaitSmashRole = (BaitSmashCombo)baitSmashRole;
 
         ImGui.Spacing();
+        DrawAvoidNaviSettings();
+
+        ImGui.Spacing();
         DrawFireLeftRightSettings();
 
         ImGui.Spacing();
         DrawPositionRulesTable();
+    }
+
+    // Draws implosion avoid navigation toggle.
+    private void DrawAvoidNaviSettings()
+    {
+        ImGui.TextDisabled("Implosion avoid");
+        ImGui.Separator();
+        ImGui.Checkbox("Navigate to avoid position###enableAvoidNavi", ref C.EnableAvoidNavi);
+        ImGui.SameLine();
+        ImGui.TextColored(new Vector4(1f, 0.75f, 0.2f, 1f), "This option is unstable. It is recommended to import a layout and avoid Vertical/Horizontal layouts.");
     }
 
     // Draws fire left/right side correction option.
@@ -979,7 +984,6 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
         _battleChaosPlayerNames.Clear();
         _battleExdeathPlayerNames.Clear();
         DisableNavi();
-        DisableImplosionLineMarkers();
         DisableAllRolePreviewMarkers();
     }
 
@@ -1523,35 +1527,6 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
     // Returns whether the state machine is in an avoid implosion phase.
     private bool IsAvoidImplosionState()
         => _state is State.AvoidVerticalImplosion or State.AvoidHorizontalImplosion;
-
-    // Enables or disables implosion guide lines for the current state.
-    private void UpdateImplosionLineMarkers()
-    {
-        if(IsAvoidImplosionState())
-            EnableImplosionLineMarkers();
-        else
-            DisableImplosionLineMarkers();
-    }
-
-    // Enables Chaos-relative implosion guide lines.
-    private void EnableImplosionLineMarkers()
-    {
-        if(Controller.TryGetElementByName(ElImplosionLine1, out var line1))
-            line1.Enabled = true;
-
-        if(Controller.TryGetElementByName(ElImplosionLine2, out var line2))
-            line2.Enabled = true;
-    }
-
-    // Disables implosion guide lines.
-    private void DisableImplosionLineMarkers()
-    {
-        if(Controller.TryGetElementByName(ElImplosionLine1, out var line1))
-            line1.Enabled = false;
-
-        if(Controller.TryGetElementByName(ElImplosionLine2, out var line2))
-            line2.Enabled = false;
-    }
 
     // Returns the debug role preview element name for a priority index.
     private static string GetRolePreviewElementName(int index)

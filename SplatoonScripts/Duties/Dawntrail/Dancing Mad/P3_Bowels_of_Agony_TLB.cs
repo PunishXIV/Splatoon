@@ -512,6 +512,7 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
                         break;
                     case State.PairStack:
                         _state = State.Wait;
+                        ResetState();
                         break;
                 }
 
@@ -541,12 +542,6 @@ internal class P3_Bowels_of_Agony_TLB : SplatoonScript
                 _state = State.PairStack;
                 break;
         }
-    }
-
-    public override void OnVFXSpawn(uint target, string vfxPath)
-    {
-        if(IsPhaseActive() && LimitCutVfxRegex.IsMatch(vfxPath))
-            ResetState();
     }
 
     public override void OnRemoveBuffEffect(uint sourceId, Status status)

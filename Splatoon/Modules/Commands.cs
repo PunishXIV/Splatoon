@@ -32,22 +32,7 @@ internal class Commands : IDisposable
             }
             else if(arguments == "r" || arguments == "reset")
             {
-                var phase = Splatoon.P.Phase;
-                Splatoon.P.TerritoryChangedEvent(0);
-                foreach(var x in P.Config.LayoutsL)
-                {
-                    x.FreezeInfo = new();
-                }
-                Notify.Success("Reset");
-                if(Splatoon.P.Phase != phase)
-                {
-                    Splatoon.P.Phase = phase;
-                    Notify.Info($"Returned to phase {phase}");
-                }
-                AttachedInfo.CastInfos.Clear();
-                AttachedInfo.VFXInfos.Clear();
-                AttachedInfo.TetherInfos.Clear();
-                SplatoonScripting.ScriptingProcessor.Scripts.Where(x => x.IsEnabled).Each(x => x.Controller.Reset());
+                Utils.Reset();
             }
             else if(arguments.StartsWith("enable "))
             {

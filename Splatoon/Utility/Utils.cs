@@ -25,6 +25,26 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    internal static void Reset()
+    {
+        var phase = Splatoon.P.Phase;
+        Splatoon.P.TerritoryChangedEvent(0);
+        foreach(var x in P.Config.LayoutsL)
+        {
+            x.FreezeInfo = new();
+        }
+        Notify.Success("Reset");
+        if(Splatoon.P.Phase != phase)
+        {
+            Splatoon.P.Phase = phase;
+            Notify.Info($"Returned to phase {phase}");
+        }
+        AttachedInfo.CastInfos.Clear();
+        AttachedInfo.VFXInfos.Clear();
+        AttachedInfo.TetherInfos.Clear();
+        SplatoonScripting.ScriptingProcessor.Scripts.Where(x => x.IsEnabled).Each(x => x.Controller.Reset());
+    }
+
     /// <summary>
     /// Returns element from layout by name, or null, if absent. If multiple elements of the same name are present, will return first only.
     /// </summary>

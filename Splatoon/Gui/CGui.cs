@@ -43,6 +43,8 @@ internal unsafe partial class CGui : ConfigWindow
     private float RightWidth = 0;
     internal string TabRequest = null;
     TitleBarButton SplatoonButton;
+    TitleBarButton ResetButton;
+    TitleBarButton PhaseButton;
 
     public CGui() : base("Splatoon")
     {
@@ -50,6 +52,7 @@ internal unsafe partial class CGui : ConfigWindow
         ActionNames = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Action>().ToDictionary(x => x.RowId, x => $"{x.RowId} | {x.Name}");
         BuffNames = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.Status>().ToDictionary(x => x.RowId, x => $"{x.RowId} | {x.Name}");
         this.SetSizeConstraints(new Vector2(700, 200), new(float.MaxValue, float.MaxValue));
+
         SplatoonButton = new()
         {
             Icon = Splatoon.P.Draw ? FontAwesomeIcon.Eye : FontAwesomeIcon.EyeSlash,
@@ -59,8 +62,33 @@ internal unsafe partial class CGui : ConfigWindow
                 SplatoonButton.Icon = Splatoon.P.Draw ? FontAwesomeIcon.Eye : FontAwesomeIcon.EyeSlash;
             },
             IconOffset = new(1, 1),
+            ShowTooltip = () => ImGuiEx.Tooltip("Hide rendered elements. Processing won't be stopped. Some elements may remain on screen. ")
         };
         this.TitleBarButtons.Add(SplatoonButton);
+
+        ResetButton = new()
+        {
+            Icon = (FontAwesomeIcon)'\uf0e2',
+            Click = x =>
+            {
+                Utils.Reset();
+            },
+            IconOffset = new(1, 1),
+            ShowTooltip = () => ImGuiEx.Tooltip("Reset Splatoon state.")
+        };
+        this.TitleBarButtons.Add(ResetButton);
+
+        PhaseButton = new()
+        {
+            Icon = (FontAwesomeIcon)FontAwesomeIcon.DiceOne,
+            Click = x =>
+            {
+                P.Phase = P.Phase == 1 ? 2 : 1;
+            },
+            IconOffset = new(2, 1),
+            ShowTooltip = () => ImGuiEx.Tooltip("Click to switch between phase 1 and 2.")
+        };
+        this.TitleBarButtons.Add(PhaseButton);
     }
 
     public void Dispose()
@@ -98,6 +126,7 @@ internal unsafe partial class CGui : ConfigWindow
             var ctspan = TimeSpan.FromMilliseconds(Environment.TickCount64 - P.CombatStarted);
             WindowName = $"Splatoon v{P.loader.splatoonVersion} | {GenericHelpers.GetTerritoryName(Svc.ClientState.TerritoryType).Replace("| ", "")} | {(P.CombatStarted == 0 ? "Not in combat".Loc() : $"{Loc("Combat")}: {ctspan.Minutes:D2}{(ctspan.Milliseconds < 500 ? ":" : " ")}{ctspan.Seconds:D2} ({(int)ctspan.TotalSeconds}.{ctspan.Milliseconds / 100:D1}s)")} | {Loc("Phase")}: {P.Phase} | {Loc("Scene")}: {*Scene.ActiveScene} | {Loc("Layouts")}: {P.LayoutAmount} | {Loc("Elements")}: {P.ElementAmount} | {Utils.GetPlayerPositionXZY().X:F1}, {Utils.GetPlayerPositionXZY().Y:F1}###Splatoon";
             this.SplatoonButton.IconColor = Splatoon.P.Draw ? null : global::System.Environment.TickCount64 % 1000 > 500 ? global::ECommons.ImGuiMethods.EColor.RedBright : null;
+            this.PhaseButton.Icon = (FontAwesomeIcon)(P.Phase == 1 ? FontAwesomeIcon.AngleRight : P.Phase == 2 ? FontAwesomeIcon.AngleDoubleRight : FontAwesomeIcon.ExclamationCircle);
         }
         catch(Exception e)
         {
@@ -168,30 +197,6 @@ internal unsafe partial class CGui : ConfigWindow
                         }
                         ImGui.SameLine();
                     }
-                    ImGui.SetNextItemWidth(80f);
-                    if(ImGui.BeginCombo("##phaseSelector", $"Phase ??".Loc(P.Phase)))
-                    {
-                        if(ImGui.Selectable("Phase 1 (doorboss)".Loc()))
-                        {
-                            P.Phase = 1;
-                        }
-
-                        if(ImGui.Selectable("Phase 2 (post-doorboss)".Loc()))
-                        {
-                            P.Phase = 2;
-                        }
-
-                        ImGuiEx.Text("Manual phase selection:".Loc());
-                        ImGui.SameLine();
-                        ImGui.SetNextItemWidth(30f);
-                        var ph = P.Phase;
-                        if(ImGui.DragInt("##mPSel", ref ph, 0.1f, 1, 9))
-                        {
-                            P.Phase = ph;
-                        }
-                        ImGui.EndCombo();
-                    }
-                    ImGui.SameLine();
                     PatreonBanner.DrawButton();
                 }, false);
                 ImGui.SetCursorPos(curCursor);

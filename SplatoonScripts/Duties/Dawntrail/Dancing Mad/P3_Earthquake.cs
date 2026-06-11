@@ -64,6 +64,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private const ushort LineDoneStatus = 5453;
     private const float BlackHoleRadiusMin = 11.0f;
     private const float BlackHoleRadiusMax = 23.0f;
+    private const float KefkaAnchorRadiusMin = 5.0f;
     private const int ExpectedBlackHoleActors = 12;
     private const float BaitOffset = 4.5f;
     private const float StackRadius = 10.8f;
@@ -84,7 +85,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private static readonly int[] DefaultMarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
     private static readonly string[] BlackHoleOrderNames = ["1st", "2nd", "3rd"];
     private static readonly string[] AssignmentModeNames =
-        ["Party marker", "Priority", "Marker + priority fallback", "PF role/accretion"];
+        ["Party marker", "Priority", "Marker + priority fallback", "PF role/accretion", "Fixed role/accretion spots"];
     private static readonly RolePosition[] DefaultRolePriority =
     [
         RolePosition.T1,
@@ -115,8 +116,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     };
     private static readonly InternationalString AssignmentModeDescription = new()
     {
-        En = "Party marker: uses only the marker line-order table below. Priority: ignores markers and orders players with the priority list inside each First/Second/Third group. Marker + priority fallback: uses markers first; if no valid marker result is available after Black Hole starts and all groups are known, it falls back to priority. PF role/accretion: resolves order inside your group as DPS first, support second, Accretion third.",
-        Jp = "Party marker: 下のマーカー別線取り順だけで判定します。Priority: マーカーを無視し、第一/第二/第三対象ごとに優先順位で並べます。Marker + priority fallback: まずマーカーで判定し、黒穴開始後も有効なマーカー判定ができず、全員のグループが揃っている場合だけ優先順位へフォールバックします。PF role/accretion: 自分のグループ内でDPSを1番目、タンク/ヒラを2番目、Accretion持ちを3番目として判定します。"
+        En = "Party marker: uses only the marker line-order table below. Priority: ignores markers and orders players with the priority list inside each First/Second/Third group. Marker + priority fallback: uses markers first; if no valid marker result is available after Black Hole starts and all groups are known, it falls back to priority. PF role/accretion: resolves order inside your group as DPS first, support second, Accretion third. Fixed role/accretion spots: support=A, DPS=B, Accretion=C; if that preferred spot has no active Black Hole, it uses D.",
+        Jp = "Party marker: 下のマーカー別線取り順だけで判定します。Priority: マーカーを無視し、第一/第二/第三対象ごとに優先順位で並べます。Marker + priority fallback: まずマーカーで判定し、黒穴開始後も有効なマーカー判定ができず、全員のグループが揃っている場合だけ優先順位へフォールバックします。PF role/accretion: 自分のグループ内でDPSを1番目、タンク/ヒラを2番目、Accretion持ちを3番目として判定します。Fixed role/accretion spots: タンク/ヒラ=A、DPS=B、Accretion=C として扱い、担当spotに黒穴が無い場合はDを使います。"
     };
     private static readonly InternationalString LineBaitDirectionDescription = new()
     {
@@ -125,8 +126,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     };
     private static readonly InternationalString BlackHoleSourceOrderDescription = new()
     {
-        En = "Black Hole source order sorts only the Black Holes that currently have active tethers. Clockwise from N uses N/E/S/W order; Counterclockwise from N uses N/W/S/E order. The sorted active list is then matched to 1st/2nd/3rd players.",
-        Jp = "Black Hole source order は、現在線が出ている黒穴だけを並べ替える設定です。Clockwise from N は 北/東/南/西、Counterclockwise from N は 北/西/南/東 の順で並べ、その並びを 1st/2nd/3rd の担当者に対応させます。"
+        En = "Black Hole source order sorts only the Black Holes that currently have active tethers. The anchor decides where 1st starts; the order decides clockwise or counterclockwise from that anchor.",
+        Jp = "Black Hole source order は、現在線が出ている黒穴だけを並べ替える設定です。anchor で 1番目を数え始める基準を決め、order でそこから時計回り/反時計回りのどちらに数えるかを決めます。"
     };
     private static readonly InternationalString MarkerLineOrderDescription = new()
     {
@@ -175,6 +176,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _guideDebug = "";
     private string _pendingMarkerCommand = "";
     private long _markerCommandAtMs;
+    private uint _kefkaId;
+    private Vector3? _kefkaPosition;
     private uint _selfTetherTarget;
     private uint _lastMissingLineTarget;
     private int _currentWindow = -1;
@@ -188,7 +191,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _instruction = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(32, "Garume");
+    public override Metadata Metadata => new(34, "Garume");
 
     public override void OnSetup()
     {
@@ -238,6 +241,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     public override void OnStartingCast(uint source, uint castId)
     {
         RefreshBasePlayerState();
+        UpdateKefkaAnchor(source, castId);
 
         if (castId is UltimateEmbrace or BowelsOfAgony)
             ResetAll();
@@ -441,6 +445,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ExecutePendingMarkerCommand();
 
         HideElements();
+        RefreshKefkaAnchorFromObject();
         ResolveSelfSlot();
         ResolveActiveTethers();
         if (_state == State.BlackHoleActive)
@@ -514,8 +519,11 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ImGui.TextWrapped(LineBaitDirectionDescription.Get());
 
         var sourceOrder = (int)C.BlackHoleSourceOrder;
-        if (DrawCombo("Black Hole source order", ref sourceOrder, ["Clockwise from N", "Counterclockwise from N"], 220f))
+        if (DrawCombo("Black Hole source order", ref sourceOrder, ["Clockwise", "Counterclockwise"], 180f))
             C.BlackHoleSourceOrder = (BlackHoleSourceOrder)Math.Clamp(sourceOrder, 0, 1);
+        var anchor = (int)C.BlackHoleOrderAnchor;
+        if (DrawCombo("Black Hole order anchor", ref anchor, ["Kefka position", "Arena north"], 220f))
+            C.BlackHoleOrderAnchor = (BlackHoleOrderAnchor)Math.Clamp(anchor, 0, 1);
         ImGui.TextWrapped(BlackHoleSourceOrderDescription.Get());
         ImGui.Checkbox("Debug Black Hole tether logs", ref C.EnableBlackHoleDebugLogs);
         ImGui.Unindent();
@@ -590,6 +598,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
         ImGui.Indent();
         ImGui.TextUnformatted($"State={_state} Window={_currentWindow} Slot={_selfSlot} Source={_quality} Guide={_guideKind}");
+        ImGui.TextUnformatted($"BlackHoleOrder={C.BlackHoleSourceOrder} Anchor={OrderAnchorDebugText()}");
         ImGui.TextUnformatted($"Final={_finalStage} Landing={_landingCount} FirstStack={_firstFinalStackRole} CurrentStack={_currentFinalStackRole}");
         if (!string.IsNullOrWhiteSpace(_guideDebug))
             ImGui.TextUnformatted(_guideDebug);
@@ -667,10 +676,10 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return false;
         }
 
-        if (C.AssignmentMode == AssignmentMode.RoleAccretion)
+        if (C.AssignmentMode is AssignmentMode.RoleAccretion or AssignmentMode.FixedRoleAccretion)
         {
             if (HasCompleteGroups() && _accretionPlayers.Count >= 2 &&
-                TryRoleAccretionSlot(player, group, out slot))
+                TryRoleAccretionSlot(player, group, out slot, C.AssignmentMode == AssignmentMode.FixedRoleAccretion))
             {
                 quality = AssignmentQuality.RoleAccretion;
                 return true;
@@ -724,11 +733,13 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return slot != Slot.None;
     }
 
-    private bool TryRoleAccretionSlot(IPlayerCharacter player, TargetGroup group, out Slot slot)
+    private bool TryRoleAccretionSlot(IPlayerCharacter player, TargetGroup group, out Slot slot, bool fixedSpots)
     {
-        var rank = _accretionPlayers.Contains(player.EntityId)
-            ? 2
-            : player.GetRole() is CombatRole.Tank or CombatRole.Healer ? 1 : 0;
+        var isAccretion = _accretionPlayers.Contains(player.EntityId);
+        var isSupport = player.GetRole() is CombatRole.Tank or CombatRole.Healer;
+        var rank = fixedSpots
+            ? isAccretion ? 2 : isSupport ? 0 : 1
+            : isAccretion ? 2 : isSupport ? 1 : 0;
         slot = SlotFromRank(group, rank);
         return slot != Slot.None;
     }
@@ -1043,6 +1054,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         _earthPlayers.Clear();
         _accretionPlayers.Clear();
+        _kefkaId = 0;
+        _kefkaPosition = null;
         _earthMaxCount = 0;
         _currentWindow = -1;
         ClearFinalState();
@@ -1169,6 +1182,95 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return true;
     }
 
+    private void UpdateKefkaAnchor(uint actorId, uint actionId)
+    {
+        if (actionId == DecisiveBattleChaos)
+            CaptureKefka(actorId, force: true, "decisive-battle");
+        else if (actorId != 0 && actorId == _kefkaId)
+            CaptureKefka(actorId, force: false, $"cast-{actionId}");
+    }
+
+    private void RefreshKefkaAnchorFromObject()
+    {
+        if (_kefkaId != 0)
+            CaptureKefka(_kefkaId, force: false, "object");
+    }
+
+    private void CaptureKefka(uint actorId, bool force, string reason)
+    {
+        if (actorId.GetObject() is { } obj)
+            CaptureKefka(obj, force, reason);
+    }
+
+    private void CaptureKefka(IGameObject? obj, bool force, string reason)
+    {
+        if (obj == null) return;
+        if (!force && _kefkaId != 0 && obj.EntityId != _kefkaId) return;
+        var position = FlatPosition(obj.Position);
+        if (!IsKefkaAnchorPosition(position)) return;
+        var changed = _kefkaPosition is not { } old || Vector3.DistanceSquared(old, position) > 0.25f;
+        _kefkaId = obj.EntityId;
+        _kefkaPosition = position;
+        if (changed)
+            DebugLog($"KEFKA_ANCHOR reason={reason} pos=({position.X:F1},{position.Z:F1})");
+    }
+
+    private bool TryGetKefkaPosition(out Vector3 position)
+    {
+        if (_kefkaPosition is { } cached)
+        {
+            position = cached;
+            return true;
+        }
+
+        if (_kefkaId.GetObject() is { } obj)
+        {
+            position = FlatPosition(obj.Position);
+            return true;
+        }
+
+        position = default;
+        return false;
+    }
+
+    private static bool IsKefkaAnchorPosition(Vector3 position) =>
+        Vector2.Distance(new Vector2(position.X, position.Z), new Vector2(Center.X, Center.Z)) >= KefkaAnchorRadiusMin;
+
+    private float OrderAnchorAngle() =>
+        C.BlackHoleOrderAnchor == BlackHoleOrderAnchor.KefkaPosition && TryGetKefkaPosition(out var kefka)
+            ? DirectionAngle(kefka)
+            : 0.0f;
+
+    private float SourceAngle(int bucket) =>
+        _tetherSources.TryGetValue(bucket, out var source) ? DirectionAngle(source) : BucketAngle(bucket);
+
+    private float OrderedAngleDistance(float sourceAngle, float anchorAngle) =>
+        C.BlackHoleSourceOrder == BlackHoleSourceOrder.ClockwiseFromNorth
+            ? NormalizeAngle(sourceAngle - anchorAngle)
+            : NormalizeAngle(anchorAngle - sourceAngle);
+
+    private string OrderAnchorDebugText() =>
+        C.BlackHoleOrderAnchor == BlackHoleOrderAnchor.KefkaPosition && TryGetKefkaPosition(out var pos)
+            ? $"Kefka({pos.X:F1},{pos.Z:F1})"
+            : "N";
+
+    private static Vector3 FlatPosition(Vector3 position) => new(position.X, 0.0f, position.Z);
+
+    private static float DirectionAngle(Vector3 position)
+    {
+        var v = new Vector2(position.X - Center.X, Center.Z - position.Z);
+        return v.LengthSquared() < 0.01f ? 0.0f : NormalizeAngle(MathF.Atan2(v.X, v.Y));
+    }
+
+    private static float BucketAngle(int bucket) => NormalizeAngle(bucket * MathF.PI / 2.0f);
+
+    private static float NormalizeAngle(float angle)
+    {
+        const float tau = MathF.PI * 2.0f;
+        angle %= tau;
+        return angle < 0.0f ? angle + tau : angle;
+    }
+
     private Vector3 BaitPosition(Vector3 source)
     {
         var radial = Vector3.Normalize(new Vector3(source.X - Center.X, 0, source.Z - Center.Z));
@@ -1191,8 +1293,22 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private int ExpectedBucket(Slot slot)
     {
         var rank = ExpectedRank(slot, _currentWindow);
+        if (C.AssignmentMode == AssignmentMode.FixedRoleAccretion)
+            return ExpectedFixedSpotBucket(rank);
         var buckets = OrderedActiveBuckets();
         return rank >= 0 && rank < buckets.Count ? buckets[rank] : -1;
+    }
+
+    private int ExpectedFixedSpotBucket(int rank)
+    {
+        if (rank < 0) return -1;
+        var buckets = OrderedBuckets();
+        if (rank >= buckets.Count) return -1;
+        var preferred = buckets[rank];
+        if (_tetherTargets.ContainsKey(preferred))
+            return preferred;
+        var fallback = buckets[3];
+        return _tetherTargets.ContainsKey(fallback) ? fallback : -1;
     }
 
     private static int ExpectedRank(Slot slot, int window) => window switch
@@ -1212,10 +1328,16 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private List<int> OrderedActiveBuckets()
     {
-        int[] order = C.BlackHoleSourceOrder == BlackHoleSourceOrder.ClockwiseFromNorth
-            ? [0, 1, 2, 3]
-            : new[] { 0, 3, 2, 1 };
-        return order.Where(_tetherTargets.ContainsKey).ToList();
+        return OrderedBuckets().Where(_tetherTargets.ContainsKey).ToList();
+    }
+
+    private List<int> OrderedBuckets()
+    {
+        var anchor = OrderAnchorAngle();
+        return Enumerable.Range(0, 4)
+            .OrderBy(bucket => OrderedAngleDistance(SourceAngle(bucket), anchor))
+            .ThenBy(bucket => bucket)
+            .ToList();
     }
 
     private void SetBintaGuide(uint source, bool stack)
@@ -1583,7 +1705,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     }
 
     private enum State { Idle, CollectingAssignments, BlackHoleActive, FinalSequence, Completed }
-    public enum AssignmentMode { PartyMarker, Priority, MarkerThenPriority, RoleAccretion }
+    public enum AssignmentMode { PartyMarker, Priority, MarkerThenPriority, RoleAccretion, FixedRoleAccretion }
     private enum AssignmentQuality { Unknown, Marker, Priority, Fallback, RoleAccretion }
     private enum GuidanceKind { None, HeadStack, RoleSpread, Dubbing, AsIs, WhiteHole, Implosion, FinalCenter, FinalSpread, FinalLanding, FinalMove }
     private enum FinalStage { None, AwaitingBlizzaga, CenterBait, RoleSpread, Landing1, Landing2, ProtrudeMove }
@@ -1592,6 +1714,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private enum Slot { None, Attack1, Attack2, Attack3, Bind1, Bind2, Bind3, Stop1, Stop2 }
     public enum LineBaitDirection { Clockwise, Counterclockwise }
     public enum BlackHoleSourceOrder { ClockwiseFromNorth = 0, CounterclockwiseFromNorth = 1 }
+    public enum BlackHoleOrderAnchor { KefkaPosition = 0, ArenaNorth = 1 }
 
     private readonly record struct LiveTetherEntry(ushort Id, byte Progress, uint Target);
 
@@ -1600,6 +1723,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         public AssignmentMode AssignmentMode = AssignmentMode.MarkerThenPriority;
         public LineBaitDirection LineBaitDirection = LineBaitDirection.Clockwise;
         public BlackHoleSourceOrder BlackHoleSourceOrder = BlackHoleSourceOrder.ClockwiseFromNorth;
+        public BlackHoleOrderAnchor BlackHoleOrderAnchor = BlackHoleOrderAnchor.KefkaPosition;
         public bool EnableBlackHoleDebugLogs = true;
         public int[] MarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
         public bool ExecuteMarkerCommand;
@@ -1647,6 +1771,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             AssignmentMode = (AssignmentMode)Math.Clamp((int)AssignmentMode, 0, AssignmentModeNames.Length - 1);
             LineBaitDirection = (LineBaitDirection)Math.Clamp((int)LineBaitDirection, 0, 1);
             BlackHoleSourceOrder = (BlackHoleSourceOrder)Math.Clamp((int)BlackHoleSourceOrder, 0, 1);
+            BlackHoleOrderAnchor = (BlackHoleOrderAnchor)Math.Clamp((int)BlackHoleOrderAnchor, 0, 1);
             PriorityData ??= CreatePriorityData("P3 Earthquake priority",
                 "Used when assignment mode is Priority or marker fallback.", DefaultRolePriority);
             if (MarkerLineOrders == null || MarkerLineOrders.Length != SelectableMarkerIds.Length)

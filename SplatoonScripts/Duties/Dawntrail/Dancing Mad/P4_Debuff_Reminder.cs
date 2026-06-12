@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -141,7 +141,7 @@ public class P4_Debuff_Reminder : SplatoonScript
         {
             if(x.HasStatus(Debuffs.DebuffLookAway, out var time, lessThan: 10))
             {
-                var f = !this.FakeStatuses.ContainsAny(Debuffs.DebuffLookAway.Select(s => new StatusInfo(BasePlayer.ObjectId, s)));
+                var f = this.FakeStatuses.ContainsAny(Debuffs.DebuffLookAway.Select(s => new StatusInfo(x.ObjectId, s)));
                 hints.Add((f ? $"Look at in {time.SafeSelect(0).Time:F1}" : $"Look AWAY in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
                 Controller.GetElementByName(f ? "LookAt" : "LookAway").Enabled = true;
                 Controller.GetElementByName("EyeScope").Enabled = true;

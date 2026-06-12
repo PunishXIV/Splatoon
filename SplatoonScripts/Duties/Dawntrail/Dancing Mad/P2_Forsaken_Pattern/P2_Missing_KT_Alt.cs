@@ -16,6 +16,7 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
 using Splatoon;
+using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
 using Splatoon.Utility;
@@ -27,7 +28,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(4, "mirage");
+    public override Metadata Metadata { get; } = new(5, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -75,8 +76,20 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     // UI font scale for priority notice banner (unrelated to RegisterElementFromCode JSON).
 
     private static readonly string[] MarkerResolveKindLabels = ["None", "Attack", "Stop", "Bind"];
+    private static readonly string[] Wave8MarkerSlotLabels =
+        ["None", "Attack1", "Attack2", "Bind1", "Bind2", "Stop1", "Stop2"];
 
-    private const float InterludeNavDistanceFromCenter = 4f;
+    private const uint MarkerIndexAttack1 = 0;
+    private const uint MarkerIndexAttack2 = 1;
+    private const uint MarkerIndexBind1 = 5;
+    private const uint MarkerIndexBind2 = 6;
+    private const uint MarkerIndexStop1 = 8;
+    private const uint MarkerIndexStop2 = 9;
+
+    private const float DefaultBaitAllThingsEndingRange = 6f;
+    private const float MinBaitAllThingsEndingRange = 5f;
+    private const float MaxBaitAllThingsEndingRange = 15f;
+    private const float BaitAllThingsEndingRangeStep = 0.5f;
     private static readonly Vector3 Step8InterludeNavPosition = new(100f, 0f, 95f);
     private const float DefaultRangeInside = 3.25f;
     private const float DefaultRangeOutside = 4.75f;
@@ -94,6 +107,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private const string ElActiveTower0 = "ActiveTower0";
     private const string ElActiveTower1 = "ActiveTower1";
     private const string ElMyRole = "MyRole";
+    private const string ElMyRoleAlt = "MyRoleAlt";
 
     private const string Role211LeftStack = "211_LeftStack";
     private const string Role211Cone = "211_Cone";
@@ -181,6 +195,12 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         public bool ConeUseMarker;
         public string SpreadEchoText = DefaultSpreadEchoText;
         public string ConeEchoText = DefaultConeEchoText;
+        public bool Wave8ResolveByMarkerEnabled;
+        public Wave8MarkerSlot Wave8LeftSpreadMarker = Wave8MarkerSlot.None;
+        public Wave8MarkerSlot Wave8RightSpreadMarker = Wave8MarkerSlot.None;
+        public Wave8MarkerSlot Wave8LeftConeMarker = Wave8MarkerSlot.None;
+        public Wave8MarkerSlot Wave8RightConeMarker = Wave8MarkerSlot.None;
+        public float BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
 
         public void EnsureDefaults()
         {
@@ -195,6 +215,11 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             ConeMarkerType = ClampMarkerResolveKind(ConeMarkerType);
             SpreadEchoText = NormalizeReminderEchoText(SpreadEchoText, DefaultSpreadEchoText);
             ConeEchoText = NormalizeReminderEchoText(ConeEchoText, DefaultConeEchoText);
+            Wave8LeftSpreadMarker = ClampWave8MarkerSlot(Wave8LeftSpreadMarker);
+            Wave8RightSpreadMarker = ClampWave8MarkerSlot(Wave8RightSpreadMarker);
+            Wave8LeftConeMarker = ClampWave8MarkerSlot(Wave8LeftConeMarker);
+            Wave8RightConeMarker = ClampWave8MarkerSlot(Wave8RightConeMarker);
+            BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(BaitAllThingsEndingRange);
         }
 
         public void ResetToDefaults()
@@ -213,7 +238,16 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             ConeUseMarker = false;
             SpreadEchoText = DefaultSpreadEchoText;
             ConeEchoText = DefaultConeEchoText;
+            Wave8ResolveByMarkerEnabled = false;
+            Wave8LeftSpreadMarker = Wave8MarkerSlot.None;
+            Wave8RightSpreadMarker = Wave8MarkerSlot.None;
+            Wave8LeftConeMarker = Wave8MarkerSlot.None;
+            Wave8RightConeMarker = Wave8MarkerSlot.None;
+            BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
         }
+
+        private static Wave8MarkerSlot ClampWave8MarkerSlot(Wave8MarkerSlot slot)
+            => Enum.IsDefined(slot) ? slot : Wave8MarkerSlot.None;
 
         private static MarkerResolveKind ClampMarkerResolveKind(MarkerResolveKind kind)
             => Enum.IsDefined(kind) ? kind : MarkerResolveKind.None;
@@ -263,6 +297,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private string? _step4DebuffReminderSkipReason;
     private bool _step4DebuffReminderSkipLogged;
     private long _step4DebuffReminderDueAt;
+    private bool _wave8ShowDualTether;
 
     #endregion
 
@@ -327,6 +362,17 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         Bind,
     }
 
+    private enum Wave8MarkerSlot
+    {
+        None,
+        Attack1,
+        Attack2,
+        Bind1,
+        Bind2,
+        Stop1,
+        Stop2,
+    }
+
     private sealed class PlayerInfo
     {
         public required IPlayerCharacter Player;
@@ -358,6 +404,9 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             """{"Enabled":false,"radius":4.0,"thicc":6.0,"fillIntensity":0.25,"Filled":false}""",
             overwrite: true);
         Controller.RegisterElementFromCode(ElMyRole,
+            """{"Enabled":false,"radius":0.25,"Donut":0.1,"fillIntensity":0.544,"tether":true}""",
+            overwrite: true);
+        Controller.RegisterElementFromCode(ElMyRoleAlt,
             """{"Enabled":false,"radius":0.25,"Donut":0.1,"fillIntensity":0.544,"tether":true}""",
             overwrite: true);
 
@@ -800,6 +849,9 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         if(IsPatternRecalculationStep(_step))
             ResolveFieldRoles(patternId);
+
+        if(_step == ActiveStepMax && C.Wave8ResolveByMarkerEnabled)
+            ApplyWave8MarkerResolve();
 
         var baseInfo = GetBasePlayerInfo();
         if(baseInfo?.RoleLabel == null)
@@ -1735,6 +1787,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     // Return interlude nav position from active tower pair direction (steps 1-7).
     private Vector3 ResolveTowerRelativeInterludeNavPosition()
     {
+        C.EnsureDefaults();
         var pairMidpoint = (_activeTowerPositions[0] + _activeTowerPositions[1]) * 0.5f;
         var towardTowers = pairMidpoint - ArenaCenter;
         towardTowers.Y = 0;
@@ -1743,8 +1796,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         towardTowers = Vector3.Normalize(towardTowers);
 
         return _interludeNavPhase == InterludeNavPhase.PastGap
-            ? ArenaCenter + towardTowers * InterludeNavDistanceFromCenter
-            : ArenaCenter - towardTowers * InterludeNavDistanceFromCenter;
+            ? ArenaCenter + towardTowers * C.BaitAllThingsEndingRange
+            : ArenaCenter - towardTowers * C.BaitAllThingsEndingRange;
     }
 
     // Update active tower ring marker elements.
@@ -1799,6 +1852,24 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         }
     }
 
+    // Disable alternate local role nav marker.
+    private void DisableMyRoleAltMarker()
+    {
+        if(Controller.TryGetElementByName(ElMyRoleAlt, out var element))
+        {
+            element.Enabled = false;
+            element.tether = false;
+            element.overlayText = "";
+        }
+    }
+
+    // Disable both local role nav markers.
+    private void DisableMyRoleMarkers()
+    {
+        DisableMyRoleMarker();
+        DisableMyRoleAltMarker();
+    }
+
     // Return element name for a pattern preview role marker index.
     private static string GetRolePreviewElementName(int index)
         => $"RolePreview_{index}";
@@ -1822,14 +1893,14 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         if(Controller.Scene != SceneP2)
         {
             DisableAllRolePreviewMarkers();
-            DisableMyRoleMarker();
+            DisableMyRoleMarkers();
             return;
         }
 
         if(IsPatternPreviewActive())
         {
             UpdatePatternPreviewMarkers();
-            DisableMyRoleMarker();
+            DisableMyRoleMarkers();
             return;
         }
 
@@ -1837,11 +1908,12 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         if(TryGetInterludeNavPosition(out var interludePosition, out var interludeLabel))
         {
+            DisableMyRoleAltMarker();
             EnableMyRoleMarker(interludePosition, interludeLabel);
             return;
         }
 
-        DisableMyRoleMarker();
+        DisableMyRoleMarkers();
 
         if(!_hasActiveTowers || _step is < ActiveStepMin or > ActiveStepMax)
             return;
@@ -1851,6 +1923,21 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         if(!TryFindRoleAssignment(roleLabel, out var assignmentPatternId, out var assignmentIndex))
             return;
+
+        if(_wave8ShowDualTether && _step == ActiveStepMax)
+        {
+            var baseInfo = GetBasePlayerInfo();
+            if(baseInfo != null && IsTower(baseInfo)
+                && TryGetWave8DualRoleLabels(baseInfo.Debuff, out var labelA, out var labelB)
+                && TryResolvePositionForRoleLabel(assignmentPatternId, labelA, out var posA)
+                && TryResolvePositionForRoleLabel(assignmentPatternId, labelB, out var posB))
+            {
+                UpdateWave8DualTetherMarkers(roleLabel, labelA, labelB, posA, posB);
+                return;
+            }
+        }
+
+        DisableMyRoleAltMarker();
 
         if(ResolvePositionRule(GetConfiguredRule(assignmentPatternId, assignmentIndex)) is not { } position)
             return;
@@ -1888,7 +1975,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     // Disable all visible markers.
     private void DisableAllMarkers()
     {
-        DisableMyRoleMarker();
+        DisableMyRoleMarkers();
         DisableAllRolePreviewMarkers();
         if(Controller.TryGetElementByName(ElActiveTower0, out var tower0))
             tower0.Enabled = false;
@@ -1917,6 +2004,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         _step4DebuffReminderSkipReason = null;
         _step4DebuffReminderSkipLogged = false;
         _step4DebuffReminderDueAt = 0;
+        _wave8ShowDualTether = false;
     }
 
     // Draw debug tab with live player info and pattern preview controls.
@@ -1954,6 +2042,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         }
 
         DrawDebugStep4DebuffReminderSection();
+        DrawDebugWave8MarkerSection();
     }
 
     // Draw Step4 FirstGroup debuff reminder debug status.
@@ -2228,12 +2317,42 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         DrawMarkerEchoRow("Echo Message##Cone", ref C.ConeUseEcho, ref C.ConeEchoText, DefaultConeEchoText);
         DrawMarkerKindRow("Auto Marking##Cone", ref C.ConeUseMarker, ref C.ConeMarkerType);
 
+        DrawSettingsSectionHeader("Wave8 Resolve By Marker");
+        ImGui.Checkbox("Enable", ref C.Wave8ResolveByMarkerEnabled);
+        ImGui.BeginDisabled(!C.Wave8ResolveByMarkerEnabled);
+        DrawWave8MarkerSlotCombo("Left Spread", ref C.Wave8LeftSpreadMarker);
+        DrawWave8MarkerSlotCombo("Right Spread", ref C.Wave8RightSpreadMarker);
+        DrawWave8MarkerSlotCombo("Left Cone", ref C.Wave8LeftConeMarker);
+        DrawWave8MarkerSlotCombo("Right Cone", ref C.Wave8RightConeMarker);
+        ImGui.EndDisabled();
+
         DrawSettingsSectionHeader("Priority");
         ImGui.TextUnformatted("H1, H2, T1, T2, M1, M2, R1, R2");
         C.PriorityData.Draw();
 
         DrawSettingsSectionHeader("Pattern");
         DrawPatternAssignmentTables();
+
+        DrawSettingsSectionHeader("Other Element");
+        DrawOtherElementSettings();
+    }
+
+    // Draw bait range for All Things Ending interlude navigation.
+    private void DrawOtherElementSettings()
+    {
+        C.EnsureDefaults();
+        var range = C.BaitAllThingsEndingRange;
+        ImGui.SetNextItemWidth(120f);
+        if(ImGui.DragFloat("Bait AllThingsEnding Range", ref range, BaitAllThingsEndingRangeStep,
+                MinBaitAllThingsEndingRange, MaxBaitAllThingsEndingRange, "%.1f"))
+            C.BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(range);
+    }
+
+    // Clamp and snap bait range to 0.5 steps within 5~15.
+    private static float ClampBaitAllThingsEndingRange(float range)
+    {
+        var clamped = Math.Clamp(range, MinBaitAllThingsEndingRange, MaxBaitAllThingsEndingRange);
+        return MathF.Round(clamped / BaitAllThingsEndingRangeStep) * BaitAllThingsEndingRangeStep;
     }
 
     // Draw Step1 role assignment mode toggles.
@@ -2265,6 +2384,18 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
                 mode == (int)TowerPairSwapSide.Priority))
             mode = (int)TowerPairSwapSide.Priority;
         C.TowerPairSwapSideMode = ClampTowerPairSwapSide(mode);
+    }
+
+    // Draw individual head-marker slot combo for Wave8 resolve settings.
+    private static void DrawWave8MarkerSlotCombo(string label, ref Wave8MarkerSlot slot)
+    {
+        var idx = (int)slot;
+        if(idx < 0 || idx >= Wave8MarkerSlotLabels.Length)
+            idx = 0;
+
+        ImGui.SetNextItemWidth(120f);
+        if(ImGui.Combo(label, ref idx, Wave8MarkerSlotLabels, Wave8MarkerSlotLabels.Length))
+            slot = (Wave8MarkerSlot)idx;
     }
 
     // Draw marker kind combo for Step4 debuff reminder settings.
@@ -2461,6 +2592,313 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     // Create a pattern assignment rule entry.
     private static PatternAssignment Rule(string label, PositionBasis basis, float angleDeg, float range)
         => new(label, new PositionRule(basis, angleDeg, range));
+
+    // Reassign Step8 tower Cone/Spread Left/Right roles by configured markers.
+    private void ApplyWave8MarkerResolve()
+    {
+        C.EnsureDefaults();
+        _wave8ShowDualTether = false;
+        ApplyWave8MarkerResolveForDebuff(DebuffKind.Cone, C.Wave8LeftConeMarker, C.Wave8RightConeMarker,
+            Role022LeftCone, Role022RightCone);
+        ApplyWave8MarkerResolveForDebuff(DebuffKind.Spread, C.Wave8LeftSpreadMarker,
+            C.Wave8RightSpreadMarker, Role022LeftSpread, Role022RightSpread);
+    }
+
+    // Resolve Left/Right 022 roles for one debuff pair on tower at Step8.
+    private void ApplyWave8MarkerResolveForDebuff(DebuffKind debuff, Wave8MarkerSlot leftSlot,
+        Wave8MarkerSlot rightSlot, string leftRole, string rightRole)
+    {
+        var players = OrderInfosByPriority(_infos.Where(i => IsTower(i) && i.Debuff == debuff)).ToList();
+        if(players.Count != 2)
+            return;
+
+        var validMarkerPlayerCount = CountPlayersWithValidWave8Marker(players, leftSlot, rightSlot);
+
+        if(validMarkerPlayerCount == 0)
+        {
+            ApplyWave8PriorityFallback(players, leftRole, rightRole);
+            if(BasePlayer != null && players.Any(p => p.Player.EntityId == BasePlayer.EntityId))
+                _wave8ShowDualTether = true;
+            return;
+        }
+
+        if(validMarkerPlayerCount == 1)
+        {
+            var marked = players.First(p => CountValidWave8MarkersOnPlayer(p.Player, leftSlot, rightSlot) > 0);
+            var unmarked = players.First(p => p.Player.EntityId != marked.Player.EntityId);
+            var resolved = TryResolve022SideByMarker(marked.Player, leftSlot, rightSlot, leftRole, rightRole);
+            if(resolved == null)
+            {
+                ApplyWave8PriorityFallback(players, leftRole, rightRole);
+                return;
+            }
+
+            marked.RoleLabel = resolved;
+            unmarked.RoleLabel = GetOpposite022Role(resolved, leftRole, rightRole);
+            return;
+        }
+
+        var roleA = TryResolve022SideByMarker(players[0].Player, leftSlot, rightSlot, leftRole, rightRole);
+        var roleB = TryResolve022SideByMarker(players[1].Player, leftSlot, rightSlot, leftRole, rightRole);
+        if(roleA != null && roleB != null && roleA != roleB)
+        {
+            players[0].RoleLabel = roleA;
+            players[1].RoleLabel = roleB;
+            return;
+        }
+
+        ApplyWave8PriorityFallback(players, leftRole, rightRole);
+    }
+
+    // Assign Left/Right 022 roles by priority index within a debuff pair.
+    private static void ApplyWave8PriorityFallback(List<PlayerInfo> players, string leftRole, string rightRole)
+    {
+        players[0].RoleLabel = leftRole;
+        players[1].RoleLabel = rightRole;
+    }
+
+    // Return opposite Left/Right 022 role label.
+    private static string GetOpposite022Role(string role, string leftRole, string rightRole)
+        => role == leftRole ? rightRole : leftRole;
+
+    // Count players with at least one valid Wave8 marker; unconfigured head markers are ignored.
+    private static int CountPlayersWithValidWave8Marker(IReadOnlyList<PlayerInfo> players, Wave8MarkerSlot leftSlot,
+        Wave8MarkerSlot rightSlot)
+        => players.Count(p => CountValidWave8MarkersOnPlayer(p.Player, leftSlot, rightSlot) > 0);
+
+    // Count configured Wave8 marker matches on one player; ignores unconfigured head markers.
+    private static int CountValidWave8MarkersOnPlayer(IPlayerCharacter player, Wave8MarkerSlot leftSlot,
+        Wave8MarkerSlot rightSlot)
+    {
+        var count = 0;
+        if(PlayerHasWave8Marker(player, leftSlot))
+            count++;
+        if(leftSlot != rightSlot && PlayerHasWave8Marker(player, rightSlot))
+            count++;
+        return count;
+    }
+
+    // Return whether player has the configured individual head marker for a Wave8 role.
+    private static bool PlayerHasWave8Marker(IPlayerCharacter player, Wave8MarkerSlot slot)
+        => TryGetWave8MarkerIndex(slot, out var index) && Marking.HaveMark(player, index);
+
+    // Resolve Left or Right 022 role from player markers; null when ambiguous or unmatched.
+    private static string? TryResolve022SideByMarker(IPlayerCharacter player, Wave8MarkerSlot leftSlot,
+        Wave8MarkerSlot rightSlot, string leftRole, string rightRole)
+    {
+        var validMarkerCount = CountValidWave8MarkersOnPlayer(player, leftSlot, rightSlot);
+        if(validMarkerCount != 1)
+            return null;
+
+        if(PlayerHasWave8Marker(player, leftSlot))
+            return leftRole;
+        if(PlayerHasWave8Marker(player, rightSlot))
+            return rightRole;
+        return null;
+    }
+
+    // Return Left/Right 022 role labels for a Wave8 dual-tether debuff kind.
+    private static bool TryGetWave8DualRoleLabels(DebuffKind debuff, out string labelA, out string labelB)
+    {
+        labelA = "";
+        labelB = "";
+        switch(debuff)
+        {
+            case DebuffKind.Cone:
+                labelA = Role022LeftCone;
+                labelB = Role022RightCone;
+                return true;
+            case DebuffKind.Spread:
+                labelA = Role022LeftSpread;
+                labelB = Role022RightSpread;
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // Show dual tether to both Wave8 candidate positions.
+    private void UpdateWave8DualTetherMarkers(string roleLabel, string labelA, string labelB, Vector3 posA,
+        Vector3 posB)
+    {
+        if(roleLabel == labelA)
+        {
+            EnableRoleMarker(ElMyRole, posA, labelA, tether: true);
+            EnableRoleMarker(ElMyRoleAlt, posB, labelB, tether: true);
+            return;
+        }
+
+        EnableRoleMarker(ElMyRole, posB, labelB, tether: true);
+        EnableRoleMarker(ElMyRoleAlt, posA, labelA, tether: true);
+    }
+
+    // Resolve world position for a role label within a pattern.
+    private bool TryResolvePositionForRoleLabel(int patternId, string roleLabel, out Vector3 position)
+    {
+        position = default;
+        if(!TryFindRoleAssignment(roleLabel, out var resolvedPatternId, out var assignmentIndex))
+            return false;
+        if(resolvedPatternId != patternId)
+            return false;
+        if(ResolvePositionRule(GetConfiguredRule(patternId, assignmentIndex)) is not { } pos)
+            return false;
+        position = pos;
+        return true;
+    }
+
+    // Map Wave8 marker slot to head marker priority index.
+    private static bool TryGetWave8MarkerIndex(Wave8MarkerSlot slot, out uint index)
+    {
+        switch(slot)
+        {
+            case Wave8MarkerSlot.Attack1:
+                index = MarkerIndexAttack1;
+                return true;
+            case Wave8MarkerSlot.Attack2:
+                index = MarkerIndexAttack2;
+                return true;
+            case Wave8MarkerSlot.Bind1:
+                index = MarkerIndexBind1;
+                return true;
+            case Wave8MarkerSlot.Bind2:
+                index = MarkerIndexBind2;
+                return true;
+            case Wave8MarkerSlot.Stop1:
+                index = MarkerIndexStop1;
+                return true;
+            case Wave8MarkerSlot.Stop2:
+                index = MarkerIndexStop2;
+                return true;
+            default:
+                index = 0;
+                return false;
+        }
+    }
+
+    // Format Wave8 marker slot for debug display.
+    private static string FormatWave8MarkerSlot(Wave8MarkerSlot slot)
+    {
+        var idx = (int)slot;
+        return idx >= 0 && idx < Wave8MarkerSlotLabels.Length ? Wave8MarkerSlotLabels[idx] : "None";
+    }
+
+    // Map marker kind to head marker priority indices.
+    private static bool TryGetMarkerPriorityIndices(MarkerResolveKind kind, out uint indexPriority1,
+        out uint indexPriority2)
+    {
+        switch(kind)
+        {
+            case MarkerResolveKind.Attack:
+                indexPriority1 = MarkerIndexAttack1;
+                indexPriority2 = MarkerIndexAttack2;
+                return true;
+            case MarkerResolveKind.Bind:
+                indexPriority1 = MarkerIndexBind1;
+                indexPriority2 = MarkerIndexBind2;
+                return true;
+            case MarkerResolveKind.Stop:
+                indexPriority1 = MarkerIndexStop1;
+                indexPriority2 = MarkerIndexStop2;
+                return true;
+            default:
+                indexPriority1 = 0;
+                indexPriority2 = 0;
+                return false;
+        }
+    }
+
+    // Return whether player has any head marker of the given kind.
+    private static bool HasMarkerKind(IPlayerCharacter player, MarkerResolveKind kind)
+        => TryGetMarkerPriorityIndices(kind, out var indexPriority1, out var indexPriority2)
+            && (Marking.HaveMark(player, indexPriority1) || Marking.HaveMark(player, indexPriority2));
+
+    // Format active head markers on a player for debug display.
+    private static string FormatPlayerMarkerDebug(IPlayerCharacter player)
+    {
+        var marks = new List<string>(6);
+        if(Marking.HaveMark(player, MarkerIndexAttack1))
+            marks.Add("attack1");
+        if(Marking.HaveMark(player, MarkerIndexAttack2))
+            marks.Add("attack2");
+        if(Marking.HaveMark(player, MarkerIndexBind1))
+            marks.Add("bind1");
+        if(Marking.HaveMark(player, MarkerIndexBind2))
+            marks.Add("bind2");
+        if(Marking.HaveMark(player, MarkerIndexStop1))
+            marks.Add("stop1");
+        if(Marking.HaveMark(player, MarkerIndexStop2))
+            marks.Add("stop2");
+        return marks.Count == 0 ? "(none)" : string.Join(", ", marks);
+    }
+
+    // Draw Wave8 marker resolve debug status.
+    private void DrawDebugWave8MarkerSection()
+    {
+        C.EnsureDefaults();
+        ImGui.Spacing();
+        ImGui.TextUnformatted("Wave8 marker resolve");
+        ImGui.Separator();
+        ImGui.TextUnformatted($"Enabled: {C.Wave8ResolveByMarkerEnabled}");
+        ImGui.TextUnformatted(
+            $"Left Spread: {FormatWave8MarkerSlot(C.Wave8LeftSpreadMarker)}, Right Spread: {FormatWave8MarkerSlot(C.Wave8RightSpreadMarker)}");
+        ImGui.TextUnformatted(
+            $"Left Cone: {FormatWave8MarkerSlot(C.Wave8LeftConeMarker)}, Right Cone: {FormatWave8MarkerSlot(C.Wave8RightConeMarker)}");
+        ImGui.TextUnformatted($"Dual tether: {(_wave8ShowDualTether ? "on" : "off")}");
+
+        if(BasePlayer == null)
+        {
+            ImGui.TextUnformatted("My markers: (no player)");
+            return;
+        }
+
+        ImGui.TextUnformatted($"My markers: {FormatPlayerMarkerDebug(BasePlayer)}");
+
+        if(_step != ActiveStepMax || !C.Wave8ResolveByMarkerEnabled || !TryEnsureInfos())
+            return;
+
+        UpdateDebuffs();
+        var baseInfo = GetBasePlayerInfo();
+        if(baseInfo == null)
+            return;
+
+        if(baseInfo.Debuff == DebuffKind.Cone)
+            DrawDebugWave8DebuffResolve(DebuffKind.Cone, C.Wave8LeftConeMarker, C.Wave8RightConeMarker,
+                Role022LeftCone, Role022RightCone);
+        else if(baseInfo.Debuff == DebuffKind.Spread)
+            DrawDebugWave8DebuffResolve(DebuffKind.Spread, C.Wave8LeftSpreadMarker,
+                C.Wave8RightSpreadMarker, Role022LeftSpread, Role022RightSpread);
+    }
+
+    // Draw resolved Wave8 role and case for one debuff kind.
+    private void DrawDebugWave8DebuffResolve(DebuffKind debuff, Wave8MarkerSlot leftSlot, Wave8MarkerSlot rightSlot,
+        string leftRole, string rightRole)
+    {
+        var players = OrderInfosByPriority(_infos.Where(i => IsTower(i) && i.Debuff == debuff)).ToList();
+        if(players.Count != 2)
+            return;
+
+        var validMarkerPlayerCount = CountPlayersWithValidWave8Marker(players, leftSlot, rightSlot);
+        var resolveCase = validMarkerPlayerCount switch
+        {
+            0 => "C (no valid marker)",
+            1 => "B (one valid marker)",
+            2 => "A (both valid markers)",
+            _ => "—",
+        };
+        ImGui.TextUnformatted($"Step8 resolve case ({debuff}): {resolveCase}");
+        ImGui.TextUnformatted(
+            $"Valid marker counts: {FormatValidWave8MarkerCountsDebug(players, leftSlot, rightSlot)}");
+
+        var baseInfo = GetBasePlayerInfo();
+        if(baseInfo?.RoleLabel != null)
+            ImGui.TextUnformatted($"Step8 role: {baseInfo.RoleLabel}");
+    }
+
+    // Format per-player valid Wave8 marker counts for debug display.
+    private static string FormatValidWave8MarkerCountsDebug(IReadOnlyList<PlayerInfo> players,
+        Wave8MarkerSlot leftSlot, Wave8MarkerSlot rightSlot)
+        => string.Join(", ",
+            players.Select(p => $"{p.Player.Name}: {CountValidWave8MarkersOnPlayer(p.Player, leftSlot, rightSlot)}"));
 
     #endregion
 }

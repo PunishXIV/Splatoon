@@ -19,7 +19,7 @@ internal class P2_Trine_Effects : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(2, "mirage, Poneglyph");
+    public override Metadata? Metadata => new(3, "mirage, Poneglyph");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -42,11 +42,6 @@ internal class P2_Trine_Effects : SplatoonScript
     private const float FillLifeMax = 13f;
     private const float FillLifeRange = FillLifeMax - FillLifeMin;
     private const float FillIntensityMax = 0.8f;
-
-    private const float VortexCheckX = 88.5f;
-    private const float VortexCheckY = 90.0f;
-    private const float VortexProximityTolerance = 1.0f;
-    private const float VortexRotationAngle = 60.0f; // degrees
 
     private static readonly (float X, float Y)[] OffsetsA =
     [
@@ -86,7 +81,8 @@ internal class P2_Trine_Effects : SplatoonScript
         public uint Wave2Color = Colors.Red;
         public uint Wave3Color = Colors.DarkRed;
         public float ElementOffZ = 0f;
-        public bool NWTrineFix = true;
+        public bool UseCustomFill = false;
+        public float CustomFillIntensity = 0.8f;
     }
 
     private sealed class TelegraphRecord(int order, uint dataId, uint entityId)
@@ -155,9 +151,6 @@ internal class P2_Trine_Effects : SplatoonScript
             var position = NormalizeY(obj.Position);
             var fill = ComputeFillIntensity(obj.GetLifeTimeSeconds());
             var offsets = GetVertexOffsets(record.DataId);
-            
-            if (C.NWTrineFix && IsNearVortexCoords(position))
-                offsets = RotateOffsets(offsets, VortexRotationAngle);
 
             for (var vertex = 0; vertex < VertexCount; vertex++)
             {
@@ -195,7 +188,10 @@ internal class P2_Trine_Effects : SplatoonScript
         ImGui.Spacing();
         ImGui.Text("Element Settings");
         ImGui.DragFloat("Element Offset Z", ref C.ElementOffZ, 0.1f, 0f, 5f);
-        ImGui.Checkbox("NW Trine Fix (60° rotation)", ref C.NWTrineFix);
+
+        ImGui.Checkbox("Use custom fill", ref C.UseCustomFill);
+        if (C.UseCustomFill)
+            ImGui.SliderFloat("Fill intensity", ref C.CustomFillIntensity, 0f, 1f);
     }
 
     #endregion
@@ -228,8 +224,11 @@ internal class P2_Trine_Effects : SplatoonScript
     }
 
     // plan.md: fillIntensity ramps from 0 to 0.8 between 5s and 13s object lifetime.
-    private static float ComputeFillIntensity(float lifeSeconds)
+    private float ComputeFillIntensity(float lifeSeconds)
     {
+        if (C.UseCustomFill)
+            return C.CustomFillIntensity;
+
         return Math.Clamp((lifeSeconds - FillLifeMin) / FillLifeRange, 0f, 1f) * FillIntensityMax;
     }
 
@@ -300,33 +299,6 @@ internal class P2_Trine_Effects : SplatoonScript
     private static (float X, float Y)[] GetVertexOffsets(uint dataId)
     {
         return dataId == TelegraphDataIdA ? OffsetsA : OffsetsB;
-    }
-
-    private static bool IsNearVortexCoords(Vector3 position)
-    {
-        var distX = Math.Abs(position.X - VortexCheckX);
-        var distZ = Math.Abs(position.Z - VortexCheckY);
-        return distX <= VortexProximityTolerance && distZ <= VortexProximityTolerance;
-    }
-
-    private static (float X, float Y)[] RotateOffsets((float X, float Y)[] offsets, float angleDegrees)
-    {
-        var angleRadians = angleDegrees * (float)Math.PI / 180f;
-        var cos = (float)Math.Cos(angleRadians);
-        var sin = (float)Math.Sin(angleRadians);
-
-        var rotated = new (float X, float Y)[offsets.Length];
-        for (var i = 0; i < offsets.Length; i++)
-        {
-            var x = offsets[i].X;
-            var y = offsets[i].Y;
-            rotated[i] = (
-                x * cos - y * sin,
-                x * sin + y * cos
-            );
-        }
-
-        return rotated;
     }
 
     // Element name shared by OnSetup registration and OnUpdate lookup.

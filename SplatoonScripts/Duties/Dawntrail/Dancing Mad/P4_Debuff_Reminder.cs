@@ -4,6 +4,8 @@ using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using Lumina.Excel.Sheets;
+using Lumina.Excel.Sheets.Experimental;
 using Newtonsoft.Json;
 using Splatoon.SplatoonScripting;
 using System;
@@ -17,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -30,27 +32,27 @@ public class P4_Debuff_Reminder : SplatoonScript
         /// <summary>
         /// becomes Move
         /// </summary>
-        public static uint DebuffDontMove = 5546;
+        public static uint[] DebuffDontMove = [5546, 1072, 1384, 2657, 3793, 3802, 4144];
         /// <summary>
         /// becomes Look at person
         /// </summary>
-        public static uint DebuffLookAway = 5543;
+        public static uint[] DebuffLookAway = [5543, 452];
         /// <summary>
         /// becomes Spread
         /// </summary>
-        public static uint DebuffStack = 5545;
+        public static uint[] DebuffStack = [1023, 5545, 2142];
         /// <summary>
         /// becomes Stack
         /// </summary>
-        public static uint DebuffSpread = 5544;
+        public static uint[] DebuffSpread = [587, 3799, 5544];
         /// <summary>
         /// becomes Donut
         /// </summary>
-        public static uint DebuffFireSpread = 5547;
+        public static uint[] DebuffFireSpread = [1600, 5547];
         /// <summary>
         /// becomes Fire Spread
         /// </summary>
-        public static uint DebuffDonut = 5548;
+        public static uint[] DebuffDonut = [1601, 5548];
         /// <summary>
         /// must pass mechanics
         /// </summary>
@@ -58,7 +60,7 @@ public class P4_Debuff_Reminder : SplatoonScript
         /// <summary>
         /// must fail mechanics
         /// </summary>
-        public static uint DebuffDie = 5464;
+        public static uint[] DebuffDie = [1382, 5464];
         /// <summary>
         /// when with DebuffLive: must take black; with DebuffDie: white
         /// </summary>
@@ -120,7 +122,7 @@ public class P4_Debuff_Reminder : SplatoonScript
                 showWhite = !showWhite;
             }
 
-            if(BasePlayer.HasStatus(Debuffs.DebuffDie) && !FakeStatuses.Contains(new(BasePlayer.ObjectId, Debuffs.DebuffDie)))
+            if(BasePlayer.HasStatus(Debuffs.DebuffDie) && !FakeStatuses.ContainsAny(Debuffs.DebuffDie.Select(x => new StatusInfo(BasePlayer.ObjectId, x))))
             {
                 showWhite = !showWhite;
             }
@@ -139,8 +141,8 @@ public class P4_Debuff_Reminder : SplatoonScript
         {
             if(x.HasStatus(Debuffs.DebuffLookAway, out var time, lessThan: 10))
             {
-                var f = !this.FakeStatuses.Contains(new(BasePlayer.ObjectId, Debuffs.DebuffLookAway));
-                hints.Add((f ? $"Look at in {time:F1}" : $"Look AWAY in {time:F1}", time));
+                var f = !this.FakeStatuses.ContainsAny(Debuffs.DebuffLookAway.Select(s => new StatusInfo(BasePlayer.ObjectId, s)));
+                hints.Add((f ? $"Look at in {time.SafeSelect(0).Time:F1}" : $"Look AWAY in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
                 Controller.GetElementByName(f ? "LookAt" : "LookAway").Enabled = true;
                 Controller.GetElementByName("EyeScope").Enabled = true;
                 break;
@@ -148,16 +150,16 @@ public class P4_Debuff_Reminder : SplatoonScript
         }
         bool spread = false;
         {
-            if(BasePlayer.HasStatus(Debuffs.DebuffStack, out var time, lessThan: 10f) && this.FakeStatuses.Contains(new(BasePlayer.ObjectId, Debuffs.DebuffStack)))
+            if(BasePlayer.HasStatus(Debuffs.DebuffStack, out var time, lessThan: 10f) && this.FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
             {
-                hints.Add(($"Spread in {time:F1}", time));
+                hints.Add(($"Spread in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
                 spread = true;
             }
         }
         {
-            if(BasePlayer.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: 10f) && !this.FakeStatuses.Contains(new(BasePlayer.ObjectId, Debuffs.DebuffSpread)))
+            if(BasePlayer.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: 10f) && !this.FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
             {
-                hints.Add(($"Spread in {time:F1}", time));
+                hints.Add(($"Spread in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
                 spread = true;
             }
         }
@@ -166,16 +168,16 @@ public class P4_Debuff_Reminder : SplatoonScript
             foreach(var x in Controller.GetPartyMembers())
             {
                 {
-                    if(x.HasStatus(Debuffs.DebuffStack, out var time, lessThan: 10f) && !this.FakeStatuses.Contains(new(x.ObjectId, Debuffs.DebuffStack)))
+                    if(x.HasStatus(Debuffs.DebuffStack, out var time, lessThan: 10f) && !this.FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(x.ObjectId, s))))
                     {
-                        hints.Add(($"Stack in {time:F1}", time));
+                        hints.Add(($"Stack in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
                         break;
                     }
                 }
                 {
-                    if(x.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: 10f) && this.FakeStatuses.Contains(new(x.ObjectId, Debuffs.DebuffSpread)))
+                    if(x.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: 10f) && this.FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(x.ObjectId, s))))
                     {
-                        hints.Add(($"Stack in {time:F1}", time));
+                        hints.Add(($"Stack in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
                         break;
                     }
                 }
@@ -184,19 +186,19 @@ public class P4_Debuff_Reminder : SplatoonScript
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffDontMove, out var time, lessThan: 10f))
             {
-                hints.Add((!this.FakeStatuses.Contains(new(BasePlayer.ObjectId, Debuffs.DebuffDontMove)) ? $"Don't move in {time:F1}" : $"Move in {time:F1}", time));
+                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffDontMove.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Don't move in {time.SafeSelect(0).Time:F1}" : $"Move in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
             }
         }
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffDonut, out var time, lessThan: 10f))
             {
-                hints.Add((!this.FakeStatuses.Contains(new(BasePlayer.ObjectId, Debuffs.DebuffDonut)) ? $"Drop donut in {time:F1}" : $"Drop AOE in {time:F1}", time));
+                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffDonut.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Drop donut in {time.SafeSelect(0).Time:F1}" : $"Drop AOE in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
             }
         }
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffFireSpread, out var time, lessThan: 10f))
             {
-                hints.Add((!this.FakeStatuses.Contains(new(BasePlayer.ObjectId, Debuffs.DebuffFireSpread)) ? $"Drop AOE in {time:F1}" : $"Drop donut in {time:F1}", time));
+                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Drop AOE in {time:F1}" : $"Drop donut in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
             }
         }
         if(Controller.TryGetElementByName("Hint", out var e))

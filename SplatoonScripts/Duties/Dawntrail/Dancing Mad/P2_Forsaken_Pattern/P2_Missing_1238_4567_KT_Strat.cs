@@ -27,7 +27,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(5, "mirage");
+    public override Metadata? Metadata => new(6, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion

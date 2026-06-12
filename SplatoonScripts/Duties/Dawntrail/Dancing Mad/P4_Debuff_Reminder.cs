@@ -19,7 +19,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -198,7 +198,7 @@ public class P4_Debuff_Reminder : SplatoonScript
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffFireSpread, out var time, lessThan: 10f))
             {
-                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Drop AOE in {time:F1}" : $"Drop donut in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Drop AOE in {time.SafeSelect(0).Time:F1}" : $"Drop donut in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
             }
         }
         if(Controller.TryGetElementByName("Hint", out var e))

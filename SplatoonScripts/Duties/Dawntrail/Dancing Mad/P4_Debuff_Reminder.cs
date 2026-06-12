@@ -17,7 +17,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -62,15 +62,36 @@ public class P4_Debuff_Reminder : SplatoonScript
         /// <summary>
         /// when with DebuffLive: must take black; with DebuffDie: white
         /// </summary>
-        public static uint DebuffWhitewould = 4887;
+        public static uint[] DebuffWhitewould = [4887, 5541];
         /// <summary>
         /// when with DebuffLive: must take white; withDebuffDie: black
         /// </summary>
-        public static uint DebuffBlackwound = 4888;
+        public static uint[] DebuffBlackwound = [4888, 5542];
     }
 
     private Dictionary<uint, bool> IsTruth = [];
-    public List<uint> DebuffList = typeof(Debuffs).GetFields().Select(x => (uint)x.GetValue(null)!).ToList();
+    public List<uint> DebuffList
+    {
+        get
+        {
+            if(field == null)
+            {
+                field = [];
+                foreach(var x in typeof(Debuffs).GetFields().Select(x => x.GetValue(null)!))
+                {
+                    if(x is uint u)
+                    {
+                        field.Add(u);
+                    }
+                    if(x is uint[] u2)
+                    {
+                        field.Add(u2);
+                    }
+                }
+            }
+            return field;
+        }
+    }
 
     public override void OnSetup()
     {
@@ -91,9 +112,9 @@ public class P4_Debuff_Reminder : SplatoonScript
     public override void OnUpdate()
     {
         Controller.Hide();
-        if(BasePlayer.HasStatus([Debuffs.DebuffWhitewould, Debuffs.DebuffBlackwound], out var status))
+        if(BasePlayer.HasStatus([..Debuffs.DebuffWhitewould, ..Debuffs.DebuffBlackwound], out var status))
         {
-            var showWhite = status[0].ID == Debuffs.DebuffWhitewould; ;
+            var showWhite = status[0].ID.EqualsAny(Debuffs.DebuffWhitewould);
             if(FakeStatuses.Contains(new(BasePlayer.ObjectId, status[0].ID)))
             {
                 showWhite = !showWhite;

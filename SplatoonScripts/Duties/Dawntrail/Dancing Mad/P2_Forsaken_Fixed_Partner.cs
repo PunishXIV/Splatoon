@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(9, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(10, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -39,17 +39,16 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
     public uint[] CastAllThingsEnding = [47836, 47837];
     public List<uint> AoeMapEffectsBlock = [];
 
-    bool? StoredAoe = null;
-    uint? TemporaryPartnerOverride = null;
-    bool? TemporaryAdjustOverride = null;
-    bool? TemporaryIsLeftTower = null;
+    private bool? StoredAoe = null;
+    private uint? TemporaryPartnerOverride = null;
+    private bool? TemporaryAdjustOverride = null;
+    private bool? TemporaryIsLeftTower = null;
 
+    private uint TowerCount = 0;
+    private uint SequenceCount => (TowerCount / 2) + 1;
+    private bool? FirstTaker = null;
 
-    uint TowerCount = 0;
-    uint SequenceCount => TowerCount / 2 + 1;
-    bool? FirstTaker = null;
-
-    Dictionary<uint, Vector2> MapEffect2TowerPos
+    private Dictionary<uint, Vector2> MapEffect2TowerPos
     {
         get
         {
@@ -71,7 +70,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
 
     public override void OnSetup()
     {
-        for(int i = 0; i < 2; i++)
+        for(var i = 0; i < 2; i++)
         {
             Controller.RegisterElementFromCode($"Stack{i}", """
                 {"Name":"Stack","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4278779648,"overlayVOffset":1.2,"thicc":0.0,"overlayText":">>> Stack <<<","refActorComparisonType":2}
@@ -101,9 +100,9 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         Controller.RegisterElementFromCode("""{"Name":"Bait","refX":102.39029,"refY":105.67813,"refZ":-3.8146973E-06,"radius":0.5,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"overlayText":"$ELEMENT","tether":true}""");
     }
 
-    int GetTowerByPosition(Vector2 pos)
+    private int GetTowerByPosition(Vector2 pos)
     {
-        for(int i = 1; i <= 8; i++)
+        for(var i = 1; i <= 8; i++)
         {
             if(Vector2.Distance(MapEffect2TowerPos[(uint)i], pos) <= 4)
             {
@@ -113,58 +112,64 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         return 0;
     }
 
-
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if(set.Action != null)
         {
-            if(set.Action.Value.RowId == this.ActionTowerExplode)
+            if(set.Action.Value.RowId == ActionTowerExplode)
             {
-                this.TowerCount++;
-                if(set.Target is IPlayerCharacter)
+                TowerCount++;
+                try
                 {
-                    this.HitPlayers.Add(set.Target.ObjectId);
-                    if(this.HitPlayers.Count == 4 && this.HitPlayers.TakeLast(4).Contains(BasePlayer.ObjectId))
+                    if(set.Target is IPlayerCharacter)
                     {
-                        Dictionary<int, List<IPlayerCharacter>> groups = [];
-                        foreach(var x in this.HitPlayers.TakeLast(4))
+                        HitPlayers.Add(set.Target.ObjectId);
+                        if(HitPlayers.Count == 4 && HitPlayers.TakeLast(4).Contains(BasePlayer.ObjectId))
                         {
-                            if(x.TryGetPlayer(out var pc))
+                            Dictionary<int, List<IPlayerCharacter>> groups = [];
+                            foreach(var x in HitPlayers.TakeLast(4))
                             {
-                                groups.GetOrCreate(GetTowerByPosition(pc.Position.ToVector2()), () => []).Add(pc);
+                                if(x.TryGetPlayer(out var pc))
+                                {
+                                    groups.GetOrCreate(GetTowerByPosition(pc.Position.ToVector2()), () => []).Add(pc);
+                                }
                             }
-                        }
-                        var myPartner = groups.FirstOrDefault(x => x.Value.Any(g => g.AddressEquals(BasePlayer))).Value?.FirstOrDefault(x => !x.AddressEquals(BasePlayer));
-                        if(myPartner != null)
-                        {
-                            TemporaryPartnerOverride = myPartner.ObjectId;
-                            TemporaryAdjustOverride = Vector2.Distance(BasePlayer.Position.ToVector2(), new(100, 100)) > Vector2.Distance(myPartner.Position.ToVector2(), new(100, 100));
-                        }
-                        var t = groups.Keys.Order().ToList();
-                        if(t.Count == 2)
-                        {
-                            var myTower = groups.FirstOrDefault(x => x.Value.Any(s => s.AddressEquals(BasePlayer))).Key;
-                            if(Math.Abs(t[0] - t[1]) == 2)
+                            var myPartner = groups.FirstOrDefault(x => x.Value.Any(g => g.AddressEquals(BasePlayer))).Value?.FirstOrDefault(x => !x.AddressEquals(BasePlayer));
+                            if(myPartner != null)
                             {
-                                TemporaryIsLeftTower = myTower == t[1];
+                                TemporaryPartnerOverride = myPartner.ObjectId;
+                                TemporaryAdjustOverride = Vector2.Distance(BasePlayer.Position.ToVector2(), new(100, 100)) > Vector2.Distance(myPartner.Position.ToVector2(), new(100, 100));
                             }
-                            else
+                            var t = groups.Keys.Order().ToList();
+                            if(t.Count == 2)
                             {
-                                TemporaryIsLeftTower = myTower == t[0];
+                                var myTower = groups.FirstOrDefault(x => x.Value.Any(s => s.AddressEquals(BasePlayer))).Key;
+                                if(Math.Abs(t[0] - t[1]) == 2)
+                                {
+                                    TemporaryIsLeftTower = myTower == t[1];
+                                }
+                                else
+                                {
+                                    TemporaryIsLeftTower = myTower == t[0];
+                                }
                             }
                         }
                     }
                 }
+                catch(Exception e)
+                {
+                    e.Log();
+                }
             }
-            if(set.Action.Value.RowId == this.CastFuturesEnd)
+            if(set.Action.Value.RowId == CastFuturesEnd)
             {
                 StoredAoe = true;
-                AoeMapEffectsBlock = this.ActiveMapEffects.ToList();
+                AoeMapEffectsBlock = ActiveMapEffects.ToList();
             }
-            if(set.Action.Value.RowId == this.CastPastsEnd)
+            if(set.Action.Value.RowId == CastPastsEnd)
             {
                 StoredAoe = false;
-                AoeMapEffectsBlock = this.ActiveMapEffects.ToList();
+                AoeMapEffectsBlock = ActiveMapEffects.ToList();
             }
         }
     }
@@ -173,16 +178,16 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
     {
         if(packet->ActionType == (int)ActionType.Action)
         {
-            if(this.CastAllThingsEnding.Contains(packet->ActionID))
+            if(CastAllThingsEnding.Contains(packet->ActionID))
             {
-                this.StoredAoe = null;
+                StoredAoe = null;
             }
         }
     }
 
-    void ShowNextElement(uint id, string kind, bool applyText)
+    private void ShowNextElement(uint id, string kind, bool applyText)
     {
-        for(int i = 0; i < 8; i++)
+        for(var i = 0; i < 8; i++)
         {
             var eName = $"{kind}{i}";
             if(Controller.TryGetElementByName(eName, out var e) && !e.Enabled)
@@ -202,15 +207,15 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         }
     }
 
-    CircularArray<uint> ActiveMapEffects = new(2);
-    List<PairInfo> TowerPairs = [];
-    List<uint> HitPlayers = [];
+    private CircularArray<uint> ActiveMapEffects = new(2);
+    private List<PairInfo> TowerPairs = [];
+    private List<uint> HitPlayers = [];
 
     public readonly record struct PairInfo(bool IsLeft, uint Player1, uint Player2);
 
     public override void OnMapEffect(uint position, ushort data1, ushort data2)
     {
-        if(this.MapEffect2TowerPos.ContainsKey(position) && data1 == 1)
+        if(MapEffect2TowerPos.ContainsKey(position) && data1 == 1)
         {
             ActiveMapEffects.Push(position);
         }
@@ -223,16 +228,27 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         {
             foreach(var x in Controller.GetPartyMembers())
             {
-                if(IsFan(x)) ShowNextElement(x.ObjectId, "Fan", true);
-                if(IsStack(x)) ShowNextElement(x.ObjectId, "Stack", true);
-                if(IsSpread(x)) ShowNextElement(x.ObjectId, "Spread", true);
+                if(IsFan(x))
+                {
+                    ShowNextElement(x.ObjectId, "Fan", true);
+                }
+
+                if(IsStack(x))
+                {
+                    ShowNextElement(x.ObjectId, "Stack", true);
+                }
+
+                if(IsSpread(x))
+                {
+                    ShowNextElement(x.ObjectId, "Spread", true);
+                }
             }
-            if(this.StoredAoe != null && this.ActiveMapEffects.Count() == 2)
+            if(StoredAoe != null && ActiveMapEffects.Count() == 2)
             {
                 var e = Controller.GetElementByName("Bait");
-                if(!this.StoredAoe.Value || (C.LastBaitAlwaysBetweenTowers && SequenceCount >= 7))
+                if(!StoredAoe.Value || (C.LastBaitAlwaysBetweenTowers && SequenceCount >= 7))
                 {
-                    var pos = (this.MapEffect2TowerPos[this.ActiveMapEffects[0]] + this.MapEffect2TowerPos[this.ActiveMapEffects[1]]) / 2;
+                    var pos = (MapEffect2TowerPos[ActiveMapEffects[0]] + MapEffect2TowerPos[ActiveMapEffects[1]]) / 2;
                     e.Enabled = true;
                     e.RefPosition = Extend(new(100, 100), pos, 2).ToVector3();
                     e.color = Controller.AttentionColor;
@@ -240,9 +256,9 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                 }
                 else
                 {
-                    var i1 = (((this.ActiveMapEffects[0] - 1) + 4) % 8) + 1;
-                    var i2 = (((this.ActiveMapEffects[1] - 1) + 4) % 8) + 1;
-                    var pos = (this.MapEffect2TowerPos[i1] + this.MapEffect2TowerPos[i2]) / 2;
+                    var i1 = ((ActiveMapEffects[0] - 1 + 4) % 8) + 1;
+                    var i2 = ((ActiveMapEffects[1] - 1 + 4) % 8) + 1;
+                    var pos = (MapEffect2TowerPos[i1] + MapEffect2TowerPos[i2]) / 2;
                     e.Enabled = true;
                     e.color = Controller.AttentionColor;
                     e.RefPosition = Extend(new(100, 100), pos, 2).ToVector3();
@@ -258,13 +274,13 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             }
             if(IsStack(BasePlayer) || IsStack(partner))
             {
-                this.FirstTaker ??= true;
+                FirstTaker ??= true;
             }
             else
             {
                 if(HasMarker(BasePlayer) && HasMarker(partner))
                 {
-                    this.FirstTaker ??= false;
+                    FirstTaker ??= false;
                 }
             }
             if(!IsActive(BasePlayer))
@@ -283,7 +299,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                 }
                 else
                 {
-                    if(ShowRotatedLayout($"2468_{(C.IsLeftDefaultTower?"Left":"Right")}", C.IsLeftDefaultTower, out var l))
+                    if(ShowRotatedLayout($"2468_{(C.IsLeftDefaultTower ? "Left" : "Right")}", C.IsLeftDefaultTower, out var l))
                     {
                         l.Enabled = true;
                         l.Hide();
@@ -297,7 +313,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             {
                 var isCone = IsFan(BasePlayer) || (C.IsLeftDefaultTower && !IsSpread(BasePlayer));
                 var doAdjust = C.IsFlexerAsActive && MustAdjust(partner);
-                
+
                 if(doAdjust)
                 {
                     isCone = !isCone;
@@ -338,7 +354,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                         }
                     }
 
-                    if(this.ShowRotatedLayout($"2468_{(isLeft?"Left":"Right")}", isLeft, out var l))
+                    if(ShowRotatedLayout($"2468_{(isLeft ? "Left" : "Right")}", isLeft, out var l))
                     {
                         l.Enabled = true;
                         l.Hide();
@@ -354,19 +370,23 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
     public static Vector2 Extend(Vector2 center, Vector2 point, float distance)
     {
         Vector2 direction = Vector2.Normalize(point - center);
-        return point + direction * distance;
+        return point + (direction * distance);
     }
 
     public bool MustAdjust(IPlayerCharacter partner) => (IsStack(BasePlayer) && IsStack(partner)) || (IsFan(BasePlayer) && IsFan(partner)) || (IsSpread(BasePlayer) && IsSpread(partner));
 
     public bool HasMarker(IPlayerCharacter x) => IsFan(x) || IsSpread(x) || IsStack(x);
-    public bool IsFan(IPlayerCharacter x) => x.StatusList.Any(s => s.StatusId == this.EffectFan);
-    public bool IsStack(IPlayerCharacter x) => x.StatusList.Any(s => s.StatusId == this.EffectStack);
-    public bool IsSpread(IPlayerCharacter x) => x.StatusList.Any(s => s.StatusId == this.EffectSpread);
+    public bool IsFan(IPlayerCharacter x) => x.StatusList.Any(s => s.StatusId == EffectFan);
+    public bool IsStack(IPlayerCharacter x) => x.StatusList.Any(s => s.StatusId == EffectStack);
+    public bool IsSpread(IPlayerCharacter x) => x.StatusList.Any(s => s.StatusId == EffectSpread);
     public bool IsActive(IPlayerCharacter x)
     {
-        if(FirstTaker == null) return default;
-        var bStep = C.Switchers.Contains(this.SequenceCount-1);
+        if(FirstTaker == null)
+        {
+            return default;
+        }
+
+        var bStep = C.Switchers.Contains(SequenceCount - 1);
         return FirstTaker.Value ? !bStep : bStep;
     }
 
@@ -378,16 +398,16 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             return false;
         }
         int myTower;
-        int eff1 = (int)this.ActiveMapEffects.Order().ElementAt(0);
-        int eff2 = (int)this.ActiveMapEffects.Order().ElementAt(1);
-        if(Math.Abs(eff1-eff2) == 2)
+        var eff1 = (int)ActiveMapEffects.Order().ElementAt(0);
+        var eff2 = (int)ActiveMapEffects.Order().ElementAt(1);
+        if(Math.Abs(eff1 - eff2) == 2)
         {
-            myTower = (int)(isLeft ?eff2:eff1);
+            myTower = (int)(isLeft ? eff2 : eff1);
         }
         else
         {
             // if it's 8 and 2, or 7 and 1 basically, then lower will be left
-            myTower = (int)(isLeft ?eff1:eff2);
+            myTower = (int)(isLeft ? eff1 : eff2);
         }
         //PluginLog.Information($"is left: {isLeft} {myTower} | {this.ActiveMapEffects.Order().Print()} | {Math.Abs(eff1 - eff2)}");
         if(Controller.TryGetLayoutByName(name, out l))
@@ -396,7 +416,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             var orig = Controller.OriginalLayouts[name];
             foreach(var element in l.ElementsL)
             {
-                element.RefPosition = MathHelper.RotateWorldPoint(new(100, 0, 100), ((myTower - 1) * 45 + 180).DegreesToRadians(), orig.GetElement(element.Name).RefPosition);
+                element.RefPosition = MathHelper.RotateWorldPoint(new(100, 0, 100), (((myTower - 1) * 45) + 180).DegreesToRadians(), orig.GetElement(element.Name).RefPosition);
                 element.overlayVOffset = C.VOffset;
             }
             return true;
@@ -406,16 +426,16 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
 
     public override void OnReset()
     {
-        this.TowerCount = 0;
-        this.FirstTaker = null;
-        this.ActiveMapEffects = new(2);
+        TowerCount = 0;
+        FirstTaker = null;
+        ActiveMapEffects = new(2);
         TowerPairs.Clear();
         HitPlayers.Clear();
-        this.StoredAoe = null;
+        StoredAoe = null;
         TemporaryPartnerOverride = null;
         TemporaryAdjustOverride = null;
         TemporaryIsLeftTower = null;
-        this.AoeMapEffectsBlock.Clear();
+        AoeMapEffectsBlock.Clear();
     }
 
     public override void OnSettingsDraw()
@@ -441,13 +461,25 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         ImGuiEx.Text("Tower taking order, where group A is the group that takes first tower:");
         for(uint i = 0; i < 8; i++)
         {
-            if(i == 0) ImGui.BeginDisabled();
+            if(i == 0)
+            {
+                ImGui.BeginDisabled();
+            }
+
             ImGui.PushID(i);
             ImGuiEx.TextV($"{i + 1}:");
             ImGui.SameLine();
-            if(ImGui.RadioButton("A", !C.Switchers.Contains(i))) C.Switchers.Remove(i);
+            if(ImGui.RadioButton("A", !C.Switchers.Contains(i)))
+            {
+                C.Switchers.Remove(i);
+            }
+
             ImGui.SameLine();
-            if(ImGui.RadioButton("B", C.Switchers.Contains(i))) C.Switchers.Add(i);
+            if(ImGui.RadioButton("B", C.Switchers.Contains(i)))
+            {
+                C.Switchers.Add(i);
+            }
+
             ImGui.PopID();
             if(i == 0)
             {
@@ -491,24 +523,36 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             {
                 MapEffect.Delegate((long)EventFramework.Instance()->GetInstanceContentDirector(), 7, 1, 2);
             }
-            if(ImGui.Button("Copy map effects")) GenericHelpers.Copy(this.ActiveMapEffects.Print("|"));
+            if(ImGui.Button("Copy map effects"))
+            {
+                GenericHelpers.Copy(ActiveMapEffects.Print("|"));
+            }
+
             if(ImGui.Button("Paste map effects"))
             {
-                GenericHelpers.Paste().Split("|").Select(x => uint.Parse(x)).Each(x => this.ActiveMapEffects.Push(x));
+                GenericHelpers.Paste().Split("|").Select(x => uint.Parse(x)).Each(x => ActiveMapEffects.Push(x));
             }
             ImGui.InputUInt("Tower count", ref TowerCount);
             ImGuiEx.Checkbox("First taker", ref FirstTaker);
             ImGui.SameLine();
-            if(ImGui.Button("Yes")) FirstTaker = true;
+            if(ImGui.Button("Yes"))
+            {
+                FirstTaker = true;
+            }
+
             ImGui.SameLine();
-            if(ImGui.Button("No")) FirstTaker = false;
+            if(ImGui.Button("No"))
+            {
+                FirstTaker = false;
+            }
+
             ImGuiEx.Text($"IsActive: {IsActive(BasePlayer)}\nSequence:{SequenceCount}");
         }
     }
 
     public class Config
     {
-        public HashSet<uint> Switchers = [3,4,5,6];
+        public HashSet<uint> Switchers = [3, 4, 5, 6];
         public bool IsLeftDefaultTower = false;
         public bool IsFlexerAsActive = false;
         public bool IsStackTakerAsPassive = false;

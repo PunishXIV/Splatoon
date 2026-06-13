@@ -37,10 +37,12 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Bowels_of_Agony_TLB","ConfigurationName":"Yan TLB strat","Configuration":"G3MMACwK7AZ5IXaGLn6cE6jnUJW7v+9X10h3VvDs+qtAokKdU6gJH6rHSZIVbsTl3ZiSC4VkadA5/t79aCzgZ1rfmhjxu2tOWiBZOOYQDSyhwHjQv+hKQXYnMled6x9AgboAG1TC0UJq3MCfHcXmuxx2mCug9Ty9kHwMtoMi6qF3HqC/4F7xgOAXEsNQSRiuhBEp4X57x4+oMCktO4UpwQ6hgz4xKPdP8SHUErBUOqf7AJpLwb2mT7K8RqV1EQKeIwImBEJohBAwsU+P6OutUuau4MCh9PdQPU1jov6HlmcvALFnVzyDs9qRrKl6TExd2dOc9wekvjEMH8IicxtHZTWWtgf7mLC0RefMzrDdvXhM9yaaBYJqE8GR9JYOA3yyuOOJKNBxCD0JQw4dt/qUKJbu4YFj4wY61UMpytrOPhpRntIYOiAueA3xKnq1uvxut94niroZWYR9OIl/QvSvtFK22mJ8/msi31j24fdPfFZLRpH8WlwbWlrbypay925o5Q84RCnguiJ2AQ==","Overrides":null}
 ```
 
-#### NA TLB strat
+#### EU TLB strat
+
+https://raidplan.io/plan/cyHdnCaTdIkh4Eq0
 
 ```
-{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Bowels_of_Agony_TLB","ConfigurationName":"NA TLB strat","Configuration":"G4AMACwK7MZiITpDOz9HDXGIyt3fd6u/H+nOCT6LnwUSFVDqpmxTTUjvv10wAolbUHKh0CwNOl3/d01bVxb6nC2z0vdTREXCAEn+KcLYyRk1IfXF5U3VJHbbgwG8Wlx/EQnqAmxQg4YWoiUb+F+HFPNdDjvmCryepxfJK7Ad1EkPeB6gv/he8QuLj0gUBiVB4SIoInLqF4+foMJErdmFmBLSIXSA1OqcnuK3SEvAUskd7gOaS0b2GkpzeYxK6hADmiMGRAyY2DAxINI3UlRvrTR3AwcOGd1D+28ac/k/tKp4AYhoV3yjrmqttDaEroFjEzOW9jTn/QFp4zGsH+IlGvOhRUek7SE+Jmxu0bkfona9eEz3ZhnkKhBQbS44kv7kwwCfrO90Iop1nEBPwpDRcQsZIUW6k4EnG0/wqR5Kpaz94W0JylN0iompLzyG+C081jivIw15BRsXP6sURy4OKs//QGnM+1+IHGnI+uxfGLdz911GSAjFzxS9kBk23lJiEUoJfTf0XgZqvNdP4352kaigZVxGoYXIcJGROQ==","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Bowels_of_Agony_TLB","ConfigurationName":"EU TLB strat","Configuration":"G4AMACwK7MZiITpDOz9HDXGIyt3fd6u/H+nOCT6LnwUSFVDqpmxTTUjvv10wAolbUHKh0CwNOl3/d01bVxb6nC2z0vdTREXCAEn+KcLYyRk1IfXF5U3VJHbbgwG8Wlx/EQnqAmxQg4YWoiUb+F+HFPNdDjvmCryepxfJK7Ad1EkPeB6gv/he8QuLj0gUBiVB4SIoInLqF4+foMJErdmFmBLSIXSA1OqcnuK3SEvAUskd7gOaS0b2GkpzeYxK6hADmiMGRAyY2DAxINI3UlRvrTR3AwcOGd1D+28ac/k/tKp4AYhoV3yjrmqttDaEroFjEzOW9jTn/QFp4zGsH+IlGvOhRUek7SE+Jmxu0bkfona9eEz3ZhnkKhBQbS44kv7kwwCfrO90Iop1nEBPwpDRcQsZIUW6k4EnG0/wqR5Kpaz94W0JylN0iompLzyG+C081jivIw15BRsXP6sURy4OKs//QGnM+1+IHGnI+uxfGLdz911GSAjFzxS9kBk23lJiEUoJfTf0XgZqvNdP4352kaigZVxGoYXIcJGROQ==","Overrides":null}
 ```
 
 ## **[Script]** [Beta] **[UNTESTED]** P3 Earthquake

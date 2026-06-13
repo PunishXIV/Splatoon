@@ -27,7 +27,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(5, "mirage");
+    public override Metadata? Metadata => new(6, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -44,7 +44,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private const uint PastsEndCast = 47827;
     private const uint AllThingsEndingCast1 = 47836;
     private const uint AllThingsEndingCast2 = 47837;
-    private const float InterludeNavDistanceFromCenter = 4f;
+    private const float DefaultBaitAllThingsEndingRange = 6f;
+    private const float MinBaitAllThingsEndingRange = 5f;
+    private const float MaxBaitAllThingsEndingRange = 15f;
+    private const float BaitAllThingsEndingRangeStep = 0.5f;
 
     // Map effect indices 1-8 (P2_Forsaken_beta): spawn 1/2, clear 4/8.
     private const uint MapEffectTowerIndexMin = 1;
@@ -281,6 +284,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         public string SpreadEchoText = DefaultSpreadEchoText;
         public string ConeEchoText = DefaultConeEchoText;
         public PatternRuleSettings[][] PatternRules = CreateDefaultPatternRules();
+        public float BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
 
         public void EnsureDefaults()
         {
@@ -295,6 +299,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             SpreadEchoText = NormalizeEchoText(SpreadEchoText, DefaultSpreadEchoText);
             ConeEchoText = NormalizeEchoText(ConeEchoText, DefaultConeEchoText);
             PatternRules = EnsurePatternRules(PatternRules);
+            BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(BaitAllThingsEndingRange);
         }
 
         public void ResetToDefaults()
@@ -312,6 +317,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             SpreadEchoText = DefaultSpreadEchoText;
             ConeEchoText = DefaultConeEchoText;
             PatternRules = CreateDefaultPatternRules();
+            BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
         }
 
         private static MarkerResolveKind ClampMarkerResolveKind(MarkerResolveKind kind)
@@ -461,6 +467,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             {
                 DrawPrioritySettings();
                 DrawAllPatternAssignmentTables();
+                DrawOtherElementSettings();
                 ImGui.EndTabItem();
             }
 
@@ -534,6 +541,27 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             DrawPatternAssignmentTable(pattern);
             ImGui.TreePop();
         }
+    }
+
+    // Draw bait range for All Things Ending interlude navigation.
+    private void DrawOtherElementSettings()
+    {
+        C.EnsureDefaults();
+        ImGui.Spacing();
+        ImGui.TextDisabled("Other Element");
+        ImGui.Separator();
+        var range = C.BaitAllThingsEndingRange;
+        ImGui.SetNextItemWidth(120f);
+        if(ImGui.DragFloat("Bait AllThingsEnding Range", ref range, BaitAllThingsEndingRangeStep,
+                MinBaitAllThingsEndingRange, MaxBaitAllThingsEndingRange, "%.1f"))
+            C.BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(range);
+    }
+
+    // Clamp and snap bait range to 0.5 steps within 5~15.
+    private static float ClampBaitAllThingsEndingRange(float range)
+    {
+        var clamped = Math.Clamp(range, MinBaitAllThingsEndingRange, MaxBaitAllThingsEndingRange);
+        return MathF.Round(clamped / BaitAllThingsEndingRangeStep) * BaitAllThingsEndingRangeStep;
     }
 
     private void DrawPatternAssignmentTable(PatternDefinition pattern)
@@ -1235,9 +1263,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         return true;
     }
 
-    // Past: toward active tower pair at 4m from center; Future: opposite side through center at 4m.
+    // Past: toward active tower pair at configured distance from center; Future: opposite side through center.
     private Vector3 ResolveInterludeNavPosition()
     {
+        C.EnsureDefaults();
         var pairMidpoint = (_activeTowerPositions[0] + _activeTowerPositions[1]) * 0.5f;
         var towardTowers = pairMidpoint - ArenaCenter;
         towardTowers.Y = 0;
@@ -1246,8 +1275,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         towardTowers = Vector3.Normalize(towardTowers);
 
         return _interludeNavPhase == InterludeNavPhase.PastGap
-            ? ArenaCenter + towardTowers * InterludeNavDistanceFromCenter
-            : ArenaCenter - towardTowers * InterludeNavDistanceFromCenter;
+            ? ArenaCenter + towardTowers * C.BaitAllThingsEndingRange
+            : ArenaCenter - towardTowers * C.BaitAllThingsEndingRange;
     }
 
     private void UpdateActiveTowerMarkers()

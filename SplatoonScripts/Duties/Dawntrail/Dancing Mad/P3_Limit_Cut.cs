@@ -29,6 +29,7 @@ public class P3_Limit_Cut : SplatoonScript
     private const float CenterIgnoreRadius = 5.0f;
     private const string DestinationElementName = "Destination";
     private const string InstructionElementName = "SelfInstruction";
+    private const string FirstDashCalloutElementName = "FirstDashCallout";
 
     private static readonly Vector3 ArenaCenter = new(100.0f, 0.0f, 100.0f);
     private static readonly Regex LimitCutVfxRegex =
@@ -48,8 +49,14 @@ public class P3_Limit_Cut : SplatoonScript
 
     private static readonly InternationalString DisplayTextDescriptionText = new()
     {
-        En = "Text shown to the local player. Keep the {0} placeholder for the Limit Cut number.",
-        Jp = "自分に表示する文言です。{0} はリミットカット番号です。"
+        En = "Text shown to the local player. Waiting and destination text use {0} for the Limit Cut number. First line callout uses {0}=first dash endpoint/new north, {1}=Kefka dash rotation, {2}=first dash start.",
+        Jp = "自分に表示する文言です。待機/目的地テキストの {0} はリミットカット番号です。初回ラインAoEコールアウトは {0}=初回ダッシュ終点/新北、{1}=ケフカのダッシュ回転、{2}=初回ダッシュ開始側です。"
+    };
+
+    private static readonly InternationalString ShowFirstDashCalloutSettingText = new()
+    {
+        En = "Show first line callout",
+        Jp = "初回ラインAoEコールアウトを表示"
     };
 
     private readonly Dictionary<uint, int> _numbersByObjectId = [];
@@ -104,6 +111,18 @@ public class P3_Limit_Cut : SplatoonScript
             overlayTextColor = 0xFFFFFFFF,
             overlayVOffset = 3.0f,
             overlayFScale = 1.8f,
+            overlayText = ""
+        });
+
+        Controller.RegisterElement(FirstDashCalloutElementName, new Element(0)
+        {
+            Enabled = false,
+            radius = 0.0f,
+            thicc = 0.0f,
+            overlayBGColor = 0xC8000000,
+            overlayTextColor = 0xFFFFFFFF,
+            overlayVOffset = 5.0f,
+            overlayFScale = 1.65f,
             overlayText = ""
         });
     }
@@ -194,9 +213,11 @@ public class P3_Limit_Cut : SplatoonScript
         if (!_active || me == null)
             return;
 
-        if (_hasDashSolution && TryGetDestination(me, out var destination))
+        if (_hasDashSolution)
         {
-            ShowDestination(destination, me);
+            ShowFirstDashCallout(me);
+            if (TryGetDestination(me, out var destination))
+                ShowDestination(destination, me);
             return;
         }
 
@@ -216,6 +237,18 @@ public class P3_Limit_Cut : SplatoonScript
         ImGui.TextWrapped(DisplayTextDescriptionText.Get());
         DrawInternationalString("Waiting for dash", C.WaitingForDashText);
         DrawInternationalString("Destination overlay", C.DestinationOverlayText);
+        ImGui.Checkbox(ShowFirstDashCalloutSettingText.Get(), ref C.ShowFirstDashCallout);
+        DrawInternationalString("First line callout", C.FirstDashCalloutText);
+        DrawInternationalString("Clockwise label", C.ClockwiseLabelText);
+        DrawInternationalString("Counterclockwise label", C.CounterclockwiseLabelText);
+        DrawInternationalString("North label", C.NorthLabelText);
+        DrawInternationalString("Northeast label", C.NorthEastLabelText);
+        DrawInternationalString("East label", C.EastLabelText);
+        DrawInternationalString("Southeast label", C.SouthEastLabelText);
+        DrawInternationalString("South label", C.SouthLabelText);
+        DrawInternationalString("Southwest label", C.SouthWestLabelText);
+        DrawInternationalString("West label", C.WestLabelText);
+        DrawInternationalString("Northwest label", C.NorthWestLabelText);
         ImGui.Unindent();
     }
 
@@ -365,6 +398,24 @@ public class P3_Limit_Cut : SplatoonScript
         element.overlayText = FormatText(C.WaitingForDashText, number);
     }
 
+    private void ShowFirstDashCallout(IPlayerCharacter player)
+    {
+        if (!C.ShowFirstDashCallout)
+            return;
+
+        var format = C.FirstDashCalloutText.Get();
+        if (string.IsNullOrWhiteSpace(format) ||
+            !Controller.TryGetElementByName(FirstDashCalloutElementName, out var element))
+            return;
+
+        element.Enabled = true;
+        element.SetRefPosition(player.Position);
+        element.overlayText = string.Format(format,
+            DirectionLabel(_firstDashDirection),
+            DashRotationLabel(),
+            DirectionLabel(_firstStartDirection));
+    }
+
     private void DisableElements()
     {
         foreach (var element in Controller.GetRegisteredElements().Values)
@@ -387,6 +438,29 @@ public class P3_Limit_Cut : SplatoonScript
     }
 
     private static int WrapDirection(int direction) => (direction % 8 + 8) % 8;
+
+    private string DirectionLabel(int direction)
+    {
+        return WrapDirection(direction) switch
+        {
+            0 => C.NorthLabelText.Get(),
+            1 => C.NorthEastLabelText.Get(),
+            2 => C.EastLabelText.Get(),
+            3 => C.SouthEastLabelText.Get(),
+            4 => C.SouthLabelText.Get(),
+            5 => C.SouthWestLabelText.Get(),
+            6 => C.WestLabelText.Get(),
+            7 => C.NorthWestLabelText.Get(),
+            _ => "?"
+        };
+    }
+
+    private string DashRotationLabel()
+    {
+        return _dashStep > 0
+            ? C.ClockwiseLabelText.Get()
+            : C.CounterclockwiseLabelText.Get();
+    }
 
     private static Vector3 NormalizeY(Vector3 position) => new(position.X, 0.0f, position.Z);
 
@@ -446,6 +520,74 @@ public class P3_Limit_Cut : SplatoonScript
             Jp = "リミットカット{0}: 回転方向待ち"
         };
 
+        public InternationalString FirstDashCalloutText = new()
+        {
+            En = "New north: {0} {1}",
+            Jp = "新北: {0} {1}"
+        };
+
+        public bool ShowFirstDashCallout;
+
+        public InternationalString ClockwiseLabelText = new()
+        {
+            En = "CW",
+            Jp = "時計回り"
+        };
+
+        public InternationalString CounterclockwiseLabelText = new()
+        {
+            En = "CCW",
+            Jp = "反時計回り"
+        };
+
+        public InternationalString EastLabelText = new()
+        {
+            En = "E",
+            Jp = "東"
+        };
+
+        public InternationalString NorthEastLabelText = new()
+        {
+            En = "NE",
+            Jp = "北東"
+        };
+
+        public InternationalString NorthLabelText = new()
+        {
+            En = "N",
+            Jp = "北"
+        };
+
+        public InternationalString NorthWestLabelText = new()
+        {
+            En = "NW",
+            Jp = "北西"
+        };
+
+        public InternationalString SouthEastLabelText = new()
+        {
+            En = "SE",
+            Jp = "南東"
+        };
+
+        public InternationalString SouthLabelText = new()
+        {
+            En = "S",
+            Jp = "南"
+        };
+
+        public InternationalString SouthWestLabelText = new()
+        {
+            En = "SW",
+            Jp = "南西"
+        };
+
+        public InternationalString WestLabelText = new()
+        {
+            En = "W",
+            Jp = "西"
+        };
+
         public void EnsureDefaults()
         {
             DestinationOverlayText ??= new InternationalString { En = "LC {0}", Jp = "LC {0}" };
@@ -454,6 +596,17 @@ public class P3_Limit_Cut : SplatoonScript
                 En = "Limit Cut {0}: waiting for dash direction",
                 Jp = "リミットカット{0}: 回転方向待ち"
             };
+            FirstDashCalloutText ??= new InternationalString { En = "New north: {0} {1}", Jp = "新北: {0} {1}" };
+            ClockwiseLabelText ??= new InternationalString { En = "CW", Jp = "時計回り" };
+            CounterclockwiseLabelText ??= new InternationalString { En = "CCW", Jp = "反時計回り" };
+            EastLabelText ??= new InternationalString { En = "E", Jp = "東" };
+            NorthEastLabelText ??= new InternationalString { En = "NE", Jp = "北東" };
+            NorthLabelText ??= new InternationalString { En = "N", Jp = "北" };
+            NorthWestLabelText ??= new InternationalString { En = "NW", Jp = "北西" };
+            SouthEastLabelText ??= new InternationalString { En = "SE", Jp = "南東" };
+            SouthLabelText ??= new InternationalString { En = "S", Jp = "南" };
+            SouthWestLabelText ??= new InternationalString { En = "SW", Jp = "南西" };
+            WestLabelText ??= new InternationalString { En = "W", Jp = "西" };
         }
     }
 }

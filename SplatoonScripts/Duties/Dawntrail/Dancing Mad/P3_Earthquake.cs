@@ -23,9 +23,14 @@ namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 {
     private const uint TerritoryDancingMadUltimate = 1363;
+    private const uint KefkaDataId = 19451;
+    private const uint KefkaNameId = 7131;
+    private const uint ChaosDataId = 19508;
     private const uint DecisiveBattleChaos = 49890;
     private const uint DecisiveBattleExdeath = 49891;
     private const uint BlackHoleDataId = 19512;
+    private const uint KefkaDashStart = 47843;
+    private const uint KefkaDashEnd = 47844;
     private const uint BlackHoleCast = 47867;
     private const uint BlackHoleHit = 47868;
     private const uint BintaStackCast = 47846;
@@ -64,6 +69,9 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private const ushort LineDoneStatus = 5453;
     private const float BlackHoleRadiusMin = 11.0f;
     private const float BlackHoleRadiusMax = 23.0f;
+    private const float KefkaAnchorRadiusMin = 5.0f;
+    private const float KefkaVirtualAnchorRadius = 20.0f;
+    private const float KefkaRotationMatchMax = MathF.PI / 4.0f;
     private const int ExpectedBlackHoleActors = 12;
     private const float BaitOffset = 4.5f;
     private const float StackRadius = 10.8f;
@@ -84,7 +92,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private static readonly int[] DefaultMarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
     private static readonly string[] BlackHoleOrderNames = ["1st", "2nd", "3rd"];
     private static readonly string[] AssignmentModeNames =
-        ["Party marker", "Priority", "Marker + priority fallback", "PF role/accretion"];
+        ["Party marker", "Priority", "Marker + priority fallback", "PF role/accretion", "Fixed role/accretion spots"];
     private static readonly RolePosition[] DefaultRolePriority =
     [
         RolePosition.T1,
@@ -115,8 +123,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     };
     private static readonly InternationalString AssignmentModeDescription = new()
     {
-        En = "Party marker: uses only the marker line-order table below. Priority: ignores markers and orders players with the priority list inside each First/Second/Third group. Marker + priority fallback: uses markers first; if no valid marker result is available after Black Hole starts and all groups are known, it falls back to priority. PF role/accretion: resolves order inside your group as DPS first, support second, Accretion third.",
-        Jp = "Party marker: 下のマーカー別線取り順だけで判定します。Priority: マーカーを無視し、第一/第二/第三対象ごとに優先順位で並べます。Marker + priority fallback: まずマーカーで判定し、黒穴開始後も有効なマーカー判定ができず、全員のグループが揃っている場合だけ優先順位へフォールバックします。PF role/accretion: 自分のグループ内でDPSを1番目、タンク/ヒラを2番目、Accretion持ちを3番目として判定します。"
+        En = "Party marker: uses only the marker line-order table below. Priority: ignores markers and orders players with the priority list inside each First/Second/Third group. Marker + priority fallback: uses markers first; if no valid marker result is available after Black Hole starts and all groups are known, it falls back to priority. PF role/accretion: resolves order inside your group as DPS first, support second, Accretion third. Fixed role/accretion spots: support=A, DPS=B, Accretion=C; if that preferred spot has no active Black Hole, it uses D.",
+        Jp = "Party marker: 下のマーカー別線取り順だけで判定します。Priority: マーカーを無視し、第一/第二/第三対象ごとに優先順位で並べます。Marker + priority fallback: まずマーカーで判定し、黒穴開始後も有効なマーカー判定ができず、全員のグループが揃っている場合だけ優先順位へフォールバックします。PF role/accretion: 自分のグループ内でDPSを1番目、タンク/ヒラを2番目、Accretion持ちを3番目として判定します。Fixed role/accretion spots: タンク/ヒラ=A、DPS=B、Accretion=C として扱い、担当spotに黒穴が無い場合はDを使います。"
     };
     private static readonly InternationalString LineBaitDirectionDescription = new()
     {
@@ -125,8 +133,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     };
     private static readonly InternationalString BlackHoleSourceOrderDescription = new()
     {
-        En = "Black Hole source order sorts only the Black Holes that currently have active tethers. Clockwise from N uses N/E/S/W order; Counterclockwise from N uses N/W/S/E order. The sorted active list is then matched to 1st/2nd/3rd players.",
-        Jp = "Black Hole source order は、現在線が出ている黒穴だけを並べ替える設定です。Clockwise from N は 北/東/南/西、Counterclockwise from N は 北/西/南/東 の順で並べ、その並びを 1st/2nd/3rd の担当者に対応させます。"
+        En = "Black Hole source order sorts only the Black Holes that currently have active tethers. The anchor decides where 1st starts; the order decides clockwise or counterclockwise from that anchor.",
+        Jp = "Black Hole source order は、現在線が出ている黒穴だけを並べ替える設定です。anchor で 1番目を数え始める基準を決め、order でそこから時計回り/反時計回りのどちらに数えるかを決めます。"
     };
     private static readonly InternationalString MarkerLineOrderDescription = new()
     {
@@ -169,12 +177,18 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private Vector3? _selfDestination;
     private Vector3? _selfTetherSource;
     private Vector3? _guideDestination;
+    private Vector3? _dubbingDestination;
+    private (Vector3 Destination, string Text, GuidanceKind Kind, uint ActionId, float Rotation, float Offset)? _pendingPostDubbingGuide;
     private GuidanceKind _guideKind;
+    private uint _guideActionId;
     private string _guideText = "";
     private string _guideInstruction = "";
     private string _guideDebug = "";
+    private string _kefkaAnchorDebug = "";
     private string _pendingMarkerCommand = "";
     private long _markerCommandAtMs;
+    private uint _kefkaId;
+    private Vector3? _kefkaPosition;
     private uint _selfTetherTarget;
     private uint _lastMissingLineTarget;
     private int _currentWindow = -1;
@@ -188,7 +202,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _instruction = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(32, "Garume");
+    public override Metadata Metadata => new(33, "Garume");
 
     public override void OnSetup()
     {
@@ -237,7 +251,23 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     public override void OnStartingCast(uint source, uint castId)
     {
+        HandleStartingCast(source, castId, "attached-info", null);
+    }
+
+    public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
+    {
+        HandleStartingCast(sourceId, packet->ActionID, "packet", packet);
+    }
+
+    private unsafe void HandleStartingCast(uint source, uint castId, string origin, PacketActorCast* packet)
+    {
         RefreshBasePlayerState();
+        var packetRotation = packet == null ? (float?)null : packet->Rotation;
+        if (ShouldSkipAttachedInfoCast(origin, castId)) return;
+        UpdateKefkaAnchor(source, castId, packetRotation);
+        LogKefkaCastProbe(origin, source, castId, packet);
+        LogKefkaCandidateEvent("CAST", source, castId);
+        LogFinalCast(origin, source, castId, packetRotation);
 
         if (castId is UltimateEmbrace or BowelsOfAgony)
             ResetAll();
@@ -245,26 +275,88 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             StartCollection();
         else if (castId == BlackHoleCast)
             StartBlackHole();
-        else if (castId is BintaStackCast or BintaSpreadCast)
-            SetBintaGuide(source, castId == BintaStackCast);
-        else if (castId == DubbingEdict)
-            SetDirectionalGuide(source, castId, TextOrEmpty(C.ShowDubbingText, C.DubbingText), GuidanceKind.Dubbing,
-                MathF.PI / 2.0f, SafeRadius);
-        else if (castId is AsIsFirst or AsIsSecond)
-            SetDirectionalGuide(source, castId, TextOrEmpty(C.ShowAsIsText, C.AsIsText), GuidanceKind.AsIs,
-                castId == AsIsFirst ? 0.0f : MathF.PI, SafeRadius);
-        else if (castId == WhiteHole)
+        else if (!HandleMiddleAoeCast(source, castId, packetRotation))
+            HandleFinalCast(castId);
+    }
+
+    private bool HandleMiddleAoeCast(uint source, uint castId, float? packetRotation)
+    {
+        if (castId is BintaStackCast or BintaSpreadCast)
+        {
+            StartCollection();
+            if (C.ShowInterBlackHoleAoeGuides)
+                SetBintaGuide(source, packetRotation, castId == BintaStackCast);
+            return true;
+        }
+
+        if (castId == DubbingEdict)
+        {
+            StartCollection();
+            if (C.ShowInterBlackHoleAoeGuides)
+                SetDubbingGuide(source);
+            return true;
+        }
+
+        if (castId is AsIsFirst or AsIsSecond)
+        {
+            StartCollection();
+            if (C.ShowInterBlackHoleAoeGuides)
+                SetDirectionalGuide(source, castId, TextOrEmpty(C.ShowAsIsText, C.AsIsText), GuidanceKind.AsIs,
+                    castId == AsIsFirst ? 0.0f : MathF.PI, SafeRadius, packetRotation, delayDuringDubbing: true);
+            return true;
+        }
+
+        if (castId == WhiteHole)
+        {
+            StartCollection();
             SetInstruction(TextOrEmpty(C.ShowWhiteHoleText, C.WhiteHoleText), GuidanceKind.WhiteHole);
-        else if (castId is LongitudinalImplosion or LatitudinalImplosion)
-            SetImplosionGuide(source, castId, castId == LongitudinalImplosion);
-        else if (castId == LateP3Blizzaga)
+            return true;
+        }
+
+        if (castId is LongitudinalImplosion or LatitudinalImplosion)
+        {
+            StartCollection();
+            if (C.ShowInterBlackHoleAoeGuides)
+                SetImplosionGuide(source, castId, castId == LongitudinalImplosion, packetRotation);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HandleFinalCast(uint castId)
+    {
+        if (castId == LateP3Blizzaga)
+        {
             SetFinalCenterBait();
-        else if (castId == DondokoCast)
+            return true;
+        }
+        if (castId == DondokoCast)
+        {
             SetFinalRoleSpread();
-        else if (castId == LandingCast)
+            return true;
+        }
+        if (castId == LandingCast)
+        {
             SetKnownFinalLanding();
-        else if (castId is EnhancedBlizzaga or Protrude)
+            return true;
+        }
+        if (castId is EnhancedBlizzaga or Protrude)
+        {
             SetFinalMove();
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool ShouldSkipAttachedInfoCast(string origin, uint castId)
+    {
+        var skip = origin == "attached-info" && castId == DubbingEdict &&
+            (_dubbingDestination.HasValue || _guideActionId == DubbingEdict);
+        if (skip && C.EnableBlackHoleDebugLogs)
+            DebugLog("CAST_SKIP attached-info action=47873 reason=packet-guide-already-set");
+        return skip;
     }
 
     public override void OnActionEffectEvent(ActionEffectSet set)
@@ -272,33 +364,85 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         RefreshBasePlayerState();
 
         var actionId = set.Action?.RowId ?? 0;
+        LogKefkaCandidateEvent("ACTION", set.Source?.EntityId ?? 0, actionId);
+        LogKefkaActionProbe(set, actionId);
+        LogFinalAction(set, actionId);
         if (actionId == BlackHoleHit && TryBucket(set.Source?.Position ?? set.Position, out var bucket))
         {
             AdvanceWindow(bucket);
         }
-        else if (actionId is BintaStackHit or BintaSpreadHit or DubbingEdict or AsIsHit or ImplosionHit)
+        else if (!HandleMiddleAoeAction(actionId) && !HandleFinalAction(actionId) &&
+            actionId is UltimateEmbrace or BowelsOfAgony)
+        {
+            Complete();
+        }
+    }
+
+    private bool HandleMiddleAoeAction(uint actionId)
+    {
+        if (actionId == DubbingEdict)
+        {
+            _dubbingDestination = null;
             ClearGuide();
-        else if (actionId == DondokoCast)
+            if (C.ShowInterBlackHoleAoeGuides)
+                RestorePendingPostDubbingGuide();
+            else
+                ClearPendingPostDubbingGuide();
+            return true;
+        }
+
+        if (actionId is BintaStackHit or BintaSpreadHit or AsIsHit or ImplosionHit)
+        {
+            if (actionId is BintaStackHit or BintaSpreadHit or AsIsHit)
+                ClearPendingPostDubbingGuide();
+            ClearGuide();
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HandleFinalAction(uint actionId)
+    {
+        if (actionId == DondokoCast)
+        {
             SetFinalRoleSpread();
-        else if (actionId == LandingHit)
+            return true;
+        }
+        if (actionId == LandingHit)
+        {
             AdvanceFinalLanding();
-        else if (actionId is DondokoHit or TowerImpact)
+            return true;
+        }
+        if (actionId is DondokoHit or TowerImpact)
+        {
             SetKnownFinalLanding();
-        else if (actionId is EnhancedBlizzaga)
+            return true;
+        }
+        if (actionId is EnhancedBlizzaga)
+        {
             SetFinalMove();
-        else if (actionId is Protrude)
+            return true;
+        }
+        if (actionId is Protrude)
+        {
             Complete();
-        else if (actionId is UltimateEmbrace or BowelsOfAgony)
-            Complete();
+            return true;
+        }
+
+        return false;
     }
 
     public override void OnActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5,
         uint p6, uint p7, uint p8, ulong targetId, byte replaying)
     {
         RefreshBasePlayerState();
+        LogKefkaActorControlProbe(sourceId, command, p1, p2, p3, p4, p5, p6, p7, p8, targetId, replaying);
+        LogFinalActorControl(sourceId, command, p1, p2, p3, p4, p5, p6, p7, p8, targetId, replaying);
 
         if (command == TetherCreateCommand && p2 == BlackHoleTetherData3 && p4 == BlackHoleTetherData5)
         {
+            LogKefkaSnapshot($"actor-tether-create {Describe(sourceId)}->{Describe(p3)}");
             HandleBlackHoleTetherCreate(sourceId, p3, p1, p2, p4, "actor-control");
             return;
         }
@@ -368,6 +512,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         RefreshBasePlayerState();
 
+        if (IsBlackHoleTether(data3, data5))
+            LogKefkaSnapshot($"tether-create {Describe(source)}->{Describe(target)}");
         HandleBlackHoleTetherCreate(source, target, data2, data3, data5, "tether");
     }
 
@@ -441,6 +587,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ExecutePendingMarkerCommand();
 
         HideElements();
+        RefreshKefkaAnchorFromObject();
         ResolveSelfSlot();
         ResolveActiveTethers();
         if (_state == State.BlackHoleActive)
@@ -514,9 +661,13 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ImGui.TextWrapped(LineBaitDirectionDescription.Get());
 
         var sourceOrder = (int)C.BlackHoleSourceOrder;
-        if (DrawCombo("Black Hole source order", ref sourceOrder, ["Clockwise from N", "Counterclockwise from N"], 220f))
+        if (DrawCombo("Black Hole source order", ref sourceOrder, ["Clockwise", "Counterclockwise"], 180f))
             C.BlackHoleSourceOrder = (BlackHoleSourceOrder)Math.Clamp(sourceOrder, 0, 1);
+        var anchor = (int)C.BlackHoleOrderAnchor;
+        if (DrawCombo("Black Hole order anchor", ref anchor, ["Kefka position", "Arena north"], 260f))
+            C.BlackHoleOrderAnchor = (BlackHoleOrderAnchor)Math.Clamp(anchor, 0, 1);
         ImGui.TextWrapped(BlackHoleSourceOrderDescription.Get());
+        ImGui.Checkbox("Show inter-Black Hole AOE guides", ref C.ShowInterBlackHoleAoeGuides);
         ImGui.Checkbox("Debug Black Hole tether logs", ref C.EnableBlackHoleDebugLogs);
         ImGui.Unindent();
     }
@@ -590,6 +741,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
         ImGui.Indent();
         ImGui.TextUnformatted($"State={_state} Window={_currentWindow} Slot={_selfSlot} Source={_quality} Guide={_guideKind}");
+        ImGui.TextUnformatted($"BlackHoleOrder={C.BlackHoleSourceOrder} Anchor={OrderAnchorDebugText()}");
+        ImGui.TextWrapped($"KefkaCandidates={KefkaCandidateText()}");
         ImGui.TextUnformatted($"Final={_finalStage} Landing={_landingCount} FirstStack={_firstFinalStackRole} CurrentStack={_currentFinalStackRole}");
         if (!string.IsNullOrWhiteSpace(_guideDebug))
             ImGui.TextUnformatted(_guideDebug);
@@ -598,6 +751,12 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private void StartCollection()
     {
+        if (_state == State.Completed)
+        {
+            ClearMechanicState(clearSlot: true);
+            _state = State.Idle;
+        }
+
         if (_state == State.Idle)
             _state = State.CollectingAssignments;
     }
@@ -613,6 +772,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ClearCurrentWindowTethers();
         ClearSelfTether(true, "start-blackhole");
         ClearGuide();
+        LogKefkaSnapshot("black-hole-start");
     }
 
     private void RefreshBasePlayerState()
@@ -667,10 +827,10 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return false;
         }
 
-        if (C.AssignmentMode == AssignmentMode.RoleAccretion)
+        if (C.AssignmentMode is AssignmentMode.RoleAccretion or AssignmentMode.FixedRoleAccretion)
         {
             if (HasCompleteGroups() && _accretionPlayers.Count >= 2 &&
-                TryRoleAccretionSlot(player, group, out slot))
+                TryRoleAccretionSlot(player, group, out slot, C.AssignmentMode == AssignmentMode.FixedRoleAccretion))
             {
                 quality = AssignmentQuality.RoleAccretion;
                 return true;
@@ -724,11 +884,13 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return slot != Slot.None;
     }
 
-    private bool TryRoleAccretionSlot(IPlayerCharacter player, TargetGroup group, out Slot slot)
+    private bool TryRoleAccretionSlot(IPlayerCharacter player, TargetGroup group, out Slot slot, bool fixedSpots)
     {
-        var rank = _accretionPlayers.Contains(player.EntityId)
-            ? 2
-            : player.GetRole() is CombatRole.Tank or CombatRole.Healer ? 1 : 0;
+        var isAccretion = _accretionPlayers.Contains(player.EntityId);
+        var isSupport = player.GetRole() is CombatRole.Tank or CombatRole.Healer;
+        var rank = fixedSpots
+            ? isAccretion ? 2 : isSupport ? 0 : 1
+            : isAccretion ? 2 : isSupport ? 1 : 0;
         slot = SlotFromRank(group, rank);
         return slot != Slot.None;
     }
@@ -935,6 +1097,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         if (_state == State.Completed) return;
 
+        var previous = _state;
         _state = State.FinalSequence;
         if (_finalStage == FinalStage.None)
             _finalStage = FinalStage.AwaitingBlizzaga;
@@ -942,12 +1105,14 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         _instruction = "";
         ClearSelfTether(false, "enter-final");
         ClearBlackHoleState();
+        DebugLog($"FINAL_ENTER previousState={previous} {FinalStateText()}");
     }
 
     private void SetFinalCenterBait()
     {
         EnterFinalSequence();
         _finalStage = FinalStage.CenterBait;
+        DebugLog($"FINAL_CENTER action={LateP3Blizzaga} {FinalStateText()}");
         SetGuide(Center, TextOrEmpty(C.ShowFinalCenterText, C.FinalCenterText), GuidanceKind.FinalCenter,
             LateP3Blizzaga, 0.0f, 0.0f);
     }
@@ -956,20 +1121,28 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         EnterFinalSequence();
         _finalStage = FinalStage.RoleSpread;
+        DebugLog($"FINAL_SPREAD action={DondokoCast} {FinalStateText()}");
         SetFinalRoleGuide(C.ShowFinalSpreadText, C.FinalSpreadText, GuidanceKind.FinalSpread, DondokoCast);
     }
 
     private void SetKnownFinalLanding()
     {
+        DebugLog($"FINAL_LANDING_RESOLVE knownCurrent={_currentFinalStackRole} first={_firstFinalStackRole} landing={_landingCount} {FinalStateText()}");
         if (_currentFinalStackRole != FinalStackRole.Unknown)
             SetFinalLanding(_currentFinalStackRole);
         else if (_landingCount == 1 && _firstFinalStackRole != FinalStackRole.Unknown)
             SetFinalLanding(Opposite(_firstFinalStackRole));
+        else
+            DebugLog($"FINAL_LANDING_RESOLVE skipped reason=unknown-stack {FinalStateText()}");
     }
 
     private void SetFinalLanding(FinalStackRole stackRole)
     {
-        if (stackRole == FinalStackRole.Unknown) return;
+        if (stackRole == FinalStackRole.Unknown)
+        {
+            DebugLog($"FINAL_LANDING skipped reason=unknown-stack {FinalStateText()}");
+            return;
+        }
 
         EnterFinalSequence();
         _finalStage = _landingCount == 0 ? FinalStage.Landing1 : FinalStage.Landing2;
@@ -978,18 +1151,27 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             _firstFinalStackRole = stackRole;
 
         var ownStackRole = OwnFinalStackRole();
+        DebugLog($"FINAL_LANDING stack={stackRole} ownStack={ownStackRole} {FinalStateText()}");
         if (ownStackRole == stackRole)
         {
+            DebugLog($"FINAL_GUIDE mode=stack destination={PositionText(Center)} {FinalStateText()}");
             SetGuide(Center, TextOrEmpty(C.ShowFinalStackText, C.FinalStackText), GuidanceKind.FinalLanding,
                 LandingCast, 0.0f, 0.0f);
             return;
         }
 
         if (TryGetOwnRolePosition(out var role))
-            SetGuide(FinalPairPosition(role), TextOrEmpty(C.ShowFinalTowerText, C.FinalTowerText, PairName(role)),
+        {
+            var destination = FinalPairPosition(role);
+            DebugLog($"FINAL_GUIDE mode=tower role={role} destination={PositionText(destination)} {FinalStateText()}");
+            SetGuide(destination, TextOrEmpty(C.ShowFinalTowerText, C.FinalTowerText, PairName(role)),
                 GuidanceKind.FinalLanding, LandingCast, 0.0f, 0.0f);
+        }
         else
+        {
+            DebugLog($"FINAL_GUIDE mode=tower role=unknown instructionOnly {FinalStateText()}");
             SetInstruction(TextOrEmpty(C.ShowFinalTowerText, C.FinalTowerText, "?"), GuidanceKind.FinalLanding);
+        }
     }
 
     private void AdvanceFinalLanding()
@@ -997,27 +1179,38 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (_state != State.FinalSequence)
             EnterFinalSequence();
 
+        DebugLog($"FINAL_LANDING_ADVANCE before landing={_landingCount} first={_firstFinalStackRole} current={_currentFinalStackRole} {FinalStateText()}");
         _landingCount++;
         _currentFinalStackRole = FinalStackRole.Unknown;
         if (_landingCount >= 2)
             SetFinalMove();
         else if (_firstFinalStackRole != FinalStackRole.Unknown)
             SetFinalLanding(Opposite(_firstFinalStackRole));
+        else
+            DebugLog($"FINAL_LANDING_ADVANCE waiting reason=missing-first-stack {FinalStateText()}");
     }
 
     private void SetFinalMove()
     {
         EnterFinalSequence();
         _finalStage = FinalStage.ProtrudeMove;
+        DebugLog($"FINAL_MOVE action={Protrude} {FinalStateText()}");
         SetFinalRoleGuide(C.ShowFinalMoveText, C.FinalMoveText, GuidanceKind.FinalMove, Protrude);
     }
 
     private void SetFinalRoleGuide(bool show, InternationalString text, GuidanceKind kind, uint actionId)
     {
         if (TryGetOwnRolePosition(out var role))
-            SetGuide(FinalPairPosition(role), TextOrEmpty(show, text, PairName(role)), kind, actionId, 0.0f, 0.0f);
+        {
+            var destination = FinalPairPosition(role);
+            DebugLog($"FINAL_ROLE_GUIDE kind={kind} action={actionId} role={role} destination={PositionText(destination)} {FinalStateText()}");
+            SetGuide(destination, TextOrEmpty(show, text, PairName(role)), kind, actionId, 0.0f, 0.0f);
+        }
         else
+        {
+            DebugLog($"FINAL_ROLE_GUIDE kind={kind} action={actionId} role=unknown instructionOnly {FinalStateText()}");
             SetInstruction(TextOrEmpty(show, text, "?"), kind);
+        }
     }
 
     private void Complete()
@@ -1043,6 +1236,11 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         _earthPlayers.Clear();
         _accretionPlayers.Clear();
+        _kefkaId = 0;
+        _kefkaPosition = null;
+        _kefkaAnchorDebug = "";
+        ClearPendingPostDubbingGuide();
+        _dubbingDestination = null;
         _earthMaxCount = 0;
         _currentWindow = -1;
         ClearFinalState();
@@ -1169,6 +1367,425 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return true;
     }
 
+    private void UpdateKefkaAnchor(uint actorId, uint actionId, float? eventRotation = null)
+    {
+        if (TryGetKefkaAnchorOffset(actionId, out var offset) &&
+            TryGetKefkaAnchorRotation(actorId, eventRotation, out var rotation))
+        {
+            if (!TryCaptureKefkaFromMatchingClone(rotation, $"anchor-rotation-match-{actionId}"))
+                CaptureKefkaFromRotation(rotation, offset, $"anchor-rotation-fallback-{actionId}");
+        }
+        else if (actionId == DecisiveBattleChaos)
+            CaptureKefka(actorId, force: true, "decisive-battle");
+        else if (actorId != 0 && actorId == _kefkaId)
+            CaptureKefka(actorId, force: false, $"cast-{actionId}");
+    }
+
+    private bool TryGetKefkaAnchorRotation(uint actorId, float? eventRotation, out float rotation)
+    {
+        if (eventRotation.HasValue)
+        {
+            rotation = eventRotation.Value;
+            return true;
+        }
+
+        return TryGetCastRotation(actorId, out rotation);
+    }
+
+    private void CaptureKefkaFromRotation(float rotation, float offset, string reason)
+    {
+        var angle = NormalizeAngle(rotation + offset);
+        var position = PositionFromDirectionAngle(angle, KefkaVirtualAnchorRadius);
+        var changed = _kefkaPosition is not { } old || Vector3.DistanceSquared(old, position) > 0.25f;
+        _kefkaId = 0;
+        _kefkaPosition = position;
+        _kefkaAnchorDebug = $"cast-rotation {Deg(rotation):F1}{SignedDeg(offset)}";
+        if (changed)
+            DebugLog($"KEFKA_ANCHOR reason={reason} rot={Deg(rotation):F1} off={Deg(offset):F1} dir={Deg(angle):F1} pos=({position.X:F1},{position.Z:F1}) angle={Deg(DirectionAngle(position)):F1}");
+    }
+
+    private bool TryCaptureKefkaFromMatchingClone(float rotation, string reason)
+    {
+        IGameObject? best = null;
+        var bestDiff = float.MaxValue;
+        foreach (var obj in Svc.Objects)
+        {
+            if (!IsKefkaAnchorObject(obj))
+                continue;
+            var diff = AngleDistance(obj.Rotation, rotation);
+            if (diff < bestDiff)
+            {
+                best = obj;
+                bestDiff = diff;
+            }
+        }
+
+        if (best == null || bestDiff > KefkaRotationMatchMax)
+            return false;
+
+        var position = FlatPosition(best.Position);
+        var changed = _kefkaPosition is not { } old || Vector3.DistanceSquared(old, position) > 0.25f;
+        _kefkaId = 0;
+        _kefkaPosition = position;
+        _kefkaAnchorDebug = $"rotation-match {Deg(rotation):F1}->{Describe(best.EntityId)}";
+        if (changed)
+            DebugLog($"KEFKA_ANCHOR reason={reason} rot={Deg(rotation):F1} matchRot={Deg(best.Rotation):F1} diff={Deg(bestDiff):F1} pos=({position.X:F1},{position.Z:F1}) angle={Deg(DirectionAngle(position)):F1}");
+        return true;
+    }
+
+    private void RefreshKefkaAnchorFromObject()
+    {
+        if (_kefkaId != 0)
+            CaptureKefka(_kefkaId, force: false, "object");
+    }
+
+    private void CaptureKefka(uint actorId, bool force, string reason)
+    {
+        if (actorId.GetObject() is { } obj)
+            CaptureKefka(obj, force, reason);
+    }
+
+    private void LogFinalCast(string origin, uint source, uint actionId, float? packetRotation)
+    {
+        if (!C.EnableBlackHoleDebugLogs || !IsFinalProbeAction(actionId)) return;
+        var packetText = packetRotation.HasValue ? $" packetRot={Deg(packetRotation.Value):F1}" : "";
+        DebugLog($"FINAL_CAST origin={origin} action={actionId} source={DescribeObjectDetail(source)}{packetText} {FinalStateText()}");
+    }
+
+    private void LogFinalAction(ActionEffectSet set, uint actionId)
+    {
+        if (!C.EnableBlackHoleDebugLogs || !IsFinalProbeAction(actionId)) return;
+        var targets = string.Join(",",
+            set.TargetEffects.Select(target => DescribeTarget((ulong)target.TargetID)).Take(8));
+        DebugLog($"FINAL_ACTION action={actionId} source={DescribeObjectDetail(set.Source?.EntityId ?? 0)} target={Describe(set.Target?.EntityId ?? 0)} eventPos=({set.Position.X:F2},{set.Position.Z:F2}) rot={Deg(set.Header.RealRotation):F1} targets=[{targets}] {FinalStateText()}");
+    }
+
+    private void LogFinalActorControl(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5,
+        uint p6, uint p7, uint p8, ulong targetId, byte replaying)
+    {
+        if (!C.EnableBlackHoleDebugLogs || command != TargetIconCommand || p1 != FinalStackMarker) return;
+        var hasRole = TryFinalStackRole(sourceId, out var role);
+        DebugLog($"FINAL_MARKER command={command} marker={p1} source={DescribeObjectDetail(sourceId)} role={(hasRole ? role : FinalStackRole.Unknown)} target={DescribeTarget(targetId)} replaying={replaying} p={p1}/{p2}/{p3}/{p4}/{p5}/{p6}/{p7}/{p8} {FinalStateText()}");
+    }
+
+    private static bool IsFinalProbeAction(uint actionId) =>
+        actionId is LateP3Blizzaga or DondokoCast or DondokoHit or LandingCast or LandingHit or TowerImpact
+            or EnhancedBlizzaga or Protrude;
+
+    private string FinalStateText()
+    {
+        var ownRole = TryGetOwnRolePosition(out var role) ? role.ToString() : "unknown";
+        var ownStack = OwnFinalStackRole();
+        return $"state={_state} final={_finalStage} landing={_landingCount} first={_firstFinalStackRole} current={_currentFinalStackRole} ownRole={ownRole} ownStack={ownStack}";
+    }
+
+    private static string PositionText(Vector3 position) => $"({position.X:F2},{position.Z:F2})";
+
+    private void LogKefkaCandidateEvent(string kind, uint actorId, uint actionId)
+    {
+        if (!C.EnableBlackHoleDebugLogs || actorId.GetObject() is not { } obj || !IsKefkaAnchorObject(obj))
+            return;
+
+        DebugLog($"KEFKA_CANDIDATE_{kind} action={actionId} {KefkaCandidateLine(obj)} current={(_kefkaId == obj.EntityId)}");
+    }
+
+    private unsafe void LogKefkaCastProbe(string origin, uint source, uint castId, PacketActorCast* packet)
+    {
+        if (!C.EnableBlackHoleDebugLogs || !IsKefkaProbeCast(castId))
+            return;
+
+        var sourceText = source.GetObject() is { } obj
+            ? KefkaCandidateDetailLine(obj, ObjectListIndex(obj.EntityId))
+            : Describe(source);
+        var packetText = packet == null
+            ? ""
+            : $" packetTarget={Describe(packet->TargetID)} packetPos=({packet->Position.X:F2},{packet->Position.Y:F2},{packet->Position.Z:F2}) packetRot={packet->Rotation * 180.0f / MathF.PI:F1}";
+        DebugLog($"KEFKA_CAST origin={origin} action={castId} source={sourceText} candidate={(source.GetObject() is { } candidate && IsKefkaAnchorObject(candidate))}{packetText}");
+        LogActiveKefkaCasts(castId);
+        LogKefkaSnapshot($"cast {origin} {castId}");
+    }
+
+    private void LogActiveKefkaCasts(uint castId)
+    {
+        var candidates = Svc.Objects
+            .Select((obj, index) => (obj, index))
+            .Where(x => IsKefkaRelatedObject(x.obj))
+            .ToList();
+
+        DebugLog($"KEFKA_ACTIVE_CAST_SCAN action={castId} count={candidates.Count}");
+        foreach (var (obj, index) in candidates)
+        {
+            var battle = obj as IBattleChara;
+            DebugLog($"KEFKA_ACTIVE_CAST action={castId} match={battle?.CastActionId == castId} {KefkaCandidateDetailLine(obj, index)}");
+        }
+    }
+
+    private void LogKefkaActorControlProbe(uint sourceId, uint command, uint p1, uint p2, uint p3, uint p4, uint p5,
+        uint p6, uint p7, uint p8, ulong targetId, byte replaying)
+    {
+        if (!C.EnableBlackHoleDebugLogs || command is not (98 or 417) ||
+            !HasKefkaRelatedReference(sourceId, p1, p2, p3, p4, p5, p6, p7, p8))
+            return;
+
+        DebugLog($"KEFKA_ACTOR_CONTROL command={command} replaying={replaying} target={DescribeTarget(targetId)} source={DescribeObjectDetail(sourceId)} p={p1}/{p2}/{p3}/{p4}/{p5}/{p6}/{p7}/{p8} p1Obj={DescribeObjectDetail(p1)} p2Obj={DescribeObjectDetail(p2)} p3Obj={DescribeObjectDetail(p3)} p4Obj={DescribeObjectDetail(p4)}");
+        LogKefkaSnapshot($"actor-control {command}");
+    }
+
+    private void LogKefkaActionProbe(ActionEffectSet set, uint actionId)
+    {
+        if (!C.EnableBlackHoleDebugLogs ||
+            actionId is not (KefkaDashStart or KefkaDashEnd) ||
+            set.Source is not { } source ||
+            !IsKefkaAnchorObject(source))
+            return;
+
+        DebugLog($"KEFKA_ACTION action={actionId} source={KefkaCandidateDetailLine(source, ObjectListIndex(source.EntityId))} target={Describe(set.Target?.EntityId ?? 0)} eventPos=({set.Position.X:F2},{set.Position.Y:F2},{set.Position.Z:F2}) rotation={set.Header.RealRotation:F3} targets={set.TargetEffects.Count()}");
+        foreach (var target in set.TargetEffects)
+            DebugLog($"KEFKA_ACTION_TARGET action={actionId} source={source.EntityId:X8} target={DescribeTarget((ulong)target.TargetID)} {DescribeActionEffectEntries(target)}");
+        LogKefkaSnapshot($"action {actionId}");
+    }
+
+    private void LogKefkaSnapshot(string reason)
+    {
+        if (!C.EnableBlackHoleDebugLogs) return;
+
+        var candidates = Svc.Objects
+            .Select((obj, index) => (obj, index))
+            .Where(x => IsKefkaAnchorObject(x.obj))
+            .ToList();
+
+        DebugLog($"KEFKA_SNAPSHOT reason=\"{reason}\" count={candidates.Count} selected={Describe(_kefkaId)} anchor={OrderAnchorDebugText()}");
+        foreach (var (obj, index) in candidates)
+            DebugLog($"KEFKA_OBJECT reason=\"{reason}\" {KefkaCandidateDetailLine(obj, index)} current={(_kefkaId == obj.EntityId)}");
+    }
+
+    private void CaptureKefka(IGameObject? obj, bool force, string reason)
+    {
+        if (obj == null) return;
+        if (!force && _kefkaId != 0 && obj.EntityId != _kefkaId) return;
+        var position = FlatPosition(obj.Position);
+        if (!IsKefkaAnchorPosition(position)) return;
+        var changed = _kefkaPosition is not { } old || Vector3.DistanceSquared(old, position) > 0.25f;
+        _kefkaId = obj.EntityId;
+        _kefkaPosition = position;
+        _kefkaAnchorDebug = $"object {Describe(obj.EntityId)}";
+        if (changed)
+            DebugLog($"KEFKA_ANCHOR reason={reason} pos=({position.X:F1},{position.Z:F1})");
+    }
+
+    private bool TryGetKefkaPosition(out Vector3 position)
+    {
+        if (_kefkaPosition is { } cached)
+        {
+            position = cached;
+            return true;
+        }
+
+        if (_kefkaId.GetObject() is { } obj)
+        {
+            position = FlatPosition(obj.Position);
+            return true;
+        }
+
+        position = default;
+        return false;
+    }
+
+    private static bool IsKefkaAnchorPosition(Vector3 position) =>
+        Vector2.Distance(new Vector2(position.X, position.Z), new Vector2(Center.X, Center.Z)) >= KefkaAnchorRadiusMin;
+
+    private static bool IsKefkaAnchorObject(IGameObject obj) =>
+        obj.DataId == KefkaDataId && IsKefkaAnchorPosition(FlatPosition(obj.Position));
+
+    private static bool TryGetKefkaAnchorOffset(uint actionId, out float offset)
+    {
+        offset = actionId switch
+        {
+            BintaStackCast => MathF.PI / 2.0f,
+            BintaSpreadCast => -MathF.PI / 2.0f,
+            AsIsFirst => 0.0f,
+            AsIsSecond => MathF.PI,
+            _ => float.NaN
+        };
+        return !float.IsNaN(offset);
+    }
+
+    private static bool IsKefkaProbeCast(uint actionId) =>
+        actionId is DecisiveBattleChaos or DecisiveBattleExdeath or BlackHoleCast or BintaStackCast or BintaSpreadCast
+            or DubbingEdict or AsIsFirst or AsIsSecond or LongitudinalImplosion or LatitudinalImplosion;
+
+    private static bool IsKefkaRelatedObject(IGameObject obj) =>
+        obj.DataId == KefkaDataId ||
+        obj.Struct()->GetNameId() == KefkaNameId ||
+        obj is ICharacter character && character.NameId == KefkaNameId;
+
+    private static bool HasKefkaRelatedReference(params uint[] actorIds) =>
+        actorIds.Any(actorId => actorId == KefkaNameId || actorId.GetObject() is { } obj && IsKefkaRelatedObject(obj));
+
+    private float OrderAnchorAngle() => C.BlackHoleOrderAnchor switch
+    {
+        BlackHoleOrderAnchor.KefkaPosition when TryGetKefkaPosition(out var kefka) => DirectionAngle(kefka),
+        _ => 0.0f
+    };
+
+    private float SourceAngle(int bucket) =>
+        _tetherSources.TryGetValue(bucket, out var source) ? DirectionAngle(source) : BucketAngle(bucket);
+
+    private float OrderedAngleDistance(float sourceAngle, float anchorAngle) =>
+        C.BlackHoleSourceOrder == BlackHoleSourceOrder.ClockwiseFromNorth
+            ? NormalizeAngle(sourceAngle - anchorAngle)
+            : NormalizeAngle(anchorAngle - sourceAngle);
+
+    private string OrderAnchorDebugText() => C.BlackHoleOrderAnchor switch
+    {
+        BlackHoleOrderAnchor.KefkaPosition when TryGetKefkaPosition(out var pos) =>
+            $"{(string.IsNullOrWhiteSpace(_kefkaAnchorDebug) ? "Kefka" : _kefkaAnchorDebug)}({pos.X:F1},{pos.Z:F1})",
+        _ => "N"
+    };
+
+    private static Vector3 FlatPosition(Vector3 position) => new(position.X, 0.0f, position.Z);
+
+    private string KefkaCandidateText()
+    {
+        var items = new List<string>();
+        var index = 0;
+        foreach (var obj in Svc.Objects)
+        {
+            if (IsKefkaAnchorObject(obj))
+            {
+                var selected = obj.EntityId == _kefkaId ? "*" : "";
+                items.Add($"{selected}{index}:{KefkaCandidateLine(obj)}");
+            }
+            index++;
+        }
+
+        if (items.Count == 0)
+            return "none";
+
+        return items.Count <= 24
+            ? string.Join(" ", items)
+            : $"{string.Join(" ", items.Take(24))} ... +{items.Count - 24}";
+    }
+
+    private static string KefkaCandidateLine(IGameObject obj)
+    {
+        var pos = FlatPosition(obj.Position);
+        var distance = Vector2.Distance(new Vector2(pos.X, pos.Z), new Vector2(Center.X, Center.Z));
+        var angle = DirectionAngle(pos) * 180.0f / MathF.PI;
+        var visible = obj is ICharacter character && character.IsCharacterVisible();
+        var targetable = obj.Struct()->GetIsTargetable();
+        var rotation = obj.Rotation * 180.0f / MathF.PI;
+        var goid = (ulong)obj.Struct()->GetGameObjectId();
+        return $"{obj.EntityId}/{obj.EntityId:X8}/go={goid:X}@({pos.X:F1},{pos.Z:F1}) r={distance:F1} a={angle:F0} rot={rotation:F0} vis={visible} tar={targetable}";
+    }
+
+    private static string KefkaCandidateDetailLine(IGameObject obj, int objectListIndex)
+    {
+        var pos = FlatPosition(obj.Position);
+        var distance = Vector2.Distance(new Vector2(pos.X, pos.Z), new Vector2(Center.X, Center.Z));
+        var angle = DirectionAngle(pos) * 180.0f / MathF.PI;
+        var rotation = obj.Rotation * 180.0f / MathF.PI;
+        var ptr = obj.Struct();
+        var goid = (ulong)ptr->GetGameObjectId();
+        var npc = obj as IBattleNpc;
+        var battle = obj as IBattleChara;
+        var character = obj as ICharacter;
+        var visible = character?.IsCharacterVisible() == true;
+        var characterLine = character == null
+            ? ""
+            : $" nameId={character.NameId} model={character.Struct()->ModelContainer.ModelCharaId} target={DescribeTarget(character.TargetObjectId)} eventState={character.Struct()->EventState} statusLoop={character.Struct()->StatusLoopVfxId} tethers=[{DescribeTethers(character)}]";
+        var battleLine = DescribeBattleState(battle);
+        var npcLine = npc == null ? "" : $" npcKind={npc.BattleNpcKind}";
+
+        return $"idx={objectListIndex} id={obj.EntityId:X8} go={goid:X} data={obj.DataId} base={obj.BaseId} kind={obj.ObjectKind} sub={ptr->SubKind}{npcLine} owner={obj.OwnerId:X} npcId={ptr->GetNameId()} namePlate={ptr->NamePlateIconId} layout={ptr->LayoutId} dead={ptr->IsDead()} pos=({pos.X:F2},{pos.Z:F2}) r={distance:F2} angle={angle:F1} rot={rotation:F1} hitbox={obj.HitboxRadius:F1} tar={ptr->GetIsTargetable()} vis={visible} targetStatus={ptr->TargetStatus} render={ptr->RenderFlags} vfxScale={ptr->VfxScale:F2} draw={(nint)ptr->DrawObject:X}{characterLine}{battleLine}";
+    }
+
+    private static int ObjectListIndex(uint entityId)
+    {
+        var index = 0;
+        foreach (var obj in Svc.Objects)
+        {
+            if (obj.EntityId == entityId)
+                return index;
+            index++;
+        }
+
+        return -1;
+    }
+
+    private static string DescribeTethers(ICharacter character)
+    {
+        var entries = new List<string>();
+        var tethers = character.Struct()->Vfx.Tethers;
+        for (var i = 0; i < tethers.Length; i++)
+        {
+            var tether = tethers[i];
+            if (tether.Id == 0) continue;
+            entries.Add($"{i}:{tether.Id}/{tether.Progress}/{tether.TargetId.ObjectId:X8}");
+        }
+
+        return entries.Count == 0 ? "none" : string.Join(",", entries);
+    }
+
+    private static string DescribeBattleState(IBattleChara? battle)
+    {
+        if (battle == null)
+            return "";
+        try
+        {
+            return $" cast={battle.IsCasting}/{battle.CastActionId}/{battle.CurrentCastTime:F2}/{battle.TotalCastTime:F2} statuses=[{DescribeStatuses(battle)}]";
+        }
+        catch (Exception e)
+        {
+            return $" cast=<unavailable:{e.GetType().Name}>";
+        }
+    }
+
+    private static string DescribeStatuses(IBattleChara battle)
+    {
+        var entries = battle.StatusList
+            .Where(x => x.StatusId != 0)
+            .Take(16)
+            .Select(x => $"{x.StatusId}({x.RemainingTime:F1})")
+            .ToList();
+        return entries.Count == 0 ? "none" : string.Join(",", entries);
+    }
+
+    private static string DescribeActionEffectEntries(TargetEffect target)
+    {
+        var entries = new List<string>();
+        for (var i = 0; i < 8; i++)
+        {
+            var entry = target[i];
+            if (entry.type == ActionEffectType.Nothing)
+                continue;
+            entries.Add($"{i}:{entry.type} p={entry.param0}/{entry.param1}/{entry.param2} mult={entry.mult} flags={entry.flags} value={entry.value} damage={entry.Damage}");
+        }
+
+        return entries.Count == 0 ? "entries=none" : $"entries=[{string.Join("; ", entries)}]";
+    }
+
+    private static float DirectionAngle(Vector3 position)
+    {
+        var v = new Vector2(position.X - Center.X, Center.Z - position.Z);
+        return v.LengthSquared() < 0.01f ? 0.0f : NormalizeAngle(MathF.Atan2(v.X, v.Y));
+    }
+
+    private static float BucketAngle(int bucket) => NormalizeAngle(bucket * MathF.PI / 2.0f);
+
+    private static float NormalizeAngle(float angle)
+    {
+        const float tau = MathF.PI * 2.0f;
+        angle %= tau;
+        return angle < 0.0f ? angle + tau : angle;
+    }
+
+    private static float AngleDistance(float a, float b)
+    {
+        var diff = Math.Abs(NormalizeAngle(a) - NormalizeAngle(b));
+        return Math.Min(diff, MathF.PI * 2.0f - diff);
+    }
+
     private Vector3 BaitPosition(Vector3 source)
     {
         var radial = Vector3.Normalize(new Vector3(source.X - Center.X, 0, source.Z - Center.Z));
@@ -1191,8 +1808,22 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private int ExpectedBucket(Slot slot)
     {
         var rank = ExpectedRank(slot, _currentWindow);
+        if (C.AssignmentMode == AssignmentMode.FixedRoleAccretion)
+            return ExpectedFixedSpotBucket(rank);
         var buckets = OrderedActiveBuckets();
         return rank >= 0 && rank < buckets.Count ? buckets[rank] : -1;
+    }
+
+    private int ExpectedFixedSpotBucket(int rank)
+    {
+        if (rank < 0) return -1;
+        var buckets = OrderedBuckets();
+        if (rank >= buckets.Count) return -1;
+        var preferred = buckets[rank];
+        if (_tetherTargets.ContainsKey(preferred))
+            return preferred;
+        var fallback = buckets[3];
+        return _tetherTargets.ContainsKey(fallback) ? fallback : -1;
     }
 
     private static int ExpectedRank(Slot slot, int window) => window switch
@@ -1212,38 +1843,112 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private List<int> OrderedActiveBuckets()
     {
-        int[] order = C.BlackHoleSourceOrder == BlackHoleSourceOrder.ClockwiseFromNorth
-            ? [0, 1, 2, 3]
-            : new[] { 0, 3, 2, 1 };
-        return order.Where(_tetherTargets.ContainsKey).ToList();
+        return OrderedBuckets().Where(_tetherTargets.ContainsKey).ToList();
     }
 
-    private void SetBintaGuide(uint source, bool stack)
+    private List<int> OrderedBuckets()
     {
-        if (!TryGetCastRotation(source, out var rotation)) return;
+        var anchor = OrderAnchorAngle();
+        return Enumerable.Range(0, 4)
+            .OrderBy(bucket => OrderedAngleDistance(SourceAngle(bucket), anchor))
+            .ThenBy(bucket => bucket)
+            .ToList();
+    }
+
+    private void SetBintaGuide(uint source, float? eventRotation, bool stack)
+    {
+        if (!TryGetKefkaAnchorRotation(source, eventRotation, out var rotation)) return;
         if (stack)
         {
             const float offset = MathF.PI / 2.0f;
-            SetGuide(RadialFromFacing(rotation, offset, StackRadius), TextOrEmpty(C.ShowHeadStackText, C.HeadStackText), GuidanceKind.HeadStack,
-                BintaStackCast, rotation, offset);
+            var kefkaRelative = TryGetKefkaRelativePosition(offset, StackRadius, out var position, out var anchorAngle);
+            var destination = kefkaRelative ? position : RadialFromFacing(rotation, offset, StackRadius);
+            SavePostDubbingGuide(destination, TextOrEmpty(C.ShowHeadStackText, C.HeadStackText), GuidanceKind.HeadStack,
+                BintaStackCast, kefkaRelative ? anchorAngle : rotation, offset);
         }
         else
         {
             var offset = RoleSpreadOffset();
-            SetGuide(RadialFromFacing(rotation, offset, SpreadRadius), TextOrEmpty(C.ShowRoleSpreadText, C.RoleSpreadText), GuidanceKind.RoleSpread,
-                BintaSpreadCast, rotation, offset);
+            SavePostDubbingGuide(RadialFromFacing(rotation, offset, SpreadRadius),
+                TextOrEmpty(C.ShowRoleSpreadText, C.RoleSpreadText), GuidanceKind.RoleSpread, BintaSpreadCast, rotation, offset);
         }
     }
 
-    private void SetDirectionalGuide(uint source, uint actionId, string text, GuidanceKind kind, float offset, float radius)
+    private void SetDirectionalGuide(uint source, uint actionId, string text, GuidanceKind kind, float offset, float radius,
+        float? eventRotation, bool delayDuringDubbing = false)
     {
-        if (TryGetCastRotation(source, out var rotation))
-            SetGuide(RadialFromFacing(rotation, offset, radius), text, kind, actionId, rotation, offset);
+        if (!TryGetKefkaAnchorRotation(source, eventRotation, out var rotation)) return;
+
+        var destination = RadialFromFacing(rotation, offset, radius);
+        if (actionId == DubbingEdict)
+            _dubbingDestination = destination;
+
+        if (delayDuringDubbing)
+        {
+            SavePostDubbingGuide(destination, text, kind, actionId, rotation, offset);
+            return;
+        }
+
+        SetGuide(destination, text, kind, actionId, rotation, offset);
     }
 
-    private void SetImplosionGuide(uint source, uint actionId, bool longitudinal)
+    private void SetDubbingGuide(uint source)
     {
-        if (!TryGetCastRotation(source, out var rotation)) return;
+        if (!TryGetChaosRotation(source, out var rotation)) return;
+        const float offset = MathF.PI;
+        var destination = RadialFromFacing(rotation, offset, SafeRadius);
+        _dubbingDestination = destination;
+        SetGuide(destination, TextOrEmpty(C.ShowDubbingText, C.DubbingText), GuidanceKind.Dubbing, DubbingEdict, rotation, offset);
+    }
+
+    private bool TryGetChaosRotation(uint source, out float rotation)
+    {
+        if (source.GetObject() is { DataId: ChaosDataId } sourceObj)
+        {
+            rotation = sourceObj.Rotation;
+            return true;
+        }
+
+        var chaos = Svc.Objects
+            .Where(obj => obj.DataId == ChaosDataId)
+            .OrderByDescending(obj => obj is IBattleChara battle && battle.IsCasting && battle.CastActionId == DubbingEdict)
+            .ThenByDescending(obj => obj is ICharacter character && character.IsCharacterVisible())
+            .ThenByDescending(obj => obj.Struct()->GetIsTargetable())
+            .FirstOrDefault();
+
+        if (chaos != null)
+        {
+            rotation = chaos.Rotation;
+            return true;
+        }
+
+        rotation = 0.0f;
+        if (C.EnableBlackHoleDebugLogs)
+            DebugLog("DUBBING_SKIP reason=missing-dataid-19508");
+        return false;
+    }
+
+    private void SavePostDubbingGuide(Vector3 destination, string text, GuidanceKind kind, uint actionId, float rotation, float offset)
+    {
+        _pendingPostDubbingGuide = (destination, text, kind, actionId, rotation, offset);
+        if (_dubbingDestination.HasValue || _guideActionId == DubbingEdict) return;
+        RestorePendingPostDubbingGuide();
+    }
+
+    private void RestorePendingPostDubbingGuide()
+    {
+        if (_pendingPostDubbingGuide is not { } guide) return;
+        SetGuide(guide.Destination, guide.Text, guide.Kind, guide.ActionId, guide.Rotation, guide.Offset);
+    }
+
+    private void ClearPendingPostDubbingGuide()
+    {
+        _pendingPostDubbingGuide = null;
+    }
+
+    private void SetImplosionGuide(uint source, uint actionId, bool longitudinal, float? eventRotation)
+    {
+        if (!TryGetKefkaAnchorRotation(source, eventRotation, out var rotation)) return;
         var offset = longitudinal ? MathF.PI / 2.0f : 0.0f;
         var a = RadialFromFacing(rotation, offset, SafeRadius);
         var b = RadialFromFacing(rotation, offset + MathF.PI, SafeRadius);
@@ -1254,6 +1959,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private void SetInstruction(string text, GuidanceKind kind)
     {
         _guideDestination = null;
+        _guideActionId = 0;
         _guideText = "";
         _guideInstruction = text;
         _guideKind = kind;
@@ -1263,15 +1969,19 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private void SetGuide(Vector3 destination, string text, GuidanceKind kind, uint actionId, float rotation, float offset)
     {
         _guideDestination = destination;
+        _guideActionId = actionId;
         _guideText = text;
         _guideInstruction = "";
         _guideKind = kind;
         _guideDebug = $"action={actionId} rot={Deg(rotation):F1} off={Deg(offset):F1} ref=({destination.X:F2},{destination.Z:F2})";
+        if (C.EnableBlackHoleDebugLogs)
+            DebugLog($"GUIDE_SET kind={kind} action={actionId} rot={Deg(rotation):F1} off={Deg(offset):F1} ref=({destination.X:F2},{destination.Z:F2}) anchor={OrderAnchorDebugText()}");
     }
 
     private void ClearGuide()
     {
         _guideDestination = null;
+        _guideActionId = 0;
         _guideText = "";
         _guideInstruction = "";
         _guideDebug = "";
@@ -1306,6 +2016,20 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         var me = BasePlayer;
         if (me == null) return a;
         return Vector3.DistanceSquared(me.Position, a) <= Vector3.DistanceSquared(me.Position, b) ? a : b;
+    }
+
+    private bool TryGetKefkaRelativePosition(float offset, float radius, out Vector3 position, out float anchorAngle)
+    {
+        if (TryGetKefkaPosition(out var kefka))
+        {
+            anchorAngle = DirectionAngle(kefka);
+            position = PositionFromDirectionAngle(NormalizeAngle(anchorAngle + offset), radius);
+            return true;
+        }
+
+        anchorAngle = 0.0f;
+        position = default;
+        return false;
     }
 
     private bool TryFinalStackRole(uint actorId, out FinalStackRole role)
@@ -1400,7 +2124,21 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return Center + new Vector3(MathF.Cos(angle) * radius, 0.0f, MathF.Sin(angle) * radius);
     }
 
+    private static Vector3 PositionFromDirectionAngle(float angle, float radius) =>
+        Center + new Vector3(MathF.Sin(angle) * radius, 0.0f, -MathF.Cos(angle) * radius);
+
     private static float Deg(float radians) => radians * 180.0f / MathF.PI;
+
+    private static string SignedDeg(float radians)
+    {
+        var deg = Deg(radians);
+        return deg switch
+        {
+            > 0.0f => $"+{deg:F1}",
+            < 0.0f => $"{deg:F1}",
+            _ => "+0.0"
+        };
+    }
 
     private static uint RainbowColor()
     {
@@ -1504,6 +2242,24 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return $"0x{actorId:X8}";
     }
 
+    private static string DescribeObjectDetail(uint actorId)
+    {
+        if (actorId == 0)
+            return "none";
+        if (actorId == KefkaNameId)
+            return $"{actorId}(KefkaNameId)";
+        if (actorId.GetObject() is { } obj)
+            return KefkaCandidateDetailLine(obj, ObjectListIndex(obj.EntityId));
+        return $"0x{actorId:X8}";
+    }
+
+    private static string DescribeTarget(ulong actorId)
+    {
+        if (actorId <= uint.MaxValue)
+            return Describe((uint)actorId);
+        return $"0x{actorId:X16}";
+    }
+
     private void DebugLog(string message)
     {
         if (C.EnableBlackHoleDebugLogs)
@@ -1583,7 +2339,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     }
 
     private enum State { Idle, CollectingAssignments, BlackHoleActive, FinalSequence, Completed }
-    public enum AssignmentMode { PartyMarker, Priority, MarkerThenPriority, RoleAccretion }
+    public enum AssignmentMode { PartyMarker, Priority, MarkerThenPriority, RoleAccretion, FixedRoleAccretion }
     private enum AssignmentQuality { Unknown, Marker, Priority, Fallback, RoleAccretion }
     private enum GuidanceKind { None, HeadStack, RoleSpread, Dubbing, AsIs, WhiteHole, Implosion, FinalCenter, FinalSpread, FinalLanding, FinalMove }
     private enum FinalStage { None, AwaitingBlizzaga, CenterBait, RoleSpread, Landing1, Landing2, ProtrudeMove }
@@ -1592,6 +2348,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private enum Slot { None, Attack1, Attack2, Attack3, Bind1, Bind2, Bind3, Stop1, Stop2 }
     public enum LineBaitDirection { Clockwise, Counterclockwise }
     public enum BlackHoleSourceOrder { ClockwiseFromNorth = 0, CounterclockwiseFromNorth = 1 }
+    public enum BlackHoleOrderAnchor { KefkaPosition = 0, ArenaNorth = 1 }
 
     private readonly record struct LiveTetherEntry(ushort Id, byte Progress, uint Target);
 
@@ -1600,6 +2357,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         public AssignmentMode AssignmentMode = AssignmentMode.MarkerThenPriority;
         public LineBaitDirection LineBaitDirection = LineBaitDirection.Clockwise;
         public BlackHoleSourceOrder BlackHoleSourceOrder = BlackHoleSourceOrder.ClockwiseFromNorth;
+        public BlackHoleOrderAnchor BlackHoleOrderAnchor = BlackHoleOrderAnchor.KefkaPosition;
+        public bool ShowInterBlackHoleAoeGuides;
         public bool EnableBlackHoleDebugLogs = true;
         public int[] MarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
         public bool ExecuteMarkerCommand;
@@ -1647,6 +2406,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             AssignmentMode = (AssignmentMode)Math.Clamp((int)AssignmentMode, 0, AssignmentModeNames.Length - 1);
             LineBaitDirection = (LineBaitDirection)Math.Clamp((int)LineBaitDirection, 0, 1);
             BlackHoleSourceOrder = (BlackHoleSourceOrder)Math.Clamp((int)BlackHoleSourceOrder, 0, 1);
+            BlackHoleOrderAnchor = (BlackHoleOrderAnchor)Math.Clamp((int)BlackHoleOrderAnchor, 0, 1);
             PriorityData ??= CreatePriorityData("P3 Earthquake priority",
                 "Used when assignment mode is Priority or marker fallback.", DefaultRolePriority);
             if (MarkerLineOrders == null || MarkerLineOrders.Length != SelectableMarkerIds.Length)

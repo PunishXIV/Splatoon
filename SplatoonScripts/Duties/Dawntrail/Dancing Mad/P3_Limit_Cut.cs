@@ -70,7 +70,7 @@ public class P3_Limit_Cut : SplatoonScript
     private int _dashStep;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(2, "Garume");
+    public override Metadata Metadata => new(3, "Garume");
 
     private Config C
     {

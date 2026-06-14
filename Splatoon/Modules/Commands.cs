@@ -6,105 +6,13 @@ using Splatoon.Structures;
 
 namespace Splatoon.Modules;
 
-internal class Commands : IDisposable
+internal unsafe class Commands : IDisposable
 {
     private Splatoon p;
     internal unsafe Commands(Splatoon P)
     {
         p = P;
-        Svc.Commands.AddHandler("/splatoon", new CommandInfo(delegate (string command, string arguments)
-        {
-            if(arguments == "")
-            {
-                P.ConfigGui.IsOpen = !P.ConfigGui.IsOpen;
-            }
-            else if(arguments.EqualsIgnoreCaseAny("p", "priority", "prio"))
-            {
-                P.PriorityPopupWindow.Open(true);
-            }
-            else if(GenericHelpers.EqualsIgnoreCase(arguments, "log"))
-            {
-                P.LogWindow.IsOpen = true;
-            }
-            else if(GenericHelpers.EqualsIgnoreCase(arguments, "pbl"))
-            {
-                S.Projection.Blacklist = true;
-            }
-            else if(arguments == "r" || arguments == "reset")
-            {
-                Utils.Reset();
-            }
-            else if(arguments.StartsWith("enable "))
-            {
-                try
-                {
-                    var name = arguments[(arguments.IndexOf("enable ") + 7)..];
-                    SwitchState(name, true);
-                }
-                catch(Exception e)
-                {
-                    P.Log(e.ToStringFull());
-                }
-            }
-            else if(arguments.StartsWith("disable "))
-            {
-                try
-                {
-                    var name = arguments[(arguments.IndexOf("disable ") + 8)..];
-                    SwitchState(name, false);
-                }
-                catch(Exception e)
-                {
-                    P.Log(e.ToStringFull());
-                }
-            }
-            else if(arguments.StartsWith("toggle "))
-            {
-                try
-                {
-                    var name = arguments[(arguments.IndexOf("toggle ") + 7)..];
-                    SwitchState(name, null);
-                }
-                catch(Exception e)
-                {
-                    P.Log(e.ToStringFull());
-                }
-            }
-            else if(arguments.StartsWith("settarget "))
-            {
-                try
-                {
-                    if(Svc.Targets.Target == null)
-                    {
-                        Notify.Error("Target not selected");
-                    }
-                    else
-                    {
-                        var name = arguments[(arguments.IndexOf("settarget ") + 10)..].Split('~');
-                        var el = P.Config.LayoutsL.First(x => x.Name == name[0]).GetElementsWithSubconfiguration().First(x => x.Name == name[1]);
-                        el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
-                        el.refActorDataID = Svc.Targets.Target.DataId;
-                        el.refActorObjectID = Svc.Targets.Target.EntityId;
-                        if(Svc.Targets.Target is ICharacter c) el.refActorModelID = (uint)c.Struct()->ModelContainer.ModelCharaId;
-                        Notify.Success("Successfully set target");
-                    }
-                }
-                catch(Exception e)
-                {
-                    P.Log(e.ToStringFull());
-                }
-            }
-            else if(arguments.StartsWith("floodchat "))
-            {
-                Safe(delegate
-                {
-                    for(var i = 0; i < uint.Parse(arguments.Replace("floodchat ", "")); i++)
-                    {
-                        Svc.Chat.Print(new string(Enumerable.Repeat("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 30).Select(s => s[new Random().Next(30)]).ToArray()));
-                    }
-                });
-            }
-        })
+        Svc.Commands.AddHandler("/splatoon", new CommandInfo(OnCommand)
         {
             HelpMessage = """
             open Splatoon configuration menu 
@@ -176,6 +84,101 @@ internal class Commands : IDisposable
             HelpMessage = "highlight objects containing specified phrase"
         });
     }
+
+    public void OnCommand(string command, string arguments)
+    {
+        if(arguments == "")
+        {
+            P.ConfigGui.IsOpen = !P.ConfigGui.IsOpen;
+        }
+        else if(arguments.EqualsIgnoreCaseAny("p", "priority", "prio"))
+        {
+            P.PriorityPopupWindow.Open(true);
+        }
+        else if(GenericHelpers.EqualsIgnoreCase(arguments, "log"))
+        {
+            P.LogWindow.IsOpen = true;
+        }
+        else if(GenericHelpers.EqualsIgnoreCase(arguments, "pbl"))
+        {
+            S.Projection.Blacklist = true;
+        }
+        else if(arguments == "r" || arguments == "reset")
+        {
+            Utils.Reset();
+        }
+        else if(arguments.StartsWith("enable "))
+        {
+            try
+            {
+                var name = arguments[(arguments.IndexOf("enable ") + 7)..];
+                SwitchState(name, true);
+            }
+            catch(Exception e)
+            {
+                P.Log(e.ToStringFull());
+            }
+        }
+        else if(arguments.StartsWith("disable "))
+        {
+            try
+            {
+                var name = arguments[(arguments.IndexOf("disable ") + 8)..];
+                SwitchState(name, false);
+            }
+            catch(Exception e)
+            {
+                P.Log(e.ToStringFull());
+            }
+        }
+        else if(arguments.StartsWith("toggle "))
+        {
+            try
+            {
+                var name = arguments[(arguments.IndexOf("toggle ") + 7)..];
+                SwitchState(name, null);
+            }
+            catch(Exception e)
+            {
+                P.Log(e.ToStringFull());
+            }
+        }
+        else if(arguments.StartsWith("settarget "))
+        {
+            try
+            {
+                if(Svc.Targets.Target == null)
+                {
+                    Notify.Error("Target not selected");
+                }
+                else
+                {
+                    var name = arguments[(arguments.IndexOf("settarget ") + 10)..].Split('~');
+                    var el = P.Config.LayoutsL.First(x => x.Name == name[0]).GetElementsWithSubconfiguration().First(x => x.Name == name[1]);
+                    el.refActorNameIntl.CurrentLangString = Svc.Targets.Target.Name.ToString();
+                    el.refActorDataID = Svc.Targets.Target.DataId;
+                    el.refActorObjectID = Svc.Targets.Target.EntityId;
+                    if(Svc.Targets.Target is ICharacter c) el.refActorModelID = (uint)c.Struct()->ModelContainer.ModelCharaId;
+                    Notify.Success("Successfully set target");
+                }
+            }
+            catch(Exception e)
+            {
+                P.Log(e.ToStringFull());
+            }
+        }
+        else if(arguments.StartsWith("floodchat "))
+        {
+            Safe(delegate
+            {
+                for(var i = 0; i < uint.Parse(arguments.Replace("floodchat ", "")); i++)
+                {
+                    Svc.Chat.Print(new string(Enumerable.Repeat("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 30).Select(s => s[new Random().Next(30)]).ToArray()));
+                }
+            });
+        }
+    }
+        
 
     internal void SwitchState(string name, bool? enable, bool web = false)
     {

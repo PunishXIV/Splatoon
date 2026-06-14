@@ -122,6 +122,7 @@ internal class Configuration : IEzConfig
 
     public bool OrderScriptsByZone = true;
     public uint FilteredTerritoryLayout = 0;
+    public string Alias = "";
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

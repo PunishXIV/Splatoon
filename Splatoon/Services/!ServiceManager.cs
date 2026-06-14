@@ -24,4 +24,5 @@ public static class S
     internal static SystemLogProcessor SystemLogProcessor { get; private set; }
     internal static ObjectEffectProcessor ObjectEffectProcessor { get; private set; }
     internal static PinnedLayoutEdit PinnedLayoutEdit { get; private set; }
+    internal static AliasManager AliasManager { get; private set; }
 }

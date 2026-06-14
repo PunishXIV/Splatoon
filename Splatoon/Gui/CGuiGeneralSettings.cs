@@ -100,6 +100,27 @@ internal partial class CGui
                 });
             })
 
+            .Section("Alias")
+            .Widget(() =>
+            {
+                ImGuiEx.TextWrapped("You can define alias for /splatoon command here. Leave empty to remove alias.".Loc());
+                ImGuiEx.InputWithRightButtonsArea(() =>
+                {
+                    ImGui.InputText("##alias", ref P.Config.Alias, 50);
+                }, () =>
+                {
+                    if(P.Config.Alias.Length > 0 && !P.Config.Alias.StartsWith('/'))
+                    {
+                        ImGuiEx.HelpMarker("Alias must start with slash /", ImGuiColors.DalamudRed, FontAwesomeIcon.ExclamationTriangle.ToIconString(), sameLine:false);
+                        ImGui.SameLine();
+                    }
+                    if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Apply"))
+                    {
+                        S.AliasManager.SetAlias();
+                    }
+                });
+            })
+
             .Section("Language", collapsible: false)
             .Widget(() =>
             {

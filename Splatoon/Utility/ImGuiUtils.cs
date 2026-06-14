@@ -49,7 +49,7 @@ public static class ImGuiUtils //came here to laugh on how scuffed it is? let's 
         if(width > s.X)
         {
             ImGui.SameLine();
-            ImGui.Button("", new Vector2(width - s.X, 1f));
+            ImGui.Button("##empty", new Vector2(width - s.X, 1f));
         }
         ImGui.PopStyleColor(3);
     }

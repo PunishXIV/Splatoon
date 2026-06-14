@@ -78,7 +78,10 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private const int ActiveStepMax = 8;
     private const int Step4AutoMarkTrigger = 4;
     private const float Step4AutoMarkDelayBaseSec = 3f;
-    private const float Step4AutoMarkDelayRandomSpanSec = 1.5f;
+    private const float DelaySliderMinSeconds = 0f;
+    private const float DelaySliderMaxSeconds = 5f;
+    private const float DefaultAutoMarkDelayRandomMinSec = 0f;
+    private const float DefaultAutoMarkDelayRandomMaxSec = 1.5f;
     private const int Step8MarkerResolveTrigger = 8;
 
     private const uint MarkerIndexAttack1 = 0;
@@ -125,6 +128,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     private const string ElActiveTower0 = "ActiveTower0";
     private const string ElActiveTower1 = "ActiveTower1";
+    private const string ElTowerCount = "tower_count";
     private const string ElMyRole = "MyRole";
 
     private static readonly string[] BasisComboLabels = ["LeftTower", "RightTower", "Center"];
@@ -283,8 +287,12 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         public bool ConeUseMarker = false;
         public string SpreadEchoText = DefaultSpreadEchoText;
         public string ConeEchoText = DefaultConeEchoText;
+        public float AutoMarkDelayRandomMinSec = DefaultAutoMarkDelayRandomMinSec;
+        public float AutoMarkDelayRandomMaxSec = DefaultAutoMarkDelayRandomMaxSec;
         public PatternRuleSettings[][] PatternRules = CreateDefaultPatternRules();
         public float BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
+        public bool ShowRoleOverlayText;
+        public bool ShowTowerCountOverlay;
 
         public void EnsureDefaults()
         {
@@ -298,6 +306,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             ConeMarkerType = ClampMarkerResolveKind(ConeMarkerType);
             SpreadEchoText = NormalizeEchoText(SpreadEchoText, DefaultSpreadEchoText);
             ConeEchoText = NormalizeEchoText(ConeEchoText, DefaultConeEchoText);
+            AutoMarkDelayRandomMinSec = ClampDelaySliderSeconds(AutoMarkDelayRandomMinSec);
+            AutoMarkDelayRandomMaxSec = ClampDelaySliderSeconds(AutoMarkDelayRandomMaxSec);
             PatternRules = EnsurePatternRules(PatternRules);
             BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(BaitAllThingsEndingRange);
         }
@@ -316,8 +326,12 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             ConeUseMarker = false;
             SpreadEchoText = DefaultSpreadEchoText;
             ConeEchoText = DefaultConeEchoText;
+            AutoMarkDelayRandomMinSec = DefaultAutoMarkDelayRandomMinSec;
+            AutoMarkDelayRandomMaxSec = DefaultAutoMarkDelayRandomMaxSec;
             PatternRules = CreateDefaultPatternRules();
             BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
+            ShowRoleOverlayText = false;
+            ShowTowerCountOverlay = false;
         }
 
         private static MarkerResolveKind ClampMarkerResolveKind(MarkerResolveKind kind)
@@ -374,6 +388,9 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             fillIntensity = 0.25f,
             Filled = false,
         });
+        Controller.RegisterElementFromCode(ElTowerCount,
+            """{"Enabled":false,"type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":3019898880,"overlayTextColor":4294967295,"overlayFScale":3.0,"overlayText":" 8 ","refActorDataID":19506,"refActorComparisonType":3}""",
+            overwrite: true);
 
         for(var i = 0; i < MaxPatternAssignments; i++)
         {
@@ -407,6 +424,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
         UpdateInterludeNavPhase();
         UpdateActiveTowerMarkers();
+        UpdateTowerCountOverlay();
         TryRunStep4AutoMark();
         LogStep4AutoMarkSkipOnce();
         UpdateFieldMarkers();
@@ -516,7 +534,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         ImGui.TextUnformatted("Cone:");
         DrawMarkerEchoRow("Echo Message##Cone", ref C.ConeUseEcho, ref C.ConeEchoText, DefaultConeEchoText);
         DrawMarkerKindRow("Auto Marking##Cone", ref C.ConeUseMarker, ref C.ConeMarkerType);
-        
+        DrawAutoMarkDelaySliders();
+
         ImGui.Spacing();
         ImGui.TextDisabled("Marker Settings");
         ImGui.Separator();
@@ -524,11 +543,27 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         C.PriorityData.Draw();
     }
 
+    // Draw auto mark random delay min/max sliders (added to fixed 3s debuff wait).
+    private void DrawAutoMarkDelaySliders()
+    {
+        ImGui.TextUnformatted("Delay random (s)");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(140f);
+        ImGui.SliderFloat("Min##autoMarkDelayRandomMin", ref C.AutoMarkDelayRandomMinSec,
+            DelaySliderMinSeconds, DelaySliderMaxSeconds, "%.1f");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(140f);
+        ImGui.SliderFloat("Max##autoMarkDelayRandomMax", ref C.AutoMarkDelayRandomMaxSec,
+            DelaySliderMinSeconds, DelaySliderMaxSeconds, "%.1f");
+        ImGui.TextWrapped(
+            $"Fixed {Step4AutoMarkDelayBaseSec:0}s debuff wait plus random delay between min and max.");
+    }
+
     private void DrawAllPatternAssignmentTables()
     {
         C.EnsureDefaults();
         ImGui.Spacing();
-        ImGui.TextUnformatted($"Pattern assignments ({PatternCount} patterns)");
+        ImGui.TextUnformatted($"Pattern");
         ImGui.Separator();
 
         foreach(var pattern in Patterns)
@@ -555,6 +590,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         if(ImGui.DragFloat("Bait AllThingsEnding Range", ref range, BaitAllThingsEndingRangeStep,
                 MinBaitAllThingsEndingRange, MaxBaitAllThingsEndingRange, "%.1f"))
             C.BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(range);
+        ImGui.Checkbox("Show role overlay text on nav", ref C.ShowRoleOverlayText);
+        ImGui.Checkbox("Show tower step overlay on Kefka", ref C.ShowTowerCountOverlay);
     }
 
     // Clamp and snap bait range to 0.5 steps within 5~15.
@@ -1285,6 +1322,21 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         UpdateActiveTowerMarker(ElActiveTower1, 1);
     }
 
+    private void UpdateTowerCountOverlay()
+    {
+        if(!Controller.TryGetElementByName(ElTowerCount, out var element))
+            return;
+
+        if(!C.ShowTowerCountOverlay || !_hasActiveTowers)
+        {
+            element.Enabled = false;
+            return;
+        }
+
+        element.overlayText = $" {_step} ";
+        element.Enabled = true;
+    }
+
     private void UpdateActiveTowerMarker(string elementName, int index)
     {
         if(!Controller.TryGetElementByName(elementName, out var element))
@@ -1326,6 +1378,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             tower0.Enabled = false;
         if(Controller.TryGetElementByName(ElActiveTower1, out var tower1))
             tower1.Enabled = false;
+        if(Controller.TryGetElementByName(ElTowerCount, out var towerCount))
+            towerCount.Enabled = false;
         DisableAllRolePreviewMarkers();
         DisableMyRoleMarker();
     }
@@ -1336,6 +1390,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             tower0.Enabled = false;
         if(Controller.TryGetElementByName(ElActiveTower1, out var tower1))
             tower1.Enabled = false;
+        if(Controller.TryGetElementByName(ElTowerCount, out var towerCount))
+            towerCount.Enabled = false;
         DisableAllRolePreviewMarkers();
         DisableMyRoleMarker();
     }
@@ -1394,7 +1450,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
         element.SetRefPosition(position);
         element.color = Controller.AttentionColor;
-        element.overlayText = showOverlayText ? label : "";
+        element.overlayText = showOverlayText || C.ShowRoleOverlayText ? label : "";
         element.tether = tether;
         element.Enabled = true;
     }
@@ -2302,12 +2358,26 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             RunMarkCommand(markCommand);
     }
 
-    // Returns a random mark delay of at least Step4AutoMarkDelayBaseSec.
-    private static long ComputeStep4AutoMarkDelayMs()
+    // Clamps delay slider seconds to configured bounds.
+    private static float ClampDelaySliderSeconds(float seconds)
+        => Math.Clamp(seconds, DelaySliderMinSeconds, DelaySliderMaxSeconds);
+
+    // Picks a random delay in milliseconds between configured min and max seconds.
+    private static long ToRandomDelayMs(float minSeconds, float maxSeconds)
     {
-        var seconds = Step4AutoMarkDelayBaseSec + Random.Shared.NextSingle() * Step4AutoMarkDelayRandomSpanSec;
-        return (long)(seconds * 1000f);
+        var min = ClampDelaySliderSeconds(minSeconds);
+        var max = ClampDelaySliderSeconds(maxSeconds);
+        if(min > max)
+            (min, max) = (max, min);
+
+        var delaySeconds = min >= max ? min : min + Random.Shared.NextSingle() * (max - min);
+        return (long)(delaySeconds * 1000f);
     }
+
+    // Returns a random mark delay of at least Step4AutoMarkDelayBaseSec.
+    private long ComputeStep4AutoMarkDelayMs()
+        => (long)(Step4AutoMarkDelayBaseSec * 1000f)
+           + ToRandomDelayMs(C.AutoMarkDelayRandomMinSec, C.AutoMarkDelayRandomMaxSec);
 
     private void LogStep4AutoMarkSkipOnce()
     {

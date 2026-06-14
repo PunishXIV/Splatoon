@@ -428,7 +428,7 @@ https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties
 >
 > There is a good chance that they will remain temporary until merging into a single script. 
 
-## [JP] Yarn or Reen AAABBBBA
+## [JP] Yarn(Priority) or Reen AAABBBBA
 Always Resolve Debuff & Priority.
 
 Configuration
@@ -445,7 +445,12 @@ Reference
 https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Pattern/P2_Missing_1238_4567_KT_Strat.cs
 ```
 
-## [JP] KTDN AAABBBBA
+Yarn Priority & Piren Configure (ヤーン速報 ①ミッシング 優先順+立ち位置ぴれん)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Missing_1238_4567_KT_Strat","ConfigurationName":"Yarn Priority 20260610","Configuration":"Gy0LAJwFzrmcQIgfvULQrkO5+/veICJbfX3fuZTdi2+7n4zdjkExpAf2ikXHsuXyjmYEQmJsax5lYe6OpbvWNBZhevWtxyOExTrkHwo7wMU6sKr7zK/DYjJQF7BBBapHgVbwfHS7pK66U/V6NhlaC1JEvHEKoCW2iWqhxTUTBNOZvvEf1KBhjSQjbRo+Q4UFfcMiaUyYIASavFZl8xivIj2BpVI8LlZAcynYlTT5f3mDUjtIAkyRBCAJhOQQkoDJXBq8JrVS7V+AHYdCChCGx8cxFthUvJ1ZfLSjeY0ykOCmSQrATA1qt2/fH9146PC3WeMfLBP7Hmmp79Gq11PAtfLz3+kP9xDHhlYl16WcbLbXRM+2GRlFAuxkMHlD1dv38DxR3CyQ9hqI+QGYZ+NOrf2+jaFQxTRSj09LvTxPtdOFgsS2P8OEIgoEIW/js24LfGG+oliO/flGbEu4mYDVGPIVI5vG7Fdk4U8CMaYdi5q2XL9zXexrpkbZfvq/aToynEk0S2bKzhYTG1qfa+TNGJv8uPhgiIboAQ==","Overrides":null}
+```
+
+## [JP] Yarn(BackSwap) KTDN AAABBBBA
 Resolve by Current Debuff & Latest Tower Side.
 
 Configuration
@@ -459,10 +464,16 @@ Configuration
     - Priority (Left => Lower to Right, Right: Higher to Left)
 
 Reference
-- [せいくおい Youtube](https://www.youtube.com/watch?v=21_YaTEUGH8)
+- [【FF14】絶妖星乱舞 P2 ミッシング KTDN式 詳細解説版 - せいくおい Youtube](https://www.youtube.com/watch?v=vtGVWdaUDJs)
+- [Yarn Flash](https://yan-flash.com/ultimate/yosei-ranbu#ult-phase-2)
 
 ```
 https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P2_Forsaken_Pattern/P2_Missing_KT_Alt.cs
+```
+
+Yarn BackSwap & Piren Configure (ヤーン速報 ②ミッシング 南調整+立ち位置ぴれん)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Misisng_KT_Alt","ConfigurationName":"Yarn SouthSwap 20260609","Configuration":"GyILAJwHto1kHXSMH1tB6LJW2P191yAiXX3NmkvZTvzBJiUL6FhV4SOmDkuD//+npgODUsBFPUG676W3e4qW96DS1oJAWWv5Fu8yvHRq61LubrfFYoq6EDYQNSb06ABfAZJ1FqhBi9GFBmBqGjEkmCf6jLRIagEEwJiY1IwvwiV6IhRHBZKOg/KsAK4NY5Ev/6y8DmIA1sgAEAOEmCHEACbRMiLG0AZV7xhXgjARsmt0GQsZTSYqCXkmznCySjhpXGPzyKLb/rKl2/4Z4unpomoRaUt7S3HwZXciuIVojhKBP5nJ8Vw6+9Z2ENo7uzqIlsp3xJL/LOUZ4LmP839ctEQH5W1yR19bdlxXJMJHdRf7WDg1xy/x9kRzgHudz9cPhp8RChB65yAUFNJnMR6q3LmMuXQSQO3+cPefHt1xBbGtmpqp9oTlXi9OnPo2ud+2WLG6w3sLPxX3UX9So7isKOd0TEycWlJS5AgKky+g5PhaLhtV4wDl+y3uxgE=","Overrides":null}
 ```
 
 ## [JP] Old Yarn

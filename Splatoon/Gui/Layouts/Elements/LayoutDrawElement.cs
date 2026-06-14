@@ -295,30 +295,19 @@ internal unsafe partial class CGui
                 ImGui.SameLine();
                 ImGuiEx.Checkbox(FontAwesomeIcon.Compass, "##pointMode", ref el.RotationOverrideAngleOnlyMode);
                 ImGuiEx.Tooltip("Fixed angle mode. Face fixed angle.");
-                ImGui.SameLine();
                 if(!el.RotationOverrideAngleOnlyMode)
                 {
-                    ImGuiEx.TextV("Rotate towards:");
+                    ImGui.NewLine();
+                    ImGuiUtils.SizedText("Rotate towards:".Loc(), WidthElement);
                     ImGui.SameLine();
-                    ImGuiEx.Text($"X:");
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(50f);
-                    ImGui.DragFloat("##rotateTowardsX", ref el.RotationOverridePoint.X, 0.1f);
-                    ImGui.SameLine();
-                    ImGuiEx.Text($"Y:");
-                    ImGui.SameLine();
-                    if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "RotateTowards"))
-                    {
-                        Splatoon.P.BeginS2W(el.RotationOverridePoint, "X", "Y", null);
-                    }
-                    ImGui.SameLine();
-                    ImGui.SetNextItemWidth(50f);
-                    ImGui.DragFloat("##rotateTowardsY", ref el.RotationOverridePoint.Y, 0.1f);
+                    var tmp = 0f;
+                    this.DrawVector3OrPlaceholder("rotateTowards", null, ref el.RotationOverrideFaceMode, el.RotationOverrideFaceModePlaceholders, ref el.RotationOverridePoint.X, ref el.RotationOverridePoint.Y, ref tmp, el.RotationOverridePoint, nameof(el.RotationOverridePoint.X), nameof(el.RotationOverridePoint.Y), null, true, true, false);
                     ImGui.SameLine();
                     ImGuiEx.Text($"Add angle:");
                 }
                 else
                 {
+                    ImGui.SameLine();
                     ImGuiEx.Text($"Fixed Angle");
                 }
                 ImGui.SameLine();
@@ -912,7 +901,7 @@ internal unsafe partial class CGui
             if(el.LimitDistance)
             {
                 ImGui.SameLine();
-                DrawVector3OrPlaceholder("DistLimit", $"Check distance against placeholder instead of fixed coordinates. Multiple entries are treated as combined with \"or\".".Loc(), ref el.UseDistanceSourcePlaceholder, el.DistanceSourcePlaceholder, ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ, el, nameof(el.DistanceSourceX), nameof(el.DistanceSourceY), nameof(el.DistanceSourceZ), true, true);
+                DrawVector3OrPlaceholder("DistLimit", $"Check distance against placeholder instead of fixed coordinates. Multiple entries are treated as combined with \"or\".".Loc(), ref el.UseDistanceSourcePlaceholder, el.DistanceSourcePlaceholder, ref el.DistanceSourceX, ref el.DistanceSourceY, ref el.DistanceSourceZ, el, nameof(el.DistanceSourceX), nameof(el.DistanceSourceY), nameof(el.DistanceSourceZ), true, true, true);
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(50f);
@@ -1136,7 +1125,7 @@ internal unsafe partial class CGui
                 }
             }
             ImGui.SameLine();
-            this.DrawVector3OrPlaceholder("RefX", null, ref el.UsePlaceholderAsRefPosition, el.PlaceholdersRefPosition, ref el.refX, ref el.refY, ref el.refZ, el, nameof(el.refX), nameof(el.refY), nameof(el.refZ), el.type != 3, el.type != 3);
+            this.DrawVector3OrPlaceholder("RefX", null, ref el.UsePlaceholderAsRefPosition, el.PlaceholdersRefPosition, ref el.refX, ref el.refY, ref el.refZ, el, nameof(el.refX), nameof(el.refY), nameof(el.refZ), el.type != 3, el.type != 3, true);
             
             if(el.type.EqualsAny(1, 3) && el.includeRotation)
             {
@@ -1170,7 +1159,7 @@ internal unsafe partial class CGui
         {
             ImGuiUtils.SizedText((el.type == 2 || el.type == 3) ? "Point B".Loc() : "Offset: ".Loc(), WidthElement);
             ImGui.SameLine();
-            this.DrawVector3OrPlaceholder("offX", null, ref el.UsePlaceholderAsOffPosition, el.PlaceholdersOffPosition, ref el.offX, ref el.offY, ref el.offZ, el, nameof(el.offX), nameof(el.offY), nameof(el.offZ), el.type == 2, el.type == 2);
+            this.DrawVector3OrPlaceholder("offX", null, ref el.UsePlaceholderAsOffPosition, el.PlaceholdersOffPosition, ref el.offX, ref el.offY, ref el.offZ, el, nameof(el.offX), nameof(el.offY), nameof(el.offZ), el.type == 2, el.type == 2, true);
             
             if((el.type == 3) && el.refActorType != 1)
             {
@@ -1547,7 +1536,7 @@ internal unsafe partial class CGui
         }
     }
 
-    public void DrawVector3OrPlaceholder(string id, string tooltip, ref bool usePlaceholder, List<string> placeholders, ref float x, ref float y, ref float z, object coordinatesHolder, string nameX, string nameY, string nameZ, bool showAbsPosButtons, bool allowUsePlaceholder)
+    public void DrawVector3OrPlaceholder(string id, string tooltip, ref bool usePlaceholder, List<string> placeholders, ref float x, ref float y, ref float z, object coordinatesHolder, string nameX, string nameY, string nameZ, bool showAbsPosButtons, bool allowUsePlaceholder, bool useZ)
     {
         ImGui.PushID(id);
         if(allowUsePlaceholder)
@@ -1588,11 +1577,14 @@ internal unsafe partial class CGui
             ImGui.SameLine();
             ImGui.SetNextItemWidth(60f);
             ImGui.DragFloat("##distY", ref y, 0.02f, float.MinValue, float.MaxValue);
-            ImGui.SameLine();
-            ImGuiEx.Text("Z:");
-            ImGui.SameLine();
-            ImGui.SetNextItemWidth(60f);
-            ImGui.DragFloat("##distZ", ref z, 0.02f, float.MinValue, float.MaxValue);
+            if(useZ)
+            {
+                ImGui.SameLine();
+                ImGuiEx.Text("Z:");
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(60f);
+                ImGui.DragFloat("##distZ", ref z, 0.02f, float.MinValue, float.MaxValue);
+            }
             ImGui.SameLine();
             if(ImGuiEx.IconButton(FontAwesomeIcon.Copy))
             {
@@ -1640,7 +1632,7 @@ internal unsafe partial class CGui
                     if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World" + "##dist"))
                     {
                         SetCursorTo(x, y, z);
-                        P.BeginS2W(coordinatesHolder, nameX, nameY, nameZ);
+                        P.BeginS2W(coordinatesHolder, nameX, nameY, useZ?nameZ:null);
                     }
                 }
                 ImGuiEx.Tooltip("Select on screen".Loc());

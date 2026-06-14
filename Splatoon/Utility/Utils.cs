@@ -12,6 +12,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Common.Lua;
 using Newtonsoft.Json;
 using Splatoon.Memory;
+using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.Structures;
 using System.Diagnostics;
@@ -554,7 +555,7 @@ public static unsafe class Utils
     /// <param name="obj"></param>
     /// <param name="e"></param>
     /// <returns>Radians</returns>
-    public static float GetRotationWithOverride(this IGameObject obj, Element e)
+    public static float GetRotationWithOverride(this IGameObject obj, Layout l, Element e)
     {
         if(!e.RotationOverride)
         {
@@ -593,7 +594,33 @@ public static unsafe class Utils
         {
             return (180f + e.RotationOverrideAddAngle).DegToRad();
         }
-        return (180f - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), e.RotationOverridePoint.ToVector2()) + e.RotationOverrideAddAngle).DegToRad();
+        Vector2 position;
+        if(e.RotationOverrideFaceMode)
+        {
+            var pos = CommonRenderUtils.GetPointsFromPlaceholderList(l, obj, e.RotationOverrideFaceModePlaceholders);
+            if(pos.Count == 0)
+            {
+                position = obj.Position.ToVector2();
+            }
+            else if(pos.Count == 1)
+            {
+                position = pos[0].ToVector2();
+            }
+            else
+            {
+                position = Vector2.Zero;
+                foreach(var x in pos)
+                {
+                    position += x.ToVector2();
+                }
+                position /= pos.Count;
+            }
+        }
+        else
+        {
+            position = e.RotationOverridePoint.ToVector2();
+        }
+        return (180f - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), position) + e.RotationOverrideAddAngle).DegToRad();
     }
 
     public static void Migrate(this Layout l)

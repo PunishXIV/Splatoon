@@ -249,8 +249,8 @@ internal class Projection : IDisposable
                     //now find if there are also cones that are the same but "look" in opposite direction
                     if(y.element.type == x.element.type)
                     {
-                        var angle1 = Utils.GetRotationWithOverride(x.obj, x.element);
-                        var angle2 = Utils.GetRotationWithOverride(y.obj, y.element);
+                        var angle1 = Utils.GetRotationWithOverride(x.obj, null, x.element);
+                        var angle2 = Utils.GetRotationWithOverride(y.obj, null, y.element);
                         if(
                             Math.Abs((angle1 - angle2).RadToDeg()).ApproximatelyEquals(180, 1)
                             )

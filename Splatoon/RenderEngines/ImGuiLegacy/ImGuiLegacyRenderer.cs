@@ -76,12 +76,12 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                 if(element.type == 1)
                 {
                     var pointPos = Utils.GetPlayerPositionXZY();
-                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? BasePlayer.GetRotationWithOverride(element) : 0f,
+                    DrawCircle(layout, element, pointPos.X, pointPos.Y, pointPos.Z, radius, element.includeRotation ? BasePlayer.GetRotationWithOverride(layout, element) : 0f,
                         element.overlayPlaceholders ? BasePlayer : null);
                 }
                 else if(element.type == 3)
                 {
-                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), element, radius, 0f);
+                    AddRotatedLine(layout, Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(layout, element), element, radius, 0f);
                     //Svc.Chat.Print(Svc.ClientState.LocalPlayer.Rotation.ToString());
                 }
                 else if(element.type == 4)
@@ -90,9 +90,9 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     {
                         for(var x = element.coneAngleMin; x < element.coneAngleMax; x += GetFillStepCone(element.FillStep))
                         {
-                            AddConeLine(Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), (BasePlayer.GetRotationWithOverride(element).RadiansToDegrees() - x.Float()).DegreesToRadians(), element, radius, x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity, false);
+                            AddConeLine(Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(layout, element), (BasePlayer.GetRotationWithOverride(layout, element).RadiansToDegrees() - x.Float()).DegreesToRadians(), element, radius, x == element.coneAngleMin ? 1f : element.fillIntensity ?? Utils.DefaultFillIntensity, false);
                         }
-                        AddConeLine(Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(element), (BasePlayer.GetRotationWithOverride(element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians(), element, radius, 1f, true);
+                        AddConeLine(Utils.GetPlayerPositionXZY(), BasePlayer.GetRotationWithOverride(layout, element), (BasePlayer.GetRotationWithOverride(layout, element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians(), element, radius, 1f, true);
                     }
                 }
             }
@@ -106,7 +106,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                     if(element.type == 1)
                     {
                         DrawCircle(layout, element, Svc.Targets.Target.GetPositionXZY().X, Svc.Targets.Target.GetPositionXZY().Y,
-                            Svc.Targets.Target.GetPositionXZY().Z, radius, element.includeRotation ? Svc.Targets.Target.GetRotationWithOverride(element) : 0f,
+                            Svc.Targets.Target.GetPositionXZY().Z, radius, element.includeRotation ? Svc.Targets.Target.GetRotationWithOverride(layout, element) : 0f,
                             element.overlayPlaceholders ? Svc.Targets.Target : null);
                     }
                     else if(element.type == 3)
@@ -125,7 +125,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                         }
                         else
                         {
-                            var angle = Svc.Targets.Target.GetRotationWithOverride(element);
+                            var angle = Svc.Targets.Target.GetRotationWithOverride(layout, element);
                             AddRotatedLine(layout, Svc.Targets.Target.GetPositionXZY(), angle, element, radius, Svc.Targets.Target.HitboxRadius);
                         }
 
@@ -159,8 +159,8 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                                 }
                                 else
                                 {
-                                    var angle = (Svc.Targets.Target.GetRotationWithOverride(element).RadiansToDegrees() - x.Float()).DegreesToRadians();
-                                    var baseAngle = Svc.Targets.Target.GetRotationWithOverride(element);
+                                    var angle = (Svc.Targets.Target.GetRotationWithOverride(layout, element).RadiansToDegrees() - x.Float()).DegreesToRadians();
+                                    var baseAngle = Svc.Targets.Target.GetRotationWithOverride(layout, element);
                                     AddConeLine(
                                         Svc.Targets.Target.GetPositionXZY(),
                                         baseAngle,
@@ -189,8 +189,8 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                                 }
                                 else
                                 {
-                                    var angle = (Svc.Targets.Target.GetRotationWithOverride(element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians();
-                                    var baseAngle = Svc.Targets.Target.GetRotationWithOverride(element);
+                                    var angle = (Svc.Targets.Target.GetRotationWithOverride(layout, element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians();
+                                    var baseAngle = Svc.Targets.Target.GetRotationWithOverride(layout, element);
                                     AddConeLine(Svc.Targets.Target.GetPositionXZY(), baseAngle, angle, element, radius, 1f, true);
                                 }
 
@@ -227,7 +227,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                         if(element.type == 1)
                         {
                             DrawCircle(layout, element, obj.GetPositionXZY().X, obj.GetPositionXZY().Y, obj.GetPositionXZY().Z, aradius,
-                                element.includeRotation ? obj.GetRotationWithOverride(element) : 0f,
+                                element.includeRotation ? obj.GetRotationWithOverride(layout, element) : 0f,
                                 element.overlayPlaceholders ? obj : null);
                         }
                         else if(element.type == 3)
@@ -246,7 +246,7 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                             }
                             else
                             {
-                                var angle = obj.GetRotationWithOverride(element);
+                                var angle = obj.GetRotationWithOverride(layout, element);
                                 AddRotatedLine(layout, obj.GetPositionXZY(), angle, element, aradius, obj.HitboxRadius);
                             }
 
@@ -280,8 +280,8 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                                     }
                                     else
                                     {
-                                        var angle = (obj.GetRotationWithOverride(element).RadiansToDegrees() - x.Float()).DegreesToRadians();
-                                        var baseAngle = obj.GetRotationWithOverride(element);
+                                        var angle = (obj.GetRotationWithOverride(layout, element).RadiansToDegrees() - x.Float()).DegreesToRadians();
+                                        var baseAngle = obj.GetRotationWithOverride(layout, element);
                                         AddConeLine(
                                             obj.GetPositionXZY(),
                                             baseAngle,
@@ -310,8 +310,8 @@ internal sealed unsafe class ImGuiLegacyRenderer : RenderEngine
                                     }
                                     else
                                     {
-                                        var angle = (obj.GetRotationWithOverride(element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians();
-                                        var baseAngle = obj.GetRotationWithOverride(element);
+                                        var angle = (obj.GetRotationWithOverride(layout, element).RadiansToDegrees() - element.coneAngleMax.Float()).DegreesToRadians();
+                                        var baseAngle = obj.GetRotationWithOverride(layout, element);
                                         AddConeLine(obj.GetPositionXZY(), baseAngle, angle, element, aradius, 1f, true);
                                     }
 

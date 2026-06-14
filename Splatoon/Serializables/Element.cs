@@ -218,6 +218,8 @@ public class Element
     [DefaultValue(false)] public bool ConditionalReset = false;
     [DefaultValue(false)] public bool RotationOverride = false;
     [DefaultValue(false)] public bool RotationOverrideAngleOnlyMode = false;
+    [DefaultValue(false)] public bool RotationOverrideFaceMode = false;
+    public List<string> RotationOverrideFaceModePlaceholders = [];
     public Point2 RotationOverridePoint = new();
     [DefaultValue(0f)] public float RotationOverrideAddAngle = 0f;
     public HashSet<ObjectKind> ObjectKinds = [];
@@ -247,6 +249,7 @@ public class Element
 
     internal float CastFractionOverride = 0f;
 
+    public bool ShouldSerializeRotationOverrideFaceModePlaceholders() => RotationOverrideFaceMode && RotationOverrideFaceModePlaceholders.Count > 0;
     public bool ShouldSerializePlaceholdersRefPosition() => PlaceholdersRefPosition.Count > 0 && UsePlaceholderAsRefPosition;
     public bool ShouldSerializePlaceholdersOffPosition() => PlaceholdersOffPosition.Count > 0 && UsePlaceholderAsOffPosition;
     public bool ShouldSerializeAnimationIds() => AnimationIds.Count > 0;

@@ -91,8 +91,19 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private static readonly string[] SelectableMarkerNames = ["Attack1", "Attack2", "Attack3", "Bind1", "Bind2", "Bind3", "Stop1", "Stop2"];
     private static readonly int[] DefaultMarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
     private static readonly string[] BlackHoleOrderNames = ["1st", "2nd", "3rd"];
+    private static readonly AssignmentMode[] AssignmentModeValues =
+    [
+        AssignmentMode.PartyMarker,
+        AssignmentMode.Priority,
+        AssignmentMode.RoleAccretion,
+        AssignmentMode.FixedRoleAccretion,
+        AssignmentMode.FixedMarkerLanes
+    ];
     private static readonly string[] AssignmentModeNames =
-        ["Party marker", "Priority", "Marker + priority fallback", "PF role/accretion", "Fixed role/accretion spots"];
+        ["Party marker", "Priority", "PF role/accretion", "Fixed role/accretion spots", "Fixed marker lanes"];
+    private static readonly string[] MapMarkerNames = ["A", "B", "C", "D"];
+    private static readonly string[] LineBaitDirectionNames = ["Clockwise", "Counterclockwise"];
+    private static readonly string[] FirstOrbRoleNames = ["DPS", "Support"];
     private static readonly RolePosition[] DefaultRolePriority =
     [
         RolePosition.T1,
@@ -119,22 +130,27 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private static readonly InternationalString Description = new()
     {
         En = "P3 Earthquake helper. It resolves your First/Second/Third line order from the debuff plus party markers or priority, then follows live Black Hole tether changes. When the line is on you, it shows the Black Hole-to-player line and your bait position. The line is green when the current active Black Hole order matches your slot, red when it does not.",
-        Jp = "P3地震用です。デバフとマーカーまたは優先順位から自分の第一/第二/第三対象内の線取り順を決め、黒穴テザーの付け替わりを追ってナビします。自分に線が付いた時は、黒穴から自分への線と誘導先を表示します。現在線が出ている黒穴の並びと自分のスロットが一致する場合は緑、一致しない場合は赤になります。"
+        Jp = "P3地震用です。デバフとマーカーまたは優先順位から自分の第一/第二/第三対象内の線取り順を決め、ブラックホールテザーの付け替わりを追ってナビします。自分に線が付いた時は、ブラックホールから自分への線と誘導先を表示します。現在線が出ているブラックホールの並びと自分のスロットが一致する場合は緑、一致しない場合は赤になります。"
     };
     private static readonly InternationalString AssignmentModeDescription = new()
     {
-        En = "Party marker: uses only the marker line-order table below. Priority: ignores markers and orders players with the priority list inside each First/Second/Third group. Marker + priority fallback: uses markers first; if no valid marker result is available after Black Hole starts and all groups are known, it falls back to priority. PF role/accretion: resolves order inside your group as DPS first, support second, Accretion third. Fixed role/accretion spots: support=A, DPS=B, Accretion=C; if that preferred spot has no active Black Hole, it uses D.",
-        Jp = "Party marker: 下のマーカー別線取り順だけで判定します。Priority: マーカーを無視し、第一/第二/第三対象ごとに優先順位で並べます。Marker + priority fallback: まずマーカーで判定し、黒穴開始後も有効なマーカー判定ができず、全員のグループが揃っている場合だけ優先順位へフォールバックします。PF role/accretion: 自分のグループ内でDPSを1番目、タンク/ヒラを2番目、Accretion持ちを3番目として判定します。Fixed role/accretion spots: タンク/ヒラ=A、DPS=B、Accretion=C として扱い、担当spotに黒穴が無い場合はDを使います。"
+        En = "Party marker: uses only the marker line-order table below. Priority: ignores markers and orders players with the priority list inside each First/Second/Third group. PF role/accretion: resolves order inside your group from First orb role plus Accretion. Fixed role/accretion spots: support=A, DPS=B, Accretion=C; if that preferred spot has no active Black Hole, it uses D. Fixed marker lanes: resolves your lane from role/accretion, then searches from configured markers and directions.",
+        Jp = "Party marker: 下のマーカー別線取り順だけで判定します。Priority: マーカーを無視し、第一/第二/第三対象ごとに優先順位で並べます。PF role/accretion: First orb role と Accretion から自分のグループ内の順番を判定します。Fixed role/accretion spots: タンク/ヒラ=A、DPS=B、Accretion=C として扱い、担当spotにブラックホールが無い場合はDを使います。Fixed marker lanes: ロール/Accretionから担当レーンを決め、設定したマーカーと方向から取る線を探します。"
     };
     private static readonly InternationalString LineBaitDirectionDescription = new()
     {
         En = "Line bait direction controls where your bait marker is placed from the Black Hole that is currently tethered to you. Clockwise and Counterclockwise are relative to the arena center; only your bait offset changes, not the Black Hole detection order.",
-        Jp = "Line bait direction は、自分に付いた黒穴を基準に誘導先を時計回り/反時計回りのどちらへずらすかを決めます。方向はフィールド中央基準です。黒穴の検出順は変わらず、自分の線を引っ張る位置だけが変わります。"
+        Jp = "Line bait direction は、自分に付いたブラックホールを基準に誘導先を時計回り/反時計回りのどちらへずらすかを決めます。方向はフィールド中央基準です。ブラックホールの検出順は変わらず、自分の線を引っ張る位置だけが変わります。"
     };
     private static readonly InternationalString BlackHoleSourceOrderDescription = new()
     {
         En = "Black Hole source order sorts only the Black Holes that currently have active tethers. The anchor decides where 1st starts; the order decides clockwise or counterclockwise from that anchor.",
-        Jp = "Black Hole source order は、現在線が出ている黒穴だけを並べ替える設定です。anchor で 1番目を数え始める基準を決め、order でそこから時計回り/反時計回りのどちらに数えるかを決めます。"
+        Jp = "Black Hole source order は、現在線が出ているブラックホールだけを並べ替える設定です。anchor で 1番目を数え始める基準を決め、order でそこから時計回り/反時計回りのどちらに数えるかを決めます。"
+    };
+    private static readonly InternationalString BlackHoleTetherOnlyDescription = new()
+    {
+        En = "When enabled, Black Hole windows show only the tether line from the Black Hole. Destination circles and waiting text are hidden during Black Hole.",
+        Jp = "有効にすると、ブラックホール中はブラックホールから出るテザー線だけを表示します。誘導先の円と待機テキストは非表示になります。"
     };
     private static readonly InternationalString MarkerLineOrderDescription = new()
     {
@@ -149,7 +165,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private static readonly InternationalString DisplayTextDescription = new()
     {
         En = "These fields change only the text shown on Splatoon overlays. Turning a text off hides that text only; it does not disable the marker, tether line, assignment logic, marker commands, or Black Hole detection.",
-        Jp = "ここはSplatoon上に表示する文言だけを変更します。チェックをOFFにすると文字だけ非表示になります。マーカー、線、割り当てロジック、マーカーコマンド、黒穴検出は無効になりません。"
+        Jp = "ここはSplatoon上に表示する文言だけを変更します。チェックをOFFにすると文字だけ非表示になります。マーカー、線、割り当てロジック、マーカーコマンド、ブラックホール検出は無効になりません。"
     };
     private static readonly InternationalString FinalRolePositionDescription = new()
     {
@@ -202,7 +218,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _instruction = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(34, "Garume");
+    public override Metadata Metadata => new(35, "Garume");
 
     public override void OnSetup()
     {
@@ -601,13 +617,14 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private void ShowGuidance()
     {
         ShowSelfTetherLine();
-        if (_selfDestination is { } destination)
+        var tetherOnly = C.BlackHoleTetherOnly && _state == State.BlackHoleActive;
+        if (!tetherOnly && _selfDestination is { } destination)
             ShowDestination(destination, TextOrEmpty(C.ShowOverlayText, C.OverlayText, SlotName(_selfSlot)));
-        else if (_guideDestination is { } guide)
+        else if (!tetherOnly && _guideDestination is { } guide)
             ShowDestination(guide, _guideText);
-        else if (!string.IsNullOrWhiteSpace(_guideInstruction))
+        else if (!tetherOnly && !string.IsNullOrWhiteSpace(_guideInstruction))
             ShowInstruction(_guideInstruction);
-        else if (!string.IsNullOrWhiteSpace(_instruction))
+        else if (!tetherOnly && !string.IsNullOrWhiteSpace(_instruction))
             ShowInstruction(_instruction);
     }
 
@@ -619,7 +636,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
         DrawAssignmentSettings();
         DrawBlackHoleSettings();
-        if (C.AssignmentMode is AssignmentMode.PartyMarker or AssignmentMode.MarkerThenPriority)
+        if (C.AssignmentMode is AssignmentMode.PartyMarker)
             DrawMarkerAssignmentSettings();
         DrawMarkerCommandSettings();
         DrawDisplayTextSettings();
@@ -630,27 +647,26 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         ImGui.TextUnformatted("Assignment");
         ImGui.Indent();
-        var mode = (int)C.AssignmentMode;
+        var mode = AssignmentModeIndex(C.AssignmentMode);
         if (DrawCombo("Assignment mode", ref mode, AssignmentModeNames, 260f))
-            C.AssignmentMode = (AssignmentMode)Math.Clamp(mode, 0, AssignmentModeNames.Length - 1);
+            C.AssignmentMode = AssignmentModeValues[Math.Clamp(mode, 0, AssignmentModeValues.Length - 1)];
         ImGui.TextWrapped(AssignmentModeDescription.Get());
 
+        if (C.AssignmentMode is AssignmentMode.RoleAccretion or AssignmentMode.FixedMarkerLanes)
+        {
+            var firstOrbRole = (int)C.FirstOrbRole;
+            if (DrawCombo("First orb role", ref firstOrbRole, FirstOrbRoleNames, 180f))
+                C.FirstOrbRole = (FirstOrbRole)Math.Clamp(firstOrbRole, 0, FirstOrbRoleNames.Length - 1);
+        }
+
         if (C.AssignmentMode is AssignmentMode.FixedRoleAccretion)
-		{
+        {
             ImGui.TextUnformatted("DPS/Support/Accretion spot assignment");
             ImGui.Indent();
-            var dps = (int)C.DpsMarker;
-            if (DrawCombo("DPS", ref dps, ["A", "B", "C", "D"], 180f))
-                C.DpsMarker = (MapMarker)dps;
-            var support = (int)C.SupportMarker;
-            if (DrawCombo("Support", ref support, ["A", "B", "C", "D"], 180f))
-                C.SupportMarker = (MapMarker)support;
-            var accretion = (int)C.AccretionMarker;
-            if (DrawCombo("Accretion", ref accretion, ["A", "B", "C", "D"], 180f))
-                C.AccretionMarker = (MapMarker)accretion;
-            var fallback = (int)C.FallbackMarker;
-            if (DrawCombo("Fallback", ref fallback, ["A", "B", "C", "D"], 180f))
-                C.FallbackMarker = (MapMarker)fallback;
+            DrawMapMarkerCombo("DPS", ref C.DpsMarker);
+            DrawMapMarkerCombo("Support", ref C.SupportMarker);
+            DrawMapMarkerCombo("Accretion", ref C.AccretionMarker);
+            DrawMapMarkerCombo("Fallback", ref C.FallbackMarker);
 
             if (C.DpsMarker == C.SupportMarker || C.DpsMarker == C.AccretionMarker || C.DpsMarker == C.FallbackMarker ||
                 C.SupportMarker == C.AccretionMarker || C.SupportMarker == C.FallbackMarker ||
@@ -658,9 +674,28 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
                 ImGui.TextWrapped("Warning: DPS, Support, Accretion, and Fallback markers should be unique.");
 
             ImGui.Unindent();
-		}
+        }
+        else if (C.AssignmentMode is AssignmentMode.FixedMarkerLanes)
+        {
+            ImGui.TextUnformatted("Fixed marker lanes");
+            ImGui.Indent();
+            if (ImGui.Button("Apply DPS=A / Support=D / Accretion=B / Flex=C"))
+                ApplyFixedMarkerLanePreset();
+            DrawMapMarkerCombo("DPS marker", ref C.LaneDpsMarker);
+            DrawLineBaitDirectionCombo("DPS direction", ref C.DpsLineBaitDirection);
+            DrawMapMarkerCombo("Support marker", ref C.LaneSupportMarker);
+            DrawLineBaitDirectionCombo("Support direction", ref C.SupportLineBaitDirection);
+            DrawMapMarkerCombo("Accretion marker", ref C.LaneAccretionMarker);
+            DrawLineBaitDirectionCombo("Accretion direction", ref C.AccretionLineBaitDirection);
+            DrawMapMarkerCombo("Flex marker", ref C.LaneFlexMarker);
+            if (C.LaneDpsMarker == C.LaneSupportMarker || C.LaneDpsMarker == C.LaneAccretionMarker || C.LaneDpsMarker == C.LaneFlexMarker ||
+                C.LaneSupportMarker == C.LaneAccretionMarker || C.LaneSupportMarker == C.LaneFlexMarker ||
+                C.LaneAccretionMarker == C.LaneFlexMarker)
+                ImGui.TextWrapped("Warning: DPS, Support, Accretion, and Flex markers should be unique.");
+            ImGui.Unindent();
+        }
 
-        if (C.AssignmentMode is AssignmentMode.Priority or AssignmentMode.MarkerThenPriority)
+        if (C.AssignmentMode is AssignmentMode.Priority)
         {
             if (ImGui.Button("Apply Meow static TN priority"))
                 C.PriorityData = CreatePriorityData("P3 Earthquake Meow static TN priority",
@@ -675,13 +710,38 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ImGui.Unindent();
     }
 
+    private void ApplyFixedMarkerLanePreset()
+    {
+        C.FirstOrbRole = FirstOrbRole.Dps;
+        C.LaneDpsMarker = MapMarker.A;
+        C.LaneSupportMarker = MapMarker.D;
+        C.LaneAccretionMarker = MapMarker.B;
+        C.LaneFlexMarker = MapMarker.C;
+        C.DpsLineBaitDirection = LineBaitDirection.Clockwise;
+        C.SupportLineBaitDirection = LineBaitDirection.Counterclockwise;
+    }
+
+    private void DrawMapMarkerCombo(string label, ref MapMarker marker)
+    {
+        var value = (int)marker;
+        if (DrawCombo(label, ref value, MapMarkerNames, 180f))
+            marker = (MapMarker)Math.Clamp(value, 0, MapMarkerNames.Length - 1);
+    }
+
+    private void DrawLineBaitDirectionCombo(string label, ref LineBaitDirection direction)
+    {
+        var value = (int)direction;
+        if (DrawCombo(label, ref value, LineBaitDirectionNames, 180f))
+            direction = (LineBaitDirection)Math.Clamp(value, 0, LineBaitDirectionNames.Length - 1);
+    }
+
     private void DrawBlackHoleSettings()
     {
         ImGui.Separator();
         ImGui.TextUnformatted("Black Hole");
         ImGui.Indent();
         var direction = (int)C.LineBaitDirection;
-        if (DrawCombo("Line bait direction", ref direction, ["Clockwise", "Counterclockwise"], 180f))
+        if (DrawCombo("Line bait direction", ref direction, LineBaitDirectionNames, 180f))
             C.LineBaitDirection = (LineBaitDirection)Math.Clamp(direction, 0, 1);
         ImGui.TextWrapped(LineBaitDirectionDescription.Get());
 
@@ -692,6 +752,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (DrawCombo("Black Hole order anchor", ref anchor, ["Kefka position", "Arena north"], 260f))
             C.BlackHoleOrderAnchor = (BlackHoleOrderAnchor)Math.Clamp(anchor, 0, 1);
         ImGui.TextWrapped(BlackHoleSourceOrderDescription.Get());
+        ImGui.Checkbox("Black Hole tether only", ref C.BlackHoleTetherOnly);
+        ImGui.TextWrapped(BlackHoleTetherOnlyDescription.Get());
         ImGui.Checkbox("Show inter-Black Hole AOE guides", ref C.ShowInterBlackHoleAoeGuides);
         ImGui.Checkbox("Debug Black Hole tether logs", ref C.EnableBlackHoleDebugLogs);
         ImGui.Unindent();
@@ -852,7 +914,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return false;
         }
 
-        if (C.AssignmentMode is AssignmentMode.RoleAccretion or AssignmentMode.FixedRoleAccretion)
+        if (C.AssignmentMode is AssignmentMode.RoleAccretion or AssignmentMode.FixedRoleAccretion or AssignmentMode.FixedMarkerLanes)
         {
             if (HasCompleteGroups() && _accretionPlayers.Count >= 2 &&
                 TryRoleAccretionSlot(player, group, out slot, C.AssignmentMode == AssignmentMode.FixedRoleAccretion))
@@ -864,23 +926,15 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return false;
         }
 
-        if (C.AssignmentMode is AssignmentMode.PartyMarker or AssignmentMode.MarkerThenPriority &&
-            TryMarkerSlot(player, group, out slot))
+        if (C.AssignmentMode == AssignmentMode.PartyMarker && TryMarkerSlot(player, group, out slot))
         {
             quality = AssignmentQuality.Marker;
             return true;
         }
 
-        if (C.AssignmentMode == AssignmentMode.MarkerThenPriority && _state != State.BlackHoleActive)
+        if (C.AssignmentMode == AssignmentMode.Priority && HasCompleteGroups() && TryPrioritySlot(player, group, out slot))
         {
-            slot = Slot.None;
-            return false;
-        }
-
-        if (C.AssignmentMode is AssignmentMode.Priority or AssignmentMode.MarkerThenPriority && HasCompleteGroups() &&
-            TryPrioritySlot(player, group, out slot))
-        {
-            quality = C.AssignmentMode == AssignmentMode.Priority ? AssignmentQuality.Priority : AssignmentQuality.Fallback;
+            quality = AssignmentQuality.Priority;
             return true;
         }
 
@@ -913,9 +967,10 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         var isAccretion = _accretionPlayers.Contains(player.EntityId);
         var isSupport = player.GetRole() is CombatRole.Tank or CombatRole.Healer;
+        var supportFirst = C.FirstOrbRole == FirstOrbRole.Support;
         var rank = fixedSpots
             ? isAccretion ? (int)C.AccretionMarker : isSupport ? (int)C.SupportMarker : (int)C.DpsMarker
-            : isAccretion ? 2 : isSupport ? 1 : 0;
+            : isAccretion ? 2 : isSupport == supportFirst ? 0 : 1;
         slot = SlotFromRank(group, rank);
         return slot != Slot.None;
     }
@@ -1815,9 +1870,22 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         var radial = Vector3.Normalize(new Vector3(source.X - Center.X, 0, source.Z - Center.Z));
         var tangent = new Vector3(-radial.Z, 0, radial.X);
-        if (C.LineBaitDirection == LineBaitDirection.Counterclockwise)
+        if (SelfLineBaitDirection() == LineBaitDirection.Counterclockwise)
             tangent = -tangent;
         return new Vector3(source.X, 0, source.Z) + tangent * BaitOffset;
+    }
+
+    private LineBaitDirection SelfLineBaitDirection() =>
+        C.AssignmentMode == AssignmentMode.FixedMarkerLanes ? LaneBaitDirection(RankFromSlot(_selfSlot)) : C.LineBaitDirection;
+
+    private LineBaitDirection LaneBaitDirection(int lane)
+    {
+        if (lane == 2) return C.AccretionLineBaitDirection;
+        if (lane is not (0 or 1)) return C.LineBaitDirection;
+
+        var supportFirst = C.FirstOrbRole == FirstOrbRole.Support;
+        var supportLane = lane == 0 ? supportFirst : !supportFirst;
+        return supportLane ? C.SupportLineBaitDirection : C.DpsLineBaitDirection;
     }
 
     private uint TetherLineColor()
@@ -1835,6 +1903,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         var rank = ExpectedRank(slot, _currentWindow);
         if (C.AssignmentMode == AssignmentMode.FixedRoleAccretion)
             return ExpectedFixedSpotBucket(rank);
+        if (C.AssignmentMode == AssignmentMode.FixedMarkerLanes)
+            return ExpectedFixedMarkerLaneBucket(slot, rank);
         var buckets = OrderedActiveBuckets();
         return rank >= 0 && rank < buckets.Count ? buckets[rank] : -1;
     }
@@ -1851,6 +1921,71 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return _tetherTargets.ContainsKey(fallback) ? fallback : -1;
     }
 
+    private int ExpectedFixedMarkerLaneBucket(Slot slot, int activeRank)
+    {
+        if (activeRank < 0) return -1;
+        var lane = RankFromSlot(slot);
+        if (lane < 0) return -1;
+
+        if (IsSnakeSetWindow(_currentWindow) && lane is 0 or 1)
+            return TryDirectionalMarkerBucket(LaneMarker(lane), LaneBaitDirection(lane), out var bucket) ? bucket : -1;
+
+        return ExpectedMarkerOrFlexLaneBucket(lane);
+    }
+
+    private int ExpectedMarkerOrFlexLaneBucket(int lane)
+    {
+        if (TryMarkerBucket(LaneMarker(lane), out var bucket))
+            return bucket;
+
+        if (!IsMarkerFlexSetWindow(_currentWindow))
+            return -1;
+
+        return TryMarkerBucket(C.LaneFlexMarker, out bucket) ? bucket : -1;
+    }
+
+    private MapMarker LaneMarker(int lane)
+    {
+        if (lane == 2) return C.LaneAccretionMarker;
+
+        var supportFirst = C.FirstOrbRole == FirstOrbRole.Support;
+        var supportLane = lane == 0 ? supportFirst : !supportFirst;
+        return supportLane ? C.LaneSupportMarker : C.LaneDpsMarker;
+    }
+
+    private bool TryMarkerBucket(MapMarker marker, out int bucket)
+    {
+        var buckets = OrderedBuckets();
+        bucket = (int)marker < buckets.Count ? buckets[(int)marker] : -1;
+        return bucket >= 0 && _tetherTargets.ContainsKey(bucket);
+    }
+
+    private bool TryDirectionalMarkerBucket(MapMarker marker, LineBaitDirection direction, out int bucket)
+    {
+        var buckets = OrderedBuckets();
+        var start = (int)marker;
+        if (start < 0 || start >= buckets.Count)
+        {
+            bucket = -1;
+            return false;
+        }
+
+        var step = DirectionStep(direction);
+        for (var i = 0; i < buckets.Count; i++)
+        {
+            var index = (start + step * i + buckets.Count) % buckets.Count;
+            var candidate = buckets[index];
+            if (_tetherTargets.ContainsKey(candidate))
+            {
+                bucket = candidate;
+                return true;
+            }
+        }
+
+        bucket = -1;
+        return false;
+    }
+
     private static int ExpectedRank(Slot slot, int window) => window switch
     {
         0 => slot == Slot.Attack1 ? 0 : -1,
@@ -1865,6 +2000,16 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         9 => slot == Slot.Stop2 ? 0 : -1,
         _ => -1
     };
+
+    private static bool IsSnakeSetWindow(int window) => window is 0 or 1 or 8 or 9;
+
+    private static bool IsMarkerFlexSetWindow(int window) => window is >= 2 and <= 7;
+
+    private int DirectionStep(LineBaitDirection direction)
+    {
+        var orderedClockwise = C.BlackHoleSourceOrder == BlackHoleSourceOrder.ClockwiseFromNorth;
+        return (direction == LineBaitDirection.Clockwise) == orderedClockwise ? 1 : -1;
+    }
 
     private List<int> OrderedActiveBuckets()
     {
@@ -2303,6 +2448,15 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return ImGui.Combo(label, ref selected, items, items.Length);
     }
 
+    private static int AssignmentModeIndex(AssignmentMode mode)
+    {
+        var index = Array.IndexOf(AssignmentModeValues, mode);
+        return index < 0 ? 0 : index;
+    }
+
+    private static AssignmentMode NormalizeAssignmentMode(AssignmentMode mode) =>
+        AssignmentModeValues.Contains(mode) ? mode : AssignmentMode.PartyMarker;
+
     private static void DrawFloat(string label, ref float value)
     {
         ImGui.SetNextItemWidth(120f);
@@ -2364,8 +2518,16 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     }
 
     private enum State { Idle, CollectingAssignments, BlackHoleActive, FinalSequence, Completed }
-    public enum AssignmentMode { PartyMarker, Priority, MarkerThenPriority, RoleAccretion, FixedRoleAccretion }
-    private enum AssignmentQuality { Unknown, Marker, Priority, Fallback, RoleAccretion }
+    public enum AssignmentMode
+    {
+        PartyMarker = 0,
+        Priority = 1,
+        MarkerThenPriority = 2,
+        RoleAccretion = 3,
+        FixedRoleAccretion = 4,
+        FixedMarkerLanes = 5
+    }
+    private enum AssignmentQuality { Unknown, Marker, Priority, RoleAccretion }
     private enum GuidanceKind { None, HeadStack, RoleSpread, Dubbing, AsIs, WhiteHole, Implosion, FinalCenter, FinalSpread, FinalLanding, FinalMove }
     private enum FinalStage { None, AwaitingBlizzaga, CenterBait, RoleSpread, Landing1, Landing2, ProtrudeMove }
     private enum FinalStackRole { Unknown, Support, Dps }
@@ -2374,16 +2536,19 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     public enum LineBaitDirection { Clockwise, Counterclockwise }
     public enum BlackHoleSourceOrder { ClockwiseFromNorth = 0, CounterclockwiseFromNorth = 1 }
     public enum BlackHoleOrderAnchor { KefkaPosition = 0, ArenaNorth = 1 }
+    public enum FirstOrbRole { Dps = 0, Support = 1 }
     public enum MapMarker { A = 0, B = 1, C = 2, D = 3 }
 
     private readonly record struct LiveTetherEntry(ushort Id, byte Progress, uint Target);
 
     public sealed class Config
     {
-        public AssignmentMode AssignmentMode = AssignmentMode.MarkerThenPriority;
+        public AssignmentMode AssignmentMode = AssignmentMode.PartyMarker;
+        public FirstOrbRole FirstOrbRole = FirstOrbRole.Dps;
         public LineBaitDirection LineBaitDirection = LineBaitDirection.Clockwise;
         public BlackHoleSourceOrder BlackHoleSourceOrder = BlackHoleSourceOrder.ClockwiseFromNorth;
         public BlackHoleOrderAnchor BlackHoleOrderAnchor = BlackHoleOrderAnchor.KefkaPosition;
+        public bool BlackHoleTetherOnly;
         public bool ShowInterBlackHoleAoeGuides;
         public bool EnableBlackHoleDebugLogs = true;
         public int[] MarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
@@ -2394,7 +2559,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         public string SecondTargetCommand = "/mk bind <me>";
         public string ThirdTargetCommand = "/mk stop <me>";
         public PriorityData PriorityData = CreatePriorityData("P3 Earthquake priority",
-            "Used when assignment mode is Priority or marker fallback.", DefaultRolePriority);
+            "Used when assignment mode is Priority.", DefaultRolePriority);
 
         public InternationalString TakeLineText = new() { En = "{0}: take {1} line", Jp = "{0}: {1}の線を取る" };
         public bool ShowTakeLineText = true;
@@ -2430,15 +2595,34 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         public MapMarker SupportMarker = MapMarker.A;
         public MapMarker AccretionMarker = MapMarker.C;
         public MapMarker FallbackMarker = MapMarker.D;
+        public MapMarker LaneDpsMarker = MapMarker.A;
+        public MapMarker LaneSupportMarker = MapMarker.D;
+        public MapMarker LaneAccretionMarker = MapMarker.B;
+        public MapMarker LaneFlexMarker = MapMarker.C;
+        public LineBaitDirection DpsLineBaitDirection = LineBaitDirection.Clockwise;
+        public LineBaitDirection SupportLineBaitDirection = LineBaitDirection.Counterclockwise;
+        public LineBaitDirection AccretionLineBaitDirection = LineBaitDirection.Clockwise;
 
         public void EnsureDefaults()
         {
-            AssignmentMode = (AssignmentMode)Math.Clamp((int)AssignmentMode, 0, AssignmentModeNames.Length - 1);
+            AssignmentMode = NormalizeAssignmentMode(AssignmentMode);
+            FirstOrbRole = (FirstOrbRole)Math.Clamp((int)FirstOrbRole, 0, FirstOrbRoleNames.Length - 1);
             LineBaitDirection = (LineBaitDirection)Math.Clamp((int)LineBaitDirection, 0, 1);
+            DpsLineBaitDirection = ClampLineBaitDirection(DpsLineBaitDirection);
+            SupportLineBaitDirection = ClampLineBaitDirection(SupportLineBaitDirection);
+            AccretionLineBaitDirection = ClampLineBaitDirection(AccretionLineBaitDirection);
             BlackHoleSourceOrder = (BlackHoleSourceOrder)Math.Clamp((int)BlackHoleSourceOrder, 0, 1);
             BlackHoleOrderAnchor = (BlackHoleOrderAnchor)Math.Clamp((int)BlackHoleOrderAnchor, 0, 1);
+            DpsMarker = ClampMarker(DpsMarker);
+            SupportMarker = ClampMarker(SupportMarker);
+            AccretionMarker = ClampMarker(AccretionMarker);
+            FallbackMarker = ClampMarker(FallbackMarker);
+            LaneDpsMarker = ClampMarker(LaneDpsMarker);
+            LaneSupportMarker = ClampMarker(LaneSupportMarker);
+            LaneAccretionMarker = ClampMarker(LaneAccretionMarker);
+            LaneFlexMarker = ClampMarker(LaneFlexMarker);
             PriorityData ??= CreatePriorityData("P3 Earthquake priority",
-                "Used when assignment mode is Priority or marker fallback.", DefaultRolePriority);
+                "Used when assignment mode is Priority.", DefaultRolePriority);
             if (MarkerLineOrders == null || MarkerLineOrders.Length != SelectableMarkerIds.Length)
                 MarkerLineOrders = DefaultMarkerLineOrders.ToArray();
             for (var i = 0; i < MarkerLineOrders.Length; i++)
@@ -2464,5 +2648,11 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             FinalTowerText ??= new InternationalString { En = "{0}: tower", Jp = "{0}: 塔" };
             FinalMoveText ??= new InternationalString { En = "{0}: spread and keep moving", Jp = "{0}: 散開して動く" };
         }
+
+        private static MapMarker ClampMarker(MapMarker marker) =>
+            (MapMarker)Math.Clamp((int)marker, 0, MapMarkerNames.Length - 1);
+
+        private static LineBaitDirection ClampLineBaitDirection(LineBaitDirection direction) =>
+            (LineBaitDirection)Math.Clamp((int)direction, 0, LineBaitDirectionNames.Length - 1);
     }
 }

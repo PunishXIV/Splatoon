@@ -6,6 +6,7 @@ using ECommons.CSExtensions;
 using ECommons.DalamudServices;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using Splatoon.SplatoonScripting;
 using System;
@@ -17,7 +18,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P5_Celestriad : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public override void OnSetup()
@@ -48,7 +49,7 @@ public class P5_Celestriad : SplatoonScript
 
     public override void OnObjectEffect(uint target, uint entityId, uint actionId)
     {
-        if(entityId.EqualsAny(TowerFire, TowerIce, TowerLightning)) EzThrottler.Throttle("Hold", 500, true);
+        if(target.GetObject()?.DataId.EqualsAny(TowerFire, TowerIce, TowerLightning) == true) EzThrottler.Throttle("Hold", 1000, true);
     }
 
     public override void OnUpdate()

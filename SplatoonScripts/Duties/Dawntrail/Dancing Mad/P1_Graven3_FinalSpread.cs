@@ -4,13 +4,11 @@ using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
-using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using Splatoon.Memory;
@@ -22,7 +20,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(3, "mirage");
+    public override Metadata? Metadata => new(4, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -37,8 +35,8 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     private const uint CastIdTrueThunder = 47775;
     private const uint CastIdFalseThunder = 47777;
 
-    private const string VfxBossFireSpread = "vfx/lockon/eff/m0462trg_c02c.avfx";
-    private const string VfxBossFireStack = "vfx/lockon/eff/m0462trg_c01c.avfx";
+    private const string VfxKefkaTrue = "vfx/lockon/eff/m0462trg_c02c.avfx";
+    private const string VfxKefkaFalse = "vfx/lockon/eff/m0462trg_c01c.avfx";
     private const string VfxPlayerSpread = "vfx/lockon/eff/m0462trg_a0c.avfx";
     private const string VfxPlayerStack = "vfx/lockon/eff/m0462trg_b0c.avfx";
 
@@ -161,9 +159,18 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         TankHealer,
     }
 
+    private readonly struct MechanicSnapshot
+    {
+        public DiagonalPattern Pattern { get; init; }
+        public bool KeftaTrue { get; init; }
+        public bool IsSpreadVfx { get; init; }
+        public SpreadStackKind Final { get; init; }
+    }
+
     private sealed class Config : IEzConfig
     {
         public PartyRole Role = PartyRole.T1;
+        public bool IgnoreKefkaVfx;
         public bool ShowPreview;
         public DiagonalPattern PreviewPattern = DiagonalPattern.NwToSe;
     }
@@ -210,33 +217,19 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 
         if(C.ShowPreview)
         {
-            EnablePreviewElements(C.PreviewPattern);
-            EnablePatternSpots(C.PreviewPattern, allRoles: true);
-            EnableStackSpots(C.PreviewPattern, allGroups: true);
+            ApplyPreviewDisplay(C.PreviewPattern);
             return;
         }
 
-        if(!TryGetActiveMechanic(out var pattern, out var keftaTrue, out var final))
+        if(!TryResolveMechanic(out var mechanic))
+        {
             return;
+        }
 
-        EnableFinalSpreadStackLabel(final);
-
-        if(final == SpreadStackKind.Spread)
-            EnablePatternSpots(pattern, allRoles: false);
-        else
-            EnableStackSpot(pattern, GetRoleGroup(C.Role));
+        ApplyMechanicDisplay(mechanic);
     }
-
-    public override void OnCombatStart() => ResetState();
 
     public override void OnReset() => ResetState();
-
-    public override void OnDirectorUpdate(DirectorUpdateCategory category)
-    {
-        if(category.EqualsAny(DirectorUpdateCategory.Commence, DirectorUpdateCategory.Recommence,
-                DirectorUpdateCategory.Wipe))
-            ResetState();
-    }
 
     public override void OnSettingsDraw()
     {
@@ -244,6 +237,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         ImGui.Separator();
         ImGui.SetNextItemWidth(200f);
         ImGuiEx.EnumCombo("Role", ref C.Role);
+        ImGui.Checkbox("Ignore KefkaVFX (always true)", ref C.IgnoreKefkaVfx);
 
         ImGui.Spacing();
         ImGui.TextDisabled("Preview");
@@ -254,7 +248,9 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
             var idx = C.PreviewPattern == DiagonalPattern.NwToSe ? 0 : 1;
             ImGui.SetNextItemWidth(200f);
             if(ImGui.Combo("Pattern", ref idx, "NWtoSE\0NEtoSW\0"))
+            {
                 C.PreviewPattern = idx == 0 ? DiagonalPattern.NwToSe : DiagonalPattern.NeToSw;
+            }
         }
 
         ImGui.Spacing();
@@ -268,13 +264,6 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 
     #region Private Method
 
-    // Disable every registered element before applying this frame's display.
-    private void DisableAllElements()
-    {
-        foreach(var element in Controller.GetRegisteredElements().Values)
-            element.Enabled = false;
-    }
-
     // Clear overlays on combat reset events.
     private void ResetState()
     {
@@ -282,31 +271,75 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         Controller.Hide();
     }
 
-    // Return whether scene 5 thunder cast, marks, pattern, and Kefta are all ready.
-    private bool TryGetActiveMechanic(out DiagonalPattern pattern, out bool keftaTrue, out SpreadStackKind final)
+    // Disable every registered element before applying this frame's display.
+    private void DisableAllElements()
     {
-        pattern = default;
-        keftaTrue = false;
-        final = default;
-
-        if(!IsPhaseActive()
-            || !FindKefkaThunderCasters().Any()
-            || !TryGetPartyMarkState(out var hasSpread, out var hasStack)
-            || (!hasSpread && !hasStack)
-            || !TryDetectPattern(out pattern)
-            || !TryGetKeftaIsTrue(out keftaTrue)
-            || !TryResolveSpreadStackMark(hasSpread, hasStack, C.Role, out var mark))
-            return false;
-
-        final = ResolveFinalSpreadStack(mark, keftaTrue);
-        return true;
+        foreach(var element in Controller.GetRegisteredElements().Values)
+        {
+            element.Enabled = false;
+        }
     }
 
-    // Enable a single registered element by name.
-    private void EnableElement(string name)
+    // Preview: diagonal lines, all spread spots, and all stack spots.
+    private void ApplyPreviewDisplay(DiagonalPattern pattern)
     {
-        if(Controller.TryGetElementByName(name, out var element))
-            element.Enabled = true;
+        EnablePreviewElements(pattern);
+        EnablePatternSpots(pattern, allRoles: true);
+        EnableStackSpots(pattern, allGroups: true);
+    }
+
+    // Live mechanic: head-up label plus spread spot or stack spot for configured role.
+    private void ApplyMechanicDisplay(MechanicSnapshot mechanic)
+    {
+        EnableFinalSpreadStackLabel(mechanic.Final);
+
+        if(mechanic.Final == SpreadStackKind.Spread)
+        {
+            EnablePatternSpots(mechanic.Pattern, allRoles: false);
+            return;
+        }
+
+        EnableStackSpot(mechanic.Pattern, GetRoleGroup(C.Role));
+    }
+
+    // Graven3 scene 5 → thunder cast → first player VFX → pattern → Kefta → final spread/stack.
+    private bool TryResolveMechanic(out MechanicSnapshot mechanic)
+    {
+        mechanic = default;
+
+        if(!IsPhaseActive())
+        {
+            return false;
+        }
+
+        if(!FindKefkaThunderCasters().Any())
+        {
+            return false;
+        }
+
+        if(!TryGetFirstPartyPlayerVfx(out var isSpreadVfx))
+        {
+            return false;
+        }
+
+        if(!TryDetectPattern(out var pattern))
+        {
+            return false;
+        }
+
+        if(!TryGetKeftaIsTrue(out var keftaTrue))
+        {
+            return false;
+        }
+
+        mechanic = new MechanicSnapshot
+        {
+            Pattern = pattern,
+            KeftaTrue = keftaTrue,
+            IsSpreadVfx = isSpreadVfx,
+            Final = MapPlayerVfxToKind(isSpreadVfx, keftaTrue),
+        };
+        return true;
     }
 
     // Enable the resolved spread or stack head-up label.
@@ -337,7 +370,10 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         if(allRoles)
         {
             foreach(var role in Spots[pattern].Keys)
+            {
                 EnableSpotElement(GetSpotElementName(pattern, role));
+            }
+
             return;
         }
 
@@ -350,7 +386,10 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         if(allGroups)
         {
             foreach(var group in StackSpots[pattern].Keys)
+            {
                 EnableSpotElement(GetStackElementName(pattern, group));
+            }
+
             return;
         }
 
@@ -361,11 +400,22 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     private void EnableStackSpot(DiagonalPattern pattern, RoleGroup group)
         => EnableSpotElement(GetStackElementName(pattern, group));
 
-    // Enable a spread spot with rainbow tether when Attention Color is configured.
+    // Enable a single registered element by name.
+    private void EnableElement(string name)
+    {
+        if(Controller.TryGetElementByName(name, out var element))
+        {
+            element.Enabled = true;
+        }
+    }
+
+    // Enable a spread/stack spot with rainbow tether when Attention Color is configured.
     private void EnableSpotElement(string name)
     {
         if(!Controller.TryGetElementByName(name, out var element))
+        {
             return;
+        }
 
         element.Enabled = true;
         element.tether = true;
@@ -396,7 +446,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         ImGui.TextUnformatted($"Pattern: {GetPatternLabel(pattern)}");
     }
 
-    // Draw Kefta, party marks, and resolved final spread/stack in settings.
+    // Draw Kefta, first-hit player VFX, and resolved final spread/stack in settings.
     private void DrawMechanicStatus()
     {
         if(!IsPhaseActive())
@@ -410,40 +460,38 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         {
             ImGui.TextUnformatted("Kefta: (unknown)");
             ImGui.TextUnformatted("Final: (unknown)");
-            DrawMarksStatus();
+            DrawPartyVfxStatus();
             return;
         }
 
         ImGui.TextUnformatted(keftaTrue ? "Kefta: True" : "Kefta: False");
-        DrawMarksStatus();
+        DrawPartyVfxStatus();
 
-        if(!TryGetPartyMarkState(out var hasSpread, out var hasStack)
-            || !TryResolveSpreadStackMark(hasSpread, hasStack, C.Role, out var mark))
+        if(!TryResolveMechanic(out var mechanic))
         {
-            ImGui.TextUnformatted("Final: (waiting for marks)");
+            ImGui.TextUnformatted("Final: (waiting for mechanic)");
             return;
         }
 
-        var final = ResolveFinalSpreadStack(mark, keftaTrue);
-        ImGui.TextUnformatted($"Final: {final}");
+        ImGui.TextUnformatted($"Final: {mechanic.Final}");
 
-        if(final == SpreadStackKind.Stack && TryDetectPattern(out var pattern))
+        if(mechanic.Final == SpreadStackKind.Stack)
+        {
             ImGui.TextUnformatted(
-                $"Stack spot: {GetPatternLabel(pattern)} / {GetRoleGroupLabel(GetRoleGroup(C.Role))} (from {C.Role})");
-        else if(final == SpreadStackKind.Stack)
-            ImGui.TextUnformatted("Stack spot: (waiting for pattern)");
+                $"Stack spot: {GetPatternLabel(mechanic.Pattern)} / {GetRoleGroupLabel(GetRoleGroup(C.Role))} (from {C.Role})");
+        }
     }
 
-    // Draw spread/stack party mark presence in settings.
-    private static void DrawMarksStatus()
+    // Draw first-hit player VFX used for party-wide spread/stack in settings.
+    private static void DrawPartyVfxStatus()
     {
-        if(!TryGetPartyMarkState(out var hasSpread, out var hasStack))
+        if(!TryGetFirstPartyPlayerVfx(out var isSpreadVfx))
         {
-            ImGui.TextUnformatted("Marks: (none)");
+            ImGui.TextUnformatted("Player VFX: (none)");
             return;
         }
 
-        ImGui.TextUnformatted($"Marks: {FormatPartyMarks(hasSpread, hasStack)}");
+        ImGui.TextUnformatted(isSpreadVfx ? "Player VFX: Spread (first hit)" : "Player VFX: Stack (first hit)");
     }
 
     // Return whether Graven 3 scene 5 is active.
@@ -456,125 +504,46 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
                 && npc.IsCasting
                 && (npc.CastActionId == CastIdTrueThunder || npc.CastActionId == CastIdFalseThunder));
 
-    // Scan all PCs for spread and stack lock-on VFX.
-    private static bool TryGetPartyMarkState(out bool hasSpread, out bool hasStack)
+    // Scan all PCs; first spread or stack lock-on VFX sets party-wide action for everyone.
+    private static bool TryGetFirstPartyPlayerVfx(out bool isSpreadVfx)
     {
-        hasSpread = false;
-        hasStack = false;
+        isSpreadVfx = false;
 
-        foreach(var obj in Svc.Objects.Where(obj => obj.ObjectKind == ObjectKind.Pc))
+        foreach(var pc in Svc.Objects.OfType<IPlayerCharacter>())
         {
-            if(AttachedInfo.TryGetSpecificVfxInfo(obj, VfxPlayerSpread, out _))
-                hasSpread = true;
-            if(AttachedInfo.TryGetSpecificVfxInfo(obj, VfxPlayerStack, out _))
-                hasStack = true;
-
-            if(hasSpread && hasStack)
+            if(AttachedInfo.TryGetSpecificVfxInfo(pc, VfxPlayerSpread, out _))
+            {
+                isSpreadVfx = true;
                 return true;
-        }
+            }
 
-        return hasSpread || hasStack;
-    }
-
-    // Read spread or stack lock-on VFX on one game object.
-    private static bool TryGetSpreadStackMark(IGameObject obj, out SpreadStackKind mark)
-    {
-        mark = default;
-        var hasSpread = AttachedInfo.TryGetSpecificVfxInfo(obj, VfxPlayerSpread, out _);
-        var hasStack = AttachedInfo.TryGetSpecificVfxInfo(obj, VfxPlayerStack, out _);
-
-        if(hasSpread && !hasStack)
-        {
-            mark = SpreadStackKind.Spread;
-            return true;
-        }
-
-        if(hasStack && !hasSpread)
-        {
-            mark = SpreadStackKind.Stack;
-            return true;
+            if(AttachedInfo.TryGetSpecificVfxInfo(pc, VfxPlayerStack, out _))
+            {
+                isSpreadVfx = false;
+                return true;
+            }
         }
 
         return false;
     }
 
-    // Read spread/stack mark on the party member for the configured role slot.
-    private bool TryGetRoleSpreadStackMark(PartyRole role, out SpreadStackKind mark)
-    {
-        mark = default;
-        return TryGetPartyMemberForRole(role, out var player) && TryGetSpreadStackMark(player, out mark);
-    }
-
-    // Resolve party-wide marks, or the role slot when both spread and stack exist.
-    private bool TryResolveSpreadStackMark(bool hasSpread, bool hasStack, PartyRole role, out SpreadStackKind mark)
-    {
-        mark = default;
-
-        if(hasSpread && !hasStack)
-        {
-            mark = SpreadStackKind.Spread;
-            return true;
-        }
-
-        if(hasStack && !hasSpread)
-        {
-            mark = SpreadStackKind.Stack;
-            return true;
-        }
-
-        if(!hasSpread && !hasStack)
-            return false;
-
-        return TryGetRoleSpreadStackMark(role, out mark);
-    }
-
-    // Map a role slot to a party member by job category order.
-    private bool TryGetPartyMemberForRole(PartyRole role, out IPlayerCharacter player)
-    {
-        player = null!;
-        var members = Controller.GetPartyMembers().ToList();
-        if(members.Count == 0)
-            return false;
-
-        var tanks = members.Where(x => x.GetRole() == CombatRole.Tank).ToList();
-        var healers = members.Where(x => x.GetRole() == CombatRole.Healer).ToList();
-        var dps = members.Where(x => x.GetRole() == CombatRole.DPS).ToList();
-
-        var resolved = role switch
-        {
-            PartyRole.T1 => tanks.ElementAtOrDefault(0),
-            PartyRole.T2 => tanks.ElementAtOrDefault(1),
-            PartyRole.H1 => healers.ElementAtOrDefault(0),
-            PartyRole.H2 => healers.ElementAtOrDefault(1),
-            PartyRole.M1 => dps.ElementAtOrDefault(0),
-            PartyRole.M2 => dps.ElementAtOrDefault(1),
-            PartyRole.R1 => dps.ElementAtOrDefault(2),
-            PartyRole.R2 => dps.ElementAtOrDefault(3),
-            _ => null,
-        };
-
-        if(resolved == null)
-            return false;
-
-        player = resolved;
-        return true;
-    }
-
-    // Read Kefta true/false from the spread actor boss-fire VFX.
+    // Read Kefta true/false from spread actor lock-on VFX.
     private static bool TryGetKeftaIsTrue(out bool isTrue)
     {
         isTrue = false;
         var actor = Svc.Objects.FirstOrDefault(obj => obj.DataId == SpreadActorDataId);
         if(actor == null)
+        {
             return false;
+        }
 
-        if(AttachedInfo.TryGetSpecificVfxInfo(actor, VfxBossFireSpread, out _))
+        if(AttachedInfo.TryGetSpecificVfxInfo(actor, VfxKefkaTrue, out _))
         {
             isTrue = true;
             return true;
         }
 
-        return AttachedInfo.TryGetSpecificVfxInfo(actor, VfxBossFireStack, out _);
+        return AttachedInfo.TryGetSpecificVfxInfo(actor, VfxKefkaFalse, out _);
     }
 
     // Detect NWtoSE or NEtoSW from thunder caster X positions.
@@ -583,7 +552,9 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         pattern = default;
         var casters = FindKefkaThunderCasters().ToList();
         if(casters.Count == 0)
+        {
             return false;
+        }
 
         if(AnyCasterAtAnyX(casters, NwToSePosX))
         {
@@ -600,9 +571,21 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         return false;
     }
 
-    // Apply Kefta inversion to the resolved spread/stack mark.
-    private static SpreadStackKind ResolveFinalSpreadStack(SpreadStackKind mark, bool keftaTrue)
-        => keftaTrue ? mark : mark == SpreadStackKind.Spread ? SpreadStackKind.Stack : SpreadStackKind.Spread;
+    // Map player spread/stack VFX to spread or stack per Kefta true/false.
+    private SpreadStackKind MapPlayerVfxToKind(bool isSpreadVfx, bool keftaTrue)
+    {
+        if(C.IgnoreKefkaVfx)
+        {
+            keftaTrue = true;
+        }
+
+        if(isSpreadVfx)
+        {
+            return keftaTrue ? SpreadStackKind.Spread : SpreadStackKind.Stack;
+        }
+
+        return keftaTrue ? SpreadStackKind.Stack : SpreadStackKind.Spread;
+    }
 
     // Return whether any caster X is within epsilon of a pattern anchor.
     private static bool AnyCasterAtAnyX(IEnumerable<IBattleNpc> casters, float[] xs)
@@ -638,16 +621,6 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
             DiagonalPattern.NwToSe => "NWtoSE",
             DiagonalPattern.NeToSw => "NEtoSW",
             _ => "?",
-        };
-
-    // Return settings text for spread/stack party mark presence.
-    private static string FormatPartyMarks(bool hasSpread, bool hasStack)
-        => (hasSpread, hasStack) switch
-        {
-            (true, true) => "Spread + Stack",
-            (true, false) => "Spread",
-            (false, true) => "Stack",
-            _ => "(none)",
         };
 
     #endregion

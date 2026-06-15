@@ -1050,7 +1050,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private void CacheFixedLaneSetBuckets()
     {
-        if (C.AssignmentMode != AssignmentMode.FixedMarkerLanes)
+        if (C.AssignmentMode is not (AssignmentMode.FixedRoleAccretion or AssignmentMode.FixedMarkerLanes))
             return;
 
         var startWindow = FixedMarkerSetStartWindow(_currentWindow);
@@ -1069,7 +1069,9 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         for (var lane = 0; lane < _fixedLaneSetBuckets.Length; lane++)
             if (_fixedLaneSetBuckets[lane] < 0)
             {
-                var bucket = ExpectedMarkerOrFlexLaneBucket(lane);
+                var bucket = C.AssignmentMode == AssignmentMode.FixedRoleAccretion
+                    ? ExpectedFixedSpotBucketUncached(lane)
+                    : ExpectedMarkerOrFlexLaneBucket(lane);
                 if (bucket >= 0)
                     _fixedLaneSetBuckets[lane] = bucket;
             }
@@ -2022,6 +2024,33 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private int ExpectedFixedSpotBucket(int rank)
     {
         if (rank < 0) return -1;
+        var startWindow = FixedMarkerSetStartWindow(_currentWindow);
+        if (startWindow >= 0 && rank < _fixedLaneSetBuckets.Length)
+        {
+            if (_fixedLaneSetStartWindow != startWindow)
+            {
+                _fixedLaneSetStartWindow = startWindow;
+                Array.Fill(_fixedLaneSetBuckets, -1);
+            }
+
+            if (_fixedLaneSetBuckets[rank] < 0 &&
+                _currentWindow == startWindow &&
+                _tetherTargets.Count >= ExpectedSourcesByWindow[startWindow])
+            {
+                var bucket = ExpectedFixedSpotBucketUncached(rank);
+                if (bucket >= 0)
+                    _fixedLaneSetBuckets[rank] = bucket;
+            }
+
+            return _fixedLaneSetBuckets[rank];
+        }
+
+        return ExpectedFixedSpotBucketUncached(rank);
+    }
+
+    private int ExpectedFixedSpotBucketUncached(int rank)
+    {
+        if (rank < 0) return -1;
         var buckets = OrderedBuckets();
         if (rank >= buckets.Count) return -1;
         var preferred = buckets[rank];
@@ -2177,10 +2206,20 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (C.AssignmentMode == AssignmentMode.FixedMarkerLanes)
             return FixedMarkerLaneDecisionText(slot, rank);
         if (C.AssignmentMode == AssignmentMode.FixedRoleAccretion)
-            return $"fixed-role rank={rank} markerIndex={rank}";
+            return FixedRoleDecisionText(rank);
 
         var active = OrderedActiveBuckets();
         return $"ordered-active rank={rank} count={active.Count}";
+    }
+
+    private string FixedRoleDecisionText(int rank)
+    {
+        var cached = rank is >= 0 and <= 2 ? _fixedLaneSetBuckets[rank] : -1;
+        var markerText = MarkerBucketText((MapMarker)Math.Clamp(rank, 0, MapMarkerNames.Length - 1));
+        if (!IsMarkerFlexSetWindow(_currentWindow))
+            return $"fixed-role rank={rank} markerIndex={rank} marker={markerText} no-cache-window";
+        return $"fixed-role rank={rank} markerIndex={rank} set={FixedMarkerSetStartWindow(_currentWindow)} " +
+               $"cached={DirectionName(cached)} marker={markerText} fallback={MarkerBucketText(C.FallbackMarker)}";
     }
 
     private string FixedMarkerLaneDecisionText(Slot slot, int rank)

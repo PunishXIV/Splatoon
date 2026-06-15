@@ -16,7 +16,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Classic.Config>
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     uint DebuffHeadwind = 1602;
@@ -57,6 +57,7 @@ public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Clas
             {"Name":"Stack4","type":1,"offY":3.0,"radius":1.0,"color":3355508484,"Filled":false,"fillIntensity":0.5,"thicc":3.0,"refActorNPCNameID":6052,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"tether":true,"AdditionalRotation":5.497787,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
             {"Name":"Stack2","type":1,"offY":3.0,"radius":1.0,"color":3355508484,"Filled":false,"fillIntensity":0.5,"thicc":3.0,"refActorNPCNameID":6052,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"tether":true,"AdditionalRotation":0.2617994,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
             {"Name":"Stack3","type":1,"offY":3.0,"radius":1.0,"color":3355508484,"Filled":false,"fillIntensity":0.5,"thicc":3.0,"refActorNPCNameID":6052,"refActorComparisonType":6,"includeRotation":true,"onlyTargetable":true,"tether":true,"AdditionalRotation":6.021386,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
+            {"Name":"UmbraBait","type":1,"offY":30.0,"radius":5.0,"color":3355508509,"Filled":false,"fillIntensity":0.5,"thicc":3.0,"overlayText":"Bait","refActorDataID":19508,"refActorComparisonType":3,"includeRotation":true,"tether":true,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
             """);
     }
 
@@ -180,7 +181,14 @@ public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Clas
         }
         if(CurrentPhase == Phase.Cleansed2)
         {
-            if(Controller.TryGetElementByName($"Stack{C.MyStack}", out var e))
+            if(C.BaitingChaos)
+            {
+                if(Controller.TryGetElementByName($"UmbraBait", out var ub))
+                {
+                    ub.Enabled = true;
+                }
+            }
+            else if(Controller.TryGetElementByName($"Stack{C.MyStack}", out var e))
             {
                 e.Enabled = true;
             }

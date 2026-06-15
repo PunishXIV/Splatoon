@@ -14,6 +14,11 @@
 ~Lv2~{"Name":"[Configure] Dmad P3 Decisive battle","Group":"Dancing Mad (Ultimate) P3 - NXIV","ZoneLockH":[1363],"ElementsL":[{"Name":"Attack Exdeath","type":1,"Enabled":false,"radius":5.0,"Donut":40.0,"color":3355508521,"fillIntensity":0.15,"refActorNPCNameID":6052,"refActorRequireCast":true,"refActorCastId":[49891],"refActorComparisonType":6,"tether":true},{"Name":"Attack Chaos","type":1,"Enabled":false,"radius":5.0,"Donut":40.0,"color":3355508521,"fillIntensity":0.15,"refActorNPCNameID":7691,"refActorRequireCast":true,"refActorCastId":[49890],"refActorComparisonType":6,"tether":true}]}
 ```
 
+## **[Script]** Bowels of Agony [NO TANK LB script, according to this strat](https://files.nightmarexiv.org/images/2026-06-15_03-01-20.jpg)
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Bowels_of_Agony_Classic.cs
+```
+
 ## **[Script]** P3 Limit Cut
 Guides you to the position for your P3 Limit Cut number.
 

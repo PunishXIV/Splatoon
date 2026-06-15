@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
 {
-    public override Metadata Metadata { get; } = new(9, "NightmareXIV, Poneglyph, mirage");
+    public override Metadata Metadata { get; } = new(10, "NightmareXIV, Poneglyph, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public uint EffectSpread = 5085;
@@ -208,10 +208,13 @@ public unsafe class P2_Forsaken : SplatoonScript<P2_Forsaken.Config>
     public override void OnUpdate()
     {
         Controller.Hide();
-        if(C.ShowTowerCountdown)
-            UpdateTowerLifetimeElements();
         if(Controller.GetPartyMembers().Any(x => x.StatusList.Any(s => s.StatusId == DebuffSpellsTrouble)))
         {
+            if(C.ShowTowerCountdown)
+            {
+                UpdateTowerLifetimeElements();
+            }
+
             var pcs = Svc.Objects.OfType<IPlayerCharacter>().ToList();
             int i = 0;
             foreach(var x in ActiveMapEffects)

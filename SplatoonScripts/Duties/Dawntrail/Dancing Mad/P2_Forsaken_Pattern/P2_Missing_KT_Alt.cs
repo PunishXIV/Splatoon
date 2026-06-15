@@ -69,7 +69,10 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
     private const int Step4DebuffReminderTrigger = 4;
     private const float Step4DebuffReminderDelayBaseSec = 3f;
-    private const float Step4DebuffReminderDelayRandomSpanSec = 1.5f;
+    private const float DelaySliderMinSeconds = 0f;
+    private const float DelaySliderMaxSeconds = 5f;
+    private const float DefaultAutoMarkDelayRandomMinSec = 0f;
+    private const float DefaultAutoMarkDelayRandomMaxSec = 1.5f;
     private const string DefaultSpreadEchoText = "Circle";
     private const string DefaultConeEchoText = "Cone";
     private const int MarkerEchoTextMaxLength = 64;
@@ -106,6 +109,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
     private const string ElActiveTower0 = "ActiveTower0";
     private const string ElActiveTower1 = "ActiveTower1";
+    private const string ElTowerCount = "tower_count";
     private const string ElMyRole = "MyRole";
     private const string ElMyRoleAlt = "MyRoleAlt";
 
@@ -195,12 +199,16 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         public bool ConeUseMarker;
         public string SpreadEchoText = DefaultSpreadEchoText;
         public string ConeEchoText = DefaultConeEchoText;
+        public float AutoMarkDelayRandomMinSec = DefaultAutoMarkDelayRandomMinSec;
+        public float AutoMarkDelayRandomMaxSec = DefaultAutoMarkDelayRandomMaxSec;
         public bool Wave8ResolveByMarkerEnabled;
         public Wave8MarkerSlot Wave8LeftSpreadMarker = Wave8MarkerSlot.None;
         public Wave8MarkerSlot Wave8RightSpreadMarker = Wave8MarkerSlot.None;
         public Wave8MarkerSlot Wave8LeftConeMarker = Wave8MarkerSlot.None;
         public Wave8MarkerSlot Wave8RightConeMarker = Wave8MarkerSlot.None;
         public float BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
+        public bool ShowRoleOverlayText;
+        public bool ShowTowerCountOverlay;
 
         public void EnsureDefaults()
         {
@@ -215,6 +223,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             ConeMarkerType = ClampMarkerResolveKind(ConeMarkerType);
             SpreadEchoText = NormalizeReminderEchoText(SpreadEchoText, DefaultSpreadEchoText);
             ConeEchoText = NormalizeReminderEchoText(ConeEchoText, DefaultConeEchoText);
+            AutoMarkDelayRandomMinSec = ClampDelaySliderSeconds(AutoMarkDelayRandomMinSec);
+            AutoMarkDelayRandomMaxSec = ClampDelaySliderSeconds(AutoMarkDelayRandomMaxSec);
             Wave8LeftSpreadMarker = ClampWave8MarkerSlot(Wave8LeftSpreadMarker);
             Wave8RightSpreadMarker = ClampWave8MarkerSlot(Wave8RightSpreadMarker);
             Wave8LeftConeMarker = ClampWave8MarkerSlot(Wave8LeftConeMarker);
@@ -238,12 +248,16 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             ConeUseMarker = false;
             SpreadEchoText = DefaultSpreadEchoText;
             ConeEchoText = DefaultConeEchoText;
+            AutoMarkDelayRandomMinSec = DefaultAutoMarkDelayRandomMinSec;
+            AutoMarkDelayRandomMaxSec = DefaultAutoMarkDelayRandomMaxSec;
             Wave8ResolveByMarkerEnabled = false;
             Wave8LeftSpreadMarker = Wave8MarkerSlot.None;
             Wave8RightSpreadMarker = Wave8MarkerSlot.None;
             Wave8LeftConeMarker = Wave8MarkerSlot.None;
             Wave8RightConeMarker = Wave8MarkerSlot.None;
             BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
+            ShowRoleOverlayText = false;
+            ShowTowerCountOverlay = false;
         }
 
         private static Wave8MarkerSlot ClampWave8MarkerSlot(Wave8MarkerSlot slot)
@@ -403,6 +417,9 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         Controller.RegisterElementFromCode(ElActiveTower1,
             """{"Enabled":false,"radius":4.0,"thicc":6.0,"fillIntensity":0.25,"Filled":false}""",
             overwrite: true);
+        Controller.RegisterElementFromCode(ElTowerCount,
+            """{"Enabled":false,"type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayBGColor":3019898880,"overlayTextColor":4294967295,"overlayFScale":3.0,"overlayText":" 8 ","refActorDataID":19506,"refActorComparisonType":3}""",
+            overwrite: true);
         Controller.RegisterElementFromCode(ElMyRole,
             """{"Enabled":false,"radius":0.25,"Donut":0.1,"fillIntensity":0.544,"tether":true}""",
             overwrite: true);
@@ -429,6 +446,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         UpdateInterludeNavPhase();
         UpdateActiveTowerMarkers();
+        UpdateTowerCountOverlay();
         TryRunStep4DebuffReminder();
         LogStep4DebuffReminderSkipOnce();
         UpdateFieldMarkers();
@@ -1429,13 +1447,26 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         _step4DebuffReminderSkipLogged = true;
     }
 
-    // Return random Step4 debuff reminder delay in milliseconds.
-    private static long ComputeStep4DebuffReminderDelayMs()
+    // Clamps delay slider seconds to configured bounds.
+    private static float ClampDelaySliderSeconds(float seconds)
+        => Math.Clamp(seconds, DelaySliderMinSeconds, DelaySliderMaxSeconds);
+
+    // Picks a random delay in milliseconds between configured min and max seconds.
+    private static long ToRandomDelayMs(float minSeconds, float maxSeconds)
     {
-        var seconds = Step4DebuffReminderDelayBaseSec
-            + Random.Shared.NextSingle() * Step4DebuffReminderDelayRandomSpanSec;
-        return (long)(seconds * 1000f);
+        var min = ClampDelaySliderSeconds(minSeconds);
+        var max = ClampDelaySliderSeconds(maxSeconds);
+        if(min > max)
+            (min, max) = (max, min);
+
+        var delaySeconds = min >= max ? min : min + Random.Shared.NextSingle() * (max - min);
+        return (long)(delaySeconds * 1000f);
     }
+
+    // Return random Step4 debuff reminder delay in milliseconds.
+    private long ComputeStep4DebuffReminderDelayMs()
+        => (long)(Step4DebuffReminderDelayBaseSec * 1000f)
+           + ToRandomDelayMs(C.AutoMarkDelayRandomMinSec, C.AutoMarkDelayRandomMaxSec);
 
     // Execute a self-target marker chat command.
     private static void RunMarkCommand(string command)
@@ -1807,6 +1838,22 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         UpdateActiveTowerMarker(ElActiveTower1, 1);
     }
 
+    // Update tower_count overlay on Kefka with the current step.
+    private void UpdateTowerCountOverlay()
+    {
+        if(!Controller.TryGetElementByName(ElTowerCount, out var element))
+            return;
+
+        if(!C.ShowTowerCountOverlay || !_hasActiveTowers)
+        {
+            element.Enabled = false;
+            return;
+        }
+
+        element.overlayText = $" {_step} ";
+        element.Enabled = true;
+    }
+
     // Update one active tower marker element.
     private void UpdateActiveTowerMarker(string elementName, int index)
     {
@@ -1837,7 +1884,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         element.SetRefPosition(position);
         element.color = Controller.AttentionColor;
-        element.overlayText = showOverlayText ? label : "";
+        element.overlayText = showOverlayText || C.ShowRoleOverlayText ? label : "";
         element.tether = tether;
         element.Enabled = true;
     }
@@ -1981,6 +2028,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             tower0.Enabled = false;
         if(Controller.TryGetElementByName(ElActiveTower1, out var tower1))
             tower1.Enabled = false;
+        if(Controller.TryGetElementByName(ElTowerCount, out var towerCount))
+            towerCount.Enabled = false;
     }
 
     // Reset runtime state on wipe or scene leave.
@@ -2291,13 +2340,6 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     {
         C.EnsureDefaults();
 
-        ImGui.Spacing();
-        ImGui.SetWindowFontScale(1.2f);
-        DrawCenteredText(EColor.YellowBright, "Please Set Priority");
-        DrawCenteredText(EColor.YellowBright, "H1, H2, T1, T2, M1, M2, R1, R2");
-        ImGui.SetWindowFontScale(1f);
-        ImGui.Spacing();
-
         DrawSettingsSectionHeader("General");
         ImGui.TextUnformatted("Starting Pairs: [H1,T1], [H2,T2], [M1,R1], [M2,R2].");
         ImGui.TextUnformatted("Steps 1,2,3,8 = FirstGroup tower. / Steps 4,5,6,7 = SecondGroup tower.");
@@ -2316,6 +2358,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         ImGui.TextUnformatted("Cone:");
         DrawMarkerEchoRow("Echo Message##Cone", ref C.ConeUseEcho, ref C.ConeEchoText, DefaultConeEchoText);
         DrawMarkerKindRow("Auto Marking##Cone", ref C.ConeUseMarker, ref C.ConeMarkerType);
+        DrawAutoMarkDelaySliders();
 
         DrawSettingsSectionHeader("Wave8 Resolve By Marker");
         ImGui.Checkbox("Enable", ref C.Wave8ResolveByMarkerEnabled);
@@ -2346,6 +2389,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         if(ImGui.DragFloat("Bait AllThingsEnding Range", ref range, BaitAllThingsEndingRangeStep,
                 MinBaitAllThingsEndingRange, MaxBaitAllThingsEndingRange, "%.1f"))
             C.BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(range);
+        ImGui.Checkbox("Show role overlay text on nav", ref C.ShowRoleOverlayText);
+        ImGui.Checkbox("Show tower step overlay on Kefka", ref C.ShowTowerCountOverlay);
     }
 
     // Clamp and snap bait range to 0.5 steps within 5~15.
@@ -2427,6 +2472,22 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     }
 
     // Draw one marker row: checkbox and marker combo on the same line.
+    // Draw auto mark random delay min/max sliders (added to fixed 3s debuff wait).
+    private void DrawAutoMarkDelaySliders()
+    {
+        ImGui.TextUnformatted("Delay random (s)");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(140f);
+        ImGui.SliderFloat("Min##autoMarkDelayRandomMin", ref C.AutoMarkDelayRandomMinSec,
+            DelaySliderMinSeconds, DelaySliderMaxSeconds, "%.1f");
+        ImGui.SameLine();
+        ImGui.SetNextItemWidth(140f);
+        ImGui.SliderFloat("Max##autoMarkDelayRandomMax", ref C.AutoMarkDelayRandomMaxSec,
+            DelaySliderMinSeconds, DelaySliderMaxSeconds, "%.1f");
+        ImGui.TextWrapped(
+            $"Fixed {Step4DebuffReminderDelayBaseSec:0}s debuff wait plus random delay between min and max.");
+    }
+
     private void DrawMarkerKindRow(string label, ref bool enabled, ref MarkerResolveKind markerType)
     {
         ImGui.PushID($"{label}MarkerRow");

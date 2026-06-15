@@ -16,6 +16,9 @@ namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 
 public class P3_Limit_Cut : SplatoonScript
 {
+    public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
+    public override Metadata Metadata => new(4, "Garume");
+
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint BowelsOfAgony = 47858;
     private const uint LimitCutSetupCast = 47872;
@@ -69,8 +72,6 @@ public class P3_Limit_Cut : SplatoonScript
     private int _firstDashDirection;
     private int _dashStep;
 
-    public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(3, "Garume");
 
     private Config C
     {
@@ -530,14 +531,14 @@ public class P3_Limit_Cut : SplatoonScript
 
         public InternationalString ClockwiseLabelText = new()
         {
-            En = "CW",
-            Jp = "時計回り"
+            En = "CCW",
+            Jp = "反時計回り"
         };
 
         public InternationalString CounterclockwiseLabelText = new()
         {
-            En = "CCW",
-            Jp = "反時計回り"
+            En = "CW",
+            Jp = "時計回り"
         };
 
         public InternationalString EastLabelText = new()

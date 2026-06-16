@@ -78,3 +78,35 @@ Guides your own Black Hole line, mid-mechanic dodges, and final spread/tower pos
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Earthquake.cs
 ```
+
+## [Script] [Beta] Black Hole Lite
+> [!Caution]
+> Requires Splatoon 3.9.2.6 and script must be updated to v4 or higher before importing configuration. Importing configuration on other version of Splatoon or script will lead to configuration being completely corrupted and unusable.
+> 
+- Script that only shows you your tether to pick up in a minimalistic way. Can be configured for any strategy that does not uses priority or automarker.
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Blackhole_Lite.cs
+```
+Below are listed configurations for this script. All configurations contain configurations for DPS and for supports, you will need to switch according to your role. 
+
+> [!Warning]
+> All configurations are UNTESTED. Report issues in Discord.
+
+
+### [Whz](https://files.nightmarexiv.org/images/2026-06-16_23-04-28.jpg)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Whz DPS v1","Configuration":"G8EDYBwJNk5xS0e79d7u7ztzbSEt9GP5w7Z7i6FaNYnBMGHYfMFkKPj05wCf6o+FQtR5624CEQk68oH6bGdKRXv81qjR62aU3BBAgUVfz9AZuwDwGPDmhKnydLTNUhnP5e5yhtyT9DyPBXYkItQ1H6wo4LrXeiuvFWxNTIjDEPsYxnPYTiZwRCgc9hOukgLGjL4a2Sl0M9g4aMpV2EYued3nXDK0rtdYFDsGtaH9OBPIDw==","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Whz Support v1","Configuration":"G8ED4B0J2RnmRehw6uJPrbP7+85mW0iEfiN/ANCSrG9yhg+4sW/iZnCGwv+dA/wMVwpRz2+lE+4EPfSB+WzmLgY1n/8p3bTXpPZ6+wjgPmbcxeAgABoCpKnoT2cDgJIpSsiWf1shW5n78KRu9eoJlXGPRyo8oC6YT4YpwcGqZhiKpH0ORSnITj/0fhvtN+0brS48ADN/s8I7qKlFb576KuwVW1xz5CJDerpGIpwlZ0P+MpPSDw==","Overrides":null}
+```
+
+### [piR](https://files.nightmarexiv.org/images/2026-06-16_23-08-19.jpg)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"piR DPS v1","Configuration":"G28DoJ0JdqyVoTvMz/bUOlR772r312oX0IHvHAe7e2XUhEFarx8KljuQtlMNrleppHlQnkAW1ycSecCepSe7jfCSBdgkin4LINeJbvclmAGADVCjxaA/rebC9FcMZrxSYMgyh19N95mKX6k7nu/sZoJGYwA6l2km0VVi0DaHvW5DyQvlRlhAyb/UiFOrxA8=","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"piR support v1","Configuration":"G8ED4J0FdrNyjO6IVh4MWcS1zu7vO3VsIRn6eEjfriVZNYnBcOHYvGAQQ6EaWAw7tbfPqf9UaHd8a4X2pII1Ja1uE0EFe/5FYmDPesxvH8DIRH93G9gAiDfAh6nP9gD11D8S9dI/EfUh4gi2B1CpLflJxSDUfain8iqPeKiIIMpu0tNSBW+TnJchlHH+WkOnKQYBM3urszvY7kCdzetYtbVzzvM6ZpFhPSR9dfA1mw2rCybDDw==","Overrides":null}
+```
+
+### [Kefkabin](https://files.nightmarexiv.org/images/2026-06-16_23-12-09.jpg)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin DPS v1","Configuration":"G8AD4BwJ2RnmRehw6uJPrbP7+85cW0gL/Vj+sN/ekqyaxGA4YdicYBBDYd0BXjW42nvfmgelLYEgaEFbgpEH6uGjbJskfKDDrD0U1HIt1dsngIKKTncp2ASAF6A3N8zKT3srxAwtTphJSxDGsBakOunCxyoErNvmk9xSCPBFH/yOJuOTf6orATHzm8VTwpmwdDJHNGtx5nkdf5LBF0pvPbxjNDkR5Qc=","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin Support v1","Configuration":"G8AD4JwFdrNyjO6IVh4MWcS1zu7vO1U3oS58M6H27Tfq9lcEgSjJgmMkCEIoVAPLurPr1Vv7FV61NQ9KEwqCFgRhYJEH6mnmNgp7YAv5QxxoOYv19gEEVHS7U8AGgJ0AbYb39on0lb8BvfF3oHcdRVdrlJ1l8rGKAOuO8QRHir5sA3ujZHzxXzURIGZ5I3lKOPXkm8zuzUoOntfxJxn2QuntRzCMpg2k8gM=","Overrides":null}
+```

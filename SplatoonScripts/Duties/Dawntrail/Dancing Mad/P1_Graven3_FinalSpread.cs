@@ -9,9 +9,7 @@ using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
-using ECommons.Hooks;
 using ECommons.ImGuiMethods;
-using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
@@ -20,7 +18,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(4, "mirage");
+    public override Metadata? Metadata => new(5, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -31,7 +29,6 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     private const int SceneGraven3 = 5;
 
     private const uint KefkaDataId = 0x233C;
-    private const uint SpreadActorDataId = 0x4C30;
     private const uint CastIdTrueThunder = 47775;
     private const uint CastIdFalseThunder = 47777;
 
@@ -123,7 +120,10 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 
     #region State
 
-    // No persistent state.
+    private KefkaVFX _kefkaVfx = KefkaVFX.None;
+    private PlayerVfxState _playerVfx = PlayerVfxState.None;
+    private DiagonalPattern _pattern = DiagonalPattern.None;
+    private FinalSolution _final = FinalSolution.Unsolved;
 
     #endregion
 
@@ -131,6 +131,7 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
 
     private enum DiagonalPattern
     {
+        None,
         NwToSe,
         NeToSw,
     }
@@ -147,8 +148,23 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         R2,
     }
 
-    private enum SpreadStackKind
+    private enum FinalSolution
     {
+        Unsolved,
+        Spread,
+        Stack,
+    }
+
+    private enum KefkaVFX
+    {
+        None,
+        True,
+        False,
+    }
+
+    private enum PlayerVfxState
+    {
+        None,
         Spread,
         Stack,
     }
@@ -157,14 +173,6 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     {
         Dps,
         TankHealer,
-    }
-
-    private readonly struct MechanicSnapshot
-    {
-        public DiagonalPattern Pattern { get; init; }
-        public bool KeftaTrue { get; init; }
-        public bool IsSpreadVfx { get; init; }
-        public SpreadStackKind Final { get; init; }
     }
 
     private sealed class Config : IEzConfig
@@ -221,15 +229,66 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
             return;
         }
 
-        if(!TryResolveMechanic(out var mechanic))
+        if(!IsPhaseActive())
+        {
+            ResetState();
+            return;
+        }
+
+        if(_kefkaVfx == KefkaVFX.None || _playerVfx == PlayerVfxState.None)
+        {
+            _final = FinalSolution.Unsolved;
+        }
+        else
+        {
+            _final = ResolveFinalSolution(_playerVfx, _kefkaVfx);
+        }
+
+        if(_final == FinalSolution.Unsolved || _pattern == DiagonalPattern.None)
         {
             return;
         }
 
-        ApplyMechanicDisplay(mechanic);
+        ApplyMechanicDisplay(_final, _pattern);
     }
 
     public override void OnReset() => ResetState();
+
+    public override void OnStartingCast(uint source, uint castId)
+    {
+        if(!IsPhaseActive() || _pattern != DiagonalPattern.None)
+        {
+            return;
+        }
+
+        if(castId is not (CastIdTrueThunder or CastIdFalseThunder))
+        {
+            return;
+        }
+
+        if(TryDetectPattern(out var pattern))
+        {
+            _pattern = pattern;
+        }
+    }
+
+    public override void OnVFXSpawn(uint target, string vfxPath)
+    {
+        if(!IsPhaseActive())
+        {
+            return;
+        }
+
+        if(_playerVfx == PlayerVfxState.None && TryMapPlayerVfxPath(vfxPath, out var playerVfx))
+        {
+            _playerVfx = playerVfx;
+        }
+
+        if(_kefkaVfx == KefkaVFX.None && TryMapKefkaVfxPath(vfxPath, out var kefkaVfx))
+        {
+            _kefkaVfx = kefkaVfx;
+        }
+    }
 
     public override void OnSettingsDraw()
     {
@@ -256,17 +315,32 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         ImGui.Spacing();
         ImGui.TextDisabled("Debug");
         ImGui.Separator();
-        DrawPatternStatus();
-        DrawMechanicStatus();
+
+        if(C.ShowPreview)
+        {
+            ImGui.TextUnformatted($"Pattern: {GetPatternLabel(C.PreviewPattern)} (preview)");
+        }
+        else
+        {
+            ImGui.TextUnformatted(_pattern == DiagonalPattern.None ? "Pattern: (none)" : $"Pattern: {_pattern}");
+        }
+
+        ImGui.TextUnformatted(_kefkaVfx == KefkaVFX.None ? "KefkaVFX: (none)" : $"KefkaVFX: {_kefkaVfx}");
+        ImGui.TextUnformatted(_playerVfx == PlayerVfxState.None ? "Player VFX: (none)" : $"Player VFX: {_playerVfx}");
+        ImGui.TextUnformatted(_final == FinalSolution.Unsolved ? "FinalSolution: (unsolved)" : $"FinalSolution: {_final}");
     }
 
     #endregion
 
     #region Private Method
 
-    // Clear overlays on combat reset events.
+    // Clear overlays and latched mechanic state.
     private void ResetState()
     {
+        _kefkaVfx = KefkaVFX.None;
+        _playerVfx = PlayerVfxState.None;
+        _pattern = DiagonalPattern.None;
+        _final = FinalSolution.Unsolved;
         DisableAllElements();
         Controller.Hide();
     }
@@ -289,63 +363,17 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
     }
 
     // Live mechanic: head-up label plus spread spot or stack spot for configured role.
-    private void ApplyMechanicDisplay(MechanicSnapshot mechanic)
+    private void ApplyMechanicDisplay(FinalSolution final, DiagonalPattern pattern)
     {
-        EnableFinalSpreadStackLabel(mechanic.Final);
+        EnableElement(final == FinalSolution.Spread ? ElFinalSpreadLabel : ElFinalStackLabel);
 
-        if(mechanic.Final == SpreadStackKind.Spread)
+        if(final == FinalSolution.Spread)
         {
-            EnablePatternSpots(mechanic.Pattern, allRoles: false);
+            EnablePatternSpots(pattern, allRoles: false);
             return;
         }
 
-        EnableStackSpot(mechanic.Pattern, GetRoleGroup(C.Role));
-    }
-
-    // Graven3 scene 5 → thunder cast → first player VFX → pattern → Kefta → final spread/stack.
-    private bool TryResolveMechanic(out MechanicSnapshot mechanic)
-    {
-        mechanic = default;
-
-        if(!IsPhaseActive())
-        {
-            return false;
-        }
-
-        if(!FindKefkaThunderCasters().Any())
-        {
-            return false;
-        }
-
-        if(!TryGetFirstPartyPlayerVfx(out var isSpreadVfx))
-        {
-            return false;
-        }
-
-        if(!TryDetectPattern(out var pattern))
-        {
-            return false;
-        }
-
-        if(!TryGetKeftaIsTrue(out var keftaTrue))
-        {
-            return false;
-        }
-
-        mechanic = new MechanicSnapshot
-        {
-            Pattern = pattern,
-            KeftaTrue = keftaTrue,
-            IsSpreadVfx = isSpreadVfx,
-            Final = MapPlayerVfxToKind(isSpreadVfx, keftaTrue),
-        };
-        return true;
-    }
-
-    // Enable the resolved spread or stack head-up label.
-    private void EnableFinalSpreadStackLabel(SpreadStackKind final)
-    {
-        EnableElement(final == SpreadStackKind.Spread ? ElFinalSpreadLabel : ElFinalStackLabel);
+        EnableStackSpot(pattern, GetRoleGroup(C.Role));
     }
 
     // Enable preview diagonal lines for the selected pattern.
@@ -422,80 +450,32 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         element.color = Controller.AttentionColor;
     }
 
-    // Draw live or preview diagonal pattern status in settings.
-    private void DrawPatternStatus()
-    {
-        if(C.ShowPreview)
-        {
-            ImGui.TextUnformatted($"Pattern: {GetPatternLabel(C.PreviewPattern)} (preview)");
-            return;
-        }
-
-        if(!IsPhaseActive())
-        {
-            ImGui.TextUnformatted("Pattern: (inactive)");
-            return;
-        }
-
-        if(!TryDetectPattern(out var pattern))
-        {
-            ImGui.TextUnformatted("Pattern: (no match)");
-            return;
-        }
-
-        ImGui.TextUnformatted($"Pattern: {GetPatternLabel(pattern)}");
-    }
-
-    // Draw Kefta, first-hit player VFX, and resolved final spread/stack in settings.
-    private void DrawMechanicStatus()
-    {
-        if(!IsPhaseActive())
-        {
-            ImGui.TextUnformatted("Kefta: (inactive)");
-            ImGui.TextUnformatted("Final: (inactive)");
-            return;
-        }
-
-        if(!TryGetKeftaIsTrue(out var keftaTrue))
-        {
-            ImGui.TextUnformatted("Kefta: (unknown)");
-            ImGui.TextUnformatted("Final: (unknown)");
-            DrawPartyVfxStatus();
-            return;
-        }
-
-        ImGui.TextUnformatted(keftaTrue ? "Kefta: True" : "Kefta: False");
-        DrawPartyVfxStatus();
-
-        if(!TryResolveMechanic(out var mechanic))
-        {
-            ImGui.TextUnformatted("Final: (waiting for mechanic)");
-            return;
-        }
-
-        ImGui.TextUnformatted($"Final: {mechanic.Final}");
-
-        if(mechanic.Final == SpreadStackKind.Stack)
-        {
-            ImGui.TextUnformatted(
-                $"Stack spot: {GetPatternLabel(mechanic.Pattern)} / {GetRoleGroupLabel(GetRoleGroup(C.Role))} (from {C.Role})");
-        }
-    }
-
-    // Draw first-hit player VFX used for party-wide spread/stack in settings.
-    private static void DrawPartyVfxStatus()
-    {
-        if(!TryGetFirstPartyPlayerVfx(out var isSpreadVfx))
-        {
-            ImGui.TextUnformatted("Player VFX: (none)");
-            return;
-        }
-
-        ImGui.TextUnformatted(isSpreadVfx ? "Player VFX: Spread (first hit)" : "Player VFX: Stack (first hit)");
-    }
-
     // Return whether Graven 3 scene 5 is active.
     private bool IsPhaseActive() => Controller.Scene == SceneGraven3;
+
+    // Map spawned player spread/stack VFX path to state.
+    private static bool TryMapPlayerVfxPath(string vfxPath, out PlayerVfxState playerVfx)
+    {
+        playerVfx = vfxPath switch
+        {
+            VfxPlayerSpread => PlayerVfxState.Spread,
+            VfxPlayerStack => PlayerVfxState.Stack,
+            _ => PlayerVfxState.None,
+        };
+        return playerVfx != PlayerVfxState.None;
+    }
+
+    // Map spawned Kefka true/false VFX path to state.
+    private static bool TryMapKefkaVfxPath(string vfxPath, out KefkaVFX kefkaVfx)
+    {
+        kefkaVfx = vfxPath switch
+        {
+            VfxKefkaTrue => KefkaVFX.True,
+            VfxKefkaFalse => KefkaVFX.False,
+            _ => KefkaVFX.None,
+        };
+        return kefkaVfx != KefkaVFX.None;
+    }
 
     // Enumerate Kefka actors casting true or false thunder.
     private static IEnumerable<IBattleNpc> FindKefkaThunderCasters()
@@ -504,52 +484,10 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
                 && npc.IsCasting
                 && (npc.CastActionId == CastIdTrueThunder || npc.CastActionId == CastIdFalseThunder));
 
-    // Scan all PCs; first spread or stack lock-on VFX sets party-wide action for everyone.
-    private static bool TryGetFirstPartyPlayerVfx(out bool isSpreadVfx)
-    {
-        isSpreadVfx = false;
-
-        foreach(var pc in Svc.Objects.OfType<IPlayerCharacter>())
-        {
-            if(AttachedInfo.TryGetSpecificVfxInfo(pc, VfxPlayerSpread, out _))
-            {
-                isSpreadVfx = true;
-                return true;
-            }
-
-            if(AttachedInfo.TryGetSpecificVfxInfo(pc, VfxPlayerStack, out _))
-            {
-                isSpreadVfx = false;
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    // Read Kefta true/false from spread actor lock-on VFX.
-    private static bool TryGetKeftaIsTrue(out bool isTrue)
-    {
-        isTrue = false;
-        var actor = Svc.Objects.FirstOrDefault(obj => obj.DataId == SpreadActorDataId);
-        if(actor == null)
-        {
-            return false;
-        }
-
-        if(AttachedInfo.TryGetSpecificVfxInfo(actor, VfxKefkaTrue, out _))
-        {
-            isTrue = true;
-            return true;
-        }
-
-        return AttachedInfo.TryGetSpecificVfxInfo(actor, VfxKefkaFalse, out _);
-    }
-
-    // Detect NWtoSE or NEtoSW from thunder caster X positions.
+    // Detect NWtoSE or NEtoSW from thunder caster X positions at cast start.
     private static bool TryDetectPattern(out DiagonalPattern pattern)
     {
-        pattern = default;
+        pattern = DiagonalPattern.None;
         var casters = FindKefkaThunderCasters().ToList();
         if(casters.Count == 0)
         {
@@ -571,20 +509,20 @@ internal class P1_Graven3_FinalSpread : SplatoonScript
         return false;
     }
 
-    // Map player spread/stack VFX to spread or stack per Kefta true/false.
-    private SpreadStackKind MapPlayerVfxToKind(bool isSpreadVfx, bool keftaTrue)
+    // Map player spread/stack VFX to spread or stack per Kefka VFX true/false.
+    private FinalSolution ResolveFinalSolution(PlayerVfxState playerVfx, KefkaVFX kefkaVfx)
     {
         if(C.IgnoreKefkaVfx)
         {
-            keftaTrue = true;
+            kefkaVfx = KefkaVFX.True;
         }
 
-        if(isSpreadVfx)
+        if(playerVfx == PlayerVfxState.Spread)
         {
-            return keftaTrue ? SpreadStackKind.Spread : SpreadStackKind.Stack;
+            return kefkaVfx == KefkaVFX.True ? FinalSolution.Spread : FinalSolution.Stack;
         }
 
-        return keftaTrue ? SpreadStackKind.Stack : SpreadStackKind.Spread;
+        return kefkaVfx == KefkaVFX.True ? FinalSolution.Stack : FinalSolution.Spread;
     }
 
     // Return whether any caster X is within epsilon of a pattern anchor.

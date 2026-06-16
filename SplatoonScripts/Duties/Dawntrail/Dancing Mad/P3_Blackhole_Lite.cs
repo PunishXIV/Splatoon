@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Interface;
 using Dalamud.Utility;
 using ECommons;
 using ECommons.DalamudServices;
@@ -19,10 +20,11 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop = [new("CarDir0", x => x.ToString()), new("CarDir1", x => x.ToString()), new("CarDir2", x => x.ToString())];
+    ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop2 = [new("CarDir3", x => x.ToString()), new("CarDir4", x => x.ToString()), new("CarDir5", x => x.ToString())];
 
     uint Sequence = 0;
     bool? IsAccretion = null;
@@ -88,6 +90,11 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         }
     }
 
+    List<List<CardinalDirection>> GetTetherPriorities()
+    {
+        return (!C.TetherPrio2Same && GetTetheredBlackholes().Count == 2) ? C.TetherPriorities2 : C.TetherPriorities;
+    }
+
     public Taker GetMyRole()
     {
         if(IsAccretion == true)
@@ -148,9 +155,10 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                 }
                 ImGui.PopID();
             }
+
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGuiEx.Text($"Tether\nPriority");
+            ImGuiEx.Text($"Tether Priority\n(3 tethers)");
             for(int i = 0; i < 3; i++)
             {
                 ImGui.PushID($"d{i}");
@@ -167,6 +175,34 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                 DragDrop[i].End();
                 ImGui.PopID();
             }
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGuiEx.Text($"Tether Priority\n(2 tethers)");
+            ImGui.PushFont(UiBuilder.IconFont);
+            ImGui.SameLine();
+            ImGuiEx.ButtonCheckbox(FontAwesomeIcon.Equals.ToIconString(), ref C.TetherPrio2Same, smallButton:true);
+            ImGui.PopFont();
+            ImGuiEx.Tooltip("Use same priority as 3 tethers");
+            if(!C.TetherPrio2Same)
+            {
+                for(int i = 0; i < 2; i++)
+                {
+                    ImGui.PushID($"d2{i}");
+                    ImGui.TableNextColumn();
+                    var item = C.TetherPriorities2[i];
+                    DragDrop2[i].Begin();
+                    for(int k = 0; k < item.Count; k++)
+                    {
+                        DragDrop2[i].NextRow();
+                        DragDrop2[i].DrawButtonDummy(item[k].ToString(), item, k);
+                        ImGui.SameLine();
+                        ImGuiEx.TextV($"{item[k]}");
+                    }
+                    DragDrop2[i].End();
+                    ImGui.PopID();
+                }
+            }
             ImGui.EndTable();
         }
         if(ImGui.CollapsingHeader("Debug"))
@@ -174,6 +210,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
             ImGuiEx.Checkbox("IsAccretion", ref IsAccretion);
             ImGui.InputUInt("Sequence", ref Sequence);
             ImGuiEx.Text($"My role: {GetMyRole()}");
+            ImGuiEx.Text($"Using prio2: {!C.TetherPrio2Same && GetTetheredBlackholes().Count == 2}");
         }
     }
 
@@ -209,6 +246,12 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
             [CardinalDirection.East, CardinalDirection.West, CardinalDirection.South, CardinalDirection.North],
             [CardinalDirection.East, CardinalDirection.West, CardinalDirection.South, CardinalDirection.North],
             ];
+        public List<List<CardinalDirection>> TetherPriorities2 = [
+            [CardinalDirection.East, CardinalDirection.West, CardinalDirection.South, CardinalDirection.North],
+            [CardinalDirection.East, CardinalDirection.West, CardinalDirection.South, CardinalDirection.North],
+            [CardinalDirection.East, CardinalDirection.West, CardinalDirection.South, CardinalDirection.North],
+            ];
+        public bool TetherPrio2Same = true;
     }
 
     public enum Taker

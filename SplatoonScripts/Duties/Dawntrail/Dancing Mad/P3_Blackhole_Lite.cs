@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop = [new("CarDir0", x => x.ToString()), new("CarDir1", x => x.ToString()), new("CarDir2", x => x.ToString())];
@@ -84,7 +84,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                     var current = seq[i];
                     if(current == GetMyRole())
                     {
-                        var myHole = tethers.GetAt((int)(C.ClockwiseNumber[i]) - 1);
+                        var myHole = tethers.CircularSelect((int)(C.ClockwiseNumber[i]) - 1);
                         DrawHole(ref numElements, myHole.Value.Object);
                     }
                 }

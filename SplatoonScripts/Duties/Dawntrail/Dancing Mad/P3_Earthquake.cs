@@ -59,14 +59,14 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private const float KefkaRotationMatchMax = MathF.PI / 4.0f;
     private const int ExpectedBlackHoleActors = 12;
     private const float BlackHoleGuideRadius = 9.021f;
+    private const float LastBlackHoleGuideRadius = 19.0f;
     private const float FinalPairRadius = 9.8f;
     private const float FinalTowerRadius = 10.0f;
     private const float FinalInitialSplitRadius = 5.5f;
     private const string DestinationElement = "Destination";
     private const string InstructionElement = "Instruction";
+    private const string BlackHoleLineElement = "BlackHoleLine";
     private const float DefaultColorAlpha = 200.0f / 255.0f;
-    private static readonly uint DefaultRainbowNavigationColor1 = WithDefaultAlpha(EColor.CyanBright).ToUint();
-    private static readonly uint DefaultRainbowNavigationColor2 = WithDefaultAlpha(EColor.VioletBright).ToUint();
 
     private static readonly Vector3 Center = new(100f, 0f, 100f);
     private static readonly Slot[][] BlackHoleWindowSlots =
@@ -242,7 +242,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             radius = 1.25f,
             thicc = 5.0f,
             fillIntensity = 0.25f,
-            color = DefaultRainbowNavigationColor1,
+            color = C.RainbowNavigationColor1,
             tether = true,
             overlayBGColor = 0xC8000000,
             overlayTextColor = 0xFFFFFFFF,
@@ -258,6 +258,13 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             overlayTextColor = 0xFFFFFFFF,
             overlayVOffset = 3.0f,
             overlayFScale = 1.7f
+        });
+        Controller.RegisterElement(BlackHoleLineElement, new Element(2)
+        {
+            Enabled = false,
+            radius = 0,
+            thicc = 5.0f,
+            color = WithDefaultAlpha(EColor.RedBright).ToUint()
         });
     }
 
@@ -454,6 +461,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (_state == State.FinalSequence && !C.ShowPostBlackHoleNavigation)
             return;
 
+        ShowBlackHoleLine();
         var showedBlackHoleDestination = ShowBlackHoleDestination();
         if (!showedBlackHoleDestination && _guideDestination is { } guide)
             ShowDestination(guide, _guideText);
@@ -1352,6 +1360,19 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return true;
     }
 
+    private void ShowBlackHoleLine()
+    {
+        if (_selfTetherSource is not { } source ||
+            _selfTetherTarget.GetObject() is not { } target ||
+            !Controller.TryGetElementByName(BlackHoleLineElement, out var element))
+            return;
+
+        element.Enabled = true;
+        element.color = WithDefaultAlpha(IsSelfTetherTarget() ? EColor.GreenBright : EColor.RedBright).ToUint();
+        element.SetRefPosition(source);
+        element.SetOffPosition(target.Position);
+    }
+
     private bool IsSelfTetherTarget() => _selfTetherTarget != 0 && _selfTetherTarget == BasePlayer?.EntityId;
 
     private bool TryGetSelfTetherTarget(out IGameObject target)
@@ -1717,7 +1738,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private Vector3 BlackHoleStandPosition(Vector3 source)
     {
         var side = C.LineBaitDirection == LineBaitDirection.Counterclockwise ? -1.0f : 1.0f;
-        return PositionFromDirectionAngle(DirectionAngle(source) + side * MathF.PI / 4.0f, BlackHoleGuideRadius);
+        var radius = _currentWindow == 9 ? LastBlackHoleGuideRadius : BlackHoleGuideRadius;
+        return PositionFromDirectionAngle(DirectionAngle(source) + side * MathF.PI / 4.0f, radius);
     }
 
     private LineBaitDirection LaneBaitDirection(int lane)
@@ -2479,8 +2501,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         public FinalInitialBaitMode FinalInitialBaitMode = FinalInitialBaitMode.Center;
         public FinalInitialNorthRole FinalInitialNorthRole = FinalInitialNorthRole.Support;
         public bool ShowPostBlackHoleNavigation = true;
-        public uint RainbowNavigationColor1 = DefaultRainbowNavigationColor1;
-        public uint RainbowNavigationColor2 = DefaultRainbowNavigationColor2;
+        public uint RainbowNavigationColor1 = WithDefaultAlpha(EColor.CyanBright).ToUint();
+        public uint RainbowNavigationColor2 = WithDefaultAlpha(EColor.VioletBright).ToUint();
         public int[] MarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
         public bool ExecuteMarkerCommand;
         public MarkerCommandSource MarkerCommandSource = MarkerCommandSource.TargetDebuff;

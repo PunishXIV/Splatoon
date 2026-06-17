@@ -232,7 +232,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _lastExpectedDebug = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(36, "Garume");
+    public override Metadata Metadata => new(37, "Garume");
 
     public override void OnSetup()
     {
@@ -1299,7 +1299,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (TryGetOwnRolePosition(out var role))
         {
             var destination = FinalTowerPosition(role);
-            DebugLog($"FINAL_GUIDE mode=tower role={role} destination={PositionText(destination)} anchor={FinalAnchorDebugText()} {FinalStateText()}");
+            DebugLog($"FINAL_GUIDE mode=tower role={role} destination={PositionText(destination)} anchor={FinalPairAnchorDebugText()} {FinalStateText()}");
             SetGuide(destination, TextOrEmpty(C.ShowFinalTowerText, C.FinalTowerText, RolePairName(role)),
                 GuidanceKind.FinalLanding, LandingCast, 0.0f, 0.0f);
         }
@@ -1323,7 +1323,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (TryGetOwnRolePosition(out var role))
         {
             var destination = FinalSpreadPosition(role);
-            DebugLog($"FINAL_ROLE_GUIDE kind={kind} action={actionId} role={role} destination={PositionText(destination)} anchor={FinalAnchorDebugText()} {FinalStateText()}");
+            DebugLog($"FINAL_ROLE_GUIDE kind={kind} action={actionId} role={role} destination={PositionText(destination)} anchor={FinalPairAnchorDebugText()} {FinalStateText()}");
             SetGuide(destination, TextOrEmpty(show, text, RolePairName(role)), kind, actionId, 0.0f, 0.0f);
         }
         else
@@ -2576,11 +2576,11 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     };
 
     private Vector3 FinalSpreadPosition(RolePosition role) =>
-        PositionFromDirectionAngle(NormalizeAngle(FinalFootAnchorAngle() + FinalSpreadOffset(role)), FinalPairRadius);
+        PositionFromDirectionAngle(NormalizeAngle(FinalPairAnchorAngle() + FinalSpreadOffset(role)), FinalPairRadius);
 
     private Vector3 FinalTowerPosition(RolePosition role)
     {
-        var angle = NormalizeAngle(FinalFootAnchorAngle() + (IsLeftFinalTowerRole(role) ? -MathF.PI / 2.0f : MathF.PI / 2.0f));
+        var angle = NormalizeAngle(FinalPairAnchorAngle() + (IsLeftFinalTowerRole(role) ? -MathF.PI / 2.0f : MathF.PI / 2.0f));
         return _finalTowerPositions.Count == 0
             ? PositionFromDirectionAngle(angle, FinalTowerRadius)
             : _finalTowerPositions.OrderBy(position => AngleDistance(DirectionAngle(position), angle)).First();
@@ -2598,6 +2598,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
         return _finalFootAnchorPosition is { } anchor ? DirectionAngle(anchor) : 0.0f;
     }
+
+    private float FinalPairAnchorAngle() => OrderAnchorAngle();
 
     private void FreezeFinalFootAnchor(Vector3 position, string reason, bool force = false)
     {
@@ -2629,6 +2631,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string FinalAnchorDebugText() => _finalFootAnchorPosition is { } anchor
         ? $"{_finalFootAnchorDebug}({anchor.X:F1},{anchor.Z:F1})"
         : "N fallback";
+
+    private string FinalPairAnchorDebugText() => $"blackhole-order {OrderAnchorDebugText()}";
 
     private string FinalTowerDebugText() => _finalTowerPositions.Count == 0
         ? "none"

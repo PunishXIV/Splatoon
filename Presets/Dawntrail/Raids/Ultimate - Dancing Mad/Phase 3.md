@@ -105,7 +105,7 @@ Below are listed configurations for this script. All configurations contain conf
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"piR support v1","Configuration":"G8ED4J0FdrNyjO6IVh4MWcS1zu7vO3VsIRn6eEjfriVZNYnBcOHYvGAQQ6EaWAw7tbfPqf9UaHd8a4X2pII1Ja1uE0EFe/5FYmDPesxvH8DIRH93G9gAiDfAh6nP9gD11D8S9dI/EfUh4gi2B1CpLflJxSDUfain8iqPeKiIIMpu0tNSBW+TnJchlHH+WkOnKQYBM3urszvY7kCdzetYtbVzzvM6ZpFhPSR9dfA1mw2rCybDDw==","Overrides":null}
 ```
 
-### [Kefkabin](https://files.nightmarexiv.org/images/2026-06-16_23-12-09.jpg)
+### [Kefkabin](https://files.nightmarexiv.org/images/2026-06-16_23-12-09.jpg) (seems to be same as [ZsQ](https://files.nightmarexiv.org/images/2026-06-17_02-24-54.jpg))
 ```
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin DPS v1","Configuration":"G8AD4BwJ2RnmRehw6uJPrbP7+85cW0gL/Vj+sN/ekqyaxGA4YdicYBBDYd0BXjW42nvfmgelLYEgaEFbgpEH6uGjbJskfKDDrD0U1HIt1dsngIKKTncp2ASAF6A3N8zKT3srxAwtTphJSxDGsBakOunCxyoErNvmk9xSCPBFH/yOJuOTf6orATHzm8VTwpmwdDJHNGtx5nkdf5LBF0pvPbxjNDkR5Qc=","Overrides":null}
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin Support v1","Configuration":"G8AD4JwFdrNyjO6IVh4MWcS1zu7vO1U3oS58M6H27Tfq9lcEgSjJgmMkCEIoVAPLurPr1Vv7FV61NQ9KEwqCFgRhYJEH6mnmNgp7YAv5QxxoOYv19gEEVHS7U8AGgJ0AbYb39on0lb8BvfF3oHcdRVdrlJ1l8rGKAOuO8QRHir5sA3ujZHzxXzURIGZ5I3lKOPXkm8zuzUoOntfxJxn2QuntRzCMpg2k8gM=","Overrides":null}

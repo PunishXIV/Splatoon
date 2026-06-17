@@ -1,7 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface;
-using Dalamud.Utility;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
@@ -13,14 +12,12 @@ using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop = [new("CarDir0", x => x.ToString()), new("CarDir1", x => x.ToString()), new("CarDir2", x => x.ToString())];
@@ -37,7 +34,11 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
             {"Name":"Tether0","type":2,"refX":107.77591,"refY":113.12219,"refZ":-1.9073486E-06,"offX":110.66847,"offY":99.43638,"offZ":1.9073486E-06,"radius":0.0,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":8.0,"refActorObjectID":1073765276,"refActorComparisonType":2,"tether":true}
             {"Name":"Tether1","type":2,"refX":107.77591,"refY":113.12219,"refZ":-1.9073486E-06,"offX":110.66847,"offY":99.43638,"offZ":1.9073486E-06,"radius":0.0,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":8.0,"refActorObjectID":1073765276,"refActorComparisonType":2,"tether":true}
             {"Name":"Tether2","type":2,"refX":107.77591,"refY":113.12219,"refZ":-1.9073486E-06,"offX":110.66847,"offY":99.43638,"offZ":1.9073486E-06,"radius":0.0,"color":3355508503,"Filled":false,"fillIntensity":0.5,"thicc":8.0,"refActorObjectID":1073765276,"refActorComparisonType":2,"tether":true}
+            {"Name":"Idle","refX":100.0,"refY":100.0,"radius":4.0,"color":3355508490,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}
+            {"Name":"HintTake","type":1,"radius":0.0,"color":3358457600,"Filled":false,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4278190335,"overlayVOffset":2.0,"overlayFScale":1.5,"thicc":0.0,"overlayText":"Sequence: # | Take tether","refActorType":1}
+            {"Name":"HintIdle","type":1,"Enabled":false,"radius":0.0,"color":3358457600,"Filled":false,"fillIntensity":0.5,"overlayBGColor":3355443200,"overlayTextColor":4278386432,"overlayVOffset":2.0,"thicc":0.0,"overlayText":"Sequence: # | Idle","refActorType":1}
             """);
+
         for(int i = 0; i < 20; i++)
         {
             Controller.RegisterElementFromCode($$$"""{"Name":"Indicator{{{i}}}"}""");
@@ -77,6 +78,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         {
             var tethers = GetTetheredOrderedBlackholes();
             var seq = C.Takers.SafeSelect((int)Sequence);
+            var isTaker = false;
             if(seq != null && GetMyRole() != Taker.None)
             {
                 for(int i = 0; i < tethers.Count; i++)
@@ -86,8 +88,13 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                     {
                         var myHole = tethers.CircularSelect((int)(C.ClockwiseNumber[i]) - 1);
                         DrawHole(ref numElements, myHole.Value.Object);
+                        isTaker = true;
                     }
                 }
+            }
+            if(!isTaker && tethers.Count > 0)
+            {
+                DrawIdle();
             }
         }
         else
@@ -98,6 +105,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                 var seq = C.Takers.SafeSelect((int)Sequence);
                 if(seq != null)
                 {
+                    var isTaker = false;
                     HashSet<CardinalDirection> takenDirection = [];
                     for(int i = 0; i < seq.Count; i++)
                     {
@@ -110,10 +118,15 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                                 if(current == GetMyRole() && GetMyRole() != Taker.None)
                                 {
                                     DrawHole(ref numElements, blackhole);
+                                    isTaker = true;
                                 }
                                 break;
                             }
                         }
+                    }
+                    if(!isTaker && tethers.Count > 0)
+                    {
+                        DrawIdle();
                     }
                 }
             }
@@ -133,6 +146,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
             e.color = isMyTether ? EColor.GreenBright.ToUint() : Controller.AttentionColor;
             e.thicc = Controller.OriginalElements[name].thicc / (isMyTether ? 2 : 1);
         }
+        DrawTake();
     }
 
     List<List<CardinalDirection>> GetTetherPriorities()
@@ -174,6 +188,33 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                 EzThrottler.Throttle("Nothingness", 500, true);
                 Sequence++;
             }
+        }
+    }
+
+    void DrawIdle()
+    {
+        {
+            if(Controller.TryGetElementByName("HintIdle", out var e))
+            {
+                e.Enabled = true;
+                e.overlayText = Controller.OriginalElements["HintIdle"].overlayText.Replace("#", $"{Sequence + 1}");
+            }
+        }
+        {
+            if(Controller.TryGetElementByName("Idle", out var e))
+            {
+                e.Enabled = true;
+                e.color = Controller.AttentionColor;
+            }
+        }
+    }
+
+    void DrawTake()
+    {
+        if(Controller.TryGetElementByName("HintTake", out var e))
+        {
+            e.Enabled = true;
+            e.overlayText = Controller.OriginalElements["HintTake"].overlayText.Replace("#", $"{Sequence + 1}");
         }
     }
 

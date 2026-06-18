@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(6, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private Config C => Controller.GetConfig<Config>();

@@ -164,6 +164,52 @@ public class InternationalString
         }
     }
 
+    public void ImGuiEdit(string helpMessage = null)
+    {
+        Normalize();
+        if(ImGui.BeginCombo($"##{guid}", Get()))
+        {
+            ImGuiEx.LineCentered($"line{guid}", delegate
+            {
+                ImGuiEx.Text("International string".Loc());
+            });
+            EditLangSpecificString(ClientLanguage.English, ref En);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", En, x => En = x);
+            ImGuiEx.HelpMarker("This will be default value", ImGuiColors.DalamudOrange, FontAwesomeIcon.Globe.ToIconString());
+            EditLangSpecificString(ClientLanguage.Japanese, ref Jp);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", Jp, x => Jp = x);
+            EditLangSpecificString(ClientLanguage.French, ref Fr);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", Fr, x => Fr = x);
+            EditLangSpecificString(ClientLanguage.German, ref De);
+            ImGuiEx.DragDropRepopulateClass("RepopIStr", De, x => De = x);
+            if(!Svc.Data.Language.EqualsAny(ClientLanguage.English, ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French))
+            {
+                EditLangSpecificString(Svc.Data.Language, ref Other);
+                ImGuiEx.DragDropRepopulateClass("RepopIStr", Other, x => Other = x);
+            }
+            else
+            {
+                if(Other != "")
+                {
+                    EditLangSpecificString((ClientLanguage)(-1), ref Other);
+                }
+            }
+            ImGui.EndCombo();
+        }
+        if(ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            if(!helpMessage.IsNullOrEmpty())
+            {
+                ImGuiEx.Text(helpMessage + "\n");
+            }
+            ImGuiEx.Text(ImGuiColors.DalamudGrey, "International string\nFor your current language value is:".Loc());
+            ImGuiEx.Text(Get());
+            ImGui.EndTooltip();
+
+        }
+    }
+
     public bool IsEmpty()
     {
         Normalize();

@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.Objects.Types;
+using ECommons;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
@@ -47,7 +48,7 @@ public class P5_Exaflare_beta : SplatoonScript
     private Vector3? _lastDestination;
 
     public override HashSet<uint>? ValidTerritories => [TerritoryDancingMadUltimate, TerritoryReplayZone];
-    public override Metadata Metadata => new(1, "Garume");
+    public override Metadata Metadata => new(2, "Garume");
 
     public override void OnSetup()
     {

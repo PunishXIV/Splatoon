@@ -20,6 +20,14 @@ Gotta Dodge 'Em All
 ~Lv2~{"Name":"Dmad P5 Towers in/out","Group":"Dancing Mad (Ultimate) P5 - NXIV","ZoneLockH":[1363],"ConditionalAnd":true,"ElementsL":[{"Name":"in","type":1,"radius":10.0,"Donut":10.0,"fillIntensity":0.5,"castAnimation":3,"animationColor":1409286144,"refActorNPCNameID":7131,"refActorRequireCast":true,"refActorCastId":[49743],"refActorComparisonType":6},{"Name":"out","type":1,"radius":10.0,"fillIntensity":0.5,"castAnimation":3,"animationColor":1409286144,"refActorNPCNameID":7131,"refActorRequireCast":true,"refActorCastId":[49742],"refActorComparisonType":6}]}
 ```
 
+## **[Script] [Beta]** P5 Exaflare
+
+Self-only Exaflare navigation. This uses its own route logic, so the path may differ from static layouts or published strats.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P5_Exaflare_beta.cs
+```
+
 ## [Script] Celestriad
 
 Kefkabin

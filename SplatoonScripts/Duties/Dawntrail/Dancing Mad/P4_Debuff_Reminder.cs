@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
@@ -7,6 +8,7 @@ using ECommons.ImGuiMethods;
 using Lumina.Excel.Sheets;
 using Lumina.Excel.Sheets.Experimental;
 using Newtonsoft.Json;
+using Splatoon;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -21,6 +23,8 @@ public class P4_Debuff_Reminder : SplatoonScript
 {
     public override Metadata Metadata { get; } = new(5, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
+
+    private Config C => Controller.GetConfig<Config>();
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
     private List<string> VfxTruth = ["vfx/common/eff/z3oy_stlp7_c0c.avfx", "vfx/common/eff/z3oy_stlp5_c0c.avfx"];
@@ -71,6 +75,69 @@ public class P4_Debuff_Reminder : SplatoonScript
         public static uint[] DebuffBlackwound = [4888, 5542];
     }
 
+    private sealed class Config : IEzConfig
+    {
+        public InternationalString LookAtHintText = new()
+        {
+            En = "Look at in {0}",
+            Jp = "{0}秒後に視線"
+        };
+
+        public InternationalString LookAwayHintText = new()
+        {
+            En = "Look AWAY in {0}",
+            Jp = "{0}秒後に視線外す"
+        };
+
+        public InternationalString SpreadHintText = new()
+        {
+            En = "Spread in {0}",
+            Jp = "{0}秒後に散開"
+        };
+
+        public InternationalString StackHintText = new()
+        {
+            En = "Stack in {0}",
+            Jp = "{0}秒後に頭割り"
+        };
+
+        public InternationalString DontMoveHintText = new()
+        {
+            En = "Don't move in {0}",
+            Jp = "{0}秒後に動くな"
+        };
+
+        public InternationalString MoveHintText = new()
+        {
+            En = "Move in {0}",
+            Jp = "{0}秒後に動け"
+        };
+
+        public InternationalString DropDonutHintText = new()
+        {
+            En = "Drop donut in {0}",
+            Jp = "{0}秒後にドーナツ"
+        };
+
+        public InternationalString DropAoeHintText = new()
+        {
+            En = "Drop AOE in {0}",
+            Jp = "{0}秒後に範囲"
+        };
+
+        public void EnsureDefaults()
+        {
+            LookAtHintText ??= new InternationalString { En = LookAtHintText.En, Jp = LookAtHintText.Jp };
+            LookAwayHintText ??= new InternationalString { En = LookAwayHintText.En, Jp = LookAwayHintText.Jp };
+            SpreadHintText ??= new InternationalString { En = SpreadHintText.En, Jp = SpreadHintText.Jp };
+            StackHintText ??= new InternationalString { En = StackHintText.En, Jp = StackHintText.Jp };
+            DontMoveHintText ??= new InternationalString { En = DontMoveHintText.En, Jp = DontMoveHintText.Jp };
+            MoveHintText ??= new InternationalString { En = MoveHintText.En, Jp = MoveHintText.Jp };
+            DropDonutHintText ??= new InternationalString { En = DropDonutHintText.En, Jp = DropDonutHintText.Jp };
+            DropAoeHintText ??= new InternationalString { En = DropAoeHintText.En, Jp = DropAoeHintText.Jp };
+        }
+    }
+
     private Dictionary<uint, bool> IsTruth = [];
     public List<uint> DebuffList
     {
@@ -97,6 +164,8 @@ public class P4_Debuff_Reminder : SplatoonScript
 
     public override void OnSetup()
     {
+        C.EnsureDefaults();
+
         Controller.RegisterElementFromCode("Black", """
             {"Name":"","type":3,"refY":40.0,"radius":12,"fillIntensity":0.6,"refActorNPCNameID":6055,"refActorRequireCast":true,"refActorCastId":[50069],"refActorComparisonType":6,"includeRotation":true}
             """);
@@ -142,7 +211,7 @@ public class P4_Debuff_Reminder : SplatoonScript
             if(x.HasStatus(Debuffs.DebuffLookAway, out var time, lessThan: 10))
             {
                 var f = this.FakeStatuses.ContainsAny(Debuffs.DebuffLookAway.Select(s => new StatusInfo(x.ObjectId, s)));
-                hints.Add((f ? $"Look at in {time.SafeSelect(0).Time:F1}" : $"Look AWAY in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                hints.Add((f ? FormatText(C.LookAtHintText, $"{time.SafeSelect(0).Time:F1}") : FormatText(C.LookAwayHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
                 Controller.GetElementByName(f ? "LookAt" : "LookAway").Enabled = true;
                 Controller.GetElementByName("EyeScope").Enabled = true;
                 break;
@@ -152,14 +221,14 @@ public class P4_Debuff_Reminder : SplatoonScript
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffStack, out var time, lessThan: 10f) && this.FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
             {
-                hints.Add(($"Spread in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                hints.Add((FormatText(C.SpreadHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
                 spread = true;
             }
         }
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: 10f) && !this.FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
             {
-                hints.Add(($"Spread in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                hints.Add((FormatText(C.SpreadHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
                 spread = true;
             }
         }
@@ -170,14 +239,14 @@ public class P4_Debuff_Reminder : SplatoonScript
                 {
                     if(x.HasStatus(Debuffs.DebuffStack, out var time, lessThan: 10f) && !this.FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(x.ObjectId, s))))
                     {
-                        hints.Add(($"Stack in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                        hints.Add((FormatText(C.StackHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
                         break;
                     }
                 }
                 {
                     if(x.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: 10f) && this.FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(x.ObjectId, s))))
                     {
-                        hints.Add(($"Stack in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                        hints.Add((FormatText(C.StackHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
                         break;
                     }
                 }
@@ -186,19 +255,19 @@ public class P4_Debuff_Reminder : SplatoonScript
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffDontMove, out var time, lessThan: 10f))
             {
-                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffDontMove.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Don't move in {time.SafeSelect(0).Time:F1}" : $"Move in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffDontMove.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? FormatText(C.DontMoveHintText, $"{time.SafeSelect(0).Time:F1}") : FormatText(C.MoveHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
             }
         }
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffDonut, out var time, lessThan: 10f))
             {
-                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffDonut.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Drop donut in {time.SafeSelect(0).Time:F1}" : $"Drop AOE in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffDonut.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? FormatText(C.DropDonutHintText, $"{time.SafeSelect(0).Time:F1}") : FormatText(C.DropAoeHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
             }
         }
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffFireSpread, out var time, lessThan: 10f))
             {
-                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? $"Drop AOE in {time.SafeSelect(0).Time:F1}" : $"Drop donut in {time.SafeSelect(0).Time:F1}", time.SafeSelect(0).Time));
+                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? FormatText(C.DropAoeHintText, $"{time.SafeSelect(0).Time:F1}") : FormatText(C.DropDonutHintText, $"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
             }
         }
         if(Controller.TryGetElementByName("Hint", out var e))
@@ -250,8 +319,45 @@ public class P4_Debuff_Reminder : SplatoonScript
         }
     }
 
+    // Format InternationalString placeholders.
+    private static string FormatText(InternationalString text, params object[] args)
+    {
+        var format = text.Get() ?? "";
+        try
+        {
+            return string.Format(format, args);
+        }
+        catch(FormatException)
+        {
+            return format;
+        }
+    }
+
+    // Draw one editable InternationalString row in settings.
+    private static void DrawInternationalString(string label, InternationalString text)
+    {
+        ImGui.PushID(label);
+        var current = text.Get();
+        text.ImGuiEdit(ref current);
+        ImGui.SameLine();
+        ImGui.Text(label);
+        ImGui.PopID();
+    }
+
     public override void OnSettingsDraw()
     {
+        if(ImGui.CollapsingHeader("Hints", ImGuiTreeNodeFlags.DefaultOpen))
+        {
+            DrawInternationalString("Look at", C.LookAtHintText);
+            DrawInternationalString("Look away", C.LookAwayHintText);
+            DrawInternationalString("Spread", C.SpreadHintText);
+            DrawInternationalString("Stack", C.StackHintText);
+            DrawInternationalString("Don't move", C.DontMoveHintText);
+            DrawInternationalString("Move", C.MoveHintText);
+            DrawInternationalString("Drop donut", C.DropDonutHintText);
+            DrawInternationalString("Drop AOE", C.DropAoeHintText);
+        }
+
         if(ImGui.CollapsingHeader("Debug"))
         {
             if(ImGui.Button("Export")) GenericHelpers.Copy(JsonConvert.SerializeObject(FakeStatuses));

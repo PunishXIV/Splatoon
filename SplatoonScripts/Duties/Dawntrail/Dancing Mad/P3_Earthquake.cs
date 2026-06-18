@@ -60,6 +60,13 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private const int ExpectedBlackHoleActors = 12;
     private const float BlackHoleGuideRadius = 9.021f;
     private const float LastBlackHoleGuideRadius = 19.0f;
+    private const float BlackHoleAvoidRadius = 3.0f;
+    private const float BlackHoleAvoidRadiusSq = BlackHoleAvoidRadius * BlackHoleAvoidRadius;
+    private const float BlackHoleAvoidMinRadius = 6.0f;
+    private const float BlackHoleAvoidInwardStep = 1.0f;
+    private const int BlackHoleAvoidInwardSteps = 6;
+    private const float BlackHoleAvoidAngleStep = MathF.PI / 24.0f;
+    private const int BlackHoleAvoidAngleSteps = 4;
     private const float FinalPairRadius = 9.8f;
     private const float FinalTowerRadius = 10.0f;
     private const float FinalInitialSplitRadius = 5.5f;
@@ -128,8 +135,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private static readonly InternationalString Description = new()
     {
-        En = "P3 Earthquake helper. It resolves your First/Second/Third line order from the debuff plus party markers or priority, then follows live Black Hole tether changes. When the line is on you, it shows the Black Hole-to-player line and your bait position. The tether uses the configured correct/wrong colors depending on whether the current active Black Hole order matches your slot.",
-        Jp = "P3地震用です。デバフとマーカーまたは優先順位から自分の第一/第二/第三対象内の線取り順を決め、ブラックホールテザーの付け替わりを追ってナビします。自分に線が付いた時は、ブラックホールから自分への線と誘導先を表示します。現在線が出ているブラックホールの並びと自分のスロットが一致するかどうかで、設定した正解/不一致の色を使います。"
+        En = "P3 Earthquake helper. It resolves your First/Second/Third line order from the debuff plus party markers or priority, then follows live Black Hole tether changes. When the line is on you, it shows the Black Hole-to-player line and your bait position. The tether uses the configured correct/wrong/unknown colors depending on whether the current active Black Hole order matches your slot.",
+        Jp = "P3地震用です。デバフとマーカーまたは優先順位から自分の第一/第二/第三対象内の線取り順を決め、ブラックホールテザーの付け替わりを追ってナビします。自分に線が付いた時は、ブラックホールから自分への線と誘導先を表示します。現在線が出ているブラックホールの並びと自分のスロットが一致するかどうかで、設定した正解/不一致/不明の色を使います。"
     };
     private static readonly InternationalString AssignmentModeDescription = new()
     {
@@ -151,6 +158,11 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         En = "Show or hide the final-sequence navigation after the Black Hole windows. Black Hole tether tracking and assignments still run even when this is disabled.",
         Jp = "ブラックホール後の最終ギミック用ナビを表示するかを切り替えます。OFFでもブラックホールの線追跡と割り当て処理は動作します。"
     };
+    private static readonly InternationalString BlackHoleTetherOnlyDescription = new()
+    {
+        En = "When enabled, Black Hole windows show only the Black Hole tether line. Destination circles and waiting text are hidden during Black Hole.",
+        Jp = "有効にすると、ブラックホール中はブラックホールのテザー線だけを表示します。誘導先の円と待機テキストは非表示になります。"
+    };
     private static readonly InternationalString MarkerLineOrderDescription = new()
     {
         En = "Set which line order each party marker means. The debuff decides the group: First Target, Second Target, or Third Target. The marker decides the order inside that group. Example: Attack1 = 1st means First Target + Attack1 becomes First1, while Second Target + Attack1 becomes Second1. Third Target has only two players, so do not assign 3rd to markers used by Third Target players.",
@@ -163,8 +175,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     };
     private static readonly InternationalString VisualSettingsDescription = new()
     {
-        En = "Navigation color 1/2 are the gradient colors used by navigation markers and their tether. Set both colors to the same value for a solid color.",
-        Jp = "Navigation color 1/2 はナビ表示とナビから出るテザーに使うグラデーションの色です。同じ色を2つ設定すると単色表示になります。"
+        En = "Navigation color 1/2 are the gradient colors used by navigation markers and their tether. Set both colors to the same value for a solid color. Tether colors are used for the Black Hole tether line.",
+        Jp = "Navigation color 1/2 はナビ表示とナビから出るテザーに使うグラデーションの色です。同じ色を2つ設定すると単色表示になります。Tether color はブラックホールのテザー線に使います。"
     };
     private static readonly InternationalString DisplayTextDescription = new()
     {
@@ -185,7 +197,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private readonly Dictionary<uint, TargetGroup> _groups = [];
     private readonly Dictionary<int, uint> _tetherTargets = [];
     private readonly Dictionary<int, Vector3> _tetherSources = [];
-    private readonly List<uint> _liveBlackHoleIds = [];
+    private readonly List<Vector3> _blackHolePositions = [];
     private readonly int[] _fixedLaneSetBuckets = [-1, -1, -1];
     private readonly HashSet<int> _hitSources = [];
     private readonly HashSet<uint> _earthPlayers = [];
@@ -231,7 +243,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _instruction = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(38, "Garume");
+    public override Metadata Metadata => new(39, "Garume");
 
     public override void OnSetup()
     {
@@ -264,7 +276,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             Enabled = false,
             radius = 0,
             thicc = 5.0f,
-            color = WithDefaultAlpha(EColor.RedBright).ToUint()
+            color = C.WrongTetherColor
         });
     }
 
@@ -462,6 +474,9 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return;
 
         ShowBlackHoleLine();
+        if (C.BlackHoleTetherOnly && _state == State.BlackHoleActive)
+            return;
+
         var showedBlackHoleDestination = ShowBlackHoleDestination();
         if (!showedBlackHoleDestination && _guideDestination is { } guide)
             ShowDestination(guide, _guideText);
@@ -627,6 +642,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (DrawCombo("Black Hole order anchor", ref anchor, ["Kefka position", "Arena north"], 260f))
             C.BlackHoleOrderAnchor = (BlackHoleOrderAnchor)Math.Clamp(anchor, 0, 1);
         ImGui.TextWrapped(BlackHoleSourceOrderDescription.Get());
+        ImGui.Checkbox("Black Hole tether only", ref C.BlackHoleTetherOnly);
+        ImGui.TextWrapped(BlackHoleTetherOnlyDescription.Get());
         ImGui.Checkbox("Show post-Black-Hole final navigation", ref C.ShowPostBlackHoleNavigation);
         ImGui.TextWrapped(PostBlackHoleNavigationDescription.Get());
         ImGui.Unindent();
@@ -668,6 +685,9 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ImGui.TextWrapped(VisualSettingsDescription.Get());
         DrawColor("Navigation color 1", ref C.RainbowNavigationColor1);
         DrawColor("Navigation color 2", ref C.RainbowNavigationColor2);
+        DrawColor("Correct tether color", ref C.CorrectTetherColor);
+        DrawColor("Wrong tether color", ref C.WrongTetherColor);
+        DrawColor("Unknown tether color", ref C.UnknownTetherColor);
         ImGui.Unindent();
     }
 
@@ -911,8 +931,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return;
         }
 
-        if (!_selfDestination.HasValue || _selfTetherBucket != expected || _selfTetherTarget != target)
-            SetSelfTether(source, expected, target);
+        SetSelfTether(source, expected, target);
     }
 
     private bool HasCompleteGroups()
@@ -948,10 +967,10 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private void CacheLiveBlackHoleActors()
     {
-        _liveBlackHoleIds.Clear();
+        _blackHolePositions.Clear();
         foreach (var obj in Svc.Objects)
-            if (obj is ICharacter character && IsBlackHoleObject(character))
-                _liveBlackHoleIds.Add(character.EntityId);
+            if (obj is ICharacter character && character.DataId == BlackHoleDataId)
+                _blackHolePositions.Add(FlatPosition(character.Position));
     }
 
     private void CacheLiveBlackHoleTethersFrom(ICharacter source)
@@ -1328,7 +1347,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private void ClearBlackHoleState()
     {
         ClearCurrentWindowTethers();
-        _liveBlackHoleIds.Clear();
+        _blackHolePositions.Clear();
         _hitSources.Clear();
         ClearFixedLaneSetBuckets();
     }
@@ -1367,8 +1386,13 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             !Controller.TryGetElementByName(BlackHoleLineElement, out var element))
             return;
 
+        var expected = ExpectedBucket(_selfSlot);
         element.Enabled = true;
-        element.color = WithDefaultAlpha(IsSelfTetherTarget() ? EColor.GreenBright : EColor.RedBright).ToUint();
+        element.color = expected < 0 || _selfTetherBucket < 0
+            ? C.UnknownTetherColor
+            : expected != _selfTetherBucket || !IsSelfTetherTarget()
+                ? C.WrongTetherColor
+                : C.CorrectTetherColor;
         element.SetRefPosition(source);
         element.SetOffPosition(target.Position);
     }
@@ -1739,7 +1763,53 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     {
         var side = C.LineBaitDirection == LineBaitDirection.Counterclockwise ? -1.0f : 1.0f;
         var radius = _currentWindow == 9 ? LastBlackHoleGuideRadius : BlackHoleGuideRadius;
-        return PositionFromDirectionAngle(DirectionAngle(source) + side * MathF.PI / 4.0f, radius);
+        var angle = DirectionAngle(source) + side * MathF.PI / 4.0f;
+        var best = PositionFromDirectionAngle(angle, radius);
+        var bestDistance = NearestBlackHoleDistanceSq(best);
+        if (bestDistance >= BlackHoleAvoidRadiusSq)
+            return best;
+
+        for (var inward = 0; inward <= BlackHoleAvoidInwardSteps; inward++)
+        {
+            var candidateRadius = Math.Max(BlackHoleAvoidMinRadius, radius - inward * BlackHoleAvoidInwardStep);
+            for (var step = inward == 0 ? 1 : 0; step <= BlackHoleAvoidAngleSteps; step++)
+            {
+                if (step == 0)
+                {
+                    if (Consider(angle, candidateRadius))
+                        return best;
+                }
+                else
+                {
+                    var offset = step * BlackHoleAvoidAngleStep;
+                    if (Consider(angle + side * offset, candidateRadius))
+                        return best;
+                    if (Consider(angle - side * offset, candidateRadius))
+                        return best;
+                }
+            }
+        }
+
+        return best;
+
+        bool Consider(float candidateAngle, float candidateRadius)
+        {
+            var candidate = PositionFromDirectionAngle(candidateAngle, candidateRadius);
+            var distance = NearestBlackHoleDistanceSq(candidate);
+            if (distance <= bestDistance)
+                return false;
+            best = candidate;
+            bestDistance = distance;
+            return bestDistance >= BlackHoleAvoidRadiusSq;
+        }
+
+        float NearestBlackHoleDistanceSq(Vector3 candidate)
+        {
+            var nearest = float.MaxValue;
+            foreach (var position in _blackHolePositions)
+                nearest = Math.Min(nearest, Vector3.DistanceSquared(candidate, position));
+            return nearest;
+        }
     }
 
     private LineBaitDirection LaneBaitDirection(int lane)
@@ -1908,7 +1978,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
         return $"reason={reason} mode={C.AssignmentMode} window={_currentWindow} slot={_selfSlot} " +
                $"rank={ExpectedRank(_selfSlot, _currentWindow)} expected={DirectionName(expected)} " +
-               $"hits={HitSourceDebugText()} liveActors={_liveBlackHoleIds.Count}/{ExpectedBlackHoleActors} " +
+               $"hits={HitSourceDebugText()} liveActors={_blackHolePositions.Count}/{ExpectedBlackHoleActors} " +
                $"source={expectedSource} target={expectedTarget} selfBucket={DirectionName(_selfTetherBucket)} " +
                $"selfTarget={Describe(_selfTetherTarget)} targetSelf={selfTarget} ordered=[{OrderedBucketText()}] " +
                $"active=[{ActiveBucketText()}] decision={ExpectedDecisionText(_selfSlot)}";
@@ -2500,9 +2570,13 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         public BlackHoleOrderAnchor BlackHoleOrderAnchor = BlackHoleOrderAnchor.KefkaPosition;
         public FinalInitialBaitMode FinalInitialBaitMode = FinalInitialBaitMode.Center;
         public FinalInitialNorthRole FinalInitialNorthRole = FinalInitialNorthRole.Support;
+        public bool BlackHoleTetherOnly;
         public bool ShowPostBlackHoleNavigation = true;
         public uint RainbowNavigationColor1 = WithDefaultAlpha(EColor.CyanBright).ToUint();
         public uint RainbowNavigationColor2 = WithDefaultAlpha(EColor.VioletBright).ToUint();
+        public uint CorrectTetherColor = WithDefaultAlpha(EColor.GreenBright).ToUint();
+        public uint WrongTetherColor = WithDefaultAlpha(EColor.RedBright).ToUint();
+        public uint UnknownTetherColor = WithDefaultAlpha(EColor.YellowBright).ToUint();
         public int[] MarkerLineOrders = [0, 1, 2, 0, 1, 2, 0, 1];
         public bool ExecuteMarkerCommand;
         public MarkerCommandSource MarkerCommandSource = MarkerCommandSource.TargetDebuff;

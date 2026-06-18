@@ -937,7 +937,7 @@ public static unsafe class Utils
 
     public static string Serialize(this Element l)
     {
-        return "~Ev2~" + JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
+        return JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
     }
 
     public static string GetName(this Layout l)

@@ -1,15 +1,10 @@
 ﻿using Dalamud.Interface.Components;
-using ECommons.Automation;
-using ECommons.Configuration;
 using ECommons.ExcelServices;
 using ECommons.LanguageHelpers;
-using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Splatoon.ConfigGui;
 using Splatoon.ConfigGui.CGuiLayouts.LayoutDrawHeader.Subcommands;
 using Splatoon.Gui.Layouts.Header.Sections;
-using Splatoon.Utility;
-using System.Runtime.CompilerServices;
 using Action = Lumina.Excel.Sheets.Action;
 
 namespace Splatoon;
@@ -90,7 +85,7 @@ internal partial class CGui
                 foreach(var e in layout.ElementsL)
                 {
                     if(IsKeyPressed(ECommons.WindowsFormsReflector.Keys.Shift) && !e.Enabled) continue;
-                    sb.AppendLine(EzConfig.DefaultSerializationFactory.Serialize(e, false));
+                    sb.AppendLine(e.Serialize());
                 }
                 Copy(sb.ToString());
             }

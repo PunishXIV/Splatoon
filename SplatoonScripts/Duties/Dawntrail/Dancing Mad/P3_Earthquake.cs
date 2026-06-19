@@ -109,6 +109,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ["Party marker", "Priority", "PF role/accretion", "Fixed role/accretion spots", "Fixed marker lanes"];
     private static readonly string[] MapMarkerNames = ["A", "B", "C", "D"];
     private static readonly string[] LineBaitDirectionNames = ["Clockwise", "Counterclockwise"];
+    private static readonly string[] FirstWindowBaitDirectionNames = ["Same as line bait direction", "Clockwise", "Counterclockwise"];
+    private static readonly string[] FirstPairAssignmentNames = ["Source order", "First slot nearest"];
     private static readonly string[] FirstOrbRoleNames = ["DPS", "Support"];
     private static readonly RolePosition[] DefaultRolePriority =
     [
@@ -145,8 +147,18 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     };
     private static readonly InternationalString LineBaitDirectionDescription = new()
     {
-        En = "Line bait direction controls where your bait marker is placed from the Black Hole that is currently tethered to you. Clockwise and Counterclockwise are relative to the arena center. In Fixed marker lanes, DPS/Support directions choose the source search order; this setting still controls the final bait offset.",
-        Jp = "Line bait direction は、自分に付いたブラックホールを基準に誘導先を時計回り/反時計回りのどちらへずらすかを決めます。方向はフィールド中央基準です。Fixed marker lanes では DPS/Support direction は線の探索順にだけ使い、最終的な線を引っ張る位置はこの設定で決まります。"
+        En = "Line bait direction controls where your bait marker is placed from the Black Hole that is currently tethered to you. Clockwise and Counterclockwise are relative to the arena center. In Fixed marker lanes, DPS/Support directions choose the source search order; this setting still controls the final bait offset except when the first-window override is used.",
+        Jp = "Line bait direction は、自分に付いたブラックホールを基準に誘導先を時計回り/反時計回りのどちらへずらすかを決めます。方向はフィールド中央基準です。Fixed marker lanes では DPS/Support direction は線の探索順にだけ使います。First window bait direction で別の方向を選んでいる場合を除き、実際に線を引っ張る位置はこの設定で決まります。"
+    };
+    private static readonly InternationalString FirstWindowBaitDirectionDescription = new()
+    {
+        En = "First window bait direction overrides only the bait position for the first Black Hole window. It does not change which Black Hole is selected.",
+        Jp = "最初のブラックホール window だけ、線を引っ張る誘導先方向を上書きします。取るブラックホール自体は変えません。"
+    };
+    private static readonly InternationalString FirstPairAssignmentDescription = new()
+    {
+        En = "First pair assignment controls how the first two-line Black Hole window selects sources. Source order uses the configured Black Hole source order. First slot nearest makes the first slot take the visible Black Hole closest to that player, and the second slot takes the other visible Black Hole.",
+        Jp = "First pair assignment は、最初に2本出るブラックホール window の線選択を決めます。Source order は設定した Black Hole source order を使います。First slot nearest は、1番目のスロットがそのプレイヤーに最も近いブラックホールを取り、2番目のスロットがもう片方を取ります。"
     };
     private static readonly InternationalString BlackHoleSourceOrderDescription = new()
     {
@@ -631,6 +643,14 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         if (DrawCombo("Line bait direction", ref direction, LineBaitDirectionNames, 180f))
             C.LineBaitDirection = (LineBaitDirection)Math.Clamp(direction, 0, 1);
         ImGui.TextWrapped(LineBaitDirectionDescription.Get());
+        var firstWindowDirection = (int)C.FirstWindowBaitDirection;
+        if (DrawCombo("First window bait direction", ref firstWindowDirection, FirstWindowBaitDirectionNames, 260f))
+            C.FirstWindowBaitDirection = (FirstWindowBaitDirection)Math.Clamp(firstWindowDirection, 0, FirstWindowBaitDirectionNames.Length - 1);
+        ImGui.TextWrapped(FirstWindowBaitDirectionDescription.Get());
+        var firstPairAssignment = (int)C.FirstPairAssignment;
+        if (DrawCombo("First pair assignment", ref firstPairAssignment, FirstPairAssignmentNames, 220f))
+            C.FirstPairAssignment = (FirstPairAssignment)Math.Clamp(firstPairAssignment, 0, FirstPairAssignmentNames.Length - 1);
+        ImGui.TextWrapped(FirstPairAssignmentDescription.Get());
 
         var sourceOrder = (int)C.BlackHoleSourceOrder;
         if (DrawCombo("Black Hole source order", ref sourceOrder, ["Clockwise", "Counterclockwise"], 180f))
@@ -1704,7 +1724,12 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private Vector3 BlackHoleStandPosition(Vector3 source)
     {
-        var side = C.LineBaitDirection == LineBaitDirection.Counterclockwise ? -1.0f : 1.0f;
+        var direction = _currentWindow == 0 && C.FirstWindowBaitDirection != FirstWindowBaitDirection.SameAsLineBaitDirection
+            ? C.FirstWindowBaitDirection == FirstWindowBaitDirection.Counterclockwise
+                ? LineBaitDirection.Counterclockwise
+                : LineBaitDirection.Clockwise
+            : C.LineBaitDirection;
+        var side = direction == LineBaitDirection.Counterclockwise ? -1.0f : 1.0f;
         var radius = _currentWindow == 9 ? LastBlackHoleGuideRadius : BlackHoleGuideRadius;
         var angle = DirectionAngle(source) + side * MathF.PI / 4.0f;
         var best = PositionFromDirectionAngle(angle, radius);
@@ -1767,6 +1792,9 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private int ExpectedBucket(Slot slot)
     {
+        if (TryFirstPairBucket(slot, out var firstPairBucket))
+            return firstPairBucket;
+
         var rank = ExpectedRank(slot, _currentWindow);
         if (C.AssignmentMode == AssignmentMode.FixedRoleAccretion)
             return ExpectedFixedSpotBucket(rank);
@@ -1774,6 +1802,46 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return ExpectedFixedMarkerLaneBucket(slot, rank);
         var buckets = OrderedActiveBuckets();
         return rank >= 0 && rank < buckets.Count ? buckets[rank] : -1;
+    }
+
+    private bool TryFirstPairBucket(Slot slot, out int bucket)
+    {
+        bucket = -1;
+        if (C.FirstPairAssignment != FirstPairAssignment.FirstSlotNearest || _currentWindow != 1 ||
+            slot is not (Slot.Attack1 or Slot.Attack2))
+            return false;
+
+        var activeBuckets = _tetherTargets.Keys.Where(_tetherSources.ContainsKey).ToList();
+        if (activeBuckets.Count != 2)
+            return false;
+
+        IPlayerCharacter? firstPlayer = null;
+        foreach (var player in Svc.Objects.OfType<IPlayerCharacter>())
+        {
+            if (!_groups.ContainsKey(player.EntityId)) continue;
+            if (TryResolveSlot(player, out var resolved, out _) && resolved == Slot.Attack1)
+            {
+                firstPlayer = player;
+                break;
+            }
+        }
+
+        if (firstPlayer == null)
+            return false;
+
+        var firstPosition = FlatPosition(firstPlayer.Position);
+        var firstBucket = activeBuckets
+            .OrderBy(activeBucket =>
+            {
+                var source = _tetherSources[activeBucket];
+                return Vector2.DistanceSquared(
+                    new Vector2(firstPosition.X, firstPosition.Z),
+                    new Vector2(source.X, source.Z));
+            })
+            .ThenBy(activeBucket => activeBucket)
+            .First();
+        bucket = slot == Slot.Attack1 ? firstBucket : activeBuckets.First(activeBucket => activeBucket != firstBucket);
+        return true;
     }
 
     private int ExpectedFixedSpotBucket(int rank)
@@ -1945,6 +2013,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             return "slot=none";
         if (rank < 0)
             return "not-assigned-this-window";
+        if (TryFirstPairBucket(slot, out var firstPairBucket))
+            return $"first-pair nearest expected={DirectionName(firstPairBucket)}";
         if (C.AssignmentMode == AssignmentMode.FixedMarkerLanes)
             return FixedMarkerLaneDecisionText(slot, rank);
         if (C.AssignmentMode == AssignmentMode.FixedRoleAccretion)
@@ -2469,6 +2539,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private enum TargetGroup { None, Attack, Bind, Stop }
     private enum Slot { None, Attack1, Attack2, Attack3, Bind1, Bind2, Bind3, Stop1, Stop2 }
     public enum LineBaitDirection { Clockwise, Counterclockwise }
+    public enum FirstWindowBaitDirection { SameAsLineBaitDirection = 0, Clockwise = 1, Counterclockwise = 2 }
+    public enum FirstPairAssignment { SourceOrder = 0, FirstSlotNearest = 1 }
     public enum BlackHoleSourceOrder { ClockwiseFromNorth = 0, CounterclockwiseFromNorth = 1 }
     public enum BlackHoleOrderAnchor { KefkaPosition = 0, ArenaNorth = 1 }
     public enum FirstOrbRole { Dps = 0, Support = 1 }
@@ -2482,6 +2554,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         public AssignmentMode AssignmentMode = AssignmentMode.PartyMarker;
         public FirstOrbRole FirstOrbRole = FirstOrbRole.Dps;
         public LineBaitDirection LineBaitDirection = LineBaitDirection.Clockwise;
+        public FirstWindowBaitDirection FirstWindowBaitDirection = FirstWindowBaitDirection.SameAsLineBaitDirection;
+        public FirstPairAssignment FirstPairAssignment = FirstPairAssignment.SourceOrder;
         public BlackHoleSourceOrder BlackHoleSourceOrder = BlackHoleSourceOrder.ClockwiseFromNorth;
         public BlackHoleOrderAnchor BlackHoleOrderAnchor = BlackHoleOrderAnchor.KefkaPosition;
         public FinalInitialBaitMode FinalInitialBaitMode = FinalInitialBaitMode.Center;
@@ -2545,6 +2619,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             AssignmentMode = NormalizeAssignmentMode(AssignmentMode);
             FirstOrbRole = (FirstOrbRole)Math.Clamp((int)FirstOrbRole, 0, FirstOrbRoleNames.Length - 1);
             LineBaitDirection = (LineBaitDirection)Math.Clamp((int)LineBaitDirection, 0, 1);
+            FirstWindowBaitDirection = (FirstWindowBaitDirection)Math.Clamp((int)FirstWindowBaitDirection, 0, FirstWindowBaitDirectionNames.Length - 1);
+            FirstPairAssignment = (FirstPairAssignment)Math.Clamp((int)FirstPairAssignment, 0, FirstPairAssignmentNames.Length - 1);
             DpsLineBaitDirection = ClampLineBaitDirection(DpsLineBaitDirection);
             SupportLineBaitDirection = ClampLineBaitDirection(SupportLineBaitDirection);
             AccretionLineBaitDirection = ClampLineBaitDirection(AccretionLineBaitDirection);

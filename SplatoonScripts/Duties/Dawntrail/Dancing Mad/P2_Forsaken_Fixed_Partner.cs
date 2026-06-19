@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(12, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(13, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -206,17 +206,29 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             var eName = $"{kind}{i}";
             if(Controller.TryGetElementByName(eName, out var e) && !e.Enabled)
             {
-                if(id.TryGetPlayer(out var p) && (p.AddressEquals(BasePlayer) || (C.MyPartner.GetPlayer(x => true)?.IGameObject?.ObjectId == id)))
+                if(id.TryGetPlayer(out var p))
                 {
-                    //
+                    bool shouldShow;
+                    if(C.SouthAdjusts && TemporaryPartnerOverride != null)
+                    {
+                        shouldShow = id == TemporaryPartnerOverride.Value;
+                    }
+                    else
+                    {
+                        shouldShow = C.MyPartner.GetPlayer(x => true)?.IGameObject?.ObjectId == id;
+                    }
+                    if((p.AddressEquals(BasePlayer) || (shouldShow)))
+                    {
+                        //
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                    e.Enabled = true;
+                    e.refActorObjectID = id;
+                    return;
                 }
-                else
-                {
-                    continue;
-                }
-                e.Enabled = true;
-                e.refActorObjectID = id;
-                return;
             }
         }
     }
@@ -338,6 +350,12 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                 }
                 if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
                 {
+                    if(C.SouthAdjusts && SequenceCount > 1 && TemporaryAdjustOverride != null && TemporaryPartnerOverride?.TryGetPlayer(out var tempPartner) == true && TemporaryIsLeftTower != null)
+                    {
+                        isCone = TemporaryIsLeftTower.Value;
+                        doAdjust = TemporaryAdjustOverride.Value && MustAdjust(partner);
+                        if(doAdjust) isCone = !isCone;
+                    }
                     if(ShowRotatedLayout($"1357_{(isCone ? "Left" : "Right")}", isCone, out var l))
                     {
                         l.Enabled = true;

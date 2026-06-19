@@ -223,8 +223,6 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private uint _kefkaId;
     private Vector3? _kefkaPosition;
     private readonly List<Vector3> _finalTowerPositions = [];
-    private Vector3? _finalFootAnchorPosition;
-    private string _finalFootAnchorDebug = "";
     private uint _selfTetherTarget => _selfBlackHoleTask?.Target ?? 0;
     private int _currentWindow = -1;
     private int _fixedLaneSetStartWindow = -1;
@@ -243,7 +241,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _instruction = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(39, "Garume");
+    public override Metadata Metadata => new(40, "Garume");
 
     public override void OnSetup()
     {
@@ -305,7 +303,6 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         RefreshBasePlayerState();
         var packetRotation = packet == null ? (float?)null : packet->Rotation;
         UpdateKefkaAnchor(source, castId, packetRotation);
-        ObserveFinalAnchor(source, castId, packetRotation);
         ObserveFinalTowerSource(source.GetObject(), null, castId, origin);
 
         if (castId is UltimateEmbrace or BowelsOfAgony)
@@ -733,7 +730,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         ImGui.TextWrapped($"KefkaCandidates={KefkaCandidateText()}");
         ImGui.TextUnformatted($"Final={_finalStage} Landing={_landingCount} Markers={_finalStackMarkerCount} FirstStack={_firstFinalStackRole} SecondStack={_secondFinalStackRole} CurrentStack={_currentFinalStackRole}");
         ImGui.TextUnformatted($"FinalDondokoHits={_finalDondokoHitCount}");
-        ImGui.TextUnformatted($"FinalAnchor={FinalAnchorDebugText()} FinalPairAnchor={FinalPairAnchorDebugText()} Towers={FinalTowerDebugText()}");
+        ImGui.TextUnformatted($"FinalPairAnchor={FinalPairAnchorDebugText()} Towers={FinalTowerDebugText()}");
         if (!string.IsNullOrWhiteSpace(_guideDebug))
             ImGui.TextUnformatted(_guideDebug);
         ImGui.Unindent();
@@ -1201,7 +1198,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             ? FinalStackRole.Support
             : FinalStackRole.Dps;
         var goNorth = ownStackRole == northRole;
-        var angle = NormalizeAngle(FinalFootAnchorAngle() + (goNorth ? 0.0f : MathF.PI));
+        var angle = NormalizeAngle(OrderAnchorAngle() + (goNorth ? 0.0f : MathF.PI));
         destination = PositionFromDirectionAngle(angle, FinalInitialSplitRadius);
         text = TextOrEmpty(C.ShowFinalRoleSplitText, C.FinalRoleSplitText, ownStackRole == FinalStackRole.Support ? "Support" : "DPS");
         return true;
@@ -1340,8 +1337,6 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         _finalStackMarkerCount = 0;
         _finalDondokoHitCount = 0;
         _finalTowerPositions.Clear();
-        _finalFootAnchorPosition = null;
-        _finalFootAnchorDebug = "";
     }
 
     private void ClearBlackHoleState()
@@ -1551,52 +1546,6 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             CaptureKefka(obj, force);
     }
 
-    private void ObserveFinalAnchor(uint source, uint actionId, float? packetRotation)
-    {
-        if (actionId == DondokoCast)
-        {
-            if (TryCaptureFinalDondokoAnchor(source, packetRotation))
-                return;
-            if (source.GetObject() is { } obj && IsKefkaAnchorObject(obj))
-                FreezeFinalFootAnchor(FlatPosition(obj.Position), $"source-{Describe(source)}", force: true);
-            else if (TryCaptureFinalAnchorFromRotation(source, packetRotation))
-                return;
-        }
-
-        if (_finalFootAnchorPosition.HasValue || actionId is not (LateP3Blizzaga or DondokoCast or LandingCast))
-            return;
-        if (TryGetKefkaPosition(out var position))
-            FreezeFinalFootAnchor(position, string.IsNullOrWhiteSpace(_kefkaAnchorDebug) ? $"cached-{actionId}" : _kefkaAnchorDebug);
-    }
-
-    private bool TryCaptureFinalDondokoAnchor(uint source, float? packetRotation)
-    {
-        float rotation;
-        if (source.GetObject() is { } obj)
-        {
-            if (obj.DataId != FinalDondokoDataId)
-                return false;
-            rotation = obj.Rotation;
-        }
-        else if (!TryGetKefkaAnchorRotation(source, packetRotation, out rotation))
-            return false;
-
-        var angle = NormalizeAngle(rotation + MathF.PI);
-        FreezeFinalFootAnchor(PositionFromDirectionAngle(angle, KefkaVirtualAnchorRadius),
-            $"dondoko-19504-rotation {Deg(rotation):F1}+180", force: true);
-        return true;
-    }
-
-    private bool TryCaptureFinalAnchorFromRotation(uint source, float? packetRotation)
-    {
-        if (!TryGetKefkaAnchorRotation(source, packetRotation, out var rotation))
-            return false;
-
-        var angle = NormalizeAngle(rotation - MathF.PI / 2.0f);
-        FreezeFinalFootAnchor(PositionFromDirectionAngle(angle, KefkaVirtualAnchorRadius), $"rotation-fallback {Deg(rotation):F1}-90");
-        return true;
-    }
-
     private void ObserveFinalTowerSource(IGameObject? source, Vector3? eventPosition, uint actionId, string origin)
     {
         if (actionId is not (DondokoHit or TowerImpact))
@@ -1667,11 +1616,8 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return !float.IsNaN(offset);
     }
 
-    private float OrderAnchorAngle() => C.BlackHoleOrderAnchor switch
-    {
-        BlackHoleOrderAnchor.KefkaPosition when TryGetKefkaPosition(out var kefka) => DirectionAngle(kefka),
-        _ => 0.0f
-    };
+    private float OrderAnchorAngle() =>
+        TryGetKefkaPosition(out var kefka) ? DirectionAngle(kefka) : 0.0f;
 
     private float SourceAngle(int bucket) =>
         _tetherSources.TryGetValue(bucket, out var source) ? DirectionAngle(source) : BucketAngle(bucket);
@@ -1681,12 +1627,9 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             ? NormalizeAngle(sourceAngle - anchorAngle)
             : NormalizeAngle(anchorAngle - sourceAngle);
 
-    private string OrderAnchorDebugText() => C.BlackHoleOrderAnchor switch
-    {
-        BlackHoleOrderAnchor.KefkaPosition when TryGetKefkaPosition(out var pos) =>
-            $"{(string.IsNullOrWhiteSpace(_kefkaAnchorDebug) ? "Kefka" : _kefkaAnchorDebug)}({pos.X:F1},{pos.Z:F1})",
-        _ => "N"
-    };
+    private string OrderAnchorDebugText() => TryGetKefkaPosition(out var pos)
+        ? $"{(string.IsNullOrWhiteSpace(_kefkaAnchorDebug) ? "Kefka" : _kefkaAnchorDebug)}({pos.X:F1},{pos.Z:F1})"
+        : "N";
 
     private static Vector3 FlatPosition(Vector3 position) => new(position.X, 0.0f, position.Z);
 
@@ -2241,34 +2184,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             : _finalTowerPositions.OrderBy(position => AngleDistance(DirectionAngle(position), angle)).First();
     }
 
-    private float FinalFootAnchorAngle()
-    {
-        if (!_finalFootAnchorPosition.HasValue)
-        {
-            if (TryGetKefkaPosition(out var position))
-                FreezeFinalFootAnchor(position, string.IsNullOrWhiteSpace(_kefkaAnchorDebug) ? "lazy-cached" : _kefkaAnchorDebug);
-        }
-
-        return _finalFootAnchorPosition is { } anchor ? DirectionAngle(anchor) : 0.0f;
-    }
-
     private float FinalPairAnchorAngle() => OrderAnchorAngle();
-
-    private void FreezeFinalFootAnchor(Vector3 position, string reason, bool force = false)
-    {
-        if (_finalFootAnchorPosition is { } old)
-        {
-            if (!force || Vector3.DistanceSquared(old, position) <= 0.25f)
-                return;
-        }
-
-        _finalFootAnchorPosition = position;
-        _finalFootAnchorDebug = reason;
-    }
-
-    private string FinalAnchorDebugText() => _finalFootAnchorPosition is { } anchor
-        ? $"{_finalFootAnchorDebug}({anchor.X:F1},{anchor.Z:F1})"
-        : "N fallback";
 
     private string FinalPairAnchorDebugText() => $"blackhole-order {OrderAnchorDebugText()}";
 

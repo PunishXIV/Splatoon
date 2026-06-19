@@ -8,6 +8,7 @@ using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
@@ -24,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(11, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(12, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -119,39 +120,52 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             if(set.Action.Value.RowId == ActionTowerExplode)
             {
                 TowerCount++;
+                //PluginLog.Information("1");
                 try
                 {
-                    if(set.Target is IPlayerCharacter)
+                    foreach(var obj in set.TargetEffects.Select(x => ((uint)x.TargetID).GetObject()).Where(x => x != null))
                     {
-                        HitPlayers.Add(set.Target.ObjectId);
-                        if(HitPlayers.Count == 4 && HitPlayers.TakeLast(4).Contains(BasePlayer.ObjectId))
+                        if(obj is IPlayerCharacter)
                         {
-                            Dictionary<int, List<IPlayerCharacter>> groups = [];
-                            foreach(var x in HitPlayers.TakeLast(4))
+                            //PluginLog.Information("2");
+                            HitPlayers.Add(obj.ObjectId);
+                            if(HitPlayers.Count >= 4)
                             {
-                                if(x.TryGetPlayer(out var pc))
+                                if(HitPlayers.TakeLast(4).Contains(BasePlayer.ObjectId))
                                 {
-                                    groups.GetOrCreate(GetTowerByPosition(pc.Position.ToVector2()), () => []).Add(pc);
+                                    Dictionary<int, List<IPlayerCharacter>> groups = [];
+                                    foreach(var x in HitPlayers.TakeLast(4))
+                                    {
+                                        if(x.TryGetPlayer(out var pc))
+                                        {
+                                            groups.GetOrCreate(GetTowerByPosition(pc.Position.ToVector2()), () => []).Add(pc);
+                                        }
+                                    }
+                                    var myPartner = groups.FirstOrDefault(x => x.Value.Any(g => g.AddressEquals(BasePlayer))).Value?.FirstOrDefault(x => !x.AddressEquals(BasePlayer));
+                                    if(myPartner != null)
+                                    {
+                                        TemporaryPartnerOverride = myPartner.ObjectId;
+                                        TemporaryAdjustOverride = Vector2.Distance(BasePlayer.Position.ToVector2(), new(100, 100)) > Vector2.Distance(myPartner.Position.ToVector2(), new(100, 100));
+                                    }
+                                    PluginLog.Information($"""
+                                Groups:
+                                {groups.Select(x => $"{x.Key}: {x.Value.Print()}").Print("\n")}
+                                """);
+                                    var t = groups.Keys.Order().ToList();
+                                    if(t.Count == 2)
+                                    {
+                                        var myTower = groups.FirstOrDefault(x => x.Value.Any(s => s.AddressEquals(BasePlayer))).Key;
+                                        if(Math.Abs(t[0] - t[1]) == 2)
+                                        {
+                                            TemporaryIsLeftTower = myTower == t[1];
+                                        }
+                                        else
+                                        {
+                                            TemporaryIsLeftTower = myTower == t[0];
+                                        }
+                                    }
                                 }
-                            }
-                            var myPartner = groups.FirstOrDefault(x => x.Value.Any(g => g.AddressEquals(BasePlayer))).Value?.FirstOrDefault(x => !x.AddressEquals(BasePlayer));
-                            if(myPartner != null)
-                            {
-                                TemporaryPartnerOverride = myPartner.ObjectId;
-                                TemporaryAdjustOverride = Vector2.Distance(BasePlayer.Position.ToVector2(), new(100, 100)) > Vector2.Distance(myPartner.Position.ToVector2(), new(100, 100));
-                            }
-                            var t = groups.Keys.Order().ToList();
-                            if(t.Count == 2)
-                            {
-                                var myTower = groups.FirstOrDefault(x => x.Value.Any(s => s.AddressEquals(BasePlayer))).Key;
-                                if(Math.Abs(t[0] - t[1]) == 2)
-                                {
-                                    TemporaryIsLeftTower = myTower == t[1];
-                                }
-                                else
-                                {
-                                    TemporaryIsLeftTower = myTower == t[0];
-                                }
+                                HitPlayers.Clear();
                             }
                         }
                     }
@@ -532,6 +546,8 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             {
                 GenericHelpers.Paste().Split("|").Select(x => uint.Parse(x)).Each(x => ActiveMapEffects.Push(x));
             }
+            ImGuiEx.Text($"TemporaryIsLeftTower: {TemporaryIsLeftTower}");
+            ImGuiEx.Text($"TemporaryPartnerOverride: {TemporaryPartnerOverride?.GetObject()}");
             ImGui.InputUInt("Tower count", ref TowerCount);
             ImGuiEx.Checkbox("First taker", ref FirstTaker);
             ImGui.SameLine();

@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(13, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(14, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -120,7 +120,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             if(set.Action.Value.RowId == ActionTowerExplode)
             {
                 TowerCount++;
-                //PluginLog.Information("1");
+                PluginLog.Information($"Tower explosion at {set.Source?.Position}");
                 try
                 {
                     foreach(var obj in set.TargetEffects.Select(x => ((uint)x.TargetID).GetObject()).Where(x => x != null))
@@ -128,17 +128,18 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                         if(obj is IPlayerCharacter)
                         {
                             //PluginLog.Information("2");
-                            HitPlayers.Add(obj.ObjectId);
+                            HitPlayers.Add(new(obj.ObjectId, GetTowerByPosition(set.Source!.Position.ToVector2())));
                             if(HitPlayers.Count >= 4)
                             {
-                                if(HitPlayers.TakeLast(4).Contains(BasePlayer.ObjectId))
+                                if(HitPlayers.TakeLast(4).Select(x => x.ObjectId).Contains(BasePlayer.ObjectId))
                                 {
                                     Dictionary<int, List<IPlayerCharacter>> groups = [];
                                     foreach(var x in HitPlayers.TakeLast(4))
                                     {
-                                        if(x.TryGetPlayer(out var pc))
+                                        if(x.ObjectId.TryGetPlayer(out var pc))
                                         {
-                                            groups.GetOrCreate(GetTowerByPosition(pc.Position.ToVector2()), () => []).Add(pc);
+                                            groups.GetOrCreate(x.Tower, () => []).Add(pc);
+                                            PluginLog.Information($"Player {pc} position {x.Tower}");
                                         }
                                     }
                                     var myPartner = groups.FirstOrDefault(x => x.Value.Any(g => g.AddressEquals(BasePlayer))).Value?.FirstOrDefault(x => !x.AddressEquals(BasePlayer));
@@ -148,9 +149,9 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                                         TemporaryAdjustOverride = Vector2.Distance(BasePlayer.Position.ToVector2(), new(100, 100)) > Vector2.Distance(myPartner.Position.ToVector2(), new(100, 100));
                                     }
                                     PluginLog.Information($"""
-                                Groups:
-                                {groups.Select(x => $"{x.Key}: {x.Value.Print()}").Print("\n")}
-                                """);
+                                        Groups:
+                                        {groups.Select(x => $"{x.Key}: {x.Value.Print()}").Print("\n")}
+                                        """);
                                     var t = groups.Keys.Order().ToList();
                                     if(t.Count == 2)
                                     {
@@ -235,7 +236,9 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
 
     private CircularArray<uint> ActiveMapEffects = new(2);
     private List<PairInfo> TowerPairs = [];
-    private List<uint> HitPlayers = [];
+    private List<HitPlayer> HitPlayers = [];
+
+    readonly record struct HitPlayer(uint ObjectId, int Tower);
 
     public readonly record struct PairInfo(bool IsLeft, uint Player1, uint Player2);
 
@@ -244,6 +247,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         if(MapEffect2TowerPos.ContainsKey(position) && data1 == 1)
         {
             ActiveMapEffects.Push(position);
+            PluginLog.Information($"Mapeffect: {position}");
         }
     }
 

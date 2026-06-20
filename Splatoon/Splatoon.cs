@@ -788,6 +788,8 @@ public unsafe class Splatoon : IDalamudPlugin
     public void BeginS2W(object cls, string x, string y, string z)
     {
         s2wInfo = new(cls, x, y, z);
+        var coords = s2wInfo.GetValues();
+        Utils.SetCursorTo(coords.x, coords.z, coords.y);
     }
 
     internal void ProcessS2W()

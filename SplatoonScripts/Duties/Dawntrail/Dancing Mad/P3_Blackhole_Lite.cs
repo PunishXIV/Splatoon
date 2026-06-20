@@ -17,7 +17,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 {
-    public override Metadata Metadata { get; } = new(6, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(7, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop = [new("CarDir0", x => x.ToString()), new("CarDir1", x => x.ToString()), new("CarDir2", x => x.ToString())];
@@ -82,25 +82,28 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         if(C.UseKefkaRelative)
         {
             var tethers = GetTetheredOrderedBlackholes();
-            var seq = C.Takers.SafeSelect((int)Sequence);
-            var isTaker = false;
-            if(seq != null && GetMyRole() != Taker.None)
+            if(tethers.Count > 0)
             {
-                for(int i = 0; i < tethers.Count; i++)
+                var seq = C.Takers.SafeSelect((int)Sequence);
+                var isTaker = false;
+                if(seq != null && GetMyRole() != Taker.None)
                 {
-                    var current = seq[i];
-                    if(current == GetMyRole())
+                    for(int i = 0; i < tethers.Count; i++)
                     {
-                        var myHole = tethers.CircularSelect((int)(C.ClockwiseNumber[i]) - 1);
-                        if(!DrawHole(ref numElements, myHole.Value.Object)) valid = false;
-                        myHoles.Add(myHole.Value.Object);
-                        isTaker = true;
+                        var current = seq[i];
+                        if(current == GetMyRole())
+                        {
+                            var myHole = tethers.CircularSelect((int)(C.ClockwiseNumber[i]) - 1);
+                            if(!DrawHole(ref numElements, myHole.Value.Object)) valid = false;
+                            myHoles.Add(myHole.Value.Object);
+                            isTaker = true;
+                        }
                     }
                 }
-            }
-            if(!isTaker && tethers.Count > 0)
-            {
-                DrawIdle();
+                if(!isTaker && tethers.Count > 0)
+                {
+                    DrawIdle();
+                }
             }
         }
         else
@@ -374,8 +377,10 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 
     public OrderedDictionary<CardinalDirection, EnumerationResult<IBattleNpc>> GetTetheredOrderedBlackholes()
     {
+        var bh = GetTetheredBlackholes();
+        if(bh.Count == 0) return [];
         var ret = new OrderedDictionary<CardinalDirection, EnumerationResult<IBattleNpc>>();
-        foreach(var x in MathHelper.EnumerateObjectsClockwiseEx(GetTetheredBlackholes(), x => x.Value.Position.ToVector2(), new(100, 100), -Gigakefka.Rotation.RadToDeg() - 5))
+        foreach(var x in MathHelper.EnumerateObjectsClockwiseEx(bh, x => x.Value.Position.ToVector2(), new(100, 100), -Gigakefka.Rotation.RadToDeg() - 5))
         {
             ret.Add(x.Object.Key, new(x.Object.Value, x.AngleDegrees));
         }

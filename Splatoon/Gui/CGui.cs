@@ -308,18 +308,4 @@ internal unsafe partial class CGui : ConfigWindow
         var base64 = json.ToBase64UrlSafe();
         ImGui.SetClipboardText(ImGui.GetIO().KeyAlt ? jsonraw : ImGui.GetIO().KeyCtrl ? HttpUtility.UrlEncode(json) : compressed.Length > base64.Length ? base64 : compressed);
     }
-
-    private void SetCursorTo(float refX, float refZ, float refY)
-    {
-        if(Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos) && WindowFunctions.TryFindGameWindow(out var handle))
-        {
-            var point = new POINT() { x = (int)screenPos.X, y = (int)screenPos.Y };
-            //Chat.Print(point.X + "/" + point.Y);
-            if(TerraFX.Interop.Windows.Windows.ClientToScreen(handle, &point))
-            {
-                //Chat.Print(point.X + "/" + point.Y);
-                TerraFX.Interop.Windows.Windows.SetCursorPos(point.x, point.y);
-            }
-        }
-    }
 }

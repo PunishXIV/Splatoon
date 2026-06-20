@@ -1631,7 +1631,6 @@ internal unsafe partial class CGui
                     ImGui.SameLine(0, 2);
                     if(ImGuiEx.IconButton(FontAwesomeIcon.MousePointer, "Screen2World" + "##dist"))
                     {
-                        SetCursorTo(x, y, z);
                         P.BeginS2W(coordinatesHolder, nameX, nameY, useZ?nameZ:null);
                     }
                 }

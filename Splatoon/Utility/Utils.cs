@@ -5,6 +5,7 @@ using Dalamud.Utility;
 using ECommons;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.Interop;
 using ECommons.LanguageHelpers;
 using ECommons.MathHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -19,6 +20,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using TerraFX.Interop.Windows;
 using S = Splatoon.Services.S;
 #nullable enable
 
@@ -26,6 +28,20 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static void SetCursorTo(float refX, float refZ, float refY)
+    {
+        if(Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos) && WindowFunctions.TryFindGameWindow(out var handle))
+        {
+            var point = new POINT() { x = (int)screenPos.X, y = (int)screenPos.Y };
+            //Chat.Print(point.X + "/" + point.Y);
+            if(TerraFX.Interop.Windows.Windows.ClientToScreen(handle, &point))
+            {
+                //Chat.Print(point.X + "/" + point.Y);
+                TerraFX.Interop.Windows.Windows.SetCursorPos(point.x, point.y);
+            }
+        }
+    }
+
     internal static void Reset()
     {
         var phase = Splatoon.P.Phase;

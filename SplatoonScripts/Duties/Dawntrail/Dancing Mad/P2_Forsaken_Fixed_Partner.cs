@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(14, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(15, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -354,7 +354,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
                 }
                 if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
                 {
-                    if(C.SouthAdjusts && SequenceCount > 1 && TemporaryAdjustOverride != null && TemporaryPartnerOverride?.TryGetPlayer(out var tempPartner) == true && TemporaryIsLeftTower != null)
+                    if(C.SouthAdjusts && SequenceCount > 1 && TemporaryAdjustOverride != null && TemporaryPartnerOverride?.TryGetPlayer(out var tempPartner) == true && TemporaryIsLeftTower != null && IsStack(BasePlayer))
                     {
                         isCone = TemporaryIsLeftTower.Value;
                         doAdjust = TemporaryAdjustOverride.Value && MustAdjust(partner);

@@ -26,6 +26,7 @@ public class Layout
     public List<LayoutSubconfiguration> Subconfigurations = [];
     [DefaultValue("")] public string DefaultConfigurationName = "";
     public Guid SelectedSubconfigurationID = Guid.Empty;
+    [DefaultValue(false)] public bool Nodraw = false;
 
     /// <summary>
     /// 0: Always shown <br />

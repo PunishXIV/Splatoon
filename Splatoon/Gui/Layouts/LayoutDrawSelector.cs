@@ -17,7 +17,7 @@ internal static class LayoutDrawSelector
     internal static Element CurrentElement = null;
     internal static void DrawSelector(this Layout layout, string group, int index)
     {
-        if(CGui.LayoutFilter != "" && !layout.GetName().Contains(CGui.LayoutFilter, StringComparison.OrdinalIgnoreCase))
+        if(CGui.LayoutFilter != "" && !layout.GetDisplayName().Contains(CGui.LayoutFilter, StringComparison.OrdinalIgnoreCase))
         {
             scroll();
             return;
@@ -61,7 +61,7 @@ internal static class LayoutDrawSelector
                 ImGui.SetScrollHereY();
                 CGui.ScrollTo = null;
             }
-            if(ImGui.Selectable($"{layout.GetName()}", CurrentLayout == layout))
+            if(ImGui.Selectable($"{layout.GetDisplayName()}", CurrentLayout == layout))
             {
                 if(CurrentLayout == layout && CurrentElement == null)
                 {
@@ -97,7 +97,7 @@ internal static class LayoutDrawSelector
                     if(ImGui.BeginDragDropSource())
                     {
                         ImGuiDragDrop.SetDragDropPayload("MoveLayout", index);
-                        ImGuiEx.Text($"Moving layout\n??".Loc(layout.GetName()));
+                        ImGuiEx.Text($"Moving layout\n??".Loc(layout.GetDisplayName()));
                         ImGui.EndDragDropSource();
                     }
                     if(ImGui.BeginDragDropTarget())
@@ -125,7 +125,7 @@ internal static class LayoutDrawSelector
             }
             if(ImGui.BeginPopup("LayoutContext"))
             {
-                ImGuiEx.Text($"Layout ??".Loc(layout.GetName()));
+                ImGuiEx.Text($"Layout ??".Loc(layout.GetDisplayName()));
                 if(ImGui.Selectable("Archive layout".Loc()))
                 {
                     P.Archive.LayoutsL.Add(layout.JSONClone());
@@ -185,7 +185,7 @@ internal static class LayoutDrawSelector
             if(ImGui.BeginDragDropSource())
             {
                 ImGuiDragDrop.SetDragDropPayload($"MoveElement{layoutIndex}", i);
-                ImGuiEx.Text($"Moving element\n??".Loc(layout.GetName()));
+                ImGuiEx.Text($"Moving element\n??".Loc(layout.GetDisplayName()));
                 ImGui.EndDragDropSource();
             }
             if(ImGui.BeginDragDropTarget())
@@ -206,7 +206,7 @@ internal static class LayoutDrawSelector
             }
             if(ImGui.BeginPopup("ElementContext"))
             {
-                ImGuiEx.Text($"{"Layout".Loc()} {layout.GetName()}\n{"Element".Loc()} {e.GetName(layout)}");
+                ImGuiEx.Text($"{"Layout".Loc()} {layout.GetDisplayName()}\n{"Element".Loc()} {e.GetName(layout)}");
                 if(ImGui.Selectable("Delete element".Loc()))
                 {
                     var l = layout.GetElementsWithSubconfiguration();

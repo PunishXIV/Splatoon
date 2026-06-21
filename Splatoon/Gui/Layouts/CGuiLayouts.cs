@@ -127,7 +127,7 @@ internal partial class CGui
             if(ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
             {
                 ImGui.TableSetupColumn("Layout list".Loc() + "###Layout id", ImGuiTableColumnFlags.None, 200);
-                ImGui.TableSetupColumn($"{(CurrentLayout == null ? "" : $"{CurrentLayout.GetName()}") + (CurrentElement == null ? "" : $" | {CurrentElement.GetName()}")}###Layout edit", ImGuiTableColumnFlags.None, 600);
+                ImGui.TableSetupColumn($"{(CurrentLayout == null ? "" : $"{CurrentLayout.GetDisplayName()}") + (CurrentElement == null ? "" : $" | {CurrentElement.GetName()}")}###Layout edit", ImGuiTableColumnFlags.None, 600);
 
                 //ImGui.TableHeadersRow();
 
@@ -182,7 +182,7 @@ internal partial class CGui
                         if(CGui.AddEmptyLayout(out var newLayout))
                         {
                             ImGui.CloseCurrentPopup();
-                            Notify.Success($"Layout created: ??".Loc(newLayout.GetName()));
+                            Notify.Success($"Layout created: ??".Loc(newLayout.GetDisplayName()));
                             ScrollTo = newLayout;
                             CurrentLayout = newLayout;
                         }
@@ -276,7 +276,7 @@ internal partial class CGui
             {
                 var g = Splatoon.P.Config.GroupOrder[i];
                 if(LayoutFilter != "" &&
-                    !Splatoon.P.Config.LayoutsL.Any(x => x.Group == g && x.GetName().Contains(LayoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
+                    !Splatoon.P.Config.LayoutsL.Any(x => x.Group == g && x.GetDisplayName().Contains(LayoutFilter, StringComparison.OrdinalIgnoreCase))) continue;
 
                 if(FilteredTerritory == 0)
                 {

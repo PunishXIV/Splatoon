@@ -154,6 +154,12 @@ internal partial class CGui
             layout.InternationalName.ImGuiEdit(ref layout.Name);
 
             ImGui.TableNextColumn();
+            ImGuiEx.TextV("No draw:".Loc());
+            ImGui.TableNextColumn();
+            ImGui.Checkbox("##nodraw", ref layout.Nodraw);
+            ImGuiEx.HelpMarker("Layout won't be rendered. It will still be processed.");
+
+            ImGui.TableNextColumn();
             ImGuiEx.TextV("Display conditions:".Loc());
             ImGui.TableNextColumn();
             ImGuiEx.SetNextItemFullWidth();
@@ -226,10 +232,10 @@ internal partial class CGui
             ImGui.TableNextColumn();
             ImGui.Checkbox("Freeze".Loc(), ref layout.Freezing);
             ImGuiComponents.HelpMarker(
-@"Freeze is an advanced setting that can have negative side effects.
-When the requirements to display an element are met,
-a new element is created and frozen in place and displayed for a duration.
-New frozen elements are created every refreeze interval.".Loc());
+                @"Freeze is an advanced setting that can have negative side effects.
+                When the requirements to display an element are met,
+                a new element is created and frozen in place and displayed for a duration.
+                New frozen elements are created every refreeze interval.".Loc());
             ImGui.TableNextColumn();
             layout.DrawFreezing();
 

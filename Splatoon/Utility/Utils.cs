@@ -828,7 +828,7 @@ public static unsafe class Utils
                     }
                     P.Config.LayoutsL.Add(l);
                     CGui.ScrollTo = l;
-                    if(!silent) Notify.Success($"Layout version 2\n{l.GetName()}");
+                    if(!silent) Notify.Success($"Layout version 2\n{l.GetDisplayName()}");
                     layouts.Add(l);
                 }
                 else
@@ -937,7 +937,7 @@ public static unsafe class Utils
     public static void ExportToClipboard(this Layout l)
     {
         ImGui.SetClipboardText(l.Serialize());
-        Notify.Success($"{l.GetName()} copied to clipboard.");
+        Notify.Success($"{l.GetDisplayName()} copied to clipboard.");
     }
 
     public static string Serialize(this Layout l)
@@ -954,6 +954,20 @@ public static unsafe class Utils
     public static string Serialize(this Element l)
     {
         return JsonConvert.SerializeObject(l, Formatting.None, new JsonSerializerSettings { DefaultValueHandling = DefaultValueHandling.Ignore });
+    }
+
+    public static string GetDisplayName(this Layout l)
+    {
+        return $"{(l.Nodraw ? "Ø" : "")}{l.GetName()}";
+    }
+
+    public static bool ShouldSkipDraw(this Element e, Layout l)
+    {
+        if(l != null)
+        {
+            return l.Nodraw || e.Nodraw;
+        }
+        return e.Nodraw;
     }
 
     public static string GetName(this Layout l)

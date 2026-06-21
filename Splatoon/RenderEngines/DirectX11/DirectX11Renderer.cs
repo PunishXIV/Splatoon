@@ -56,7 +56,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             cx = rotatedPoint.X;
             cy = rotatedPoint.Y;
         }
-        if(e.tether && !e.Nodraw && P.Draw)
+        if(e.tether && !e.ShouldSkipDraw(layout) && P.Draw)
         {
             Vector3 origin = new(cx, z + e.offZ, cy);
             var end = Utils.XZY(Utils.GetPlayerPositionXZY());
@@ -70,7 +70,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
         {
             AddCapturedObject(layout, e, new Vector3(cx, z + e.offZ, cy));
         }
-        if(e.Nodraw || !P.Draw) return;
+        if(e.ShouldSkipDraw(layout) || !P.Draw) return;
         if(!LayoutUtils.ShouldDraw(cx, Utils.GetPlayerPositionXZY().X, cy, Utils.GetPlayerPositionXZY().Y)) return;
         if(r > 0)
         {
@@ -121,7 +121,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
             {
                 AddCapturedObject(layout, e, new Vector3(center.X, center.Z, center.Y));
             }
-            if(e.Nodraw || !P.Draw) return;
+            if(e.ShouldSkipDraw(layout) || !P.Draw) return;
             if(!LayoutUtils.ShouldDraw(center.X, Utils.GetPlayerPositionXZY().X, center.Z, Utils.GetPlayerPositionXZY().Y)) return;
             float innerRadius = 0;
             var outerRadius = radius ?? e.radius;
@@ -130,7 +130,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 innerRadius = outerRadius;
                 outerRadius = innerRadius + e.Donut;
             }
-            if(e.tether && !e.Nodraw && P.Draw)
+            if(e.tether && !e.ShouldSkipDraw(layout) && P.Draw)
             {
                 var end = Utils.XZY(Utils.GetPlayerPositionXZY());
                 if(e.ExtraTetherLength > 0)
@@ -156,7 +156,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
-                if(e.Nodraw || !P.Draw) return;
+                if(e.ShouldSkipDraw(layout) || !P.Draw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
                 DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), pointA.X, pointA.Y, pointA.Z,
@@ -180,7 +180,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
-                if(e.Nodraw || !P.Draw) return;
+                if(e.ShouldSkipDraw(layout) || !P.Draw) return;
 
                 if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;
@@ -199,7 +199,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(pointA.X, pointA.Z, pointA.X));
                 }
-                if(e.Nodraw || !P.Draw) return;
+                if(e.ShouldSkipDraw(layout) || !P.Draw) return;
                 if(!LayoutUtils.ShouldDraw(pointA.X, Utils.GetPlayerPositionXZY().X, pointA.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(pointB.X, Utils.GetPlayerPositionXZY().X, pointB.Y, Utils.GetPlayerPositionXZY().Y)) return;
                 DisplayObjects.Add(new DisplayObjectLine(e.GetUniqueId(go), pointA.X, pointA.Y, pointA.Z,
@@ -221,7 +221,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                 {
                     AddCapturedObject(layout, e, new Vector3(start.X, start.Z, start.X));
                 }
-                if(e.Nodraw || !P.Draw) return;
+                if(e.ShouldSkipDraw(layout) || !P.Draw) return;
 
                 if(!LayoutUtils.ShouldDraw(start.X, Utils.GetPlayerPositionXZY().X, start.Y, Utils.GetPlayerPositionXZY().Y)
                     && !LayoutUtils.ShouldDraw(stop.X, Utils.GetPlayerPositionXZY().X, stop.Y, Utils.GetPlayerPositionXZY().Y)) return;

@@ -93,7 +93,7 @@ internal static class CGuiConfigurations
                     }
                     ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGuiEx.TextV(layout.Enabled ? null : ImGuiColors.DalamudGrey3, $"{layout.GetName()}");
+                    ImGuiEx.TextV(layout.Enabled ? null : ImGuiColors.DalamudGrey3, $"{layout.GetDisplayName()}");
 
                     ImGui.TableNextColumn();
                     if(layout.ZoneLockH.Count == 0)

@@ -36,7 +36,7 @@ internal class PinnedLayoutEdit : Window
             if(ImGui.BeginTable("LayoutsTable", 2, ImGuiTableFlags.Resizable))
             {
                 ImGui.TableSetupColumn("Layout list".Loc() + "###Layout id", ImGuiTableColumnFlags.None, 200);
-                ImGui.TableSetupColumn($"{EditingLayout.GetName()}{(CurrentElement == null ? "" : $" | {CurrentElement.GetName(EditingLayout)}")}###Pinned Layout edit", ImGuiTableColumnFlags.None, 600);
+                ImGui.TableSetupColumn($"{EditingLayout.GetDisplayName()}{(CurrentElement == null ? "" : $" | {CurrentElement.GetName(EditingLayout)}")}###Pinned Layout edit", ImGuiTableColumnFlags.None, 600);
 
                 //ImGui.TableHeadersRow();
 
@@ -44,7 +44,7 @@ internal class PinnedLayoutEdit : Window
                 ImGui.BeginChild("LayoutsTableSelector");
                 Vector4? col = EditingLayout.Enabled ? null : ImGuiColors.DalamudGrey3;
                 if(col != null) ImGui.PushStyleColor(ImGuiCol.Text, col.Value);
-                if(ImGui.Selectable($"{EditingLayout.GetName()}", true)) CurrentElement = null;
+                if(ImGui.Selectable($"{EditingLayout.GetDisplayName()}", true)) CurrentElement = null;
                 if(col != null) ImGui.PopStyleColor();
                 if(ImGui.IsItemClicked(ImGuiMouseButton.Middle)) EditingLayout.Enabled = !EditingLayout.Enabled;
                 EditingLayout.DrawLayoutElementSelector(null, -1, ref CurrentElement);

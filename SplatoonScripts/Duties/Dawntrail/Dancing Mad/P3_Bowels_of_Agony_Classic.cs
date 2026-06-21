@@ -16,7 +16,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Classic.Config>
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     uint DebuffHeadwind = 1602;
@@ -128,7 +128,8 @@ public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Clas
             }
             else
             {
-                if(Controller.TryGetLayoutByName(IsDps ? "WindBaitTowardsChaosRight" : "WindBaitTowardsChaosLeft", out var l))
+                var isRight = (C.WindBaitGroup == 0 ? IsDps : C.WindBaitGroup == 2);
+                if(Controller.TryGetLayoutByName(isRight ? "WindBaitTowardsChaosRight" : "WindBaitTowardsChaosLeft", out var l))
                 {
                     l.Enabled = true;
                 }
@@ -173,7 +174,8 @@ public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Clas
             }
             else
             {
-                if(Controller.TryGetLayoutByName(IsDps ? "WindBaitTowardsExdeathRight" : "WindBaitTowardsExdeathLeft", out var l))
+                var isRight = (C.WindBaitGroup == 0?IsDps:C.WindBaitGroup == 2);
+                if(Controller.TryGetLayoutByName(isRight ? "WindBaitTowardsExdeathRight" : "WindBaitTowardsExdeathLeft", out var l))
                 {
                     l.Enabled = true;
                 }
@@ -208,6 +210,12 @@ public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Clas
         ImGui.Checkbox("Will be baiting chaos's jump", ref C.BaitingChaos);
         ImGui.SetNextItemWidth(150f);
         ImGui.SliderInt("My stack group, looking at exdeath, left to right", ref C.MyStack, 1, 4);
+        ImGuiEx.Text($"Wind bait group:");
+        ImGui.Indent();
+        ImGui.RadioButton("Auto (DPS right, TH left)", ref C.WindBaitGroup, 0);
+        ImGui.RadioButton("Left", ref C.WindBaitGroup, 1);
+        ImGui.RadioButton("Right", ref C.WindBaitGroup, 2);
+        ImGui.Unindent();
         if(ImGui.CollapsingHeader("Debug"))
         {
             ImGui.Separator();
@@ -223,6 +231,7 @@ public class P3_Bowels_of_Agony_Classic : SplatoonScript<P3_Bowels_of_Agony_Clas
         public bool BaitingChaos = false;
         public bool TankingExdeath = false;
         public int MyStack = 0;
+        public int WindBaitGroup = 0;
     }
 
     Phase CurrentPhase

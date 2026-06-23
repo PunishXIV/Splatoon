@@ -2,9 +2,7 @@
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using ECommons;
 using ECommons.CircularBuffers;
-using ECommons.DalamudServices;
 using ECommons.GameFunctions;
-using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;

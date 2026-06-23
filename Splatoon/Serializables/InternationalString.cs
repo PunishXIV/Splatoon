@@ -112,7 +112,7 @@ public class InternationalString
         }
     }
 
-    public void ImGuiEdit(ref string DefaultValue, string helpMessage = null)
+    public void ImGuiEdit(ref string DefaultValue, string helpMessage = null, bool multiline = false)
     {
         Normalize();
         DefaultValue ??= string.Empty;
@@ -122,24 +122,24 @@ public class InternationalString
             {
                 ImGuiEx.Text("International string".Loc());
             });
-            EditLangSpecificString(ClientLanguage.English, ref En);
+            EditLangSpecificString(ClientLanguage.English, ref En, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", En, x => En = x);
-            EditLangSpecificString(ClientLanguage.Japanese, ref Jp);
+            EditLangSpecificString(ClientLanguage.Japanese, ref Jp, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", Jp, x => Jp = x);
-            EditLangSpecificString(ClientLanguage.French, ref Fr);
+            EditLangSpecificString(ClientLanguage.French, ref Fr, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", Fr, x => Fr = x);
-            EditLangSpecificString(ClientLanguage.German, ref De);
+            EditLangSpecificString(ClientLanguage.German, ref De, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", De, x => De = x);
             if(!Svc.Data.Language.EqualsAny(ClientLanguage.English, ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French))
             {
-                EditLangSpecificString(Svc.Data.Language, ref Other);
+                EditLangSpecificString(Svc.Data.Language, ref Other, multiline);
                 ImGuiEx.DragDropRepopulateClass("RepopIStr", Other, x => Other = x);
             }
             else
             {
                 if(Other != "")
                 {
-                    EditLangSpecificString((ClientLanguage)(-1), ref Other);
+                    EditLangSpecificString((ClientLanguage)(-1), ref Other, multiline);
                 }
             }
 
@@ -164,7 +164,7 @@ public class InternationalString
         }
     }
 
-    public void ImGuiEdit(string helpMessage = null)
+    public void ImGuiEditNoDefault(string helpMessage = null, bool multiline = false)
     {
         Normalize();
         if(ImGui.BeginCombo($"##{guid}", Get()))
@@ -173,25 +173,25 @@ public class InternationalString
             {
                 ImGuiEx.Text("International string".Loc());
             });
-            EditLangSpecificString(ClientLanguage.English, ref En);
+            EditLangSpecificString(ClientLanguage.English, ref En, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", En, x => En = x);
             ImGuiEx.HelpMarker("This will be default value", ImGuiColors.DalamudOrange, FontAwesomeIcon.Globe.ToIconString());
-            EditLangSpecificString(ClientLanguage.Japanese, ref Jp);
+            EditLangSpecificString(ClientLanguage.Japanese, ref Jp, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", Jp, x => Jp = x);
-            EditLangSpecificString(ClientLanguage.French, ref Fr);
+            EditLangSpecificString(ClientLanguage.French, ref Fr, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", Fr, x => Fr = x);
-            EditLangSpecificString(ClientLanguage.German, ref De);
+            EditLangSpecificString(ClientLanguage.German, ref De, multiline);
             ImGuiEx.DragDropRepopulateClass("RepopIStr", De, x => De = x);
             if(!Svc.Data.Language.EqualsAny(ClientLanguage.English, ClientLanguage.Japanese, ClientLanguage.German, ClientLanguage.French))
             {
-                EditLangSpecificString(Svc.Data.Language, ref Other);
+                EditLangSpecificString(Svc.Data.Language, ref Other, multiline);
                 ImGuiEx.DragDropRepopulateClass("RepopIStr", Other, x => Other = x);
             }
             else
             {
                 if(Other != "")
                 {
-                    EditLangSpecificString((ClientLanguage)(-1), ref Other);
+                    EditLangSpecificString((ClientLanguage)(-1), ref Other, multiline);
                 }
             }
             ImGui.EndCombo();
@@ -226,7 +226,7 @@ public class InternationalString
         else return ref Other;
     }
 
-    private void EditLangSpecificString(ClientLanguage language, ref string str)
+    private void EditLangSpecificString(ClientLanguage language, ref string str, bool multiline)
     {
         str ??= string.Empty;
         var col = false;
@@ -243,7 +243,14 @@ public class InternationalString
         ImGuiUtils.SizedText($"{language.ToString().Loc()}:", 100);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(300f);
-        ImGui.InputText($"##{guid}{language}", ref str, 2000);
+        if(multiline)
+        {
+            ImGuiEx.InputTextMultilineExpanding($"##{guid}{language}", ref str, 2000);
+        }
+        else
+        {
+            ImGui.InputText($"##{guid}{language}", ref str, 2000);
+        }
         if(col)
         {
             ImGui.PopStyleColor();

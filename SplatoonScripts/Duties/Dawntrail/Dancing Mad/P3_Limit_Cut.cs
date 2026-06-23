@@ -3,12 +3,19 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Utility;
+using ECommons;
+using ECommons.Automation;
 using ECommons.Configuration;
+using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
 using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
+using ECommons.ImGuiMethods;
 using Splatoon;
 using Splatoon.SplatoonScripting;
 
@@ -17,7 +24,7 @@ namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 public class P3_Limit_Cut : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(4, "Garume");
+    public override Metadata Metadata => new(5, "Garume, NightmareXIV");
 
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint BowelsOfAgony = 47858;
@@ -71,6 +78,7 @@ public class P3_Limit_Cut : SplatoonScript
     private int _firstStartDirection;
     private int _firstDashDirection;
     private int _dashStep;
+    private bool ChatSent = false;
 
 
     private Config C
@@ -140,6 +148,7 @@ public class P3_Limit_Cut : SplatoonScript
 
     public override void OnReset()
     {
+        ChatSent = false;
         ResetState();
     }
 
@@ -251,6 +260,12 @@ public class P3_Limit_Cut : SplatoonScript
         DrawInternationalString("West label", C.WestLabelText);
         DrawInternationalString("Northwest label", C.NorthWestLabelText);
         ImGui.Unindent();
+        ImGui.Checkbox("Print direction into chat (local chat only)", ref C.Callout);
+        if(C.Callout)
+        {
+            ImGuiEx.Checkbox("Send direction into party chat (dangerous)", ref C.PartyCallout, enabled: C.PartyCallout || ImGuiEx.Ctrl);
+            ImGuiEx.HelpMarker("Before enabling, do extensive testing in replays and ensure it call out correctly. Hold CTRL and click to enable.");
+        }
     }
 
     private static bool IsResetAction(uint actionId) => actionId is UltimateEmbrace or BowelsOfAgony;
@@ -262,11 +277,18 @@ public class P3_Limit_Cut : SplatoonScript
     private static void DrawInternationalString(string label, InternationalString text)
     {
         ImGui.PushID(label);
-        ImGui.Text(label);
+        ImGuiEx.TextV(label);
         ImGui.SameLine();
+        var ds = 200f - ImGui.CalcTextSize(label).X;
+        if(ds > 0)
+        {
+            ImGui.Dummy(new(ds, 1));
+            ImGui.SameLine();
+        }
         var current = text.Get();
         text.ImGuiEdit(ref current);
         ImGui.PopID();
+        ImGui.Separator();
     }
 
     private void StartLimitCut() => _active = true;
@@ -310,6 +332,38 @@ public class P3_Limit_Cut : SplatoonScript
         _firstDashDirection = WrapDirection(_firstStartDirection + 4);
         _dashStep = delta < 4 ? 1 : -1;
         _hasDashSolution = true;
+        if(!ChatSent)
+        {
+            ChatSent = true;
+            if(C.Callout)
+            {
+                if(C.PartyCallout)
+                {
+                    Controller.Schedule(() =>
+                    {
+                        if(EzThrottler.Throttle("Chat", 1000) && GenericHelpers.IsScreenReady())
+                        {
+                            if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+                            {
+                                Chat.ExecuteCommand($"/echo Would send: {GetLabel()}");
+                            }
+                            else
+                            {
+                                Chat.ExecuteCommand($"/party {GetLabel()}");
+                            }
+                        }
+                    }, 1000 + Random.Shared.Next(2000));
+                }
+                else
+                {
+                    Svc.Chat.PrintChat(new()
+                    {
+                        Type = Dalamud.Game.Text.XivChatType.Echo,
+                        Message = $"{GetLabel()}"
+                    });
+                }
+            }
+        }
     }
 
     private void RecordNumber(uint target, int number)
@@ -404,17 +458,22 @@ public class P3_Limit_Cut : SplatoonScript
         if (!C.ShowFirstDashCallout)
             return;
 
-        var format = C.FirstDashCalloutText.Get();
-        if (string.IsNullOrWhiteSpace(format) ||
-            !Controller.TryGetElementByName(FirstDashCalloutElementName, out var element))
+        if (!Controller.TryGetElementByName(FirstDashCalloutElementName, out var element))
             return;
 
         element.Enabled = true;
         element.SetRefPosition(player.Position);
-        element.overlayText = string.Format(format,
-            DirectionLabel(_firstDashDirection),
-            DashRotationLabel(),
-            DirectionLabel(_firstStartDirection));
+        element.overlayText = GetLabel();
+    }
+
+    string GetLabel()
+    {
+        var format = C.FirstDashCalloutText.Get();
+        var dl1 = DirectionLabel(_firstDashDirection);
+        var dl2 = DashRotationLabel();
+        var dl3 = DirectionLabel(_firstStartDirection);
+        if(format.IsNullOrWhitespace() || dl1.IsNullOrWhitespace() || dl2.IsNullOrWhitespace() || dl3.IsNullOrWhitespace()) return "";
+        return string.Format(format, dl1, dl2, dl3);
     }
 
     private void DisableElements()
@@ -440,7 +499,7 @@ public class P3_Limit_Cut : SplatoonScript
 
     private static int WrapDirection(int direction) => (direction % 8 + 8) % 8;
 
-    private string DirectionLabel(int direction)
+    private string? DirectionLabel(int direction)
     {
         return WrapDirection(direction) switch
         {
@@ -452,7 +511,7 @@ public class P3_Limit_Cut : SplatoonScript
             5 => C.SouthWestLabelText.Get(),
             6 => C.WestLabelText.Get(),
             7 => C.NorthWestLabelText.Get(),
-            _ => "?"
+            _ => null
         };
     }
 
@@ -507,8 +566,10 @@ public class P3_Limit_Cut : SplatoonScript
         DisableElements();
     }
 
-    public sealed class Config : IEzConfig
+    public sealed class Config
     {
+        public bool Callout = false;
+        public bool PartyCallout = false;
         public InternationalString DestinationOverlayText = new()
         {
             En = "LC {0}",

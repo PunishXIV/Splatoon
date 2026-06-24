@@ -1,4 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
@@ -6,12 +7,15 @@ using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.MathHelpers;
 using Newtonsoft.Json;
+using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Status = Lumina.Excel.Sheets.Status;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
@@ -103,31 +107,38 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             {"Name":"","type":3,"refY":40.0,"radius":12,"fillIntensity":0.6,"refActorNPCNameID":6055,"refActorRequireCast":true,"refActorCastId":[50068],"refActorComparisonType":6,"includeRotation":true}
             """);
         Controller.RegisterElementsFromMultilineCode("""
-            {"Name":"LookAway","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":2550136832,"overlayTextColor":4278190335,"thicc":3.0,"overlayText":"LOOK AWAY","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[5543],"refActorUseBuffTime":true,"refActorBuffTimeMax":15.0,"tether":true}
-            {"Name":"LookAt","type":1,"radius":0.0,"color":3355508521,"fillIntensity":0.5,"overlayBGColor":2550136832,"overlayTextColor":4278255376,"thicc":3.0,"overlayText":"LOOK AT","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[5543],"refActorUseBuffTime":true,"refActorBuffTimeMax":15.0,"tether":true}
+            {"Name":"LookAway","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":2550136832,"overlayTextColor":4278190335,"thicc":3.0,"overlayText":"LOOK AWAY","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[5543],"refActorUseBuffTime":true,"refActorBuffTimeMax":15.0,"tether":true,"overlayVOffset":2.0}
+            {"Name":"LookAt","type":1,"radius":0.0,"color":3355508521,"fillIntensity":0.5,"overlayBGColor":2550136832,"overlayTextColor":4278255376,"thicc":3.0,"overlayText":"LOOK AT","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[5543],"refActorUseBuffTime":true,"refActorBuffTimeMax":15.0,"tether":true,"overlayVOffset":2.0}
             {"Name":"EyeScope","type":4,"radius":15.0,"coneAngleMin":-45,"coneAngleMax":45,"color":3355506687,"fillIntensity":0.125,"thicc":3.0,"refActorType":1,"includeRotation":true,"FillStep":99.0,"RenderEngineKind":2}
             {"Name":"Hint","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayTextColor":4292739327,"overlayVOffset":5.0,"thicc":0.0,"overlayText":"test","refActorType":1}
             {"Name":"StackSupport","refX":100.0,"refY":89.0,"radius":3.0,"Donut":0.5,"color":3355508521,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4280024832,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"Stack support","tether":true}
             {"Name":"StackDPS","refX":100.0,"refY":111.0,"radius":3.0,"Donut":0.5,"color":3355508521,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4280024832,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"stack dps","tether":true}
             {"Name":"SpreadSupport","refX":89.0,"refY":100.0,"radius":3.0,"Donut":0.5,"color":3355501823,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4278255605,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"Spread support","tether":true}
             {"Name":"SpreadDPS","refX":111.0,"refY":100.0,"radius":3.0,"Donut":0.5,"color":3355501823,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4278255605,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"Spread dps","tether":true}
-            
+            {"Name":"StackSupport_2","refX":100.0,"refY":89.0,"radius":3.0,"Donut":0.5,"color":3355508521,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4280024832,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"Stack support","tether":true}
+            {"Name":"StackDPS_2","refX":100.0,"refY":111.0,"radius":3.0,"Donut":0.5,"color":3355508521,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4280024832,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"stack dps","tether":true}
+            {"Name":"SpreadSupport_2","refX":89.0,"refY":100.0,"radius":3.0,"Donut":0.5,"color":3355501823,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4278255605,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"Spread support","tether":true}
+            {"Name":"SpreadDPS_2","refX":111.0,"refY":100.0,"radius":3.0,"Donut":0.5,"color":3355501823,"fillIntensity":0.5,"overlayBGColor":2650800128,"overlayTextColor":4278255605,"overlayVOffset":1.2,"thicc":4.0,"overlayText":"Spread dps","tether":true}
+            {"Name":"MiddleGaze","refX":99.61274,"refY":99.88139,"refZ":-1.9073486E-06,"radius":4.0,"Donut":0.5,"fillIntensity":0.5,"overlayVOffset":1.2,"thicc":6.0,"tether":true}
+
+            {"Name":"MiddleDrop","refX":99.61274,"refY":99.88139,"refZ":-1.9073486E-06,"radius":3.0,"Donut":0.5,"fillIntensity":0.5,"overlayTextColor":4278228223,"overlayVOffset":1.2,"thicc":6.0,"overlayText":"$ELEMENT","tether":true}
             
             """);
         Controller.RegisterLayoutFromCode("""
             ~Lv2~{"Enabled":false,"Name":"Language","ZoneLockH":[1363],"ElementsL":[{"Name":"LookAt","overlayText":"Look at in #","overlayTextIntl":{"Jp":"#秒後に視線"}},{"Name":"LookAway","overlayText":"Look AWAY in #","overlayTextIntl":{"Jp":"#秒後に視線外す"}},{"Name":"Spread","overlayText":"Spread in #","overlayTextIntl":{"Jp":"#秒後に散開"}},{"Name":"Stack","overlayText":"Stack in #","overlayTextIntl":{"Jp":"#秒後に頭割り"}},{"Name":"DontMove","overlayText":"Don't move in #","overlayTextIntl":{"Jp":"#秒後に動くな"}},{"Name":"Move","overlayText":"Move in #","overlayTextIntl":{"Jp":"#秒後に動け"}},{"Name":"DropDonut","overlayText":"Drop donut in #","overlayTextIntl":{"Jp":"#秒後にドーナツ"}},{"Name":"DropAOE","overlayText":"Drop AOE in #","overlayTextIntl":{"Jp":"#秒後に範囲"}}]}
             """);
         Controller.RegisterLayoutFromCode("""
-            ~Lv2~{"Enabled":false,"Name":"Move","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"refY":1.0,"offY":-1.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,"LineEndB":1},{"Name":"","type":3,"refX":1.0,"offX":-1.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,"LineEndB":1}]}
+            ~Lv2~{"Enabled":false,"Name":"Move","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"refY":3.0,"offY":-3.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,"LineEndB":1,thicc:4.0},{"Name":"","type":3,"refX":3.0,"offX":-3.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,"LineEndB":1,thicc:4.0}]}
             """);
         Controller.RegisterLayoutFromCode("""
-            ~Lv2~{"Enabled":false,"Name":"DontMove","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"offY":-1.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1},{"Name":"","type":3,"offY":1.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1},{"Name":"","type":3,"offX":1.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1},{"Name":"","type":3,"offX":-1.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1}]}
+            ~Lv2~{"Enabled":false,"Name":"DontMove","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"offY":-3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offY":3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offX":3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offX":-3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0}]}
             """);
     }
+    
 
     void ShowSpread(float timer)
     {
-        if(Controller.TryGetElementByName($"Spread{(BasePlayer.Job.IsDps() ? "DPS" : "Support")}", out var e))
+        if(Controller.TryGetElementByName($"Spread{(BasePlayer.Job.IsDps() ? "DPS" : "Support")}{(C.DifferentiateFirstSecondStackSpread && !IsFirstStackSpread() ? "_2" : "")}", out var e))
         {
             e.Enabled = true;
             e.color = Controller.AttentionColor;
@@ -137,7 +148,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
 
     void ShowStack(float timer)
     {
-        if(Controller.TryGetElementByName($"Stack{(BasePlayer.Job.IsDps() ? "DPS" : "Support")}", out var e))
+        if(Controller.TryGetElementByName($"Stack{(BasePlayer.Job.IsDps() ? "DPS" : "Support")}{(C.DifferentiateFirstSecondStackSpread && !IsFirstStackSpread()?"_2":"")}", out var e))
         {
             e.Enabled = true;
             e.color = Controller.AttentionColor;
@@ -176,10 +187,18 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             if(x.HasStatus(Debuffs.DebuffLookAway, out var time, lessThan: C.LookDontlookTH))
             {
                 var f = this.FakeStatuses.ContainsAny(Debuffs.DebuffLookAway.Select(s => new StatusInfo(x.ObjectId, s)));
-                hints.Add((f ? Str_LookAt($"{time.SafeSelect(0).Time:F1}") : Str_LookAway($"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
-                Controller.GetElementByName(f ? "LookAt" : "LookAway").Enabled = true;
+                var hint = (f ? Str_LookAt($"{time.SafeSelect(0).Time:F1}") : Str_LookAway($"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time);
+                var gaze = Controller.GetElementByName(f ? "LookAt" : "LookAway");
+                gaze.Enabled = true;
+                gaze.overlayText = hint.Item1;
                 Controller.GetElementByName("EyeScope").Enabled = true;
-                break;
+                if(x.AddressEquals(BasePlayer))
+                {
+                    var ca = Controller.GetElementByName("MiddleGaze");
+                    ca.Enabled = true;
+                    ca.color = Controller.AttentionColor;
+                    ca.tether = Vector2.Distance(BasePlayer.Position.ToVector2(), ca.RefPosition.ToVector2()) > ca.radius;
+                }
             }
         }
         bool spread = false;
@@ -226,14 +245,14 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                 {
                     if(Controller.TryGetLayoutByName("DontMove", out var l))
                     {
-                        l.Enabled = true;
+                        l.Enabled = time.SafeSelect(0).Time > 3?Environment.TickCount64 % 500 > 250 : Environment.TickCount64 % 250 > 125;
                     }
                 }
                 else
                 {
                     if(Controller.TryGetLayoutByName("Move", out var l))
                     {
-                        l.Enabled = true;
+                        l.Enabled = time.SafeSelect(0).Time > 3 ? Environment.TickCount64 % 500 > 250 : Environment.TickCount64 % 250 > 125;
                     }
                 }
             }
@@ -241,19 +260,34 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffDonut, out var time, lessThan: C.DonutAOETH))
             {
-                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffDonut.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropDonut($"{time.SafeSelect(0).Time:F1}") : Str_DropAOE($"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
+                var h = !this.FakeStatuses.ContainsAny(Debuffs.DebuffDonut.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropDonut($"{time.SafeSelect(0).Time:F1}") : Str_DropAOE($"{time.SafeSelect(0).Time:F1}");
+                //hints.Add((h, time.SafeSelect(0).Time));
+                DisplayMiddleDropIfNeeded(h);
             }
         }
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffFireSpread, out var time, lessThan: C.DonutAOETH))
             {
-                hints.Add((!this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropAOE($"{time.SafeSelect(0).Time:F1}") : Str_DropDonut($"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
+                var h = !this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropAOE($"{time.SafeSelect(0).Time:F1}") : Str_DropDonut($"{time.SafeSelect(0).Time:F1}");
+                //hints.Add((h, time.SafeSelect(0).Time));
+                DisplayMiddleDropIfNeeded(h);
             }
         }
         if(Controller.TryGetElementByName("Hint", out var e))
         {
             e.Enabled = true;
             e.overlayText = hints.OrderByDescending(x => x.Time).ThenBy(x => x.Text).Select(x => x.Text).Print("\n");
+        }
+    }
+
+    void DisplayMiddleDropIfNeeded(string t)
+    {
+        if(Controller.GetPartyMembers().All(x => !x.HasStatus(Debuffs.DebuffLookAway, 6.5f)))
+        {
+            var el = Controller.GetElementByName("MiddleDrop");
+            el.Enabled = true;
+            el.color = Controller.AttentionColor;
+            el.overlayText = t;
         }
     }
 
@@ -314,13 +348,24 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         }
     }
 
+    public bool IsFirstStackSpread()
+    {
+        return Controller.GetPartyMembers().Count(x => x.HasStatus([.. Debuffs.DebuffSpread, .. Debuffs.DebuffStack])) > 4;
+    }
+
     public override void OnSettingsDraw()
     {
+        ImGui.Checkbox("Different positions for first and second stack/spread", ref C.DifferentiateFirstSecondStackSpread);
+        if(C.DifferentiateFirstSecondStackSpread)
+        {
+            ImGuiEx.TextWrapped(ImGuiColors.DalamudRed, "   Go to Registered elements and adjust positions of elements with \"_2\" prefix for second set of spreads/stacks!!!");
+        }
+
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display stack/spread in advance, seconds", ref C.StackSpreadTH, 3, 20);
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display move/don't move in advance, seconds", ref C.MoveDontmoveTH, 3, 20);
-        ImGui.SetNextItemWidth(150f);
+        ImGui.SetNextItemWidth(150f); 
         ImGuiEx.SliderFloat($"Display look/don't look in advance, seconds", ref C.LookDontlookTH, 3, 20);
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display donut/AOE placement in advance, seconds", ref C.LookDontlookTH, 3, 20);
@@ -336,11 +381,12 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         }
     }
 
-    public class Config 
+    public class Config
     {
         public float StackSpreadTH = 10f;
         public float MoveDontmoveTH = 8f;
         public float LookDontlookTH = 10f;
         public float DonutAOETH = 10f;
+        public bool DifferentiateFirstSecondStackSpread = false;
     }
 }

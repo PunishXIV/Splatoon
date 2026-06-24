@@ -1,15 +1,19 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Interface.Colors;
 using ECommons;
+using ECommons.Automation;
+using ECommons.ChatMethods;
 using ECommons.DalamudServices;
 using ECommons.ExcelServices;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
+using ECommons.Logging;
 using ECommons.MathHelpers;
+using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
-using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
@@ -22,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
 {
-    public override Metadata Metadata { get; } = new(7, "NightmareXIV, mirage");
+    public override Metadata Metadata { get; } = new(9, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -134,9 +138,8 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             ~Lv2~{"Enabled":false,"Name":"DontMove","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"offY":-3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offY":3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offX":3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offX":-3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0}]}
             """);
     }
-    
 
-    void ShowSpread(float timer)
+    private void ShowSpread(float timer)
     {
         if(Controller.TryGetElementByName($"Spread{(BasePlayer.Job.IsDps() ? "DPS" : "Support")}{(C.DifferentiateFirstSecondStackSpread && !IsFirstStackSpread() ? "_2" : "")}", out var e))
         {
@@ -146,9 +149,9 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         }
     }
 
-    void ShowStack(float timer)
+    private void ShowStack(float timer)
     {
-        if(Controller.TryGetElementByName($"Stack{(BasePlayer.Job.IsDps() ? "DPS" : "Support")}{(C.DifferentiateFirstSecondStackSpread && !IsFirstStackSpread()?"_2":"")}", out var e))
+        if(Controller.TryGetElementByName($"Stack{(BasePlayer.Job.IsDps() ? "DPS" : "Support")}{(C.DifferentiateFirstSecondStackSpread && !IsFirstStackSpread() ? "_2" : "")}", out var e))
         {
             e.Enabled = true;
             e.color = Controller.AttentionColor;
@@ -159,7 +162,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
     public override void OnUpdate()
     {
         Controller.Hide();
-        if(BasePlayer.HasStatus([..Debuffs.DebuffWhitewould, ..Debuffs.DebuffBlackwound], out var status))
+        if(BasePlayer.HasStatus([.. Debuffs.DebuffWhitewould, .. Debuffs.DebuffBlackwound], out var status))
         {
             var showWhite = status[0].ID.EqualsAny(Debuffs.DebuffWhitewould);
             if(FakeStatuses.Contains(new(BasePlayer.ObjectId, status[0].ID)))
@@ -186,7 +189,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         {
             if(x.HasStatus(Debuffs.DebuffLookAway, out var time, lessThan: C.LookDontlookTH))
             {
-                var f = this.FakeStatuses.ContainsAny(Debuffs.DebuffLookAway.Select(s => new StatusInfo(x.ObjectId, s)));
+                var f = FakeStatuses.ContainsAny(Debuffs.DebuffLookAway.Select(s => new StatusInfo(x.ObjectId, s)));
                 var hint = (f ? Str_LookAt($"{time.SafeSelect(0).Time:F1}") : Str_LookAway($"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time);
                 var gaze = Controller.GetElementByName(f ? "LookAt" : "LookAway");
                 gaze.Enabled = true;
@@ -201,16 +204,16 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                 }
             }
         }
-        bool spread = false;
+        var spread = false;
         {
-            if(BasePlayer.HasStatus(Debuffs.DebuffStack, out var time, lessThan: C.StackSpreadTH) && this.FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
+            if(BasePlayer.HasStatus(Debuffs.DebuffStack, out var time, lessThan: C.StackSpreadTH) && FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
             {
                 ShowSpread(time.SafeSelect(0).Time);
                 spread = true;
             }
         }
         {
-            if(BasePlayer.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: C.StackSpreadTH) && !this.FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
+            if(BasePlayer.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: C.StackSpreadTH) && !FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))))
             {
                 ShowSpread(time.SafeSelect(0).Time);
                 spread = true;
@@ -221,14 +224,14 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             foreach(var x in Controller.GetPartyMembers())
             {
                 {
-                    if(x.HasStatus(Debuffs.DebuffStack, out var time, lessThan: C.StackSpreadTH) && !this.FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(x.ObjectId, s))))
+                    if(x.HasStatus(Debuffs.DebuffStack, out var time, lessThan: C.StackSpreadTH) && !FakeStatuses.ContainsAny(Debuffs.DebuffStack.Select(s => new StatusInfo(x.ObjectId, s))))
                     {
                         ShowStack(time.SafeSelect(0).Time);
                         break;
                     }
                 }
                 {
-                    if(x.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: C.StackSpreadTH) && this.FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(x.ObjectId, s))))
+                    if(x.HasStatus(Debuffs.DebuffSpread, out var time, lessThan: C.StackSpreadTH) && FakeStatuses.ContainsAny(Debuffs.DebuffSpread.Select(s => new StatusInfo(x.ObjectId, s))))
                     {
                         ShowStack(time.SafeSelect(0).Time);
                         break;
@@ -239,13 +242,13 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffDontMove, out var time, lessThan: C.MoveDontmoveTH))
             {
-                var isNoMove = !this.FakeStatuses.ContainsAny(Debuffs.DebuffDontMove.Select(s => new StatusInfo(BasePlayer.ObjectId, s)));
+                var isNoMove = !FakeStatuses.ContainsAny(Debuffs.DebuffDontMove.Select(s => new StatusInfo(BasePlayer.ObjectId, s)));
                 hints.Add((isNoMove ? Str_DontMove($"{time.SafeSelect(0).Time:F1}") : Str_Move($"{time.SafeSelect(0).Time:F1}"), time.SafeSelect(0).Time));
                 if(isNoMove)
                 {
                     if(Controller.TryGetLayoutByName("DontMove", out var l))
                     {
-                        l.Enabled = time.SafeSelect(0).Time > 3?Environment.TickCount64 % 500 > 250 : Environment.TickCount64 % 250 > 125;
+                        l.Enabled = time.SafeSelect(0).Time > 3 ? Environment.TickCount64 % 500 > 250 : Environment.TickCount64 % 250 > 125;
                     }
                 }
                 else
@@ -260,7 +263,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffDonut, out var time, lessThan: C.DonutAOETH))
             {
-                var h = !this.FakeStatuses.ContainsAny(Debuffs.DebuffDonut.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropDonut($"{time.SafeSelect(0).Time:F1}") : Str_DropAOE($"{time.SafeSelect(0).Time:F1}");
+                var h = !FakeStatuses.ContainsAny(Debuffs.DebuffDonut.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropDonut($"{time.SafeSelect(0).Time:F1}") : Str_DropAOE($"{time.SafeSelect(0).Time:F1}");
                 //hints.Add((h, time.SafeSelect(0).Time));
                 DisplayMiddleDropIfNeeded(h);
             }
@@ -268,7 +271,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         {
             if(BasePlayer.HasStatus(Debuffs.DebuffFireSpread, out var time, lessThan: C.DonutAOETH))
             {
-                var h = !this.FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropAOE($"{time.SafeSelect(0).Time:F1}") : Str_DropDonut($"{time.SafeSelect(0).Time:F1}");
+                var h = !FakeStatuses.ContainsAny(Debuffs.DebuffFireSpread.Select(s => new StatusInfo(BasePlayer.ObjectId, s))) ? Str_DropAOE($"{time.SafeSelect(0).Time:F1}") : Str_DropDonut($"{time.SafeSelect(0).Time:F1}");
                 //hints.Add((h, time.SafeSelect(0).Time));
                 DisplayMiddleDropIfNeeded(h);
             }
@@ -280,7 +283,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         }
     }
 
-    void DisplayMiddleDropIfNeeded(string t)
+    private void DisplayMiddleDropIfNeeded(string t)
     {
         if(Controller.GetPartyMembers().All(x => !x.HasStatus(Debuffs.DebuffLookAway, 6.5f)))
         {
@@ -291,20 +294,24 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         }
     }
 
-    string StrGetAndReplace(string element, string s)
+    private string StrGetAndReplace(string element, string s)
     {
         var e = Controller.GetRegisteredLayouts().SafeSelect("Language")?.GetElement(element);
-        if(e == null) return "Text could not be retrieved, reset script's settings";
+        if(e == null)
+        {
+            return "Text could not be retrieved, reset script's settings";
+        }
+
         return e.overlayTextIntl.Get(e.overlayText).Replace("#", s);
     }
-    string Str_LookAt(string s) => StrGetAndReplace("LookAt", s);
-    string Str_LookAway(string s) => StrGetAndReplace("LookAway", s);
-    string Str_Spread(string s) => StrGetAndReplace("Spread", s);
-    string Str_Stack(string s) => StrGetAndReplace("Stack", s);
-    string Str_DontMove(string s) => StrGetAndReplace("DontMove", s);
-    string Str_Move(string s) => StrGetAndReplace("Move", s);
-    string Str_DropDonut(string s) => StrGetAndReplace("DropDonut", s);
-    string Str_DropAOE(string s) => StrGetAndReplace("DropAOE", s);
+    private string Str_LookAt(string s) => StrGetAndReplace("LookAt", s);
+    private string Str_LookAway(string s) => StrGetAndReplace("LookAway", s);
+    private string Str_Spread(string s) => StrGetAndReplace("Spread", s);
+    private string Str_Stack(string s) => StrGetAndReplace("Stack", s);
+    private string Str_DontMove(string s) => StrGetAndReplace("DontMove", s);
+    private string Str_Move(string s) => StrGetAndReplace("Move", s);
+    private string Str_DropDonut(string s) => StrGetAndReplace("DropDonut", s);
+    private string Str_DropAOE(string s) => StrGetAndReplace("DropAOE", s);
 
     public override void OnReset()
     {
@@ -345,7 +352,84 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             {
                 FakeStatuses.Add(new(sourceId, Status.StatusId));
             }
+            if(pc.AddressEquals(BasePlayer))
+            {
+                if((Debuffs.DebuffSpread.Contains(Status.StatusId) && !IsLie) || (Debuffs.DebuffStack.Contains(Status.StatusId) && IsLie))
+                {
+                    if(Status.RemainingTime > 60f)
+                    {
+                        if(C.UseSelfmark && C.MarkingParamLongSpread != 0)
+                        {
+                            if(GenericHelpers.IsScreenReady() && EzThrottler.Throttle("Chat", 1000))
+                            {
+                                var cmd = $"/marking {TextCommandParam.Get(C.MarkingParamLongSpread).Param.GetText()} <me>";
+                                UseCommand(cmd);
+                            }
+                        }
+                        if(C.OutputInChat)
+                        {
+                            ChatPrinter.Orange("LONG SPREAD on YOU!");
+                        }
+                    }
+                    else
+                    {
+                        if(C.UseSelfmark && C.MarkingParamShortSpread != 0)
+                        {
+                            if(GenericHelpers.IsScreenReady() && EzThrottler.Throttle("Chat", 1000))
+                            {
+                                var cmd = $"/marking {TextCommandParam.Get(C.MarkingParamShortSpread).Param.GetText()} <me>";
+                                UseCommand(cmd);
+                            }
+                        }
+                        if(C.OutputInChat)
+                        {
+                            ChatPrinter.Orange("SHORT SPREAD on YOU!");
+                        }
+                    }
+                }
+
+                if(Debuffs.DebuffLookAway.Contains(Status.StatusId))
+                {
+                    if(Status.RemainingTime > 65f)
+                    {
+                        if(C.OutputInChat)
+                        {
+                            ChatPrinter.Red($"LONG GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
+                        }
+                    }
+                    else
+                    {
+                        if(C.OutputInChat)
+                        {
+                            ChatPrinter.Red($"SHORT GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
+                        }
+                    }
+                }
+
+                if(Debuffs.DebuffDontMove.Contains(Status.StatusId))
+                {
+                    if(C.OutputInChat)
+                    {
+                        ChatPrinter.Yellow(IsLie ? "Inverted acceleration bomb on YOU (MOVE)" : "Acceleration bomb on YOU (DON'T MOVE)");
+                    }
+                }
+            }
         }
+    }
+
+    private void UseCommand(string cmd)
+    {
+        Controller.Schedule(() =>
+        {
+            if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
+            {
+                DuoLog.Warning($"Would use command: {cmd}");
+            }
+            else
+            {
+                Chat.ExecuteCommand(cmd);
+            }
+        }, 2000 + Random.Shared.Next(2000));
     }
 
     public bool IsFirstStackSpread()
@@ -361,19 +445,36 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             ImGuiEx.TextWrapped(ImGuiColors.DalamudRed, "   Go to Registered elements and adjust positions of elements with \"_2\" prefix for second set of spreads/stacks!!!");
         }
 
+        ImGui.Checkbox("Output your debuffs into local chat (for you only)", ref C.OutputInChat);
+        ImGuiEx.Checkbox("Self-mark spreads (dangerous)", ref C.UseSelfmark, enabled: C.UseSelfmark || ImGuiEx.Ctrl);
+        ImGuiEx.Tooltip("Hold CTRL and click to enable");
+        if(C.UseSelfmark)
+        {
+            DrawMarkingParam("Short spread", ref C.MarkingParamShortSpread);
+            DrawMarkingParam("Long spread", ref C.MarkingParamLongSpread);
+        }
+
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display stack/spread in advance, seconds", ref C.StackSpreadTH, 3, 20);
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display move/don't move in advance, seconds", ref C.MoveDontmoveTH, 3, 20);
-        ImGui.SetNextItemWidth(150f); 
+        ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display look/don't look in advance, seconds", ref C.LookDontlookTH, 3, 20);
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display donut/AOE placement in advance, seconds", ref C.LookDontlookTH, 3, 20);
 
         if(ImGui.CollapsingHeader("Debug"))
         {
-            if(ImGui.Button("Export")) GenericHelpers.Copy(JsonConvert.SerializeObject(FakeStatuses));
-            if(ImGui.Button("Import")) FakeStatuses = JsonConvert.DeserializeObject<List<StatusInfo>>(GenericHelpers.Paste()) ?? throw new NullReferenceException();
+            if(ImGui.Button("Export"))
+            {
+                GenericHelpers.Copy(JsonConvert.SerializeObject(FakeStatuses));
+            }
+
+            if(ImGui.Button("Import"))
+            {
+                FakeStatuses = JsonConvert.DeserializeObject<List<StatusInfo>>(GenericHelpers.Paste()) ?? throw new NullReferenceException();
+            }
+
             ImGui.Checkbox(nameof(IsLie), ref IsLie);
             ImGuiEx.Text($"List: {DebuffList.Print()}");
             ImGuiEx.Text($"Casters: {IsTruth.Select(x => $"{x.Key}: {x.Value}").Print("\n")}");
@@ -381,12 +482,41 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         }
     }
 
+    private void DrawMarkingParam(string name, ref uint param)
+    {
+        ImGui.PushID(name);
+        ImGui.SetNextItemWidth(200f);
+        if(ImGui.BeginCombo(name, param == 0 ? "Not set" : TextCommandParam.GetRef(param).ValueNullable?.Param.GetText(), ImGuiComboFlags.HeightLarge))
+        {
+            if(ImGui.Selectable("Not Set", param == 0))
+            {
+                param = 0;
+            }
+
+            foreach(var x in ValidTextParams)
+            {
+                if(ImGui.Selectable(TextCommandParam.Get(x).Param.GetText(), param == x))
+                {
+                    param = x;
+                }
+            }
+            ImGui.EndCombo();
+        }
+        ImGui.PopID();
+    }
+
     public class Config
     {
-        public float StackSpreadTH = 10f;
+        public float StackSpreadTH = 8.5f;
         public float MoveDontmoveTH = 8f;
         public float LookDontlookTH = 10f;
         public float DonutAOETH = 10f;
         public bool DifferentiateFirstSecondStackSpread = false;
+        public uint MarkingParamShortSpread;
+        public uint MarkingParamLongSpread;
+        public bool UseSelfmark = false;
+        public bool OutputInChat = true;
     }
+
+    private uint[] ValidTextParams = [80, 82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 476, 478, 480,];
 }

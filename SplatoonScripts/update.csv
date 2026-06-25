@@ -223,7 +223,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Trine_Effects,3,https://
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Bowels_of_Agony_TLB,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Bowels_of_Agony_TLB.cs
 SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P2_Forsaken_beta,12,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken_beta.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Forsaken,10,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Blackhole_Lite.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite,8,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Blackhole_Lite.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Misisng_Yarn_Relative,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken_Pattern/P2_Misisng_Yarn_Relative.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Missing_1458_2367_Drippy,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken_Pattern/P2_Missing_1458_2367_Drippy.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P2_Misisng_Yarn_BehindSwap,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Forsaken_Pattern/P2_Misisng_Yarn_BehindSwap.cs
@@ -306,6 +306,7 @@ SplatoonScriptsOfficial.Tests@GenericTest,1,https://github.com/PunishXIV/Splatoo
 SplatoonScriptsOfficial.Tests@DirectorUpdateTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/DirectorUpdateTest.cs
 SplatoonScriptsOfficial.Tests@VentureOverrideTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/VentureOverrideTest.cs
 SplatoonScriptsOfficial.Tests@ActionTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ActionTest.cs
+SplatoonScriptsOfficial.Tests@ContextMenuSubscribers,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ContextMenuSubscribers.cs
 SplatoonScriptsOfficial.Tests@IPCExample,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/IPCExample.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest3.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest2,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest2.cs

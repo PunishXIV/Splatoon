@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 {
-    public override Metadata Metadata { get; } = new(8, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(9, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop = [new("CarDir0", x => x.ToString()), new("CarDir1", x => x.ToString()), new("CarDir2", x => x.ToString())];

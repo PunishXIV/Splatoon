@@ -5,9 +5,12 @@ using ECommons;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.GameFunctions.VirtualTableClassifier;
+using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -15,18 +18,18 @@ using System.Linq;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
-public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
+public unsafe class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 {
-    public override Metadata Metadata { get; } = new(7, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(8, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
-    ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop = [new("CarDir0", x => x.ToString()), new("CarDir1", x => x.ToString()), new("CarDir2", x => x.ToString())];
-    ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop2 = [new("CarDir3", x => x.ToString()), new("CarDir4", x => x.ToString()), new("CarDir5", x => x.ToString())];
+    private ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop = [new("CarDir0", x => x.ToString()), new("CarDir1", x => x.ToString()), new("CarDir2", x => x.ToString())];
+    private ImGuiEx.RealtimeDragDrop<CardinalDirection>[] DragDrop2 = [new("CarDir3", x => x.ToString()), new("CarDir4", x => x.ToString()), new("CarDir5", x => x.ToString())];
 
-    uint Sequence = 0;
-    bool? IsAccretion = null;
+    private uint Sequence = 0;
+    private bool? IsAccretion = null;
 
-    IBattleNpc? Gigakefka => Svc.Objects.OfTypeIBattleNpc().FirstOrDefault(x => x.DataId == 19504 && x.HitboxRadius > 20f);
+    private IBattleNpc? Gigakefka => Svc.Objects.OfTypeIBattleNpc().FirstOrDefault(x => x.DataId == 19504 && x.HitboxRadius > 20f);
 
     public override void OnSetup()
     {
@@ -42,7 +45,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
             {"Name":"HoleFixed","radius":5.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"refActorObjectID":0,"refActorComparisonType":2,"includeRotation":true,"tether":true,"LineEndA":1,"RotationOverride":true,"RotationOverridePoint":{"X":100.0,"Y":100.0}}
             """);
 
-        for(int i = 0; i < 20; i++)
+        for(var i = 0; i < 20; i++)
         {
             Controller.RegisterElementFromCode($$$"""{"Name":"Indicator{{{i}}}"}""");
         }
@@ -59,7 +62,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         Controller.Hide();
         if(Gigakefka != null)
         {
-            int i = 0;
+            var i = 0;
             foreach(var x in GetTetheredOrderedBlackholes())
             {
                 i++;
@@ -78,68 +81,14 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         {
             IsAccretion = BasePlayer.HasStatus(1604);
         }
-        int numElements = 0;
-        if(C.UseKefkaRelative)
+        var numElements = 0;
+        if(C.Mode == Mode.Role)
         {
-            var tethers = GetTetheredOrderedBlackholes();
-            if(tethers.Count > 0)
-            {
-                var seq = C.Takers.SafeSelect((int)Sequence);
-                var isTaker = false;
-                if(seq != null && GetMyRole() != Taker.None)
-                {
-                    for(int i = 0; i < tethers.Count; i++)
-                    {
-                        var current = seq[i];
-                        if(current == GetMyRole())
-                        {
-                            var myHole = tethers.CircularSelect((int)(C.ClockwiseNumber[i]) - 1);
-                            if(!DrawHole(ref numElements, myHole.Value.Object)) valid = false;
-                            myHoles.Add(myHole.Value.Object);
-                            isTaker = true;
-                        }
-                    }
-                }
-                if(!isTaker && tethers.Count > 0)
-                {
-                    DrawIdle();
-                }
-            }
+            ResolveRoleMode(ref numElements, ref valid, ref myHoles);
         }
-        else
+        else if(C.Mode == Mode.Marker)
         {
-            var tethers = GetTetheredBlackholes();
-            if(tethers.Count > 0)
-            {
-                var seq = C.Takers.SafeSelect((int)Sequence);
-                if(seq != null)
-                {
-                    var isTaker = false;
-                    HashSet<CardinalDirection> takenDirection = [];
-                    for(int i = 0; i < seq.Count; i++)
-                    {
-                        var current = seq[i];
-                        foreach(var dir in C.TetherPriorities[i])
-                        {
-                            if(!takenDirection.Contains(dir) && tethers.TryGetValue(dir, out var blackhole))
-                            {
-                                takenDirection.Add(dir);
-                                if(current == GetMyRole() && GetMyRole() != Taker.None)
-                                {
-                                    if(!DrawHole(ref numElements, blackhole)) valid = false;
-                                    myHoles.Add(blackhole);
-                                    isTaker = true;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    if(!isTaker && tethers.Count > 0)
-                    {
-                        DrawIdle();
-                    }
-                }
-            }
+            ResolveMarkerMode(ref numElements, ref valid, ref myHoles);
         }
         if(valid)
         {
@@ -171,7 +120,155 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         }
     }
 
-    bool DrawHole(ref int numElements, IBattleNpc blackhole)
+    void ResolveRoleMode(ref int numElements, ref bool valid, ref List<IBattleNpc> myHoles)
+    {
+        if(C.UseKefkaRelative)
+        {
+            var tethers = GetTetheredOrderedBlackholes();
+            if(tethers.Count > 0)
+            {
+                var seq = C.Takers.SafeSelect((int)Sequence);
+                var isTaker = false;
+                if(seq != null && GetMyRole() != Taker.None)
+                {
+                    for(var i = 0; i < tethers.Count; i++)
+                    {
+                        var current = seq[i];
+                        if(current == GetMyRole())
+                        {
+                            var myHole = tethers.CircularSelect((int)C.ClockwiseNumber[i] - 1);
+                            if(!DrawHole(ref numElements, myHole.Value.Object))
+                            {
+                                valid = false;
+                            }
+
+                            myHoles.Add(myHole.Value.Object);
+                            isTaker = true;
+                        }
+                    }
+                }
+                if(!isTaker && tethers.Count > 0)
+                {
+                    DrawIdle();
+                }
+            }
+        }
+        else
+        {
+            var tethers = GetTetheredBlackholes();
+            if(tethers.Count > 0)
+            {
+                var seq = C.Takers.SafeSelect((int)Sequence);
+                if(seq != null)
+                {
+                    var isTaker = false;
+                    HashSet<CardinalDirection> takenDirection = [];
+                    for(var i = 0; i < seq.Count; i++)
+                    {
+                        var current = seq[i];
+                        foreach(var dir in C.TetherPriorities[i])
+                        {
+                            if(!takenDirection.Contains(dir) && tethers.TryGetValue(dir, out var blackhole))
+                            {
+                                takenDirection.Add(dir);
+                                if(current == GetMyRole() && GetMyRole() != Taker.None)
+                                {
+                                    if(!DrawHole(ref numElements, blackhole))
+                                    {
+                                        valid = false;
+                                    }
+
+                                    myHoles.Add(blackhole);
+                                    isTaker = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    if(!isTaker && tethers.Count > 0)
+                    {
+                        DrawIdle();
+                    }
+                }
+            }
+        }
+    }
+
+    void ResolveMarkerMode(ref int numElements, ref bool valid, ref List<IBattleNpc> myHoles)
+    {
+        if(C.UseKefkaRelative)
+        {
+            var tethers = GetTetheredOrderedBlackholes();
+            if(tethers.Count > 0)
+            {
+                var seq = C.MarkerTakers.SafeSelect((int)Sequence);
+                var isTaker = false;
+                if(seq != null && GetOwnMarker() != null)
+                {
+                    for(var i = 0; i < tethers.Count; i++)
+                    {
+                        var current = seq[i];
+                        if(current == GetOwnMarker().Value.RowId)
+                        {
+                            var myHole = tethers.CircularSelect((int)C.ClockwiseNumber[i] - 1);
+                            if(!DrawHole(ref numElements, myHole.Value.Object))
+                            {
+                                valid = false;
+                            }
+
+                            myHoles.Add(myHole.Value.Object);
+                            isTaker = true;
+                        }
+                    }
+                }
+                if(!isTaker && tethers.Count > 0)
+                {
+                    DrawIdle();
+                }
+            }
+        }
+        else
+        {
+            var tethers = GetTetheredBlackholes();
+            if(tethers.Count > 0)
+            {
+                var seq = C.MarkerTakers.SafeSelect((int)Sequence);
+                if(seq != null)
+                {
+                    var isTaker = false;
+                    HashSet<CardinalDirection> takenDirection = [];
+                    for(var i = 0; i < seq.Count; i++)
+                    {
+                        var current = seq[i];
+                        foreach(var dir in C.TetherPriorities[i])
+                        {
+                            if(!takenDirection.Contains(dir) && tethers.TryGetValue(dir, out var blackhole))
+                            {
+                                takenDirection.Add(dir);
+                                if(GetOwnMarker() != null && current == GetOwnMarker()?.RowId)
+                                {
+                                    if(!DrawHole(ref numElements, blackhole))
+                                    {
+                                        valid = false;
+                                    }
+
+                                    myHoles.Add(blackhole);
+                                    isTaker = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    if(!isTaker && tethers.Count > 0)
+                    {
+                        DrawIdle();
+                    }
+                }
+            }
+        }
+    }
+
+    private bool DrawHole(ref int numElements, IBattleNpc blackhole)
     {
         var isMyTether = false;
         var name = $"Tether{numElements}";
@@ -189,7 +286,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         return isMyTether;
     }
 
-    List<List<CardinalDirection>> GetTetherPriorities()
+    private List<List<CardinalDirection>> GetTetherPriorities()
     {
         return (!C.TetherPrio2Same && GetTetheredBlackholes().Count == 2) ? C.TetherPriorities2 : C.TetherPriorities;
     }
@@ -198,23 +295,53 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
     {
         if(IsAccretion == true)
         {
-            if(GetOwnNumber() == 1) return Taker.Accretion_1;
-            if(GetOwnNumber() == 2) return Taker.Accretion_2;
+            if(GetOwnNumber() == 1)
+            {
+                return Taker.Accretion_1;
+            }
+
+            if(GetOwnNumber() == 2)
+            {
+                return Taker.Accretion_2;
+            }
         }
         else
         {
-            if(GetOwnNumber() == 1) return Taker.Number_1;
-            if(GetOwnNumber() == 2) return Taker.Number_2;
-            if(GetOwnNumber() == 3) return Taker.Number_3;
+            if(GetOwnNumber() == 1)
+            {
+                return Taker.Number_1;
+            }
+
+            if(GetOwnNumber() == 2)
+            {
+                return Taker.Number_2;
+            }
+
+            if(GetOwnNumber() == 3)
+            {
+                return Taker.Number_3;
+            }
         }
         return Taker.None;
     }
 
     public int GetOwnNumber()
     {
-        if(BasePlayer.HasStatus(3004)) return 1;
-        if(BasePlayer.HasStatus(3005)) return 2;
-        if(BasePlayer.HasStatus(3006)) return 3;
+        if(BasePlayer.HasStatus(3004))
+        {
+            return 1;
+        }
+
+        if(BasePlayer.HasStatus(3005))
+        {
+            return 2;
+        }
+
+        if(BasePlayer.HasStatus(3006))
+        {
+            return 3;
+        }
+
         return 0;
     }
 
@@ -231,7 +358,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         }
     }
 
-    void DrawIdle()
+    private void DrawIdle()
     {
         {
             if(Controller.TryGetElementByName("HintIdle", out var e))
@@ -249,7 +376,7 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         }
     }
 
-    void DrawTake()
+    private void DrawTake()
     {
         if(Controller.TryGetElementByName("HintTake", out var e))
         {
@@ -260,29 +387,73 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
 
     public override void OnSettingsDraw()
     {
-        ImGuiEx.TextWrapped($"Configure which tethers you will be taking during each wave according to your assigned number and accretion debuff.");
+        ImGui.SetNextItemWidth(150f);
+        ImGuiEx.EnumCombo("Mechanic Resolution Mode", ref C.Mode);
+        if(C.Mode == Mode.Role)
+        {
+            ImGuiEx.TextWrapped($"Configure which tethers you will be taking during each wave according to your assigned number and accretion debuff.");
+        }
+        if(C.Mode == Mode.Marker)
+        {
+            ImGuiEx.TextWrapped($"Configre which marker takes which tether. If specified markers will not be present, the script will fail.");
+        }
         ImGuiEx.TextV($"Mode: ");
         ImGui.SameLine();
-        ImGuiEx.RadioButtonBool("Kefka relative", "True north", ref C.UseKefkaRelative, sameLine:true);
-        if(ImGuiEx.BeginDefaultTable("table", ["Wave", "Tether 1", "Tether 2", "Tether 3"], extraFlags: ImGuiTableFlags.SizingStretchSame, nullifyFlags:ImGuiTableFlags.SizingFixedFit))
+        ImGuiEx.RadioButtonBool("Kefka relative", "True north", ref C.UseKefkaRelative, sameLine: true);
+        if(ImGuiEx.BeginDefaultTable("table", ["Wave", "Tether 1", "Tether 2", "Tether 3"], 
+            extraFlags: ImGuiTableFlags.SizingStretchSame, 
+            nullifyFlags: ImGuiTableFlags.SizingFixedFit))
         {
-            for(int i = 0; i < C.Takers.Count; i++)
+            if(C.Mode == Mode.Role)
             {
-                ImGui.PushID($"{i}");
-                var row = C.Takers[i];
-                ImGui.TableNextRow();
-                ImGui.TableNextColumn();
-                ImGuiEx.TextV($"Wave {i + 1}");
-                for(int k = 0; k < (i.EqualsAny(0, 9)?1:i.EqualsAny(1,8)?2:row.Count); k++)
+                for(var i = 0; i < C.Takers.Count; i++)
                 {
-                    ImGui.PushID($"{k}");
+                    ImGui.PushID($"{i}");
+                    var row = C.Takers[i];
+                    ImGui.TableNextRow();
                     ImGui.TableNextColumn();
-                    ImGuiEx.SetNextItemFullWidth();
-                    var x = row[k];
-                    if(ImGuiEx.EnumCombo("##taker", ref x)) row[k] = x;
+                    ImGuiEx.TextV($"Wave {i + 1}");
+                    for(var k = 0; k < (i.EqualsAny(0, 9) ? 1 : i.EqualsAny(1, 8) ? 2 : row.Count); k++)
+                    {
+                        ImGui.PushID($"{k}");
+                        ImGui.TableNextColumn();
+                        ImGuiEx.SetNextItemFullWidth();
+                        var x = row[k];
+                        if(ImGuiEx.EnumCombo("##taker", ref x))
+                        {
+                            row[k] = x;
+                        }
+
+                        ImGui.PopID();
+                    }
                     ImGui.PopID();
                 }
-                ImGui.PopID();
+            }
+            else if(C.Mode == Mode.Marker)
+            {
+                for(var i = 0; i < C.MarkerTakers.Count; i++)
+                {
+                    ImGui.PushID($"{i}");
+                    var row = C.MarkerTakers[i];
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGuiEx.TextV($"Wave {i + 1}");
+                    for(var k = 0; k < (i.EqualsAny(0, 9) ? 1 : i.EqualsAny(1, 8) ? 2 : row.Count); k++)
+                    {
+                        ImGui.PushID($"{k}");
+                        ImGui.TableNextColumn();
+                        ImGuiEx.SetNextItemFullWidth();
+                        var x = row[k];
+                        var mk = Marker.Get(x);
+                        if(DrawMkSel(mk, ref x))
+                        {
+                            row[k] = x;
+                        }
+
+                        ImGui.PopID();
+                    }
+                    ImGui.PopID();
+                }
             }
 
             if(C.UseKefkaRelative)
@@ -290,12 +461,15 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGuiEx.TextV($"Prio, CW from Kefka");
-                for(int i = 0; i < 3; i++)
+                for(var i = 0; i < 3; i++)
                 {
                     ImGui.TableNextColumn();
                     ImGui.SetNextItemWidth(100);
                     var x = C.ClockwiseNumber[i];
-                    if(ImGui.InputUInt($"##prio{i}", ref x)) C.ClockwiseNumber[i] = x;
+                    if(ImGui.InputUInt($"##prio{i}", ref x))
+                    {
+                        C.ClockwiseNumber[i] = x;
+                    }
                 }
             }
             else
@@ -303,13 +477,13 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
                 ImGuiEx.Text($"Tether Priority\n(3 tethers)");
-                for(int i = 0; i < 3; i++)
+                for(var i = 0; i < 3; i++)
                 {
                     ImGui.PushID($"d{i}");
                     ImGui.TableNextColumn();
                     var item = C.TetherPriorities[i];
                     DragDrop[i].Begin();
-                    for(int k = 0; k < item.Count; k++)
+                    for(var k = 0; k < item.Count; k++)
                     {
                         DragDrop[i].NextRow();
                         DragDrop[i].DrawButtonDummy(item[k].ToString(), item, k);
@@ -330,13 +504,13 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
                 ImGuiEx.Tooltip("Use same priority as 3 tethers");
                 if(!C.TetherPrio2Same)
                 {
-                    for(int i = 0; i < 2; i++)
+                    for(var i = 0; i < 2; i++)
                     {
                         ImGui.PushID($"d2{i}");
                         ImGui.TableNextColumn();
                         var item = C.TetherPriorities2[i];
                         DragDrop2[i].Begin();
-                        for(int k = 0; k < item.Count; k++)
+                        for(var k = 0; k < item.Count; k++)
                         {
                             DragDrop2[i].NextRow();
                             DragDrop2[i].DrawButtonDummy(item[k].ToString(), item, k);
@@ -359,7 +533,69 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
             ImGui.InputUInt("Sequence", ref Sequence);
             ImGuiEx.Text($"My role: {GetMyRole()}");
             ImGuiEx.Text($"Using prio2: {!C.TetherPrio2Same && GetTetheredBlackholes().Count == 2}");
+            ImGuiEx.Text("Marker:");
+            if(GetOwnMarker() != null && ThreadLoadImageHandler.TryGetIconTextureWrap(GetOwnMarker().Value.Icon, false, out var t))
+            {
+                ImGui.Image(t.Handle, new(50));
+            }
+            foreach(var x in Controller.GetPartyMembers())
+            {
+                ImGui.PushID(x.GetNameWithWorld());
+                if(ImGui.BeginCombo($"{x.GetNameWithWorld()}", $"{GetMarker(x.ObjectId)?.Name ?? "Not set"}", ImGuiComboFlags.HeightLarge))
+                {
+                    foreach(var v in Marker.Values)
+                    {
+                        if(ImGui.Selectable($"{v.Name}"))
+                        {
+                            for(int i = 0; i < MarkingController.Instance()->Markers.Length; i++)
+                            {
+                                if(MarkingController.Instance()->Markers[i].ObjectId == x.ObjectId)
+                                {
+                                    MarkingController.Instance()->Markers[i] = default;
+                                }
+                            }
+                            if(v.RowId > 0) MarkingController.Instance()->Markers[(int)v.RowId - 1] = x.GameObjectId;
+                        }
+                    }
+                    ImGui.EndCombo();
+                }
+                ImGui.PopID();
+            }
         }
+    }
+
+    private bool DrawMkSel(Marker mk, ref uint currentValue)
+    {
+        var ret = false;
+        if(ThreadLoadImageHandler.TryGetIconTextureWrap(mk.Icon, false, out var tex))
+        {
+            if(ImGui.ImageButton(tex.Handle, new(40)))
+            {
+                ImGui.OpenPopup("MrkSlkt");
+            }
+            if(ImGui.BeginPopup("MrkSlkt"))
+            {
+                var cnt = 0;
+                foreach(var v in Marker.Values)
+                {
+                    if(v.Icon != 0 && ThreadLoadImageHandler.TryGetIconTextureWrap(v.Icon, false, out var tex1))
+                    {
+                        if(ImGui.ImageButton(tex1.Handle, new(30)))
+                        {
+                            currentValue = v.RowId;
+                            ret = true;
+                            ImGui.CloseCurrentPopup();
+                        }
+                        if(++cnt % 5 != 0)
+                        {
+                            ImGui.SameLine();
+                        }
+                    }
+                }
+                ImGui.EndPopup();
+            }
+        }
+        return ret;
     }
 
     public Dictionary<CardinalDirection, IBattleNpc> GetTetheredBlackholes()
@@ -378,7 +614,11 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
     public OrderedDictionary<CardinalDirection, EnumerationResult<IBattleNpc>> GetTetheredOrderedBlackholes()
     {
         var bh = GetTetheredBlackholes();
-        if(bh.Count == 0) return [];
+        if(bh.Count == 0)
+        {
+            return [];
+        }
+
         var ret = new OrderedDictionary<CardinalDirection, EnumerationResult<IBattleNpc>>();
         foreach(var x in MathHelper.EnumerateObjectsClockwiseEx(bh, x => x.Value.Position.ToVector2(), new(100, 100), -Gigakefka.Rotation.RadToDeg() - 5))
         {
@@ -416,7 +656,26 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         public bool TetherPrio2Same = true;
         public ShowTether ShowTether = ShowTether.Clockwise;
         public bool TwoTethersBetweenHoles = true;
+        public Mode Mode = Mode.Role;
+        public List<List<uint>> MarkerGroups = [[1, 2, 3], [6, 7, 8], [9, 10]];
+        public List<List<uint>> MarkerTakers = [
+            [1,0,0],
+            [1,2,0],
+            [1,2,3],
+            [6,2,3],
+            [6,7,3],
+            [6,7,8],
+            [9,7,8],
+            [9,10,8],
+            [9,10,0],
+            [10,0,0],
+            ];
+    }
 
+    public enum Mode
+    {
+        Role,
+        Marker,
     }
 
     public enum ShowTether
@@ -432,5 +691,24 @@ public class P3_Blackhole_Lite : SplatoonScript<P3_Blackhole_Lite.Config>
         Number_3,
         Accretion_1,
         Accretion_2,
+    }
+
+    public unsafe Marker? GetOwnMarker()
+    {
+        return GetMarker(BasePlayer.ObjectId);
+    }
+
+    public unsafe Marker? GetMarker(uint objectId)
+    {
+        var array = MarkingController.Instance()->Markers;
+        for(var i = 0; i < array.Length; i++)
+        {
+            var x = array[i];
+            if(x.ObjectId == objectId)
+            {
+                return Marker.Get((uint)(i + 1));
+            }
+        }
+        return default;
     }
 }

@@ -132,10 +132,10 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             ~Lv2~{"Enabled":false,"Name":"Language","ZoneLockH":[1363],"ElementsL":[{"Name":"LookAt","overlayText":"Look at in #","overlayTextIntl":{"Jp":"#秒後に視線"}},{"Name":"LookAway","overlayText":"Look AWAY in #","overlayTextIntl":{"Jp":"#秒後に視線外す"}},{"Name":"Spread","overlayText":"Spread in #","overlayTextIntl":{"Jp":"#秒後に散開"}},{"Name":"Stack","overlayText":"Stack in #","overlayTextIntl":{"Jp":"#秒後に頭割り"}},{"Name":"DontMove","overlayText":"Don't move in #","overlayTextIntl":{"Jp":"#秒後に動くな"}},{"Name":"Move","overlayText":"Move in #","overlayTextIntl":{"Jp":"#秒後に動け"}},{"Name":"DropDonut","overlayText":"Drop donut in #","overlayTextIntl":{"Jp":"#秒後にドーナツ"}},{"Name":"DropAOE","overlayText":"Drop AOE in #","overlayTextIntl":{"Jp":"#秒後に範囲"}}]}
             """);
         Controller.RegisterLayoutFromCode("""
-            ~Lv2~{"Enabled":false,"Name":"Move","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"refY":3.0,"offY":-3.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,"LineEndB":1,thicc:4.0},{"Name":"","type":3,"refX":3.0,"offX":-3.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,"LineEndB":1,thicc:4.0}]}
+            ~Lv2~{"Enabled":false,"Name":"Move","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"refX":-0.5,"refY":-0.5,"offX":-2.0,"offY":-2.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"thicc":4.0,"refActorType":1,"LineEndB":1},{"Name":"","type":3,"refX":-0.5,"refY":0.5,"offX":-2.0,"offY":2.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"thicc":4.0,"refActorType":1,"LineEndB":1},{"Name":"","type":3,"refX":0.5,"refY":0.5,"offX":2.0,"offY":2.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"thicc":4.0,"refActorType":1,"LineEndB":1},{"Name":"","type":3,"refX":0.5,"refY":-0.5,"offX":2.0,"offY":-2.0,"radius":0.0,"color":3357671168,"fillIntensity":0.345,"thicc":4.0,"refActorType":1,"LineEndB":1}]}
             """);
         Controller.RegisterLayoutFromCode("""
-            ~Lv2~{"Enabled":false,"Name":"DontMove","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"offY":-3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offY":3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offX":3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0},{"Name":"","type":3,"offX":-3.0,"radius":0.0,"fillIntensity":0.345,"refActorType":1,"LineEndA":1,thicc:4.0}]}
+            ~Lv2~{"Enabled":false,"Name":"DontMove","ZoneLockH":[1363],"ElementsL":[{"Name":"","type":3,"refX":-0.5,"refY":-0.5,"offX":-2.0,"offY":-2.0,"radius":0.0,"fillIntensity":0.345,"thicc":4.0,"refActorType":1,"LineEndA":1},{"Name":"","type":3,"refX":0.5,"refY":0.5,"offX":2.0,"offY":2.0,"radius":0.0,"fillIntensity":0.345,"thicc":4.0,"refActorType":1,"LineEndA":1},{"Name":"","type":3,"refX":0.5,"refY":-0.5,"offX":2.0,"offY":-2.0,"radius":0.0,"fillIntensity":0.345,"thicc":4.0,"refActorType":1,"LineEndA":1},{"Name":"","type":3,"refX":-0.5,"refY":0.5,"offX":-2.0,"offY":2.0,"radius":0.0,"fillIntensity":0.345,"thicc":5.0,"refActorType":1,"LineEndA":1}]}
             """);
     }
 
@@ -162,6 +162,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
     public override void OnUpdate()
     {
         Controller.Hide();
+        if(Controller.GetPartyMembers().Any(x => x.HasStatus([1602, 1603]))) return;
         if(BasePlayer.HasStatus([.. Debuffs.DebuffWhitewould, .. Debuffs.DebuffBlackwound], out var status))
         {
             var showWhite = status[0].ID.EqualsAny(Debuffs.DebuffWhitewould);

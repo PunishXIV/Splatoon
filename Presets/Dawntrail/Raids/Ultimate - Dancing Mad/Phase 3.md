@@ -20,6 +20,12 @@
 ~Lv2~{"Name":"Dmad P3 Tankbuster","Group":"Dancing Mad (Ultimate) P3 - NXIV","ZoneLockH":[1363],"ElementsL":[{"Name":"Thunder III Casting","type":1,"radius":5.5,"Donut":0.1,"color":3370385663,"fillIntensity":0.4,"refActorNPCNameID":6052,"refActorRequireCast":true,"refActorCastId":[47881],"refActorUseCastTime":true,"refActorCastTimeMax":8.2,"refActorUseOvercast":true,"refActorComparisonType":6,"onlyVisible":true,"Conditional":true,"Nodraw":true},{"Name":"Buster on you","type":1,"radius":4.5,"color":3372155100,"fillIntensity":0.2,"overlayBGColor":1895760104,"overlayVOffset":2.0,"overlayFScale":1.25,"thicc":2.5,"overlayText":"Tankbuster, move out","refActorNPCID":6052,"TargetAlteration":1100,"refActorComparisonType":4,"onlyVisible":true,"DistanceSourceX":100.0,"DistanceSourceY":100.0,"DistanceMax":20.0,"IsDead":false}]}
 ```
 
+## [Beta] [WIP] [Script] Target enforcer
+Switches your target depending on your Decisive battle debuff
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Target_Enforcer.cs
+```
+
 ## [Configuration required] Bowels of Agony - [cheese strat - NA](https://files.nightmarexiv.org/images/2026-06-15_04-23-14.jpg)
 
 After importing this preset, click on it and in right panel select your role in "configurations" section. 

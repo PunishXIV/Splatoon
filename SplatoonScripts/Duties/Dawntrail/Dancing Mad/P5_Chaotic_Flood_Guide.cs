@@ -1,5 +1,7 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.Hooks.ActionEffectTypes;
 using Splatoon.SplatoonScripting;
@@ -13,7 +15,14 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 public class P5_Chaotic_Flood_Guide : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1363];
-    public override Metadata? Metadata => new(1, "Poneglyph");
+    public override Metadata? Metadata => new(2, "Poneglyph");
+
+    private class Config : IEzConfig
+    {
+        public bool UseMarkers = false;
+    }
+
+    private Config C => Controller.GetConfig<Config>();
 
     private const uint KefkaNameId = 7131;
     private const uint TelegraphCast = 49539;
@@ -34,6 +43,9 @@ public class P5_Chaotic_Flood_Guide : SplatoonScript
         new(98f, 0f, 100f),
     ];
     private static readonly string[] CardinalNames = ["N", "E", "S", "W"];
+    private static readonly string[] MarkerNames   = ["A", "B", "C", "D"];
+
+    private string GetName(int idx) => C.UseMarkers ? MarkerNames[idx] : CardinalNames[idx];
 
     private sealed class LineSet
     {
@@ -55,6 +67,11 @@ public class P5_Chaotic_Flood_Guide : SplatoonScript
             "{\"Name\":\"\",\"refX\":100.0,\"refY\":100.0,\"refZ\":0.0,\"radius\":1.0,\"color\":3355508503,\"Filled\":true,\"fillIntensity\":0.3,\"thicc\":6.0,\"tether\":true,\"overlayBGColor\":3221225472,\"overlayTextColor\":4294967295,\"overlayVOffset\":1.5,\"overlayFScale\":2.0}");
         Controller.RegisterElementFromCode("Spread",
             "{\"Name\":\"\",\"refX\":110.0,\"refY\":106.0,\"refZ\":0.0,\"radius\":1.0,\"color\":3355508503,\"Filled\":true,\"fillIntensity\":0.3,\"thicc\":6.0,\"tether\":true,\"overlayBGColor\":3221225472,\"overlayTextColor\":4294967295,\"overlayVOffset\":1.5,\"overlayFScale\":2.0,\"overlayText\":\"Spread\"}");
+    }
+
+    public override void OnSettingsDraw()
+    {
+        ImGui.Checkbox("Text Only: Use Markers (A/B/C/D) instead of Cardinals (N/E/S/W)", ref C.UseMarkers);
     }
 
     public override void OnReset()
@@ -121,7 +138,17 @@ public class P5_Chaotic_Flood_Guide : SplatoonScript
                 var idx = _sequence[step];
                 safe.Enabled = true;
                 safe.SetRefPosition(Cardinals[idx]);
-                safe.overlayText = $"{step + 1} {CardinalNames[idx]}";
+
+                if(step == 0)
+                {
+                    var remaining = Enumerable.Range(0, 3)
+                        .Select(s => GetName(_sequence[s]));
+                    safe.overlayText = string.Join(" > ", remaining);
+                }
+                else
+                {
+                    safe.overlayText = "";
+                }
             }
         }
 

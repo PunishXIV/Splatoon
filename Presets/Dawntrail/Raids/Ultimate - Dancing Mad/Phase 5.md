@@ -25,7 +25,8 @@ Gotta Dodge 'Em All
 
 ## [Script] Celestriad
 
-Kefkabin
+Players with initial debuff take first safe tower clockwise to their debuff
+Players without initial debuff take the remaining tower 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P5_Celestriad.cs
 ```

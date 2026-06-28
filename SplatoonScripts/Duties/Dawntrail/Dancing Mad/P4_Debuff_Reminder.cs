@@ -1,5 +1,7 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Conditions;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.Automation;
@@ -21,12 +23,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Status = Lumina.Excel.Sheets.Status;
+using UIColor = ECommons.ChatMethods.UIColor;
 
 namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
 {
-    public override Metadata Metadata { get; } = new(9, "NightmareXIV, mirage");
+    public override Metadata Metadata { get; } = new(10, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -162,7 +165,11 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
     public override void OnUpdate()
     {
         Controller.Hide();
-        if(Controller.GetPartyMembers().Any(x => x.HasStatus([1602, 1603]))) return;
+        if(Controller.GetPartyMembers().Any(x => x.HasStatus([1602, 1603])))
+        {
+            return;
+        }
+
         if(BasePlayer.HasStatus([.. Debuffs.DebuffWhitewould, .. Debuffs.DebuffBlackwound], out var status))
         {
             var showWhite = status[0].ID.EqualsAny(Debuffs.DebuffWhitewould);
@@ -369,7 +376,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                         }
                         if(C.OutputInChat)
                         {
-                            ChatPrinter.Orange("LONG SPREAD on YOU!");
+                            Print(UIColor.Orange, "LONG SPREAD on YOU!");
                         }
                     }
                     else
@@ -384,7 +391,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                         }
                         if(C.OutputInChat)
                         {
-                            ChatPrinter.Orange("SHORT SPREAD on YOU!");
+                            Print(UIColor.Orange, "SHORT SPREAD on YOU!");
                         }
                     }
                 }
@@ -395,14 +402,14 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                     {
                         if(C.OutputInChat)
                         {
-                            ChatPrinter.Red($"LONG GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
+                            Print(UIColor.Red, $"LONG GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
                         }
                     }
                     else
                     {
                         if(C.OutputInChat)
                         {
-                            ChatPrinter.Red($"SHORT GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
+                            Print(UIColor.Red, $"SHORT GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
                         }
                     }
                 }
@@ -411,11 +418,25 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                 {
                     if(C.OutputInChat)
                     {
-                        ChatPrinter.Yellow(IsLie ? "Inverted acceleration bomb on YOU (MOVE)" : "Acceleration bomb on YOU (DON'T MOVE)");
+                        Print(UIColor.Yellow, IsLie ? "Inverted acceleration bomb on YOU (MOVE)" : "Acceleration bomb on YOU (DON'T MOVE)");
                     }
                 }
             }
         }
+    }
+
+    private void Print(UIColor color, string msg)
+    {
+        var entry = new XivChatEntry()
+        {
+            Message = new SeStringBuilder().AddUiForeground(msg, (ushort)color).Build()
+        };
+        if(C.OverrideChatType != XivChatType.None)
+        {
+            entry.Type = C.OverrideChatType;
+        }
+
+        Svc.Chat.Print(entry);
     }
 
     private void UseCommand(string cmd)
@@ -447,6 +468,13 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         }
 
         ImGui.Checkbox("Output your debuffs into local chat (for you only)", ref C.OutputInChat);
+        if(C.OutputInChat)
+        {
+            ImGui.Indent();
+            ImGui.SetNextItemWidth(200f);
+            ImGuiEx.EnumCombo("Override chat channel (it will NOT send it to that channel, still local only, only affects visual)", ref C.OverrideChatType);
+            ImGui.Unindent();
+        }
         ImGuiEx.Checkbox("Self-mark spreads (dangerous)", ref C.UseSelfmark, enabled: C.UseSelfmark || ImGuiEx.Ctrl);
         ImGuiEx.Tooltip("Hold CTRL and click to enable");
         if(C.UseSelfmark)
@@ -517,6 +545,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         public uint MarkingParamLongSpread;
         public bool UseSelfmark = false;
         public bool OutputInChat = true;
+        public XivChatType OverrideChatType = XivChatType.None;
     }
 
     private uint[] ValidTextParams = [80, 82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 476, 478, 480,];

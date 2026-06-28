@@ -125,16 +125,21 @@ Below are listed configurations for this script. All configurations contain conf
 {"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"piR support v1","Configuration":"G8ED4J0FdrNyjO6IVh4MWcS1zu7vO3VsIRn6eEjfriVZNYnBcOHYvGAQQ6EaWAw7tbfPqf9UaHd8a4X2pII1Ja1uE0EFe/5FYmDPesxvH8DIRH93G9gAiDfAh6nP9gD11D8S9dI/EfUh4gi2B1CpLflJxSDUfain8iqPeKiIIMpu0tNSBW+TnJchlHH+WkOnKQYBM3urszvY7kCdzetYtbVzzvM6ZpFhPSR9dfA1mw2rCybDDw==","Overrides":null}
 ```
 
-### [Kefkabin](https://files.nightmarexiv.org/images/2026-06-16_23-12-09.jpg) (seems to be same as [ZsQ](https://files.nightmarexiv.org/images/2026-06-17_02-24-54.jpg))
+### [Kefkabin D>S>A Old BH](https://files.nightmarexiv.org/images/2026-06-16_23-12-09.jpg) (seems to be same as [ZsQ](https://files.nightmarexiv.org/images/2026-06-17_02-24-54.jpg))
 ```
-{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin DPS v1","Configuration":"G8AD4BwJ2RnmRehw6uJPrbP7+85cW0gL/Vj+sN/ekqyaxGA4YdicYBBDYd0BXjW42nvfmgelLYEgaEFbgpEH6uGjbJskfKDDrD0U1HIt1dsngIKKTncp2ASAF6A3N8zKT3srxAwtTphJSxDGsBakOunCxyoErNvmk9xSCPBFH/yOJuOTf6orATHzm8VTwpmwdDJHNGtx5nkdf5LBF0pvPbxjNDkR5Qc=","Overrides":null}
-{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin Support v1","Configuration":"G8AD4JwFdrNyjO6IVh4MWcS1zu7vO1U3oS58M6H27Tfq9lcEgSjJgmMkCEIoVAPLurPr1Vv7FV61NQ9KEwqCFgRhYJEH6mnmNgp7YAv5QxxoOYv19gEEVHS7U8AGgJ0AbYb39on0lb8BvfF3oHcdRVdrlJ1l8rGKAOuO8QRHir5sA3ujZHzxXzURIGZ5I3lKOPXkm8zuzUoOntfxJxn2QuntRzCMpg2k8gM=","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin D>S>A Old BH DPS v1","Configuration":"G8AD4BwJ2RnmRehw6uJPrbP7+85cW0gL/Vj+sN/ekqyaxGA4YdicYBBDYd0BXjW42nvfmgelLYEgaEFbgpEH6uGjbJskfKDDrD0U1HIt1dsngIKKTncp2ASAF6A3N8zKT3srxAwtTphJSxDGsBakOunCxyoErNvmk9xSCPBFH/yOJuOTf6orATHzm8VTwpmwdDJHNGtx5nkdf5LBF0pvPbxjNDkR5Qc=","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Kefkabin D>S>A Old BH Support v1","Configuration":"G8AD4JwFdrNyjO6IVh4MWcS1zu7vO1U3oS58M6H27Tfq9lcEgSjJgmMkCEIoVAPLurPr1Vv7FV61NQ9KEwqCFgRhYJEH6mnmNgp7YAv5QxxoOYv19gEEVHS7U8AGgJ0AbYb39on0lb8BvfF3oHcdRVdrlJ1l8rGKAOuO8QRHir5sA3ujZHzxXzURIGZ5I3lKOPXkm8zuzUoOntfxJxn2QuntRzCMpg2k8gM=","Overrides":null}
 ```
 
-### New Kefkabin (DPS take second tether, supports take first tether)
+### [New Kefkabin S>D>A](https://files.nightmarexiv.org/images/2026-06-28_02-33-59.jpg)
 
-Yes, it's literally just a reverse of kefkabin
 ```
-{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"New Kefkabin Support  v1","Configuration":"G8AD4BwJ2RnmRehw6uJPrbP7+85cW0gL/Vj+sN/ekqyaxGA4YdicYBBDYd0BXjW42nvfmgelLYEgaEFbgpEH6uGjbJskfKDDrD0U1HIt1dsngIKKTncp2ASAF6A3N8zKT3srxAwtTphJSxDGsBakOunCxyoErNvmk9xSCPBFH/yOJuOTf6orATHzm8VTwpmwdDJHNGtx5nkdf5LBF0pvPbxjNDkR5Qc=","Overrides":null}
-{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"New Kefkabin DPS v1","Configuration":"G8AD4JwFdrNyjO6IVh4MWcS1zu7vO1U3oS58M6H27Tfq9lcEgSjJgmMkCEIoVAPLurPr1Vv7FV61NQ9KEwqCFgRhYJEH6mnmNgp7YAv5QxxoOYv19gEEVHS7U8AGgJ0AbYb39on0lb8BvfF3oHcdRVdrlJ1l8rGKAOuO8QRHir5sA3ujZHzxXzURIGZ5I3lKOPXkm8zuzUoOntfxJxn2QuntRzCMpg2k8gM=","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"New Kefkabin S>D>A Support  v1","Configuration":"G8AD4BwJ2RnmRehw6uJPrbP7+85cW0gL/Vj+sN/ekqyaxGA4YdicYBBDYd0BXjW42nvfmgelLYEgaEFbgpEH6uGjbJskfKDDrD0U1HIt1dsngIKKTncp2ASAF6A3N8zKT3srxAwtTphJSxDGsBakOunCxyoErNvmk9xSCPBFH/yOJuOTf6orATHzm8VTwpmwdDJHNGtx5nkdf5LBF0pvPbxjNDkR5Qc=","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"New Kefkabin S>D>A DPS v1","Configuration":"G8AD4JwFdrNyjO6IVh4MWcS1zu7vO1U3oS58M6H27Tfq9lcEgSjJgmMkCEIoVAPLurPr1Vv7FV61NQ9KEwqCFgRhYJEH6mnmNgp7YAv5QxxoOYv19gEEVHS7U8AGgJ0AbYb39on0lb8BvfF3oHcdRVdrlJ1l8rGKAOuO8QRHir5sA3ujZHzxXzURIGZ5I3lKOPXkm8zuzUoOntfxJxn2QuntRzCMpg2k8gM=","Overrides":null}
+```
+
+### [Modified D>S>A (double tether kefkabin)](https://files.nightmarexiv.org/images/2026-06-28_02-35-33.jpg)
+```
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Modified D>S>A (double tether kefkabin) SUPPORT","Configuration":"G28GAJwFdiyedIbo4GXIIh6h0pNl7z0Vdn+tmlPZnRPqAYWOTRQQVbUadA5uZump1ka/rrEsS4fAGBM08kD99dOUCHPXA2rL1644dT6T5B0A2aKv66aIAWAxwBmLUX1KxcvPgCuvGPmF8pqRJllyPI4xAgUUtm9W1Py61/EZ25MFuSb4BfYDyD57+KuiqfmY4W+8W7EwulE84VPphehug7aby9REj+6VJlpsQTXr8+j5KCaiYBj/t5t33+wIWuc3FP1iZdDnLs4lYT2UAIQYCQasGMfybVzSwsaXJ+AixDgbHpGc8Ykcg/QRAGLYHq5QOPYf","Overrides":null}
+{"TargetScriptName":"SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Blackhole_Lite","ConfigurationName":"Modified D>S>A (double tether kefkabin) DPS","Configuration":"G28GAJwHdmOHUIs1WsCxiJ8RKj1B+t63tqW6W34FD5kKSVRTYfe3GnTu/+YL6Bj+CP26xrIsLZE9aAFFHqiHlaZEmLsIavK1K47mM0nePwBt0dO2Yz4A5A5AEKG8FxJ9kLIkCB7tK0rg0dVXlbE43qpGjEAhuuWbFc2/7rY92nJnQd2s7Ns7kN3X8KtK0fwxo7vdS2NhVjP5SpuqreDtpVNWfeqa6OO90kSLo1DN+jh6PtKJMYEJ7ln8/WZH0DrfoegXK50+d3E3E9Z6Zlhyi0oZGGBusfTBXpNc0sS6mSf5kqGMtuAxyRmfyDFIHwHAIy5IYaFwnAA=","Overrides":null}
 ```

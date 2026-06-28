@@ -49,8 +49,8 @@ Script file in this repository:
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Limit_Cut.cs
 ```
 
-## **[Script]** [Beta] **[UNTESTED]** P3 Earthquake
-Guides your own Black Hole line, mid-mechanic dodges, and final spread/tower positions.
+## **[Script]** [Beta] P3 Earthquake
+Guides your own Black Hole line, mid-mechanic dodges, and final spread/tower positions. Open script's settings to configure. 
 
 ```
 https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P3_Earthquake.cs

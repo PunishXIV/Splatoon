@@ -16,6 +16,7 @@ using ECommons.Logging;
 using ECommons.MathHelpers;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
+using Splatoon;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
@@ -29,7 +30,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
 {
-    public override Metadata Metadata { get; } = new(10, "NightmareXIV, mirage");
+    public override Metadata Metadata { get; } = new(11, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -376,7 +377,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                         }
                         if(C.OutputInChat)
                         {
-                            Print(UIColor.Orange, "LONG SPREAD on YOU!");
+                            Print(UIColor.Orange, C.LongSpread.Get());
                         }
                     }
                     else
@@ -391,7 +392,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                         }
                         if(C.OutputInChat)
                         {
-                            Print(UIColor.Orange, "SHORT SPREAD on YOU!");
+                            Print(UIColor.Orange, C.ShortSpread.Get());
                         }
                     }
                 }
@@ -402,14 +403,14 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                     {
                         if(C.OutputInChat)
                         {
-                            Print(UIColor.Red, $"LONG GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
+                            Print(UIColor.Red, IsLie?C.LongGazeInv.Get():C.LongGaze.Get());
                         }
                     }
                     else
                     {
                         if(C.OutputInChat)
                         {
-                            Print(UIColor.Red, $"SHORT GAZE on YOU (Look {(IsLie ? "At" : "Away")})");
+                            Print(UIColor.Red, IsLie?C.ShortGazeInv.Get():C.ShortGaze.Get());
                         }
                     }
                 }
@@ -418,7 +419,7 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
                 {
                     if(C.OutputInChat)
                     {
-                        Print(UIColor.Yellow, IsLie ? "Inverted acceleration bomb on YOU (MOVE)" : "Acceleration bomb on YOU (DON'T MOVE)");
+                        Print(UIColor.Yellow, IsLie ? C.AccelerationBombInv.Get() : C.AccelerationBomb.Get());
                     }
                 }
             }
@@ -491,6 +492,47 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         ImGuiEx.SliderFloat($"Display look/don't look in advance, seconds", ref C.LookDontlookTH, 3, 20);
         ImGui.SetNextItemWidth(150f);
         ImGuiEx.SliderFloat($"Display donut/AOE placement in advance, seconds", ref C.LookDontlookTH, 3, 20);
+        ImGui.Separator();
+        ImGui.SetNextItemWidth(200f);
+        C.AccelerationBomb.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Acceleration bomb, normal");
+
+        ImGui.SetNextItemWidth(200f);
+        C.AccelerationBombInv.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Acceleration bomb, inverted");
+
+        ImGui.SetNextItemWidth(200f);
+        C.LongGaze.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Long gaze (away)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.LongGazeInv.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Long gaze (at)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.ShortGaze.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Short gaze (away)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.ShortGazeInv.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Short gaze (at)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.LongSpread.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Long spread");
+
+        ImGui.SetNextItemWidth(200f);
+        C.ShortSpread.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Short spread");
+
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -546,6 +588,14 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         public bool UseSelfmark = false;
         public bool OutputInChat = true;
         public XivChatType OverrideChatType = XivChatType.None;
+        public InternationalString AccelerationBomb = new(en: "Acceleration bomb on YOU (DON'T MOVE)");
+        public InternationalString AccelerationBombInv = new(en: "Inverted acceleration bomb on YOU (MOVE)");
+        public InternationalString LongGaze = new(en: "LONG GAZE on YOU (Look Away)");
+        public InternationalString LongGazeInv = new(en: "LONG GAZE on YOU (Look At)");
+        public InternationalString ShortGaze = new(en: "SHORT GAZE on YOU (Look Away)");
+        public InternationalString ShortGazeInv = new(en: "SHORT GAZE on YOU (Look At)");
+        public InternationalString LongSpread = new(en:"LONG SPREAD on YOU");
+        public InternationalString ShortSpread = new(en:"SHORT SPREAD on YOU");
     }
 
     private uint[] ValidTextParams = [80, 82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 476, 478, 480,];

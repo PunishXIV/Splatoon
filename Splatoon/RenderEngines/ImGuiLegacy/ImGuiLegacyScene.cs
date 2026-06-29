@@ -1,4 +1,5 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
+using SharpDX.Direct3D11;
 using static Splatoon.RenderEngines.ImGuiLegacy.ImGuiLegacyDisplayObjects;
 
 namespace Splatoon.RenderEngines.ImGuiLegacy;

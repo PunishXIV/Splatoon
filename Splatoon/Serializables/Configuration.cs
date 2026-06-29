@@ -8,6 +8,7 @@ using Splatoon.RenderEngines;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
 using Splatoon.SplatoonScripting.Priority;
+using Splatoon.Structures;
 using System.Collections.Specialized;
 using System.Threading;
 
@@ -124,6 +125,8 @@ internal class Configuration : IEzConfig
     public uint FilteredTerritoryLayout = 0;
     public string Alias = "";
 
+    public PointerLineStyle DefaultPointerLineStyle = PointerLineStyle.Default;
+
     public uint ClampFillColorAlpha(uint fillColor)
     {
         var alpha = fillColor >> 24;
@@ -145,6 +148,7 @@ internal class Configuration : IEzConfig
             plugin.ConfigGui.IsOpen = true;
         };
         NuiTools.SetState(NightmareUIState);
+        this.DefaultPointerLineStyle.EnsureDefaults();
     }
 
     public void Save(bool suppressError = false)

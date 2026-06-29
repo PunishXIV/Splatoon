@@ -246,9 +246,12 @@ public class Element
     [DefaultValue(PairingMode.One_to_one)] public PairingMode PairingMode = PairingMode.One_to_one;
     public List<string> PlaceholdersRefPosition = [];
     public List<string> PlaceholdersOffPosition = [];
+    [DefaultValue(false)] public bool EnablePointerLine = false;
+    public PointerLineStyle PointerLineStyle = new();
 
     internal float CastFractionOverride = 0f;
 
+    public bool ShouldSerializePointerLineStyle() => EnablePointerLine;
     public bool ShouldSerializeRotationOverrideFaceModePlaceholders() => RotationOverrideFaceMode && RotationOverrideFaceModePlaceholders.Count > 0;
     public bool ShouldSerializePlaceholdersRefPosition() => PlaceholdersRefPosition.Count > 0 && UsePlaceholderAsRefPosition;
     public bool ShouldSerializePlaceholdersOffPosition() => PlaceholdersOffPosition.Count > 0 && UsePlaceholderAsOffPosition;

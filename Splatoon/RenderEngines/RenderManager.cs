@@ -1,4 +1,7 @@
-﻿using Splatoon.RenderEngines.DirectX11;
+﻿using ECommons.Throttlers;
+using FFXIVClientStructs.FFXIV.Client.Game.Control;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
+using Splatoon.RenderEngines.DirectX11;
 using Splatoon.RenderEngines.ImGuiLegacy;
 using Splatoon.Structures;
 using System;
@@ -102,6 +105,49 @@ public class RenderManager : IDisposable
     {
         if(kind == RenderEngineKind.DirectX11) DirectX11Renderer.DrawSettings();
         if(kind == RenderEngineKind.ImGui_Legacy) ImGuiLegacyRenderer.DrawSettings();
+    }
+
+    private unsafe uint* FrameCounter = &Framework.Instance()->FrameCounter;
+    private uint NearPlaneFrame = 0;
+    public unsafe Vector4? NearPlane
+    {
+        get
+        {
+            if(NearPlaneFrame != *FrameCounter)
+            {
+                try
+                {
+                    field = GetNearPlane();
+                }
+                catch(Exception e)
+                {
+                    var m = e.ToStringFull();
+                    if(EzThrottler.Throttle(m, 10000))
+                    {
+                        PluginLog.Error(m);
+                    }
+                }
+                NearPlaneFrame = *FrameCounter;
+            }
+            return field;
+        }
+    }
+
+    unsafe Vector4? GetNearPlane()
+    {
+        Matrix4x4 viewProj = Control.Instance()->ViewProjectionMatrix;
+
+        // The view matrix in CameraManager is 1 frame stale compared to the Control viewproj matrix.
+        // Computing the near plane using the stale view matrix results in clipping errors that look really bad when moving the camera.
+        // Instead, compute the view matrix using the accurate viewproj matrix multiplied by the stale inverse proj matrix (Which rarely changes)
+        var controlCamera = Control.Instance()->CameraManager.GetActiveCamera();
+        var renderCamera = controlCamera != null ? controlCamera->SceneCamera.RenderCamera : null;
+        if(renderCamera == null) return null;
+        var Proj = renderCamera->ProjectionMatrix;
+        if(!Matrix4x4.Invert(Proj, out var InvProj)) return null;
+        var View = viewProj * InvProj;
+
+        return new(View.M13, View.M23, View.M33, View.M43 + renderCamera->NearPlane);
     }
 
     public void Dispose()

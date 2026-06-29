@@ -1,17 +1,10 @@
 ﻿using Dalamud.Interface.Colors;
 using ECommons.ExcelServices;
-using ECommons.GameHelpers;
 using ECommons.ImGuiMethods.TerritorySelection;
 using ECommons.LanguageHelpers;
 using Lumina.Excel.Sheets;
 using Splatoon.Gui.Layouts.Header.Sections;
-using Splatoon.Services;
 using Splatoon.SplatoonScripting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Splatoon.Gui;
 

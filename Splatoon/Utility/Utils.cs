@@ -21,6 +21,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using TerraFX.Interop.Windows;
+using static FFXIVClientStructs.FFXIV.Component.GUI.AtkTimer.Delegates;
 using S = Splatoon.Services.S;
 #nullable enable
 
@@ -28,6 +29,230 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="Start">XYZ</param>
+    /// <param name="End">XYZ</param>
+    /// <param name="Thickness"></param>
+    /// <param name="Color"></param>
+    public readonly record struct PointerLineSegment(Vector3 Start, Vector3 End, float Thickness, uint Color);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="start">XYZ</param>
+    /// <param name="end">XYZ</param>
+    /// <param name="style"></param>
+    /// <returns></returns>
+    public static List<PointerLineSegment> PreparePointerLine(Vector3 start, Vector3 end, PointerLineStyle style)
+    {
+        var result = Utils.SplitLine(start, end, style.ChunkLength!.Value, style.IntervalLength!.Value, (float)((Environment.TickCount64 / (double)style.AnimationDuration!.Value) % 1d));
+        List<PointerLineSegment> ret = [with(result.Count * 3)];
+        for(var i = 0; i < result.Count; i++)
+        {
+            var x = result[i];
+            var col = Utils.GetSegmentColor(style.Background!.Value, style.Accent!.Value, style.TotalSegments!.Value, style.GradientStrength!.Value, result.Count - 1 - i, style.AccentLength!.Value, (int)((Environment.TickCount64 / style.ColorShiftDuration!.Value) % style.TotalSegments!.Value));
+            if(x.Start != null && x.End != null)
+            {
+                ret.Add(new(x.Start.Value, x.End.Value, style.Thickness!.Value, col));
+            }
+            if(x.End != null) 
+            {
+                var total = style.ChunkLength.Value == 0?style.IntervalLength.Value:style.ChunkLength.Value;
+                var tip = total * style.TipLength!.Value;
+                var perp1 = Utils.GetPerpendicularPointUnitY(start, x.End.Value, -style.Width!.Value, -tip);
+                var perp2 = Utils.GetPerpendicularPointUnitY(start, x.End.Value, style.Width!.Value, -tip);
+                ret.Add(new(perp1.Point, perp1.ShiftedB, style.Thickness!.Value, col));
+                ret.Add(new(perp2.Point, perp2.ShiftedB, style.Thickness!.Value, col));
+            }
+        }
+        return ret;
+    }
+
+    public readonly record struct LineSegment(Vector3? Start, Vector3? End, Vector3 IntervalEnd);
+
+    public static (uint Background, uint Accent) GetSpreadColors(uint color, float spread)
+    {
+        spread = Math.Clamp(spread, 0f, 1f);
+        var half = spread / 2f;
+        var alpha = ((color >> 24) & 0xFF) / 255f;
+        var bgAlpha = alpha - half;
+        var accentAlpha = alpha + half;
+        if(bgAlpha < 0f)
+        {
+            bgAlpha = 0f;
+            accentAlpha = spread;
+        }
+        else if(accentAlpha > 1f)
+        {
+            accentAlpha = 1f;
+            bgAlpha = 1f - spread;
+        }
+        var rgb = color & 0x00FFFFFF;
+        var background = rgb | ((uint)MathF.Round(bgAlpha * 255f) << 24);
+        var accent = rgb | ((uint)MathF.Round(accentAlpha * 255f) << 24);
+        return (background, accent);
+    }
+
+    public static List<LineSegment> SplitLine(Vector3 a, Vector3 b, float chunkLength, float interval = 0f, float shift = 0f)
+    {
+        var delta = b - a;
+        var totalLength = delta.Length();
+
+        if(totalLength == 0f)
+        {
+            return [new LineSegment { Start = a, End = b, IntervalEnd = b }];
+        }
+
+        var dir = delta / totalLength;
+
+        var stride = chunkLength + interval;
+        var shiftDist = shift * stride;
+
+        if(chunkLength == 0f)
+        {
+            var effectiveInterval = interval <= 0f ? 0f : interval;
+            if(effectiveInterval <= 0f)
+            {
+                return [new LineSegment { Start = null, End = b, IntervalEnd = b }];
+            }
+
+            var shiftedLength = totalLength + shiftDist;
+            var count = (int)MathF.Ceiling(shiftedLength / effectiveInterval) + 1;
+            var points = new List<LineSegment>();
+
+            for(var i = 0; i < count; i++)
+            {
+                var distFromB = (i * effectiveInterval) - shiftDist;
+                if(distFromB > totalLength)
+                {
+                    break;
+                }
+
+                var nextDistFromB = ((i + 1) * effectiveInterval) - shiftDist;
+                var clampedNext = MathF.Min(MathF.Max(nextDistFromB, 0f), totalLength);
+
+                var clampedDist = MathF.Max(distFromB, 0f);
+                var end = b - (dir * MathF.Min(clampedDist, totalLength));
+                var intervalEnd = b - (dir * clampedNext);
+
+                if(distFromB < 0f)
+                {
+                    if(nextDistFromB < 0f)
+                    {
+                        continue;
+                    }
+
+                    points.Add(new LineSegment { Start = null, End = b, IntervalEnd = intervalEnd });
+                }
+                else
+                {
+                    points.Add(new LineSegment { Start = null, End = end, IntervalEnd = intervalEnd });
+                }
+            }
+
+            return points;
+        }
+
+        var shiftedLength2 = totalLength + shiftDist;
+        var segCount = (int)MathF.Ceiling(shiftedLength2 / stride);
+        var segments = new List<LineSegment>();
+
+        for(var i = 0; i < segCount; i++)
+        {
+            var chunkEnd = (i * stride) - shiftDist;
+            var chunkStart = chunkEnd + chunkLength;
+            var intervalEnd = chunkStart + interval;
+
+            if(chunkEnd > totalLength)
+            {
+                break;
+            }
+
+            var chunkVisible = chunkStart >= 0f;
+            var intervalVisible = intervalEnd > 0f && interval > 0f;
+
+            if(!chunkVisible && !intervalVisible)
+            {
+                continue;
+            }
+
+            var clampedEnd = chunkVisible ? MathF.Max(chunkEnd, 0f) : (float?)null;
+            var clampedStart = chunkVisible ? MathF.Min(chunkStart, totalLength) : (float?)null;
+            var intervalStart = MathF.Min(MathF.Max(chunkEnd, 0f), totalLength);
+            var clampedInterval = MathF.Min(MathF.Max(intervalEnd, 0f), totalLength);
+
+            segments.Add(new LineSegment
+            {
+                Start = clampedStart.HasValue ? b - (dir * clampedStart.Value) : null,
+                End = chunkVisible ? b - (dir * clampedEnd!.Value) : b - (dir * intervalStart),
+                IntervalEnd = b - (dir * clampedInterval),
+            });
+        }
+
+        return segments;
+    }
+
+    public static uint GetSegmentColor(uint background, uint accent, int totalSegments, int gradientStrength, int segmentIndex, int accentLength = 1, int offset = 0)
+    {
+        var normalized = (((segmentIndex - offset) % totalSegments) + totalSegments) % totalSegments;
+        var dist = Math.Min(normalized, totalSegments - normalized);
+        if(dist < accentLength)
+        {
+            return accent;
+        }
+
+        var gradDist = dist - accentLength;
+        if(gradientStrength == 0 || gradDist >= gradientStrength)
+        {
+            return background;
+        }
+
+        var t = (gradDist + 1f) / (gradientStrength + 1f);
+        return LerpColor(accent, background, t);
+    }
+
+    private static byte Lerp(byte a, byte b, float t) => (byte)(a + ((b - a) * t));
+    private static uint LerpColor(uint colorA, uint colorB, float t)
+    {
+        var rA = (byte)(colorA & 0xFF);
+        var gA = (byte)((colorA >> 8) & 0xFF);
+        var bA = (byte)((colorA >> 16) & 0xFF);
+        var aA = (byte)((colorA >> 24) & 0xFF);
+
+        var rB = (byte)(colorB & 0xFF);
+        var gB = (byte)((colorB >> 8) & 0xFF);
+        var bB = (byte)((colorB >> 16) & 0xFF);
+        var aB = (byte)((colorB >> 24) & 0xFF);
+
+        return (uint)(Lerp(rA, rB, t) | (Lerp(gA, gB, t) << 8) | (Lerp(bA, bB, t) << 16) | (Lerp(aA, aB, t) << 24));
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="Point">XYZ</param>
+    /// <param name="ShiftedB">XYZ</param>
+    public readonly record struct PerpendicularPoint(Vector3 Point, Vector3 ShiftedB);
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="a">XYZ</param>
+    /// <param name="b">XYZ</param>
+    /// <param name="perpendicularOffset"></param>
+    /// <param name="lineOffset"></param>
+    /// <param name="bShift"></param>
+    /// <returns></returns>
+    public static PerpendicularPoint GetPerpendicularPointUnitY(Vector3 a, Vector3 b, float perpendicularOffset, float lineOffset = 0f, float bShift = 0f)
+    {
+        Vector3 forward = Vector3.Normalize(b - a);
+        var up = Vector3.UnitY;
+        Vector3 right = Vector3.Normalize(Vector3.Cross(forward, up));
+        var shiftedB = b + (forward * bShift);
+        var point = shiftedB + (forward * lineOffset) + (right * perpendicularOffset);
+        return new(point, shiftedB);
+    }
+
     public static void SetCursorTo(float refX, float refZ, float refY)
     {
         if(Utils.WorldToScreen(new Vector3(refX, refZ, refY), out var screenPos) && WindowFunctions.TryFindGameWindow(out var handle))
@@ -88,7 +313,10 @@ public static unsafe class Utils
     {
         foreach(var x in layout.ElementsL)
         {
-            if(x.Name == name) yield return x;
+            if(x.Name == name)
+            {
+                yield return x;
+            }
         }
     }
 
@@ -182,11 +410,6 @@ public static unsafe class Utils
             }
         }
         return ret;
-    }
-
-    public static Vector3 ToXZY(this Vector3 xyzVector)
-    {
-        return new(xyzVector.X, xyzVector.Z, xyzVector.Y);
     }
 
     public static List<IGameObject> AlterTargetIfNeeded(Element element, IGameObject go)
@@ -456,31 +679,49 @@ public static unsafe class Utils
                     TerritoryIntendedUseEnum.Island_Sanctuary,
                     TerritoryIntendedUseEnum.Diadem_2,
                     TerritoryIntendedUseEnum.Diadem_3,
-                    ])) ret = ContentCategory.World;
+                    ]))
+                {
+                    ret = ContentCategory.World;
+                }
                 else if(use.EqualsAny([
                     TerritoryIntendedUseEnum.Dungeon,
                     TerritoryIntendedUseEnum.Variant_Dungeon,
                     TerritoryIntendedUseEnum.Deep_Dungeon,
                     TerritoryIntendedUseEnum.Criterion_Duty,
                     TerritoryIntendedUseEnum.Criterion_Savage_Duty,
-                    ])) ret = ContentCategory.Dungeon;
+                    ]))
+                {
+                    ret = ContentCategory.Dungeon;
+                }
                 else if(use.EqualsAny([
                     TerritoryIntendedUseEnum.Trial,
-                    ])) ret = ContentCategory.Trial;
+                    ]))
+                {
+                    ret = ContentCategory.Trial;
+                }
                 else if(use.EqualsAny([
                     TerritoryIntendedUseEnum.Raid,
                     TerritoryIntendedUseEnum.Raid_2,
-                    ])) ret = ContentCategory.Raid;
+                    ]))
+                {
+                    ret = ContentCategory.Raid;
+                }
                 else if(use.EqualsAny([
                     TerritoryIntendedUseEnum.Alliance_Raid,
                     TerritoryIntendedUseEnum.Large_Scale_Raid,
                     TerritoryIntendedUseEnum.Large_Scale_Savage_Raid,
-                    ])) ret = ContentCategory.Alliance;
+                    ]))
+                {
+                    ret = ContentCategory.Alliance;
+                }
                 else if(use.EqualsAny([
                     TerritoryIntendedUseEnum.Bozja,
                     TerritoryIntendedUseEnum.Eureka,
                     TerritoryIntendedUseEnum.Occult_Crescent,
-                    ])) ret = ContentCategory.Foray;
+                    ]))
+                {
+                    ret = ContentCategory.Foray;
+                }
             }
             ContentCategoryCache[territoryType] = ret;
         }
@@ -489,32 +730,96 @@ public static unsafe class Utils
 
     public static bool IsActorNameUsed(this Element e)
     {
-        if(e.refActorType != 0) return false;
-        if(!e.refActorComparisonAnd && e.refActorComparisonType != 0) return false;
-        if(e.refActorName.EqualsAny("", "*") && e.refActorNameIntl.IsEmpty()) return false;
+        if(e.refActorType != 0)
+        {
+            return false;
+        }
+
+        if(!e.refActorComparisonAnd && e.refActorComparisonType != 0)
+        {
+            return false;
+        }
+
+        if(e.refActorName.EqualsAny("", "*") && e.refActorNameIntl.IsEmpty())
+        {
+            return false;
+        }
+
         return true;
     }
 
     public static bool IsValid(this Layout l)
     {
-        if(l == null) return false;
-        if(l.Name == null || !l.InternationalName.IsValid()) return false;
-        if(l.Description == null || !l.InternationalDescription.IsValid()) return false;
-        if(l.ZoneLockH == null) return false;
-        if(l.Group == null) return false;
-        if(l.Scenes == null) return false;
-        if(l.Subconfigurations == null) return false;
-        if(l.JobLockH == null) return false;
-        if(l.Triggers == null || !l.Triggers.All(IsValid)) return false;
-        if(l.ElementsL == null || !l.ElementsL.All(IsValid)) return false;
+        if(l == null)
+        {
+            return false;
+        }
+
+        if(l.Name == null || !l.InternationalName.IsValid())
+        {
+            return false;
+        }
+
+        if(l.Description == null || !l.InternationalDescription.IsValid())
+        {
+            return false;
+        }
+
+        if(l.ZoneLockH == null)
+        {
+            return false;
+        }
+
+        if(l.Group == null)
+        {
+            return false;
+        }
+
+        if(l.Scenes == null)
+        {
+            return false;
+        }
+
+        if(l.Subconfigurations == null)
+        {
+            return false;
+        }
+
+        if(l.JobLockH == null)
+        {
+            return false;
+        }
+
+        if(l.Triggers == null || !l.Triggers.All(IsValid))
+        {
+            return false;
+        }
+
+        if(l.ElementsL == null || !l.ElementsL.All(IsValid))
+        {
+            return false;
+        }
+
         return true;
     }
 
     public static bool IsValid(this Trigger t)
     {
-        if(t == null) return false;
-        if(t.Match == null || !t.MatchIntl.IsValid()) return false;
-        if(t.EnableAt == null || t.DisableAt == null) return false;
+        if(t == null)
+        {
+            return false;
+        }
+
+        if(t.Match == null || !t.MatchIntl.IsValid())
+        {
+            return false;
+        }
+
+        if(t.EnableAt == null || t.DisableAt == null)
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -525,24 +830,76 @@ public static unsafe class Utils
     /// <returns></returns>
     public static bool IsValid(this Element e)
     {
-        if(e == null) return false;
-        if(e.Name == null || !e.InternationalName.IsValid()) return false;
-        if(e.overlayText == null || !e.overlayTextIntl.IsValid()) return false;
-        if(e.refActorName == null || !e.refActorNameIntl.IsValid()) return false;
-        if(e.refActorPlaceholder == null || e.refActorPlaceholder.Contains(null)) return false;
-        if(e.refActorCastId == null) return false;
-        if(e.refActorBuffId == null) return false;
-        if(e.refActorTetherConnectedWithPlayer == null || e.refActorTetherConnectedWithPlayer.Contains(null)) return false;
-        if(e.faceplayer == null) return false;
-        if(e.RotationOverridePoint == null) return false;
-        if(e.ObjectKinds == null) return false;
+        if(e == null)
+        {
+            return false;
+        }
+
+        if(e.Name == null || !e.InternationalName.IsValid())
+        {
+            return false;
+        }
+
+        if(e.overlayText == null || !e.overlayTextIntl.IsValid())
+        {
+            return false;
+        }
+
+        if(e.refActorName == null || !e.refActorNameIntl.IsValid())
+        {
+            return false;
+        }
+
+        if(e.refActorPlaceholder == null || e.refActorPlaceholder.Contains(null))
+        {
+            return false;
+        }
+
+        if(e.refActorCastId == null)
+        {
+            return false;
+        }
+
+        if(e.refActorBuffId == null)
+        {
+            return false;
+        }
+
+        if(e.refActorTetherConnectedWithPlayer == null || e.refActorTetherConnectedWithPlayer.Contains(null))
+        {
+            return false;
+        }
+
+        if(e.faceplayer == null)
+        {
+            return false;
+        }
+
+        if(e.RotationOverridePoint == null)
+        {
+            return false;
+        }
+
+        if(e.ObjectKinds == null)
+        {
+            return false;
+        }
+
         return true;
     }
 
     public static bool IsValid(this InternationalString s)
     {
-        if(s == null) return false;
-        if(s.En == null || s.Fr == null || s.Other == null || s.Jp == null || s.De == null) return false;
+        if(s == null)
+        {
+            return false;
+        }
+
+        if(s.En == null || s.Fr == null || s.Other == null || s.Jp == null || s.De == null)
+        {
+            return false;
+        }
+
         return true;
     }
 
@@ -779,8 +1136,13 @@ public static unsafe class Utils
         static bool Equals(byte[] source, byte[] separator, int index)
         {
             for(var i = 0; i < separator.Length; ++i)
+            {
                 if(index + i >= source.Length || source[index + i] != separator[i])
+                {
                     return false;
+                }
+            }
+
             return true;
         }
     }
@@ -828,12 +1190,20 @@ public static unsafe class Utils
                     }
                     P.Config.LayoutsL.Add(l);
                     CGui.ScrollTo = l;
-                    if(!silent) Notify.Success($"Layout version 2\n{l.GetDisplayName()}");
+                    if(!silent)
+                    {
+                        Notify.Success($"Layout version 2\n{l.GetDisplayName()}");
+                    }
+
                     layouts.Add(l);
                 }
                 else
                 {
-                    if(!silent) Notify.Info("Attempting to perform legacy import");
+                    if(!silent)
+                    {
+                        Notify.Info("Attempting to perform legacy import");
+                    }
+
                     var l = DeserializeLegacyLayout(str);
                     P.Config.LayoutsL.Add(l);
                     CGui.ScrollTo = l;
@@ -842,7 +1212,10 @@ public static unsafe class Utils
             }
             catch(Exception e)
             {
-                if(!silent) Notify.Error($"Error parsing layout: {e.Message}");
+                if(!silent)
+                {
+                    Notify.Error($"Error parsing layout: {e.Message}");
+                }
             }
         }
         if(layouts.Count > 0)
@@ -895,7 +1268,11 @@ public static unsafe class Utils
         {
             Notify.Info("Import type: Legacy/Paisley Park/Waymark preset plugin");
             var lp = JsonConvert.DeserializeObject<LegacyPreset>(import);
-            if(lp.Name == null || lp.Name == "") lp.Name = DateTimeOffset.Now.ToLocalTime().ToString().Replace(",", ".");
+            if(lp.Name == null || lp.Name == "")
+            {
+                lp.Name = DateTimeOffset.Now.ToLocalTime().ToString().Replace(",", ".");
+            }
+
             if(lp.A == null && lp.B == null && lp.C == null && lp.D == null &&
                 lp.One == null && lp.Two == null && lp.Three == null && lp.Four == null)
             {
@@ -921,14 +1298,46 @@ public static unsafe class Utils
                     ZoneLockH = [(ushort)Svc.ClientState.TerritoryType],
                     Name = "Legacy preset: " + lp.Name
                 };
-                if(lp.A != null && lp.A.Active) AddLegacyElement(l, "A", lp.A.ToElement("A", 0xff00ff00));
-                if(lp.B != null && lp.B.Active) AddLegacyElement(l, "B", lp.B.ToElement("B", 0xff00ffff));
-                if(lp.C != null && lp.C.Active) AddLegacyElement(l, "C", lp.C.ToElement("C", 0xffffff00));
-                if(lp.D != null && lp.D.Active) AddLegacyElement(l, "D", lp.D.ToElement("D", 0xffff00ff));
-                if(lp.One != null && lp.One.Active) AddLegacyElement(l, "1", lp.One.ToElement("1", 0xff00ff00));
-                if(lp.Two != null && lp.Two.Active) AddLegacyElement(l, "2", lp.Two.ToElement("2", 0xff00ffff));
-                if(lp.Three != null && lp.Three.Active) AddLegacyElement(l, "3", lp.Three.ToElement("3", 0xffffff00));
-                if(lp.Four != null && lp.Four.Active) AddLegacyElement(l, "4", lp.Four.ToElement("4", 0xffff00ff));
+                if(lp.A != null && lp.A.Active)
+                {
+                    AddLegacyElement(l, "A", lp.A.ToElement("A", 0xff00ff00));
+                }
+
+                if(lp.B != null && lp.B.Active)
+                {
+                    AddLegacyElement(l, "B", lp.B.ToElement("B", 0xff00ffff));
+                }
+
+                if(lp.C != null && lp.C.Active)
+                {
+                    AddLegacyElement(l, "C", lp.C.ToElement("C", 0xffffff00));
+                }
+
+                if(lp.D != null && lp.D.Active)
+                {
+                    AddLegacyElement(l, "D", lp.D.ToElement("D", 0xffff00ff));
+                }
+
+                if(lp.One != null && lp.One.Active)
+                {
+                    AddLegacyElement(l, "1", lp.One.ToElement("1", 0xff00ff00));
+                }
+
+                if(lp.Two != null && lp.Two.Active)
+                {
+                    AddLegacyElement(l, "2", lp.Two.ToElement("2", 0xff00ffff));
+                }
+
+                if(lp.Three != null && lp.Three.Active)
+                {
+                    AddLegacyElement(l, "3", lp.Three.ToElement("3", 0xffffff00));
+                }
+
+                if(lp.Four != null && lp.Four.Active)
+                {
+                    AddLegacyElement(l, "4", lp.Four.ToElement("4", 0xffff00ff));
+                }
+
                 return l;
             }
         }
@@ -1017,7 +1426,11 @@ public static unsafe class Utils
         for(var i = 1; i <= 8; i++)
         {
             var result = (nint)FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance()->GetUIModule()->GetPronounModule()->ResolvePlaceholder($"<{i}>", 0, 0);
-            if(result == nint.Zero) return null;
+            if(result == nint.Zero)
+            {
+                return null;
+            }
+
             var go = Svc.Objects.CreateObjectReference(result);
             if(go is IPlayerCharacter pc)
             {
@@ -1061,7 +1474,11 @@ public static unsafe class Utils
 
     public static float GetAdditionalRotation(this Element e, float cx, float cy, float angle)
     {
-        if(!e.FaceMe) return e.AdditionalRotation + angle;
+        if(!e.FaceMe)
+        {
+            return e.AdditionalRotation + angle;
+        }
+
         return (e.AdditionalRotation.RadiansToDegrees() + MathHelper.GetRelativeAngle(new Vector2(cx, cy), BasePlayer.Position.ToVector2())).DegreesToRadians();
     }
 
@@ -1180,7 +1597,10 @@ public static unsafe class Utils
             }
             return angleA > angleB ? 1 : -1;
         });
-        foreach(var x in array) yield return (x + medium, MathF.Atan2(x.Y, x.X));
+        foreach(var x in array)
+        {
+            yield return (x + medium, MathF.Atan2(x.Y, x.X));
+        }
     }
 
     public static float Square(float x)
@@ -1202,7 +1622,11 @@ public static unsafe class Utils
     /// <returns></returns>
     public static Vector3 RotatePoint(Vector3 origin, float angle, Vector3 point)
     {
-        if(angle == 0f) return point;
+        if(angle == 0f)
+        {
+            return point;
+        }
+
         var s = (float)Math.Sin(angle);
         var c = (float)Math.Cos(angle);
 
@@ -1230,7 +1654,11 @@ public static unsafe class Utils
     /// <returns></returns>
     public static Vector3 RotatePoint(float cx, float cy, float angle, Vector3 p)
     {
-        if(angle == 0f) return p;
+        if(angle == 0f)
+        {
+            return p;
+        }
+
         var s = (float)Math.Sin(angle);
         var c = (float)Math.Cos(angle);
 
@@ -1299,7 +1727,11 @@ public static unsafe class Utils
 
     public static string RemoveSymbols(this string s, IEnumerable<string> deletions)
     {
-        foreach(var r in deletions) s = s.Replace(r, "");
+        foreach(var r in deletions)
+        {
+            s = s.Replace(r, "");
+        }
+
         return s;
     }
 

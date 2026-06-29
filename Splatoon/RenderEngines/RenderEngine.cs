@@ -30,6 +30,8 @@ public abstract class RenderEngine : IDisposable
     /// <returns>Whether anything was drawn</returns>
     internal abstract bool ProcessElement(Element e, Layout i = null, bool forceEnable = false);
 
+    internal abstract void AddPointerLine(Vector3 start, Vector3 end, PointerLineStyle style);
+
     internal void AddCapturedObject(Layout l, Element e, Vector3 pos)
     {
         CapturedPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName(l)).Add(pos);

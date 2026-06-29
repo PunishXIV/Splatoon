@@ -6,9 +6,11 @@ using ECommons.ObjectLifeTracker;
 using Splatoon.Memory;
 using Splatoon.Serializables;
 using Splatoon.SplatoonScripting;
+using Splatoon.Structures;
 using System.Runtime.InteropServices;
 using TerraFX.Interop.Windows;
 using static Splatoon.RenderEngines.DirectX11.DirectX11DisplayObjects;
+using S = Splatoon.Services.S;
 
 namespace Splatoon.RenderEngines.DirectX11;
 
@@ -294,7 +296,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                                 foreach(var pos in list)
                                 {
                                     var angle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), pos.ToVector2())).DegreesToRadians();
-                                    AddRotatedLine(layout, element.FaceInvert ? pos.ToXZY() : Svc.Targets.Target.GetPositionXZY(), angle, element, radius, Svc.Targets.Target.HitboxRadius, Svc.Targets.Target);
+                                    AddRotatedLine(layout, element.FaceInvert ? MathHelper.SwapYZ(pos) : Svc.Targets.Target.GetPositionXZY(), angle, element, radius, Svc.Targets.Target.HitboxRadius, Svc.Targets.Target);
                                 }
                             }
                         }
@@ -314,7 +316,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                                 foreach(var pos in list)
                                 {
                                     var baseAngle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(Svc.Targets.Target.Position.ToVector2(), pos.ToVector2())).DegreesToRadians();
-                                    DrawCone(layout, element, element.FaceInvert ? pos.ToXZY() : Svc.Targets.Target.GetPositionXZY(), radius, baseAngle, Svc.Targets.Target);
+                                    DrawCone(layout, element, element.FaceInvert ? MathHelper.SwapYZ(pos) : Svc.Targets.Target.GetPositionXZY(), radius, baseAngle, Svc.Targets.Target);
                                 }
                             }
                         }
@@ -366,7 +368,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                                     foreach(var pos in list)
                                     {
                                         var angle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), pos.ToVector2())).DegreesToRadians();
-                                        AddRotatedLine(layout, element.FaceInvert ? pos.ToXZY() : obj.GetPositionXZY(), angle, element, aradius, obj.HitboxRadius, obj);
+                                        AddRotatedLine(layout, element.FaceInvert ? MathHelper.SwapYZ(pos) : obj.GetPositionXZY(), angle, element, aradius, obj.HitboxRadius, obj);
                                     }
                                 }
                             }
@@ -387,7 +389,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                                     foreach(var pos in list)
                                     {
                                         var baseAngle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(obj.Position.ToVector2(), pos.ToVector2())).DegreesToRadians();
-                                        DrawCone(layout, element, element.FaceInvert ? pos.ToXZY() : obj.GetPositionXZY(), aradius, baseAngle, obj);
+                                        DrawCone(layout, element, element.FaceInvert ? MathHelper.SwapYZ(pos) : obj.GetPositionXZY(), aradius, baseAngle, obj);
                                     }
                                 }
                             }
@@ -411,7 +413,15 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                     if(!LayoutUtils.ShouldDraw(x.refX, Utils.GetPlayerPositionXZY().X, x.refY, Utils.GetPlayerPositionXZY().Y) && !LayoutUtils.ShouldDraw(x.offX, Utils.GetPlayerPositionXZY().X, x.offY, Utils.GetPlayerPositionXZY().Y)) continue;
                     //PluginLog.Information($"{layout?.Name}/{element?.Name}/{CommonRenderUtils.ProcessLineAtFixedCoords(element, layout).Count}/{x}");
                     ret = true;
-                    AddLine(new Vector3(x.refX, x.refZ, x.refY), new Vector3(x.offX, x.offZ, x.offY), element.radius, element.GetDisplayStyleWithOverride(), element.LineEndA, element.LineEndB);
+                    if(element.EnablePointerLine && element.radius == 0)
+                    {
+                        //PluginLog.Information($"{element.PointerLineStyle.GetStyleCombinedWithUserOverrides(element)}");
+                        AddPointerLine(new(x.refX, x.refY, x.refZ), new(x.offX, x.offY, x.offZ), element.PointerLineStyle.GetStyleCombinedWithUserOverrides(element));
+                    }
+                    else
+                    {
+                        AddLine(new Vector3(x.refX, x.refZ, x.refY), new Vector3(x.offX, x.offZ, x.offY), element.radius, element.GetDisplayStyleWithOverride(), element.LineEndA, element.LineEndB);
+                    }
                 }
             }
         }
@@ -429,7 +439,7 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
                             var baseAngle = ((element.FaceInvert ? 0 : 180) - MathHelper.GetRelativeAngle(new Vector2(x.refX + element.offX, x.refY + element.offY), fpos.ToVector2())).DegreesToRadians();
                             var pos = new Vector3(x.refX + element.offX, x.refY + element.offY, x.refZ + element.offZ);
                             ret = true;
-                            DrawCone(layout, element, element.FaceInvert ? fpos.ToXZY() : pos, radius, baseAngle);
+                            DrawCone(layout, element, element.FaceInvert ? MathHelper.SwapYZ(fpos) : pos, radius, baseAngle);
                         }
                     }
                 }
@@ -453,5 +463,14 @@ public sealed unsafe class DirectX11Renderer : RenderEngine
     internal void AddLine(Vector3 start, Vector3 stop, float radius, DisplayStyle style, LineEnd startStyle = LineEnd.None, LineEnd endStyle = LineEnd.None)
     {
         DisplayObjects.Add(new DisplayObjectLine("", start, stop, radius, style, startStyle, endStyle));
+    }
+
+    internal override void AddPointerLine(Vector3 start, Vector3 end, PointerLineStyle style)
+    {
+        var result = Utils.PreparePointerLine(start.SwapYZ(), end.SwapYZ(), style);
+        foreach(var x in result)
+        {
+            this.AddLine(x.Start.X, x.Start.Z, x.Start.Y, x.End.X, x.End.Z, x.End.Y, x.Thickness, x.Color);
+        }
     }
 }

@@ -98,6 +98,14 @@ internal partial class CGui
                 }
             })
 
+            .Section("Pointer Line Defaults")
+            .Widget(() =>
+            {
+                ImGuiEx.TextWrapped(EColor.RedBright, "Alpha feature. Settings may be reset without warning. No safeguards for now, invalid settings will crash your game.");
+                if(ImGui.Button("Reset##plr")) P.Config.DefaultPointerLineStyle = Structures.PointerLineStyle.Default;
+                P.Config.DefaultPointerLineStyle.DrawDefaultsEditor();
+            })
+
             .Section("DirectX11 Renderer".Loc())
             .Widget(() =>
             {

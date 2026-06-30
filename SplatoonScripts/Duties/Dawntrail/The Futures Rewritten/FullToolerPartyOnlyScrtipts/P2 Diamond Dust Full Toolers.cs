@@ -1,4 +1,6 @@
-﻿using Dalamud.Game.ClientState.Conditions;
+﻿/*
+ * Needs to be fixed
+using Dalamud.Game.ClientState.Conditions;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -1172,3 +1174,4 @@ internal unsafe class P2_Diamond_Dust_Full_Toolers :SplatoonScript
     }
     #endregion
 }
+*/

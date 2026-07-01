@@ -253,7 +253,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
     private string _instruction = "";
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(40, "Garume");
+    public override Metadata Metadata => new(41, "Garume");
 
     public override void OnSetup()
     {
@@ -743,7 +743,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
         ImGui.Indent();
         ImGui.TextUnformatted($"State={_state} Window={_currentWindow} Slot={_selfSlot} Source={_quality} Guide={_guideKind}");
-        ImGui.TextUnformatted($"BlackHoleOrder={C.BlackHoleSourceOrder} Anchor={OrderAnchorDebugText()}");
+        ImGui.TextUnformatted($"BlackHoleOrder={C.BlackHoleSourceOrder} Anchor={BlackHoleOrderAnchorDebugText()}");
         ImGui.TextWrapped($"BlackHoleExpected={BlackHoleExpectedDebugText("settings")}");
         ImGui.TextWrapped($"BlackHoleActors={BlackHoleActorDebugText()}");
         ImGui.TextWrapped($"TetherHolders={TetherHolderDebugText()}");
@@ -1218,7 +1218,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             ? FinalStackRole.Support
             : FinalStackRole.Dps;
         var goNorth = ownStackRole == northRole;
-        var angle = NormalizeAngle(OrderAnchorAngle() + (goNorth ? 0.0f : MathF.PI));
+        var angle = NormalizeAngle(KefkaAnchorAngle() + (goNorth ? 0.0f : MathF.PI));
         destination = PositionFromDirectionAngle(angle, FinalInitialSplitRadius);
         text = TextOrEmpty(C.ShowFinalRoleSplitText, C.FinalRoleSplitText, ownStackRole == FinalStackRole.Support ? "Support" : "DPS");
         return true;
@@ -1636,20 +1636,37 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
         return !float.IsNaN(offset);
     }
 
-    private float OrderAnchorAngle() =>
+    private float BlackHoleOrderAnchorAngle() => C.BlackHoleOrderAnchor switch
+    {
+        BlackHoleOrderAnchor.KefkaPosition when TryGetKefkaPosition(out var kefka) => DirectionAngle(kefka),
+        _ => 0.0f
+    };
+
+    private float KefkaAnchorAngle() =>
         TryGetKefkaPosition(out var kefka) ? DirectionAngle(kefka) : 0.0f;
 
     private float SourceAngle(int bucket) =>
         _tetherSources.TryGetValue(bucket, out var source) ? DirectionAngle(source) : BucketAngle(bucket);
 
-    private float OrderedAngleDistance(float sourceAngle, float anchorAngle) =>
-        C.BlackHoleSourceOrder == BlackHoleSourceOrder.ClockwiseFromNorth
+    private float OrderedAngleDistance(float sourceAngle, float anchorAngle)
+    {
+        var delta = C.BlackHoleSourceOrder == BlackHoleSourceOrder.ClockwiseFromNorth
             ? NormalizeAngle(sourceAngle - anchorAngle)
             : NormalizeAngle(anchorAngle - sourceAngle);
+        return Math.Min(delta, MathF.PI * 2.0f - delta) <= MathF.PI / 36.0f ? 0.0f : delta;
+    }
 
-    private string OrderAnchorDebugText() => TryGetKefkaPosition(out var pos)
-        ? $"{(string.IsNullOrWhiteSpace(_kefkaAnchorDebug) ? "Kefka" : _kefkaAnchorDebug)}({pos.X:F1},{pos.Z:F1})"
-        : "N";
+    private string BlackHoleOrderAnchorDebugText() => C.BlackHoleOrderAnchor switch
+    {
+        BlackHoleOrderAnchor.KefkaPosition when TryGetKefkaPosition(out var pos) => KefkaAnchorDebugText(pos),
+        BlackHoleOrderAnchor.KefkaPosition => "Kefka missing -> N",
+        _ => "Arena north"
+    };
+
+    private string KefkaAnchorDebugText() => TryGetKefkaPosition(out var pos) ? KefkaAnchorDebugText(pos) : "Kefka missing -> N";
+
+    private string KefkaAnchorDebugText(Vector3 pos) =>
+        $"{(string.IsNullOrWhiteSpace(_kefkaAnchorDebug) ? "Kefka" : _kefkaAnchorDebug)}({pos.X:F1},{pos.Z:F1})";
 
     private static Vector3 FlatPosition(Vector3 position) => new(position.X, 0.0f, position.Z);
 
@@ -2125,7 +2142,7 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
 
     private List<int> OrderedBuckets()
     {
-        var anchor = OrderAnchorAngle();
+        var anchor = BlackHoleOrderAnchorAngle();
         return Enumerable.Range(0, 4)
             .OrderBy(bucket => OrderedAngleDistance(SourceAngle(bucket), anchor))
             .ThenBy(bucket => bucket)
@@ -2254,9 +2271,9 @@ public unsafe class P3_Earthquake : SplatoonScript<P3_Earthquake.Config>
             : _finalTowerPositions.OrderBy(position => AngleDistance(DirectionAngle(position), angle)).First();
     }
 
-    private float FinalPairAnchorAngle() => OrderAnchorAngle();
+    private float FinalPairAnchorAngle() => KefkaAnchorAngle();
 
-    private string FinalPairAnchorDebugText() => $"blackhole-order {OrderAnchorDebugText()}";
+    private string FinalPairAnchorDebugText() => $"kefka {KefkaAnchorDebugText()}";
 
     private string FinalTowerDebugText() => _finalTowerPositions.Count == 0
         ? "none"

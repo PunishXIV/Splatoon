@@ -124,6 +124,11 @@ internal class Configuration : IEzConfig
     public bool OrderScriptsByZone = true;
     public uint FilteredTerritoryLayout = 0;
     public string Alias = "";
+    public float AttentionFontSize = 1.5f;
+    public WindowBasePosition AttentionBasePositionX = WindowBasePosition.Middle;
+    public WindowBasePosition AttentionBasePositionY = WindowBasePosition.Start;
+    public Vector2 AttentionBaseOffset = default;
+    public bool AttentionNoAnimate = false;
 
     public PointerLineStyle DefaultPointerLineStyle = PointerLineStyle.Default;
 

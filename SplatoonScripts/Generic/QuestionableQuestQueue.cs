@@ -16,10 +16,12 @@ using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
+using ECommons.UIHelpers.AddonMasterImplementations;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
+#pragma warning disable RS0030
 
 namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
@@ -66,11 +68,18 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     public override void OnUpdate()
     {
         if(!C.Active) return;
+        if(GenericHelpers.TryGetAddonMaster<AddonMaster.SelectString>(out var m) && m.IsAddonReady)
+        {
+            if(m.Text.Contains("Select a control scheme"))
+            {
+                m.Entries.First(x => x.Text.Contains("Mouse")).Select();
+            }
+        }
         if(EzThrottler.Throttle(InternalData.FullName + "Notify", 60000)) DuoLog.Warning($"{InternalData.Name} is running.");
         if(QuestionableIsRunning())
         {
             IsNotified = false;
-            var allowedQuests = C.Quests.Where(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536)).Select(x => x.ID.ToString());
+            var allowedQuests = C.Quests.Where(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536) && (!x.OnlyAccept || !QuestManager.Instance()->IsQuestAccepted(x.ID))).Select(x => x.ID.ToString());
             if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()))
             {
                 if(EzThrottler.Check(InternalData.FullName + "NoRestart"))
@@ -83,13 +92,13 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
                 EzThrottler.Throttle(InternalData.FullName + "NoRestart", 3000, true);
             }
         }
-        if(IsBusy() || TaskManager.IsBusy)
+        if(IsBusy() || TaskManager.IsBusy || !GenericHelpers.IsScreenReady())
         {
             EzThrottler.Throttle(InternalData.FullName + "Busy", 1000, true);
         }
         if(EzThrottler.Check(InternalData.FullName + "Busy"))
         {
-            var next = C.Quests.FirstOrDefault(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536));
+            var next = C.Quests.FirstOrDefault(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536) && (!x.OnlyAccept || !QuestManager.Instance()->IsQuestAccepted(x.ID)));
             if(next == null)
             {
                 if(!IsNotified)
@@ -192,7 +201,11 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
                 ImGui.TableNextColumn();
                 ImGui.Checkbox("##enabled", ref q.Enabled);
                 ImGui.SameLine();
-                ImGuiEx.ButtonCheckbox(FontAwesomeIcon.FastForward, ref q.Cont);
+                ImGuiEx.ButtonCheckbox(FontAwesomeIcon.AngleDoubleRight, ref q.Cont);
+                ImGuiEx.Tooltip("Allow Questionable to continue");
+                ImGui.SameLine();
+                ImGuiEx.ButtonCheckbox(FontAwesomeIcon.ExclamationCircle, ref q.OnlyAccept);
+                ImGuiEx.Tooltip("Only accept this quest, but do not do it");
                 if(questMapAvailable)
                 {
                     ImGui.SameLine();
@@ -215,7 +228,14 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
                     }
                     else
                     {
-                        ImGuiEx.HelpMarker("This quest is not completed", EColor.YellowBright, FontAwesomeIcon.Times.ToIconString());
+                        if(QuestManager.Instance()->IsQuestAccepted(quest.Value.RowId))
+                        {
+                            ImGuiEx.HelpMarker("This quest is not completed but accepted", EColor.YellowBright, FontAwesomeIcon.UserTimes.ToIconString());
+                        }
+                        else
+                        {
+                            ImGuiEx.HelpMarker("This quest is not completed", EColor.YellowBright, FontAwesomeIcon.Times.ToIconString());
+                        }
                     }
                 }
 
@@ -259,6 +279,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         public uint Aetheryte = aetheryte;
         public uint Aethernet = aethernet;
         public bool Cont = false;
+        public bool OnlyAccept = false;
     }
 
 }

@@ -25,4 +25,5 @@ public static class S
     internal static ObjectEffectProcessor ObjectEffectProcessor { get; private set; }
     internal static PinnedLayoutEdit PinnedLayoutEdit { get; private set; }
     internal static AliasManager AliasManager { get; private set; }
+    internal static AttentionOverlayWindow AttentionOverlayWindow { get; private set; }
 }

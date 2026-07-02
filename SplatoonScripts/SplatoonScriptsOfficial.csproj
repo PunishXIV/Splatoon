@@ -8,11 +8,27 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>CS1591;CS8618;IDE0051;IDE0052;IDE0130</NoWarn>
     <Nullable>enable</Nullable>
+    <WarningsAsErrors>RS0030</WarningsAsErrors>
   </PropertyGroup>
 
   <PropertyGroup>
     <DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="BannedSymbols.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="3.12.0-beta1.25218.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ECommons.IPC\ECommons.IPC\ECommons.IPC.csproj" />

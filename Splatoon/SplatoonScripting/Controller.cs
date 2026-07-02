@@ -494,6 +494,40 @@ public unsafe class Controller
     }
 
     /// <summary>
+    /// Displays a centered line in an attention window. <br />
+    /// Important: your action will not be called in the same frame as you call this method. You must prepare data beforehand and pass it into window after.<br />
+    /// Important: your action can be called multiple times. Do not put mutating calls here.<br />
+    /// To keep window open, you must keep calling this function continuously. 
+    /// </summary>
+    public void DisplayAttentionWindowLine(Action action)
+    {
+        S.AttentionOverlayWindow.Title = this.Script.InternalData.Name ?? "";
+        S.AttentionOverlayWindow.ActionQueueCommand.Add((action, true));
+    }
+     
+    /// <summary>
+    /// Displays a centered text in an attention window. <br />
+    /// To keep window open, you must keep calling this function continuously. 
+    /// </summary>
+    public void DisplayAttentionWindowLine(string text)
+    {
+        DisplayAttentionWindowLine(() => ImGuiEx.Text(text));
+    }
+
+    /// <summary>
+    /// Prefer <see cref="DisplayAttentionWindowLine(Action)"/> where possible. <br />
+    /// Draws a raw action inside attention window. <br />
+    /// Important: your action will not be called in the same frame as you call this method. You must prepare data beforehand and pass it into window after.<br />
+    /// Important: your action can be called multiple times. Do not put mutating calls here.<br />
+    /// To keep window open, you must keep calling this function continuously. 
+    /// </summary>
+    public void DisplayAttentionWindowRaw(Action action)
+    {
+        S.AttentionOverlayWindow.Title = this.Script.InternalData.Name ?? "";
+        S.AttentionOverlayWindow.ActionQueueCommand.Add((action, false));
+    }
+
+    /// <summary>
     /// Provides access to unmodified copies of elements that were registered during OnSetup call. Will never be rendered, they are only for reference purposes.
     /// </summary>
     public ReadOnlyDictionary<string, Element> OriginalElements => OriginalElementsDirect.AsReadOnly();

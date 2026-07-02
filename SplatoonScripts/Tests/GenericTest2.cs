@@ -5,6 +5,8 @@ using Splatoon.SplatoonScripting;
 using System.Collections.Generic;
 
 using ECommons.DalamudServices.Legacy;
+using ECommons.GameHelpers;
+using ECommons.Reflection;
 
 namespace SplatoonScriptsOfficial.Tests
 {

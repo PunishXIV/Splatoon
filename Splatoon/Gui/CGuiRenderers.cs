@@ -13,6 +13,20 @@ namespace Splatoon;
 internal partial class CGui
 {
     private bool Tested = false;
+    private bool ShowAttentionWindow = false;
+    int DemoRows = 3;
+    Dictionary<WindowBasePosition, string> AttentionX = new()
+    {
+        [WindowBasePosition.Start] = "Left",
+        [WindowBasePosition.Middle] = "Middle",
+        [WindowBasePosition.End] = "Right",
+    };
+    Dictionary<WindowBasePosition, string> AttentionY = new()
+    {
+        [WindowBasePosition.Start] = "Top",
+        [WindowBasePosition.Middle] = "Middle",
+        [WindowBasePosition.End] = "Bottom",
+    };
     private void DisplayRenderers()
     {
         if(Utils.IsLinux())
@@ -96,6 +110,47 @@ internal partial class CGui
                 {
                     ImGui.ColorEdit4("Color 2", ref P.Config.AttentionColor2, ImGuiColorEditFlags.NoInputs);
                 }
+            })
+
+            .Section("Attention Window")
+            .Widget(() =>
+            {
+                ImGuiEx.TextWrapped("Attention window is a way for script to display an useful message during a mechanic. Here you can configure it's size. ");
+                ImGui.Checkbox("Show attention window preview", ref ShowAttentionWindow);
+                if(ShowAttentionWindow)
+                {
+                    ImGui.SameLine();
+                    ImGui.SetNextItemWidth(100f);
+                    ImGuiEx.SliderInt("Num rows", ref this.DemoRows, 1, 8);
+                    S.AttentionOverlayWindow.Title = "Attention window";
+                    $"""
+                        Configure this window so it does not interferes with UI.
+                        Current size: {S.AttentionOverlayWindow.TableSize:F0}
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                        Suspendisse vel eleifend nibh, nec consequat arcu. 
+                        Suspendisse ut nisl dapibus, feugiat sem id, finibus metus. 
+                        In auctor venenatis sodales. 
+                        Fusce venenatis pharetra purus vel pharetra. 
+                        Interdum et malesuada fames ac ante ipsum primis in faucibus.
+                    """.Split("\n").Take(this.DemoRows).Each(x => S.AttentionOverlayWindow.ActionQueueCommand.Add((() => ImGuiEx.Text(x), true)));
+                }
+                ImGuiEx.Text("Window screen position:");
+                ImGui.Indent();
+                ImGui.SetNextItemWidth(150f);
+                ImGuiEx.EnumCombo("##Y", ref P.Config.AttentionBasePositionY, AttentionY);
+                ImGui.SameLine();
+                ImGui.SetNextItemWidth(150f);
+                ImGuiEx.EnumCombo("##X", ref P.Config.AttentionBasePositionX, AttentionX);
+                ImGui.SetNextItemWidth(300f);
+                ImGui.DragFloat2("Offset", ref P.Config.AttentionBaseOffset);
+                ImGui.Unindent();
+                ImGuiEx.DragFloat(150f, "Font size", ref P.Config.AttentionFontSize, 0.02f, 0.1f, 10f);
+                ImGui.SameLine();
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Apply"))
+                {
+                    new TickScheduler(() => S.AttentionOverlayWindow.RebuildFont());
+                }
+                ImGui.Checkbox("Disable appearance blinking", ref P.Config.AttentionNoAnimate);
             })
 
             .Section("Pointer Line Defaults")

@@ -29,6 +29,31 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static uint BlendColors(uint bottom, uint top)
+    {
+        float br = (bottom & 0xFF) / 255f;
+        float bg = ((bottom >> 8) & 0xFF) / 255f;
+        float bb = ((bottom >> 16) & 0xFF) / 255f;
+        float ba = ((bottom >> 24) & 0xFF) / 255f;
+
+        float tr = (top & 0xFF) / 255f;
+        float tg = ((top >> 8) & 0xFF) / 255f;
+        float tb = ((top >> 16) & 0xFF) / 255f;
+        float ta = ((top >> 24) & 0xFF) / 255f;
+
+        float outA = ta + ba * (1f - ta);
+        if(outA == 0f) return 0;
+
+        float outR = (tr * ta + br * ba * (1f - ta)) / outA;
+        float outG = (tg * ta + bg * ba * (1f - ta)) / outA;
+        float outB = (tb * ta + bb * ba * (1f - ta)) / outA;
+
+        return ((uint)(outR * 255f) & 0xFF)
+             | (((uint)(outG * 255f) & 0xFF) << 8)
+             | (((uint)(outB * 255f) & 0xFF) << 16)
+             | (((uint)(outA * 255f) & 0xFF) << 24);
+    }
+
     /// <summary>
     /// 
     /// </summary>

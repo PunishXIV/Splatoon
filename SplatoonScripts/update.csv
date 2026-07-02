@@ -60,6 +60,7 @@ SplatoonScriptsOfficial.Generic@CheckEmote,2,https://github.com/PunishXIV/Splato
 SplatoonScriptsOfficial.Generic@ExportBlacklist,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ExportBlacklist.cs
 SplatoonScriptsOfficial.Generic@ToastCommand,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ToastCommand.cs
 SplatoonScriptsOfficial.Duties.Universal@Maps_Auto_Target_Numbers,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Universal/Maps Auto Target Numbers.cs
+SplatoonScriptsOfficial.Duties.Shadowbringers@E7S_Voidgates,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/E7S Voidgates.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Nisi,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 Nisi.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_1211_Transition,6,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA P2 1211 Transition.cs
 SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander@TEA_P2_Transition,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Shadowbringers/The Epic Of Alexander/TEA_P2_Transition.cs
@@ -139,7 +140,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P1_Snake,5,https://github.com/Puni
 SplatoonScriptsOfficial.Duties.Dawntrail@EXMH_Clamorous_Chase,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/EXMH_Clamorous_Chase.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Quad_Beckon_Moonlight,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Quad Beckon Moonlight.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@Underkeep_ValiaPira,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Underkeep_ValiaPira.cs
-SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Clones_2,13,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M12S P2 Clones 2.cs
+SplatoonScriptsOfficial.Duties.Dawntrail@M12S_P2_Clones_2,14,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M12S P2 Clones 2.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@R4S_Midnight_Sabbath,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/R4S Midnight Sabbath.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M6S_MagmaTower,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M6S MagmaTower.cs
 SplatoonScriptsOfficial.Duties.Dawntrail@M8S_Ultraviolent_Ray_4th,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/M8S Ultraviolent Ray 4th.cs
@@ -213,7 +214,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_Arrows,1,https://github.
 SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P3_Limit_Cut,5,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Limit_Cut.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Target_Enforcer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Target_Enforcer.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Bowels_of_Agony_Classic,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Bowels_of_Agony_Classic.cs
-SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P3_Earthquake,40,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Earthquake.cs
+SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P3_Earthquake,41,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Earthquake.cs
 SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P2_Trine_Beta,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Trine_Beta.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P4_Debuff_Reminder,11,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P4_Debuff_Reminder.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P5_Chaotic_Flood_Guide,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P5_Chaotic_Flood_Guide.cs

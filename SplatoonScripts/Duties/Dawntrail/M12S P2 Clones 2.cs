@@ -30,7 +30,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail;
 
 public unsafe class M12S_P2_Clones_2 : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(13, "NightmareXIV, Redmoon, Garume");
+    public override Metadata Metadata { get; } = new(14, "NightmareXIV, Redmoon, Garume, Phoenix_the_II");
     public override HashSet<uint>? ValidTerritories { get; } = [1327];
     int IsHovering = -1;
 
@@ -67,6 +67,9 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
         Controller.RegisterElementFromCode("TetherValidPartners", """
             {"Name":"","type":2,"refX":92.782196,"refY":113.39666,"refZ":-3.8146973E-06,"offX":83.49066,"offY":106.54342,"radius":0.0,"color":3355639552,"fillIntensity":0.345,"thicc":2}
             """);
+        Controller.RegisterElementFromCode("PickTetherCircle", """
+                                                               {"Name":"","type":1,"offY":2.0,"radius":2.5,"Donut":0.5,"color":3356425984,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4278255376,"thicc":6.0,"overlayText":"Pick this tether","refActorComparisonType":2,"includeRotation":true}
+                                                               """);
         Controller.RegisterElementFromCode("GoTo", """
             {"Name":"","refX":102.4791,"refY":97.90576,"radius":0.75,"Filled":false,"fillIntensity":0.5,"thicc":6.0,"tether":true}
             """);
@@ -185,6 +188,12 @@ public unsafe class M12S_P2_Clones_2 : SplatoonScript
                                 others.SetRefPosition(otherPlayer.Position);
                                 others.SetOffPosition(otherTether.Position);
                                 others.color = w.color;
+                                if(Controller.TryGetElementByName("PickTetherCircle", out var e2))
+                                {
+                               
+                                    e2.Enabled = true;
+                                    e2.refActorObjectID = wantTetherFrom.ObjectId;
+                                }
                             }
                         }
                     }

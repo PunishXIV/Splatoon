@@ -23,6 +23,11 @@ Gotta Dodge 'Em All
 ~Lv2~{"Name":"Dmad P5 - Forsaken enrage move","Group":"Dancing Mad (Ultimate) P5 - NXIV","ZoneLockH":[1363],"Scenes":[9],"ElementsL":[{"Name":"","type":1,"radius":5.0,"refActorNPCNameID":7131,"refActorRequireCast":true,"refActorCastId":[47928],"refActorComparisonType":6,"LimitDistance":true,"DistanceMax":6.0,"UseDistanceSourcePlaceholder":true,"DistanceSourcePlaceholder":["<me>"],"Conditional":true,"Nodraw":true},{"Name":"","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":4278190080,"overlayTextColor":4294967295,"overlayVOffset":3.38,"overlayFScale":2.0,"thicc":0.0,"overlayText":"Move to the next spot","refActorType":1}]}
 ```
 
+## [Script] [Beta] Chaotic flood
+```
+https://github.com/PunishXIV/Splatoon/raw/refs/heads/main/SplatoonScripts/Duties/Dawntrail/Dancing%20Mad/P5_Chaotic_Flood_Guide.cs
+```
+
 ## [Script] Celestriad
 
 Players with initial debuff take first safe tower clockwise to their debuff

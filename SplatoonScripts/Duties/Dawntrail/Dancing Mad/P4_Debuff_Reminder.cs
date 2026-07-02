@@ -588,14 +588,14 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         public bool UseSelfmark = false;
         public bool OutputInChat = true;
         public XivChatType OverrideChatType = XivChatType.None;
-        public InternationalString AccelerationBomb = new(en: "Acceleration bomb on YOU (DON'T MOVE)");
-        public InternationalString AccelerationBombInv = new(en: "Inverted acceleration bomb on YOU (MOVE)");
-        public InternationalString LongGaze = new(en: "LONG GAZE on YOU (Look Away)");
-        public InternationalString LongGazeInv = new(en: "LONG GAZE on YOU (Look At)");
-        public InternationalString ShortGaze = new(en: "SHORT GAZE on YOU (Look Away)");
-        public InternationalString ShortGazeInv = new(en: "SHORT GAZE on YOU (Look At)");
-        public InternationalString LongSpread = new(en:"LONG SPREAD on YOU");
-        public InternationalString ShortSpread = new(en:"SHORT SPREAD on YOU");
+        public InternationalString AccelerationBomb = new(en: "Acceleration bomb on YOU (DON'T MOVE)", jp: "加速度　とまる");
+        public InternationalString AccelerationBombInv = new(en: "Inverted acceleration bomb on YOU (MOVE)", jp: "加速度　うごく");
+        public InternationalString LongGaze = new(en: "LONG GAZE on YOU (Look Away)", jp: "遅　視線　みない");
+        public InternationalString LongGazeInv = new(en: "LONG GAZE on YOU (Look At)", jp: "遅　視線　みる");
+        public InternationalString ShortGaze = new(en: "SHORT GAZE on YOU (Look Away)", jp: "早　視線　みない");
+        public InternationalString ShortGazeInv = new(en: "SHORT GAZE on YOU (Look At)", jp: "早　視線　みる");
+        public InternationalString LongSpread = new(en:"LONG SPREAD on YOU", jp: "遅　散開");
+        public InternationalString ShortSpread = new(en:"SHORT SPREAD on YOU", jp: "早　散開");
     }
 
     private uint[] ValidTextParams = [80, 82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 476, 478, 480,];

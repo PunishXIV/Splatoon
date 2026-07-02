@@ -129,7 +129,13 @@ internal class AttentionOverlayWindow : Window, IDisposable
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             ImGui.TableSetBgColor(ImGuiTableBgTarget.CellBg, Utils.BlendColors(bgColor, ImGui.GetStyle().Colors[(int)ImGuiCol.FrameBg].ToUint()));
+            ImGui.BeginGroup();
             DrawCenteredRow(-1, () => ImGuiEx.Text(titleBar));
+            {
+                var c = ImGui.GetItemRectSize().X + ImGui.GetStyle().CellPadding.X;
+                if(c > colWidth) colWidth = c;
+            }
+            ImGui.EndGroup();
             for(var i = 0; i < ActionQueueCommand.Count; i++)
             {
                 var x = ActionQueueCommand[i];

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Utility;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.GameFunctions;
@@ -69,7 +70,7 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
     private bool _waveCannonTargetCollectionStarted;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(2, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(3, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -457,12 +458,16 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
         var me = BasePlayer;
         if (me == null) return;
 
-        if (Controller.TryGetElementByName("SelfInstruction", out var selfText))
+        if(!_currentInstruction.IsNullOrWhitespace())
+        {
+            Controller.DisplayAttentionWindowLine(_currentInstruction);
+        }
+        /*if (Controller.TryGetElementByName("SelfInstruction", out var selfText))
         {
             selfText.Enabled = !string.IsNullOrWhiteSpace(_currentInstruction);
             selfText.SetRefPosition(me.Position);
             selfText.overlayText = _currentInstruction;
-        }
+        }*/
 
         if (_hasMyDestination)
         {

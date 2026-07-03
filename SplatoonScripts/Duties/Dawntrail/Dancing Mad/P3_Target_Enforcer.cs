@@ -41,7 +41,6 @@ public unsafe class P3_Target_Enforcer : SplatoonScript
 
     public override void OnUpdate()
     {
-        _ = nameof(Controller.DisplayAttentionWindowLine);
         if(BasePlayer == null || BasePlayer.IsDead) return;
         if(!GenericHelpers.IsScreenReady()) return;
         if(Svc.Targets.SoftTarget != null)

@@ -70,7 +70,7 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
     private bool _waveCannonTargetCollectionStarted;
 
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(3, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(4, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -454,7 +454,7 @@ public class P1_Wave_Cannon_Tower_Priority : SplatoonScript
     private void ApplyDisplay()
     {
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
-
+        if(Controller.Scene != 4) return;
         var me = BasePlayer;
         if (me == null) return;
 

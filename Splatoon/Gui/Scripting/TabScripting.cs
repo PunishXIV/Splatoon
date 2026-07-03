@@ -196,7 +196,7 @@ internal static class TabScripting
 
         void DrawScriptGroup(IEnumerable<SplatoonScript> scripts)
         {
-            if(ImGui.BeginTable("##scriptsTable", 8, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
+            if(ImGui.BeginTable("##scriptsTable", 9, ImGuiTableFlags.BordersInner | ImGuiTableFlags.BordersOuter | ImGuiTableFlags.RowBg | ImGuiTableFlags.SizingFixedFit))
             {
                 ImGui.TableSetupColumn("Name", ImGuiTableColumnFlags.WidthStretch);
                 ImGui.TableSetupColumn("Configuration", ImGuiTableColumnFlags.WidthFixed, 120);
@@ -205,6 +205,7 @@ internal static class TabScripting
                 ImGui.TableSetupColumn("##c2");
                 ImGui.TableSetupColumn("##c3");
                 ImGui.TableSetupColumn("##c4");
+                ImGui.TableSetupColumn("##c5");
                 ImGui.TableHeadersRow();
                 foreach(var script in scripts)
                 {
@@ -333,6 +334,11 @@ internal static class TabScripting
                         ImGui.PopStyleVar();
                         //ImGuiEx.Tooltip("This script contains no settings");
                     }
+
+                    ImGui.TableNextColumn();
+
+                    ImGuiEx.CollectionButtonCheckbox(FontAwesomeIcon.ExclamationTriangle, script.InternalData.FullName, P.Config.DisabledAttentionWindowScripts, ImGuiColors.DalamudRed);
+                    ImGuiEx.Tooltip($"Disable attention window for this script. ");
 
                     ImGui.TableNextColumn();
 

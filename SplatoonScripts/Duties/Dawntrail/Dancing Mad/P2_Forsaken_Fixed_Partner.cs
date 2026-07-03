@@ -1,5 +1,6 @@
 ﻿using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using Dalamud.Interface.Colors;
 using ECommons;
 using ECommons.CircularBuffers;
 using ECommons.GameFunctions;
@@ -23,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(15, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(16, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -36,7 +37,6 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
     public uint CastFuturesEnd = 47826;
     public uint CastPastsEnd = 47827;
     public uint[] CastAllThingsEnding = [47836, 47837];
-    public List<uint> AoeMapEffectsBlock = [];
 
     private bool? StoredAoe = null;
     private uint? TemporaryPartnerOverride = null;
@@ -97,6 +97,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             ~Lv2~{"Enabled":false,"Name":"2468_Right","Group":"Dmad forsaken partner script","ZoneLockH":[1363],"ElementsL":[{"Name":"Fan","refX":100.0,"refY":104.5,"radius":0.5,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"overlayText":"$ELEMENT","tether":true},{"Name":"Spread","refX":98.41889,"refY":111.2488,"radius":0.5,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"overlayText":"$ELEMENT","tether":true},{"Name":"CloneBaiter","refX":106.0,"refY":99.0,"radius":0.5,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"overlayText":"$ELEMENT","tether":true},{"Name":"FanTaker","refX":104.5,"refY":108.0,"radius":0.5,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"overlayText":"$ELEMENT","tether":true}]}
             """);
         Controller.RegisterElementFromCode("""{"Name":"Bait","refX":102.39029,"refY":105.67813,"refZ":-3.8146973E-06,"radius":0.5,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"overlayText":"$ELEMENT","tether":true}""");
+        Controller.RegisterElementFromCode("""{"Name":"LastBaitFixedPosition","refX":100.0,"refY":88.0,"refZ":0.0,"radius":0.5,"color":3357277952,"Filled":false,"fillIntensity":0.5,"thicc":5.0,"overlayText":"Bait","tether":true}""");
     }
 
     private int GetTowerByPosition(Vector2 pos)
@@ -176,13 +177,25 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             }
             if(set.Action.Value.RowId == CastFuturesEnd)
             {
-                StoredAoe = true;
-                AoeMapEffectsBlock = ActiveMapEffects.ToList();
+                if(C.DelayBaitDisplay != null)
+                {
+                    Controller.Schedule(() => StoredAoe = true, (int)(C.DelayBaitDisplay.Value * 1000));
+                }
+                else
+                {
+                    StoredAoe = true;
+                }
             }
             if(set.Action.Value.RowId == CastPastsEnd)
             {
-                StoredAoe = false;
-                AoeMapEffectsBlock = ActiveMapEffects.ToList();
+                if(C.DelayBaitDisplay != null)
+                {
+                    Controller.Schedule(() => StoredAoe = false, (int)(C.DelayBaitDisplay.Value * 1000));
+                }
+                else
+                {
+                    StoredAoe = false;
+                }
             }
         }
     }
@@ -273,132 +286,176 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
             }
             if(StoredAoe != null && ActiveMapEffects.Count() == 2)
             {
-                var e = Controller.GetElementByName("Bait");
-                if(!StoredAoe.Value || (C.LastBaitAlwaysBetweenTowers && SequenceCount >= 8))
+                Element e;
+                if(C.LastBaitAlwaysFixed && SequenceCount >= 8)
                 {
-                    var pos = (MapEffect2TowerPos[ActiveMapEffects[0]] + MapEffect2TowerPos[ActiveMapEffects[1]]) / 2;
-                    e.Enabled = true;
-                    e.RefPosition = Extend(new(100, 100), pos, 2).ToVector3();
-                    e.color = Controller.AttentionColor;
-                    e.overlayVOffset = C.VOffset;
+                    e = Controller.GetElementByName("LastBaitFixedPosition")!;
                 }
                 else
                 {
-                    var i1 = ((ActiveMapEffects[0] - 1 + 4) % 8) + 1;
-                    var i2 = ((ActiveMapEffects[1] - 1 + 4) % 8) + 1;
-                    var pos = (MapEffect2TowerPos[i1] + MapEffect2TowerPos[i2]) / 2;
-                    e.Enabled = true;
-                    e.color = Controller.AttentionColor;
-                    e.RefPosition = Extend(new(100, 100), pos, 2).ToVector3();
-                    e.overlayVOffset = C.VOffset;
+                    e = Controller.GetElementByName("Bait")!;
+                    if(!StoredAoe.Value || (C.LastBaitAlwaysBetweenTowers && SequenceCount >= 8))
+                    {
+                        var pos = (MapEffect2TowerPos[ActiveMapEffects[0]] + MapEffect2TowerPos[ActiveMapEffects[1]]) / 2;
+                        e.RefPosition = Extend(new(100, 100), pos, 2).ToVector3();
+                    }
+                    else
+                    {
+                        var i1 = ((ActiveMapEffects[0] - 1 + 4) % 8) + 1;
+                        var i2 = ((ActiveMapEffects[1] - 1 + 4) % 8) + 1;
+                        var pos = (MapEffect2TowerPos[i1] + MapEffect2TowerPos[i2]) / 2;
+                        e.RefPosition = Extend(new(100, 100), pos, 2).ToVector3();
+                    }
                 }
-                return;
+                e.Enabled = true;
+                e.color = Controller.AttentionColor;
+                e.overlayVOffset = C.VOffset;
             }
 
-            var partner = (IPlayerCharacter)C.MyPartner.GetPlayer(x => true, 1)!.IGameObject;
-            if(C.SouthAdjusts && TemporaryPartnerOverride?.TryGetPlayer(out var pc) == true)
+            var canDisplay = StoredAoe == null;
+            var partner = (IPlayerCharacter?)C.MyPartner.GetPlayer(x => true, 1)?.IGameObject;
+            if(partner != null)
             {
-                partner = pc;
-            }
-            if(IsStack(BasePlayer) || IsStack(partner))
-            {
-                FirstTaker ??= true;
-            }
-            else
-            {
-                if(HasMarker(BasePlayer) && HasMarker(partner))
+                if(C.SouthAdjusts && TemporaryPartnerOverride?.TryGetPlayer(out var pc) == true)
                 {
-                    FirstTaker ??= false;
+                    partner = pc;
                 }
-            }
-            if(!IsActive(BasePlayer))
-            {
-                if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
+                if(IsStack(BasePlayer) || IsStack(partner))
                 {
-                    var isCone = C.IsLeftDefaultTower;
-                    if(ShowRotatedLayout($"1357_{(isCone ? "Left" : "Right")}", isCone, out var l))
-                    {
-                        l.Enabled = true;
-                        l.Hide();
-                        var e = l.GetElement(C.IsStackTakerAsPassive || !isCone ? "StackTaker" : "FanTaker");
-                        e.color = Controller.AttentionColor;
-                        e.Enabled = true;
-                    }
+                    FirstTaker ??= true;
                 }
                 else
                 {
-                    if(ShowRotatedLayout($"2468_{(C.IsLeftDefaultTower ? "Left" : "Right")}", C.IsLeftDefaultTower, out var l))
+                    if(HasMarker(BasePlayer) && HasMarker(partner))
                     {
-                        l.Enabled = true;
-                        l.Hide();
-                        var e = l.GetElement(C.IsCloneBaitingAsPassive ? "CloneBaiter" : "FanTaker");
-                        e.color = Controller.AttentionColor;
-                        e.Enabled = true;
+                        FirstTaker ??= false;
                     }
                 }
-            }
-            else
-            {
-                var isCone = IsFan(BasePlayer) || (C.IsLeftDefaultTower && !IsSpread(BasePlayer));
-                var doAdjust = C.IsFlexerAsActive && MustAdjust(partner);
-
-                if(doAdjust)
+                if(!IsActive(BasePlayer))
                 {
-                    isCone = !isCone;
-                }
-                if(SequenceCount == 1 && IsStack(BasePlayer) && C.FirstTowerFollowsPartner)
-                {
-                    isCone = IsFan(partner);
-                }
-                if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
-                {
-                    if(C.SouthAdjusts && SequenceCount > 1 && TemporaryAdjustOverride != null && TemporaryPartnerOverride?.TryGetPlayer(out var tempPartner) == true && TemporaryIsLeftTower != null && IsStack(BasePlayer))
+                    if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
                     {
-                        isCone = TemporaryIsLeftTower.Value;
-                        doAdjust = TemporaryAdjustOverride.Value && MustAdjust(partner);
-                        if(doAdjust) isCone = !isCone;
-                    }
-                    if(ShowRotatedLayout($"1357_{(isCone ? "Left" : "Right")}", isCone, out var l))
-                    {
-                        l.Enabled = true;
-                        l.Hide();
-                        var e = l.GetElement(IsFan(BasePlayer) ? "Fan" : IsStack(BasePlayer) ? "Stack" : "Spread");
-                        e.color = Controller.AttentionColor;
-                        e.Enabled = true;
-                    }
-                }
-                else
-                {
-                    bool isLeft;
-                    if(C.SouthAdjusts && TemporaryAdjustOverride != null && TemporaryPartnerOverride?.TryGetPlayer(out var tempPartner) == true && TemporaryIsLeftTower != null)
-                    {
-                        isLeft = TemporaryIsLeftTower.Value;
-                        doAdjust = TemporaryAdjustOverride.Value && MustAdjust(partner);
-                        if(doAdjust)
+                        var isCone = C.IsLeftDefaultTower;
+                        if(ShowRotatedLayout($"1357_{(isCone ? "Left" : "Right")}", isCone, out var l))
                         {
-                            isLeft = !isLeft;
+                            l.Enabled = canDisplay;
+                            l.Hide();
+                            var e = l.GetElement(C.IsStackTakerAsPassive || !isCone ? "StackTaker" : "FanTaker");
+                            e.color = Controller.AttentionColor;
+                            e.Enabled = canDisplay;
                         }
                     }
                     else
                     {
-                        isLeft = C.IsLeftDefaultTower;
-                        if(C.IsFlexerAsActive && MustAdjust(partner))
+                        if(ShowRotatedLayout($"2468_{(C.IsLeftDefaultTower ? "Left" : "Right")}", C.IsLeftDefaultTower, out var l))
                         {
-                            isLeft = !isLeft;
+                            l.Enabled = canDisplay;
+                            l.Hide();
+                            var e = l.GetElement(C.IsCloneBaitingAsPassive ? "CloneBaiter" : "FanTaker");
+                            e.color = Controller.AttentionColor;
+                            e.Enabled = canDisplay;
                         }
                     }
+                }
+                else
+                {
+                    var isCone = IsFan(BasePlayer) || (C.IsLeftDefaultTower && !IsSpread(BasePlayer));
+                    var doAdjust = C.IsFlexerAsActive && MustAdjust(partner);
 
-                    if(ShowRotatedLayout($"2468_{(isLeft ? "Left" : "Right")}", isLeft, out var l))
+                    if(doAdjust)
                     {
-                        l.Enabled = true;
-                        l.Hide();
-                        var e = l.GetElement(IsFan(BasePlayer) ? "Fan" : "Spread");
-                        e.color = Controller.AttentionColor;
-                        e.Enabled = true;
+                        isCone = !isCone;
+                    }
+                    if(SequenceCount == 1 && IsStack(BasePlayer) && C.FirstTowerFollowsPartner)
+                    {
+                        isCone = IsFan(partner);
+                    }
+                    if(SequenceCount.EqualsAny<uint>(1, 3, 5, 7))
+                    {
+                        if(C.SouthAdjusts && SequenceCount > 1 && TemporaryAdjustOverride != null && TemporaryPartnerOverride?.TryGetPlayer(out var tempPartner) == true && TemporaryIsLeftTower != null && IsStack(BasePlayer))
+                        {
+                            isCone = TemporaryIsLeftTower.Value;
+                            doAdjust = TemporaryAdjustOverride.Value && MustAdjust(partner);
+                            if(doAdjust) isCone = !isCone;
+                        }
+                        if(ShowRotatedLayout($"1357_{(isCone ? "Left" : "Right")}", isCone, out var l))
+                        {
+                            l.Enabled = canDisplay;
+                            l.Hide();
+                            var e = l.GetElement(IsFan(BasePlayer) ? "Fan" : IsStack(BasePlayer) ? "Stack" : "Spread");
+                            e.color = Controller.AttentionColor;
+                            e.Enabled = canDisplay;
+                        }
+                    }
+                    else
+                    {
+                        bool isLeft;
+                        if(C.SouthAdjusts && TemporaryAdjustOverride != null && TemporaryPartnerOverride?.TryGetPlayer(out var tempPartner) == true && TemporaryIsLeftTower != null)
+                        {
+                            isLeft = TemporaryIsLeftTower.Value;
+                            doAdjust = TemporaryAdjustOverride.Value && MustAdjust(partner);
+                            if(doAdjust)
+                            {
+                                isLeft = !isLeft;
+                            }
+                        }
+                        else
+                        {
+                            isLeft = C.IsLeftDefaultTower;
+                            if(C.IsFlexerAsActive && MustAdjust(partner))
+                            {
+                                isLeft = !isLeft;
+                            }
+                        }
+
+                        if(ShowRotatedLayout($"2468_{(isLeft ? "Left" : "Right")}", isLeft, out var l))
+                        {
+                            l.Enabled = canDisplay;
+                            l.Hide();
+                            var e = l.GetElement(IsFan(BasePlayer) ? "Fan" : "Spread");
+                            e.color = Controller.AttentionColor;
+                            e.Enabled = canDisplay;
+                        }
                     }
                 }
             }
+            if(SequenceCount < 9)
+            {
+                Controller.DisplayAttentionWindowLine(() =>
+                {
+                    for(int i = 0; i < 8; i++)
+                    {
+                        Vector4? col = this.SequenceCount - 1 == i ? (Environment.TickCount64 % 1000 > 500 ? ImGuiColors.DalamudRed : Vector4.Zero) : this.SequenceCount - 1 < i ? null : ImGuiColors.DalamudGrey3;
+                        ImGuiEx.Text(col, $" [{i + 1}] ");
+                        if(i != 7) ImGui.SameLine();
+                    }
+                });
+                var my = GetDebuffStr(BasePlayer);
+                var partners = GetDebuffStr(partner);
+                var partnerName = partner?.Name ?? "Unknown, check priority";
+                Controller.DisplayAttentionWindowLine(() =>
+                {
+                    ImGuiEx.Text("You:");
+                    ImGui.SameLine();
+                    ImGuiEx.Text(my.Item2, my.Item1);
+                    ImGui.SameLine();
+                    ImGuiEx.Text("|");
+                    ImGui.SameLine();
+                    ImGuiEx.Text($"{partnerName}:");
+                    ImGui.SameLine();
+                    ImGuiEx.Text(partners.Item2, partners.Item1);
+                });
+            }
         }
+    }
+
+    (string, Vector4?) GetDebuffStr(IPlayerCharacter? pc)
+    {
+        if(pc == null) return ("", null);
+        if(IsStack(pc)) return ("Stack", ImGuiColors.ParsedGreen);
+        if(IsSpread(pc)) return ("Spread", ImGuiColors.DalamudRed);
+        if(IsFan(pc)) return ("Cone", EColor.CyanBright);
+        return ("No debuff", null);
     }
 
     public static Vector2 Extend(Vector2 center, Vector2 point, float distance)
@@ -469,7 +526,6 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         TemporaryPartnerOverride = null;
         TemporaryAdjustOverride = null;
         TemporaryIsLeftTower = null;
-        AoeMapEffectsBlock.Clear();
     }
 
     public override void OnSettingsDraw()
@@ -490,6 +546,8 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         ImGui.Separator();
         ImGui.SetNextItemWidth(150f);
         ImGui.SliderFloat("Overlay text vertical offset", ref C.VOffset, 0, 5);
+        ImGuiEx.DragFloat(100f, "Past/future bait delay", ref C.DelayBaitDisplay, defaultValue: 1.5f, vMin: 0.5f, vMax:3f, vSpeed:0.005f);
+        //ImGuiEx.DragFloat(100f, "Next tower display delay", ref C.DelaySwitchDisplay, defaultValue: 1.5f);
 
         ImGui.Separator();
         ImGuiEx.Text("Tower taking order, where group A is the group that takes first tower:");
@@ -532,7 +590,25 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         ImGui.Checkbox("South adjust mode (beta)", ref C.SouthAdjusts);
         ImGuiEx.HelpMarker("For even towers, if two players have same debuff after tower got resolved, southmost player will adjust");
         ImGui.Checkbox("Follow partner for first tower if I have stack", ref C.FirstTowerFollowsPartner);
-        ImGui.Checkbox("Last future/past bait is always between towers", ref C.LastBaitAlwaysBetweenTowers);
+        ImGuiEx.Text("Last future/past bait is:");
+        ImGui.Indent();
+        if(ImGui.RadioButton("Same as any other", !C.LastBaitAlwaysBetweenTowers && !C.LastBaitAlwaysFixed))
+        {
+            C.LastBaitAlwaysBetweenTowers = false;
+            C.LastBaitAlwaysFixed = false;
+        }
+        if(ImGui.RadioButton("Always between towers", C.LastBaitAlwaysBetweenTowers))
+        {
+            C.LastBaitAlwaysBetweenTowers = true;
+            C.LastBaitAlwaysFixed = false;
+        }
+        if(ImGui.RadioButton("At fixed position", C.LastBaitAlwaysFixed))
+        {
+            C.LastBaitAlwaysBetweenTowers = false;
+            C.LastBaitAlwaysFixed = true;
+        }
+        ImGuiEx.HelpMarker("Go to Registered elements and edit \"LastBaitFixedPosition\" element's position to edit it's position. Default is set to North.");
+        ImGui.Unindent();
         ImGui.Unindent();
         ImGuiEx.Text("When in passive group during even towers, I will:");
         ImGui.Indent();
@@ -598,6 +674,9 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         public float VOffset = 1f;
         public bool SouthAdjusts = false;
         public bool LastBaitAlwaysBetweenTowers = false;
+        public bool LastBaitAlwaysFixed = false;
+        public float? DelayBaitDisplay = null;
+        public float? DelaySwitchDisplay = null;
     }
 
     public class Prio1 : PriorityData

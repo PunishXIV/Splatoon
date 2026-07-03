@@ -501,10 +501,11 @@ public unsafe class Controller
     /// </summary>
     public void DisplayAttentionWindowLine(Action action)
     {
-        S.AttentionOverlayWindow.Title = this.Script.InternalData.Name ?? "";
+        if(P.Config.DisabledAttentionWindowScripts.Contains(Script.InternalData.FullName)) return;
+        S.AttentionOverlayWindow.Title = this.Script.InternalData.Name.Replace("_", " ") ?? "";
         S.AttentionOverlayWindow.ActionQueueCommand.Add((action, true));
     }
-     
+
     /// <summary>
     /// Displays a centered text in an attention window. <br />
     /// To keep window open, you must keep calling this function continuously. 
@@ -512,6 +513,37 @@ public unsafe class Controller
     public void DisplayAttentionWindowLine(string text)
     {
         DisplayAttentionWindowLine(() => ImGuiEx.Text(text));
+    }
+
+
+    /// <summary>
+    /// Displays a centered text in an attention window. <br />
+    /// To keep window open, you must keep calling this function continuously. 
+    /// Arguments can be displayed via $1, $2, $3, etc. starting from 1;
+    /// </summary>
+    public void DisplayAttentionWindowLine(string text, params string[] arguments)
+    {
+        for(var i = 0; i < arguments.Length; i++)
+        {
+            var a = arguments[i];
+            text = text.Replace($"${i + 1}", a);
+        }
+        DisplayAttentionWindowLine(() => ImGuiEx.Text(text));
+    }
+
+    /// <summary>
+    /// Displays a centered text in an attention window. <br />
+    /// To keep window open, you must keep calling this function continuously. 
+    /// Arguments can be displayed via $1, $2, $3, etc. starting from 1;
+    /// </summary>
+    public void DisplayAttentionWindowLine(Vector4? color, string text, params string[] arguments)
+    {
+        for(var i = 0; i < arguments.Length; i++)
+        {
+            var a = arguments[i];
+            text = text.Replace($"${i + 1}", a);
+        }
+        DisplayAttentionWindowLine(() => ImGuiEx.Text(color, text));
     }
 
     /// <summary>
@@ -523,7 +555,8 @@ public unsafe class Controller
     /// </summary>
     public void DisplayAttentionWindowRaw(Action action)
     {
-        S.AttentionOverlayWindow.Title = this.Script.InternalData.Name ?? "";
+        if(P.Config.DisabledAttentionWindowScripts.Contains(Script.InternalData.FullName)) return;
+        S.AttentionOverlayWindow.Title = this.Script.InternalData.Name.Replace("_", " ") ?? "";
         S.AttentionOverlayWindow.ActionQueueCommand.Add((action, false));
     }
 

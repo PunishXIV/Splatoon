@@ -28,7 +28,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(5, "mirage");
+    public override Metadata Metadata { get; } = new(6, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -103,7 +103,13 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
     private static readonly Vector3 TrueNorth = new(100f, 0f, 120f);
 
-    private static readonly (int A, int B)[] Step1PartyPairIndices = [(0, 2), (1, 3), (4, 6), (5, 7)];
+    private static readonly (int A, int B)[] Step1PartyPairIndicesYarn = [(0, 2), (1, 3), (4, 6), (5, 7)];
+    private static readonly (int A, int B)[] Step1PartyPairIndicesReen = [(0, 1), (2, 3), (4, 5), (6, 7)];
+    private static readonly string[] GroupResolveModeLabels =
+    [
+        "Yarn ([0,2] / [1,3] / [4,6] / [5,7])",
+        "Reen ([0,1] / [2,3] / [4,5] / [6,7])",
+    ];
     private static readonly HashSet<int> FirstHalfTowerSteps = [1, 2, 3, 8];
     private static readonly HashSet<int> SecondHalfTowerSteps = [4, 5, 6, 7];
 
@@ -189,6 +195,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         public PatternRuleSettings[][] PatternRules = CreateDefaultPatternRules();
         public int DebugPatternPreview = DebugPatternPreviewNone;
         public int DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
+        public int GroupResolveMode = (int)GroupResolveModeKind.Yarn;
         public int Step1RoleMode = (int)Step1AssignmentMode.ChangeWithPair;
         public int TowerPairSwapSideMode = (int)TowerPairSwapSide.BackSide;
         public MarkerResolveKind SpreadMarkerType = MarkerResolveKind.None;
@@ -217,6 +224,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             if(DebugPatternPreview >= PatternCount)
                 DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = ClampPatternPreviewRole(DebugPatternPreview, DebugPatternPreviewRole);
+            GroupResolveMode = ClampGroupResolveMode(GroupResolveMode);
             Step1RoleMode = ClampStep1RoleMode(Step1RoleMode);
             TowerPairSwapSideMode = ClampTowerPairSwapSide(TowerPairSwapSideMode);
             SpreadMarkerType = ClampMarkerResolveKind(SpreadMarkerType);
@@ -238,6 +246,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             PatternRules = CreateDefaultPatternRules();
             DebugPatternPreview = DebugPatternPreviewNone;
             DebugPatternPreviewRole = DebugPatternPreviewRoleNone;
+            GroupResolveMode = (int)GroupResolveModeKind.Yarn;
             Step1RoleMode = (int)Step1AssignmentMode.ChangeWithPair;
             TowerPairSwapSideMode = (int)TowerPairSwapSide.BackSide;
             SpreadMarkerType = MarkerResolveKind.None;
@@ -355,10 +364,24 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         FutureOpposite,
     }
 
+    private enum GroupResolveModeKind
+    {
+        Yarn,
+        Reen,
+    }
+
     private enum Step1AssignmentMode
     {
         ChangeWithPair,
         ChangeStackOnly,
+    }
+
+    private enum AdjacentPairKind
+    {
+        StackAndSpread,
+        StackAndCone,
+        DoubleSpread,
+        DoubleCone,
     }
 
     private enum TowerPairSwapSide
@@ -728,7 +751,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             && playerB.Debuff is DebuffKind.Spread or DebuffKind.Cone;
     }
 
-    // Resolve initial First/Second group from alternate priority pairs.
+    // Resolve initial First/Second group from configured pair mode.
     private bool TryResolveInitialGroup()
     {
         if(!TryEnsureInfos())
@@ -736,6 +759,15 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
         UpdateDebuffs();
 
+        if(IsReenGroupResolveMode())
+            return TryResolveInitialGroupReen();
+
+        return TryResolveInitialGroupYarn();
+    }
+
+    // Yarn: stack pairs -> FirstHalf, non-stack pairs -> SecondHalf (whole pair).
+    private bool TryResolveInitialGroupYarn()
+    {
         var stackPairCount = 0;
         var nonStackPlayerCount = 0;
 
@@ -767,6 +799,110 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         return _infos.All(i => i.Half != MechanicHalf.None);
     }
 
+    // Reen: per-player half within each adjacent priority pair.
+    private bool TryResolveInitialGroupReen()
+    {
+        foreach(var info in _infos)
+            info.Half = MechanicHalf.None;
+
+        for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
+        {
+            if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
+                return false;
+
+            if(!TryClassifyAdjacentPair(playerA, playerB, out var stackPlayer, out var partnerPlayer, out var pairKind))
+                return false;
+
+            if(pairKind is AdjacentPairKind.StackAndSpread or AdjacentPairKind.StackAndCone)
+            {
+                stackPlayer.Half = MechanicHalf.First;
+                partnerPlayer.Half = MechanicHalf.Second;
+                continue;
+            }
+
+            if(pairKind is AdjacentPairKind.DoubleSpread or AdjacentPairKind.DoubleCone)
+            {
+                var ordered = OrderInfosByPriority([playerA, playerB]).ToList();
+                ordered[0].Half = MechanicHalf.First;
+                ordered[1].Half = MechanicHalf.Second;
+                continue;
+            }
+
+            return false;
+        }
+
+        if(_infos.Count(i => i.Half == MechanicHalf.First) != PartyPlayerCount / 2)
+            return false;
+        if(_infos.Count(i => i.Half == MechanicHalf.Second) != PartyPlayerCount / 2)
+            return false;
+
+        return _infos.All(i => i.Half != MechanicHalf.None);
+    }
+
+    // Classify adjacent pair debuff composition for Reen group resolve.
+    private static bool TryClassifyAdjacentPair(PlayerInfo playerA, PlayerInfo playerB, out PlayerInfo stackPlayer,
+        out PlayerInfo partnerPlayer, out AdjacentPairKind pairKind)
+    {
+        stackPlayer = null!;
+        partnerPlayer = null!;
+        pairKind = default;
+
+        CountPairDebuffKinds(playerA, playerB, out var stack, out var cone, out var spread);
+
+        if(stack == 1 && spread == 1 && cone == 0)
+        {
+            if(!TryGetStackPartnerPlayers(playerA, playerB, out stackPlayer, out partnerPlayer))
+                return false;
+            pairKind = AdjacentPairKind.StackAndSpread;
+            return true;
+        }
+
+        if(stack == 1 && spread == 0 && cone == 1)
+        {
+            if(!TryGetStackPartnerPlayers(playerA, playerB, out stackPlayer, out partnerPlayer))
+                return false;
+            pairKind = AdjacentPairKind.StackAndCone;
+            return true;
+        }
+
+        if(stack == 0 && spread == 2 && cone == 0)
+        {
+            pairKind = AdjacentPairKind.DoubleSpread;
+            return true;
+        }
+
+        if(stack == 0 && spread == 0 && cone == 2)
+        {
+            pairKind = AdjacentPairKind.DoubleCone;
+            return true;
+        }
+
+        return false;
+    }
+
+    // Return stack and partner players from a stack pair.
+    private static bool TryGetStackPartnerPlayers(PlayerInfo playerA, PlayerInfo playerB, out PlayerInfo stackPlayer,
+        out PlayerInfo partnerPlayer)
+    {
+        if(playerA.Debuff == DebuffKind.Stack)
+        {
+            stackPlayer = playerA;
+            partnerPlayer = playerB;
+            return true;
+        }
+
+        if(playerB.Debuff == DebuffKind.Stack)
+        {
+            stackPlayer = playerB;
+            partnerPlayer = playerA;
+            return true;
+        }
+
+        stackPlayer = null!;
+        partnerPlayer = null!;
+        return false;
+    }
+
     // Return two players for a step1 pair by priority-list indices.
     private bool TryGetStep1Pair(int pairIndex, out PlayerInfo playerA, out PlayerInfo playerB)
     {
@@ -775,11 +911,19 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         if(pairIndex < 0 || pairIndex >= Step1PartyPairCount || _infos.Count != PartyPlayerCount)
             return false;
 
-        var (indexA, indexB) = Step1PartyPairIndices[pairIndex];
+        var (indexA, indexB) = GetStep1PartyPairIndices()[pairIndex];
         playerA = _infos[indexA];
         playerB = _infos[indexB];
         return true;
     }
+
+    // Return step1 pair indices for the active group resolve mode.
+    private (int A, int B)[] GetStep1PartyPairIndices()
+        => IsReenGroupResolveMode() ? Step1PartyPairIndicesReen : Step1PartyPairIndicesYarn;
+
+    // Return whether Reen adjacent group resolve is selected.
+    private bool IsReenGroupResolveMode()
+        => C.GroupResolveMode == (int)GroupResolveModeKind.Reen;
 
     // Detect pattern id from active tower group debuff counts.
     private bool TryDetectPartyPattern(out int patternId)
@@ -2061,6 +2205,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     {
         DrawDebugStepSection();
         ImGui.Spacing();
+        DrawDebugStep1PairsSection();
+        ImGui.Spacing();
         DrawDebugInfosSection();
         ImGui.Spacing();
         ImGui.TextUnformatted("Preview");
@@ -2093,6 +2239,115 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         DrawDebugStep4DebuffReminderSection();
         DrawDebugWave8MarkerSection();
     }
+
+    // Draw step1 pair assignments for the active group resolve mode.
+    private void DrawDebugStep1PairsSection()
+    {
+        C.EnsureDefaults();
+        ImGui.TextUnformatted("Step1 pairs");
+        ImGui.Separator();
+        ImGui.TextUnformatted($"Group resolve mode: {GroupResolveModeLabels[C.GroupResolveMode]}");
+
+        if(IsReenGroupResolveMode())
+            DrawDebugStep1PairsReenSection();
+        else
+            DrawDebugStep1PairsYarnSection();
+    }
+
+    // Draw Yarn pair -> half group assignments.
+    private void DrawDebugStep1PairsYarnSection()
+    {
+        for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
+        {
+            if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
+            {
+                ImGui.TextUnformatted($"  P{pairIndex}: (pair unavailable)");
+                continue;
+            }
+
+            var (indexA, indexB) = Step1PartyPairIndicesYarn[pairIndex];
+            if(!TryClassifyStep1Pair(playerA, playerB, out _, out _, out var isStackPair))
+            {
+                ImGui.TextUnformatted($"  P{pairIndex} [{indexA},{indexB}]: invalid debuffs");
+                continue;
+            }
+
+            var half = isStackPair ? MechanicHalf.First : MechanicHalf.Second;
+            DrawStep1PairAssignmentLine(pairIndex, indexA, indexB, playerA, playerB, half, half);
+        }
+    }
+
+    // Draw Reen pair -> per-player half assignments.
+    private void DrawDebugStep1PairsReenSection()
+    {
+        for(var pairIndex = 0; pairIndex < Step1PartyPairCount; pairIndex++)
+        {
+            if(!TryGetStep1Pair(pairIndex, out var playerA, out var playerB))
+            {
+                ImGui.TextUnformatted($"  P{pairIndex}: (pair unavailable)");
+                continue;
+            }
+
+            var (indexA, indexB) = Step1PartyPairIndicesReen[pairIndex];
+            if(!TryGetAdjacentPairHalves(playerA, playerB, out var halfA, out var halfB))
+            {
+                ImGui.TextUnformatted($"  P{pairIndex} [{indexA},{indexB}]: invalid debuffs");
+                continue;
+            }
+
+            DrawStep1PairAssignmentLine(pairIndex, indexA, indexB, playerA, playerB, halfA, halfB);
+        }
+    }
+
+    // Resolve per-player halves for one Reen adjacent pair.
+    private bool TryGetAdjacentPairHalves(PlayerInfo playerA, PlayerInfo playerB, out MechanicHalf halfA,
+        out MechanicHalf halfB)
+    {
+        halfA = MechanicHalf.None;
+        halfB = MechanicHalf.None;
+
+        if(!TryClassifyAdjacentPair(playerA, playerB, out var stackPlayer, out var partnerPlayer, out var pairKind))
+            return false;
+
+        if(pairKind is AdjacentPairKind.StackAndSpread or AdjacentPairKind.StackAndCone)
+        {
+            MapPairHalves(playerA, playerB, stackPlayer, partnerPlayer, out halfA, out halfB);
+            return true;
+        }
+
+        if(pairKind is AdjacentPairKind.DoubleSpread or AdjacentPairKind.DoubleCone)
+        {
+            var ordered = OrderInfosByPriority([playerA, playerB]).ToList();
+            MapPairHalves(playerA, playerB, ordered[0], ordered[1], out halfA, out halfB);
+            return true;
+        }
+
+        return false;
+    }
+
+    // Map each pair member to First/Second half from resolved first/second players.
+    private static void MapPairHalves(PlayerInfo playerA, PlayerInfo playerB, PlayerInfo firstHalfPlayer,
+        PlayerInfo secondHalfPlayer, out MechanicHalf halfA, out MechanicHalf halfB)
+    {
+        halfA = playerA.Player.EntityId == firstHalfPlayer.Player.EntityId
+            ? MechanicHalf.First
+            : MechanicHalf.Second;
+        halfB = playerB.Player.EntityId == firstHalfPlayer.Player.EntityId
+            ? MechanicHalf.First
+            : MechanicHalf.Second;
+    }
+
+    // Draw one step1 pair assignment line for debug.
+    private static void DrawStep1PairAssignmentLine(int pairIndex, int indexA, int indexB, PlayerInfo playerA,
+        PlayerInfo playerB, MechanicHalf halfA, MechanicHalf halfB)
+    {
+        ImGui.TextUnformatted(
+            $"  P{pairIndex} [{indexA},{indexB}]: {FormatStep1PairPlayerAssignment(playerA, halfA)} / {FormatStep1PairPlayerAssignment(playerB, halfB)}");
+    }
+
+    // Format one player debuff and assigned half for debug.
+    private static string FormatStep1PairPlayerAssignment(PlayerInfo info, MechanicHalf half)
+        => $"{FormatDebuffKindDebug(info.Debuff)}->{FormatHalf(half)}";
 
     // Draw Step4 FirstGroup debuff reminder debug status.
     private void DrawDebugStep4DebuffReminderSection()
@@ -2274,6 +2529,14 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             _ => (int)Step1AssignmentMode.ChangeWithPair,
         };
 
+    // Clamp group resolve mode to valid enum range.
+    private static int ClampGroupResolveMode(int mode)
+        => mode switch
+        {
+            (int)GroupResolveModeKind.Reen => (int)GroupResolveModeKind.Reen,
+            _ => (int)GroupResolveModeKind.Yarn,
+        };
+
     // Clamp tower pair swap side to valid enum range.
     private static int ClampTowerPairSwapSide(int mode)
         => mode switch
@@ -2341,7 +2604,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         C.EnsureDefaults();
 
         DrawSettingsSectionHeader("General");
-        ImGui.TextUnformatted("Starting Pairs: [H1,T1], [H2,T2], [M1,R1], [M2,R2].");
+        DrawGroupResolveModeSettings();
         ImGui.TextUnformatted("Steps 1,2,3,8 = FirstGroup tower. / Steps 4,5,6,7 = SecondGroup tower.");
         
         DrawSettingsSectionHeader("First Stack Swap Rule");
@@ -2398,6 +2661,26 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     {
         var clamped = Math.Clamp(range, MinBaitAllThingsEndingRange, MaxBaitAllThingsEndingRange);
         return MathF.Round(clamped / BaitAllThingsEndingRangeStep) * BaitAllThingsEndingRangeStep;
+    }
+
+    // Draw group resolve mode combo and pair rule summary.
+    private void DrawGroupResolveModeSettings()
+    {
+        C.EnsureDefaults();
+        var mode = C.GroupResolveMode;
+        if(ImGui.Combo("Group resolve mode", ref mode, GroupResolveModeLabels, GroupResolveModeLabels.Length))
+            C.GroupResolveMode = ClampGroupResolveMode(mode);
+
+        if(IsReenGroupResolveMode())
+        {
+            ImGui.TextUnformatted("Stack->FirstHalf / partner->SecondHalf; Spread x2 or Cone x2 split by priority.");
+            ImGui.TextUnformatted("Pair: [H1, H2], [T1, T2], [M1, M2], [R1, R2] (default priority).");
+        }
+        else
+        {
+            ImGui.TextUnformatted("Stack pairs->FirstHalf; non-stack pairs->SecondHalf.");
+            ImGui.TextUnformatted("Pair: [H1, M1], [H2, M2], [T1, R1], [T2, R2] (default priority).");
+        }
     }
 
     // Draw Step1 role assignment mode toggles.

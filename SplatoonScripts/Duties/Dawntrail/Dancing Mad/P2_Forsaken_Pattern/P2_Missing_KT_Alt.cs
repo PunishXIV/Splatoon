@@ -2792,7 +2792,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         else
         {
             ImGui.TextUnformatted("Stack pairs->FirstHalf; non-stack pairs->SecondHalf.");
-            ImGui.TextUnformatted("Pair: [H1, M1], [H2, M2], [T1, R1], [T2, R2] (default priority).");
+            ImGui.TextUnformatted("Pair: [H1, T1], [H2, T2], [M1, R1], [M2, R2] (default priority).");
         }
     }
 

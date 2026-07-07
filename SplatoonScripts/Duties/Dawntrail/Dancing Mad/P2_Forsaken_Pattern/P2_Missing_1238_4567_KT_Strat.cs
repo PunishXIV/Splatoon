@@ -27,7 +27,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata? Metadata => new(6, "mirage");
+    public override Metadata? Metadata => new(7, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -192,6 +192,21 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
     private long _step4AutoMarkDueAt;
     private InterludeNavPhase _interludeNavPhase;
     private bool _interludeBossCastSeen;
+
+    // Priority index cache (rebuilt only when the priority list order changes).
+    private Dictionary<string, int>? _priorityIndexCache;
+
+    // Ordered party cache (rebuilt only when party membership or priority order changes).
+    private List<IPlayerCharacter>? _orderedPartyCache;
+    private bool _orderedPartyCacheValid;
+    private int _orderedPartyMembershipHash;
+    private int _orderedPartyPriorityHash;
+
+    // Live role result cache (recomputed only when role inputs change).
+    private bool _liveRoleResultValid;
+    private int _liveRoleInputHash;
+    private int _liveRolePatternIdCache;
+    private string? _liveRoleLabelCache;
 
     #endregion
 
@@ -479,6 +494,8 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        _priorityIndexCache = null;
+
         if(ImGui.BeginTabBar("##P212384567KTSettings"))
         {
             if(ImGui.BeginTabItem("Main###tabMain"))
@@ -1373,6 +1390,7 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
         _step4AutoMarkDueAt = 0;
         _interludeNavPhase = InterludeNavPhase.None;
         _interludeBossCastSeen = false;
+        InvalidateRoleCaches();
 
         if(Controller.TryGetElementByName(ElActiveTower0, out var tower0))
             tower0.Enabled = false;
@@ -1382,6 +1400,20 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             towerCount.Enabled = false;
         DisableAllRolePreviewMarkers();
         DisableMyRoleMarker();
+    }
+
+    // Clear priority, ordered party, and live role caches.
+    private void InvalidateRoleCaches()
+    {
+        _priorityIndexCache = null;
+        _orderedPartyCache = null;
+        _orderedPartyCacheValid = false;
+        _orderedPartyMembershipHash = 0;
+        _orderedPartyPriorityHash = 0;
+        _liveRoleResultValid = false;
+        _liveRoleInputHash = 0;
+        _liveRolePatternIdCache = -1;
+        _liveRoleLabelCache = null;
     }
 
     private void DisableAllMarkers()
@@ -1742,37 +1774,77 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
             ImGui.TextUnformatted($"Party debuffs: waiting ({assigned}/{PartyPlayerCount})");
     }
 
+    // Party members ordered by priority list (cached until membership/priority changes).
     private List<IPlayerCharacter> GetOrderedPartyPlayers()
     {
         C.EnsureDefaults();
         var priority = C.PriorityData.GetPlayers(_ => true);
         if(priority == null || priority.Count != PartyPlayerCount)
-            return [];
-
-        var names = priority.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
-        var members = Controller.GetPartyMembers()
-            .Where(p => names.Contains(p.Name.ToString()))
-            .ToList();
-        if(members.Count != PartyPlayerCount)
-            return [];
-
-        return OrderByPriority(members).ToList();
-    }
-
-    private int GetPriorityIndex(IPlayerCharacter player)
-    {
-        var priorityList = C.PriorityData.GetPlayers(_ => true);
-        if(priorityList == null)
-            return int.MaxValue;
-
-        var name = player.Name.ToString();
-        for(var i = 0; i < priorityList.Count; i++)
         {
-            if(priorityList[i].Name == name)
-                return i;
+            _orderedPartyCacheValid = false;
+            return [];
         }
 
-        return int.MaxValue;
+        var priorityHash = 17;
+        foreach(var player in priority)
+            priorityHash = priorityHash * 31 + StringComparer.Ordinal.GetHashCode(player.Name);
+        if(priorityHash != _orderedPartyPriorityHash)
+            _priorityIndexCache = null;
+
+        var members = Controller.GetPartyMembers().ToList();
+        var membershipHash = ComputeMembershipHash(members);
+
+        if(_orderedPartyCacheValid && _orderedPartyCache != null
+            && membershipHash == _orderedPartyMembershipHash && priorityHash == _orderedPartyPriorityHash)
+            return _orderedPartyCache;
+
+        var names = priority.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
+        var filtered = members.Where(p => names.Contains(p.Name.ToString())).ToList();
+        if(filtered.Count != PartyPlayerCount)
+        {
+            _orderedPartyCacheValid = false;
+            return [];
+        }
+
+        _orderedPartyCache = OrderByPriority(filtered).ToList();
+        _orderedPartyMembershipHash = membershipHash;
+        _orderedPartyPriorityHash = priorityHash;
+        _orderedPartyCacheValid = true;
+        return _orderedPartyCache;
+    }
+
+    // Order-independent hash of party member identities for cache invalidation.
+    private static int ComputeMembershipHash(List<IPlayerCharacter> members)
+    {
+        var hash = members.Count;
+        foreach(var member in members)
+            hash ^= (int)member.EntityId;
+        return hash;
+    }
+
+    // Priority list index for a player from the cached index map.
+    private int GetPriorityIndex(IPlayerCharacter player)
+        => GetPriorityIndexMap().TryGetValue(player.Name.ToString(), out var index) ? index : int.MaxValue;
+
+    // Cached name->priority index map, built once until priority order changes.
+    private Dictionary<string, int> GetPriorityIndexMap()
+    {
+        if(_priorityIndexCache != null)
+            return _priorityIndexCache;
+
+        var map = new Dictionary<string, int>(StringComparer.Ordinal);
+        var priorityList = C.PriorityData.GetPlayers(_ => true);
+        if(priorityList != null)
+        {
+            for(var i = 0; i < priorityList.Count; i++)
+            {
+                if(!map.ContainsKey(priorityList[i].Name))
+                    map[priorityList[i].Name] = i;
+            }
+        }
+
+        _priorityIndexCache = map;
+        return map;
     }
 
     private IEnumerable<PlayerInfo> OrderInfosByPriority(IEnumerable<PlayerInfo> infos)
@@ -2495,6 +2567,52 @@ internal class P2_Missing_1238_4567_KT_Strat : SplatoonScript
 
             _initialGroupResolved = true;
         }
+
+        // Marker-based role resolution reads live in-game head markers, so its result is never cached.
+        var useMarkerResolve = (C.SpreadUseMarker && C.SpreadMarkerType != MarkerResolveKind.None)
+            || (C.ConeUseMarker && C.ConeMarkerType != MarkerResolveKind.None);
+        var inputHash = ComputeLiveRoleInputHash();
+        if(!useMarkerResolve && _liveRoleResultValid && inputHash == _liveRoleInputHash)
+        {
+            patternId = _liveRolePatternIdCache;
+            roleLabel = _liveRoleLabelCache ?? "";
+            return _liveRoleLabelCache != null;
+        }
+
+        var resolved = ResolveLiveRolesUncached(out patternId, out roleLabel);
+        _liveRoleInputHash = inputHash;
+        _liveRoleResultValid = true;
+        _liveRolePatternIdCache = resolved ? patternId : -1;
+        _liveRoleLabelCache = resolved ? roleLabel : null;
+        return resolved;
+    }
+
+    // Compute a hash of every input that affects live role assignment.
+    private int ComputeLiveRoleInputHash()
+    {
+        var hash = 17;
+        hash = hash * 31 + _step;
+        hash = hash * 31 + (_initialGroupResolved ? 1 : 0);
+        foreach(var info in _infos)
+        {
+            hash = hash * 31 + (int)info.Player.EntityId;
+            hash = hash * 31 + (int)info.Half;
+            hash = hash * 31 + (int)info.Debuff;
+        }
+
+        hash = hash * 31 + C.Step1PairMode;
+        hash = hash * 31 + (C.SpreadUseMarker ? 1 : 0);
+        hash = hash * 31 + (C.ConeUseMarker ? 1 : 0);
+        hash = hash * 31 + (int)C.SpreadMarkerType;
+        hash = hash * 31 + (int)C.ConeMarkerType;
+        return hash;
+    }
+
+    // Resolve live role labels and apply step/pattern rules without caching.
+    private bool ResolveLiveRolesUncached(out int patternId, out string roleLabel)
+    {
+        patternId = -1;
+        roleLabel = "";
 
         if(!TryDetectPartyPattern(out patternId))
             return false;

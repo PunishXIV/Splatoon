@@ -322,6 +322,20 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private long _step4DebuffReminderDueAt;
     private bool _wave8ShowDualTether;
 
+    // Priority index cache (rebuilt only when the priority list order changes).
+    private Dictionary<string, int>? _priorityIndexCache;
+
+    // Ordered party cache (rebuilt only when party membership or priority order changes).
+    private List<IPlayerCharacter>? _orderedPartyCache;
+    private bool _orderedPartyCacheValid;
+    private int _orderedPartyMembershipHash;
+    private int _orderedPartyPriorityHash;
+
+    // Live role result cache (recomputed only when role inputs change).
+    private bool _liveRoleResultValid;
+    private int _liveRoleInputHash;
+    private string? _liveRoleLabelCache;
+
     #endregion
 
     #region Private Class
@@ -524,6 +538,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        _priorityIndexCache = null;
+
         if(ImGui.BeginTabBar("##P2MissingKTAltSettings"))
         {
             if(ImGui.BeginTabItem("Main###tabMain"))
@@ -973,6 +989,51 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             _initialGroupResolved = true;
         }
 
+        // Step8 marker resolve reads live in-game head markers, so its result is never cached.
+        var useMarkerResolve = _step == ActiveStepMax && C.Wave8ResolveByMarkerEnabled;
+        var inputHash = ComputeLiveRoleInputHash();
+        if(!useMarkerResolve && _liveRoleResultValid && inputHash == _liveRoleInputHash)
+        {
+            roleLabel = _liveRoleLabelCache ?? "";
+            return _liveRoleLabelCache != null;
+        }
+
+        var resolved = ResolveLiveRolesUncached(out roleLabel);
+        _liveRoleInputHash = inputHash;
+        _liveRoleResultValid = true;
+        _liveRoleLabelCache = resolved ? roleLabel : null;
+        return resolved;
+    }
+
+    // Compute a hash of every input that affects live role assignment.
+    private int ComputeLiveRoleInputHash()
+    {
+        var hash = 17;
+        hash = hash * 31 + _step;
+        hash = hash * 31 + (_initialGroupResolved ? 1 : 0);
+        foreach(var info in _infos)
+        {
+            hash = hash * 31 + (int)info.Player.EntityId;
+            hash = hash * 31 + (int)info.Half;
+            hash = hash * 31 + (int)info.Debuff;
+        }
+
+        hash = hash * 31 + C.Step1RoleMode;
+        hash = hash * 31 + C.GroupResolveMode;
+        hash = hash * 31 + C.TowerPairSwapSideMode;
+        hash = hash * 31 + (C.Wave8ResolveByMarkerEnabled ? 1 : 0);
+        hash = hash * 31 + (int)C.Wave8LeftSpreadMarker;
+        hash = hash * 31 + (int)C.Wave8RightSpreadMarker;
+        hash = hash * 31 + (int)C.Wave8LeftConeMarker;
+        hash = hash * 31 + (int)C.Wave8RightConeMarker;
+        return hash;
+    }
+
+    // Resolve live role labels and apply step/pattern rules without caching.
+    private bool ResolveLiveRolesUncached(out string roleLabel)
+    {
+        roleLabel = "";
+
         if(!TryDetectPartyPattern(out var patternId))
             return false;
 
@@ -1413,22 +1474,52 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         return DebuffKind.None;
     }
 
-    // Return party members ordered by configured priority list.
+    // Return party members ordered by configured priority list (cached until membership/priority changes).
     private List<IPlayerCharacter> GetOrderedPartyPlayers()
     {
         C.EnsureDefaults();
         var priority = C.PriorityData.GetPlayers(_ => true);
         if(priority == null || priority.Count != PartyPlayerCount)
+        {
+            _orderedPartyCacheValid = false;
             return [];
+        }
+
+        var priorityHash = 17;
+        foreach(var player in priority)
+            priorityHash = priorityHash * 31 + StringComparer.Ordinal.GetHashCode(player.Name);
+        if(priorityHash != _orderedPartyPriorityHash)
+            _priorityIndexCache = null;
+
+        var members = Controller.GetPartyMembers().ToList();
+        var membershipHash = ComputeMembershipHash(members);
+
+        if(_orderedPartyCacheValid && _orderedPartyCache != null
+            && membershipHash == _orderedPartyMembershipHash && priorityHash == _orderedPartyPriorityHash)
+            return _orderedPartyCache;
 
         var names = priority.Select(x => x.Name).ToHashSet(StringComparer.Ordinal);
-        var members = Controller.GetPartyMembers()
-            .Where(p => names.Contains(p.Name.ToString()))
-            .ToList();
-        if(members.Count != PartyPlayerCount)
+        var filtered = members.Where(p => names.Contains(p.Name.ToString())).ToList();
+        if(filtered.Count != PartyPlayerCount)
+        {
+            _orderedPartyCacheValid = false;
             return [];
+        }
 
-        return OrderByPriority(members).ToList();
+        _orderedPartyCache = OrderByPriority(filtered).ToList();
+        _orderedPartyMembershipHash = membershipHash;
+        _orderedPartyPriorityHash = priorityHash;
+        _orderedPartyCacheValid = true;
+        return _orderedPartyCache;
+    }
+
+    // Order-independent hash of party member identities for cache invalidation.
+    private static int ComputeMembershipHash(List<IPlayerCharacter> members)
+    {
+        var hash = members.Count;
+        foreach(var member in members)
+            hash ^= (int)member.EntityId;
+        return hash;
     }
 
     // Sort players by priority index then entity id.
@@ -1439,21 +1530,29 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private IEnumerable<PlayerInfo> OrderInfosByPriority(IEnumerable<PlayerInfo> infos)
         => infos.OrderBy(i => GetPriorityIndex(i.Player)).ThenBy(i => i.Player.EntityId);
 
-    // Return priority list index for a player.
+    // Return priority list index for a player from the cached index map.
     private int GetPriorityIndex(IPlayerCharacter player)
-    {
-        var priorityList = C.PriorityData.GetPlayers(_ => true);
-        if(priorityList == null)
-            return int.MaxValue;
+        => GetPriorityIndexMap().TryGetValue(player.Name.ToString(), out var index) ? index : int.MaxValue;
 
-        var name = player.Name.ToString();
-        for(var i = 0; i < priorityList.Count; i++)
+    // Return cached name->priority index map, built once until priority order changes.
+    private Dictionary<string, int> GetPriorityIndexMap()
+    {
+        if(_priorityIndexCache != null)
+            return _priorityIndexCache;
+
+        var map = new Dictionary<string, int>(StringComparer.Ordinal);
+        var priorityList = C.PriorityData.GetPlayers(_ => true);
+        if(priorityList != null)
         {
-            if(priorityList[i].Name == name)
-                return i;
+            for(var i = 0; i < priorityList.Count; i++)
+            {
+                if(!map.ContainsKey(priorityList[i].Name))
+                    map[priorityList[i].Name] = i;
+            }
         }
 
-        return int.MaxValue;
+        _priorityIndexCache = map;
+        return map;
     }
 
     // Return priority rank within a subset of player infos.
@@ -2198,6 +2297,20 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         _step4DebuffReminderSkipLogged = false;
         _step4DebuffReminderDueAt = 0;
         _wave8ShowDualTether = false;
+        InvalidateRoleCaches();
+    }
+
+    // Clear priority, ordered party, and live role caches.
+    private void InvalidateRoleCaches()
+    {
+        _priorityIndexCache = null;
+        _orderedPartyCache = null;
+        _orderedPartyCacheValid = false;
+        _orderedPartyMembershipHash = 0;
+        _orderedPartyPriorityHash = 0;
+        _liveRoleResultValid = false;
+        _liveRoleInputHash = 0;
+        _liveRoleLabelCache = null;
     }
 
     // Draw debug tab with live player info and pattern preview controls.

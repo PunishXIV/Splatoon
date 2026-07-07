@@ -14,9 +14,11 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
 using Newtonsoft.Json;
 using Splatoon;
+using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
 using Splatoon.Utility;
 using System;
@@ -30,7 +32,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
 {
-    public override Metadata Metadata { get; } = new(11, "NightmareXIV, mirage");
+    public override Metadata Metadata { get; } = new(12, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -109,10 +111,10 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
     public override void OnSetup()
     {
         Controller.RegisterElementFromCode("Black", """
-            {"Name":"","type":3,"refY":40.0,"radius":12,"fillIntensity":0.6,"refActorNPCNameID":6055,"refActorRequireCast":true,"refActorCastId":[50069],"refActorComparisonType":6,"includeRotation":true}
+            {"Name":"","type":3,"refY":40.0,"radius":10.5,"fillIntensity":0.6,"refActorNPCNameID":6055,"refActorRequireCast":true,"refActorCastId":[50069],"refActorComparisonType":6,"includeRotation":true}
             """);
         Controller.RegisterElementFromCode("White", """
-            {"Name":"","type":3,"refY":40.0,"radius":12,"fillIntensity":0.6,"refActorNPCNameID":6055,"refActorRequireCast":true,"refActorCastId":[50068],"refActorComparisonType":6,"includeRotation":true}
+            {"Name":"","type":3,"refY":40.0,"radius":10.5,"fillIntensity":0.6,"refActorNPCNameID":6055,"refActorRequireCast":true,"refActorCastId":[50068],"refActorComparisonType":6,"includeRotation":true}
             """);
         Controller.RegisterElementsFromMultilineCode("""
             {"Name":"LookAway","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":2550136832,"overlayTextColor":4278190335,"thicc":3.0,"overlayText":"LOOK AWAY","refActorName":"*","refActorRequireBuff":true,"refActorBuffId":[5543],"refActorUseBuffTime":true,"refActorBuffTimeMax":15.0,"tether":true,"overlayVOffset":2.0}
@@ -550,6 +552,14 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             ImGuiEx.Text($"List: {DebuffList.Print()}");
             ImGuiEx.Text($"Casters: {IsTruth.Select(x => $"{x.Key}: {x.Value}").Print("\n")}");
             ImGuiEx.Text($"Fakes: \n{FakeStatuses.Select(x => $"{x.objectId.GetObject()} / {x.statusId} ({Svc.Data.GetExcelSheet<Status>().GetRowOrDefault(x.statusId)?.Name})").Print("\n")}");
+        }
+    }
+
+    public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
+    {
+        if(packet->ActionType == (byte)ActionType.Action && packet->ActionID == 49884)
+        {
+            Controller.Reset();
         }
     }
 

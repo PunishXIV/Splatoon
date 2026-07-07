@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
+using ECommons.Automation.NeoTaskManager;
 using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.GameHelpers.LegacyPlayer;
@@ -33,6 +34,18 @@ public unsafe class Controller
 
     [Obsolete("Use SplatoonScript.BasePlayer")]
     public IPlayerCharacter BasePlayer => Splatoon.BasePlayer;
+
+    /// <summary>
+    /// Provides per-script instance of NeoTaskManager that will be initialized upon first call and disposed upon script disabling.
+    /// </summary>
+    public TaskManager TaskManager
+    {
+        get
+        {
+            return field ??= new(Script.TaskManagerConfiguration);
+        }
+        internal set;
+    }
 
     /// <summary>
     /// Indicates whether player is in combat.

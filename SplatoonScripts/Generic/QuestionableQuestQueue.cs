@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using AutoRetainerAPI;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
@@ -10,9 +7,13 @@ using ECommons.Automation.NeoTaskManager;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
+using ECommons.ExcelServices;
 using ECommons.EzIpcManager;
 using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
+using ECommons.IPC;
+using ECommons.IPC.Subscribers.LifestreamIPC;
+using ECommons.LazyDataHelpers;
 using ECommons.Logging;
 using ECommons.Schedulers;
 using ECommons.Throttlers;
@@ -20,6 +21,10 @@ using ECommons.UIHelpers.AddonMasterImplementations;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
 using Splatoon.SplatoonScripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 #pragma warning disable RS0030
 
@@ -27,7 +32,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata Metadata => new(6, "NightmareXIV, Aly");
+    public override Metadata Metadata => new(7, "NightmareXIV, Aly");
 
     [EzIPC("Questionable.IsRunning", false)] private Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] private Func<string, bool> QuestionableStartSingleQuest;
@@ -39,6 +44,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
     [EzIPC("Lifestream.Teleport", false)] public Func<uint, byte, bool> LifestreamTeleport;
     [EzIPC("Lifestream.AethernetTeleport", false)] public Func<string, bool> LifestreamAethernetTeleport;
 
+    AutoRetainerApi ArApi => field ??= new(this.InternalData.FullName);
 
     private Config C => Controller.GetConfig<Config>();
     private Dictionary<uint, string> Aetherytes = [new KeyValuePair<uint, string>(0, "Disabled"), .. Svc.Data.GetExcelSheet<Aetheryte>().Where(x => x.IsAetheryte && x.PlaceName.Value.Name != "").ToDictionary(x => x.RowId, x => x.PlaceName.Value.Name.GetText())];
@@ -75,7 +81,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
                 m.Entries.First(x => x.Text.Contains("Mouse")).Select();
             }
         }
-        if(EzThrottler.Throttle(InternalData.FullName + "Notify", 60000)) DuoLog.Warning($"{InternalData.Name} is running.");
+        Controller.DisplayAttentionWindowLine("Script is active.");
         if(QuestionableIsRunning())
         {
             IsNotified = false;
@@ -101,6 +107,16 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
             var next = C.Quests.FirstOrDefault(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536) && (!x.OnlyAccept || !QuestManager.Instance()->IsQuestAccepted(x.ID)));
             if(next == null)
             {
+                if(C.MultiChara)
+                {
+                    C.Charas.Remove(Player.NameWithWorld);
+                    var nextChara = C.Charas.FirstOrDefault()?.Split("@");
+                    if(nextChara != null)
+                    {
+                        ECommonsIPC.Lifestream.ChangeCharacter(nextChara[0], nextChara[1]);
+                        return;
+                    }
+                }
                 if(!IsNotified)
                 {
                     DuoLog.Warning("No more quests left in queue, script disabled");
@@ -147,6 +163,31 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         ImGui.Checkbox("Automatically do quests", ref C.Active);
         ImGui.SameLine();
         ImGui.Checkbox("Auto deactivate on completion", ref C.AutoDeactivate);
+        ImGui.SameLine();
+        ImGui.Checkbox("Multi Character", ref C.MultiChara);
+        if(C.MultiChara)
+        {
+            ImGuiEx.SetNextItemFullWidth();
+            if(ImGui.BeginCombo("###multichara", C.Charas.Count == 0?"None":$"{C.Charas.Take(3).Print()}{(C.Charas.Count > 3 ? $", +{C.Charas.Count-3} more" : "")}", ImGuiComboFlags.HeightLargest))
+            {
+                foreach(var x in ArApi.GetRegisteredCharacters())
+                {
+                    var data = ArApi.GetOfflineCharacterData(x);
+                    var indexCombat = FindMaxIndex(data.ClassJobLevelArray, out var levelCombat, (f, i) => ExpArrayIndexToJob.TryGetValue(i, out var job) && job.IsCombat());
+
+                    if(ThreadLoadImageHandler.TryGetIconTextureWrap(ExpArrayIndexToJob[indexCombat].GetIcon(), false, out var image))
+                    {
+                        ImGui.Image(image.Handle, new(ImGui.GetTextLineHeight()));
+                        ImGui.SameLine();
+                    }
+                    if(ImGui.Selectable($"Lv.{levelCombat} {data.Name}@{data.World}", C.Charas.Contains($"{data.Name}@{data.World}"), ImGuiSelectableFlags.DontClosePopups))
+                    {
+                        C.Charas.Toggle($"{data.Name}@{data.World}");
+                    }
+                }
+                ImGui.EndCombo();
+            }
+        }
         if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, "Add new quest"))
         {
             C.Quests.Add(new());
@@ -175,7 +216,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         {
             ImGui.SetClipboardText(getPriorityPreset());
         }
-        if(TaskManager.IsBusy)
+        if(TaskManager?.IsBusy == true)
         {
             ImGui.SameLine();
             if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Ban, "Stop all tasks"))
@@ -267,6 +308,8 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         public bool Active = false;
         public List<QuestInfo> Quests = [];
         public bool AutoDeactivate = true;
+        public bool MultiChara = false;
+        public List<string> Charas = [];
     }
 
     public class QuestInfo(uint iD, uint aetheryte, uint aethernet = 0)
@@ -282,4 +325,53 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         public bool OnlyAccept = false;
     }
 
+    public static int FindMaxIndex<T>(IList<T> collection, out T maxValue, Func<T, int, bool>? predicate = null) where T : IComparable<T>
+    {
+        if(collection == null || collection.Count == 0)
+        {
+            throw new ArgumentException("Collection must not be null or empty");
+        }
+
+        var maxIndex = -1;
+        maxValue = default!;
+
+        for(var i = 0; i < collection.Count; i++)
+        {
+            var element = collection[i];
+
+            if(predicate != null && !predicate(element, i))
+            {
+                continue;
+            }
+
+            if(maxIndex == -1 || element.CompareTo(maxValue) > 0)
+            {
+                maxValue = element;
+                maxIndex = i;
+            }
+        }
+
+        if(maxIndex == -1)
+        {
+            throw new InvalidOperationException("No elements matched the predicate");
+        }
+
+        return maxIndex;
+    }
+    public static Dictionary<int, Job> ExpArrayIndexToJob
+    {
+        get
+        {
+            if(field == null)
+            {
+                field = [];
+                foreach(var x in Svc.Data.GetExcelSheet<ClassJob>())
+                {
+                    field[x.ExpArrayIndex] = (Job)x.RowId;
+                }
+                Purgatory.Add(() => field = null);
+            }
+            return field;
+        }
+    }
 }

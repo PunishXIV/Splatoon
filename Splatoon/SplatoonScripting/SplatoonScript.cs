@@ -3,6 +3,7 @@ using Dalamud.Game;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Interface.Colors;
 using ECommons;
+using ECommons.Automation.NeoTaskManager;
 using ECommons.Configuration;
 using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.Hooks;
@@ -69,6 +70,11 @@ public abstract class SplatoonScript
     /// Indicates whether your script operates strictly within Splatoon, ECommons and Dalamud APIs. 
     /// </summary>
     public virtual bool Safe { get; } = false;
+
+    /// <summary>
+    /// Override this to change default task manager configuration for this script.
+    /// </summary>
+    public virtual TaskManagerConfiguration TaskManagerConfiguration { get; } = new(timeLimitMS: 30000, showDebug: true);
 
     public InternalData InternalData { get; internal set; } = null!;
 
@@ -914,6 +920,14 @@ public abstract class SplatoonScript
             return false;
         }
         ScriptingProcessor.OnReset(this);
+        try
+        {
+            Controller.TaskManager?.Dispose();
+        }
+        catch(Exception ex)
+        {
+            ScriptingProcessor.LogError(this, ex, "TaskManager.Dispose");
+        }
         try
         {
             PluginLog.Information($"Disabling script {this}");

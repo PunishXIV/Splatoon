@@ -20,7 +20,7 @@ namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 public class P3_Limit_Cut : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(11, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(12, "Garume, NightmareXIV");
 
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint BowelsOfAgony = 47858;
@@ -396,7 +396,7 @@ public class P3_Limit_Cut : SplatoonScript
                         {
                             Controller.DangerousEnqueueCommand($"/party {GetLabel()}", false);
                         }
-                    }, 1000 + Random.Shared.Next(2000));
+                    }, 500 + Random.Shared.Next(500));
                 }
                 else
                 {

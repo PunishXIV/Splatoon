@@ -20,7 +20,7 @@ namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 public class P3_Limit_Cut : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(12, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(13, "Garume, NightmareXIV");
 
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint BowelsOfAgony = 47858;
@@ -293,13 +293,22 @@ public class P3_Limit_Cut : SplatoonScript
         ImGui.Checkbox("Print direction into chat (local chat only)", ref C.Callout);
         if(C.Callout)
         {
-            ImGuiEx.Checkbox("Send direction into party chat (dangerous)", ref C.PartyCallout, enabled: C.PartyCallout || ImGuiEx.Ctrl);
+            ImGuiEx.Checkbox("[Dangerous] Send direction into party chat", ref C.PartyCallout, enabled: C.PartyCallout || ImGuiEx.Ctrl);
             ImGuiEx.HelpMarker("Before enabling, do extensive testing in replays and ensure it call out correctly. Hold CTRL and click to enable.");
         }
-        ImGui.Checkbox("[Dangerous] Enable sending macro to chat", ref C.PartyMacroA);
-        if(C.PartyMacroA)
+        ImGuiEx.Checkbox("[Dangerous] Enable sending macro to chat", ref C.PartyMacroA, enabled: C.PartyMacroA || ImGuiEx.Ctrl);
+        ImGuiEx.HelpMarker("Hold CTRL and click to enable.");
+        if(C.Callout || C.PartyMacroA)
         {
             ImGui.Checkbox("Test mode", ref C.TestMacro);
+            ImGuiEx.TextV($"Send delay, ms:");
+            ImGui.SameLine();
+            ImGuiEx.DragInt(100f, "+ 0-##sd1", ref C.CalloutDelay.ValidateRange(0, 2000));
+            ImGui.SameLine(0,0  );
+            ImGuiEx.DragInt(100f, "##sd1", ref C.CalloutDelayRng.ValidateRange(0, 2000));
+        }
+        if(C.PartyMacroA)
+        {
             ImGuiEx.HelpMarker("Will not send but write into your chat instead locally. Test this before using. Really, test it very well. I'm serious. ");
             ImGuiEx.Text($"All lines must start with /party prefix, like normal macro. ");
             ImGui.Indent();
@@ -386,6 +395,7 @@ public class P3_Limit_Cut : SplatoonScript
         if(!ChatSent)
         {
             ChatSent = true;
+            var rng = C.CalloutDelay.ValidateRange(0, 2000) + Random.Shared.Next(C.CalloutDelayRng.ValidateRange(0, 2000));
             if(C.Callout)
             {
                 if(C.PartyCallout)
@@ -396,7 +406,7 @@ public class P3_Limit_Cut : SplatoonScript
                         {
                             Controller.DangerousEnqueueCommand($"/party {GetLabel()}", false);
                         }
-                    }, 500 + Random.Shared.Next(500));
+                    }, rng);
                 }
                 else
                 {
@@ -411,7 +421,10 @@ public class P3_Limit_Cut : SplatoonScript
             {
                 var isCw = _dashStep > 0;
                 var macro = (!isCw ? C.MacroCw : C.MacroCcw)[_firstDashDirection];
-                Controller.DangerousEnqueueCommand(macro, C.TestMacro);
+                Controller.Schedule(() =>
+                {
+                    Controller.DangerousEnqueueCommand(macro, C.TestMacro);
+                }, rng);
             }
         }
     }
@@ -611,6 +624,8 @@ public class P3_Limit_Cut : SplatoonScript
     public sealed class Config
     {
         public bool Callout = false;
+        public int CalloutDelay = 1000;
+        public int CalloutDelayRng = 1000;
         public bool PartyCallout = false;
         public bool PartyMacroA = false;
         public bool TestMacro = true;

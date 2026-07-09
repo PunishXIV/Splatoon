@@ -1,5 +1,6 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Utility;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -15,7 +16,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 public class P5_Chaotic_Flood_Guide : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [1363];
-    public override Metadata? Metadata => new(2, "Poneglyph");
+    public override Metadata? Metadata => new(3, "Poneglyph, NightmareXIV");
 
     private class Config : IEzConfig
     {
@@ -45,7 +46,7 @@ public class P5_Chaotic_Flood_Guide : SplatoonScript
     private static readonly string[] CardinalNames = ["N", "E", "S", "W"];
     private static readonly string[] MarkerNames   = ["A", "B", "C", "D"];
 
-    private string GetName(int idx) => C.UseMarkers ? MarkerNames[idx] : CardinalNames[idx];
+    private string GetName(int idx, bool useMarkers) => useMarkers ? MarkerNames[idx] : CardinalNames[idx];
 
     private sealed class LineSet
     {
@@ -67,6 +68,17 @@ public class P5_Chaotic_Flood_Guide : SplatoonScript
             "{\"Name\":\"\",\"refX\":100.0,\"refY\":100.0,\"refZ\":0.0,\"radius\":1.0,\"color\":3355508503,\"Filled\":true,\"fillIntensity\":0.3,\"thicc\":6.0,\"tether\":true,\"overlayBGColor\":3221225472,\"overlayTextColor\":4294967295,\"overlayVOffset\":1.5,\"overlayFScale\":2.0}");
         Controller.RegisterElementFromCode("Spread",
             "{\"Name\":\"\",\"refX\":110.0,\"refY\":106.0,\"refZ\":0.0,\"radius\":1.0,\"color\":3355508503,\"Filled\":true,\"fillIntensity\":0.3,\"thicc\":6.0,\"tether\":true,\"overlayBGColor\":3221225472,\"overlayTextColor\":4294967295,\"overlayVOffset\":1.5,\"overlayFScale\":2.0,\"overlayText\":\"Spread\"}");
+        Controller.RegisterElementsFromMultilineCode("""
+            {"Name":"E>N","type":2,"Enabled":false,"refX":105.0,"refY":100.0,"offX":100.0,"offY":95.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":1.0,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            {"Name":"N>W","type":2,"Enabled":false,"refX":100.0,"refY":95.0,"offX":95.0,"offY":100.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":0.345,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            {"Name":"W>S","type":2,"Enabled":false,"refX":95.0,"refY":100.0,"offX":100.0,"offY":105.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":0.345,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            {"Name":"S>E","type":2,"Enabled":false,"refX":100.0,"refY":105.0,"offX":105.0,"offY":100.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":0.345,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            {"Name":"N>E","type":2,"Enabled":false,"refX":100.0,"refY":95.0,"offX":105.0,"offY":100.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":1.0,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            {"Name":"W>N","type":2,"Enabled":false,"refX":95.0,"refY":100.0,"offX":100.0,"offY":95.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":0.345,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            {"Name":"S>W","type":2,"Enabled":false,"refX":100.0,"refY":105.0,"offX":95.0,"offY":100.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":0.345,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            {"Name":"E>S","type":2,"Enabled":false,"refX":105.0,"refY":100.0,"offX":100.0,"offY":105.0,"radius":0.0,"color":3372213760,"Filled":false,"fillIntensity":0.345,"thicc":4.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":0.5}}
+            
+            """);
     }
 
     public override void OnSettingsDraw()
@@ -119,9 +131,9 @@ public class P5_Chaotic_Flood_Guide : SplatoonScript
 
     public override void OnUpdate()
     {
+        Controller.Hide();
         var safe = Controller.GetElementByName("SafeSpot")!;
         var spread = Controller.GetElementByName("Spread")!;
-        safe.Enabled = false;
 
         var showSpread = false;
 
@@ -142,13 +154,22 @@ public class P5_Chaotic_Flood_Guide : SplatoonScript
                 if(step == 0)
                 {
                     var remaining = Enumerable.Range(0, 3)
-                        .Select(s => GetName(_sequence[s]));
+                        .Select(s => GetName(_sequence[s], C.UseMarkers));
                     safe.overlayText = string.Join(" > ", remaining);
                 }
                 else
                 {
                     safe.overlayText = "";
                 }
+                for(int i = step; i < _sequence.Length - 1; i++)
+                {
+                    var name = $"{GetName(_sequence[i], false)}>{GetName(_sequence[i+1], false)}";
+                    if(Controller.TryGetElementByName(name, out var e))
+                    {
+                        e.Enabled = true;
+                    }
+                }
+
             }
         }
 

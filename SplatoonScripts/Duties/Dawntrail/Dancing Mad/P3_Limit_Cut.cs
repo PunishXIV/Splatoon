@@ -3,16 +3,12 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Text.RegularExpressions;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Utility;
 using ECommons;
-using ECommons.Automation;
-using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.DalamudServices.Legacy;
-using ECommons.GameFunctions;
 using ECommons.Hooks;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
@@ -24,7 +20,7 @@ namespace SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate;
 public class P3_Limit_Cut : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [TerritoryDancingMadUltimate];
-    public override Metadata Metadata => new(7, "Garume, NightmareXIV");
+    public override Metadata Metadata => new(11, "Garume, NightmareXIV");
 
     private const uint TerritoryDancingMadUltimate = 1363;
     private const uint BowelsOfAgony = 47858;
@@ -234,6 +230,40 @@ public class P3_Limit_Cut : SplatoonScript
         ShowInstruction(me);
     }
 
+    void DrawMacroCallouts(ref List<string> list8, string suffix)
+    {
+        /*
+         * 0 => C.NorthLabelText.Get(),
+            1 => C.NorthEastLabelText.Get(),
+            2 => C.EastLabelText.Get(),
+            3 => C.SouthEastLabelText.Get(),
+            4 => C.SouthLabelText.Get(),
+            5 => C.SouthWestLabelText.Get(),
+            6 => C.WestLabelText.Get(),
+            7 => C.NorthWestLabelText.Get(),
+        */
+        string[] dirs = ["North", "NorthEast", "East", "SouthEast", "South", "SouthWest", "West", "NorthWest"];
+        for(int i = 0; i < dirs.Length; i++)
+        {
+            ImGui.PushID(i.ToString());
+            var str = list8[i];
+            ImGuiEx.Text($"{dirs[i]} {suffix}:");
+            ImGui.SameLine();
+            if(ImGuiEx.SmallButton("Test", ImGuiEx.Ctrl))
+            {
+                Controller.DangerousEnqueueCommand(str, C.TestMacro);
+            }
+            ImGuiEx.Tooltip("Hold CTRL and click");
+            ImGui.Indent();
+            if(ImGuiEx.InputTextMultilineExpanding("##macro", ref str, 2000))
+            {
+                list8[i] = str;
+            }
+            ImGui.Unindent();
+            ImGui.PopID();
+        }
+    }
+
     public override void OnSettingsDraw()
     {
         C.EnsureDefaults();
@@ -249,8 +279,8 @@ public class P3_Limit_Cut : SplatoonScript
         DrawInternationalString("Destination overlay", C.DestinationOverlayText);
         ImGui.Checkbox(ShowFirstDashCalloutSettingText.Get(), ref C.ShowFirstDashCallout);
         DrawInternationalString("First line callout", C.FirstDashCalloutText);
-        DrawInternationalString("Clockwise label", C.ClockwiseLabelText);
-        DrawInternationalString("Counterclockwise label", C.CounterclockwiseLabelText);
+        DrawInternationalString("Clockwise label", C.CounterclockwiseLabelText);
+        DrawInternationalString("Counter-Clockwise label", C.ClockwiseLabelText);
         DrawInternationalString("North label", C.NorthLabelText);
         DrawInternationalString("Northeast label", C.NorthEastLabelText);
         DrawInternationalString("East label", C.EastLabelText);
@@ -265,6 +295,27 @@ public class P3_Limit_Cut : SplatoonScript
         {
             ImGuiEx.Checkbox("Send direction into party chat (dangerous)", ref C.PartyCallout, enabled: C.PartyCallout || ImGuiEx.Ctrl);
             ImGuiEx.HelpMarker("Before enabling, do extensive testing in replays and ensure it call out correctly. Hold CTRL and click to enable.");
+        }
+        ImGui.Checkbox("[Dangerous] Enable sending macro to chat", ref C.PartyMacroA);
+        if(C.PartyMacroA)
+        {
+            ImGui.Checkbox("Test mode", ref C.TestMacro);
+            ImGuiEx.HelpMarker("Will not send but write into your chat instead locally. Test this before using. Really, test it very well. I'm serious. ");
+            ImGuiEx.Text($"All lines must start with /party prefix, like normal macro. ");
+            ImGui.Indent();
+            ImGui.PushID("Cw");
+            ImGuiEx.Text($"Clockwise macro list:");
+            DrawMacroCallouts(ref C.MacroCw, "clockwise");
+            ImGui.PopID();
+            ImGui.Unindent();
+            ImGui.Separator();
+
+            ImGui.Indent();
+            ImGui.PushID("Ccw");
+            ImGuiEx.Text($"Counter-Clockwise macro list:");
+            DrawMacroCallouts(ref C.MacroCcw, "counter-clockwise");
+            ImGui.PopID();
+            ImGui.Unindent();
         }
     }
 
@@ -343,14 +394,7 @@ public class P3_Limit_Cut : SplatoonScript
                     {
                         if(EzThrottler.Throttle("Chat", 1000) && GenericHelpers.IsScreenReady())
                         {
-                            if(Svc.Condition[ConditionFlag.DutyRecorderPlayback])
-                            {
-                                Chat.ExecuteCommand($"/echo Would send: {GetLabel()}");
-                            }
-                            else
-                            {
-                                Chat.ExecuteCommand($"/party {GetLabel()}");
-                            }
+                            Controller.DangerousEnqueueCommand($"/party {GetLabel()}", false);
                         }
                     }, 1000 + Random.Shared.Next(2000));
                 }
@@ -362,6 +406,12 @@ public class P3_Limit_Cut : SplatoonScript
                         Message = $"{GetLabel()}"
                     });
                 }
+            }
+            if(C.PartyMacroA)
+            {
+                var isCw = _dashStep > 0;
+                var macro = (!isCw ? C.MacroCw : C.MacroCcw)[_firstDashDirection];
+                Controller.DangerousEnqueueCommand(macro, C.TestMacro);
             }
         }
     }
@@ -434,7 +484,7 @@ public class P3_Limit_Cut : SplatoonScript
             return;
 
         element.Enabled = true;
-        element.color = RainbowColor();
+        element.color = Controller.AttentionColor;
         element.tether = true;
         element.SetRefPosition(destination);
         element.overlayText = TryGetNumber(player, out var number)
@@ -540,15 +590,6 @@ public class P3_Limit_Cut : SplatoonScript
 
     private static string FormatText(InternationalString text, params object[] args) => string.Format(text.Get(), args);
 
-    private static uint RainbowColor()
-    {
-        var t = Environment.TickCount64 % 2400 / 2400f * MathF.PI * 2.0f;
-        uint r = (uint)((MathF.Sin(t) * 0.5f + 0.5f) * 255.0f);
-        uint g = (uint)((MathF.Sin(t + MathF.PI * 2.0f / 3.0f) * 0.5f + 0.5f) * 255.0f);
-        uint b = (uint)((MathF.Sin(t + MathF.PI * 4.0f / 3.0f) * 0.5f + 0.5f) * 255.0f);
-        return 0xC8000000u | (r << 16) | (g << 8) | b;
-    }
-
     private void ResetState()
     {
         ClearActiveState();
@@ -571,6 +612,10 @@ public class P3_Limit_Cut : SplatoonScript
     {
         public bool Callout = false;
         public bool PartyCallout = false;
+        public bool PartyMacroA = false;
+        public bool TestMacro = true;
+        public List<string> MacroCw = ["", "", "", "", "", "", "", ""];
+        public List<string> MacroCcw = ["", "", "", "", "", "", "", ""];
         public InternationalString DestinationOverlayText = new()
         {
             En = "LC {0}",

@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 public unsafe class P3_Target_Enforcer : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
-    public override Metadata Metadata => new(2, "Poneglyph, NightmareXIV");
+    public override Metadata Metadata => new(3, "Poneglyph, NightmareXIV");
 
     private static class Buffs
     {
@@ -52,6 +52,7 @@ public unsafe class P3_Target_Enforcer : SplatoonScript
         {
             return;
         }
+        if(C.OnlyFromWrongTarget && Svc.Targets.Target == null) return;
 
         var player = BasePlayer;
         if(player == null) return;
@@ -108,6 +109,7 @@ public unsafe class P3_Target_Enforcer : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGui.Checkbox("Don't switch off players", ref C.NoSwitchOffPlayers);
+        ImGui.Checkbox("Only switch from wrong target", ref C.OnlyFromWrongTarget);
         ImGuiEx.DragFloat(100f, "Switch target according to your debuff before knockback, seconds", ref C.PreKnockbackEnforce, vMin:2f, vMax:10f, defaultValue: 5f);
         if(C.PreKnockbackEnforce != null)
         {
@@ -146,5 +148,6 @@ public unsafe class P3_Target_Enforcer : SplatoonScript
         public float? PreKnockbackEnforce = null;
         public float? UseDistanceLimit = null;
         public bool? SwitchBackExdeath = null;
+        public bool OnlyFromWrongTarget = false;
     }
 }

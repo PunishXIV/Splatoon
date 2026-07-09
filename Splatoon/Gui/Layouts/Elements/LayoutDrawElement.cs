@@ -1164,7 +1164,17 @@ internal unsafe partial class CGui
             ImGui.SameLine();
             this.DrawVector3OrPlaceholder("offX", null, ref el.UsePlaceholderAsOffPosition, el.PlaceholdersOffPosition, ref el.offX, ref el.offY, ref el.offZ, el, nameof(el.offX), nameof(el.offY), nameof(el.offZ), el.type == 2, el.type == 2, true);
             
-            if((el.type == 3) && el.refActorType != 1)
+            if(el.type == 2 || el.type == 3)
+            {
+                ImGuiUtils.SizedText("", WidthElement);
+                ImGui.SameLine();
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.ArrowsUpDown, "Swap A and B"))
+                {
+                    (el.RefPosition, el.OffPosition) = (el.OffPosition, el.RefPosition);
+                }
+            }
+
+                if((el.type == 3) && el.refActorType != 1)
             {
                 ImGuiUtils.SizedText("", WidthElement);
                 ImGui.SameLine();

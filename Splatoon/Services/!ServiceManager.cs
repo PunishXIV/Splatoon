@@ -26,4 +26,5 @@ public static class S
     internal static PinnedLayoutEdit PinnedLayoutEdit { get; private set; }
     internal static AliasManager AliasManager { get; private set; }
     internal static AttentionOverlayWindow AttentionOverlayWindow { get; private set; }
+    internal static MessageService MessageService { get; private set; }
 }

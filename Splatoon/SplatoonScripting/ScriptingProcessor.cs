@@ -579,9 +579,18 @@ internal unsafe static partial class ScriptingProcessor
         try
         {
             PluginLog.Debug($"OnReset called for script {script.InternalData.Name}");
-            script.Controller.CancelSchedulers();
-            script.OnReset();
             script.Controller.AutoResetAt = long.MaxValue;
+            script.OnReset();
+        }
+        catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
+        try
+        {
+            script.Controller.CancelQueuedCommands();
+        }
+        catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
+        try
+        {
+            script.Controller.CancelSchedulers();
         }
         catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
     }

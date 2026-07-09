@@ -402,7 +402,6 @@ public unsafe class Controller
     public void Reset()
     {
         ScriptingProcessor.OnReset(Script);
-        CancelSchedulers();
     }
 
     /// <summary>
@@ -571,6 +570,24 @@ public unsafe class Controller
         if(P.Config.DisabledAttentionWindowScripts.Contains(Script.InternalData.FullName)) return;
         S.AttentionOverlayWindow.Title = this.Script.InternalData.Name.Replace("_", " ") ?? "";
         S.AttentionOverlayWindow.ActionQueueCommand.Add((action, false));
+    }
+
+    /// <summary>
+    /// <b>This will send message to server.</b> Queues command for execution. This allows you to send multiple commands in a succession like a macro. Multiline text will be split and enqueued as individual messages. Each line must start with forward slash /. During replay messages are not being sent.
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="test">If true, command won't be sent. You do not need to handle replays manually.</param>
+    public void DangerousEnqueueCommand(string text, bool test)
+    {
+        S.MessageService.EnqueueText(this.Script.InternalData.FullName, test, text);
+    }
+
+    /// <summary>
+    /// Clears queued messages. This is also called every time script is reset
+    /// </summary>
+    public void CancelQueuedCommands()
+    {
+        S.MessageService.StopAll(this.Script.InternalData.FullName);
     }
 
     /// <summary>

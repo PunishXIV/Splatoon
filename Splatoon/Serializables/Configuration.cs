@@ -31,6 +31,7 @@ internal class Configuration : IEzConfig
 
     public bool DX11EnabledOnMacLinux = false;
     public bool DX11MacLinuxWarningHidden = false;
+    public bool NoChat = false;
 
     public RenderEngineKind RenderEngineKind = RenderEngineKind.DirectX11;
     public HashSet<RenderEngineKind> EnabledRenderers = [RenderEngineKind.ImGui_Legacy, RenderEngineKind.DirectX11];

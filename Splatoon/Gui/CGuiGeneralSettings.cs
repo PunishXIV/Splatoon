@@ -77,6 +77,7 @@ internal partial class CGui
                 ImGui.SameLine();
                 ImGui.Checkbox("Log position".Loc(), ref Splatoon.P.Config.LogPosition);
                 ImGuiComponents.HelpMarker("Log object position in casting information log lines".Loc());
+                ImGui.Checkbox("Disallow scripts from queueing commands and message sending".Loc(), ref P.Config.NoChat);
             })
 
             .Section("Information", visible: () => Svc.PluginInterface.InstalledPlugins.Any(x => x.IsLoaded && x.InternalName == "ARealmRecorded"))

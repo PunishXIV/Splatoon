@@ -36,6 +36,7 @@ SplatoonScriptsOfficial.Generic@TargetCircle,0,https://github.com/PunishXIV/Spla
 SplatoonScriptsOfficial.Generic@ForceSetDirection,4,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ForceSetDirection.cs
 SplatoonScriptsOfficial.Generic@InventoryLowNotifier,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/InventoryLowNotifier.cs
 SplatoonScriptsOfficial.Generic@AutoHeal,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoHeal.cs
+SplatoonScriptsOfficial.Generic@ReplaySpeedBoost,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ReplaySpeedBoost.cs
 SplatoonScriptsOfficial.Generic@EnemyAggro,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/EnemyAggro.cs
 SplatoonScriptsOfficial.Generic@TargetingMe,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/TargetingMe.cs
 SplatoonScriptsOfficial.Generic@NoSproutIcon,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/NoSproutIcon.cs
@@ -217,7 +218,7 @@ SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P3_Bowels_of_Agony_Classic,
 SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P3_Earthquake,41,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P3_Earthquake.cs
 SplaSim.SplatoonScripts.Duties.Dawntrail.DancingMadUltimate@P2_Trine_Beta,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P2_Trine_Beta.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P4_Debuff_Reminder,12,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P4_Debuff_Reminder.cs
-SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P5_Chaotic_Flood_Guide,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P5_Chaotic_Flood_Guide.cs
+SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P5_Chaotic_Flood_Guide,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P5_Chaotic_Flood_Guide.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_DoubleTroubleTrap_AutoMarker,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P1_DoubleTroubleTrap_AutoMarker.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P1_GravenImage_Reminder,3,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P1_GravenImage_Reminder.cs
 SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad@P5_Celestriad,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/Dancing Mad/P5_Celestriad.cs

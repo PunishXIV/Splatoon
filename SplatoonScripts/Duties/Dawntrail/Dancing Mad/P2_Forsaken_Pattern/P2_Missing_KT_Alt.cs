@@ -28,7 +28,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(6, "mirage");
+    public override Metadata Metadata { get; } = new(7, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -562,14 +562,44 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 
     #region Private Method
 
-    // Assign Step1 roles using configured stack-pair assignment mode.
+    // Assign Step1 roles; Reen uses FirstHalf debuff rules, Yarn uses configured pair modes.
     private void AssignStep1Roles()
     {
         C.EnsureDefaults();
+        if(IsReenGroupResolveMode())
+        {
+            AssignStep1RolesReen();
+            return;
+        }
+
         if((Step1AssignmentMode)C.Step1RoleMode == Step1AssignmentMode.ChangeStackOnly)
             AssignStep1RolesChangeStackOnly();
         else
             AssignStep1RolesChangeWithPair();
+    }
+
+    // Assign Step1 FirstHalf roles for Reen by debuff across the four First players.
+    private void AssignStep1RolesReen()
+    {
+        var firstPlayers = OrderInfosByPriority(_infos.Where(i => i.Half == MechanicHalf.First)).ToList();
+        if(firstPlayers.Count != 4)
+            return;
+
+        var stackPlayers = OrderInfosByPriority(firstPlayers.Where(i => i.Debuff == DebuffKind.Stack)).ToList();
+        if(stackPlayers.Count > 0)
+            stackPlayers[0].RoleLabel = Role211LeftStack;
+        if(stackPlayers.Count > 1)
+            stackPlayers[1].RoleLabel = Role211RightStack;
+
+        foreach(var info in firstPlayers)
+        {
+            if(info.Debuff == DebuffKind.Cone)
+                info.RoleLabel = Role211Cone;
+            else if(info.Debuff == DebuffKind.Spread)
+                info.RoleLabel = Role211Spread;
+        }
+
+        AssignStep1SecondGroupRoles();
     }
 
     // Assign Step1 roles per stack pair (stack + cone/spread partner).
@@ -2796,10 +2826,17 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         }
     }
 
-    // Draw Step1 role assignment mode toggles.
+    // Draw Step1 role assignment mode toggles (Yarn only; Reen uses fixed FirstHalf rules).
     private void DrawStep1RoleModeSettings()
     {
         C.EnsureDefaults();
+        if(IsReenGroupResolveMode())
+        {
+            ImGui.TextUnformatted(
+                "Reen Step1: Stack by priority -> Left/RightStack; Cone -> Cone; Spread -> Spread.");
+            return;
+        }
+
         var mode = C.Step1RoleMode;
         if(ImGui.RadioButton("Pair Debuff (Cone => Left, Spread => Right)###step1WithPair",
                 mode == (int)Step1AssignmentMode.ChangeWithPair))

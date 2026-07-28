@@ -25,7 +25,7 @@ public class P1_Pantokrator_Priority : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata => new(1, "mirage");
+    public override Metadata Metadata => new(2, "mirage");
     public override HashSet<uint> ValidTerritories => [TerritoryTop];
 
     #endregion
@@ -55,6 +55,7 @@ public class P1_Pantokrator_Priority : SplatoonScript
 
     private const float AngleSnapOffsetDegrees = -30f;
     private const float AngleStepDegrees = 30f;
+    private const float FirePhaseBaitOffsetDegrees = 55f;
 
     // One fire wave = CastFireFirst AE + CastFireSecond AE (fireCount increments twice per wave).
     private const int ActionEffectsPerFire = 2;
@@ -66,11 +67,11 @@ public class P1_Pantokrator_Priority : SplatoonScript
     private const int PartySize = 8;
 
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
+    private const uint BossDataId = 15708;
+    private const float InitReferenceAngleOffsetDegrees = 5f;
+    private const float InitReferenceDistance = 20f;
     private const float NaviRadius = 10f;
-    private const float PreSpreadOffsetNorth = 120f;
-    private const float PreSpreadOffsetSouth = 300f;
-    private const float WaveCannonSpreadRadiusInside = 10f;
-    private const float WaveCannonSpreadRadiusOutside = 15f;
+    private const float PreSpreadOffsetFromFirstFire = 120f;
 
     private const string ElementNavi = "PantokratorNavi";
 
@@ -161,7 +162,10 @@ public class P1_Pantokrator_Priority : SplatoonScript
     {
         public readonly List<float> FirstFireAngles = [];
         public readonly List<float> SecondFireAngles = [];
-        public float InitAngle;
+        public float NorthInitAngle;
+        public float SouthInitAngle;
+        public Vector3 InitReferencePoint;
+        public bool InitReferenceResolved;
         public Rotate Rotate = Rotate.None;
         public int FireCountRaw;
     }
@@ -174,7 +178,7 @@ public class P1_Pantokrator_Priority : SplatoonScript
     {
         Controller.RegisterElementFromCode(
             ElementNavi,
-            """{"Name":"PantokratorNavi","Enabled":false,"radius":0.5,"color":4278190335,"fillIntensity":0.5,"thicc":5.0,"tether":true}""",
+            """{"Name":"","type":1,"offY":12.0,"radius":0.5,"fillIntensity":0.5,"thicc":5.0,"refActorDataID":15708,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":0,"Tether":true}""",
             overwrite: true);
     }
 
@@ -220,15 +224,16 @@ public class P1_Pantokrator_Priority : SplatoonScript
         }
 
         var angle = SnapCastAngle(packet);
-        if(castId == CastFireFirst)
+        if(castId == CastFireFirst && _pantokratorInfo.FirstFireAngles.Count < 2)
         {
             _pantokratorInfo.FirstFireAngles.Add(angle);
             _pantokratorInfo.FirstFireAngles.Sort();
         }
-        else if(castId == CastFireSecond)
+        else if(castId == CastFireSecond && _pantokratorInfo.SecondFireAngles.Count < 2)
         {
             _pantokratorInfo.SecondFireAngles.Add(angle);
             _pantokratorInfo.SecondFireAngles.Sort();
+            ComputeRotate();
         }
     }
 
@@ -297,12 +302,15 @@ public class P1_Pantokrator_Priority : SplatoonScript
         _playerInfosLocked = false;
         _pantokratorInfo.FirstFireAngles.Clear();
         _pantokratorInfo.SecondFireAngles.Clear();
-        _pantokratorInfo.InitAngle = 0f;
+        _pantokratorInfo.NorthInitAngle = 0f;
+        _pantokratorInfo.SouthInitAngle = 0f;
+        _pantokratorInfo.InitReferencePoint = default;
+        _pantokratorInfo.InitReferenceResolved = false;
         _pantokratorInfo.Rotate = Rotate.None;
         _pantokratorInfo.FireCountRaw = 0;
     }
 
-    // Snaps cast facing to the plan 30° grid (cast angle - 30).
+    // Snaps cast facing to the plan 30Â° grid (cast angle - 30).
     private unsafe float SnapCastAngle(PacketActorCast* packet)
     {
         return NormalizeAngle(SnapDegToStep(packet->RotationFromNorth.RadToDeg(), AngleSnapOffsetDegrees, AngleStepDegrees));
@@ -318,9 +326,7 @@ public class P1_Pantokrator_Priority : SplatoonScript
         }
 
         var spreadDeg = GetSpreadDirectionDegrees(GetEffectiveWaveCannonSpreadDirection());
-        var spreadRadius = GetWaveCannonSpreadRadius();
-        var spreadPos = CalculatePointFromCenterByDegree(ArenaCenter, spreadRadius, spreadDeg);
-        ApplyNaviElementAt(spreadPos);
+        ApplyNaviElementAt(spreadDeg);
         return true;
     }
 
@@ -342,12 +348,11 @@ public class P1_Pantokrator_Priority : SplatoonScript
         }
 
         var preDeg = GetPreSpreadAngle(_playerInfo.Role);
-        var prePos = CalculatePointFromCenterByDegree(ArenaCenter, NaviRadius, preDeg);
-        ApplyNaviElementAt(prePos);
+        ApplyNaviElementAt(preDeg);
         return true;
     }
 
-    // Fire phase navi via getAngle (logical 1–13).
+    // Fire phase navi via getAngle (logical 1â€“13).
     private void TryApplyFirePhaseNavi(FireCount fireCount)
     {
         BuildPlayerInfos();
@@ -361,8 +366,7 @@ public class P1_Pantokrator_Priority : SplatoonScript
         }
 
         var navDeg = GetAngle(fireCount);
-        var pos = CalculatePointFromCenterByDegree(ArenaCenter, NaviRadius, navDeg);
-        ApplyNaviElementAt(pos);
+        ApplyNaviElementAt(navDeg);
     }
 
     // When 8 players have Kyrios markers, build roster once and lock until reset.
@@ -455,9 +459,6 @@ public class P1_Pantokrator_Priority : SplatoonScript
         return C.WaveCannonSpreadDirection;
     }
 
-    private float GetWaveCannonSpreadRadius()
-        => C.WaveCannonSpreadIsTank ? WaveCannonSpreadRadiusOutside : WaveCannonSpreadRadiusInside;
-
     private void DrawWaveCannonSpreadSettings()
     {
         ImGui.Text("Wavecannon spread direction (mechanic: Tank use invuln on north outside)");
@@ -489,12 +490,9 @@ public class P1_Pantokrator_Priority : SplatoonScript
         }
     }
 
-    // plan 仕様追加３: logical 0 の North/South 先行位置。
+    //pre-spread angle: logical 0 North/South target param.
     private float GetPreSpreadAngle(Role role)
-    {
-        var offset = role == Role.North ? PreSpreadOffsetNorth : PreSpreadOffsetSouth;
-        return NormalizeAngle(_pantokratorInfo.InitAngle + offset);
-    }
+        => role == Role.North ? _pantokratorInfo.NorthInitAngle : _pantokratorInfo.SouthInitAngle;
 
     // Wave cannon spread compass degrees from config direction.
     private static float GetSpreadDirectionDegrees(WaveCannonSpreadDirection direction)
@@ -510,7 +508,7 @@ public class P1_Pantokrator_Priority : SplatoonScript
             _ => 0f,
         };
 
-    // plan.md isBait: logical fire bands 1–3 / 4–6 / 7–9 / 10–12 per target status.
+    // isBait: logical fire bands 1â€“3 / 4â€“6 / 7â€“9 / 10â€“12 per target status.
     private static bool IsBait(FireCount fireCount, uint targetStatusId)
         => fireCount.Logical switch
         {
@@ -535,28 +533,55 @@ public class P1_Pantokrator_Priority : SplatoonScript
         _playerInfo = _playerInfos.FirstOrDefault(x => x.Name == name);
     }
 
-    // plan.md initAngle: first first-fire angle in [120, 300].
+    // initAngle: FirstFire + 120Â°; closer to boss reference is NorthInit, other is SouthInit.
     private void InitAngle()
     {
-        foreach(var angle in _pantokratorInfo.FirstFireAngles)
-        {
-            if(angle is >= 120f and <= 300f)
-            {
-                _pantokratorInfo.InitAngle = angle;
-                return;
-            }
-        }
-    }
-
-    // plan.md rotate: pairwise +30 / -30 between first and second fire angle lists.
-    private void ComputeRotate()
-    {
-        if(_pantokratorInfo.FirstFireAngles.Count != 2)
+        if(_pantokratorInfo.FirstFireAngles.Count < 2)
         {
             return;
         }
 
-        if(_pantokratorInfo.SecondFireAngles.Count != 2)
+        if(!_pantokratorInfo.InitReferenceResolved)
+        {
+            var boss = Svc.Objects.OfType<IBattleChara>().FirstOrDefault(x => x.DataId == BossDataId);
+            if(boss == null)
+            {
+                return;
+            }
+
+            var referenceDeg = NormalizeAngle(boss.Rotation + InitReferenceAngleOffsetDegrees);
+            _pantokratorInfo.InitReferencePoint = CalculatePointFromCenterByDegree(
+                boss.Position, InitReferenceDistance, referenceDeg);
+            _pantokratorInfo.InitReferenceResolved = true;
+        }
+
+        var reference = _pantokratorInfo.InitReferencePoint;
+        var angleA = NormalizeAngle(_pantokratorInfo.FirstFireAngles[0] + PreSpreadOffsetFromFirstFire);
+        var angleB = NormalizeAngle(_pantokratorInfo.FirstFireAngles[1] + PreSpreadOffsetFromFirstFire);
+        var posA = CalculatePointFromCenterByDegree(ArenaCenter, NaviRadius, angleA);
+        var posB = CalculatePointFromCenterByDegree(ArenaCenter, NaviRadius, angleB);
+
+        if(DistanceXZ(posA, reference) <= DistanceXZ(posB, reference))
+        {
+            _pantokratorInfo.NorthInitAngle = angleA;
+            _pantokratorInfo.SouthInitAngle = angleB;
+        }
+        else
+        {
+            _pantokratorInfo.NorthInitAngle = angleB;
+            _pantokratorInfo.SouthInitAngle = angleA;
+        }
+    }
+
+    // rotate: pairwise +30 / -30 between first and second fire angle lists.
+    private void ComputeRotate()
+    {
+        if(_pantokratorInfo.FirstFireAngles.Count < 2)
+        {
+            return;
+        }
+
+        if(_pantokratorInfo.SecondFireAngles.Count < 2)
         {
             return;
         }
@@ -591,14 +616,15 @@ public class P1_Pantokrator_Priority : SplatoonScript
             return 0f;
         }
 
+        var baseAngle = _playerInfo.Role == Role.North
+            ? _pantokratorInfo.NorthInitAngle
+            : _pantokratorInfo.SouthInitAngle;
         var isBait = IsBait(fireCount, _playerInfo.TargetStatusId);
-        var sign = _pantokratorInfo.Rotate == Rotate.Clockwise ? 1f : -1f;
-        var roleOffset = _playerInfo.Role == Role.North ? 0f : 180f;
-        var cwBase = _pantokratorInfo.Rotate == Rotate.Clockwise ? 65f : 175f;
-        var baitTerm = (isBait ? 110f : 0f) * sign;
-        var fireTerm = fireCount.Logical * 30f * sign;
+        var rotateSign = _pantokratorInfo.Rotate == Rotate.Clockwise ? 1f : -1f;
+        var stepTerm = fireCount.Logical * AngleStepDegrees
+            + (isBait ? FirePhaseBaitOffsetDegrees : -FirePhaseBaitOffsetDegrees);
 
-        return NormalizeAngle(_pantokratorInfo.InitAngle + roleOffset + cwBase + baitTerm + fireTerm);
+        return NormalizeAngle(baseAngle + stepTerm * rotateSign);
     }
 
     // True when the player has any Kyrios circle-program marker.
@@ -654,6 +680,14 @@ public class P1_Pantokrator_Priority : SplatoonScript
             center.Z - MathF.Cos(rad) * radius);
     }
 
+    // Distance on arena XZ plane.
+    private static float DistanceXZ(Vector3 a, Vector3 b)
+    {
+        var dx = a.X - b.X;
+        var dz = a.Z - b.Z;
+        return MathF.Sqrt(dx * dx + dz * dz);
+    }
+
     // Snaps degrees to nearest step after offset, then normalizes.
     private static float SnapDegToStep(float deg, float offset, float step)
     {
@@ -683,17 +717,15 @@ public class P1_Pantokrator_Priority : SplatoonScript
         }
     }
 
-    // Places tether navi at arena XZ; color follows Splatoon Attention Color (rainbow when configured).
-    private void ApplyNaviElementAt(Vector3 world)
+    // Boss-relative navi rotation; color follows Splatoon Attention Color (rainbow when configured).
+    private void ApplyNaviElementAt(float navDeg)
     {
         if(!Controller.TryGetElementByName(ElementNavi, out var el))
         {
             return;
         }
 
-        el.refX = world.X;
-        el.refY = world.Z;
-        el.refZ = world.Y;
+        el.AdditionalRotation = navDeg.DegToRad();
         el.color = Controller.AttentionColor;
         el.Enabled = true;
     }

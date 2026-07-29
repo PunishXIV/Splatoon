@@ -13,24 +13,17 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ECommons.DalamudServices.Legacy;
+using Dalamud.Bindings.ImGui;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
-public sealed class P4_Dives : SplatoonScript
+public sealed class P4_Dives : SplatoonScript<P4_Dives.Config>
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
 
     int DiveCnt;
     bool? IsCWBait = null;
     List<uint> DiveTargets = [];
-
-    IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            return Player.Object;
-        }
-    }
 
     public override void OnSetup()
     {
@@ -126,6 +119,8 @@ public sealed class P4_Dives : SplatoonScript
                         var orderedPlayers = SortClockwise(players).Where(x => x.EntityId.EqualsAny(DiveTargets));
                         PluginLog.Information($"Ordered players: {orderedPlayers.Print()}");
                         IsCWBait = orderedPlayers.First().AddressEquals(BasePlayer);
+                        if(C.AlwaysCw) IsCWBait = true;
+                        if(C.AlwaysCcw) IsCWBait = false;
                         PluginLog.Information($"Determined 3rd bait: {(IsCWBait == true ? "Clockwise" : "CounterClockwise")}");
                     }
                 }
@@ -144,8 +139,29 @@ public sealed class P4_Dives : SplatoonScript
 
     public override void OnSettingsDraw()
     {
+        if(ImGui.RadioButton("Auto-determine position", !C.AlwaysCw && !C.AlwaysCcw))
+        {
+            C.AlwaysCcw = false;
+            C.AlwaysCw = false;
+        }
+        if(ImGui.RadioButton("Always CW", C.AlwaysCw))
+        {
+            C.AlwaysCcw = false;
+            C.AlwaysCw = true;
+        }
+        if(ImGui.RadioButton("Always CCW", C.AlwaysCcw))
+        {
+            C.AlwaysCcw = true;
+            C.AlwaysCw = false;
+        }
         var players = Controller.GetPartyMembers().Where(x => x.StatusList.Any(s => s.StatusId == 2775)).ToList();
         var orderedPlayers = SortClockwise(players);
         ImGuiEx.Text($"{orderedPlayers.Print("\n")}");
+    }
+
+    public class Config
+    {
+        public bool AlwaysCw = false;
+        public bool AlwaysCcw = false;
     }
 }

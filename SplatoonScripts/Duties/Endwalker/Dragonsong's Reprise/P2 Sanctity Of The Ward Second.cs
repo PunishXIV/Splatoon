@@ -25,6 +25,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using ECommons.Automation;
 
 using ECommons.DalamudServices.Legacy;
+using System;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -70,7 +71,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     public List<IGameObject> MyTowers = [];
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(5, "Garume, NightmareXIV");
+    public override Metadata? Metadata => new(6, "Garume, NightmareXIV");
 
     private Config C => Controller.GetConfig<Config>();
 
@@ -115,14 +116,14 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     {
         if(vfxPath == "vfx/lockon/eff/r1fz_holymeteo_s12x.avfx")
         {
-            if(target.GetObject().Name.ToString() == Player.Name) _shouldInduceCommet = true;
+            if(target.GetObject().Name.ToString() == BasePlayer.Name.ToString()) _shouldInduceCommet = true;
 
             if(target.GetObject() is IPlayerCharacter character)
             {
-                if(character.GetRole() == CombatRole.DPS && Player.Object.GetRole() == CombatRole.DPS)
+                if(character.GetRole() == CombatRole.DPS && BasePlayer.GetRole() == CombatRole.DPS)
                     _shouldPrioritizeOuterTower = true;
                 else if((character.GetRole() == CombatRole.Healer || character.GetRole() == CombatRole.Tank) &&
-                         (Player.Object.GetRole() == CombatRole.Healer || Player.Object.GetRole() == CombatRole.Tank))
+                         (BasePlayer.GetRole() == CombatRole.Healer || BasePlayer.GetRole() == CombatRole.Tank))
                     _shouldPrioritizeOuterTower = true;
             }
         }
@@ -243,7 +244,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             return;
         if(!_isFirstTowerPhase && !_isSecondTowerPhase)
         {
-            var playerPosition = Player.Position.ToVector2();
+            var playerPosition = BasePlayer.Position.ToVector2();
             if(playerPosition != _lastPlayerPosition)
             {
                 SetTowers(playerPosition);
@@ -277,7 +278,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         if(set.Action.Value.RowId == 25575)
         {
             _isFirstTowerPhase = true;
-            var position = Player.Position.ToVector2();
+            var position = BasePlayer.Position.ToVector2();
             SetTowers(position);
 
             Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => x.Value.Enabled = false);
@@ -353,7 +354,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             {
                 if(EzThrottler.Throttle(GenericHelpers.GetCallStackID(), 200))
                 {
-                    var action = Player.Job.IsDom() ? 7559u : 7548u;
+                    var action = BasePlayer.Job.IsDom() ? 7559u : 7548u;
                     if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat])
                     {
                         if(ActionManager.Instance()->GetActionStatus(ActionType.Action, action) == 0)
@@ -384,10 +385,10 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             var south = new Vector3(100.000f, 0, 109.500f);
             var east = new Vector3(109.500f, 0, 100f);
             var west = new Vector3(90.500f, 0, 100f);
-            var isMeDps = Player.Job.IsDps();
+            var isMeDps = BasePlayer.Job.IsDps();
             var isMeteorDps = Controller.GetPartyMembers().Any(x => x.GetJob().IsDps() == isMeDps && x.StatusList.Any(s => s.StatusId == 562));
 
-            if(isMeDps == isMeteorDps && !Player.Status.Any(s => s.StatusId == 562))
+            if(isMeDps == isMeteorDps && !BasePlayer.StatusList.Any(s => s.StatusId == 562))
             {
                 int countPlayersWithMeteor(Vector3 where)
                 {
@@ -402,17 +403,50 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                     return Controller.GetPartyMembers().Where(x => x.GetJob().IsDps() == isMeDps && Vector3.Distance(where, x.Position) < 7f).Count();
                 }
 
-                if(Player.DistanceTo(north) < 7f)
+                Vector3 playersPosition;
+                Vector3 firstPrioritySwapPosition;
+                Vector3 secondPioritySwapPosition;
+
+                if(C.DefaultPosition == CardinalDirection.North)
                 {
-                    if(countPlayersWithoutMeteor(west) == 0)
+                    playersPosition = north;
+                    firstPrioritySwapPosition = C.SwapPriorityPosition == CardinalDirection.East ? east : west;
+                    secondPioritySwapPosition = C.SwapPriorityPosition != CardinalDirection.East ? east : west;
+                }
+                else if(C.DefaultPosition == CardinalDirection.South)
+                {
+                    playersPosition = south;
+                    firstPrioritySwapPosition = C.SwapPriorityPosition == CardinalDirection.East ? east : west;
+                    secondPioritySwapPosition = C.SwapPriorityPosition != CardinalDirection.East ? east : west;
+                }
+                else if(C.DefaultPosition == CardinalDirection.East)
+                {
+                    playersPosition = east;
+                    firstPrioritySwapPosition = C.SwapPriorityPosition == CardinalDirection.North ? north : south;
+                    secondPioritySwapPosition = C.SwapPriorityPosition != CardinalDirection.North ? north : south;
+                }
+                else if(C.DefaultPosition == CardinalDirection.West)
+                {
+                    playersPosition = west;
+                    firstPrioritySwapPosition = C.SwapPriorityPosition == CardinalDirection.North ? north : south;
+                    secondPioritySwapPosition = C.SwapPriorityPosition != CardinalDirection.North ? north : south;
+                }
+                else
+                {
+                    throw new ArgumentOutOfRangeException();
+                }
+
+                if(Player.DistanceTo(playersPosition) < 7f)
+                {
+                    if(countPlayersWithoutMeteor(firstPrioritySwapPosition) == 0)
                     {
                         e.Enabled = true;
-                        e.SetRefPosition(west);
+                        e.SetRefPosition(firstPrioritySwapPosition);
                     }
-                    else if(countPlayersWithoutMeteor(east) == 0)
+                    else if(countPlayersWithoutMeteor(secondPioritySwapPosition) == 0)
                     {
                         e.Enabled = true;
-                        e.SetRefPosition(east);
+                        e.SetRefPosition(secondPioritySwapPosition);
                     }
                 }
             }
@@ -435,12 +469,19 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         ImGui.ColorEdit4("Color", ref C.PredictBaitColor, ImGuiColorEditFlags.NoInputs);
         ImGui.Unindent();
 
-        ImGui.Checkbox("Resolve swaps (only works for north position right now)", ref C.ResolveSwaps);
+        ImGui.Checkbox("Resolve swaps", ref C.ResolveSwaps);
+        if(C.ResolveSwaps)
+        {
+            ImGui.SetNextItemWidth(200f);
+            ImGuiEx.EnumCombo("Your default position", ref C.DefaultPosition);
+            ImGui.SetNextItemWidth(200f);
+            ImGuiEx.EnumCombo("Your position for swap if both east and must swap", ref C.SwapPriorityPosition);
+        }
         ImGui.Checkbox("Auto-use knockback during meteors", ref C.Knockback);
 
         if(ImGui.CollapsingHeader("Debug"))
         {
-            var action = Player.Job.IsDom() ? 7559u : 7548u;
+            var action = BasePlayer.Job.IsDom() ? 7559u : 7548u;
             ImGuiEx.Text($"{ActionManager.Instance()->GetActionStatus(ActionType.Action, action)}");
             ImGui.Text("Inner");
             foreach(var tower in _innerTowers)
@@ -501,5 +542,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         public Vector4 PredictBaitColor = EColor.Red;
         public bool ResolveSwaps = false;
         public bool Knockback = true;
+        public CardinalDirection DefaultPosition = CardinalDirection.South;
+        public CardinalDirection SwapPriorityPosition = CardinalDirection.East;
     }
 }

@@ -1,4 +1,4 @@
-﻿using Dalamud.Interface;
+using Dalamud.Interface;
 using ECommons;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
@@ -17,7 +17,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class ARealmRecordedWhitelistMod : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => null;
-    public override Metadata Metadata => new(6, "lillylilim, NightmareXIV, Poneglyph");
+    public override Metadata Metadata => new(7, "lillylilim, NightmareXIV, Poneglyph");
 
     public class WhitelistEntry
     {
@@ -62,10 +62,11 @@ public unsafe class ARealmRecordedWhitelistMod : SplatoonScript
                 {
                     uint id = row.RowId;
                     string name = row.Name.ToString();
-                    if(!string.IsNullOrWhiteSpace(name))
+                    if(string.IsNullOrWhiteSpace(name))
                     {
-                        _cachedContentTypes.Add((id, name));
+                        name = "No Name";
                     }
+                    _cachedContentTypes.Add((id, name));
                 }
                 _cachedContentTypes = _cachedContentTypes.OrderBy(x => x.Id).ToList();
             }
@@ -83,14 +84,15 @@ public unsafe class ARealmRecordedWhitelistMod : SplatoonScript
                     {
                         var rowIdProp = row.GetType().GetProperty("RowId");
                         var nameProp = row.GetType().GetProperty("Name");
-                        if(rowIdProp != null && nameProp != null)
+                        if(rowIdProp != null)
                         {
                             uint id = (uint)rowIdProp.GetValue(row)!;
-                            string name = nameProp.GetValue(row)?.ToString() ?? string.Empty;
-                            if(!string.IsNullOrWhiteSpace(name))
+                            string name = nameProp?.GetValue(row)?.ToString() ?? string.Empty;
+                            if(string.IsNullOrWhiteSpace(name))
                             {
-                                _cachedContentTypes.Add((id, name));
+                                name = "No Name";
                             }
+                            _cachedContentTypes.Add((id, name));
                         }
                     }
                     _cachedContentTypes = _cachedContentTypes.OrderBy(x => x.Id).ToList();

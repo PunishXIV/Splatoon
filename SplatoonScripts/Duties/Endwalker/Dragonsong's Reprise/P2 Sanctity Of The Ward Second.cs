@@ -1,31 +1,31 @@
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Interface.Components;
+using Dalamud.Plugin.Ipc.Exceptions;
 using ECommons;
+using ECommons.Automation;
 using ECommons.Configuration;
 using ECommons.DalamudServices;
+using ECommons.DalamudServices.Legacy;
+using ECommons.ExcelServices;
 using ECommons.GameFunctions;
+using ECommons.GameFunctions.VirtualTableClassifier;
 using ECommons.GameHelpers;
-using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 using ECommons.GameHelpers.LegacyPlayer;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
-using Dalamud.Bindings.ImGui;
+using ECommons.Throttlers;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using Splatoon;
 using Splatoon.SplatoonScripting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Dalamud.Plugin.Ipc.Exceptions;
-using ECommons.ExcelServices;
-using ECommons.Throttlers;
-using FFXIVClientStructs.FFXIV.Client.Game;
-using ECommons.Automation;
-
-using ECommons.DalamudServices.Legacy;
-using System;
+using Player = ECommons.GameHelpers.LegacyPlayer.Player;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 
@@ -94,14 +94,25 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                 var westDistance = Vector2.Distance(tower.Position.ToVector2(), OuterWest);
 
                 if(centerDistance < 8f)
+                {
                     _innerTowers.Add(tower);
+                }
                 else if(northDistance < 12f)
+                {
                     _outerNorthTowers.Add(tower);
+                }
                 else if(eastDistance < 12f)
+                {
                     _outerEastTowers.Add(tower);
+                }
                 else if(southDistance < 12f)
+                {
                     _outerSouthTowers.Add(tower);
-                else if(westDistance < 12f) _outerWestTowers.Add(tower);
+                }
+                else if(westDistance < 12f)
+                {
+                    _outerWestTowers.Add(tower);
+                }
             }
 
             Controller.Schedule(() =>
@@ -116,15 +127,22 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     {
         if(vfxPath == "vfx/lockon/eff/r1fz_holymeteo_s12x.avfx")
         {
-            if(target.GetObject().Name.ToString() == BasePlayer.Name.ToString()) _shouldInduceCommet = true;
+            if(target.GetObject().Name.ToString() == BasePlayer.Name.ToString())
+            {
+                _shouldInduceCommet = true;
+            }
 
             if(target.GetObject() is IPlayerCharacter character)
             {
                 if(character.GetRole() == CombatRole.DPS && BasePlayer.GetRole() == CombatRole.DPS)
+                {
                     _shouldPrioritizeOuterTower = true;
+                }
                 else if((character.GetRole() == CombatRole.Healer || character.GetRole() == CombatRole.Tank) &&
                          (BasePlayer.GetRole() == CombatRole.Healer || BasePlayer.GetRole() == CombatRole.Tank))
+                {
                     _shouldPrioritizeOuterTower = true;
+                }
             }
         }
     }
@@ -143,10 +161,17 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         _outerSouthTowers.Clear();
         _outerWestTowers.Clear();
         MyTowers.Clear();
+        MeteorBaitPath.Clear();
     }
 
     public override void OnSetup()
     {
+        for(int i = 0; i < 8; i++)
+        {
+            Controller.RegisterElementFromCode($"Segment{i}", """
+                {"Name":"Segment","type":2,"refX":81.37111,"refY":99.3156,"refZ":2.2737368E-13,"offX":80.9032,"offY":93.65545,"offZ":-1.5258789E-05,"radius":0.0,"color":3359309568,"fillIntensity":0.345,"thicc":3.0,"refActorName":"","LineEndB":1}
+                """);
+        }
         for(var i = 0; i < 3; i++)
         {
             var element = new Element(0);
@@ -159,89 +184,152 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
     private void SetTowers(Vector2 playerPosition)
     {
         if(Vector2.Distance(playerPosition, InnerNorth) < 10f)
+        {
             _fixedSpreadDirection = SpreadDirection.North;
+        }
         else if(Vector2.Distance(playerPosition, InnerEast) < 10f)
+        {
             _fixedSpreadDirection = SpreadDirection.East;
+        }
         else if(Vector2.Distance(playerPosition, InnerSouth) < 10f)
+        {
             _fixedSpreadDirection = SpreadDirection.South;
-        else if(Vector2.Distance(playerPosition, InnerWest) < 10f) _fixedSpreadDirection = SpreadDirection.West;
-
+        }
+        else if(Vector2.Distance(playerPosition, InnerWest) < 10f)
+        {
+            _fixedSpreadDirection = SpreadDirection.West;
+        }
 
         if(_shouldPrioritizeOuterTower)
+        {
             switch(_fixedSpreadDirection)
             {
                 case SpreadDirection.North:
                     MyTowers = _outerNorthTowers
                         .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterNorth) < 3f).ToList();
                     if(MyTowers.Count == 0)
+                    {
                         MyTowers = _outerNorthTowers.ToList();
+                    }
+
                     break;
                 case SpreadDirection.East:
                     MyTowers = _outerEastTowers.Where(x => Vector2.Distance(x.Position.ToVector2(), OuterEast) < 3f)
                         .ToList();
                     if(MyTowers.Count == 0)
+                    {
                         MyTowers = _outerEastTowers.ToList();
+                    }
+
                     break;
                 case SpreadDirection.South:
                     MyTowers = _outerSouthTowers
                         .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterSouth) < 3f).ToList();
                     if(MyTowers.Count == 0)
+                    {
                         MyTowers = _outerSouthTowers.ToList();
+                    }
+
                     break;
                 case SpreadDirection.West:
                     MyTowers = _outerWestTowers.Where(x => Vector2.Distance(x.Position.ToVector2(), OuterWest) < 3f)
                         .ToList();
                     if(MyTowers.Count == 0)
+                    {
                         MyTowers = _outerWestTowers.ToList();
+                    }
+
                     break;
                 default:
                     MyTowers = _innerTowers.ToList();
                     break;
             }
+        }
         else
+        {
             switch(_fixedSpreadDirection)
             {
                 case SpreadDirection.North:
                     if(_outerNorthTowers.Count > 1)
+                    {
                         MyTowers = _outerNorthTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterNorth) > 5f).ToList();
+                    }
                     else
+                    {
                         MyTowers = _innerTowers.ToList();
+                    }
+
                     break;
                 case SpreadDirection.East:
                     if(_outerEastTowers.Count > 1)
+                    {
                         MyTowers = _outerEastTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterEast) > 5f).ToList();
+                    }
                     else
+                    {
                         MyTowers = _innerTowers.ToList();
+                    }
+
                     break;
                 case SpreadDirection.South:
                     if(_outerSouthTowers.Count > 1)
+                    {
                         MyTowers = _outerSouthTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterSouth) > 5f).ToList();
+                    }
                     else
+                    {
                         MyTowers = _innerTowers.ToList();
+                    }
+
                     break;
                 case SpreadDirection.West:
                     if(_outerWestTowers.Count > 1)
+                    {
                         MyTowers = _outerWestTowers
                             .Where(x => Vector2.Distance(x.Position.ToVector2(), OuterWest) > 5f).ToList();
+                    }
                     else
+                    {
                         MyTowers = _innerTowers.ToList();
+                    }
+
                     break;
                 default:
                     MyTowers = _innerTowers.ToList();
                     break;
             }
+        }
     }
-
 
     public override void OnUpdate()
     {
-        if(C.Knockback) ProcessKnockback();
+        if(C.Knockback)
+        {
+            ProcessKnockback();
+        }
+
         ProcessSwap();
+        CalculatePath();
+        Controller.GetRegisteredElements().Where(x => x.Key.StartsWith($"Segment")).Each(x => x.Value.Enabled = false);
+        for(var i = 0; i < MeteorBaitPath.Count - 1; i++)
+        {
+            if(!BasePlayer.HasStatus(562)) break;
+            var x = MeteorBaitPath[i];
+            if(Controller.TryGetElementByName($"Segment{i}", out var e))
+            {
+                e.RefPosition = x.ToVector3(0);
+                e.OffPosition = MeteorBaitPath[i + 1].ToVector3();
+                e.Enabled = true;
+            }
+        }
         if(!_isStart)
+        {
             return;
+        }
+
         if(!_isFirstTowerPhase && !_isSecondTowerPhase)
         {
             var playerPosition = BasePlayer.Position.ToVector2();
@@ -250,30 +338,49 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                 SetTowers(playerPosition);
                 Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => { x.Value.Enabled = false; });
                 for(var i = 0; i < MyTowers.Count; i++)
+                {
                     if(Controller.TryGetElementByName($"bait{i + 1}", out var element))
                     {
                         element.Enabled = true;
                         element.color = C.PredictBaitColor.ToUint();
-                        element.thicc = 4f; 
+                        element.thicc = 4f;
                         element.tether = true;
                         element.SetOffPosition(MyTowers[i].Position);
                     }
+                }
             }
 
             _lastPlayerPosition = playerPosition;
         }
 
         if(_isFirstTowerPhase || _isSecondTowerPhase)
+        {
             Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait"))
                 .Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
+        }
     }
+
+    bool AcCnt = false;
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
+        if(set.Action?.RowId == 25577)
+        {
+            AcCnt = !AcCnt;
+            if(MeteorBaitPath.Count > 0 && AcCnt)
+            {
+                MeteorBaitPath.RemoveAt(0);
+            }
+        }
         if(!_isStart)
+        {
             return;
+        }
 
-        if(set.Action == null) return;
+        if(set.Action == null)
+        {
+            return;
+        }
 
         if(set.Action.Value.RowId == 25575)
         {
@@ -282,7 +389,10 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
             SetTowers(position);
 
             Controller.GetRegisteredElements().Where(x => x.Key.StartsWith("bait")).Each(x => x.Value.Enabled = false);
-            for(var i = 0; i < MyTowers.Count; i++) SetOffPosition($"bait{i + 1}", MyTowers[i].Position);
+            for(var i = 0; i < MyTowers.Count; i++)
+            {
+                SetOffPosition($"bait{i + 1}", MyTowers[i].Position);
+            }
         }
 
         if(set.Action.Value.RowId == 29564)
@@ -312,7 +422,6 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                     SpreadDirection.West => new Vector3(100 - outerOffset, 0f, 100f - outerOffset),
                     _ => Vector3.Zero
                 };
-
                 SetOffPosition("bait1", innerOffsetPosition);
                 SetOffPosition("bait2", outerOffsetPosition);
             }
@@ -326,8 +435,27 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
                     SpreadDirection.West => new Vector3(81f, 0f, 100f),
                     _ => Vector3.Zero
                 };
+                if(BasePlayer.HasStatus(562))
+                {
+                    offsetPosition = _fixedSpreadDirection switch
+                    {
+                        SpreadDirection.West => new Vector3(119f, 0f, 100f),
+                        SpreadDirection.South => new Vector3(100f, 0f, 81f),
+                        SpreadDirection.North => new Vector3(100f, 0f, 119f),
+                        SpreadDirection.East => new Vector3(81f, 0f, 100f),
+                        _ => Vector3.Zero
+                    };
+                    Controller.Schedule(() =>
+                    {
+                        SetOffPosition("bait1", offsetPosition);
+                    }, 7000);
+                }
+                else
+                {
 
-                SetOffPosition("bait1", offsetPosition);
+                    SetOffPosition("bait1", offsetPosition);
+                }
+
             }
         }
     }
@@ -346,7 +474,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         return null;
     }
 
-    unsafe void ProcessKnockback()
+    private unsafe void ProcessKnockback()
     {
         if(Controller.Scene == 4 && Player.DistanceTo(new Vector3(100, 0, 100)) > 12f)
         {
@@ -371,13 +499,82 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         }
     }
 
-    unsafe void ProcessSwap()
+    List<Vector2> MeteorBaitPath = [];
+
+    private void CalculatePath()
+    {
+        if(BasePlayer.HasStatus(562, out var time) && time >= 12)
+        {
+            var opponent = Svc.Objects.OfType<IPlayerCharacter>().FirstOrDefault(x => x.HasStatus(562) && !x.AddressEquals(BasePlayer));
+            if(opponent == null)
+            {
+                return;
+            }
+
+            var myTower = Svc.Objects.OfTypeIBattleNpc().FirstOrDefault(x => x.IsCasting(29564) && Vector2.Distance(BasePlayer.Position2, x.Position2) <= 3f);
+            var opponentTower = Svc.Objects.OfTypeIBattleNpc().FirstOrDefault(x => x.IsCasting(29564) && Vector2.Distance(opponent.Position2, x.Position2) <= 3f);
+            if(myTower == null || opponentTower == null)
+            {
+                return;
+            }
+            MeteorBaitPath = GetArcPath(myTower.Position2, opponentTower.Position2, 20f, clockwise:false);
+        }
+    }
+
+    public static List<Vector2> GetArcPath(Vector2 start, Vector2 end, float radius, int segments = 7, bool clockwise = true, Vector2 center = default)
+    {
+        if(center == default)
+        {
+            center = new Vector2(100f, 100f);
+        }
+
+        const float TwoPi = MathF.PI * 2f;
+        static float NormalizeAngle(float a, float twoPi) => ((a % twoPi) + twoPi) % twoPi;
+
+        var startAngle = NormalizeAngle(MathF.Atan2(start.Y - center.Y, start.X - center.X), TwoPi);
+        var endAngle = NormalizeAngle(MathF.Atan2(end.Y - center.Y, end.X - center.X), TwoPi);
+        float delta;
+        if(clockwise)
+        {
+            delta = startAngle - endAngle;
+            if(delta < 0f)
+            {
+                delta += TwoPi;
+            }
+
+            delta = -delta;
+        }
+        else
+        {
+            delta = endAngle - startAngle;
+            if(delta < 0f)
+            {
+                delta += TwoPi;
+            }
+        }
+
+        var path = new List<Vector2>(segments + 1);
+        for(var i = 0; i <= segments; i++)
+        {
+            var t = (float)i / segments;
+            var angle = startAngle + (delta * t);
+            path.Add(center + (new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * radius));
+        }
+
+        return path;
+    }
+
+    private unsafe void ProcessSwap()
     {
         var e = Controller.GetElementByName("AdjustCall")!;
         e.Enabled = false;
-        if(!C.ResolveSwaps) return;
+        if(!C.ResolveSwaps)
+        {
+            return;
+        }
+
         var remTime = Controller.GetPartyMembers().Select(x => x.StatusList.FirstOrDefault(s => s.StatusId == 562)).Where(x => x != null).Select(x => x.RemainingTime).FirstOrDefault();
-       
+
 
         if(Controller.Scene == 4 && remTime.InRange(16f, 25f))
         {
@@ -453,8 +650,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
         }
     }
 
-
-    public unsafe override void OnSettingsDraw()
+    public override unsafe void OnSettingsDraw()
     {
         ImGui.Text("Bait Color:");
         ImGuiComponents.HelpMarker(
@@ -481,6 +677,7 @@ public class P2_Sanctity_Of_The_Ward_Second : SplatoonScript
 
         if(ImGui.CollapsingHeader("Debug"))
         {
+            ImGuiEx.Text($"MeteorBaitPath: {MeteorBaitPath.Print("\n")}");
             var action = BasePlayer.Job.IsDom() ? 7559u : 7548u;
             ImGuiEx.Text($"{ActionManager.Instance()->GetActionStatus(ActionType.Action, action)}");
             ImGui.Text("Inner");

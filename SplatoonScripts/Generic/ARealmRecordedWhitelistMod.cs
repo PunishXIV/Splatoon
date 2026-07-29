@@ -14,12 +14,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 using ECommons.DalamudServices.Legacy;
+using Dalamud.Bindings.ImGui;
 
 namespace SplatoonScriptsOfficial.Generic;
 public sealed class ARealmRecordedWhitelistMod : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => null;
-    public override Metadata Metadata => new(4, "lillylilim, NightmareXIV");
+    public override Metadata Metadata => new(5, "lillylilim, NightmareXIV");
 
     public override void OnEnable()
     {
@@ -59,7 +60,7 @@ public sealed class ARealmRecordedWhitelistMod : SplatoonScript
 
                     whitelist.Add(21); // deep dungeon
                     whitelist.Add(39); // new deep dungeon?
-                    whitelist.Add((uint)TerritoryIntendedUseEnum.Seasonal_Event_Duty); // new deep dungeon?
+                    whitelist.Add(38);
 
                     foreach(var x in whitelist)
                     {
@@ -83,5 +84,11 @@ public sealed class ARealmRecordedWhitelistMod : SplatoonScript
     public override void OnSettingsDraw()
     {
         ImGuiEx.Text($"{Player.TerritoryIntendedUse.RowId}");
+        ImGui.Separator();
+        if(DalamudReflector.TryGetDalamudPlugin("ARealmRecorded", out var plugin, true, true))
+        {
+            var whitelist = plugin.GetStaticFoP<HashSet<uint>>("ARealmRecorded.Game", "whitelistedContentTypes");
+            ImGuiEx.Text($"{whitelist.Select(x => $"{x}/{(TerritoryIntendedUseEnum)x}").Print("\n")}");
+        }
     }
 }

@@ -29,6 +29,11 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static Dictionary<string, List<Vector3>>? GetCapturedPositions(this Layout layout)
+    {
+        return Splatoon.CapturedPositions.SafeSelect(layout?.GetName());
+    }
+
     public static uint BlendColors(uint bottom, uint top)
     {
         float br = (bottom & 0xFF) / 255f;

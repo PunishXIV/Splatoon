@@ -32,7 +32,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class QuestionableQuestQueue : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories { get; } = [];
-    public override Metadata Metadata => new(7, "NightmareXIV, Aly");
+    public override Metadata Metadata => new(9, "NightmareXIV, Aly");
 
     [EzIPC("Questionable.IsRunning", false)] private Func<bool> QuestionableIsRunning;
     [EzIPC("Questionable.StartSingleQuest", false)] private Func<string, bool> QuestionableStartSingleQuest;
@@ -86,7 +86,7 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
         {
             IsNotified = false;
             var allowedQuests = C.Quests.Where(x => x.Enabled && !QuestManager.IsQuestComplete(x.ID + 65536) && (!x.OnlyAccept || !QuestManager.Instance()->IsQuestAccepted(x.ID))).Select(x => x.ID.ToString());
-            if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()))
+            if(!allowedQuests.Contains(QuestionableGetCurrentQuestId()) && !C.Whitelist.Select(x => x.ToString()).Contains(QuestionableGetCurrentQuestId()))
             {
                 if(EzThrottler.Check(InternalData.FullName + "NoRestart"))
                 {
@@ -301,15 +301,38 @@ public unsafe class QuestionableQuestQueue : SplatoonScript
             ImGui.EndTable();
             DragDrop.End();
         }
+        if(ImGui.CollapsingHeader("Quest Whitelist"))
+        {
+            ImGuiEx.TextWrapped($"These quests will be allowed to be completed if they are running. They may still be picked up.");
+            ImGuiEx.FilteringInputInt("Add to whitelist", out var addToBl);
+            ImGui.SameLine();
+            if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Plus, $"Add {$"{Quest.GetRef(addToBl + 65536).ValueNullable?.Name}"}"))
+            {
+                C.Whitelist.Add((uint)addToBl);
+            }
+            foreach(var x in C.Whitelist)
+            {
+                if(ImGui.Selectable($"{Quest.GetRef(x + 65536).ValueNullable?.Name}"))
+                {
+                    new TickScheduler(() => C.Whitelist.Remove(x));
+                }
+            }
+        }
+        if(ImGui.CollapsingHeader("Debug"))
+        {
+            ImGuiEx.Text($"QuestionableIsRunning {QuestionableIsRunning()}");
+            ImGuiEx.Text($"QuestionableGetCurrentQuestId {QuestionableGetCurrentQuestId()}");
+        }
     }
 
-    public class Config : IEzConfig
+    public class Config
     {
         public bool Active = false;
         public List<QuestInfo> Quests = [];
         public bool AutoDeactivate = true;
         public bool MultiChara = false;
         public List<string> Charas = [];
+        public HashSet<uint> Whitelist = [];
     }
 
     public class QuestInfo(uint iD, uint aetheryte, uint aethernet = 0)

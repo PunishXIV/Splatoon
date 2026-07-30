@@ -593,6 +593,11 @@ internal unsafe static partial class ScriptingProcessor
             script.Controller.CancelSchedulers();
         }
         catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
+        try
+        {
+            script.Controller.TaskManagerInternal?.Abort();
+        }
+        catch(Exception e) { script.LogError(e, nameof(SplatoonScript.OnReset)); }
     }
 
     internal static void OnMapEffect(uint Position, ushort Param1, ushort Param2)

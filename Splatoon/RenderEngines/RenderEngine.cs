@@ -37,11 +37,6 @@ public abstract class RenderEngine : IDisposable
         CapturedPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName(l)).Add(pos);
     }
 
-    internal void AddCapturedObject(Layout l, Element e, IGameObject pos)
-    {
-        CapturedObjectPositions.GetOrCreate(l.GetName()).GetOrCreate(e.GetName(l)).Add(pos);
-    }
-
     internal void StoreDisplayObjects()
     {
         TempObjects = DisplayObjects;

@@ -35,6 +35,8 @@ public unsafe class Controller
     [Obsolete("Use SplatoonScript.BasePlayer")]
     public IPlayerCharacter BasePlayer => Splatoon.BasePlayer;
 
+    internal TaskManager? TaskManagerInternal = null;
+
     /// <summary>
     /// Provides per-script instance of NeoTaskManager that will be initialized upon first call and disposed upon script disabling.
     /// </summary>
@@ -42,9 +44,12 @@ public unsafe class Controller
     {
         get
         {
-            return field ??= new(Script.TaskManagerConfiguration);
+            return TaskManagerInternal ??= new(Script.TaskManagerConfiguration);
         }
-        internal set;
+        internal set
+        {
+            TaskManagerInternal = value;
+        }
     }
 
     /// <summary>

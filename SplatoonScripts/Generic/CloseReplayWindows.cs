@@ -24,6 +24,7 @@ public unsafe class CloseReplayWindows : SplatoonScript
         "Talk",
         "MKDTowerEntry",
         "ShopExchangeCurrency",
+        "SkyIslandExchange2",
         ];
     private (string Name, Action<Pointer<AtkUnitBase>> Action)[] SpecialAddons = [];
 

@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Generic;
 public unsafe class VisibilityTerritoryWhitelistAlter : SplatoonScript
 {
     public override HashSet<uint>? ValidTerritories => [];
-    public override Metadata Metadata => new(1, "NightmareXIV");
+    public override Metadata Metadata => new(2, "NightmareXIV");
 
     public override void OnEnable()
     {
@@ -37,10 +37,10 @@ public unsafe class VisibilityTerritoryWhitelistAlter : SplatoonScript
         {
             if(DalamudReflector.TryGetDalamudPlugin("Visibility", out var plugin, true, true))
             {
-                var whitelist = plugin.GetFoP("Configuration").GetFoP<HashSet<ushort>>("TerritoryTypeWhitelist");
+                var whitelist = plugin.GetFoP("configuration").GetFoP<HashSet<uint>>("TerritoryTypeWhitelist");
                 foreach(var x in C.Territories)
                 {
-                    whitelist.Add((ushort)x);
+                    whitelist.Add((uint)x);
                 }
             }
         }

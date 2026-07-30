@@ -16,7 +16,7 @@ SplatoonScriptsOfficial.Generic@MemoryWatcher,1,https://github.com/PunishXIV/Spl
 SplatoonScriptsOfficial.Generic@DalamudFixer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/DalamudFixer.cs
 SplatoonScriptsOfficial.Generic@QuestHighlighter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestHighlighter.cs
 SplatoonScriptsOfficial.Generic@ReplayNetworkMonitor,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ReplayNetworkMonitor.cs
-SplatoonScriptsOfficial.Generic@VisibilityTerritoryWhitelistAlter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/VisibilityTerritoryWhitelistAlter.cs
+SplatoonScriptsOfficial.Generic@VisibilityTerritoryWhitelistAlter,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/VisibilityTerritoryWhitelistAlter.cs
 SplatoonScriptsOfficial.Generic@InventoryLowNotifier,2,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/InventoryLowNotifier.cs
 SplatoonScriptsOfficial.Generic@AutoTeleport,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoTeleport.cs
 SplatoonScriptsOfficial.Generic@AutoHeal,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoHeal.cs
@@ -38,6 +38,7 @@ SplatoonScriptsOfficial.Generic@ShowEmote,5,https://github.com/PunishXIV/Splatoo
 SplatoonScriptsOfficial.Generic@ObjectExplorer,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ObjectExplorer.cs
 SplatoonScriptsOfficial.Generic@CloseFfxivMutantHandles,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CloseFfxivMutantHandles.cs
 SplatoonScriptsOfficial.Generic@ARealmRecordedWhitelistMod,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/ARealmRecordedWhitelistMod.cs
+SplatoonScriptsOfficial.Generic@RenderToggleCmd,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/RenderToggleCmd.cs
 SplatoonScriptsOfficial.Generic@VnavmeshAlignCameraUnsetter,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/VnavmeshAlignCameraUnsetter.cs
 SplatoonScriptsOfficial.Generic@KillConnection,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/KillConnection.cs
 SplatoonScriptsOfficial.Generic@Chat2Toast,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/Chat2Toast.cs
@@ -60,7 +61,7 @@ SplatoonScriptsOfficial.Generic@ArtisanCraftCommand,2,https://github.com/PunishX
 SplatoonScriptsOfficial.Generic@AutoUseItem,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/AutoUseItem.cs
 SplatoonScriptsOfficial.Generic@LittleLadiesDay2026AutoFarm,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/LittleLadiesDay2026AutoFarm.cs
 SplatoonScriptsOfficial.Generic@CommandOnLogin,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/CommandOnLogin.cs
-SplatoonScriptsOfficial.Generic@QuestionableQuestQueue,7,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestionableQuestQueue.cs
+SplatoonScriptsOfficial.Generic@QuestionableQuestQueue,9,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Generic/QuestionableQuestQueue.cs
 SplatoonScriptsOfficial.Tests@OmegaMFResearch,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/OmegaMFResearch.cs
 SplatoonScriptsOfficial.Tests@RedmoonTest3,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/RedmoonTest3.cs
 SplatoonScriptsOfficial.Tests@ObjectEffectTest,1,https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Tests/ObjectEffectTest.cs

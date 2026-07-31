@@ -225,9 +225,11 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         public float BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
         public bool ShowRoleOverlayText;
         public bool ShowTowerCountOverlay;
-        public bool ShowActionHint;
-        public bool ShowWaveAndDebuffHint;
-        public bool ShowHintOnKefka;
+        public bool ShowHintElement;
+        public bool HintOnYourHead = true;
+        public bool HintOnKefka;
+        public bool ShowGimmickHint;
+        public bool ShowYourTaskHint = true;
 
         public void EnsureDefaults()
         {
@@ -279,9 +281,11 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
             ShowRoleOverlayText = false;
             ShowTowerCountOverlay = false;
-            ShowActionHint = false;
-            ShowWaveAndDebuffHint = false;
-            ShowHintOnKefka = false;
+            ShowHintElement = false;
+            HintOnYourHead = true;
+            HintOnKefka = false;
+            ShowGimmickHint = false;
+            ShowYourTaskHint = true;
         }
 
         private static Wave8MarkerSlot ClampWave8MarkerSlot(Wave8MarkerSlot slot)
@@ -2332,63 +2336,69 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             towerCount.Enabled = false;
     }
 
-    // Update Hint overlay from Hints layout; show on self or Kefka by config.
+    // Always build Gimmick/Task hint text for Attention Window; overlay uses Show Hint Element.
     private void UpdateHint()
     {
         C.EnsureDefaults();
-        if(!C.ShowActionHint && !C.ShowWaveAndDebuffHint)
-        {
-            DisableHint();
-            return;
-        }
 
-        string? waveLine = null;
+        var waveLine = BuildWaveAndDebuffHintText();
         string? actionLine = null;
-
-        if(C.ShowWaveAndDebuffHint)
-            waveLine = BuildWaveAndDebuffHintText();
-
-        if(C.ShowActionHint && !IsPatternPreviewActive())
+        if(!IsPatternPreviewActive())
         {
             var key = ResolveActionHintKey();
             if(key != null)
                 actionLine = GetHintText(key);
         }
 
-        if(string.IsNullOrEmpty(waveLine) && string.IsNullOrEmpty(actionLine))
+        var attentionText = CombineHintLines(waveLine, actionLine);
+        if(!string.IsNullOrEmpty(attentionText))
+            DisplayHintInAttentionWindow(attentionText);
+
+        if(!C.ShowHintElement || (!C.ShowGimmickHint && !C.ShowYourTaskHint))
         {
             DisableHint();
             return;
         }
 
-        var text = !string.IsNullOrEmpty(waveLine) && !string.IsNullOrEmpty(actionLine)
-            ? $"{waveLine}\n{actionLine}"
-            : waveLine ?? actionLine ?? "";
+        var elementWave = C.ShowGimmickHint ? waveLine : null;
+        var elementAction = C.ShowYourTaskHint ? actionLine : null;
+        var elementText = CombineHintLines(elementWave, elementAction);
+        if(string.IsNullOrEmpty(elementText))
+        {
+            DisableHint();
+            return;
+        }
 
-        ApplyHintText(text);
-        DisplayHintInAttentionWindow(text);
+        ApplyHintText(elementText);
     }
 
-    // Apply hint text to self or Kefka element based on ShowHintOnKefka.
+    // Join non-empty hint lines with newline.
+    private static string CombineHintLines(string? waveLine, string? actionLine)
+    {
+        if(!string.IsNullOrEmpty(waveLine) && !string.IsNullOrEmpty(actionLine))
+            return $"{waveLine}\n{actionLine}";
+        return waveLine ?? actionLine ?? "";
+    }
+
+    // Apply hint text to self and/or Kefka elements based on Hint Position config.
     private void ApplyHintText(string text)
     {
-        var onKefka = C.ShowHintOnKefka;
         if(Controller.TryGetElementByName(ElHint, out var hintSelf))
         {
-            if(onKefka)
-            {
-                hintSelf.Enabled = false;
-            }
-            else
+            if(C.HintOnYourHead)
             {
                 hintSelf.overlayText = text;
                 hintSelf.Enabled = true;
+            }
+            else
+            {
+                hintSelf.Enabled = false;
             }
         }
 
         if(Controller.TryGetElementByName(ElHintKefka, out var hintKefka))
         {
-            if(onKefka)
+            if(C.HintOnKefka)
             {
                 hintKefka.overlayText = text;
                 hintKefka.Enabled = true;
@@ -2965,9 +2975,19 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             C.BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(range);
         ImGui.Checkbox("Show role overlay text on nav", ref C.ShowRoleOverlayText);
         ImGui.Checkbox("Show tower step overlay on Kefka", ref C.ShowTowerCountOverlay);
-        ImGui.Checkbox("Show Action Hint", ref C.ShowActionHint);
-        ImGui.Checkbox("Show Wave and Debuff Hint", ref C.ShowWaveAndDebuffHint);
-        ImGui.Checkbox("Show Hint on Kefka", ref C.ShowHintOnKefka);
+        ImGui.Checkbox("Show Hint Element", ref C.ShowHintElement);
+        ImGui.Indent();
+        ImGui.BeginDisabled(!C.ShowHintElement);
+        ImGui.TextDisabled("Hint Position");
+        ImGui.Checkbox("On Your Head", ref C.HintOnYourHead);
+        ImGui.Checkbox("On Kefka", ref C.HintOnKefka);
+        ImGui.TextDisabled("Hint Contents");
+        ImGui.Checkbox("Gimmick Hint", ref C.ShowGimmickHint);
+        ImGui.Checkbox("Your Task Hint", ref C.ShowYourTaskHint);
+        ImGui.SameLine();
+        ImGuiEx.HelpMarker("e.g. Right-Tower Back, Left-Tower Bait Cone");
+        ImGui.EndDisabled();
+        ImGui.Unindent();
     }
 
     // Clamp and snap bait range to 0.5 steps within 5~15.

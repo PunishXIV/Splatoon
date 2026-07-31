@@ -28,7 +28,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(7, "mirage");
+    public override Metadata Metadata { get; } = new(8, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -118,6 +118,15 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private const string ElTowerCount = "tower_count";
     private const string ElMyRole = "MyRole";
     private const string ElMyRoleAlt = "MyRoleAlt";
+    private const string ElHint = "Hint";
+    private const string ElHintKefka = "HintKefka";
+    private const string LayoutHints = "Hints";
+
+    private const string HintWaveAndDebuff = "Wave_and_Debuff";
+    private const string HintBaitAllThingsEndingWithFuture = "Bait_AllThingsEnding_with_Future";
+    private const string HintBaitAllThingsEndingWithPast = "Bait_AllThingsEnding_with_Past";
+    private const string HintFinalAllThingsEndingWithFuture = "Final_AllThingsEnding_with_Future";
+    private const string HintFinalAllThingsEndingWithPast = "Final_AllThingsEnding_with_Past";
 
     private const string Role211LeftStack = "211_LeftStack";
     private const string Role211Cone = "211_Cone";
@@ -216,6 +225,11 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         public float BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
         public bool ShowRoleOverlayText;
         public bool ShowTowerCountOverlay;
+        public bool ShowHintElement;
+        public bool HintOnYourHead = true;
+        public bool HintOnKefka;
+        public bool ShowGimmickHint;
+        public bool ShowYourTaskHint = true;
 
         public void EnsureDefaults()
         {
@@ -267,6 +281,11 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             BaitAllThingsEndingRange = DefaultBaitAllThingsEndingRange;
             ShowRoleOverlayText = false;
             ShowTowerCountOverlay = false;
+            ShowHintElement = false;
+            HintOnYourHead = true;
+            HintOnKefka = false;
+            ShowGimmickHint = false;
+            ShowYourTaskHint = true;
         }
 
         private static Wave8MarkerSlot ClampWave8MarkerSlot(Wave8MarkerSlot slot)
@@ -470,6 +489,16 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
                 """{"Enabled":false,"radius":0.25,"Donut":0.1,"fillIntensity":0.544,"tether":false}""",
                 overwrite: true);
         }
+
+        Controller.RegisterElementFromCode(ElHint,
+            """{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":0.0,"overlayVOffset":3.0,"overlayFScale":2.0,"overlayText":"Hint","refActorType":1}""",
+            overwrite: true);
+        Controller.RegisterElementFromCode(ElHintKefka,
+            """{"Name":"","type":1,"radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":0.0,"overlayVOffset":3.0,"overlayFScale":2.0,"overlayText":"Hint","refActorDataID":19506,"refActorComparisonType":3}""",
+            overwrite: true);
+        Controller.TryRegisterLayoutFromCode(LayoutHints, """
+            ~Lv2~{"Enabled":false,"Name":"Hints","ZoneLockH":[1363],"ElementsL":[{"Name":"211_LeftStack","overlayText":"Left-Tower Front","overlayTextIntl":{"Jp":"左塔の前"}},{"Name":"211_Cone","overlayText":"Left-Tower Back","overlayTextIntl":{"Jp":"左塔の後"}},{"Name":"211_RightStack","overlayText":"Right-Tower Front","overlayTextIntl":{"Jp":"右塔の前"}},{"Name":"211_Spread","overlayText":"Right-Tower Back","overlayTextIntl":{"Jp":"右塔の後"}},{"Name":"211_Tank","overlayText":"Left-Tower Stack Support","overlayTextIntl":{"Jp":"左塔の外で頭割り"}},{"Name":"211_Healer","overlayText":"Left-Tower Bait Cone","overlayTextIntl":{"Jp":"左塔の外で扇誘導"}},{"Name":"211_Melee","overlayText":"Right-Tower Stack Support","overlayTextIntl":{"Jp":"右塔の外で頭割り"}},{"Name":"211_Range","overlayText":"Right-Tower Stack Support","overlayTextIntl":{"Jp":"右塔の外で頭割り"}},{"Name":"022_LeftCone","overlayText":"Left-Tower Front","overlayTextIntl":{"Jp":"左塔の前"}},{"Name":"022_LeftSpread","overlayText":"Left-Tower Back","overlayTextIntl":{"Jp":"左塔の後"}},{"Name":"022_RightCone","overlayText":"Right-Tower Front","overlayTextIntl":{"Jp":"右塔の前"}},{"Name":"022_RightSpread","overlayText":"Right-Tower Back","overlayTextIntl":{"Jp":"右塔の後"}},{"Name":"022_Tank","overlayText":"Bait AllThingEnding","overlayTextIntl":{"Jp":"終焉誘導"}},{"Name":"022_Healer","overlayText":"Left-Tower Bait Cone","overlayTextIntl":{"Jp":"左塔の外で扇誘導"}},{"Name":"022_Melee","overlayText":"Bait AllThingEnding","overlayTextIntl":{"Jp":"終焉誘導"}},{"Name":"022_Range","overlayText":"Right-Tower Bait Cone","overlayTextIntl":{"Jp":"右塔の外で扇誘導"}},{"Name":"Bait_AllThingsEnding_with_Future","overlayText":"Go Opposite Tower","overlayTextIntl":{"Jp":"塔の反対側へ"}},{"Name":"Bait_AllThingsEnding_with_Past","overlayText":"Go Between Tower","overlayTextIntl":{"Jp":"塔の間へ"}},{"Name":"Final_AllThingsEnding_with_Future","overlayText":"Go North and Go Opposite","overlayTextIntl":{"Jp":"北へ行き詠唱完了で反対側へ"}},{"Name":"Final_AllThingsEnding_with_Past","overlayText":"Go North and Stay","overlayTextIntl":{"Jp":"北へ行きそのまま動かない"}},{"Name":"Wave_and_Debuff","overlayText":"Wave: {0}, Debuff: {1}","overlayTextIntl":{"Jp":"塔{0}回目  デバフ:{1}"}},{"Name":"Stack","overlayText":"Stack","overlayTextIntl":{"Jp":"頭割り"}},{"Name":"Spread","overlayText":"Spread","overlayTextIntl":{"Jp":"散開"}},{"Name":"Cone","overlayText":"Cone","overlayTextIntl":{"Jp":"扇"}},{"Name":"None","overlayText":"None","overlayTextIntl":{"Jp":"なし"}}]}
+            """, out _, overwrite: true);
     }
 
     public override void OnUpdate()
@@ -487,6 +516,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
         TryRunStep4DebuffReminder();
         LogStep4DebuffReminderSkipOnce();
         UpdateFieldMarkers();
+        UpdateHint();
     }
 
     public override void OnReset()
@@ -2297,12 +2327,160 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     {
         DisableMyRoleMarkers();
         DisableAllRolePreviewMarkers();
+        DisableHint();
         if(Controller.TryGetElementByName(ElActiveTower0, out var tower0))
             tower0.Enabled = false;
         if(Controller.TryGetElementByName(ElActiveTower1, out var tower1))
             tower1.Enabled = false;
         if(Controller.TryGetElementByName(ElTowerCount, out var towerCount))
             towerCount.Enabled = false;
+    }
+
+    // Always build Gimmick/Task hint text for Attention Window; overlay uses Show Hint Element.
+    private void UpdateHint()
+    {
+        C.EnsureDefaults();
+
+        var waveLine = BuildWaveAndDebuffHintText();
+        string? actionLine = null;
+        if(!IsPatternPreviewActive())
+        {
+            var key = ResolveActionHintKey();
+            if(key != null)
+                actionLine = GetHintText(key);
+        }
+
+        var attentionText = CombineHintLines(waveLine, actionLine);
+        if(!string.IsNullOrEmpty(attentionText))
+            DisplayHintInAttentionWindow(attentionText);
+
+        if(!C.ShowHintElement || (!C.ShowGimmickHint && !C.ShowYourTaskHint))
+        {
+            DisableHint();
+            return;
+        }
+
+        var elementWave = C.ShowGimmickHint ? waveLine : null;
+        var elementAction = C.ShowYourTaskHint ? actionLine : null;
+        var elementText = CombineHintLines(elementWave, elementAction);
+        if(string.IsNullOrEmpty(elementText))
+        {
+            DisableHint();
+            return;
+        }
+
+        ApplyHintText(elementText);
+    }
+
+    // Join non-empty hint lines with newline.
+    private static string CombineHintLines(string? waveLine, string? actionLine)
+    {
+        if(!string.IsNullOrEmpty(waveLine) && !string.IsNullOrEmpty(actionLine))
+            return $"{waveLine}\n{actionLine}";
+        return waveLine ?? actionLine ?? "";
+    }
+
+    // Apply hint text to self and/or Kefka elements based on Hint Position config.
+    private void ApplyHintText(string text)
+    {
+        if(Controller.TryGetElementByName(ElHint, out var hintSelf))
+        {
+            if(C.HintOnYourHead)
+            {
+                hintSelf.overlayText = text;
+                hintSelf.Enabled = true;
+            }
+            else
+            {
+                hintSelf.Enabled = false;
+            }
+        }
+
+        if(Controller.TryGetElementByName(ElHintKefka, out var hintKefka))
+        {
+            if(C.HintOnKefka)
+            {
+                hintKefka.overlayText = text;
+                hintKefka.Enabled = true;
+            }
+            else
+            {
+                hintKefka.Enabled = false;
+            }
+        }
+    }
+
+    // Keep Attention Window open with current hint lines (Splatoon can disable per script).
+    private void DisplayHintInAttentionWindow(string text)
+    {
+        if(string.IsNullOrEmpty(text))
+            return;
+
+        foreach(var line in text.Split('\n'))
+        {
+            if(!string.IsNullOrEmpty(line))
+                Controller.DisplayAttentionWindowLine(line);
+        }
+    }
+
+    // Build Wave/Debuff hint line from Hints layout templates.
+    private string? BuildWaveAndDebuffHintText()
+    {
+        if(!_hasActiveTowers || _step is < ActiveStepMin or > ActiveStepMax)
+            return null;
+        if(BasePlayer == null)
+            return null;
+
+        var template = GetHintText(HintWaveAndDebuff);
+        if(string.IsNullOrEmpty(template))
+            return null;
+
+        var debuffKind = GetDebuffKind(BasePlayer);
+        var debuffText = GetHintText(debuffKind.ToString()) ?? debuffKind.ToString();
+        return string.Format(template, _step, debuffText);
+    }
+
+    // Resolve Action Hint key from interlude phase or live role label.
+    private string? ResolveActionHintKey()
+    {
+        if(TryGetInterludeNavPosition(out _, out _))
+        {
+            var isPast = _interludeNavPhase == InterludeNavPhase.PastGap;
+            if(_step == ActiveStepMax)
+                return isPast ? HintFinalAllThingsEndingWithPast : HintFinalAllThingsEndingWithFuture;
+            return isPast ? HintBaitAllThingsEndingWithPast : HintBaitAllThingsEndingWithFuture;
+        }
+
+        if(!_hasActiveTowers || _step is < ActiveStepMin or > ActiveStepMax)
+            return null;
+        if(!TryUpdateLiveRoles(out var roleLabel))
+            return null;
+
+        return MapRoleLabelToHintKey(roleLabel);
+    }
+
+    // Map live RoleLabel to Hints layout element name (identity for KT_Alt).
+    private static string? MapRoleLabelToHintKey(string roleLabel)
+        => roleLabel;
+
+    // Read localized overlayText from Hints layout by element name.
+    private string? GetHintText(string key)
+    {
+        var source = Controller.GetRegisteredLayouts().SafeSelect(LayoutHints)?.GetElement(key);
+        if(source == null)
+            return null;
+
+        var text = source.overlayTextIntl.Get(source.overlayText);
+        return string.IsNullOrEmpty(text) ? null : text;
+    }
+
+    // Turns the display Hint elements off.
+    private void DisableHint()
+    {
+        if(Controller.TryGetElementByName(ElHint, out var hint))
+            hint.Enabled = false;
+        if(Controller.TryGetElementByName(ElHintKefka, out var hintKefka))
+            hintKefka.Enabled = false;
     }
 
     // Reset runtime state on wipe or scene leave.
@@ -2797,6 +2975,19 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
             C.BaitAllThingsEndingRange = ClampBaitAllThingsEndingRange(range);
         ImGui.Checkbox("Show role overlay text on nav", ref C.ShowRoleOverlayText);
         ImGui.Checkbox("Show tower step overlay on Kefka", ref C.ShowTowerCountOverlay);
+        ImGui.Checkbox("Show Hint Element", ref C.ShowHintElement);
+        ImGui.Indent();
+        ImGui.BeginDisabled(!C.ShowHintElement);
+        ImGui.TextDisabled("Hint Position");
+        ImGui.Checkbox("On Your Head", ref C.HintOnYourHead);
+        ImGui.Checkbox("On Kefka", ref C.HintOnKefka);
+        ImGui.TextDisabled("Hint Contents");
+        ImGui.Checkbox("Gimmick Hint", ref C.ShowGimmickHint);
+        ImGui.Checkbox("Your Task Hint", ref C.ShowYourTaskHint);
+        ImGui.SameLine();
+        ImGuiEx.HelpMarker("e.g. Right-Tower Back, Left-Tower Bait Cone");
+        ImGui.EndDisabled();
+        ImGui.Unindent();
     }
 
     // Clamp and snap bait range to 0.5 steps within 5~15.

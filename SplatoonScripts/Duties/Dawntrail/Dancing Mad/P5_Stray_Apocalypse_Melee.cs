@@ -17,7 +17,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P5_Stray_Apocalypse_Melee : SplatoonScript<P5_Stray_Apocalypse_Melee.Config>
 {
-    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public enum ExaType { Left, Mid, Right }
@@ -51,11 +51,12 @@ public class P5_Stray_Apocalypse_Melee : SplatoonScript<P5_Stray_Apocalypse_Mele
             {"Name":"nw right + ne mid","refX":105.0,"refY":100.0,"radius":0.5,"color":3356884736,"fillIntensity":0.5,"thicc":4.0}
             {"Name":"nw right + ne right","refX":105.0,"refY":100.0,"radius":0.5,"color":3356884736,"fillIntensity":0.5,"thicc":4.0}
             {"Name":"nw mid","type":2,"Enabled":false,"refX":80.0,"refY":80.0,"offX":120.0,"offY":120.0,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
-            {"Name":"ne right","type":2,"Enabled":false,"refX":120.0,"refY":90.0,"offX":90.0,"offY":120.0,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
             {"Name":"nw left","type":2,"Enabled":false,"refX":80.0,"refY":90.0,"offX":110.0,"offY":120.0,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
-            {"Name":"ne left","type":2,"Enabled":false,"refX":110.0,"refY":80.0,"offX":80.0,"offY":110.0,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
             {"Name":"nw right","type":2,"Enabled":false,"refX":90.0,"refY":80.0,"offX":120.0,"offY":110.0,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
+            {"Name":"ne right","type":2,"Enabled":false,"refX":120.0,"refY":90.0,"offX":90.0,"offY":120.0,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
             {"Name":"ne left","type":2,"Enabled":false,"refX":110.0,"refY":80.0,"offX":80.0,"offY":110.0,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
+            {"Name":"ne mid","type":2,"Enabled":false,"refX":120.0,"refY":80.0,"refZ":3.8146973E-06,"offX":80.0,"offY":120.0,"offZ":3.8146973E-06,"radius":4.5,"Filled":false,"fillIntensity":0.345,"thicc":6.0}
+            
             
             """);
     }

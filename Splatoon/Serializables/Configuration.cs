@@ -113,6 +113,7 @@ internal class Configuration : IEzConfig
     public Vector4 AnimationColor1 = ImGuiEx.Vector4FromRGBA(0xFF000064);
     public Vector4 AnimationColor2 = ImGuiEx.Vector4FromRGBA(0x44000064);
     public float ProjectionFillIntensity = 0.2f;
+    public bool IsProjectionBlacklistWhitelist = false;
     public List<BlacklistedAction> ProjectionBlacklistedActions = [];
     public HashSet<uint> ProjectionBlacklistedDuties = [];
     public List<string> NoAutoUpdateScript = [];

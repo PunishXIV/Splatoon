@@ -105,7 +105,7 @@ internal class Projection : IDisposable
                             blacklisted = true;
                         }
                     }
-                    if (P.Config.ProjectionBlacklistedDuties.Contains(Player.Territory))
+                    if (P.Config.ProjectionBlacklistedDuties.Contains(Player.Territory) != P.Config.IsProjectionBlacklistWhitelist)
                     {
                         blacklisted = true;
                     }

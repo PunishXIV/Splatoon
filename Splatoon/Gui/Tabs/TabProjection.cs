@@ -117,18 +117,19 @@ public static unsafe class TabProjection
 
         ImGui.Separator();
 
-        ImGuiEx.Text("Blacklisted Duties:");
+        if(ImGui.RadioButton("List mode: Blacklist", !P.Config.IsProjectionBlacklistWhitelist)) P.Config.IsProjectionBlacklistWhitelist = false;
+        if(ImGui.RadioButton("List mode: Whitelist", P.Config.IsProjectionBlacklistWhitelist)) P.Config.IsProjectionBlacklistWhitelist = true;
         var terr = Player.Territory;
         if (terr != 0 && !P.Config.ProjectionBlacklistedDuties.Contains(terr))
         {
-            if (ImGui.Button($"Blacklist current duty ({ExcelTerritoryHelper.GetName(terr, true)})"))
+            if (ImGui.Button($"{(P.Config.IsProjectionBlacklistWhitelist?"White":"Black")}list current zone ({ExcelTerritoryHelper.GetName(terr, true)})"))
             {
                 P.Config.ProjectionBlacklistedDuties.Add(terr);
             }
         }
         else if (terr != 0)
         {
-            ImGuiEx.Text(EColor.YellowBright, "Current duty is blacklisted.");
+            ImGuiEx.Text(EColor.YellowBright, $"Current zone is {(P.Config.IsProjectionBlacklistWhitelist ? "white" : "black")}listed.");
         }
 
         ImGui.SetNextItemWidth(250f);
@@ -153,7 +154,7 @@ public static unsafe class TabProjection
             ImGui.EndCombo();
         }
         ImGui.SameLine();
-        if (ImGui.Button("Blacklist selected"))
+        if (ImGui.Button($"{(P.Config.IsProjectionBlacklistWhitelist ? "White" : "Black")}list selected"))
         {
             if (NewBlacklistedDuty != 0 && !P.Config.ProjectionBlacklistedDuties.Contains(NewBlacklistedDuty))
             {
@@ -162,7 +163,7 @@ public static unsafe class TabProjection
             }
         }
 
-        if (ImGuiEx.BeginDefaultTable("BlacDuty", ["~Duty", "##control"]))
+        if (ImGuiEx.BeginDefaultTable("BlacDuty", ["~zone", "##control"]))
         {
             foreach (var x in P.Config.ProjectionBlacklistedDuties)
             {

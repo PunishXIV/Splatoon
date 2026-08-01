@@ -17,7 +17,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P5_Stray_Apocalypse_Melee : SplatoonScript<P5_Stray_Apocalypse_Melee.Config>
 {
-    public override Metadata Metadata { get; } = new(1, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(2, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     public enum ExaType { Left, Mid, Right }

@@ -1,8 +1,10 @@
 # Thank you for considering contributing to this project!
 ## Before you proceed with pull request, please consider the following:
 
-### No AI, except for loadable scripts and modules
-Please do not contribute code that was AI-generated or written with heavy AI-assistance. Exception: if a plugin allows for loadable scripts or modules, feel free to use AI for these scripts or modules without any restrictions. Output should be still human readable, though. 
+### 100% No AI polity, except for loadable scripts and modules
+I employ strict 100% no-AI policy, which means any contributed code should be free from AI-generated code and AI-generated documentations entirely. Moreover, please do not contribute features that were designed or suggested by AI even if they have been coded manually. 
+
+**Exception**: if a plugin has loadable scripts and modules that are not being part of the plugin by default and must be installed by user separately, you can use AI as much as you want for them - aforementioned rules do not apply to them. 
 
 ### Keep additions contained
 If you would add new functions, please create own classes for them and keep them contained. The plugin should not become dependent on added functions; the plugin's ability to work should not be harmed if added functions become unavailable and have to be disabled.

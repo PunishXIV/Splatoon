@@ -14,11 +14,15 @@ using System.Linq;
 
 using ECommons.DalamudServices.Legacy;
 using Dalamud.Bindings.ImGui;
+using System.Numerics;
+using ECommons.GameFunctions;
+using ECommons.DalamudServices;
+using ECommons.GameFunctions.VirtualTableClassifier;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P4_Dives : SplatoonScript<P4_Dives.Config>
 {
-    public override Metadata Metadata { get; } = new(3, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
 
     int DiveCnt;
@@ -30,11 +34,13 @@ public sealed class P4_Dives : SplatoonScript<P4_Dives.Config>
         Controller.RegisterElementFromCode("Hint", """{"Name":"","radius":1.0,"color":3359309568,"Filled":false,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");
     }
 
+    bool GotHit = false;
     public override void OnReset()
     {
         DiveCnt = 0;
         IsCWBait = null;
         DiveTargets.Clear();
+        GotHit = false;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
     }
 
@@ -101,19 +107,30 @@ public sealed class P4_Dives : SplatoonScript<P4_Dives.Config>
         return angleDegrees;
     }
 
+    public override void OnUpdate()
+    {
+        if(!Svc.Objects.OfTypeIBattleNpc().Any(x => x.DataId == 12610 && x.IsTargetable)) Controller.Hide();
+    }
+
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
         if(set.Source is not IPlayerCharacter && set.Action != null)
         {
             //PluginLog.Information($"Action: {ExcelActionHelper.GetActionName(set.Action.Value.RowId, true)} target: {set.TargetEffects.Select(x => ((uint)x.TargetID).GetObject()).Print()}");
-
+            if(set.Action?.RowId == 26815 && set.TargetEffects.Any(x => x.TargetID == BasePlayer.ObjectId))
+            {
+                Controller.GetElementByName("Hint").SetRefPosition((StaticPositions[(int)C.Initial - 1].ToVector3()));
+                Controller.GetElementByName("Hint").Enabled = true;
+            }
             if(set.Action?.RowId == 26820)
             {
                 DiveCnt++;
                 this.DiveTargets.Add(set.TargetEffects.Select(x => (uint)x.TargetID).ToArray());
-                if(DiveTargets.Count == 2)
+                
+                if(DiveTargets.Contains(BasePlayer.EntityId))
                 {
-                    if(DiveTargets.Contains(BasePlayer.EntityId))
+                    GotHit = true;
+                    if(DiveTargets.Count == 2)
                     {
                         var players = Controller.GetPartyMembers().Where(x => x.StatusList.Any(s => s.StatusId == 2775)).ToList();
                         var orderedPlayers = SortClockwise(players).Where(x => x.EntityId.EqualsAny(DiveTargets));
@@ -131,11 +148,30 @@ public sealed class P4_Dives : SplatoonScript<P4_Dives.Config>
                     PluginLog.Information($"Ordered players: {orderedPlayers.Print()}");
                     Controller.GetElementByName("Hint").SetRefPosition(orderedPlayers[IsCWBait.Value ? 0 : 1].Position);
                     Controller.GetElementByName("Hint").Enabled = true;
-                    Controller.Schedule(() => Controller.GetElementByName("Hint").Enabled = false, 5000);
+                }
+                else if(DiveTargets.Count >= 8)
+                {
+                    Controller.GetElementByName("Hint").Enabled = false;
+                }
+                else if(GotHit)
+                {
+                    Controller.GetElementByName("Hint").SetRefPosition(EyeCenter.ToVector3());
+                    Controller.GetElementByName("Hint").Enabled = true;
+                }
+                else if(C.Initial != IntercardinalPosition.Disabled)
+                {
+                    Controller.GetElementByName("Hint").SetRefPosition((StaticPositions[(int)C.Initial - 1].ToVector3()));
+                    Controller.GetElementByName("Hint").Enabled = true;
                 }
             }
         }
     }
+
+    /// <summary>
+    /// nw, ne, se, sw
+    /// </summary>
+    List<Vector2> StaticPositions = [new(85, 95), new(95, 95), new(95, 105), new(85, 105)];
+    Vector2 EyeCenter = new(90, 100);
 
     public override void OnSettingsDraw()
     {
@@ -154,14 +190,20 @@ public sealed class P4_Dives : SplatoonScript<P4_Dives.Config>
             C.AlwaysCcw = true;
             C.AlwaysCw = false;
         }
+        ImGui.SetNextItemWidth(200f);
+        ImGuiEx.EnumCombo("Initial position highlight", ref C.Initial);
         var players = Controller.GetPartyMembers().Where(x => x.StatusList.Any(s => s.StatusId == 2775)).ToList();
         var orderedPlayers = SortClockwise(players);
         ImGuiEx.Text($"{orderedPlayers.Print("\n")}");
     }
 
+    public enum IntercardinalPosition { Disabled, NorthWest, NorthEast,  SouthEast, SouthWest, }
+
     public class Config
     {
         public bool AlwaysCw = false;
         public bool AlwaysCcw = false;
+        public IntercardinalPosition Initial = IntercardinalPosition.Disabled;
+        
     }
 }

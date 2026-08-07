@@ -25,24 +25,15 @@ using System.Linq;
 using System.Numerics;
 
 using ECommons.DalamudServices.Legacy;
+using ECommons.GameFunctions.VirtualTableClassifier;
+using FFXIVClientStructs.FFXIV.Client.Game;
+using ECommons.Automation;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.Dragonsong_s_Reprise;
 public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
 {
-    public override Metadata Metadata { get; } = new(4, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(5, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [Raids.Dragonsongs_Reprise_Ultimate];
-
-    IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback] && C.BPO != "" && Players.TryGetFirst(x => x.GetNameWithWorld() == C.BPO, out var p))
-            {
-                return p;
-            }
-            return Player.Object;
-        }
-    }
 
     IEnumerable<IPlayerCharacter> Players => Controller.GetPartyMembers();
 
@@ -131,7 +122,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         Tower3Baited,   //end
     }
 
-    public override void OnUpdate()
+    public unsafe override void OnUpdate()
     {
         if(EzThrottler.Check("DontCloseWindowDFG")) Window.IsOpen = false;
         Controller.GetRegisteredElements().Each(x => x.Value.Enabled = false);
@@ -140,6 +131,28 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
             MyPosition = default;
             Stage = MechanicStage.Initial;
             return;
+        }
+
+        if(C.UseSprint && ExcelActionHelper.GetActionCooldown(3) == 0)
+        {
+            if(BasePlayer.HasStatus(Pos1) || (BasePlayer.HasStatus(Pos3) && !Svc.Objects.OfType<IPlayerCharacter>().Any(x => x.HasStatus(Pos1))))
+            {
+                if(Svc.Objects.OfTypeIBattleNpc().Any(x => x.IsCasting(26386, 26387) && x.CurrentCastTime >= 3.5f))
+                {
+                    if(EzThrottler.Throttle("UseSprint", 100))
+                    {
+                        if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback])
+                        {
+                            DuoLog.Information("Would use sprint");
+                        }
+                        else
+                        {
+                            if(ActionManager.Instance()->QueuedActionId != 3) ActionManager.Instance()->QueuedActionId = 0;
+                            Chat.ExecuteAction(3);
+                        }
+                    }
+                }
+            }
         }
 
         if(Players.Any(x => HaveStatus(x, [Pos1, Pos2, Pos3])))
@@ -581,7 +594,7 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
         }
     }
 
-    public override void OnSettingsDraw()
+    public unsafe override void OnSettingsDraw()
     {
         ImGuiEx.RadioButtonBool("Easthogg (beta)", "Westhogg", ref C.Invert);
         ImGui.DragFloat2("Window offset", ref C.Offset);
@@ -593,24 +606,17 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
                 EzThrottler.Throttle("DontCloseWindowDFG", 500, true);
             }
         }
+        ImGui.Checkbox("Use sprint during gnash/lash automatically", ref C.UseSprint);
         if(ImGui.CollapsingHeader("Debug"))
         {
+            if(ImGui.Button("Try use sprint"))
+            {
+                if(ActionManager.Instance()->QueuedActionId != 3) ActionManager.Instance()->QueuedActionId = 0;
+                Chat.ExecuteAction(3);
+            }
             ImGuiEx.Text($"StatusRem: {GetRemainingDuration()}");
             ImGuiEx.Text($"Stage: {Stage}");
             ImGuiEx.Text($"MyPositoon: {MyPosition}");
-            ImGui.InputText("BPO", ref C.BPO);
-            if(ImGui.BeginCombo("##sel", "Select base player"))
-            {
-                foreach(var x in Players)
-                {
-                    if(ImGuiEx.Selectable($"{x.GetNameWithWorld()}"))
-                    {
-                        C.BPO = x.GetNameWithWorld();
-                        MyPosition = default;
-                    }
-                }
-                ImGui.EndCombo();
-            }
             if(ImGui.Button("Reset position"))
             {
                 MyPosition = default;
@@ -625,11 +631,11 @@ public sealed class P3_Dive_from_Grace_Neo : SplatoonScript
     float GetRemainingDuration() => Svc.Objects.OfType<IPlayerCharacter>().Select(x => x.StatusList.FirstOrDefault(s => s.StatusId.EqualsAny(SpotBackwards, SpotForward, SpotOnPlayer))?.RemainingTime ?? 0).Max();
 
     Config C => Controller.GetConfig<Config>();
-    public class Config : IEzConfig
+    public class Config
     {
-        public string BPO = "";
         public Vector2 Offset = Vector2.Zero;
         public bool Invert = false;
+        public bool UseSprint = false;
     }
 
     class AssignmentWindow : Window, IDisposable

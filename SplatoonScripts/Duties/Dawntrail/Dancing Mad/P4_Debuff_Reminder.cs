@@ -32,7 +32,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
 {
-    public override Metadata Metadata { get; } = new(13, "NightmareXIV, mirage");
+    public override Metadata Metadata { get; } = new(14, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -626,6 +626,68 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         ImGui.SameLine();
         ImGuiEx.Text("Short spread");
 
+        ImGui.SetNextItemWidth(200f);
+        C.FireIsAOE.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Fire is AOE (real)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.FireIsDonut.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Fire is Donut (fake)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.WaterIsAOE.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Water is AOE (fake)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.WaterIsDonut.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Water is Donut (real)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_AccelerationBomb.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Acceleration bomb, normal");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_AccelerationBombInv.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Acceleration bomb, inverted");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_LongGaze.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Long gaze (away)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_LongGazeInv.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Long gaze (at)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_ShortGaze.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Short gaze (away)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_ShortGazeInv.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Short gaze (at)");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_LongSpread.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Long spread");
+
+        ImGui.SetNextItemWidth(200f);
+        C.Other_ShortSpread.ImGuiEditNoDefault();
+        ImGui.SameLine();
+        ImGuiEx.Text("Other: Short spread");
+
+        ImGuiEx.TextWrapped(ImGuiColors.DalamudGrey, "'Other' messages are for callouts only; $ is replaced with the player name.");
+
 
         if(ImGui.CollapsingHeader("Debug"))
         {
@@ -697,20 +759,20 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
         public InternationalString ShortGazeInv = new(en: "SHORT GAZE on YOU (Look At)", jp: "早　視線　みる");
         public InternationalString LongSpread = new(en:"LONG SPREAD on YOU", jp: "遅　散開");
         public InternationalString ShortSpread = new(en: "SHORT SPREAD on YOU", jp: "早　散開");
-        public InternationalString FireIsAOE = new(en: "- Fire is AOE (real)");
-        public InternationalString FireIsDonut = new(en: "- Fire is Donut (fake)");
-        public InternationalString WaterIsAOE = new(en: "- Water is AOE (fake)");
-        public InternationalString WaterIsDonut = new(en: "- Water is Donut (real)");
+        public InternationalString FireIsAOE = new(en: "- Fire is AOE (real)", jp: "- 真　ほのお　AOE");
+        public InternationalString FireIsDonut = new(en: "- Fire is Donut (fake)", jp: "- 嘘　ほのお　ドーナツ");
+        public InternationalString WaterIsAOE = new(en: "- Water is AOE (fake)", jp: "- 嘘　つなみ　AOE");
+        public InternationalString WaterIsDonut = new(en: "- Water is Donut (real)", jp: "- 真　つなみ　ドーナツ");
 
 
-        public InternationalString Other_AccelerationBomb = new(en: "> Acceleration bomb on $ (DON'T MOVE)");
-        public InternationalString Other_AccelerationBombInv = new(en: "> Inverted acceleration bomb on $ (MOVE)");
-        public InternationalString Other_LongGaze = new(en: "> LONG GAZE on $ (Look Away)");
-        public InternationalString Other_LongGazeInv = new(en: "> LONG GAZE on $ (Look At)");
-        public InternationalString Other_ShortGaze = new(en: "> SHORT GAZE on $ (Look Away)");
-        public InternationalString Other_ShortGazeInv = new(en: "> SHORT GAZE on $ (Look At)");
-        public InternationalString Other_LongSpread = new(en: "> LONG SPREAD on $");
-        public InternationalString Other_ShortSpread = new(en: "> SHORT SPREAD on $");
+        public InternationalString Other_AccelerationBomb = new(en: "> Acceleration bomb on $ (DON'T MOVE)", jp: "> 加速度　とまる　対象： $");
+        public InternationalString Other_AccelerationBombInv = new(en: "> Inverted acceleration bomb on $ (MOVE)", jp: "> 加速度　うごく　対象： $");
+        public InternationalString Other_LongGaze = new(en: "> LONG GAZE on $ (Look Away)", jp: "> 遅　視線　みない　対象： $");
+        public InternationalString Other_LongGazeInv = new(en: "> LONG GAZE on $ (Look At)", jp: "> 遅　視線　みる　対象： $");
+        public InternationalString Other_ShortGaze = new(en: "> SHORT GAZE on $ (Look Away)", jp: "> 早　視線　みない　対象： $");
+        public InternationalString Other_ShortGazeInv = new(en: "> SHORT GAZE on $ (Look At)", jp: "> 早　視線　みる　対象： $");
+        public InternationalString Other_LongSpread = new(en: "> LONG SPREAD on $", jp: "> 遅　散開　対象: $");
+        public InternationalString Other_ShortSpread = new(en: "> SHORT SPREAD on $", jp: "> 早　散開　対象: $");
 
         public bool ShowOthers = false;
     }

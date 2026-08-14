@@ -39,7 +39,7 @@ public class P5_Wrath_of_the_Heavens : SplatoonScript
     private Element? _vellguineTargetElement;
     public override HashSet<uint>? ValidTerritories => [968];
 
-    public override Metadata? Metadata => new(6, "Enthusiastus, Garume, damolitionn");
+    public override Metadata? Metadata => new(6, "Enthusiastus, Garume, damolitionn, NightmareXIV");
 
     private IBattleNpc? Ignasse =>
         Svc.Objects.FirstOrDefault(x => x is IBattleNpc b && b.DataId == IgnasseDataId) as IBattleNpc;

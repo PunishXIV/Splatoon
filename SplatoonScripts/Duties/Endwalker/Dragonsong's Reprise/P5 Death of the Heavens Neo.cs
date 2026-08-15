@@ -58,7 +58,7 @@ public unsafe class P5_Death_of_the_Heavens_Neo : SplatoonScript
     public override HashSet<uint>? ValidTerritories => [968];
     private Config C => Controller.GetConfig<Config>();
 
-    public override Metadata? Metadata => new(6, "NightmareXIV, ChaosK");
+    public override Metadata? Metadata => new(7, "NightmareXIV, ChaosK");
 
     private IBattleChara? Thordan => Svc.Objects.OfType<IBattleChara>()
         .FirstOrDefault(x => x.NameId == 0xE30 && x.IsCharacterVisible());
@@ -255,7 +255,7 @@ public unsafe class P5_Death_of_the_Heavens_Neo : SplatoonScript
     {
         if (_currentState != State.SecondSplit)
             return;
-        if (target != Player.Object.EntityId)
+        if (target != BasePlayer.EntityId)
             return;
         if (!vfxPath.StartsWith("vfx/lockon/eff/r1fz_firechain"))
             return;
@@ -424,20 +424,20 @@ public unsafe class P5_Death_of_the_Heavens_Neo : SplatoonScript
                 if (C.LockFace)
                 {
                     ApplyLockFace();
-                    _lastPlayerPosition = Player.Position;
+                    _lastPlayerPosition = BasePlayer.Position;
                 }
                 break;
             }
 
             case State.PostPlaystationSplit:
             {
-                if (Player.Status.All(x => x.StatusId != 2976))
+                if (BasePlayer.StatusList.All(x => x.StatusId != 2976))
                 {
                     _currentState = State.End;
                     return;
                 }
 
-                var deathSentence = DeathSentence.MinBy(x => Vector3.Distance(x.Position, Player.Position));
+                var deathSentence = DeathSentence.MinBy(x => Vector3.Distance(x.Position, BasePlayer.Position));
                 if (deathSentence != null)
                     if (Controller.TryGetElementByName("DeathSentence", out var bait))
                     {
@@ -484,7 +484,7 @@ public unsafe class P5_Death_of_the_Heavens_Neo : SplatoonScript
 
     private void ApplyLockFace()
     {
-        if (Player.Position != _lastPlayerPosition && C.LockFaceEnableWhenNotMoving) return;
+        if (BasePlayer.Position != _lastPlayerPosition && C.LockFaceEnableWhenNotMoving) return;
         var targetPosition = Vector3.Zero;
 
         var thordan = Thordan;
@@ -573,7 +573,7 @@ public unsafe class P5_Death_of_the_Heavens_Neo : SplatoonScript
                     // Detect north from Guenevere's position
                     _relNorth = DetectRelNorth();
 
-                    var player  = Player.Object;
+                    var player  = BasePlayer;
                     var hasDoom = HasDoom(player);
 
                     // Split party into doom / non-doom

@@ -232,7 +232,7 @@ internal class Boss_4_Elementaly_Evocation : SplatoonScript
         HideNavi();
     }
 
-    // Restart from a new 6-ball spawn; keep 元素制御 active.
+    // Restart from a new 6-ball spawn; keep active.
     private void StartBallWave(List<nint> ptrs)
     {
         if(_ballSnap.Count > 0 || _step > 0 || _releaseCycleDone)
@@ -243,7 +243,7 @@ internal class Boss_4_Elementaly_Evocation : SplatoonScript
         _ballsReady = true;
     }
 
-    // Clear one ball-wave navi; keep 元素制御 active.
+    // Clear one ball-wave navi; keep active.
     private void ResetBallWave()
     {
         _ballsReady = false;

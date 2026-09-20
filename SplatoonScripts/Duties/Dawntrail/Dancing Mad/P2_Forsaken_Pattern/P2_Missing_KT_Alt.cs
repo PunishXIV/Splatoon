@@ -15,6 +15,7 @@ using ECommons.Hooks;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using Lumina.Excel.Sheets;
 using Splatoon;
 using Splatoon.Memory;
 using Splatoon.SplatoonScripting;
@@ -28,7 +29,7 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
 {
     #region Metadata
 
-    public override Metadata Metadata { get; } = new(8, "mirage");
+    public override Metadata Metadata { get; } = new(9, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryDmad];
 
     #endregion
@@ -78,9 +79,8 @@ internal class P2_Misisng_KT_Alt : SplatoonScript
     private const int MarkerEchoTextMaxLength = 64;
     // UI font scale for priority notice banner (unrelated to RegisterElementFromCode JSON).
 
-    private static readonly string[] MarkerResolveKindLabels = ["None", "Attack", "Stop", "Bind"];
-    private static readonly string[] Wave8MarkerSlotLabels =
-        ["None", "Attack1", "Attack2", "Bind1", "Bind2", "Stop1", "Stop2"];
+    private static readonly string[] MarkerResolveKindLabels = ["None", TextCommandParam.Get(80).Param.GetText(), TextCommandParam.Get(100).Param.GetText(), TextCommandParam.Get(92).Param.GetText()];
+    private static readonly string[] Wave8MarkerSlotLabels = ["None", TextCommandParam.Get(82).Param.GetText(), TextCommandParam.Get(84).Param.GetText(), TextCommandParam.Get(94).Param.GetText(), TextCommandParam.Get(96).Param.GetText(), TextCommandParam.Get(102).Param.GetText(), TextCommandParam.Get(104).Param.GetText()];
 
     private const uint MarkerIndexAttack1 = 0;
     private const uint MarkerIndexAttack2 = 1;

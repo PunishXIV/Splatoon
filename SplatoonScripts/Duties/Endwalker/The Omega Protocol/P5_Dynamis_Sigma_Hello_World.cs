@@ -20,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
 {
     #region Metadata
-    public override Metadata Metadata { get; } = new(2, "mirage");
+    public override Metadata Metadata { get; } = new(3, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryTop];
     #endregion
 
@@ -125,10 +125,10 @@ public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
         public Group SpreadGroupBaitNear1 = Group.South;
         public Group SpreadGroupBaitNear2 = Group.South;
 
-        public float DegSpreadBaitArm1 = 317.5f;
-        public float DegSpreadBaitArm1Ccw = 317.5f;
-        public float DegSpreadBaitArm2 = 42.5f;
-        public float DegSpreadBaitArm2Ccw = 42.5f;
+        public float DegSpreadBaitArm1 = 322.5f;
+        public float DegSpreadBaitArm1Ccw = 320.0f;
+        public float DegSpreadBaitArm2 = 40.0f;
+        public float DegSpreadBaitArm2Ccw = 37.5f;
         public float RadiusBaitArm1 = DefaultOtherSpreadRadius;
         public float RadiusBaitArm2 = DefaultOtherSpreadRadius;
         public float DegSpreadBaitFar1 = 90f;
@@ -401,8 +401,7 @@ public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
         ImGui.TextDisabled("Cw: Clockwise, Ccw: Counter-Clockwise. Angle is relative to Omega-F, which is true north.");
         ImGui.NewLine();
 
-        DrawImportButtons();
-        ImGui.TextWrapped("If other configurations are needed, please adjust the settings manually.");
+        DrawResetToDefaultButton();
         ImGui.NewLine();
 
         if(ImGui.CollapsingHeader("Debug"))
@@ -412,12 +411,11 @@ public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
     #endregion
 
     #region Private Method
-    // Settings button that fills config from a fixed JP-style strat preset.
-    private void DrawImportButtons()
+    // Settings to default.
+    private void DrawResetToDefaultButton()
     {
-        if(ImGui.Button("Import Japanese Strat"))
-            ApplyJapaneseStrat(C);
-        ImGuiEx.HelpMarker("Macro: https://jp.finalfantasyxiv.com/lodestone/character/34120564/blog/5178791/\nRaidPlan: https://raidplan.io/plan/u98293e225836jcy");
+        if(ImGui.Button("Reset to Default"))
+            ApplyDefaultConfig(C);
     }
 
     // Debug table: state, rotation, and per-player marker / role.
@@ -539,8 +537,8 @@ public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
     private static float ClampSpreadRadius(float radius)
         => Math.Max(SpreadRadiusMin, radius);
 
-    // Applies default JP strat markers, angles, and shared spread groups to config.
-    private static void ApplyJapaneseStrat(Config c)
+    // Applies default markers, angles, and shared spread groups to config.
+    private static void ApplyDefaultConfig(Config c)
     {
         SetMarkers(c, MarkerType.Attack1, MarkerType.Attack2, MarkerType.Attack3, MarkerType.Attack4);
         SetSpread(ref c.DegSpreadHelloNear, ref c.DegSpreadHelloNearCcw, 180f, 180f);
@@ -573,7 +571,7 @@ public class P5_Dynamis_Sigma_Hello_World : SplatoonScript
         ccw = ccwValue;
     }
 
-    // Default north/south group picks for each bait spread slot (JP preset).
+    // Default north/south group picks for each bait spread slot.
     private static void ApplySharedSpreadGroups(Config c)
     {
         c.SpreadGroupHelloNear = Group.South;

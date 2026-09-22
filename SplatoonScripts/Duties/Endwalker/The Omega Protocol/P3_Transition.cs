@@ -6,7 +6,6 @@ using ECommons;
 using ECommons.Configuration;
 using ECommons.GameFunctions;
 using ECommons.DalamudServices;
-using ECommons.GameHelpers;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.Logging;
 using Splatoon;
@@ -15,7 +14,6 @@ using Splatoon.SplatoonScripting.Priority;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using static Splatoon.Splatoon;
 
 namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
@@ -23,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public class P3_Transition : SplatoonScript
 {
     #region Metadata
-    public override Metadata? Metadata => new(2, "mirage");
+    public override Metadata? Metadata => new(3, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryTop];
     #endregion
 
@@ -89,6 +87,11 @@ public class P3_Transition : SplatoonScript
     private bool _markerDeterminationEnded;
     private int _lastMarkerObjectCount;
 
+    private readonly Dictionary<uint, GroupAssignment> _assignmentByEntityId = [];
+    private readonly Dictionary<uint, string> _assignmentPlayerNameByEntityId = [];
+
+    private bool IsAssignmentSnapshotCaptured => _assignmentByEntityId.Count == MinPartySize;
+
     #endregion
 
     // True when scene id is P3 transition (3 or 4).
@@ -129,6 +132,11 @@ public class P3_Transition : SplatoonScript
             return;
         }
 
+        if(_waveStage != WaveStageIdle && !IsAssignmentSnapshotCaptured)
+        {
+            TryCaptureAssignmentSnapshot();
+        }
+
         UpdateDebugMyGroup();
         UpdateTransitionPatternMarkers();
         ApplyGuideVisibility();
@@ -139,6 +147,7 @@ public class P3_Transition : SplatoonScript
         _waveStage = WaveStageIdle;
         _debugMyGroup = null;
         ResetTransitionPatternState();
+        ResetAssignmentSnapshot();
         DisableAllWaveOverlayElements();
     }
 
@@ -174,6 +183,7 @@ public class P3_Transition : SplatoonScript
         DisableAllWaveOverlayElements();
         _waveStage = WaveStageIdle;
         ResetTransitionPatternState();
+        ResetAssignmentSnapshot();
     }
 
     // Starts counting waves when the transition opener cast begins.
@@ -184,6 +194,7 @@ public class P3_Transition : SplatoonScript
 
         _waveStage = 0;
         ResetTransitionPatternState();
+        ResetAssignmentSnapshot();
     }
 
     public override void OnSettingsDraw()
@@ -205,8 +216,21 @@ public class P3_Transition : SplatoonScript
             ImGui.Text($"Phase: {GetTransitionPhaseState()}");
             ImGui.Text($"BasePlayer: {BasePlayer?.Name.ToString() ?? "Unknown"}");
             ImGui.Text($"My Group: {_debugMyGroup?.ToString() ?? "Unknown"}");
+            ImGui.Text($"Assignment snapshot: {(IsAssignmentSnapshotCaptured ? "captured" : "pending")} ({_assignmentByEntityId.Count}/{MinPartySize})");
+            ImGui.Text($"Party members: {_debugPartyCountObjects}");
             ImGui.Text($"Type: {_transitionPatternType}");
             ImGui.Text($"Controller.Scene (3 or 4): {Controller.Scene}");
+            if(IsAssignmentSnapshotCaptured)
+            {
+                foreach(var group in Enum.GetValues<GroupAssignment>())
+                {
+                    var names = _assignmentByEntityId
+                        .Where(x => x.Value == group)
+                        .Select(x => _assignmentPlayerNameByEntityId.GetValueOrDefault(x.Key, x.Key.ToString()))
+                        .ToList();
+                    ImGui.Text($"{group}: {string.Join(", ", names)}");
+                }
+            }
         }
     }
 
@@ -307,50 +331,70 @@ public class P3_Transition : SplatoonScript
         _lastMarkerObjectCount = 0;
     }
 
-    // Nearest living PCs to local player for role resolution (up to 8).
+    // Clears frozen sniper group assignments for the next transition.
+    private void ResetAssignmentSnapshot()
+    {
+        _assignmentByEntityId.Clear();
+        _assignmentPlayerNameByEntityId.Clear();
+    }
+
+    // Party members including dead players (FakeParty / duty recorder).
     private List<IPlayerCharacter> GetPartyMembers()
     {
-        var partyMembersSortedByDistance = Svc.Objects
-            .OfType<IPlayerCharacter>()
-            .Where(x => !x.IsDead && x.CurrentHp > 0)
-            .OrderBy(x => Vector3.Distance(x.Position, Player.Object?.Position ?? x.Position))
-            .Take(MinPartySize)
-            .ToList();
-        _debugPartyCountObjects = partyMembersSortedByDistance.Count;
-        return partyMembersSortedByDistance;
+        var partyMembers = Controller.GetPartyMembers().ToList();
+        _debugPartyCountObjects = partyMembers.Count;
+        return partyMembers;
     }
 
-    // Resolves which stack/spread slot the configured player occupies from debuffs.
-    private bool TryResolveCurrentAssignment(out GroupAssignment? assignment)
+    // Captures stack/spread slots once debuff layout is complete (2 cannon / 4 wave / 2 none).
+    private void TryCaptureAssignmentSnapshot()
     {
-        assignment = null;
+        if(IsAssignmentSnapshotCaptured) return;
+
         var partyMembers = GetPartyMembers();
-        if(partyMembers.Count < MinPartySize) return false;
+        if(partyMembers.Count < MinPartySize) return;
 
-        var targetPlayer = GetProcessingPlayer();
-        if(targetPlayer == null) return false;
-
-        assignment = ResolveGroupAssignment(targetPlayer.EntityId, partyMembers);
-        return true;
-    }
-
-    // Maps local player entity id to group using sniper debuff ordering rules.
-    private GroupAssignment? ResolveGroupAssignment(uint localPlayerEntityId, IReadOnlyList<IPlayerCharacter> partyMembers)
-    {
         var sniperCannonOrdered = OrderByPriority(partyMembers.Where(x => HasStatus(x, StatusSniperCannon))).ToList();
         var sniperWaveOrdered = OrderByPriority(partyMembers.Where(x => HasStatus(x, StatusSniperWave))).ToList();
         var neitherDebuffOrdered = OrderByPriority(partyMembers.Where(x => !HasStatus(x, StatusSniperCannon) && !HasStatus(x, StatusSniperWave))).ToList();
 
-        if(sniperCannonOrdered.Count >= 1 && sniperCannonOrdered[0].EntityId == localPlayerEntityId) return GroupAssignment.Stack1;
-        if(sniperCannonOrdered.Count >= 2 && sniperCannonOrdered[1].EntityId == localPlayerEntityId) return GroupAssignment.Stack2;
-        if(neitherDebuffOrdered.Count >= 1 && neitherDebuffOrdered[0].EntityId == localPlayerEntityId) return GroupAssignment.Stack1;
-        if(neitherDebuffOrdered.Count >= 2 && neitherDebuffOrdered[1].EntityId == localPlayerEntityId) return GroupAssignment.Stack2;
-        if(sniperWaveOrdered.Count >= 1 && sniperWaveOrdered[0].EntityId == localPlayerEntityId) return GroupAssignment.Spread1;
-        if(sniperWaveOrdered.Count >= 2 && sniperWaveOrdered[1].EntityId == localPlayerEntityId) return GroupAssignment.Spread2;
-        if(sniperWaveOrdered.Count >= 3 && sniperWaveOrdered[2].EntityId == localPlayerEntityId) return GroupAssignment.Spread3;
-        if(sniperWaveOrdered.Count >= 4 && sniperWaveOrdered[3].EntityId == localPlayerEntityId) return GroupAssignment.Spread4;
+        if(sniperCannonOrdered.Count != 2) return;
+        if(sniperWaveOrdered.Count != 4) return;
+        if(neitherDebuffOrdered.Count != 2) return;
 
-        return null;
+        ResetAssignmentSnapshot();
+        AddAssignmentSnapshotEntry(sniperCannonOrdered[0], GroupAssignment.Stack1);
+        AddAssignmentSnapshotEntry(sniperCannonOrdered[1], GroupAssignment.Stack2);
+        AddAssignmentSnapshotEntry(neitherDebuffOrdered[0], GroupAssignment.Stack1);
+        AddAssignmentSnapshotEntry(neitherDebuffOrdered[1], GroupAssignment.Stack2);
+        AddAssignmentSnapshotEntry(sniperWaveOrdered[0], GroupAssignment.Spread1);
+        AddAssignmentSnapshotEntry(sniperWaveOrdered[1], GroupAssignment.Spread2);
+        AddAssignmentSnapshotEntry(sniperWaveOrdered[2], GroupAssignment.Spread3);
+        AddAssignmentSnapshotEntry(sniperWaveOrdered[3], GroupAssignment.Spread4);
+
+        PluginLog.Information($"[P3 Transition] Assignment snapshot captured for {_assignmentByEntityId.Count} players");
+    }
+
+    // Stores one player's frozen group assignment and display name.
+    private void AddAssignmentSnapshotEntry(IPlayerCharacter player, GroupAssignment assignment)
+    {
+        _assignmentByEntityId[player.EntityId] = assignment;
+        _assignmentPlayerNameByEntityId[player.EntityId] = player.Name.ToString();
+    }
+
+    // Resolves which stack/spread slot the configured player occupies from frozen snapshot.
+    private bool TryResolveCurrentAssignment(out GroupAssignment? assignment)
+    {
+        assignment = null;
+        if(!IsAssignmentSnapshotCaptured) return false;
+
+        var targetPlayer = GetProcessingPlayer();
+        if(targetPlayer == null) return false;
+
+        if(!_assignmentByEntityId.TryGetValue(targetPlayer.EntityId, out var frozenAssignment)) return false;
+
+        assignment = frozenAssignment;
+        return true;
     }
 
     // Refreshes debug-only cached group for the operating player.

@@ -36,7 +36,7 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
     private PlayerData[] _playerOrderForBalls = [];
     private List<(BallKind Kind, Direction Dir, int Wave)> _spawnedBalls = [];
     private int _waveState;
-    public override Metadata Metadata => new(4, "Garume, Enthusiastus");
+    public override Metadata Metadata => new(5, "Garume, Enthusiastus");
     public override HashSet<uint>? ValidTerritories => [1327];
 
     public Config C => Controller.GetConfig<Config>();
@@ -266,7 +266,7 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
             var gameObject = Svc.Objects.FirstOrDefault(o => o.Address == newObjectPtr);
             var id = gameObject?.DataId ?? 0;
             if (id is not (BallPurpleId or BallGreenId)) return;
-            _spawnedBalls.Add((id == BallPurpleId ? BallKind.Purple : BallKind.Green, gameObject.Position.X > 100 ? Direction.East : Direction.West, _spawnedBalls.Count / 2 + 1));
+            _spawnedBalls.Add((id == BallPurpleId ? BallKind.Purple : BallKind.Green, gameObject?.Position.X > 100 ? Direction.East : Direction.West, _spawnedBalls.Count / 2 + 1));
             if (_spawnedBalls.Count % 2 == 0) BuildPlayerOrder();
             if (_spawnedBalls.Count < 8) return;
             _waveState = 1;
@@ -275,7 +275,7 @@ public class M12S_P1_Mortal_Slayer : SplatoonScript
 
     public override void OnActionEffectEvent(ActionEffectSet set)
     {
-        if (set.Action.Value.RowId is ActionHitA or ActionHitB && ++_actiondBallCount % 2 == 0 &&
+        if (set.Action?.RowId is ActionHitA or ActionHitB && ++_actiondBallCount % 2 == 0 &&
             _waveState is >= 1 and <= 4) _waveState++;
     }
 

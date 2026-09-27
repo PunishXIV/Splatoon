@@ -3,6 +3,8 @@ using Dalamud.Memory;
 using ECommons.ExcelServices;
 using ECommons.EzHookManager;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.Network;
+using FFXIVClientStructs.FFXIV.Client.Network;
 using Splatoon.SplatoonScripting;
 using System;
 using System.Collections.Generic;
@@ -15,13 +17,11 @@ public unsafe class LogHooks
     private LogHooks()
     {
         EzSignatureHelper.Initialize(this);
+        ActorCastHook = new(PacketDispatcher.Addresses.HandleActorCastPacket.Value, ActorCastDetour);
     }
 
-    private delegate nint ActorCastDelegate(uint sourceId, nint packetPtr);
-
-    [EzHook("40 53 57 48 81 EC ?? ?? ?? ?? 48 8B FA 8B D1")]
-    private EzHook<ActorCastDelegate> ActorCastHook;
-    private nint ActorCastDetour(uint sourceId, nint packetPtr)
+    private EzHook<PacketDispatcher.Delegates.HandleActorCastPacket> ActorCastHook;
+    private void ActorCastDetour(uint sourceId, ActorCastPacket* packetPtr)
     {
         try
         {
@@ -39,6 +39,6 @@ public unsafe class LogHooks
         {
             e.Log();
         }
-        return ActorCastHook.Original(sourceId, packetPtr);
+        ActorCastHook.Original(sourceId, packetPtr);
     }
 }

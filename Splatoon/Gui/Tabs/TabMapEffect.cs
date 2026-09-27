@@ -89,7 +89,7 @@ internal static unsafe class TabMapEffect
                     ImGui.SameLine();
                     if(ImGuiEx.IconButton(FontAwesomeIcon.Check, "Apply2"))
                     {
-                        MapEffect.Delegate((long)cd, (uint)i, (ushort)inp1, (ushort)((ushort)inp1 * 2));
+                        MapEffect.Delegate((ContentDirector*)cd, (uint)i, (ushort)inp1, (ushort)((ushort)inp1 * 2));
                     }
                     if(tt != "")
                     {

@@ -24,7 +24,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(16, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(17, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -623,15 +623,15 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
         {
             if(ImGui.Button("Spawn reference tower map effect (make all layouts on it)"))
             {
-                MapEffect.Delegate((long)EventFramework.Instance()->GetInstanceContentDirector(), 5, 1, 2);
+                MapEffect.Delegate((FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.ContentDirector*)EventFramework.Instance()->GetInstanceContentDirector(), 5, 1, 2);
             }
             if(ImGui.Button("Spawn right tower map effect"))
             {
-                MapEffect.Delegate((long)EventFramework.Instance()->GetInstanceContentDirector(), 3, 1, 2);
+                MapEffect.Delegate((FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.ContentDirector*)EventFramework.Instance()->GetInstanceContentDirector(), 3, 1, 2);
             }
             if(ImGui.Button("Spawn left tower map effect"))
             {
-                MapEffect.Delegate((long)EventFramework.Instance()->GetInstanceContentDirector(), 7, 1, 2);
+                MapEffect.Delegate((FFXIVClientStructs.FFXIV.Client.Game.InstanceContent.ContentDirector*)EventFramework.Instance()->GetInstanceContentDirector(), 7, 1, 2);
             }
             if(ImGui.Button("Copy map effects"))
             {

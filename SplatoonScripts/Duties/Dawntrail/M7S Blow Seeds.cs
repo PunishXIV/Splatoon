@@ -134,7 +134,7 @@ internal class M7S_Blow_Seeds :SplatoonScript
         if (!Controller.TryGetElementByName("Bait", out var element)) return;
         if (_aoeRole == Role.None) return;
 
-        Job job = Player.Job;
+        Job job = BasePlayer.Job;
         if (_blowSeedsCount == 0)
         {
             if (_aoeRole == Role.TH)

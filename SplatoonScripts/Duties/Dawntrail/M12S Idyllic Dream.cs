@@ -802,7 +802,7 @@ public class M12S_Idyllic_Dream : SplatoonScript
     {
         int tetherIndex = 0;
         var party = FakeParty.Get().ToList();
-        var localPlayer = Svc.ClientState.LocalPlayer;
+        var localPlayer = BasePlayer;
 
         // 当前轮次需要处理的标点 (Waymarks to process for current round)
         var currentPoints = roundIndex < _roundPoints.Count ? _roundPoints[roundIndex] : Array.Empty<string>();

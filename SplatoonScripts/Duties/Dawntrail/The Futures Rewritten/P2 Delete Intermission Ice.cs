@@ -18,7 +18,7 @@ public unsafe class P2_Delete_Intermission_Ice : SplatoonScript
         {
             Svc.Framework.RunOnTick(() =>
             {
-                MapEffect.Delegate(*(nint*)(((nint)EventFramework.Instance()) + 344), 24, 4, 8);
+                MapEffect.Delegate(EventFramework.Instance()->GetContentDirector(), 24, 4, 8);
             });
         }
     }

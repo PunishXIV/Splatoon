@@ -109,7 +109,7 @@ public unsafe sealed class EX4_Roseblood_3 : SplatoonScript
         {
             if(this.IsDropper != true && target.TryGetObject(out var obj))
             {
-                IsDropper = obj.AddressEquals(Player.Object);
+                IsDropper = obj.AddressEquals(BasePlayer);
             }
         }
         //> [31.07.2025 08:16:41 +03:00] Message: VFX vfx/lockon/eff/x6fd_monyou_lock1v.avfx

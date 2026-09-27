@@ -487,17 +487,6 @@ public class M8S_Ultraviolent_Ray_4th : SplatoonScript
         return job2;
     }
 
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if (_basePlayerOverride == "")
-                return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
-        }
-    }
-
     public class Config : IEzConfig
     {
         public Vector4 BaitColor1 = 0xFFFF00FF.ToVector4();

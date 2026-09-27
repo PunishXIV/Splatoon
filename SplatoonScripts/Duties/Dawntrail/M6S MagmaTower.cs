@@ -160,7 +160,7 @@ internal class M6S_MagmaTower :SplatoonScript
     public override void OnRemoveBuffEffect(uint sourceId, Status Status)
     {
         if (_state == State.None) return;
-        if (sourceId == Player.Object.EntityId && Status.StatusId == 4450)
+        if (sourceId == BasePlayer.EntityId && Status.StatusId == 4450)
         {
             _state = State.Elaption2;
         }
@@ -206,7 +206,7 @@ internal class M6S_MagmaTower :SplatoonScript
             case State.Elaption1:
                 if (Controller.TryGetElementByName("Text", out var text))
                 {
-                    text.refActorObjectID = Player.Object.EntityId;
+                    text.refActorObjectID = BasePlayer.EntityId;
                     text.Enabled = true;
                 }
                 break;
@@ -267,7 +267,7 @@ internal class M6S_MagmaTower :SplatoonScript
             case State.Elaption2:
                 if (Controller.TryGetElementByName("Text", out var text2))
                 {
-                    text2.refActorObjectID = Player.Object.EntityId;
+                    text2.refActorObjectID = BasePlayer.EntityId;
                     text2.Enabled = true;
                 }
                 if (_towerCountS != 8) break;

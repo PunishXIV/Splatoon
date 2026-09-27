@@ -30,18 +30,6 @@ public sealed class EXMH_Clamorous_Chase : SplatoonScript
     public override Metadata Metadata { get; } = new(3, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1306];
 
-    IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback] && C.BPO != "" && Controller.GetPartyMembers().TryGetFirst(x => x.GetNameWithWorld() == C.BPO, out var p))
-            {
-                return p;
-            }
-            return Player.Object;
-        }
-    }
-
     public override void OnSetup()
     {
         Controller.RegisterElementFromCode("West", """{"Name":"","refX":81.0,"refY":100.0,"radius":1.0,"Donut":0.5,"color":3358850816,"fillIntensity":0.5,"thicc":4.0,"tether":true}""");

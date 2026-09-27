@@ -71,14 +71,6 @@ internal class M10S_Alleyoop : SplatoonScript
 
     private Config C => Controller.GetConfig<Config>();
 
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            return Splatoon.Splatoon.BasePlayer;
-        }
-    }
-
     #endregion
 
     /*

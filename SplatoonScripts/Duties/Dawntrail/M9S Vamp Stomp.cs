@@ -52,16 +52,6 @@ public class M9S_Vamp_Stomp : SplatoonScript
 
     private Config C => Controller.GetConfig<Config>();
 
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(C.basePlayerOverride == "") return Player.Object;
-            if(!Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback]) return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(C.basePlayerOverride)) ?? Player.Object;
-        }
-    }
     #endregion
 
     /*

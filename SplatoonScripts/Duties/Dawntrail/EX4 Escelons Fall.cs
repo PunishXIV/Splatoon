@@ -138,11 +138,11 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
         {
             if(THShockTargeted)
             {
-                myCloseFirst = !(Player.Job.IsTank() || Player.Job.IsHealer());
+                myCloseFirst = !(BasePlayer.Job.IsTank() || BasePlayer.Job.IsHealer());
             }
             else
             {
-                myCloseFirst = Player.Job.IsTank() || Player.Job.IsHealer();
+                myCloseFirst = BasePlayer.Job.IsTank() || BasePlayer.Job.IsHealer();
             }
         }
         List<bool> seq = [SequenceIsClose.SafeSelect(0) == myCloseFirst, SequenceIsClose.SafeSelect(1) != myCloseFirst, SequenceIsClose.SafeSelect(2) == myCloseFirst, SequenceIsClose.SafeSelect(3) != myCloseFirst];
@@ -152,7 +152,7 @@ public unsafe class EX4_Escelons_Fall : SplatoonScript
     private bool IsSelfClose()
     {
         if(Zelenia == null) return false;
-        return Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector2.Distance(x.Position.ToVector2(), Zelenia.Position.ToVector2())).Take(4).Any(x => x.AddressEquals(Player.Object));
+        return Svc.Objects.OfType<IPlayerCharacter>().OrderBy(x => Vector2.Distance(x.Position.ToVector2(), Zelenia.Position.ToVector2())).Take(4).Any(x => x.AddressEquals(BasePlayer));
     }
 
     public override void OnUpdate()

@@ -47,17 +47,6 @@ public class M8S_Lone_Wolfs_Lament : SplatoonScript
     public override HashSet<uint>? ValidTerritories => [1263];
     public override Metadata? Metadata => new(2, "Garume");
 
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(_basePlayerOverride == "")
-                return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
-        }
-    }
-
     public Config C => Controller.GetConfig<Config>();
 
     public override void OnSetup()

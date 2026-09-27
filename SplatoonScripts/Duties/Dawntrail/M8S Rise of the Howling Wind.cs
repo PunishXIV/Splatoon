@@ -604,7 +604,7 @@ internal class M8S_Rise_of_the_Howling_Wind : SplatoonScript
 
     private IPlayerCharacter? Mine()
     {
-        var id = Player.Object.EntityId;
+        var id = BasePlayer.EntityId;
         //uint id = FakeParty.Get().Where(x => x.GetJob() == Job.PLD).First().EntityId;
         if(_assignedPlayers.Count == 0) return null;
         var player = _assignedPlayers.Where(x => x.Id == id).FirstOrDefault();

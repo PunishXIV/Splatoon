@@ -31,14 +31,6 @@ public unsafe class M5S_Disco_Infernal_Universal : SplatoonScript
     Element Go => Controller.GetElementByName("Go")!;
     bool MechanicStarted = false;
 
-    IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(C.BasePlayerOverride == "") return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>().Where(x => x.EntityId != 0xE0000000).FirstOrDefault(x => x.Name.ToString() == C.BasePlayerOverride) ?? Player.Object; 
-        }
-    }
 
     TileDescriptor[] ValidTiles = [new(1, 1), new(1, 6), new(6, 1), new(6, 6), new(2, 3), new(2, 4), new(3, 2), new(4, 2), new(3, 5), new(4, 5), new(5, 3), new(5, 4)];
 

@@ -149,7 +149,7 @@ public class M8S_Tactical_Pack : SplatoonScript
             var isProcOK = FakeParty.Get().All(x => x.StatusList.All(y => y.StatusId != 2941));
             if (_isGreen)
             {
-                var remainingTime = Player.Status
+                var remainingTime = BasePlayer.StatusList
                     .FirstOrDefault(x => x.StatusId == GreenDebuff)?.RemainingTime ?? 0;
 
                 if (remainingTime == 0)
@@ -170,7 +170,7 @@ public class M8S_Tactical_Pack : SplatoonScript
             }
             else
             {
-                var remainingTime = Player.Status
+                var remainingTime = BasePlayer.StatusList
                     .FirstOrDefault(x => x.StatusId == OrangeDebuff)?.RemainingTime ?? 0;
                 if (remainingTime == 0)
                 {
@@ -204,7 +204,7 @@ public class M8S_Tactical_Pack : SplatoonScript
             ImGuiEx.Text($"Green Dragon: {GreenDragon?.Position}");
             ImGuiEx.Text($"Orange Cube: {OrangeCube?.Position}");
             ImGuiEx.Text($"Green Sphere: {GreenSphere?.Position}");
-            ImGuiEx.Text($"Player Position: {Player.Object.Position}");
+            ImGuiEx.Text($"Player Position: {BasePlayer.Position}");
             ImGuiEx.Text($"Is OK: {FakeParty.Get().All(x => x.StatusList.All(y => y.StatusId != 2941))}");
         }
     }
@@ -212,10 +212,10 @@ public class M8S_Tactical_Pack : SplatoonScript
     public override void OnTetherCreate(uint source, uint target, uint data2, uint data3, uint data5)
     {
         PluginLog.Warning($"taget: {target}, source: {source}, data2: {data2}, data3: {data3}, data5: {data5}");
-        PluginLog.Warning($"source: {source.GetObject().Address} player: {Player.Object.Address}");
+        PluginLog.Warning($"source: {source.GetObject().Address} player: {BasePlayer.Address}");
         if (target.GetObject().DataId is OrangeDragonDataId or GreenDragonDataId &&
             _state == State.None &&
-            source.GetObject().Address == Player.Object.Address)
+            source.GetObject().Address == BasePlayer.Address)
         {
             _state = State.TetherCreated;
             _isGreen = target.GetObject().DataId == OrangeDragonDataId;

@@ -190,7 +190,7 @@ internal class M8S_Millennial_Decay : SplatoonScript
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
         if (_isActive && vfxPath == MarkerVfxPath && target.GetObject() is IPlayerCharacter player &&
-            player.Address == Player.Object.Address)
+            player.Address == BasePlayer.Address)
         {
             if (_windCount is 0)
             {

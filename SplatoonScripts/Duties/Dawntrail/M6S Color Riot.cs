@@ -46,16 +46,6 @@ public class M6S_Color_Riot : SplatoonScript
     private static IBattleNpc? Enemy =>
         Svc.Objects.Where(x => x.DataId == 0x479F).OfType<IBattleNpc>().FirstOrDefault();
 
-    private IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(_basePlayerOverride == "")
-                return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
-        }
-    }
 
     private Config C => Controller.GetConfig<Config>();
 

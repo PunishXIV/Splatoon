@@ -218,15 +218,4 @@ public unsafe sealed class M8S_Millenial_Decay_EU : SplatoonScript
         public Direction CCWSecondIdle = Direction.West;
         public string BPO = "";
     }
-    IPlayerCharacter BasePlayer
-    {
-        get
-        {
-            if(Svc.Condition[Dalamud.Game.ClientState.Conditions.ConditionFlag.DutyRecorderPlayback] && C.BPO != "" && Controller.GetPartyMembers().TryGetFirst(x => x.GetNameWithWorld() == C.BPO, out var p))
-            {
-                return p;
-            }
-            return Player.Object;
-        }
-    }
 }

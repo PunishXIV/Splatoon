@@ -34,11 +34,6 @@ public class M6S_Cloud_Navigation : SplatoonScript
     private static IBattleNpc? Cloud =>
         Svc.Objects.FirstOrDefault(x => x.DataId == CloudDataId) as IBattleNpc;
 
-    private IPlayerCharacter BasePlayer =>
-        string.IsNullOrEmpty(_basePlayerOverride)
-            ? Player.Object
-            : Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
 
     public override void OnSettingsDraw()
     {

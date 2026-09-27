@@ -303,7 +303,7 @@ public class M11S_Flame_Breath : SplatoonScript
                 e.AdditionalRotation = GetRelativeAngle(tether.Source.Position.ToVector2(), tether.Target.Position.ToVector2()) + tether.Source.Rotation;
 
                 // 自己的绿色，他人的红色
-                e.color = tether.Target == Player.Object ? C.ColorSelf : C.ColorOther;
+                e.color = tether.Target == BasePlayer ? C.ColorSelf : C.ColorOther;
             }
             i++;
         }
@@ -329,7 +329,7 @@ public class M11S_Flame_Breath : SplatoonScript
                 e.AdditionalRotation = GetRelativeAngle(boss.Position.ToVector2(), target.Position.ToVector2()) + boss.Rotation;
 
                 // 自己的绿色，他人的红色
-                e.color = target == Player.Object ? C.ColorSelf : C.ColorOther;
+                e.color = target == BasePlayer ? C.ColorSelf : C.ColorOther;
             }
             i++;
         }
@@ -438,7 +438,7 @@ public class M11S_Flame_Breath : SplatoonScript
             ImGuiEx.Text($"火焰吐息目标: {_fireBreathTargets.Count}");
             foreach (var t in _fireBreathTargets)
             {
-                var isSelf = t == Player.Object;
+                var isSelf = t == BasePlayer;
                 ImGuiEx.Text(isSelf ? EColor.GreenBright : EColor.White, $"  - {t.Name}{(isSelf ? " (自己)" : "")}");
             }
 
@@ -453,7 +453,7 @@ public class M11S_Flame_Breath : SplatoonScript
             ImGuiEx.Text($"陨石愤怒线连: {_meteorWrathTethers.Count}");
             foreach (var t in _meteorWrathTethers)
             {
-                var isSelf = t.Target == Player.Object;
+                var isSelf = t.Target == BasePlayer;
                 ImGuiEx.Text(t.IsDanger ? EColor.RedBright : EColor.White,
                     $"  - {t.Source.Name} -> {t.Target.Name} ({(t.IsDanger ? "危险" : "安全")}){(isSelf ? " (自己)" : "")}");
             }

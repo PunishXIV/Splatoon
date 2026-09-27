@@ -90,7 +90,7 @@ internal class M7S_Scatter_Seeds :SplatoonScript
         if (castId == 42349)
         {
             _scatterSeedCounts++;
-            _job = Player.Job;
+            _job = BasePlayer.Job;
             _gimmickActive = true;
         }
         if (castId == 42347 && source.TryGetObject(out var obj))

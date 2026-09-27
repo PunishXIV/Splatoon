@@ -63,7 +63,7 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition : SplatoonScript
         if(_state == State.Casting)
         {
             Controller.GetRegisteredElements().Each(x => x.Value.color = GradientColor.Get(C.BaitColor1, C.BaitColor2).ToUint());
-            if(!Player.Status.Any(s => s.StatusId is AlphaDebuff or BetaDebuff) || Svc.Objects.OfType<IPlayerCharacter>().All(x => !x.StatusList.Any(s => s.StatusId is AlphaDebuff or BetaDebuff)))
+            if(!BasePlayer.StatusList.Any(s => s.StatusId is AlphaDebuff or BetaDebuff) || Svc.Objects.OfType<IPlayerCharacter>().All(x => !x.StatusList.Any(s => s.StatusId is AlphaDebuff or BetaDebuff)))
             {
                 _state = State.End;
             }
@@ -85,10 +85,10 @@ public sealed class M5S_Lets_Dance_NavigateStandPosition : SplatoonScript
         {
             _state = State.Casting;
             var remainingTime = -1f;
-            if(Player.Status.Any(x => x.StatusId == AlphaDebuff))
-                remainingTime = Player.Status.First(x => x.StatusId == AlphaDebuff).RemainingTime;
-            else if(Player.Status.Any(x => x.StatusId == BetaDebuff))
-                remainingTime = Player.Status.First(x => x.StatusId == BetaDebuff).RemainingTime;
+            if(BasePlayer.StatusList.Any(x => x.StatusId == AlphaDebuff))
+                remainingTime = BasePlayer.StatusList.First(x => x.StatusId == AlphaDebuff).RemainingTime;
+            else if(BasePlayer.StatusList.Any(x => x.StatusId == BetaDebuff))
+                remainingTime = BasePlayer.StatusList.First(x => x.StatusId == BetaDebuff).RemainingTime;
 
             PluginLog.Warning($"Remaining time: {remainingTime}");
             if(remainingTime == -1f)

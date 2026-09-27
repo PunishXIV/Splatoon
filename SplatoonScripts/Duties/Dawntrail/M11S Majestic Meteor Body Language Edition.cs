@@ -87,19 +87,6 @@ public class M11S_Majestic_Meteor_Body_Language_Edition : SplatoonScript
     public override HashSet<uint>? ValidTerritories { get; } = [1325];
     private Config C => Controller.GetConfig<Config>();
 
-    private IPlayerCharacter BasePlayer
-    {
-        
-        get
-        {
-            return Controller.BasePlayer;
-            if (_basePlayerOverride == "")
-                return Player.Object;
-            return Svc.Objects.OfType<IPlayerCharacter>()
-                .FirstOrDefault(x => x.Name.ToString().EqualsIgnoreCase(_basePlayerOverride)) ?? Player.Object;
-        }
-    }
-
     public override void OnSetup()
     {
         Controller.RegisterElement("Guide", new Element(0)

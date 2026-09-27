@@ -55,8 +55,8 @@ public unsafe sealed class M8S_Pack_Predation_Telegraphs : SplatoonScript
                 }
                 if(linePlayer != null)
                 {
-                    (linePlayer.AddressEquals(Player.Object) ? lineYou : line).Enabled = true;
-                    (linePlayer.AddressEquals(Player.Object) ? lineYou : line).RotationOverridePoint = linePlayer.Position.ToVector2().ToPoint2();
+                    (linePlayer.AddressEquals(BasePlayer) ? lineYou : line).Enabled = true;
+                    (linePlayer.AddressEquals(BasePlayer) ? lineYou : line).RotationOverridePoint = linePlayer.Position.ToVector2().ToPoint2();
                 }
             }
         }
@@ -73,8 +73,8 @@ public unsafe sealed class M8S_Pack_Predation_Telegraphs : SplatoonScript
                 }
                 if(linePlayer != null)
                 {
-                    (linePlayer.AddressEquals(Player.Object)?lineYou:line).Enabled = true;
-                    (linePlayer.AddressEquals(Player.Object) ? lineYou : line).RotationOverridePoint = linePlayer.Position.ToVector2().ToPoint2();
+                    (linePlayer.AddressEquals(BasePlayer) ?lineYou:line).Enabled = true;
+                    (linePlayer.AddressEquals(BasePlayer) ? lineYou : line).RotationOverridePoint = linePlayer.Position.ToVector2().ToPoint2();
                 }
             }
         }

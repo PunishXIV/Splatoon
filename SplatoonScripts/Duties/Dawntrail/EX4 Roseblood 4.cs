@@ -71,7 +71,7 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
                 {
                     var pos = IsDropNorthPatternActive() ? C.StackPositionWhenNorth : C.StackPositionWhenSouth;
                     string element = "";
-                    if(member.GetJob().IsDps() == Player.Job.IsDps())
+                    if(member.GetJob().IsDps() == BasePlayer.Job.IsDps())
                     {
                         element = $"{pos}_{(IsDropNorthPatternActive() ? "Lower" : "Upper")}Part";
                         //player stays away from red
@@ -98,7 +98,7 @@ public unsafe class EX4_Roseblood_4 : SplatoonScript
             else
             {
                 var prefix = IsDropNorthPatternActive() ? "North" : "South";
-                if(AttachedInfo.VFXInfos.TryGetValue(Player.Object.Address, out var vfx) && vfx.TryGetValue("vfx/lockon/eff/x6fd_monyou_lock1v.avfx", out var eff) && eff.AgeF < 9f)
+                if(AttachedInfo.VFXInfos.TryGetValue(BasePlayer.Address, out var vfx) && vfx.TryGetValue("vfx/lockon/eff/x6fd_monyou_lock1v.avfx", out var eff) && eff.AgeF < 9f)
                 {
                     //player has rose marker
                     if(Controller.TryGetElementByName($"{prefix}_{C.DropPosition}", out var e))

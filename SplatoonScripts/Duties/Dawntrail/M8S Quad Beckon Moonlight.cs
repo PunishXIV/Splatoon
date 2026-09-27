@@ -129,13 +129,13 @@ public class M8S_Quad_Beckon_Moonlight : SplatoonScript
 
     public override void OnVFXSpawn(uint target, string vfxPath)
     {
-        if(vfxPath == "vfx/lockon/eff/target_ae_s5f.avfx" && target.GetObject()?.Address == Player.Object.Address)
+        if(vfxPath == "vfx/lockon/eff/target_ae_s5f.avfx" && target.GetObject()?.Address == BasePlayer.Address)
         {
             EzThrottler.Throttle("BeckonSpread", 5000, true);
         }
         if(vfxPath == "vfx/lockon/eff/com_share1f.avfx" && target.TryGetObject(out var go) && go is IPlayerCharacter pc)
         {
-            if(pc.GetJob().IsDps() == Player.Job.IsDps())
+            if(pc.GetJob().IsDps() == BasePlayer.Job.IsDps())
             {
                 EzThrottler.Throttle("BeckonStack", 5000, true);
             }

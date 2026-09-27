@@ -156,7 +156,7 @@ public sealed class M5S_Disco_Infernal : SplatoonScript
                 {
                     _aoeCount++;
                     var isShortDebuff =
-                        Player.Status.Any(x => x is { StatusId: SpotLightDebuffId, RemainingTime: < 10f });
+                        BasePlayer.StatusList.Any(x => x is { StatusId: SpotLightDebuffId, RemainingTime: < 10f });
                     if (_aoeCount == 6)
                     {
                         SetBait(isShortDebuff);

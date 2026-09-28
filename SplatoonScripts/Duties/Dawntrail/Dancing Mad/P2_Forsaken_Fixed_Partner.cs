@@ -25,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(18, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(19, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -563,6 +563,10 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
 
     public override void OnSettingsDraw()
     {
+        if(InternalData.Overrides.Layouts.Count == 0)
+        {
+            ImGuiEx.TextWrapped(GradientColor.Get(ImGuiColors.DalamudRed, ImGuiColors.DalamudOrange, 500), $"Possibly invalid configuration (override count={InternalData.Overrides.Layouts.Count}, expected > 1). Reimport your configuration.");
+        }
         ImGuiEx.TextWrapped($"""
             This script works for strategies that follow these rules:
             - Fixed by headmarker positions for odd towers

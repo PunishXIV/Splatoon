@@ -9,6 +9,7 @@ using ECommons.Hooks.ActionEffectTypes;
 using ECommons.ImGuiMethods;
 using ECommons.Logging;
 using ECommons.MathHelpers;
+using ECommons.SimpleGui;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using Splatoon;
@@ -24,7 +25,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed_Partner.Config>
 {
-    public override Metadata Metadata { get; } = new(17, "NightmareXIV");
+    public override Metadata Metadata { get; } = new(18, "NightmareXIV");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
     public uint EffectSpread = 5085;
     public uint EffectStack = 5084;
@@ -46,6 +47,38 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
     private uint TowerCount = 0;
     private uint SequenceCount => (TowerCount / 2) + 1;
     private bool? FirstTaker = null;
+
+    public override void OnEnable()
+    {
+        if(!C.Warned && InternalData.Overrides.Layouts.Count == 0)
+        {
+            PopupWindow window = null!;
+            window = new PopupWindow(() =>
+            {
+                ImGuiEx.Text($"""
+                    Forsaken Fixed Partner script self-test has indicated that:
+                    - Either it is not configured
+                    - Or your configuration was corrupted.
+                    It is recommended that you reimport your configuration from Github.
+                    If you know for sure it's functioning properly, use appropriate button 
+                      to permanently hide this notification.
+                    """);
+                if(ImGuiEx.IconButtonWithText(Dalamud.Interface.FontAwesomeIcon.Globe, "Open Github page with configurations"))
+                {
+                    GenericHelpers.ShellStart("https://github.com/PunishXIV/Splatoon/blob/main/Presets/Dawntrail/Raids/Ultimate%20-%20Dancing%20Mad/Phase%202/1.%20Forsaken%20Fixed%20Partner%20script.md");
+                }
+                if(ImGuiEx.Button("Close and check for errors every time I enter the instance"))
+                {
+                    window!.IsOpen = false;
+                }
+                if(ImGuiEx.Button("Close and never check for errors again (Hold CTRL)", ImGuiEx.Ctrl))
+                {
+                    C.Warned = true;
+                    window!.IsOpen = false;
+                }
+            });
+        }
+    }
 
     private Dictionary<uint, Vector2> MapEffect2TowerPos
     {
@@ -664,6 +697,7 @@ public unsafe class P2_Forsaken_Fixed_Partner : SplatoonScript<P2_Forsaken_Fixed
 
     public class Config
     {
+        public bool Warned = false;
         public HashSet<uint> Switchers = [3, 4, 5, 6];
         public bool IsLeftDefaultTower = false;
         public bool IsFlexerAsActive = false;

@@ -365,6 +365,7 @@ public unsafe class Controller
 
     public void ApplyOverrides()
     {
+        PluginLog.Information($"Applying overrides for {Script.InternalData.FullName}, Elements={Script.InternalData.Overrides.Elements.Count}, Layouts={Script.InternalData.Overrides.Layouts.Count}, config key={Script.InternalData.CurrentConfigurationKey}");
         foreach(var x in Script.InternalData.Overrides.Elements)
         {
             if(Elements.ContainsKey(x.Key))

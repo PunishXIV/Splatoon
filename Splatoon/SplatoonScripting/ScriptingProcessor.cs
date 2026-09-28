@@ -410,6 +410,7 @@ internal unsafe static partial class ScriptingProcessor
                                                         var newPath = Path.Combine(dir, $"{instance.InternalData.Name}.cs");
                                                         instance.InternalData.Path = newPath;
                                                         File.WriteAllText(newPath, result.code, Encoding.UTF8);
+                                                        instance.InternalData.ReloadOverrides();
                                                         DuoLog.Debug($"Script installed to {newPath}");
                                                     }
                                                     else if(rewrite)

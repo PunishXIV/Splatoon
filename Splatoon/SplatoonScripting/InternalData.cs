@@ -24,7 +24,7 @@ public class InternalData
 
     internal SplatoonScript Script;
 
-    internal OverrideData Overrides;
+    public OverrideData Overrides { get; internal set; }
 
     internal string CurrentConfigurationKey = "";
 

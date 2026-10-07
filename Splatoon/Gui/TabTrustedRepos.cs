@@ -18,7 +18,7 @@ public static class TabTrustedRepos
             ImGuiEx.TextWrapped(EColor.RedBright, "You are about to access EXTRAORDINARELY DANGEROUS OPTIONS. Normally, the ONLY time you'd want to use it if you are the developer. ".Loc());
             ImGui.Checkbox($"I understand that improper use of these functions may result in irrecoverable damages.", ref pass);
         }
-        if(!pass) return;
+        if(!display) return;
         pass = true;
         ImGuiEx.Text($"Extra trusted sources");
         ImGui.Indent();

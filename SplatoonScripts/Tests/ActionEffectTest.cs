@@ -28,7 +28,7 @@ public unsafe class ActionEffectTest : SplatoonScript
         {
             PluginLog.Information($"""
                 Cast
-                {set.Header.ActionType} @ {set.Header.ActionID}
+                type: {set.Header.ActionType} @ id: {set.Header.ActionID}
                 """);
         }
     }

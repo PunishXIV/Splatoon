@@ -134,6 +134,7 @@ internal class Configuration : IEzConfig
     public HashSet<string> DisabledAttentionWindowScripts = [];
 
     public PointerLineStyle DefaultPointerLineStyle = PointerLineStyle.Default;
+    public float OverlayFontScale = 1f;
 
     public uint ClampFillColorAlpha(uint fillColor)
     {

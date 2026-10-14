@@ -1,6 +1,7 @@
 ﻿using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.ClientState.Objects.SubKinds;
 using Dalamud.Game.ClientState.Statuses;
+using Dalamud.Interface.ManagedFontAtlas;
 using Dalamud.Utility;
 using ECommons;
 using ECommons.ExcelServices;
@@ -20,6 +21,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using TerraFX.Interop.Windows;
 using static FFXIVClientStructs.FFXIV.Component.GUI.AtkTimer.Delegates;
 using S = Splatoon.Services.S;
@@ -29,6 +31,57 @@ namespace Splatoon.Utility;
 
 public static unsafe class Utils
 {
+    public static void DrawText(float fscale, string text, uint fgcolor, uint bgcolor, ref int uid, Vector2 pos)
+    {
+        var scaleDefs = Utils.GetFontForScale(fscale);
+        var scaled = MathF.Abs(scaleDefs.WindowScale - 1f) > 0.001f;
+        using(var font = scaleDefs.Font?.Push())
+        {
+            var size = scaled ? ImGui.CalcTextSize(text) * scaleDefs.WindowScale : ImGui.CalcTextSize(text);
+            size = new Vector2(size.X + 10f, size.Y + 10f);
+            ImGui.SetNextWindowPos(new Vector2(pos.X - (size.X / 2), pos.Y - (size.Y / 2)));
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
+            ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10f);
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(bgcolor));
+            ImGui.BeginChild("##child" + text + ++uid, size, false,
+                ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
+                | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding
+                | ImGuiWindowFlags.NoFocusOnAppearing);
+            ImGui.PushStyleColor(ImGuiCol.Text, fgcolor);
+            if(scaled) ImGui.SetWindowFontScale(scaleDefs.WindowScale);
+            ImGuiEx.Text(text);
+            if(scaled) ImGui.SetWindowFontScale(1f);
+            ImGui.PopStyleColor();
+            ImGui.EndChild();
+            ImGui.PopStyleColor();
+            ImGui.PopStyleVar(2);
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0063:Use simple 'using' statement", Justification = "<Pending>")]
+    public static (IFontHandle? Font, float WindowScale) GetFontForScale(float wantedScale)
+    {
+        var total = MathF.Max(wantedScale * P.Config.OverlayFontScale, 0.1f);
+        if(total <= 1f) return (null, total); 
+
+        IFontHandle? bestFont = null;
+        var bestKey = 1f;
+        foreach(var (key, handle) in S.CustomFontManager.Fonts) 
+        {
+            if(!handle.Available) continue;
+            bestFont = handle;
+            bestKey = key;
+            if(total <= key) break; 
+        }
+        return bestFont == null ? (null, total) : (bestFont, total / bestKey);
+    }
+
+    public static float RoundTo(this float value, int digits)
+    {
+        float scale = MathF.Pow(10f, digits);
+        return MathF.Round(value * scale, MidpointRounding.AwayFromZero) / scale;
+    }
+
     public static Dictionary<string, List<Vector3>>? GetCapturedPositions(this Layout layout)
     {
         return Splatoon.CapturedPositions.SafeSelect(layout?.GetName());

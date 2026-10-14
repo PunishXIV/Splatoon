@@ -90,6 +90,19 @@ internal partial class CGui
                 }
                 ImGuiComponents.HelpMarker("Configure screen zones where Splatoon will draw its elements".Loc());
                 ImGui.Checkbox($"Draw Splatoon's element under other plugins elements and windows".Loc(), ref P.Config.SplatoonLowerZ);
+                ImGui.SetNextItemWidth(150f);
+                if(ImGuiEx.SliderFloat("Text overlays global scale", ref P.Config.OverlayFontScale, 0.5f, 5f))
+                {
+                    P.Config.OverlayFontScale = P.Config.OverlayFontScale.ValidateRange(0.5f, 5f).RoundTo(1);
+                }
+                ImGui.SameLine();
+                if(ImGuiEx.IconButtonWithText(FontAwesomeIcon.Check, "Apply"))
+                {
+                    S.CustomFontManager.Dispose();
+                    S.CustomFontManager = new();
+                }
+                ImGui.SameLine();
+                ImGuiEx.Text($"Fonts ready: {S.CustomFontManager.Fonts.Values.Count(x => x.Available)}/{S.CustomFontManager.Fonts.Count}");
             })
 
             .Section("Attention Color".Loc())

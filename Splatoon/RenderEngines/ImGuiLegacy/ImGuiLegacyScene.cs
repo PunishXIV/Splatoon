@@ -281,36 +281,13 @@ internal class ImGuiLegacyScene : IDisposable
 
     public void DrawTextWorld(DisplayObjectText e)
     {
-        if(Utils.WorldToScreen(
-                        new Vector3(e.x, e.z, e.y),
-                        out var pos))
+        if(Utils.WorldToScreen(new Vector3(e.x, e.z, e.y), out var pos))
         {
-            DrawText(e, pos);
+            Utils.DrawText(e.fscale, e.text, e.fgcolor, e.bgcolor, ref uid, pos);
         }
     }
 
-    public void DrawText(DisplayObjectText e, Vector2 pos)
-    {
-        var scaled = e.fscale != 1f;
-        var size = scaled ? ImGui.CalcTextSize(e.text) * e.fscale : ImGui.CalcTextSize(e.text);
-        size = new Vector2(size.X + 10f, size.Y + 10f);
-        ImGui.SetNextWindowPos(new Vector2(pos.X - (size.X / 2), pos.Y - (size.Y / 2)));
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
-        ImGui.PushStyleVar(ImGuiStyleVar.ChildRounding, 10f);
-        ImGui.PushStyleColor(ImGuiCol.ChildBg, ImGui.ColorConvertU32ToFloat4(e.bgcolor));
-        ImGui.BeginChild("##child" + e.text + ++uid, size, false,
-            ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoNav
-            | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding
-            | ImGuiWindowFlags.NoFocusOnAppearing);
-        ImGui.PushStyleColor(ImGuiCol.Text, e.fgcolor);
-        if(scaled) ImGui.SetWindowFontScale(e.fscale);
-        ImGuiEx.Text(e.text);
-        if(scaled) ImGui.SetWindowFontScale(1f);
-        ImGui.PopStyleColor();
-        ImGui.EndChild();
-        ImGui.PopStyleColor();
-        ImGui.PopStyleVar(2);
-    }
+    
 
     public void DrawRingWorld(DisplayObjectCircle e)
     {

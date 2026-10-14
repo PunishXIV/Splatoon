@@ -28,4 +28,5 @@ public static class S
     internal static AttentionOverlayWindow AttentionOverlayWindow { get; private set; }
     internal static MessageService MessageService { get; private set; }
     internal static IPCProvider IPCProvider { get; private set; }
+    internal static CustomFontManager CustomFontManager { get; set; }
 }

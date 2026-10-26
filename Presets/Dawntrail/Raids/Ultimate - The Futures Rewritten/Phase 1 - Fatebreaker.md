@@ -13,6 +13,32 @@ Altetnative implementation of Fall of Faith resolution.
 https://raw.githubusercontent.com/PunishXIV/Splatoon/refs/heads/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1%20Fall%20of%20Faith%20EN.cs
 ```
 
+## [Script] Fall of Faith Full Guide (Customizable & Visualizer)
+Full Guide for Fall of Faith. You can customize everything.
+
+Configuration
+- Priority: Used for No Tether 4 Player
+- Visualizer Options
+    - Show tether color order: Show Color Order on FateBreaker (example : Blue → Red → Red → Blue)
+    - Show tether color hint: Show Tether Color on Tethered Player (Blue or Red)
+    - Show player pillar: Show Player Pillar (Blue Tether: Blue Pillar, Red Tether: Red Pillar, Other: Black Pillar)
+    - Show cone: Show Cones (Blue Tether to Nearest 3, Red Tether to Nearest 1)
+
+Layouts
+- Positions: You can customize all positions. Default positions: 1, 3 are West, 2, 4 are East.
+- Visualizer.*: You can customize all visualizer styles.
+
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1_Fall_of_Faith_Guide.cs
+```
+
+## [Script] Utopian Sky
+Full Guide for Utopian Sky (Prismatic Deception, Light Circle).
+Configuration Required.
+```
+https://github.com/PunishXIV/Splatoon/raw/main/SplatoonScripts/Duties/Dawntrail/The%20Futures%20Rewritten/P1_Utopian_Sky.cs
+```
+
 ## [Script] Burn Strike (Tower)
 It highlights positions where towers you need to go to are.
 Configuration:

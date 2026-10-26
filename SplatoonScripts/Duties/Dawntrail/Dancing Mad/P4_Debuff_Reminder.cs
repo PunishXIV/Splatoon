@@ -33,7 +33,7 @@ namespace SplatoonScriptsOfficial.Duties.Dawntrail.Dancing_Mad;
 
 public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
 {
-    public override Metadata Metadata { get; } = new(15, "NightmareXIV, mirage");
+    public override Metadata Metadata { get; } = new(16, "NightmareXIV, mirage");
     public override HashSet<uint>? ValidTerritories { get; } = [1363];
 
     private List<string> VfxLie = ["vfx/common/eff/z3oy_stlp6_c0c.avfx", "vfx/common/eff/z3oy_stlp4_c0c.avfx"];
@@ -839,8 +839,8 @@ public class P4_Debuff_Reminder : SplatoonScript<P4_Debuff_Reminder.Config>
             {
                 FalseAnnounced = true;
                 var orderedVfx = vfx.Where(x => x.Key.Contains("/lockon/")).OrderBy(x => x.Value.AgeF).Take(2);
-                var isInvertLightning = orderedVfx.Any(x => x.Key == "vfx/lockon/eff/m0462trg_c03c.avfx");
-                var isInvertBlowout = orderedVfx.Any(x => x.Key == "vfx/lockon/eff/m0462trg_c05c.avfx");
+                var isInvertLightning = orderedVfx.Any(x => x.Key == "vfx/lockon/eff/m0462trg_c05c.avfx");
+                var isInvertBlowout = orderedVfx.Any(x => x.Key == "vfx/lockon/eff/m0462trg_c03c.avfx");
                 if(isInvertLightning) IsFakeLightning = !IsFakeLightning;
                 if(isInvertBlowout) IsFakeBlowout = !IsFakeBlowout;
                 PluginLog.Information($"Inverted lightning: {isInvertLightning}, inverted blowout: {isInvertBlowout}, final resolution: IsFakeBlowout={IsFakeBlowout}, IsFakeLightning={IsFakeLightning}");

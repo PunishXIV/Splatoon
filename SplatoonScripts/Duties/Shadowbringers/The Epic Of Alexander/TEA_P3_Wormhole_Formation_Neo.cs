@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P3_Wormhole_Formation_Neo : SplatoonScript<TEA_P3_Wormhole_Formation_Neo.Config>
 {
-    public override Metadata Metadata => new(1, "NightmareXIV");
+    public override Metadata Metadata => new(2, "NightmareXIV");
     public ScriptState State = new();
 
     public override HashSet<uint>? ValidTerritories => [Raids.The_Epic_of_Alexander_Ultimate];
@@ -73,7 +73,7 @@ public class TEA_P3_Wormhole_Formation_Neo : SplatoonScript<TEA_P3_Wormhole_Form
                 PluginLog.Information("Mirrored puddle detected, swapping soak positions");
                 foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ") && e.Key.EndsWith("Left")))
                 {
-                    Controller.GetElementByName(x.Key).RefPosition = new Vector3(100, 0, 0) - (Controller.OriginalElements[x.Key.Replace("Left", "Right")].RefPosition - new Vector3(100, 0, 0));
+                    Controller.GetElementByName(x.Key).RefPosition = new Vector3(0, 0, 100) - (Controller.OriginalElements[x.Key.Replace("Left", "Right")].RefPosition - new Vector3(0, 0, 100));
                 }
                 foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ") && e.Key.EndsWith("Right")))
                 {

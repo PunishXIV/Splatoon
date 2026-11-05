@@ -26,7 +26,7 @@ namespace SplatoonScriptsOfficial.Duties.Shadowbringers.The_Epic_Of_Alexander;
 
 public class TEA_P3_Wormhole_Formation_Neo : SplatoonScript<TEA_P3_Wormhole_Formation_Neo.Config>
 {
-    public override Metadata Metadata => new(2, "NightmareXIV");
+    public override Metadata Metadata => new(3, "NightmareXIV");
     public ScriptState State = new();
 
     public override HashSet<uint>? ValidTerritories => [Raids.The_Epic_of_Alexander_Ultimate];
@@ -61,48 +61,58 @@ public class TEA_P3_Wormhole_Formation_Neo : SplatoonScript<TEA_P3_Wormhole_Form
     {
         if(set.Action?.RowId == 18542)
         {
+            this.Controller.Reset();
             State.Phase = Phase.Prepare;
         }
-        //> [05.11.2026 22:51:06 +03:00] Action #18517 Eye of the Chakram cast on 11341/Steam Chakram npc id=9217, model id=1425, transform=0 data=11341 name=Steam Chakram ActionEffect|18517|11341|9217|1425|0|11341
-        if(set.Action?.RowId == 18517)
+        if(State.Phase != Phase.None)
         {
-            State.Phase = Phase.Limit_Cut_1;
-            var mirroredPuddle = !Svc.Objects.Any(x => x.DataId == 2007519 && Vector2.Distance(x.Position2, new Vector2(89f, 95.5f)) < 3f);
-            if(mirroredPuddle)
+            //> [05.11.2026 22:51:06 +03:00] Action #18517 Eye of the Chakram cast on 11341/Steam Chakram npc id=9217, model id=1425, transform=0 data=11341 name=Steam Chakram ActionEffect|18517|11341|9217|1425|0|11341
+            if(set.Action?.RowId == 18517)
             {
-                PluginLog.Information("Mirrored puddle detected, swapping soak positions");
-                foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ") && e.Key.EndsWith("Left")))
+                State.Phase = Phase.Limit_Cut_1;
+                var mirroredPuddle = !Svc.Objects.Any(x => x.DataId == 2007519 && Vector2.Distance(x.Position2, new Vector2(89f, 95.5f)) < 3f);
+                if(mirroredPuddle)
                 {
-                    Controller.GetElementByName(x.Key).RefPosition = new Vector3(0, 0, 100) - (Controller.OriginalElements[x.Key.Replace("Left", "Right")].RefPosition - new Vector3(0, 0, 100));
+                    PluginLog.Information("Mirrored puddle detected, swapping soak positions");
+                    static Vector3 Mirror(Vector3 p) => new Vector3(200 - p.X, p.Y, p.Z);
+                    foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ") && e.Key.EndsWith("Left")))
+                    {
+                        var opposite = x.Key.Substring(0, x.Key.Length - 4) + "Right";
+                        Controller.GetElementByName(x.Key).RefPosition = Mirror(Controller.OriginalElements[opposite].RefPosition);
+                    }
+                    foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ") && e.Key.EndsWith("Right")))
+                    {
+                        var opposite = x.Key.Substring(0, x.Key.Length - 5) + "Left";
+                        Controller.GetElementByName(x.Key).RefPosition = Mirror(Controller.OriginalElements[opposite].RefPosition);
+                    }
                 }
-                foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ") && e.Key.EndsWith("Right")))
+                else
                 {
-                    Controller.GetElementByName(x.Key).RefPosition = new Vector3(100, 0, 0) - (Controller.OriginalElements[x.Key.Replace("Right", "Left")].RefPosition - new Vector3(100, 0, 0));
+                    PluginLog.Information("No mirrored puddle detected");
+                    foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ")))
+                    {
+                        Controller.GetElementByName(x.Key).RefPosition = Controller.OriginalElements[x.Key].RefPosition;
+                    }
                 }
             }
-            else
+            //> [05.11.2026 22:51:12 +03:00] Action #18484 Alpha Sword cast on 11342/Cruise Chaser effect on me npc id=9218, model id=1606, transform=0 data=11342 name=Cruise Chaser ActionEffect|18484|11342|me|9218|1606|0|11342
+            //> [05.11.2026 22:53:27 +03:00] Action #18883 Super Blassty Charge cast on 11342/Cruise Chaser effect on DRG npc id=9218, model id=1606, transform=0 data=11342 name=Cruise Chaser ActionEffect|18883|11342|DRG|9218|1606|0|11342
+            if(set.Action?.RowId == 18484 || set.Action?.RowId == 18883)
             {
-                PluginLog.Information("No mirrored puddle detected");
-                foreach(var x in Controller.OriginalElements.Where(e => e.Key.StartsWith("Soak ")))
-                {
-                    Controller.GetElementByName(x.Key).RefPosition = Controller.OriginalElements[x.Key].RefPosition;
-                }
+                State.Phase++;
             }
-        }
-        //> [05.11.2026 22:51:12 +03:00] Action #18484 Alpha Sword cast on 11342/Cruise Chaser effect on me npc id=9218, model id=1606, transform=0 data=11342 name=Cruise Chaser ActionEffect|18484|11342|me|9218|1606|0|11342
-        //> [05.11.2026 22:53:27 +03:00] Action #18883 Super Blassty Charge cast on 11342/Cruise Chaser effect on DRG npc id=9218, model id=1606, transform=0 data=11342 name=Cruise Chaser ActionEffect|18883|11342|DRG|9218|1606|0|11342
-        if(set.Action?.RowId == 18484 || set.Action?.RowId == 18883)
-        {
-            State.Phase++;
         }
     }
 
     //> [05.11.2026 22:36:43 +03:00] Steam Chakram starts casting 18517 (9217>18517)
     public override unsafe void OnStartingCast(uint sourceId, PacketActorCast* packet)
     {
-        if(packet->ActionDescriptor == new ActionDescriptor(ActionType.Action, 18517))
+        if(State.Phase != Phase.None)
         {
-            State.Phase = Phase.Chakram_casting;
+            if(packet->ActionDescriptor == new ActionDescriptor(ActionType.Action, 18517))
+            {
+                State.Phase = Phase.Chakram_casting;
+            }
         }
     }
 

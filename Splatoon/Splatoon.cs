@@ -131,6 +131,7 @@ public unsafe class Splatoon : IDalamudPlugin
     public Archive Archive;
     private ActorControlProcessor ActorControlProcessor;
     internal BuffEffectProcessor BuffEffectProcessor;
+    internal StatusHookProcessor StatusHookProcessor;
     internal LogWindow LogWindow;
     internal PriorityPopupWindow PriorityPopupWindow;
     internal ScriptUpdateWindow ScriptUpdateWindow;
@@ -247,7 +248,15 @@ public unsafe class Splatoon : IDalamudPlugin
         SingletonServiceManager.Initialize(typeof(S));
         Archive = EzConfig.LoadConfiguration<Archive>("Archive.json");
         ActorControlProcessor = new ActorControlProcessor();
-        BuffEffectProcessor = new();
+        // Chosen once per load: switching needs a plugin reload (Tools > Experimental)
+        if(Config.ExperimentalStatusHooks)
+        {
+            StatusHookProcessor = new();
+        }
+        else
+        {
+            BuffEffectProcessor = new();
+        }
         LogWindow = new();
         EzConfigGui.WindowSystem.AddWindow(LogWindow);
         PriorityPopupWindow = new();
@@ -300,7 +309,8 @@ public unsafe class Splatoon : IDalamudPlugin
         Safe(TetherProcessor.Dispose);
         Safe(AttachedInfo.Dispose);
         Safe(ScriptingProcessor.Dispose);
-        Safe(BuffEffectProcessor.Dispose);
+        Safe(() => BuffEffectProcessor?.Dispose());
+        Safe(() => StatusHookProcessor?.Dispose());
         ECommonsMain.Dispose();
         P = null;
         //Svc.Chat.Print("Disposing");
@@ -660,7 +670,7 @@ public unsafe class Splatoon : IDalamudPlugin
             }
             prevCombatState = Svc.Condition[ConditionFlag.InCombat];
             CurrentChatMessages.Clear();
-            BuffEffectProcessor.ActorEffectUpdate();
+            BuffEffectProcessor?.ActorEffectUpdate();
             ScriptingProcessor.OnUpdate();
             CapturedPositions.Clear();
         }

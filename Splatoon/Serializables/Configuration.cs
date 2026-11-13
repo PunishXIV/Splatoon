@@ -131,6 +131,9 @@ internal class Configuration : IEzConfig
     public WindowBasePosition AttentionBasePositionY = WindowBasePosition.Start;
     public Vector2 AttentionBaseOffset = default;
     public bool AttentionNoAnimate = false;
+
+    /// <summary>Raise status events from the functions that write status slots instead of comparing every slot each frame. Applied on plugin load.</summary>
+    public bool ExperimentalStatusHooks = false;
     public HashSet<string> DisabledAttentionWindowScripts = [];
 
     public PointerLineStyle DefaultPointerLineStyle = PointerLineStyle.Default;

@@ -225,7 +225,8 @@ internal unsafe partial class CGui : ConfigWindow
                         ("Debug".Loc(), DisplayDebug, null, true),
                         ("Log".Loc(), InternalLog.PrintImgui, null, false),
                         ("Dynamic".Loc(), DisplayDynamicElements, null, true),
-                        ("Trusted Repos".Loc(), TabTrustedRepos.Draw, null, true)
+                        ("Trusted Repos".Loc(), TabTrustedRepos.Draw, null, true),
+                        ("Experimental".Loc(), TabExperimental.Draw, null, true)
                         );
                     }, null, true),
                     ("Contribute".Loc(), Contribute.Draw, null, true)

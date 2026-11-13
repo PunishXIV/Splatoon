@@ -227,15 +227,17 @@ public abstract class SplatoonScript
     public virtual void OnActionEffectEvent(ActionEffectSet set) { }
 
     /// <summary>
-    /// Called when the server applies an action to one of its targets (EffectResult / EffectResultBasic), i.e. when HP, shield and statuses
-    /// actually change. <see cref="OnActionEffectEvent"/> is the announcement of the action; this is when it lands, usually 0.5-2 seconds later.
-    /// Called once per target, and once more if the source of the action is affected too (<see cref="ActionEffectResult.IsSource"/>).
+    /// Called for every entry of EffectResult / EffectResultBasic, i.e. when the server applies something to a character and its HP, shield and statuses
+    /// actually change. For an action, <see cref="OnActionEffectEvent"/> is the announcement; this is when it lands, usually 0.5-2 seconds later.
+    /// An action calls this once per target, and once more if its source is affected too (<see cref="ActionEffectResult.IsSource"/>).
     /// Status changes contained in the same packet have already been reported through <see cref="OnGainBuffEffect"/> and the others.<br></br>
+    /// Check <see cref="ActionEffectResult.HasActionEffect"/> first: without it, <paramref name="set"/> is empty (damage over time, fall damage, HP sync,
+    /// or an action seen before the plugin loaded); <see cref="ActionEffectResult.TargetId"/> and <see cref="ActionEffectResult.RecipientId"/> are still valid.<br></br>
     /// Do not read effects through <paramref name="set"/>.TargetEffects: they point into a packet that no longer exists. Use <see cref="ActionEffectResult.Effects"/>.
     /// </summary>
-    /// <param name="set">The ActionEffect this result belongs to (action, source, header).</param>
-    /// <param name="targetIndex">Index of the target in <paramref name="set"/>.TargetEffects. Its TargetID is safe to read.</param>
-    /// <param name="result">Recipient, effects on the target and HP/shield before and after. The effects array is shared, do not modify it.</param>
+    /// <param name="set">The ActionEffect this result belongs to (action, header). Empty when <see cref="ActionEffectResult.HasActionEffect"/> is false.</param>
+    /// <param name="targetIndex">Index of the target in <paramref name="set"/>.TargetEffects.</param>
+    /// <param name="result">Source, target and recipient IDs, effects on the target and HP/shield before and after.</param>
     public virtual void OnActionEffectApplied(ActionEffectSet set, int targetIndex, ActionEffectResult result) { }
 
     /// <summary>

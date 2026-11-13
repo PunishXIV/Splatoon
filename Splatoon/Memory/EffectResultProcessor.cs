@@ -36,11 +36,14 @@ internal unsafe class EffectResultProcessor : IDisposable
     private EzHook<EffectResultDelegate> EffectResultHook;
     private EzHook<EffectResultBasicDelegate> EffectResultBasicHook;
 
-    private sealed record Stored(ActionEffectSet Set, EffectEntry[][] Effects, long Time);
+    private const uint InvalidId = 0xE0000000;
+
+    // IDs are taken as numbers when the ActionEffect arrives: the source object may be gone by the time the result lands
+    private sealed record Stored(ActionEffectSet Set, uint SourceId, uint[] TargetIds, EffectEntry[][] Effects, long Time);
     private readonly Dictionary<uint, Stored> Sets = [];
     private readonly Queue<(uint Sequence, long Time)> Order = new();
 
-    private readonly record struct Pending(Stored Stored, int TargetIndex, uint HpBefore, uint HpAfter, int ShieldBefore, int ShieldAfter);
+    private readonly record struct Pending(Stored? Stored, uint Sequence, uint EntryTargetId, int TargetIndex, uint HpBefore, uint HpAfter, int ShieldBefore, int ShieldAfter);
     private readonly List<Pending> PendingResults = [];
 
     internal EffectResultProcessor()
@@ -92,14 +95,17 @@ internal unsafe class EffectResultProcessor : IDisposable
             var targets = set.TargetEffects;
             if(targets.Length == 0) return;
             var effects = new EffectEntry[targets.Length][];
+            var targetIds = new uint[targets.Length];
             for(var i = 0; i < targets.Length; i++)
             {
                 var copy = new EffectEntry[8];
                 for(var j = 0; j < copy.Length; j++) copy[j] = targets[i][j];
                 effects[i] = copy;
+                targetIds[i] = (uint)targets[i].TargetID;
             }
+            var sourceId = set.SourceCharacter?.EntityId ?? (uint)(set.Source?.GameObjectId ?? InvalidId);
             var sequence = set.Header.GlobalEffectCounter;
-            Sets[sequence] = new(set, effects, now);
+            Sets[sequence] = new(set, sourceId, targetIds, effects, now);
             Order.Enqueue((sequence, now));
         }
         catch(Exception e)
@@ -125,11 +131,12 @@ internal unsafe class EffectResultProcessor : IDisposable
 
     /// <summary>
     /// Reads the entries before the game applies them, so the recipient's current HP and shield are the values before.
+    /// Every entry is reported; entries that can't be linked to a stored ActionEffect are reported without one.
     /// </summary>
     private bool Collect(uint recipientId, byte* packet, byte isReplay, int stride, int indexOffset, int shieldOffset)
     {
         PendingResults.Clear();
-        if(Sets.Count == 0 || packet == null) return false;
+        if(packet == null) return false;
         try
         {
             // During duty recorder playback the game applies the recorded packets (isReplay = 1) and ignores live ones
@@ -142,12 +149,14 @@ internal unsafe class EffectResultProcessor : IDisposable
             {
                 var entry = packet + stride * i;
                 var sequence = *(uint*)(entry + 4);
-                if(sequence == 0 || !Sets.TryGetValue(sequence, out var stored)) continue;
-                var targetId = *(uint*)(entry + 8);
+                var entryTargetId = *(uint*)(entry + 8);
                 int targetIndex = entry[indexOffset];
-                var targets = stored.Set.TargetEffects;
-                if(targetIndex >= targets.Length || (uint)targets[targetIndex].TargetID != targetId) continue;
-                PendingResults.Add(new(stored, targetIndex, hpBefore, *(uint*)(entry + 0xC), shieldBefore, shieldOffset < 0 ? -1 : entry[shieldOffset]));
+                Stored stored = null;
+                if(sequence != 0 && Sets.TryGetValue(sequence, out var s) && targetIndex < s.TargetIds.Length && s.TargetIds[targetIndex] == entryTargetId)
+                {
+                    stored = s;
+                }
+                PendingResults.Add(new(stored, sequence, entryTargetId, targetIndex, hpBefore, *(uint*)(entry + 0xC), shieldBefore, shieldOffset < 0 ? -1 : entry[shieldOffset]));
             }
         }
         catch(Exception e)
@@ -166,10 +175,24 @@ internal unsafe class EffectResultProcessor : IDisposable
         PendingResults.Clear();
         foreach(var r in results)
         {
-            var set = r.Stored.Set;
-            var isSource = recipientId != (uint)set.TargetEffects[r.TargetIndex].TargetID && recipientId == (uint)(set.Source?.GameObjectId ?? 0);
-            ScriptingProcessor.OnActionEffectApplied(set, r.TargetIndex,
-                new(recipientId, isSource, basic, r.Stored.Effects[r.TargetIndex], r.HpBefore, r.HpAfter, r.ShieldBefore, r.ShieldAfter, now - r.Stored.Time));
+            var stored = r.Stored;
+            if(stored != null)
+            {
+                var targetId = stored.TargetIds[r.TargetIndex];
+                var isSource = recipientId != targetId && recipientId == stored.SourceId;
+                ScriptingProcessor.OnActionEffectApplied(stored.Set, r.TargetIndex,
+                    new(true, r.Sequence, stored.SourceId, targetId, recipientId, isSource, basic, stored.Effects[r.TargetIndex],
+                        r.HpBefore, r.HpAfter, r.ShieldBefore, r.ShieldAfter, now - stored.Time));
+            }
+            else
+            {
+                // Without the ActionEffect the source is unknown. Sequence 0 is not an action at all (damage over time, fall damage, HP sync):
+                // the target is the recipient. Otherwise the entry still names the target of the action.
+                var targetId = r.Sequence != 0 && r.EntryTargetId is not (0 or InvalidId) ? r.EntryTargetId : recipientId;
+                ScriptingProcessor.OnActionEffectApplied(default, r.TargetIndex,
+                    new(false, r.Sequence, InvalidId, targetId, recipientId, false, basic, [],
+                        r.HpBefore, r.HpAfter, r.ShieldBefore, r.ShieldAfter, -1));
+            }
         }
     }
 }

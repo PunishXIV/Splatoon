@@ -811,6 +811,21 @@ internal unsafe static partial class ScriptingProcessor
         }
     }
 
+    internal static void OnActionEffectApplied(ActionEffectSet set, int targetIndex, ActionEffectResult result)
+    {
+        for(var i = 0; i < Scripts.Count; i++)
+        {
+            if(Scripts[i].IsEnabled)
+            {
+                try
+                {
+                    Scripts[i].OnActionEffectApplied(set, targetIndex, result);
+                }
+                catch(Exception e) { Scripts[i].LogError(e, nameof(SplatoonScript.OnActionEffectApplied)); }
+            }
+        }
+    }
+
     internal static void OnActionEffectEvent(ActionEffectSet set)
     {
         for(var i = 0; i < Scripts.Count; i++)

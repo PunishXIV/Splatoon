@@ -132,6 +132,7 @@ public unsafe class Splatoon : IDalamudPlugin
     private ActorControlProcessor ActorControlProcessor;
     internal BuffEffectProcessor BuffEffectProcessor;
     internal StatusHookProcessor StatusHookProcessor;
+    internal EffectResultProcessor EffectResultProcessor;
     internal LogWindow LogWindow;
     internal PriorityPopupWindow PriorityPopupWindow;
     internal ScriptUpdateWindow ScriptUpdateWindow;
@@ -257,6 +258,7 @@ public unsafe class Splatoon : IDalamudPlugin
         {
             BuffEffectProcessor = new();
         }
+        EffectResultProcessor = new();
         LogWindow = new();
         EzConfigGui.WindowSystem.AddWindow(LogWindow);
         PriorityPopupWindow = new();
@@ -311,6 +313,7 @@ public unsafe class Splatoon : IDalamudPlugin
         Safe(ScriptingProcessor.Dispose);
         Safe(() => BuffEffectProcessor?.Dispose());
         Safe(() => StatusHookProcessor?.Dispose());
+        Safe(EffectResultProcessor.Dispose);
         ECommonsMain.Dispose();
         P = null;
         //Svc.Chat.Print("Disposing");
@@ -445,6 +448,7 @@ public unsafe class Splatoon : IDalamudPlugin
         ScriptingProcessor.TerritoryChanged();
         S.InfoBar.Update(true);
         MapEffectProcessor.History.Clear();
+        EffectResultProcessor?.Clear();
         S.Projection.LastCast.Clear();
     }
 

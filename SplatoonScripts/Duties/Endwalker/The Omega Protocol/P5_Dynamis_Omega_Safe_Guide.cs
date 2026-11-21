@@ -1,11 +1,15 @@
 using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState.Objects.Types;
 using ECommons;
+using ECommons.Configuration;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
 using ECommons.Hooks.ActionEffectTypes;
 using ECommons.MathHelpers;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
+using Splatoon;
 using Splatoon.SplatoonScripting;
+using Splatoon.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,7 +20,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
 {
     #region Metadata
-    public override Metadata Metadata { get; } = new(2, "mirage");
+    public override Metadata Metadata { get; } = new(3, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryTop];
     #endregion
 
@@ -38,6 +42,7 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
     private const float AngleSnap45 = 45f;
     private const float OuterSafeRadius = 10f;
     private const float InnerSafeRadius = 5f;
+    private const float SwordStaffFarRadius = 19f;
     private static readonly Vector3 ArenaCenter = new(100f, 0f, 100f);
 
     private const int StepAwaitingFirstWave = 0;
@@ -48,6 +53,9 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
     private const int SecondOmegaPairMinVisibleCount = 4;
 
     private const float SwordStaffQuadrantOffsetDegrees = 67.5f;
+    private const float SwordStaffFarOffsetDegrees = 225f;
+    private const string LayoutLanguage = "Language";
+    private static readonly string[] FieldMarkerNames = ["A", "B", "C", "D", "1", "2", "3", "4"];
     private const float SwordFootQuadrantOffsetDegrees = 32.5f;
     private const float ShieldStaffQuadrantOffsetDegrees = 45f;
     private const float ShieldFootQuadrantOffsetDegrees = 32.5f;
@@ -60,7 +68,7 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
     #endregion
 
     #region Config
-    // No IEZConfig in this script.
+    private Config C => Controller.GetConfig<Config>();
     #endregion
 
     #region State
@@ -70,6 +78,21 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
     #endregion
 
     #region Private Class
+    private enum SwordStaffSpotMode
+    {
+        Inner,
+        Outer
+    }
+
+    private sealed class Config : IEzConfig
+    {
+        public SwordStaffSpotMode SwordStaffSpot = SwordStaffSpotMode.Inner;
+        public float PillarHeight = TowerVerticalOffset;
+        public bool ShowCallout = true;
+        public bool CalloutOnHead = true;
+        public bool CalloutOnCenter;
+    }
+
     private sealed class OmegaPairInfo
     {
         public uint MaleObjectId;
@@ -88,6 +111,11 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
         Controller.RegisterElementFromCode("second_navi", """{"Name":"second_navi","radius":0,"fillIntensity":0.5,"thicc":25.0,"refActorDataID":14669,"refActorComparisonType":3}""", overwrite: true);
         Controller.RegisterElementFromCode("first_navi_tower", """{"Name":"first_navi_tower","type":2,"refX":100.0,"refY":100.0,"offX":100.0,"offY":100.0,"offZ":10.0,"radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":50.0,"refActorDataID":15708,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":3.3684855}""", overwrite: true);
         Controller.RegisterElementFromCode("second_navi_tower", """{"Name":"second_navi_tower","type":2,"refX":100.0,"refY":100.0,"offX":100.0,"offY":100.0,"offZ":10.0,"radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":50.0,"refActorDataID":15708,"refActorComparisonType":3,"includeRotation":true,"AdditionalRotation":3.3684855}""", overwrite: true);
+        Controller.RegisterElementFromCode("callout_head", """{"Name":"callout_head","type":1,"radius":0.0,"fillIntensity":0.5,"overlayBGColor":2516582400,"overlayTextColor":4294967295,"overlayVOffset":2.5,"overlayFScale":3.0,"thicc":0.0,"refActorType":1}""", overwrite: true);
+        Controller.RegisterElementFromCode("callout_center", """{"Name":"callout_center","refX":100.0,"refY":100.0,"radius":0.0,"Filled":false,"fillIntensity":0.5,"overlayVOffset":1.0,"overlayFScale":3.0,"thicc":0.0}""", overwrite: true);
+        Controller.TryRegisterLayoutFromCode(LayoutLanguage, """
+            ~Lv2~{"Name":"Language","ElementsL":[{"Name":"Guide","radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":0.0,"overlayText":"{0} → {1}","overlayTextIntl":{"Jp":"{0} から {1}"}},{"Name":"Inside","radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":0.0,"overlayText":" Inside","overlayTextIntl":{"Jp":"内"}},{"Name":"Middle","radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":0.0},{"Name":"Outside","radius":0.0,"Filled":false,"fillIntensity":0.5,"thicc":0.0,"overlayText":" Outside","overlayTextIntl":{"Jp":"外"}}]}
+            """, out _, overwrite: true);
     }
 
     public override void OnUpdate()
@@ -98,6 +126,8 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
             DisableElement("second_navi");
             DisableElement("first_navi_tower");
             DisableElement("second_navi_tower");
+            DisableElement("callout_head");
+            DisableElement("callout_center");
             return;
         }
 
@@ -126,6 +156,8 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
             UpdateTowerNavigation("first_navi_tower", shouldEnable: false, firstPos, rainbow: false);
             UpdateTowerNavigation("second_navi_tower", shouldEnable: false, secondPos, rainbow: false);
         }
+
+        UpdateCallout(firstReady, firstPos, secondReady, secondPos);
     }
 
     public override void OnReset()
@@ -141,6 +173,8 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
         DisableElement("second_navi");
         DisableElement("first_navi_tower");
         DisableElement("second_navi_tower");
+        DisableElement("callout_head");
+        DisableElement("callout_center");
     }
 
     public override void OnStartingCast(uint source, uint castId)
@@ -167,15 +201,29 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
 
     public override void OnSettingsDraw()
     {
-        ImGui.Text($"BasePlayer: {Controller.BasePlayer?.Name.ToString() ?? "null"}");
-        ImGui.Text($"Scene: {Controller.Scene} (P5={SceneId})");
-        ImGui.Text($"Step: {_step}");
-        ImGui.Text($"First Cast: {FormatCast(_firstInfo.OmegaCastId)}");
-        ImGui.Text($"Second Cast: {FormatCast(_secondInfo.OmegaCastId)}");
+        ImGui.TextDisabled("Settings");
         ImGui.Separator();
-        DrawPairDebug("First", _firstInfo);
+        ImGui.Text("Sword + Staff Guide");
+        ImGui.Indent();
+        if(ImGui.RadioButton("Inner##SwordStaff", C.SwordStaffSpot == SwordStaffSpotMode.Inner))
+            C.SwordStaffSpot = SwordStaffSpotMode.Inner;
+        ImGui.SameLine();
+        if(ImGui.RadioButton("Outer##SwordStaff", C.SwordStaffSpot == SwordStaffSpotMode.Outer))
+            C.SwordStaffSpot = SwordStaffSpotMode.Outer;
+        ImGui.Unindent();
+
+        ImGui.Spacing();
+        ImGui.TextDisabled("Visualizer");
         ImGui.Separator();
-        DrawPairDebug("Second", _secondInfo);
+        ImGui.SetNextItemWidth(200f);
+        ImGui.SliderFloat("Pillar Height", ref C.PillarHeight, 0f, 30f, "%.1f");
+        ImGui.Checkbox("Show Callout", ref C.ShowCallout);
+        ImGui.Indent();
+        ImGui.BeginDisabled(!C.ShowCallout);
+        ImGui.Checkbox("On Your Head", ref C.CalloutOnHead);
+        ImGui.Checkbox("On Center", ref C.CalloutOnCenter);
+        ImGui.EndDisabled();
+        ImGui.Unindent();
     }
     #endregion
 
@@ -258,44 +306,102 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
         element.SetRefPosition(safePosition);
         element.offX = safePosition.X;
         element.offY = safePosition.Z;
-        element.offZ = TowerVerticalOffset;
+        element.offZ = C.PillarHeight;
         if(rainbow)
             element.color = Controller.AttentionColor;
         element.Enabled = true;
     }
 
-    // Draws ImGui debug lines for one Omega pair in script settings.
-    private void DrawPairDebug(string label, OmegaPairInfo info)
+    // Shows the hint in the attention window, and on the head and arena center when enabled.
+    private void UpdateCallout(bool firstReady, Vector3 firstPos, bool secondReady, Vector3 secondPos)
     {
-        ImGui.Text($"{label} Pair");
-        ImGui.Text($"- Male ObjectId: {info.MaleObjectId}");
-        ImGui.Text($"- Female ObjectId: {info.FemaleObjectId}");
-        ImGui.Text($"- Ready: {info.IsReady}");
+        var text = _step == StepComplete ? "" : BuildCalloutText(firstReady, firstPos, secondReady, secondPos);
+        if(text.Length > 0)
+            Controller.DisplayAttentionWindowLine(text);
 
-        var male = Svc.Objects.FirstOrDefault(x => x.ObjectId == info.MaleObjectId) as IBattleNpc;
-        var female = Svc.Objects.FirstOrDefault(x => x.ObjectId == info.FemaleObjectId) as IBattleNpc;
-        if(male == null || female == null)
+        SetCalloutElement("callout_head", C.ShowCallout && C.CalloutOnHead, text);
+        SetCalloutElement("callout_center", C.ShowCallout && C.CalloutOnCenter, text);
+    }
+
+    // Enables one world callout element when it is selected and there is text.
+    private void SetCalloutElement(string elementName, bool show, string text)
+    {
+        if(!Controller.TryGetElementByName(elementName, out var element)) return;
+        if(!show || text.Length == 0)
         {
-            ImGui.Text("- Objects: missing");
+            element.Enabled = false;
+            element.overlayText = "";
             return;
         }
 
-        var maleTransform = male.GetTransformationID();
-        var femaleTransform = female.GetTransformationID();
-        var maleAngle = SnapTo45(GetRelativeAngleFromArenaCenter(male.Position));
-        var femaleAngle = SnapTo45(GetRelativeAngleFromArenaCenter(female.Position));
-        var safePos = GetSafePosition(male, female, info.OmegaCastId);
+        element.overlayText = text;
+        element.Enabled = true;
+    }
 
-        ImGui.Text($"- Male Transform/Angle: {maleTransform} ({FormatMaleTransform(maleTransform)}) / {maleAngle:0.##}");
-        ImGui.Text($"- Female Transform/Angle: {femaleTransform} ({FormatFemaleTransform(femaleTransform)}) / {femaleAngle:0.##}");
-        ImGui.Text($"- Pair Type: {GetPairType(maleTransform, femaleTransform)}");
-        ImGui.Text(safePos == null
-            ? "- Safe Position: unresolved"
-            : $"- Safe Position: X={safePos.Value.X:0.00}, Y={safePos.Value.Y:0.00}, Z={safePos.Value.Z:0.00}");
+    // Localized "{0} → {1}" from the two safe spots, or one side when the other is not ready.
+    private string BuildCalloutText(bool firstReady, Vector3 firstPos, bool secondReady, Vector3 secondPos)
+    {
+        if(!firstReady && !secondReady) return "";
+
+        var markerByAngle = BuildMarkerByAngle();
+        var first = firstReady ? FormatGuideSpot(firstPos, markerByAngle) : "";
+        var second = secondReady ? FormatGuideSpot(secondPos, markerByAngle) : "";
+        if(firstReady && secondReady) return string.Format(LayoutText("Guide"), first, second);
+        return firstReady ? first : second;
+    }
+
+    // Marker name at the safe spot's 45° angle, plus the localized inside or outside suffix.
+    private string FormatGuideSpot(Vector3 position, Dictionary<int, string> markerByAngle)
+    {
+        var snapped = SnapTo45Int(GetRelativeAngleFromArenaCenter(position));
+        var name = markerByAngle.TryGetValue(snapped, out var marker) ? marker : "?";
+        var dx = position.X - ArenaCenter.X;
+        var dz = position.Z - ArenaCenter.Z;
+        var radius = System.MathF.Sqrt(dx * dx + dz * dz);
+        var band = "Middle";
+        if(radius < (InnerSafeRadius + OuterSafeRadius) * 0.5f)
+            band = "Inside";
+        else if(radius > (OuterSafeRadius + SwordStaffFarRadius) * 0.5f)
+            band = "Outside";
+        return name + LayoutText(band);
+    }
+
+    // Localized overlay text from the Language layout. Empty when the element has no text.
+    private string LayoutText(string elementName)
+    {
+        var element = Controller.GetRegisteredLayouts().SafeSelect(LayoutLanguage)?.GetElement(elementName);
+        if(element == null) return "";
+        return element.overlayTextIntl.Get(element.overlayText);
+    }
+
+    // Active field markers keyed by angle snapped to 45°, north = 0. Closest marker wins a shared slot.
+    private static unsafe Dictionary<int, string> BuildMarkerByAngle()
+    {
+        var markerByAngle = new Dictionary<int, string>();
+        var bestDistance = new Dictionary<int, float>();
+        var markers = MarkingController.Instance()->FieldMarkers;
+        for(var i = 0; i < FieldMarkerNames.Length; i++)
+        {
+            var marker = markers[i];
+            if(!marker.Active) continue;
+
+            var angle = GetRelativeAngleFromArenaCenter(marker.Position);
+            var snapped = SnapTo45Int(angle);
+            var distance = System.MathF.Abs(NormalizeAngle(angle - snapped));
+            if(distance > 180f)
+                distance = 360f - distance;
+            if(bestDistance.TryGetValue(snapped, out var previous) && previous <= distance)
+                continue;
+
+            bestDistance[snapped] = distance;
+            markerByAngle[snapped] = FieldMarkerNames[i];
+        }
+
+        return markerByAngle;
     }
 
     // Safe spot from male/female transformation pair and wave cast id; null if unsupported.
-    private static Vector3? GetSafePosition(IBattleNpc male, IBattleNpc female, uint omegaCastId)
+    private Vector3? GetSafePosition(IBattleNpc male, IBattleNpc female, uint omegaCastId)
     {
         var maleTransform = male.GetTransformationID();
         var femaleTransform = female.GetTransformationID();
@@ -306,7 +412,14 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
 
         if(maleTransform == TransformSword && femaleTransform == TransformStaff)
         {
-            var offset = GetQuadrantOffset(maleAngle, omegaCastId, SwordStaffQuadrantOffsetDegrees, invertHorizontal: true);
+            var amount = SwordStaffQuadrantOffsetDegrees;
+            if(C.SwordStaffSpot == SwordStaffSpotMode.Outer)
+            {
+                amount = SwordStaffFarOffsetDegrees;
+                radius = SwordStaffFarRadius;
+            }
+
+            var offset = GetQuadrantOffset(maleAngle, omegaCastId, amount, invertHorizontal: true);
             angle = femaleAngle + offset;
         }
         else if(maleTransform == TransformSword && femaleTransform == TransformFoot)
@@ -355,6 +468,10 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
         return (float)(System.Math.Round(normalized / AngleSnap45) * AngleSnap45) % 360f;
     }
 
+    // SnapTo45 as an integer degree in 0–359, for marker lookup.
+    private static int SnapTo45Int(float angle)
+        => (int)System.Math.Round(SnapTo45(angle)) % 360;
+
     // Wraps angle to [0, 360).
     private static float NormalizeAngle(float angle)
         => (angle % 360f + 360f) % 360f;
@@ -373,42 +490,6 @@ public class P5_Dynamis_Omega_Safe_Guide : SplatoonScript
     // Degrees from arena center toward position (same basis as safe spot math).
     private static float GetRelativeAngleFromArenaCenter(Vector3 position)
         => MathHelper.GetRelativeAngle(ArenaCenter, position);
-
-    // Short debug label for male+female transformation id pair.
-    private static string GetPairType(ushort maleTransform, ushort femaleTransform)
-    {
-        if(maleTransform == TransformSword && femaleTransform == TransformStaff) return "Sword+Staff";
-        if(maleTransform == TransformSword && femaleTransform == TransformFoot) return "Sword+Foot";
-        if(maleTransform == TransformShield && femaleTransform == TransformStaff) return "Shield+Staff";
-        if(maleTransform == TransformShield && femaleTransform == TransformFoot) return "Shield+Foot";
-        return "Unknown";
-    }
-
-    // Display name for male Omega transformation id.
-    private static string FormatMaleTransform(ushort transform)
-    {
-        if(transform == TransformSword) return "Sword";
-        if(transform == TransformShield) return "Shield";
-        return "Unknown";
-    }
-
-    // Display name for female Omega transformation id.
-    private static string FormatFemaleTransform(ushort transform)
-    {
-        if(transform == TransformStaff) return "Staff";
-        if(transform == TransformFoot) return "Foot";
-        return "Unknown";
-    }
-
-    // Human-readable text for a tracked P5 wave cast id (settings UI).
-    private static string FormatCast(uint castId)
-    {
-        if(castId == CastWaveFirstHorizontal) return $"{CastWaveFirstHorizontal} (First Horizontal)";
-        if(castId == CastWaveFirstVertical) return $"{CastWaveFirstVertical} (First Vertical)";
-        if(castId == CastWaveSecondHorizontal) return $"{CastWaveSecondHorizontal} (Second Horizontal)";
-        if(castId == CastWaveSecondVertical) return $"{CastWaveSecondVertical} (Second Vertical)";
-        return "0 (unset)";
-    }
 
     // Turns off a layout element by name if it exists.
     private void DisableElement(string name)

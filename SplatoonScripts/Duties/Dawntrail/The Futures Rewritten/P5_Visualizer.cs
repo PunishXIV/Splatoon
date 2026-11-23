@@ -52,6 +52,7 @@ public class P5_Visualizer : SplatoonScript
     private bool _polarizing;
     private int _polarizingHits;
     private uint _wingCast;
+    private uint _wingSource;
     private bool _wingSecond;
     private uint _mainTank;
     private uint _subTank;
@@ -91,7 +92,7 @@ public class P5_Visualizer : SplatoonScript
             ~Lv2~{"Name":"Akh Morn","ZoneLockH":[1238],"ElementsL":[{"Name":"Pandra Right","type":1,"Enabled":false,"radius":2.75,"Donut":0.25,"color":4294902015,"fillIntensity":0.214,"refActorComparisonType":2},{"Name":"Pandra Left","type":1,"Enabled":false,"radius":2.75,"Donut":0.25,"color":4278255615,"fillIntensity":0.214,"refActorComparisonType":2},{"Name":"Separator","type":3,"Enabled":false,"refY":10.0,"offY":-10.0,"radius":0.0,"fillIntensity":0.197,"thicc":10.0,"refActorDataID":17839,"refActorRequireCast":true,"refActorCastId":[40310],"refActorComparisonType":3,"includeRotation":true}]}
             """, out _, overwrite: true);
         Controller.TryRegisterLayoutFromCode(LayoutParadise, """
-            ~Lv2~{"Name":"Paradise Regained","ZoneLockH":[1238],"ElementsL":[{"Name":"MT","type":1,"Enabled":false,"refActorComparisonType":2,"IsCapturing":true,"Nodraw":true},{"Name":"ST","type":1,"Enabled":false,"refActorComparisonType":2,"IsCapturing":true,"Nodraw":true},{"Name":"[Light to Dark] 1st Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-180,"coneAngleMax":45,"color":3355497983,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"},{"Name":"[Light to Dark] 1st AOE","type":1,"Enabled":false,"radius":5.0,"color":3355497983,"fillIntensity":0.2,"refActorDataID":17839,"TargetAlteration":2100,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"},{"Name":"[Light to Dark] 2nd Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-45,"coneAngleMax":180,"color":3372155135,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:ST>"},{"Name":"[Light to Dark] 2nd AOE","type":1,"Enabled":false,"radius":5.0,"color":3372155135,"fillIntensity":0.2,"refActorDataID":17839,"TargetAlteration":1100,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"},{"Name":"[Dark to Light] 1st Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-45,"coneAngleMax":180,"color":3372155135,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:ST>"},{"Name":"[Dark to Light] 1st AOE","type":1,"Enabled":false,"radius":5.0,"color":3372155135,"fillIntensity":0.2,"refActorDataID":17839,"TargetAlteration":1100,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"},{"Name":"[Dark to Light] 2nd Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-180,"coneAngleMax":45,"color":3355497983,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"},{"Name":"[Dark to Light] 2nd AOE","type":1,"Enabled":false,"radius":5.0,"color":3355497983,"fillIntensity":0.2,"refActorDataID":17839,"TargetAlteration":2100,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"}]}
+            ~Lv2~{"Name":"Paradise Regained","ZoneLockH":[1238],"ElementsL":[{"Name":"MT","type":1,"Enabled":false,"refActorComparisonType":2,"IsCapturing":true,"Nodraw":true},{"Name":"ST","type":1,"Enabled":false,"refActorComparisonType":2,"IsCapturing":true,"Nodraw":true},{"Name":"[Light to Dark] 1st Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-180,"coneAngleMax":45,"color":3355497983,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"},{"Name":"[Light to Dark] 1st AOE","type":1,"Enabled":false,"radius":5.0,"color":3355497983,"fillIntensity":0.2,"refActorComparisonType":2},{"Name":"[Light to Dark] 2nd Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-45,"coneAngleMax":180,"color":3372155135,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:ST>"},{"Name":"[Light to Dark] 2nd AOE","type":1,"Enabled":false,"radius":5.0,"color":3372155135,"fillIntensity":0.2,"refActorComparisonType":2},{"Name":"[Dark to Light] 1st Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-45,"coneAngleMax":180,"color":3372155135,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:MT>"},{"Name":"[Dark to Light] 1st AOE","type":1,"Enabled":false,"radius":5.0,"color":3372155135,"fillIntensity":0.2,"refActorComparisonType":2},{"Name":"[Dark to Light] 2nd Cone","type":4,"Enabled":false,"radius":20.0,"coneAngleMin":-180,"coneAngleMax":45,"color":3355497983,"fillIntensity":0.2,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:ST>"},{"Name":"[Dark to Light] 2nd AOE","type":1,"Enabled":false,"radius":5.0,"color":3355497983,"fillIntensity":0.2,"refActorComparisonType":2}]}
             """, out _, overwrite: true);
         Controller.TryRegisterLayoutFromCode(LayoutPolarizing, """
             ~Lv2~{"Name":"Polarizing Strikes","ZoneLockH":[1238],"ElementsL":[{"Name":"L","type":1,"Enabled":false,"radius":0.0,"refActorComparisonType":2,"IsCapturing":true,"Nodraw":true},{"Name":"Left Line","type":3,"Enabled":false,"offY":20.0,"radius":3.0,"color":4278255615,"fillIntensity":0.345,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:L>"},{"Name":"R","type":1,"Enabled":false,"radius":0.0,"refActorComparisonType":2,"IsCapturing":true,"Nodraw":true},{"Name":"Right Line","type":3,"Enabled":false,"offY":20.0,"radius":3.0,"color":4294902015,"fillIntensity":0.345,"refActorDataID":17839,"refActorComparisonType":3,"includeRotation":true,"FaceMe":true,"faceplayer":"<element:R>"}]}
@@ -121,6 +122,7 @@ public class P5_Visualizer : SplatoonScript
         else if(castId is CastWingLight or CastWingDark)
         {
             _wingCast = castId;
+            _wingSource = source;
             _wingSecond = false;
             _mainTank = TopHate();
             _subTank = 0;
@@ -323,10 +325,10 @@ public class P5_Visualizer : SplatoonScript
         var active = C.ShowParadise && _wingCast != 0;
         var light = active && _wingCast == CastWingLight;
         var dark = active && _wingCast == CastWingDark;
-        SetPair("[Light to Dark] 1st", light && !_wingSecond);
-        SetPair("[Light to Dark] 2nd", light && _wingSecond);
-        SetPair("[Dark to Light] 1st", dark && !_wingSecond);
-        SetPair("[Dark to Light] 2nd", dark && _wingSecond);
+        SetPair("[Light to Dark] 1st", light && !_wingSecond, farthest: true);
+        SetPair("[Light to Dark] 2nd", light && _wingSecond, farthest: false);
+        SetPair("[Dark to Light] 1st", dark && !_wingSecond, farthest: false);
+        SetPair("[Dark to Light] 2nd", dark && _wingSecond, farthest: true);
         SetEnabled(LayoutParadise, "MT", active);
         SetEnabled(LayoutParadise, "ST", active);
         if(!active)
@@ -336,17 +338,37 @@ public class P5_Visualizer : SplatoonScript
         SetActor(LayoutParadise, "ST", _subTank);
     }
 
-    // Shows or hides the cone and circle of one wing step.
-    private void SetPair(string prefix, bool enabled)
+    // Shows or hides one wing step, and places its circle on the near or far player.
+    private void SetPair(string prefix, bool enabled, bool farthest)
     {
         SetEnabled(LayoutParadise, $"{prefix} Cone", enabled);
         SetEnabled(LayoutParadise, $"{prefix} AOE", enabled);
+        var excluded = _wingSecond ? _subTank : _mainTank;
+        SetActor(LayoutParadise, $"{prefix} AOE", enabled ? PickByDistance(_wingSource, excluded, farthest) : 0);
+    }
+
+    // Nearest or farthest living party member from the caster, skipping the cone target.
+    private uint PickByDistance(uint source, uint excluded, bool farthest)
+    {
+        if(!source.TryGetObject(out var origin))
+            return 0;
+
+        var ordered = Controller.GetPartyMembers()
+            .Where(player => player.CurrentHp > 0 && player.EntityId != excluded)
+            .Select(player => (
+                player.EntityId,
+                Distance: Vector3.DistanceSquared(player.Position, origin.Position)));
+        var picked = farthest
+            ? ordered.OrderByDescending(x => x.Distance).ThenBy(x => x.EntityId).FirstOrDefault()
+            : ordered.OrderBy(x => x.Distance).ThenBy(x => x.EntityId).FirstOrDefault();
+        return picked.EntityId;
     }
 
     // Drops Paradise Regained back to idle.
     private void ClearParadise()
     {
         _wingCast = 0;
+        _wingSource = 0;
         _wingSecond = false;
         _mainTank = 0;
         _subTank = 0;

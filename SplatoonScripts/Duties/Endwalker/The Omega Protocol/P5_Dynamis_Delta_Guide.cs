@@ -21,7 +21,7 @@ namespace SplatoonScriptsOfficial.Duties.Endwalker.The_Omega_Protocol;
 public class P5_Dynamis_Delta_Guide : SplatoonScript
 {
     #region Metadata
-    public override Metadata Metadata { get; } = new(1, "mirage");
+    public override Metadata Metadata { get; } = new(2, "mirage");
     public override HashSet<uint>? ValidTerritories => [TerritoryTop];
     #endregion
 
@@ -73,6 +73,7 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
     private const string LayoutStep5Left = "step5_left";
     private const string LayoutStep5Right = "step5_right";
     private const string LayoutHints = "Hints";
+    private const string LayoutOmen = "Movement Omen Lines";
     private const string ElHint = "Hint";
     private const string ElPartnerTether = "PartnerTether";
     private const string ElBaitArm = "BaitArm";
@@ -83,6 +84,15 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
     private const float BaitArmAngleOffset = 10f;
     private const int ArmCount = 6;
 
+    private const string OmenInsideFarBreak = "inside far - break line omen";
+    private const string OmenInsideFarCenter = "inside far - go center omen";
+    private const string OmenOutsideFarHand = "outside far - bait hand omen";
+    private const string OmenInsideNearHand = "inside near - bait hand omen";
+    private const string OmenOutsideNearHand = "outside near - bait hand omen";
+    private const uint ColorOmenPreview = 3372220415;
+    private const uint ColorOmenMove = 3355508480;
+    private const float OmenTemplateBeetleAngle = 270f;
+
     private static readonly string[] AllGuideLayoutNames =
     [
         LayoutStep0,
@@ -92,7 +102,8 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
         LayoutStep4WaveRight,
         LayoutStep4WaveLeft,
         LayoutStep5Left,
-        LayoutStep5Right
+        LayoutStep5Right,
+        LayoutOmen
     ];
     #endregion
 
@@ -121,6 +132,7 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
         public RocketSwapSideMode BlueRocketSwapSide = RocketSwapSideMode.Inside;
         public RocketSwapSideMode GreenRocketSwapSide = RocketSwapSideMode.Inside;
         public BashedPlayerSideMode BashedPlayerSide = BashedPlayerSideMode.FinalOmega;
+        public bool ShowMovementOmenLine = true;
     }
 
     private Config C => Controller.GetConfig<Config>();
@@ -134,6 +146,7 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
     private bool _rocketsAssigned;
     private bool _armsReady;
     private int _step;
+    private readonly List<OmenLine> _omenLines = [];
     private WaveKind _wave;
     private RazorKind _razor;
     private float _beetleWorldAngle;
@@ -211,6 +224,15 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
         public float BeetleAngle;
         public bool IsCw;
     }
+
+    private sealed class OmenLine
+    {
+        public Element Element;
+        public float RefX;
+        public float RefY;
+        public float OffX;
+        public float OffY;
+    }
     #endregion
 
     #region LifeCycle
@@ -267,6 +289,11 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
         Controller.TryRegisterLayoutFromCode(LayoutHints, """
             ~Lv2~{"Enabled":false,"Name":"Hints","ZoneLockH":[1122],"ElementsL":[{"Name":"step0_Blue","overlayText":"ちびオメガへ"},{"Name":"step0_Green","overlayText":"でかオメガへ"},{"Name":"step1_BlueOut","overlayText":""},{"Name":"step1_swap_BlueOut","overlayText":"入れ替え"},{"Name":"step1_BlueIn","overlayText":""},{"Name":"step1_swap_BlueIn","overlayText":"入れ替え"},{"Name":"step1_GreenOut","overlayText":""},{"Name":"step1_swap_GreenOut","overlayText":"入れ替え"},{"Name":"step1_GreenIn","overlayText":""},{"Name":"step1_swap_GreenIn","overlayText":"入れ替え"},{"Name":"step2_BlueOut","overlayText":""},{"Name":"step2_BlueIn","overlayText":"パンチをかさねる"},{"Name":"step2_GreenOut","overlayText":""},{"Name":"step2_GreenIn","overlayText":""},{"Name":"step3_BaitArm","overlayText":"アーム誘導"},{"Name":"step3_BaitShield","overlayText":"バッシュ誘導"},{"Name":"step4_BaitCannon","overlayText":"検知誘導"},{"Name":"step4_IsShield_and_IsCannon","overlayText":"離れて検知"},{"Name":"step4_IsShiled_and_NotCannon","overlayText":"離れて"},{"Name":"step4_NotShield_and_IsCannon","overlayText":"検知＆頭割り"},{"Name":"step4_NotShiled_and_NotCannon","overlayText":"頭割り"},{"Name":"step5_Blue_NearWorld","overlayText":"ニアデバフ"},{"Name":"step5_Blue_FarWorld","overlayText":"ファーデバフ"},{"Name":"step5_Green_FarTaker1","overlayText":"時計回りに移動"},{"Name":"step5_Green_FarTaker2","overlayText":"時計回りに移動"},{"Name":"step5_Blue_Nothing1","overlayText":""},{"Name":"step5_Blue_Nothing2","overlayText":""},{"Name":"step5_Green_Nothing1","overlayText":""},{"Name":"step5_Green_Nothing2","overlayText":""},{"Name":"step5_Green_Nothing1_Waiting","overlayText":"線切り待機中"},{"Name":"step5_Green_Nothing1_GetClose","overlayText":"線を切れ"},{"Name":"step5_Green_Nothing2_Waiting","overlayText":"線切り待機中"},{"Name":"step5_Green_Nothing2_GetClose","overlayText":"線を切れ"},{"Name":"step6_Waiting","overlayText":"線切り待機中"},{"Name":"step6_GetClose","overlayText":"線を切れ"}]}
             """, out _, overwrite: true);
+
+        Controller.TryRegisterLayoutFromCode(LayoutOmen, """
+            ~Lv2~{"Enabled":false,"Name":"Movement Omen Lines","ZoneLockH":[1122],"ElementsL":[{"Name":"inside far - break line omen","type":2,"refX":90.0,"refY":110.0,"refZ":-5.456968E-12,"offX":90.0,"offY":104.0,"offZ":1.9073432E-06,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"inside far - break line omen","type":2,"refX":90.0,"refY":90.0,"refZ":-5.456968E-12,"offX":90.0,"offY":96.0,"offZ":1.9073432E-06,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"inside far - go center omen","type":2,"refX":92.0,"refY":95.0,"offX":100.0,"offY":95.0,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"inside far - go center omen","type":2,"refX":92.0,"refY":105.0,"offX":100.0,"offY":105.0,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"outside far - bait hand omen","type":2,"refX":90.0,"refY":105.0,"refZ":-5.456968E-12,"offX":83.0,"offY":110.0,"offZ":1.9073432E-06,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"outside far - bait hand omen","type":2,"refX":90.0,"refY":95.0,"refZ":-5.456968E-12,"offX":83.0,"offY":90.0,"offZ":1.9073432E-06,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"inside near - bait hand omen","type":2,"refX":110.0,"refY":110.0,"refZ":-5.456968E-12,"offX":100.0,"offY":120.0,"offZ":-5.456968E-12,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"inside near - bait hand omen","type":2,"refX":110.0,"refY":90.0,"refZ":-5.456968E-12,"offX":100.0,"offY":80.0,"offZ":-5.456968E-12,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"outside near - bait hand omen","type":2,"refX":110.0,"refY":110.0,"refZ":-5.456968E-12,"offX":117.381966,"offY":110.0,"offZ":-5.456968E-12,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}},{"Name":"outside near - bait hand omen","type":2,"refX":110.0,"refY":90.0,"refZ":-5.456968E-12,"offX":117.0,"offY":90.0,"offZ":-5.456968E-12,"radius":0.0,"color":3372220415,"Filled":false,"fillIntensity":0.5,"thicc":20.0,"EnablePointerLine":true,"PointerLineStyle":{"Width":1.0}}]}
+            """, out _, overwrite: true);
+        CaptureOmenLines();
     }
 
     public override void OnUpdate()
@@ -498,6 +525,8 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
     // Draws configuration options.
     private void DrawMainSettings()
     {
+        ImGui.TextDisabled("General");
+        ImGui.Separator();
         ImGui.Text("Far World Taker");
         ImGui.Indent();
         if(ImGui.RadioButton("Green Inside##FarTaker", C.Green_FarTaker == FarTakerMode.GreenInside))
@@ -530,6 +559,11 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
         if(ImGui.RadioButton("Beetle Omega", C.BashedPlayerSide == BashedPlayerSideMode.BeetleOmega))
             C.BashedPlayerSide = BashedPlayerSideMode.BeetleOmega;
         ImGui.Unindent();
+
+        ImGui.Spacing();
+        ImGui.TextDisabled("Visualizer");
+        ImGui.Separator();
+        ImGui.Checkbox("show Movement Omen Line", ref C.ShowMovementOmenLine);
     }
 
     // Draws runtime state and PlayerInfo table.
@@ -1127,6 +1161,7 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
             BindPartnerTether(me.PartnerId);
 
         UpdateHint(me);
+        UpdateMovementOmens(me);
     }
 
     // Places step3 BaitArm at VFX-derived spot; true when player is a BaitArm role.
@@ -1384,6 +1419,93 @@ public class P5_Dynamis_Delta_Guide : SplatoonScript
     {
         if(Controller.TryGetElementByName(ElHint, out var hint))
             hint.Enabled = false;
+    }
+
+    // Stores omen endpoints. Template puts far on the west, beetle at 270 deg.
+    private void CaptureOmenLines()
+    {
+        _omenLines.Clear();
+        if(!Controller.TryGetLayoutByName(LayoutOmen, out var layout))
+            return;
+
+        layout.Enabled = false;
+        foreach(var element in layout.ElementsL)
+        {
+            element.Enabled = false;
+            _omenLines.Add(new OmenLine
+            {
+                Element = element,
+                RefX = element.refX,
+                RefY = element.refY,
+                OffX = element.offX,
+                OffY = element.offY
+            });
+        }
+    }
+
+    // Shows the role's lines from role assignment. Green on the move step, then hide.
+    private void UpdateMovementOmens(PlayerInfo me)
+    {
+        if(!C.ShowMovementOmenLine || me.Role == RoleKind.None)
+            return;
+
+        if(!Controller.TryGetLayoutByName(LayoutOmen, out var layout))
+            return;
+
+        var beetle = Svc.Objects.FirstOrDefault(x => x.DataId == DataIdBeetle);
+        if(beetle == null)
+            return;
+
+        var turn = NormalizeAngle(GetWorldAngle(beetle.Position) - OmenTemplateBeetleAngle);
+        var shown = false;
+        foreach(var line in _omenLines)
+        {
+            var moveStep = ResolveOmenStep(me.Role, line.Element.Name);
+            if(moveStep == null || _step > moveStep)
+                continue;
+
+            var start = RotateOmenPoint(line.RefX, line.RefY, turn);
+            var end = RotateOmenPoint(line.OffX, line.OffY, turn);
+            line.Element.refX = start.X;
+            line.Element.refY = start.Y;
+            line.Element.offX = end.X;
+            line.Element.offY = end.Y;
+            line.Element.color = _step == moveStep ? ColorOmenMove : ColorOmenPreview;
+            line.Element.Enabled = true;
+            shown = true;
+        }
+
+        if(shown)
+            layout.Enabled = true;
+    }
+
+    // Blue is far (beetle), green is near (final). Step 2 cuts, step 3 baits.
+    private static int? ResolveOmenStep(RoleKind role, string name)
+        => (role, name) switch
+        {
+            (RoleKind.BlueIn, OmenInsideFarBreak) => 2,
+            (RoleKind.BlueIn, OmenInsideFarCenter) => 3,
+            (RoleKind.BlueOut, OmenOutsideFarHand) => 3,
+            (RoleKind.GreenIn, OmenInsideNearHand) => 3,
+            (RoleKind.GreenOut, OmenOutsideNearHand) => 3,
+            _ => null
+        };
+
+    // Rotates a template X/Z point around the arena center by compass degrees.
+    private static (float X, float Y) RotateOmenPoint(float x, float y, float deltaDeg)
+    {
+        var dx = x - ArenaCenter.X;
+        var dz = y - ArenaCenter.Z;
+        var radius = MathF.Sqrt(dx * dx + dz * dz);
+        if(radius < 0.001f)
+            return (x, y);
+
+        var angle = NormalizeAngle(GetWorldAngle(new Vector3(x, ArenaCenter.Y, y)) + deltaDeg);
+        var radian = angle.DegToRad();
+        return (
+            ArenaCenter.X + MathF.Sin(radian) * radius,
+            ArenaCenter.Z - MathF.Cos(radian) * radius
+        );
     }
     #endregion
 }
